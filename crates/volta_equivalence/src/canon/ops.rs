@@ -153,6 +153,19 @@ impl Session {
         Ok(out)
     }
 
+    /// Collect an additive spine once. Repeated pairwise merges of a long
+    /// accumulator can otherwise copy every prefix when existing term IDs are
+    /// interleaved or arrive in the opposite order to the append fast path.
+    pub(crate) fn poly_sum_vec(&mut self, polys: Vec<Poly>) -> Result<Poly, CanonError> {
+        let mut terms = Vec::new();
+        for poly in polys {
+            self.tick(poly.len() as u64)?;
+            terms.extend(poly);
+        }
+        terms.sort_by_key(|(term, _)| std::cmp::Reverse(*term));
+        merge_sorted(terms)
+    }
+
     /// `c * a` for a scalar, in place.
     pub(crate) fn poly_scale_vec(&mut self, mut a: Poly, c: &Coeff) -> Result<Poly, CanonError> {
         if c.is_one() {
