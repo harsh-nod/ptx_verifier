@@ -2,7 +2,9 @@
 //! types 1:1 instead of the CLI's flat string mini-DSL
 //! (`"in:0x10000:4:128:in"`).
 
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use volta_pipeline::Backend;
 
 use volta_ptx_analysis::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue};
 
@@ -86,23 +88,39 @@ impl ArrayDefPy {
 /// `AnalysisConfig` field-for-field.
 #[pyclass(name = "Config", from_py_object)]
 #[derive(Clone)]
-pub struct ConfigPy(pub(crate) AnalysisConfig);
+pub struct ConfigPy(pub(crate) AnalysisConfig, pub(crate) Backend);
 
 #[pymethods]
 impl ConfigPy {
     #[new]
-    #[pyo3(signature = (block, grid=(1, 1, 1), dynamic_shared_bytes=0, max_instructions=2_000_000_000))]
+    #[pyo3(signature = (block, grid=(1, 1, 1), dynamic_shared_bytes=0, max_instructions=2_000_000_000, *, backend="ptx", target=None))]
     fn new(
         block: (u32, u32, u32),
         grid: (u32, u32, u32),
         dynamic_shared_bytes: u64,
         max_instructions: u64,
-    ) -> Self {
+        backend: &str,
+        target: Option<&str>,
+    ) -> PyResult<Self> {
         let mut config = AnalysisConfig::new(block);
         config.grid_dim = grid;
         config.dynamic_shared_bytes = dynamic_shared_bytes;
         config.max_instructions = max_instructions;
-        ConfigPy(config)
+        let backend = Backend::select(backend, target).map_err(PyValueError::new_err)?;
+        Ok(ConfigPy(config, backend))
+    }
+
+    #[getter]
+    fn backend(&self) -> &'static str {
+        self.1.name()
+    }
+
+    #[getter]
+    fn target(&self) -> Option<&'static str> {
+        match self.1 {
+            Backend::Ptx => None,
+            Backend::Amdgpu => Some("gfx950"),
+        }
     }
 
     /// Declare a global-memory array visible to the kernel.

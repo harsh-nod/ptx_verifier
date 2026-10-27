@@ -1,0 +1,22 @@
+Native compiler fixture: clang22-copy-add.s
+Generation host: mi350-2
+Date: 2026-10-27
+Compiler: /opt/rocm/llvm/bin/clang++
+Version: AMD clang version 22.0.0git
+ROCm/llvm-project commit: 9b0f9aa3067a907226b0ebb8bee1fe51d1f0fca5
+Command:
+  clang++ -x hip --offload-device-only --offload-arch=gfx950 -O2 -S copy.hip -o copy.s
+AMDHSA code object: 6
+AMDHSA metadata: 1.2
+Wavefront: 64
+The source file was generated under the name copy.hip; the checked-in source is
+formatted for readability but has the same kernel declarations and computation.
+Assembly SHA256: efbdab3055e0fa697ca97a62275d7ab890d695aa1e46cb0a68280ddb442d9a1d
+Assembled object SHA256: d070ae367b965e5adb72e4383c3f6360dbe6af369a634cb21bde9ae30769b7ee
+Assembler validation: passed on mi350-2, 2026-10-27.
+
+Assembler validation command:
+  /opt/rocm/llvm/bin/llvm-mc --triple=amdgcn-amd-amdhsa --mcpu=gfx950 -filetype=obj copy.s -o copy.o
+
+Independent assembler probes on this toolchain confirmed vmcnt maximum 63,
+lgkmcnt maximum 15, and rejection of v256 and v511 register names.

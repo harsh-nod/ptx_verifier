@@ -1,0 +1,498 @@
+{
+  "schema": 1,
+  "assumptions": [
+    "mathematical real-number arithmetic",
+    "fixed shapes",
+    "selected workgroup zero",
+    "finite symbolic inputs; no bit-exact IEEE claim"
+  ],
+  "cases": [
+    {
+      "kernel": "relu_f16",
+      "family": "ReLUKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/relu.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 1024
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "out",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "notes": []
+    },
+    {
+      "kernel": "silu_f16",
+      "family": "SiLUKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/silu.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 512
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "length": 512,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "out",
+          "length": 512,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "notes": []
+    },
+    {
+      "kernel": "sigmoid_f16",
+      "family": "SigmoidKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/sigmoid.spec",
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 1024
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "out",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "notes": []
+    },
+    {
+      "kernel": "swiglu_f16",
+      "family": "SwiGLUKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/swiglu.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 1024
+      },
+      "arrays": [
+        {
+          "name": "gate",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "value",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "out",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:gate",
+        "ptr:value",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "notes": []
+    },
+    {
+      "kernel": "rope_f16",
+      "family": "RoPEKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/rope.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "H": 2,
+        "D": 64
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "length": 128,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "cosine",
+          "length": 128,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "sine",
+          "length": 128,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 786432
+        },
+        {
+          "name": "out",
+          "length": 128,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:cosine",
+        "ptr:sine",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "notes": []
+    },
+    {
+      "kernel": "reduction_f16",
+      "family": "ReductionSumKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/reduction.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "R": 1,
+        "N": 4096,
+        "TILE": 256
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "length": 4096,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "out",
+          "length": 1,
+          "element_size": 4,
+          "kind": "inout",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "notes": [
+        "Preserves baseline atomic addition into existing output; atomic semantics currently pending.",
+        "Only workgroup zero is scoped; this is not whole-grid atomic verification."
+      ]
+    },
+    {
+      "kernel": "softmax_f16",
+      "family": "SoftmaxKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/softmax.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "R": 4,
+        "C": 256
+      },
+      "arrays": [
+        {
+          "name": "out",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        },
+        {
+          "name": "x",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        }
+      ],
+      "params": [
+        "ptr:out",
+        "ptr:x",
+        "int:256",
+        "int:256",
+        "int:4",
+        "int:256"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "notes": []
+    },
+    {
+      "kernel": "rmsnorm_f16",
+      "family": "RMSNormKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/rmsnorm.spec",
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "R": 1,
+        "N": 4096
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "length": 4096,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "weight",
+          "length": 4096,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "out",
+          "length": 4096,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:weight",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "notes": []
+    },
+    {
+      "kernel": "matvec_f16",
+      "family": "MatrixVectorMultiplicationKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/matvec.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "M": 32,
+        "K": 4096
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "length": 131072,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "x",
+          "length": 4096,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "out",
+          "length": 32,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:x",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "notes": [
+        "Arithmetic+LDS reference only; native matrix-pipelining property remains open."
+      ]
+    }
+  ]
+}

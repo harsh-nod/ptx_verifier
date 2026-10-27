@@ -1,5 +1,43 @@
 # volta_graph_check
 
+For exactly the `gfx950` target, `check_graph` selects four AMD properties:
+trace completeness, wait/register readiness, workgroup barrier generations, and
+memory-conflict freedom. `Property::ALL` retains the ten PTX properties for API
+compatibility; consumers must enumerate `report.applicable_properties()` or
+`report.summaries()`. `report.amd` retains typed register and barrier witnesses.
+Empty/missing AMD instrumentation, malformed graphs, conflicting targets, foreign
+events, unsupported memory effects, and missing instruction/issue associations
+cannot produce `Verified`. An aborted prefix remains incomplete even if its checked
+obligations pass.
+
+AMD ordering is independent of PTX certificates. VM and LDS FIFO pipelines, waits
+that guarantee completion, and validated workgroup rendezvous create completed-effect
+frontiers. Candidate trace order and a barrier alone do not complete memory operations.
+The checker reuses the existing byte-overlap domain and conflict forest, with clocks
+bounded by wave count and instruction class. SMEM charges one LGKM count for a dword,
+two for wider loads; FLAT retires only after both VM and LGKM charges clear. Nonzero
+LGKM waits do not assume FIFO for scalar/mixed classes. Cross-lane permutations use
+zero waits conservatively. Register reads, pending destination overwrites and held
+store-source overwrites have distinct witnesses, respecting physical lane slices.
+
+The initial MFMA timing model pins `F32_16x16x4` (eight passes): ordinary RAW/WAW
+requires ten independent states, VALU operand production requires two, and an exact
+same-form accumulator chain can forward. S_NOP contributes its encoded immediate
+plus one and must have a pinned source instruction. Other matrix timing forms,
+general DPP/special-register software hazards, and global cache visibility policies
+are not inferred from this model. Cross-wave global communication remains `Unknown`
+even when waits/barriers establish execution order, until its cache scopes are modeled.
+Disjoint global outputs and LDS communication are covered by the ordinary checks.
+
+References: [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
+(5-August-2025, sections 4.3–4.5, 7.6, 8.3, 10.2 and 12.12), and LLVM
+`GCNHazardRecognizer.cpp` / `SIInstrInfo.cpp` at local review revision
+`846473237377990d00b9c353f6a2c86116b52ea5`. The former supplies the SGEMM
+`NumPasses + 2` dependency cross-check; the latter counts S_NOP states.
+
+Focused regression suite: `cargo test -p volta_graph_check --test amdgpu_tests`.
+The PTX tests remain in the same package and are required independently.
+
 The graph branch of the pipeline: ten checks over one `volta_graph::EventGraph`
 that decide whether the recorded candidate execution is free of data races,
 proxy and tensor-ordering hazards, and synchronization misuse. Seven are the

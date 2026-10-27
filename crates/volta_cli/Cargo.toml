@@ -19,6 +19,7 @@ logging = [
 ]
 
 [dependencies]
+volta_amdgpu_analysis.workspace = true
 volta_common.workspace = true
 volta_equivalence.workspace = true
 volta_expr.workspace = true
@@ -33,4 +34,3 @@ anyhow.workspace = true
 clap.workspace = true
 env_logger = { workspace = true, optional = true }
 log = { workspace = true, optional = true }
-
