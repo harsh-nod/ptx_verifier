@@ -1,0 +1,138 @@
+//! Candidate execution and the two existing downstream artifacts, without verdicts.
+use crate::{
+    config::AnalysisConfig,
+    eval::{EvalError, Interpreter, OutputsUnavailable, RunArtifacts, Stats},
+    frontend::Module,
+    lower::{LowerError, lower_kernel},
+};
+use std::{collections::BTreeMap, error::Error, fmt};
+use volta_expr::{ExprArena, SymbolicOutputs};
+use volta_graph::{Assumption, EventGraph, InstructionInfo, Provenance};
+
+#[derive(Debug)]
+pub enum AnalysisError {
+    KernelNotFound { name: Option<String> },
+    Lower(LowerError),
+    Eval(EvalError),
+}
+impl fmt::Display for AnalysisError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::KernelNotFound { name } => write!(f, "no AMD kernel matching {name:?}"),
+            Self::Lower(e) => write!(f, "{e}"),
+            Self::Eval(e) => write!(f, "{e}"),
+        }
+    }
+}
+impl Error for AnalysisError {}
+
+#[derive(Debug)]
+pub struct AnalysisResult {
+    symbolic: SymbolicOutputs,
+    outputs: Result<(), OutputsUnavailable>,
+    pub graph: EventGraph,
+    pub stats: Stats,
+    pub op_counts: BTreeMap<&'static str, u64>,
+}
+impl AnalysisResult {
+    fn from_run(run: RunArtifacts) -> Self {
+        let (outputs, status) = match run.outputs {
+            Ok(outputs) => (outputs, Ok(())),
+            Err(why) => (Vec::new(), Err(why)),
+        };
+        Self {
+            symbolic: SymbolicOutputs {
+                arena: run.arena,
+                outputs,
+            },
+            outputs: status,
+            graph: run.graph,
+            stats: run.stats,
+            op_counts: run.op_counts,
+        }
+    }
+    pub fn symbolic_outputs(&self) -> Result<&SymbolicOutputs, &OutputsUnavailable> {
+        self.outputs.as_ref().map(|()| &self.symbolic)
+    }
+    pub fn arena(&self) -> &ExprArena {
+        &self.symbolic.arena
+    }
+    pub fn graph(&self) -> &EventGraph {
+        &self.graph
+    }
+    pub fn into_parts(self) -> AnalysisParts {
+        AnalysisParts {
+            outputs: self.outputs.map(|()| self.symbolic),
+            graph: self.graph,
+            stats: self.stats,
+            op_counts: self.op_counts,
+        }
+    }
+}
+#[derive(Debug)]
+pub struct AnalysisParts {
+    pub outputs: Result<SymbolicOutputs, OutputsUnavailable>,
+    pub graph: EventGraph,
+    pub stats: Stats,
+    pub op_counts: BTreeMap<&'static str, u64>,
+}
+
+pub fn analyze(
+    module: &Module,
+    name: Option<&str>,
+    config: AnalysisConfig,
+) -> Result<AnalysisResult, AnalysisError> {
+    let kernel = module
+        .kernels
+        .iter()
+        .find(|kernel| name.is_none_or(|name| kernel.name == name))
+        .ok_or_else(|| AnalysisError::KernelNotFound {
+            name: name.map(str::to_string),
+        })?;
+    let program = lower_kernel(kernel).map_err(AnalysisError::Lower)?;
+    let provenance = Provenance {
+        kernel: kernel.name.clone(),
+        block_dim: config.block_dim,
+        grid_dim: config.grid_dim,
+        targets: vec!["gfx950".into()],
+        assumptions: vec![
+            Assumption::StructuredCta,
+            Assumption::SingleWorkgroupAnalyzed,
+            Assumption::MathematicalRealArithmetic,
+            Assumption::EagerAsyncData,
+        ],
+        instructions: program
+            .instructions
+            .iter()
+            .map(|instruction| InstructionInfo {
+                kind: if instruction.mnemonic=="s_nop" {"s_nop"} else {super::eval::interp_kind(instruction.opcode)},
+                span: Some((instruction.span.start, instruction.span.end)),
+            })
+            .collect(),
+    };
+    let interpreter =
+        Interpreter::new(&program, config, provenance).map_err(AnalysisError::Eval)?;
+    Ok(AnalysisResult::from_run(interpreter.execute()))
+}
+
+pub fn write_op_counts(
+    out: &mut dyn std::io::Write,
+    label: &str,
+    counts: &BTreeMap<&'static str, u64>,
+) -> std::io::Result<()> {
+    if counts.is_empty() {
+        return Ok(());
+    }
+    let total: u64 = counts.values().sum();
+    let mut entries: Vec<_> = counts.iter().collect();
+    entries.sort_by(|a, b| b.1.cmp(a.1).then(a.0.cmp(b.0)));
+    writeln!(out, "{label} profile:")?;
+    for (kind, count) in entries {
+        writeln!(
+            out,
+            "  {kind:<16} {count:>10}  ({:>5.1}%)",
+            100.0 * *count as f64 / total as f64
+        )?;
+    }
+    Ok(())
+}

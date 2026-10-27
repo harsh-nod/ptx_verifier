@@ -17,7 +17,11 @@ impl EventGraph {
     /// Write the dump to `out`.
     pub fn write_dump(&self, out: &mut impl Write) -> fmt::Result {
         let p = &self.provenance;
-        writeln!(out, "volta-graph 1")?;
+        writeln!(
+            out,
+            "volta-graph {}",
+            if self.amd_events.is_empty() { 1 } else { 2 }
+        )?;
         writeln!(
             out,
             "kernel {:?} block {},{},{} grid {},{},{} targets {}",
@@ -175,6 +179,10 @@ impl EventGraph {
                 None => write!(out, " - ")?,
             }
             match ev.kind {
+                EventKind::Amd(index) => match self.amd_event(index) {
+                    Some(a) => writeln!(out, "amd wave={} {:?}", a.wave, a.kind)?,
+                    None => writeln!(out, "amd invalid-record={index}")?,
+                },
                 EventKind::Access(acc) => {
                     let a = &self.accesses[acc];
                     write!(
@@ -270,6 +278,13 @@ impl EventGraph {
                 EventKind::Exit => writeln!(out, "exit")?,
             }
         }
+        for a in &self.amd_memory_effects {
+            writeln!(
+                out,
+                "amd-memory issue=e{} effect=e{}",
+                a.issue.0, a.effect.0
+            )?;
+        }
         match &self.terminal {
             Terminal::Completed => writeln!(out, "terminal completed")?,
             Terminal::Stuck { blocked } => {
@@ -277,6 +292,13 @@ impl EventGraph {
                 for b in blocked {
                     write!(out, "  blocked t{} pc{} ", b.thread.0, b.pc.0)?;
                     match &b.on {
+                        BlockedOn::AmdBarrier {
+                            generation,
+                            missing_waves,
+                        } => writeln!(
+                            out,
+                            "amd-barrier #{generation} missing-waves={missing_waves:?}"
+                        )?,
                         BlockedOn::Barrier { generation } => {
                             writeln!(out, "barrier g{}", generation.0)?
                         }

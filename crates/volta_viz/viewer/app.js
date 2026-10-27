@@ -30,6 +30,7 @@
   const FAILING = ["race-condition", "check-failed", "deadlock"];
 
   const CATEGORIES = {
+    instruction: { shape: "bar", color: "--c-misc", name: "Wave instruction" },
     read: { shape: "circle", color: "--c-read", name: "Read" },
     write: { shape: "circle", color: "--c-write", name: "Write" },
     sync: { shape: "tri-down", color: "--c-sync", name: "Arrive / contribute" },
@@ -47,6 +48,8 @@
   const OPEN_SHAPES = new Set(["tri-down-open", "square-open", "ring", "cross"]);
 
   const EDGES = {
+    "amd-issue": { color: "--e-async", dash: [5, 3], name: "AMD memory issue" },
+    "amd-barrier": { color: "--e-contribute", dash: [], name: "AMD barrier generation" },
     contribute: { color: "--e-contribute", dash: [], name: "Contribute" },
     release: { color: "--e-release", dash: [], name: "Release" },
     "contribute-execution-only": { color: "--e-contribute", dash: [4, 4], name: "Contribute (execution only)" },
@@ -713,7 +716,7 @@
         launch ? fact("block", launch.block.join("×")) : null,
         launch && launch.grid.some((d) => d !== 1) ? fact("grid", launch.grid.join("×")) : null,
         m.events != null ? fact("events", fmt(m.events)) : null,
-        fact("ptx", m.ptx || "built by the test", !!m.ptx),
+        fact("source", m.ptx || "built by the test", !!m.ptx),
       ),
     );
   }
@@ -1647,7 +1650,7 @@
           h("p", {
             text:
               "Each run is one candidate execution of a kernel, recorded by a test. Open one to see its event graph lane by lane, " +
-              "the verdict of the graph checks with their findings resolved to events, and the PTX source behind every event.",
+              "the verdict of the graph checks with their findings resolved to events, and the kernel source behind every event.",
           }),
         ),
         h(
@@ -1761,7 +1764,7 @@
                 "configuration), so this run recorded no event graph.",
           }),
           h("pre", { class: "error-text", text: doc.error }),
-          doc.source ? h("button", { class: "btn primary", type: "button", onclick: () => setTab("source") }, "Show the PTX source") : null,
+          doc.source ? h("button", { class: "btn primary", type: "button", onclick: () => setTab("source") }, "Show the kernel source") : null,
         ),
       ),
     );
@@ -2281,7 +2284,8 @@
 
   function groupOf(laneIx) {
     const lane = state.doc.lanes[laneIx];
-    return lane.kind === "object" ? "sync objects" : "warp " + Math.floor(lane.thread / 32);
+    const waveSize = state.doc && state.doc.launch && state.doc.launch.wave_size || 32;
+    return lane.kind === "object" ? "sync objects" : (waveSize === 64 ? "wave " : "warp ") + Math.floor(lane.thread / waveSize);
   }
 
   function startsGroup(c) {

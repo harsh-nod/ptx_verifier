@@ -1,0 +1,991 @@
+//! gfx950 checks over the existing event graph, independent of PTX certificates.
+//!
+//! Semantics: AMD CDNA4 ISA §4.3–4.4 (workgroups and counters), §8.3 (SMEM),
+//! §10.2 (FLAT). VM loads/stores and homogeneous LDS instructions complete in order;
+//! mixed LGKM classes, SMEM and FLAT do not. Nonzero waits only certify a FIFO
+//! prefix for a homogeneous ordered counter. FLAT requires both counters to retire.
+//! S_BARRIER joins *completed* memory effects of participating waves; it does not
+//! manufacture a wait for outstanding instructions. EXEC masks are full 64-bit masks.
+
+use std::collections::{HashMap, HashSet};
+
+use volta_graph::{
+    AmdCounter, AmdEventKind, AmdMemoryClass, AmdRegister, AmdRegisterFile, EventGraph, EventId,
+    EventKind, Footprint, OrderingKind, Proxy, Space, Terminal,
+};
+
+use crate::domain::{ByteLocation, ConflictKind, bytes, written_bytes};
+use crate::memory_conflict::{
+    CONFLICT_CAP, MemoryConflict, MemoryConflictEvidence, MemoryConflictResult,
+};
+use crate::{PropertyResult, Unresolved, Verdict};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmdTraceEvidence {
+    pub waves: usize,
+    pub instructions: usize,
+    pub issues: usize,
+    pub effects: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmdWaitEvidence {
+    pub issues: usize,
+    pub waits: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AmdRegisterHazardKind {
+    ReadBeforeReady,
+    DestinationReuse,
+    SourceReuse,
+    MatrixReadBeforeReady,
+    MatrixDestinationReuse,
+    MatrixOperandBeforeReady,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmdRegisterHazard {
+    pub issue: EventId,
+    pub use_event: EventId,
+    pub wave: u32,
+    pub register: AmdRegister,
+    pub kind: AmdRegisterHazardKind,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmdBarrierEvidence {
+    pub generations: usize,
+    pub arrivals: usize,
+    pub releases: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmdBarrierViolation {
+    pub generation: u32,
+    pub event: EventId,
+    pub wave: u32,
+    pub reason: String,
+}
+
+pub type AmdTraceResult = PropertyResult<AmdTraceEvidence, Unresolved>;
+pub type AmdWaitResult = PropertyResult<AmdWaitEvidence, AmdRegisterHazard>;
+pub type AmdBarrierResult = PropertyResult<AmdBarrierEvidence, AmdBarrierViolation>;
+
+#[derive(Debug, Clone)]
+pub struct AmdReport {
+    pub trace: AmdTraceResult,
+    pub wait_readiness: AmdWaitResult,
+    pub barrier: AmdBarrierResult,
+    pub memory_conflict: MemoryConflictResult,
+}
+
+const CLASSES: usize = 6;
+fn class_index(class: AmdMemoryClass) -> usize {
+    match class {
+        AmdMemoryClass::VectorMemory => 0,
+        AmdMemoryClass::ScalarMemory => 1,
+        AmdMemoryClass::Lds => 2,
+        AmdMemoryClass::Flat => 3,
+        AmdMemoryClass::Message => 4,
+        AmdMemoryClass::CrossLane => 5,
+    }
+}
+fn ordered(class: AmdMemoryClass) -> bool {
+    matches!(class, AmdMemoryClass::VectorMemory | AmdMemoryClass::Lds)
+}
+fn join(to: &mut [u32], from: &[u32]) {
+    for (a, b) in to.iter_mut().zip(from) {
+        *a = (*a).max(*b);
+    }
+}
+
+#[derive(Clone)]
+struct Operation {
+    event: EventId,
+    wave: u32,
+    class: AmdMemoryClass,
+    sequence: u32,
+    remaining: Vec<(AmdCounter, u16)>,
+    destinations: Vec<AmdRegister>,
+    held_sources: Vec<AmdRegister>,
+    /// Completed-effect frontiers at issue, not the candidate trace's earlier effects.
+    clock: Vec<u32>,
+}
+
+fn unknown<E, V>(reason: &str) -> PropertyResult<E, V> {
+    PropertyResult::Unknown(vec![Unresolved::global(reason)])
+}
+
+fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
+    let mut unresolved = Vec::new();
+    if let Err(defects) = graph.validate() {
+        unresolved.extend(defects.into_iter().map(|d| Unresolved {
+            events: d.event.into_iter().collect(),
+            reason: d.message,
+        }));
+        return PropertyResult::Unknown(unresolved);
+    }
+    let waves = (graph.threads() as usize).div_ceil(64);
+    let mut seen = vec![false; waves];
+    let mut last_instruction = HashMap::<u32, InstructionRecord>::new();
+    let mut issues = 0;
+    let mut instructions = 0;
+    let mut issue_events = HashMap::new();
+    for record in graph.amd_events() {
+        if record.wave as usize >= waves {
+            continue;
+        }
+        let valid_lanes = (graph.threads() - record.wave * 64).min(64);
+        let mask = if valid_lanes == 64 {
+            u64::MAX
+        } else {
+            (1u64 << valid_lanes) - 1
+        };
+        let check_regs = |regs: &[AmdRegister], unresolved: &mut Vec<Unresolved>| {
+            for r in regs {
+                if r.index >= 256
+                    || (r.file != AmdRegisterFile::Scalar && (r.lanes == 0 || r.lanes & !mask != 0))
+                {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "invalid AMD register index or physical lane mask",
+                    ));
+                }
+            }
+        };
+        match &record.kind {
+            AmdEventKind::Instruction {
+                exec_mask,
+                reads,
+                writes,
+            } => {
+                instructions += 1;
+                seen[record.wave as usize] = true;
+                if exec_mask & !mask != 0 {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "EXEC includes a nonexistent lane",
+                    ));
+                }
+                check_regs(reads, &mut unresolved);
+                check_regs(writes, &mut unresolved);
+                if let Some(previous) = last_instruction.get(&record.wave) {
+                    check_missing_semantic(previous, &mut unresolved);
+                }
+                let pc = graph.event(record.event).pc;
+                let kind = pc.map(|p| graph.provenance().instructions[p.0 as usize].kind);
+                let expected = match kind {
+                    Some("scalar memory") => Some("memory"),
+                    Some("vector memory" | "LDS") if *exec_mask != 0 => Some("memory"),
+                    Some("wait") => Some("wait"),
+                    Some("barrier") => Some("barrier"),
+                    Some("MFMA") => Some("matrix"),
+                    Some("s_nop") => Some("delay"),
+                    _ => None,
+                };
+                last_instruction.insert(
+                    record.wave,
+                    InstructionRecord {
+                        event: record.event,
+                        pc,
+                        exec_mask: *exec_mask,
+                        reads: reads.clone(),
+                        writes: writes.clone(),
+                        expected,
+                        semantic: false,
+                    },
+                );
+            }
+            AmdEventKind::MemoryIssue {
+                class,
+                counters,
+                destinations,
+                held_sources,
+            } => {
+                issues += 1;
+                check_regs(destinations, &mut unresolved);
+                check_regs(held_sources, &mut unresolved);
+                if let Some(instruction) = claim_instruction(
+                    graph,
+                    record,
+                    &mut last_instruction,
+                    "memory",
+                    &mut unresolved,
+                ) {
+                    if instruction.writes.len() != destinations.len()
+                        || !instruction.writes.iter().all(|r| destinations.contains(r))
+                    {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "memory destinations do not match the instruction's register writes",
+                        ));
+                    }
+                    if !held_sources.iter().all(|r| instruction.reads.contains(r)) {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "held memory sources are absent from the instruction's register reads",
+                        ));
+                    }
+                }
+                let valid = match class {
+                    AmdMemoryClass::VectorMemory => counters == &[(AmdCounter::Vm, 1)],
+                    AmdMemoryClass::ScalarMemory => {
+                        counters == &[(AmdCounter::Lgkm, 1)] || counters == &[(AmdCounter::Lgkm, 2)]
+                    }
+                    AmdMemoryClass::Lds | AmdMemoryClass::Message | AmdMemoryClass::CrossLane => {
+                        counters == &[(AmdCounter::Lgkm, 1)]
+                    }
+                    AmdMemoryClass::Flat => {
+                        counters.len() == 2
+                            && counters.contains(&(AmdCounter::Vm, 1))
+                            && counters.contains(&(AmdCounter::Lgkm, 1))
+                    }
+                };
+                if !valid {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "counter charges do not match the gfx950 instruction class",
+                    ));
+                }
+                issue_events.insert(record.event, (record.wave, *class));
+            }
+            AmdEventKind::Wait {
+                vmcnt,
+                lgkmcnt,
+                expcnt,
+            } => {
+                claim_instruction(
+                    graph,
+                    record,
+                    &mut last_instruction,
+                    "wait",
+                    &mut unresolved,
+                );
+                if vmcnt.is_some_and(|n| n > 63)
+                    || lgkmcnt.is_some_and(|n| n > 15)
+                    || expcnt.is_some_and(|n| n > 7)
+                {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "wait threshold exceeds the gfx950 counter width",
+                    ));
+                }
+            }
+            AmdEventKind::BarrierArrive { exec_mask, .. } => {
+                if exec_mask & !mask != 0 {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "barrier EXEC includes a nonexistent lane",
+                    ));
+                }
+                claim_instruction(
+                    graph,
+                    record,
+                    &mut last_instruction,
+                    "barrier",
+                    &mut unresolved,
+                );
+            }
+            AmdEventKind::MatrixIssue {
+                destinations,
+                sources_ab,
+                accumulator,
+                ..
+            } => {
+                for regs in [destinations, sources_ab, accumulator] {
+                    check_regs(regs, &mut unresolved);
+                }
+                if let Some(instruction) = claim_instruction(
+                    graph,
+                    record,
+                    &mut last_instruction,
+                    "matrix",
+                    &mut unresolved,
+                ) {
+                    if mask != u64::MAX || instruction.exec_mask != u64::MAX {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "MFMA requires a complete wave64 in this model",
+                        ));
+                    }
+                    if instruction.writes.len() != destinations.len()
+                        || !instruction.writes.iter().all(|r| destinations.contains(r))
+                        || !sources_ab
+                            .iter()
+                            .chain(accumulator.iter())
+                            .all(|r| instruction.reads.contains(r))
+                    {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "MFMA operand roles do not match instruction register records",
+                        ));
+                    }
+                }
+                if destinations.len() != 4
+                    || sources_ab.len() != 2
+                    || (!accumulator.is_empty() && accumulator.len() != 4)
+                    || destinations
+                        .iter()
+                        .chain(sources_ab)
+                        .chain(accumulator)
+                        .any(|r| r.file != AmdRegisterFile::Vector || r.lanes != u64::MAX)
+                    || destinations.first().is_some_and(|r| r.index % 2 != 0)
+                    || accumulator.first().is_some_and(|r| r.index % 2 != 0)
+                    || !destinations
+                        .windows(2)
+                        .all(|r| r[1].index == r[0].index + 1)
+                    || !accumulator.windows(2).all(|r| r[1].index == r[0].index + 1)
+                {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "unsupported register layout for MFMA f32_16x16x4",
+                    ));
+                }
+            }
+            AmdEventKind::Delay { cycles } => {
+                let instruction = claim_instruction(
+                    graph,
+                    record,
+                    &mut last_instruction,
+                    "delay",
+                    &mut unresolved,
+                );
+                if !(1..=16).contains(cycles)
+                    || !instruction.is_some_and(|i| {
+                        i.pc.is_some_and(|pc| {
+                            graph.provenance().instructions[pc.0 as usize].kind == "s_nop"
+                        })
+                    })
+                {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "delay must be a pinned S_NOP instruction with 1..16 wait states",
+                    ));
+                }
+            }
+            _ => {}
+        }
+    }
+    for instruction in last_instruction.values() {
+        check_missing_semantic(instruction, &mut unresolved);
+    }
+    if waves == 0 || seen.iter().any(|v| !v) {
+        unresolved.push(Unresolved::global(
+            "each launched wave requires AMD instruction/register records",
+        ));
+    }
+    let mut linked = HashSet::new();
+    let mut linked_issues = HashSet::new();
+    for link in graph.amd_memory_effects() {
+        linked.insert(link.effect);
+        linked_issues.insert(link.issue);
+        if let Some((wave, class)) = issue_events.get(&link.issue) {
+            if let Some(event) = graph.events().get(link.effect) {
+                if let EventKind::Access(a) = event.kind {
+                    let access = graph.access(a);
+                    if access.attributed.0 / 64 != *wave {
+                        unresolved.push(Unresolved::at(
+                            link.effect,
+                            "AMD effect lane belongs to another wave",
+                        ));
+                    }
+                    if graph.event(link.issue).pc != event.pc {
+                        unresolved.push(Unresolved::at(
+                            link.effect,
+                            "AMD effect source point differs from its issue",
+                        ));
+                    }
+                    let correct_space = match class {
+                        AmdMemoryClass::Lds => access.space == Space::Shared,
+                        AmdMemoryClass::VectorMemory | AmdMemoryClass::ScalarMemory => {
+                            access.space == Space::Global
+                        }
+                        AmdMemoryClass::Flat => {
+                            matches!(access.space, Space::Global | Space::Shared)
+                        }
+                        AmdMemoryClass::Message | AmdMemoryClass::CrossLane => false,
+                    };
+                    if !correct_space {
+                        unresolved.push(Unresolved::at(
+                            link.effect,
+                            "AMD instruction class does not match its memory space",
+                        ));
+                    }
+                }
+            }
+        }
+    }
+    for (&event, (_, class)) in &issue_events {
+        if !matches!(class, AmdMemoryClass::Message | AmdMemoryClass::CrossLane)
+            && !linked_issues.contains(&event)
+        {
+            unresolved.push(Unresolved::at(
+                event,
+                "AMD memory instruction has no recorded effects",
+            ));
+        }
+    }
+    for (id, event) in graph.events().iter() {
+        match event.kind {
+            EventKind::Access(a) => {
+                let a = graph.access(a);
+                if !linked.contains(&id) {
+                    unresolved.push(Unresolved::at(
+                        id,
+                        "memory effect lacks its AMD issue association",
+                    ));
+                }
+                if a.ordering != OrderingKind::Ordinary
+                    || a.proxy != Proxy::Generic
+                    || a.space == Space::Tensor
+                    || !matches!(a.footprint, Footprint::Bytes { .. })
+                {
+                    unresolved.push(Unresolved::at(
+                        id,
+                        "memory effect is outside the AMD ordinary byte-memory contract",
+                    ));
+                }
+            }
+            EventKind::Amd(_) | EventKind::Exit => {}
+            _ => unresolved.push(Unresolved::at(
+                id,
+                "unrecognized or PTX-only event in gfx950 trace",
+            )),
+        }
+    }
+    PropertyResult::from_findings(
+        AmdTraceEvidence {
+            waves,
+            instructions,
+            issues,
+            effects: graph.amd_memory_effects().len(),
+        },
+        Vec::new(),
+        unresolved,
+    )
+}
+
+struct InstructionRecord {
+    event: EventId,
+    pc: Option<volta_graph::ProgramPoint>,
+    exec_mask: u64,
+    reads: Vec<AmdRegister>,
+    writes: Vec<AmdRegister>,
+    expected: Option<&'static str>,
+    semantic: bool,
+}
+fn check_missing_semantic(instruction: &InstructionRecord, unresolved: &mut Vec<Unresolved>) {
+    if instruction.expected.is_some() && !instruction.semantic {
+        unresolved.push(Unresolved::at(
+            instruction.event,
+            "instruction is missing its required AMD semantic event",
+        ));
+    }
+}
+fn claim_instruction<'a>(
+    graph: &EventGraph,
+    record: &volta_graph::AmdEvent,
+    instructions: &'a mut HashMap<u32, InstructionRecord>,
+    kind: &str,
+    unresolved: &mut Vec<Unresolved>,
+) -> Option<&'a InstructionRecord> {
+    let Some(instruction) = instructions.get_mut(&record.wave) else {
+        unresolved.push(Unresolved::at(
+            record.event,
+            "AMD semantic event lacks its instruction/register record",
+        ));
+        return None;
+    };
+    if instruction.pc != graph.event(record.event).pc
+        || instruction.semantic
+        || instruction
+            .expected
+            .is_some_and(|expected| expected != kind)
+    {
+        unresolved.push(Unresolved::at(
+            record.event,
+            "AMD semantic event has a duplicate, mismatched, or missing instruction record",
+        ));
+        return None;
+    }
+    instruction.semantic = true;
+    Some(instruction)
+}
+
+/// Explicitly selected by the suite for gfx950, never called as a PTX check.
+pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
+    let trace = trace_contract(graph);
+    if trace.verdict() != Verdict::Pass {
+        return AmdReport {
+            trace,
+            wait_readiness: unknown("AMD trace contract did not pass"),
+            barrier: unknown("AMD trace contract did not pass"),
+            memory_conflict: unknown("AMD trace contract did not pass"),
+        };
+    }
+    let waves = (graph.threads() as usize).div_ceil(64);
+    let mut clocks = vec![vec![0; waves * CLASSES]; waves];
+    let mut sequences = vec![0; waves * CLASSES];
+    let mut operations = Vec::<Operation>::new();
+    let mut issue_index = HashMap::new();
+    let mut pending = vec![Vec::<usize>::new(); waves];
+    let mut hazards = Vec::new();
+    let mut waits = 0;
+    let mut barriers = HashMap::<u32, HashMap<u32, (EventId, Vec<u32>)>>::new();
+    let mut releases = HashSet::new();
+    let mut next_generation = vec![0u32; waves];
+    let mut barrier_violations = Vec::new();
+    let mut barrier_arrivals = 0;
+    let mut ticks = vec![0u64; waves];
+    let mut duration = vec![0u16; waves];
+    let mut matrices = vec![Vec::<(EventId, u64, Vec<AmdRegister>)>::new(); waves];
+    let mut valu_writes = vec![Vec::<(EventId, u64, AmdRegister)>::new(); waves];
+    let mut matrix_at = HashMap::new();
+    let mut last_instruction = HashMap::new();
+    for record in graph.amd_events() {
+        if matches!(record.kind, AmdEventKind::Instruction { .. }) {
+            last_instruction.insert(record.wave, record.event);
+        } else if let AmdEventKind::MatrixIssue {
+            destinations,
+            sources_ab,
+            accumulator,
+            ..
+        } = &record.kind
+        {
+            matrix_at.insert(
+                last_instruction[&record.wave],
+                (destinations, sources_ab, accumulator),
+            );
+        }
+    }
+    let mut blocked_at = vec![None; waves];
+    for record in graph.amd_events() {
+        let wave = record.wave as usize;
+        if let Some(generation) = blocked_at[wave] {
+            if !matches!(record.kind,AmdEventKind::BarrierRelease{generation:g} if g==generation) {
+                barrier_violations.push(AmdBarrierViolation {
+                    generation,
+                    event: record.event,
+                    wave: record.wave,
+                    reason: "wave progressed before its barrier release".into(),
+                });
+            }
+        }
+        match &record.kind {
+            AmdEventKind::Instruction { reads, writes, .. } => {
+                ticks[wave] = ticks[wave].saturating_add(u64::from(duration[wave]));
+                duration[wave] = 1;
+                let tick = ticks[wave];
+                matrices[wave].retain(|(_, issued, _)| tick.saturating_sub(*issued) < 11);
+                for (issue, _, destinations) in &matrices[wave] {
+                    let forwarded =
+                        matrix_at
+                            .get(&record.event)
+                            .is_some_and(|(next_dest, ab, acc)| {
+                                *acc == destinations
+                                    && *next_dest == destinations
+                                    && !ab
+                                        .iter()
+                                        .any(|r| destinations.iter().any(|d| d.overlaps(*r)))
+                            });
+                    if forwarded {
+                        continue;
+                    }
+                    for &register in reads
+                        .iter()
+                        .filter(|r| destinations.iter().any(|d| d.overlaps(**r)))
+                    {
+                        hazards.push(AmdRegisterHazard {
+                            issue: *issue,
+                            use_event: record.event,
+                            wave: record.wave,
+                            register,
+                            kind: AmdRegisterHazardKind::MatrixReadBeforeReady,
+                        });
+                    }
+                    for &register in writes
+                        .iter()
+                        .filter(|r| destinations.iter().any(|d| d.overlaps(**r)))
+                    {
+                        hazards.push(AmdRegisterHazard {
+                            issue: *issue,
+                            use_event: record.event,
+                            wave: record.wave,
+                            register,
+                            kind: AmdRegisterHazardKind::MatrixDestinationReuse,
+                        });
+                    }
+                }
+                valu_writes[wave].retain(|(_, written, _)| tick.saturating_sub(*written) < 3);
+                if graph.event(record.event).pc.is_some_and(|pc| {
+                    graph.provenance().instructions[pc.0 as usize].kind == "vector ALU"
+                }) {
+                    valu_writes[wave]
+                        .extend(writes.iter().copied().map(|r| (record.event, tick, r)));
+                }
+                for &op in &pending[wave] {
+                    let op = &operations[op];
+                    for &r in reads {
+                        if op.destinations.iter().any(|d| d.overlaps(r)) {
+                            hazards.push(AmdRegisterHazard {
+                                issue: op.event,
+                                use_event: record.event,
+                                wave: record.wave,
+                                register: r,
+                                kind: AmdRegisterHazardKind::ReadBeforeReady,
+                            });
+                        }
+                    }
+                    for &r in writes {
+                        let kind = if op.destinations.iter().any(|d| d.overlaps(r)) {
+                            Some(AmdRegisterHazardKind::DestinationReuse)
+                        } else if op.held_sources.iter().any(|d| d.overlaps(r)) {
+                            Some(AmdRegisterHazardKind::SourceReuse)
+                        } else {
+                            None
+                        };
+                        if let Some(kind) = kind {
+                            hazards.push(AmdRegisterHazard {
+                                issue: op.event,
+                                use_event: record.event,
+                                wave: record.wave,
+                                register: r,
+                                kind,
+                            });
+                        }
+                    }
+                }
+            }
+            AmdEventKind::MatrixIssue {
+                destinations,
+                sources_ab,
+                accumulator,
+                ..
+            } => {
+                for (issue, _, written) in &valu_writes[wave] {
+                    for &register in sources_ab
+                        .iter()
+                        .chain(accumulator)
+                        .filter(|r| r.overlaps(*written))
+                    {
+                        hazards.push(AmdRegisterHazard {
+                            issue: *issue,
+                            use_event: record.event,
+                            wave: record.wave,
+                            register,
+                            kind: AmdRegisterHazardKind::MatrixOperandBeforeReady,
+                        });
+                    }
+                }
+                matrices[wave].push((record.event, ticks[wave], destinations.clone()));
+            }
+            AmdEventKind::Delay { cycles } => {
+                duration[wave] = *cycles;
+            }
+            AmdEventKind::MemoryIssue {
+                class,
+                counters,
+                destinations,
+                held_sources,
+            } => {
+                let slot = wave * CLASSES + class_index(*class);
+                sequences[slot] += 1;
+                let mut clock = clocks[wave].clone();
+                // Only FIFO classes carry earlier operations of the same class into an
+                // effect. The effect's own issue does not certify its own completion.
+                if ordered(*class) {
+                    clock[slot] = sequences[slot] - 1;
+                }
+                issue_index.insert(record.event, operations.len());
+                pending[wave].push(operations.len());
+                operations.push(Operation {
+                    event: record.event,
+                    wave: record.wave,
+                    class: *class,
+                    sequence: sequences[slot],
+                    remaining: counters.clone(),
+                    destinations: destinations.clone(),
+                    held_sources: held_sources.clone(),
+                    clock,
+                });
+            }
+            AmdEventKind::Wait {
+                vmcnt,
+                lgkmcnt,
+                expcnt,
+            } => {
+                waits += 1;
+                for (counter, threshold) in [
+                    (AmdCounter::Vm, *vmcnt),
+                    (AmdCounter::Lgkm, *lgkmcnt),
+                    (AmdCounter::Exp, *expcnt),
+                ] {
+                    let Some(threshold) = threshold else { continue };
+                    let tracked: Vec<usize> = pending[wave]
+                        .iter()
+                        .copied()
+                        .filter(|&o| operations[o].remaining.iter().any(|(c, _)| *c == counter))
+                        .collect();
+                    let homogeneous = tracked.first().is_some_and(|&first| {
+                        ordered(operations[first].class)
+                            && tracked
+                                .iter()
+                                .all(|&o| operations[o].class == operations[first].class)
+                    });
+                    if threshold != 0 && !homogeneous {
+                        continue;
+                    }
+                    let mut remaining: u32 = tracked
+                        .iter()
+                        .flat_map(|&o| {
+                            operations[o]
+                                .remaining
+                                .iter()
+                                .filter(|(c, _)| *c == counter)
+                                .map(|(_, n)| u32::from(*n))
+                        })
+                        .sum();
+                    for o in tracked {
+                        let charge: u32 = operations[o]
+                            .remaining
+                            .iter()
+                            .filter(|(c, _)| *c == counter)
+                            .map(|(_, n)| u32::from(*n))
+                            .sum();
+                        if remaining.saturating_sub(charge) < u32::from(threshold) {
+                            break;
+                        }
+                        operations[o].remaining.retain(|(c, _)| *c != counter);
+                        remaining -= charge;
+                    }
+                }
+                pending[wave].retain(|&o| {
+                    if operations[o].remaining.is_empty() {
+                        let op = &operations[o];
+                        let slot = wave * CLASSES + class_index(op.class);
+                        clocks[wave][slot] = clocks[wave][slot].max(op.sequence);
+                        false
+                    } else {
+                        true
+                    }
+                });
+            }
+            AmdEventKind::BarrierArrive { generation, .. } => {
+                barrier_arrivals += 1;
+                let arrivals = barriers.entry(*generation).or_default();
+                let mut reason = None;
+                if *generation != next_generation[wave] {
+                    reason = Some("wave arrived at an unexpected barrier generation");
+                }
+                if arrivals.contains_key(&record.wave) {
+                    reason = Some("duplicate wave arrival");
+                }
+                if arrivals
+                    .values()
+                    .any(|(event, _)| graph.event(*event).pc != graph.event(record.event).pc)
+                {
+                    reason = Some("waves reached different barrier instructions");
+                }
+                if let Some(reason) = reason {
+                    barrier_violations.push(AmdBarrierViolation {
+                        generation: *generation,
+                        event: record.event,
+                        wave: record.wave,
+                        reason: reason.into(),
+                    });
+                }
+                arrivals.insert(record.wave, (record.event, clocks[wave].clone()));
+                blocked_at[wave] = Some(*generation);
+            }
+            AmdEventKind::BarrierRelease { generation } => {
+                let arrivals = barriers.get(generation);
+                let mut missing = Vec::new();
+                for w in 0..waves {
+                    let exited = (w * 64..((w + 1) * 64).min(graph.threads() as usize)).all(|t| {
+                        graph
+                            .program_order(volta_graph::ThreadIx(t as u32))
+                            .last()
+                            .is_some_and(|&e| {
+                                e < record.event && graph.event(e).kind == EventKind::Exit
+                            })
+                    });
+                    if !exited && !arrivals.is_some_and(|a| a.contains_key(&(w as u32))) {
+                        missing.push(w);
+                    }
+                }
+                let own = arrivals.is_some_and(|a| a.contains_key(&record.wave));
+                let matched_pc =
+                    arrivals
+                        .and_then(|a| a.get(&record.wave))
+                        .is_some_and(|(event, _)| {
+                            graph.event(*event).pc == graph.event(record.event).pc
+                        });
+                if !missing.is_empty()
+                    || !own
+                    || !matched_pc
+                    || blocked_at[wave] != Some(*generation)
+                    || !releases.insert((*generation, record.wave))
+                {
+                    barrier_violations.push(AmdBarrierViolation {
+                        generation: *generation,
+                        event: record.event,
+                        wave: record.wave,
+                        reason: format!(
+                            "invalid barrier release; missing waves {missing:?}, own arrival {own}"
+                        ),
+                    });
+                } else {
+                    for (_, clock) in arrivals.unwrap().values() {
+                        join(&mut clocks[wave], clock);
+                    }
+                    next_generation[wave] = generation + 1;
+                    blocked_at[wave] = None;
+                }
+            }
+        }
+    }
+    if matches!(graph.terminal(), Terminal::Completed) {
+        for (&generation, arrivals) in &barriers {
+            for (&wave, (event, _)) in arrivals {
+                if !releases.contains(&(generation, wave)) {
+                    barrier_violations.push(AmdBarrierViolation {
+                        generation,
+                        event: *event,
+                        wave,
+                        reason: "completed trace leaves a barrier arrival unreleased".into(),
+                    });
+                }
+            }
+        }
+    }
+    let wait_readiness = PropertyResult::from_findings(
+        AmdWaitEvidence {
+            issues: operations.len(),
+            waits,
+        },
+        hazards,
+        Vec::new(),
+    );
+    let barrier = PropertyResult::from_findings(
+        AmdBarrierEvidence {
+            generations: barriers.len(),
+            arrivals: barrier_arrivals,
+            releases: releases.len(),
+        },
+        barrier_violations,
+        Vec::new(),
+    );
+    let memory_conflict = if barrier.verdict() == Verdict::Pass {
+        memory_conflicts(graph, &operations, &issue_index)
+    } else {
+        unknown("AMD barrier validation did not pass")
+    };
+    AmdReport {
+        trace,
+        wait_readiness,
+        barrier,
+        memory_conflict,
+    }
+}
+
+struct EffectNode {
+    event: EventId,
+    operation: usize,
+    mode: volta_graph::AccessMode,
+    children: Vec<usize>,
+}
+
+fn memory_conflicts(
+    graph: &EventGraph,
+    operations: &[Operation],
+    issue_index: &HashMap<EventId, usize>,
+) -> MemoryConflictResult {
+    let links: HashMap<EventId, usize> = graph
+        .amd_memory_effects()
+        .iter()
+        .map(|l| (l.effect, issue_index[&l.issue]))
+        .collect();
+    let written = written_bytes(graph);
+    let mut roots = HashMap::<ByteLocation, Vec<usize>>::new();
+    let mut nodes = Vec::<EffectNode>::new();
+    let mut conflicts = Vec::new();
+    let mut reported = HashSet::new();
+    let mut unresolved = Vec::new();
+    let mut scope_reported = HashSet::new();
+    for (event, ev) in graph.events().iter() {
+        let EventKind::Access(a) = ev.kind else {
+            continue;
+        };
+        let access = graph.access(a);
+        let operation = links[&event];
+        let later = &operations[operation];
+        let mut reaches = |node: &EffectNode| {
+            let earlier = &operations[node.operation];
+            let ordered = later.clock[earlier.wave as usize * CLASSES + class_index(earlier.class)]
+                >= earlier.sequence;
+            if ordered
+                && access.space == Space::Global
+                && earlier.wave != later.wave
+                && unresolved.len() < CONFLICT_CAP
+                && scope_reported.insert((node.event, event))
+            {
+                unresolved.push(Unresolved::between(node.event,event,
+                    "cross-wave global communication needs gfx950 cache visibility/scope semantics beyond S_BARRIER; these are not modeled"));
+            }
+            ordered
+        };
+        for location in bytes(access) {
+            if !written.contains(&location) {
+                continue;
+            }
+            let previous = roots.remove(&location).unwrap_or_default();
+            let mut children = Vec::new();
+            let mut kept = Vec::new();
+            let mut unordered = Vec::new();
+            for node in previous {
+                if reaches(&nodes[node]) {
+                    children.push(node)
+                } else {
+                    kept.push(node);
+                    unordered.push(node)
+                }
+            }
+            while let Some(n) = unordered.pop() {
+                if let Some(kind) = ConflictKind::of(nodes[n].mode, access.mode) {
+                    if reported.insert((nodes[n].event, event)) && conflicts.len() < CONFLICT_CAP {
+                        conflicts.push(MemoryConflict {
+                            kind,
+                            location,
+                            earlier: nodes[n].event,
+                            later: event,
+                        });
+                    }
+                }
+                for &child in &nodes[n].children {
+                    if !reaches(&nodes[child]) {
+                        unordered.push(child);
+                    }
+                }
+            }
+            let index = nodes.len();
+            nodes.push(EffectNode {
+                event,
+                operation,
+                mode: access.mode,
+                children,
+            });
+            kept.push(index);
+            roots.insert(location, kept);
+        }
+    }
+    conflicts.sort_by_key(|c| (c.later, c.earlier));
+    PropertyResult::from_findings(
+        MemoryConflictEvidence {
+            effects: links.len(),
+            written_bytes: written.len(),
+        },
+        conflicts,
+        unresolved,
+    )
+}
