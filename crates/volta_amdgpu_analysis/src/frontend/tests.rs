@@ -31,6 +31,125 @@ fn parses_native_clang22_copy_and_add_with_full_metadata() {
 }
 
 #[test]
+fn parses_defined_native_module_objects_and_split_relocations() {
+    let module = parse(include_str!("fixtures/clang22-module-globals.s")).unwrap();
+    let bound = module
+        .globals
+        .iter()
+        .find(|object| object.symbol == "bound_global")
+        .unwrap();
+    assert_eq!(
+        (bound.size, bound.alignment, bound.read_only),
+        (4, 4, false)
+    );
+    assert_eq!(bound.initial_bytes, [0, 0, 0, 0]);
+    let bias = module
+        .globals
+        .iter()
+        .find(|object| object.symbol == "global_bias")
+        .unwrap();
+    assert_eq!(bias.initial_bytes, 3i32.to_le_bytes());
+    let table = module
+        .globals
+        .iter()
+        .find(|object| object.symbol == "constant_table")
+        .unwrap();
+    assert_eq!(
+        (table.size, table.alignment, table.read_only),
+        (16, 16, true)
+    );
+    assert_eq!(
+        table.initial_bytes,
+        [2i32, 3, 5, 7]
+            .into_iter()
+            .flat_map(i32::to_le_bytes)
+            .collect::<Vec<_>>()
+    );
+    assert_eq!(
+        module.kernels[0]
+            .instructions
+            .iter()
+            .flat_map(|instruction| &instruction.operands)
+            .filter(|operand| matches!(operand, Operand::Relocation(_)))
+            .count(),
+        6
+    );
+    let module = parse(include_str!("fixtures/clang22-dynamic-lds.s")).unwrap();
+    assert_eq!(
+        module.kernels[0].descriptor.get("group_segment_fixed_size"),
+        Some(32)
+    );
+    let module = parse(include_str!("fixtures/clang22-grid-output.s")).unwrap();
+    for name in [
+        "hidden_block_count_x",
+        "hidden_block_count_y",
+        "hidden_block_count_z",
+        "hidden_group_size_x",
+        "hidden_group_size_y",
+        "hidden_group_size_z",
+    ] {
+        assert!(
+            module.kernels[0]
+                .args
+                .iter()
+                .any(|arg| arg.value_kind == name),
+            "{name}"
+        );
+    }
+}
+
+#[test]
+fn module_object_data_never_silently_loses_size_bytes_or_identity() {
+    let object = ".type g,@object\n.data\n.p2align 3\ng:\n.quad 0x0123456789abcdef\n.size g,8\n";
+    let source = format!("{}\n{object}", program("s_endpgm"));
+    let module = parse(&source).unwrap();
+    assert_eq!(
+        module.globals[0].initial_bytes,
+        0x0123456789abcdefu64.to_le_bytes()
+    );
+    assert_eq!(module.globals[0].alignment, 8);
+    for bad in [
+        object.replace(".size g,8", ".size g,4"),
+        object.replace(".size g,8", ""),
+        object.replace(".quad 0x0123456789abcdef", ".quad external@rel64"),
+        object.replace(".quad 0x0123456789abcdef", ".asciz \"not modeled\""),
+        object.replace(".quad 0x0123456789abcdef", ".zero 16777217"),
+        object.replace(".p2align 3", ".balign 3"),
+        object.replace(".p2align 3", ".p2align 3,0,1"),
+        object.replace(".size g,8", ".size wrong,8\n.text"),
+        format!("{object}{object}"),
+    ] {
+        assert!(
+            parse(&format!("{}\n{bad}", program("s_endpgm"))).is_err(),
+            "{bad}"
+        );
+    }
+}
+
+#[test]
+fn shared_aperture_source_has_only_the_pinned_64bit_move_profile() {
+    let module = parse(&program("s_mov_b64 s[2:3], src_shared_base\ns_endpgm")).unwrap();
+    assert!(matches!(
+        module.kernels[0].instructions[0].operands[1],
+        Operand::Register(Register {
+            count: 2,
+            special: Some(SpecialRegister::SharedBase),
+            ..
+        })
+    ));
+    for body in [
+        "s_mov_b32 s2, src_shared_base",
+        "s_mov_b64 src_shared_base, s[2:3]",
+        "s_mov_b64 exec, src_shared_base",
+        "s_add_u64 s[2:3], src_shared_base, s[4:5]",
+        "v_mov_b64 v[2:3], src_shared_base",
+        "s_mov_b64 s[2:3], -src_shared_base",
+    ] {
+        assert!(parse(&program(body)).is_err(), "{body}");
+    }
+}
+
+#[test]
 fn parses_native_clang22_cross_lane_lds_and_matrix_corpus() {
     let module = parse(include_str!("fixtures/clang22-exchange-reduce-relu.s")).unwrap();
     assert_eq!(

@@ -97,6 +97,33 @@ fn native_copy_across_partial_and_multiple_waves() {
 }
 
 #[test]
+fn native_local_ids_remain_numeric_when_stored_directly_or_masked() {
+    for operation in ["v_mov_b32 v5, v0", "v_and_b32 v5, 0x3fffffff, v0"] {
+        for (block, tail) in [(1, 1), (63, 63), (64, 64), (65, 65), (96, 96), (128, 65)] {
+            let operation = if tail < block {
+                format!("v_cmp_gt_u32 vcc, {tail}, v0\ns_and_saveexec_b64 s[8:9], vcc\n{operation}")
+            } else {
+                operation.to_string()
+            };
+            let instructions = COPY.replace("global_load_dword v5, v[6:7], off", &operation);
+            let module = frontend::parse(&source(&instructions, 0)).unwrap();
+            let result = analyze(&module, None, config(block, tail as u64)).unwrap();
+            let outputs = result.symbolic_outputs().unwrap();
+            assert_eq!(outputs.outputs[0].1.len(), tail as usize);
+            for index in 0..tail as u64 {
+                assert_eq!(
+                    outputs
+                        .arena
+                        .as_int_const(outputs.element("out", index).unwrap()),
+                    Some(index as i64)
+                );
+            }
+            assert!(result.graph.validate().is_ok());
+        }
+    }
+}
+
+#[test]
 fn masked_tail_preserves_full_64bit_exec() {
     let instructions = COPY.replace(
         "global_load_dword",
@@ -1547,6 +1574,207 @@ s_endpgm
             2
         );
         assert!(result.graph.validate().is_ok());
+    }
+}
+
+#[test]
+fn compiler_module_globals_use_checked_storage_and_exact_relocations() {
+    let text = include_str!("../src/frontend/fixtures/clang22-module-globals.s");
+    let module = frontend::parse(text).unwrap();
+    for (bindings, offset) in [
+        (vec![], 3),
+        (vec![("bound_global".into(), 7)], 10),
+        (vec![("bound_global".into(), -1)], 2),
+        (
+            vec![("bound_global".into(), 9), ("global_bias".into(), -3)],
+            6,
+        ),
+    ] {
+        let mut cfg = AnalysisConfig::new((64, 1, 1));
+        cfg.arrays = vec![array("out", 0x20000, 64, ArrayKind::Output)];
+        cfg.params = vec![ParamValue::ArrayPtr("out".into())];
+        cfg.global_values = bindings;
+        let result = analyze(&module, Some("module_globals"), cfg).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        for index in 0..64 {
+            assert_eq!(
+                outputs
+                    .arena
+                    .as_int_const(outputs.element("out", index).unwrap()),
+                Some(offset + [2, 3, 5, 7][index as usize % 4])
+            );
+        }
+        assert!(result.graph.validate().is_ok());
+    }
+    let mut cfg = AnalysisConfig::new((64, 1, 1));
+    cfg.arrays = vec![array("out", 0x20000, 64, ArrayKind::Output)];
+    cfg.params = vec![ParamValue::ArrayPtr("out".into())];
+    cfg.global_values = vec![("bound_global".into(), 1), ("bound_global".into(), 2)];
+    assert!(
+        analyze(&module, None, cfg.clone())
+            .unwrap_err()
+            .to_string()
+            .contains("duplicate module-global binding")
+    );
+    cfg.global_values = vec![("missing".into(), 1)];
+    assert!(
+        analyze(&module, None, cfg.clone())
+            .unwrap_err()
+            .to_string()
+            .contains("no module global named")
+    );
+    cfg.global_values = vec![("constant_table".into(), 1)];
+    assert!(
+        analyze(&module, None, cfg.clone())
+            .unwrap_err()
+            .to_string()
+            .contains("read-only module global")
+    );
+    cfg.global_values.clear();
+    cfg.arrays[0].base = 0x7000_0000_0000_0000;
+    assert!(
+        analyze(&module, None, cfg.clone())
+            .unwrap_err()
+            .to_string()
+            .contains("module-global window")
+    );
+
+    let modified = text
+        .replacen(
+            "s_getpc_b64 s[2:3]",
+            "s_cmp_eq_u32 s0, s0\n\ts_getpc_b64 s[2:3]",
+            1,
+        )
+        .replacen(
+            "constant_table@rel32@hi+12",
+            "constant_table@rel32@hi+12\n\ts_cbranch_scc0 .Lscc\n.Lscc:",
+            1,
+        );
+    let module = frontend::parse(&modified).unwrap();
+    cfg.arrays[0].base = 0x20000;
+    let result = analyze(&module, None, cfg.clone()).unwrap();
+    assert!(
+        result
+            .symbolic_outputs()
+            .unwrap_err()
+            .to_string()
+            .contains("uninitialized SCC")
+    );
+    let modified = text.replace(
+        "global_load_dword v1, v1, s[2:3]",
+        "v_add_u32 v0, 1, 1\n\tglobal_store_dword v1, v0, s[2:3]",
+    );
+    let module = frontend::parse(&modified).unwrap();
+    let result = analyze(&module, None, cfg).unwrap();
+    assert!(
+        result
+            .symbolic_outputs()
+            .unwrap_err()
+            .to_string()
+            .contains("read-only module-global")
+    );
+}
+
+#[test]
+fn compiler_dynamic_lds_uses_static_padding_and_the_native_flat_aperture() {
+    let module = frontend::parse(include_str!(
+        "../src/frontend/fixtures/clang22-dynamic-lds.s"
+    ))
+    .unwrap();
+    let mut cfg = config(2, 2);
+    cfg.arrays[0].len = 4;
+    cfg.dynamic_shared_bytes = 8;
+    let result = analyze(&module, Some("dynamic_lds"), cfg.clone()).unwrap();
+    let outputs = result.symbolic_outputs().unwrap();
+    for index in 0..2 {
+        let root = outputs.element("out", index).unwrap();
+        let ExprNode::Add(a, b) = outputs.arena.node(root) else {
+            panic!("expected native LDS sum")
+        };
+        let mut found = [*a, *b].map(|id| match outputs.arena.node(id) {
+            ExprNode::InputElement { index, .. } => *index,
+            other => panic!("unexpected LDS input {other:?}"),
+        });
+        found.sort();
+        assert_eq!(found, [1 - index, 3 - index]);
+    }
+    assert!(result.graph.validate().is_ok());
+    for capacity in [0, 4, 7] {
+        cfg.dynamic_shared_bytes = capacity;
+        let result = analyze(&module, Some("dynamic_lds"), cfg.clone()).unwrap();
+        assert!(
+            result
+                .symbolic_outputs()
+                .unwrap_err()
+                .to_string()
+                .contains("out-of-bounds LDS"),
+            "capacity {capacity}"
+        );
+    }
+}
+
+#[test]
+fn compiler_grid_and_group_dimensions_retain_numeric_output_provenance() {
+    let module = frontend::parse(include_str!(
+        "../src/frontend/fixtures/clang22-grid-output.s"
+    ))
+    .unwrap();
+    let mut cfg = AnalysisConfig::new((4, 3, 2));
+    cfg.grid_dim = (2, 3, 4);
+    cfg.arrays = vec![
+        array("grid_xy", 0x100000, 2, ArrayKind::Output),
+        array("grid_z_and_group", 0x100008, 4, ArrayKind::Output),
+        array("block_xyz", 0x100018, 3, ArrayKind::Output),
+    ];
+    cfg.params = vec![ParamValue::ArrayPtr("grid_xy".into())];
+    let result = analyze(&module, Some("grid_output"), cfg).unwrap();
+    let outputs = result.symbolic_outputs().unwrap();
+    for (name, expected) in [
+        ("grid_xy", vec![2, 3]),
+        ("grid_z_and_group", vec![4, 0, 0, 0]),
+        ("block_xyz", vec![4, 3, 2]),
+    ] {
+        for (index, value) in expected.into_iter().enumerate() {
+            assert_eq!(
+                outputs
+                    .arena
+                    .as_int_const(outputs.element(name, index as u64).unwrap()),
+                Some(value),
+                "{name}[{index}]"
+            );
+        }
+    }
+    assert!(result.graph.validate().is_ok());
+}
+
+#[test]
+fn opaque_shared_apertures_cannot_become_data_or_global_addresses() {
+    let prefix = "s_load_dwordx4 s[4:7], s[0:1], 0\ns_waitcnt lgkmcnt(0)\ns_mov_b64 s[8:9], src_shared_base\nv_mov_b32 v2, 0\nv_mov_b32 v3, s9\n";
+    for (instructions, expected) in [
+        ("v_add_u32 v4, s9, 0\ns_endpgm", "opaque shared aperture"),
+        (
+            "global_load_dword v4, v[2:3], off\ns_endpgm",
+            "opaque shared aperture",
+        ),
+        (
+            "global_store_dword v2, v3, s[6:7]\ns_endpgm",
+            "opaque shared aperture",
+        ),
+        (
+            "v_mov_b32 v2, -1\nflat_load_dword v4, v[2:3] offset:1\ns_endpgm",
+            "escapes the shared aperture",
+        ),
+    ] {
+        let module = frontend::parse(&source(&format!("{prefix}{instructions}"), 16)).unwrap();
+        let result = analyze(&module, None, config(1, 1)).unwrap();
+        assert!(
+            result
+                .symbolic_outputs()
+                .unwrap_err()
+                .to_string()
+                .contains(expected),
+            "{instructions}"
+        );
     }
 }
 

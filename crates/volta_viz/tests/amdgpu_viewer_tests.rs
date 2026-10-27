@@ -151,6 +151,55 @@ fn pending_register_hazard_exports_typed_issue_and_use_witness() {
 }
 
 #[test]
+fn scoped_global_effects_and_single_cu_premise_export_additively() {
+    let mut p = provenance(64);
+    p.assumptions.push(Assumption::SingleCuWorkgroup);
+    let mut b = GraphBuilder::new(p);
+    instruction(&mut b, 0, 0, vec![v(0)], vec![]);
+    let issue = b.amd_event(
+        0,
+        ProgramPoint(0),
+        AmdEventKind::MemoryIssue {
+            class: AmdMemoryClass::VectorMemory,
+            counters: vec![(AmdCounter::Vm, 1)],
+            destinations: vec![],
+            held_sources: vec![],
+        },
+    );
+    let value = b.value(StoredValue::Opaque);
+    let effect = b.thread_access(
+        ThreadIx(0),
+        ProgramPoint(0),
+        MemAccess {
+            space: Space::Global,
+            mode: AccessMode::Write,
+            ordering: OrderingKind::Ordinary,
+            proxy: Proxy::Generic,
+            footprint: Footprint::Bytes {
+                addr: 0x10000,
+                width: 4,
+            },
+            role: OperandRole::Plain,
+            attributed: ThreadIx(0),
+            value: Some(value),
+        },
+    );
+    b.amd_memory_effect_scoped(issue, effect, AmdMemoryScope::Workgroup);
+    for thread in 0..64 {
+        b.exit(ThreadIx(thread), ProgramPoint(3));
+    }
+    let graph = b.finish(Terminal::Completed);
+    let text = exported("workgroup_scope", &graph);
+    assert!(text.contains("AMD memory scope"));
+    assert!(text.contains("Workgroup"));
+    assert!(text.contains("all waves of the analyzed AMD workgroup share one CU"));
+    assert!(text.contains("\"format\":\"volta-viz 1\""));
+    let mut dump = String::new();
+    graph.write_dump(&mut dump).unwrap();
+    assert!(dump.contains("scope=Workgroup"));
+}
+
+#[test]
 fn aborted_unknown_and_unsupported_are_never_rendered_race_free() {
     for (name, cause, reason, status) in [
         (
