@@ -174,3 +174,19 @@ fn valu_exec_update_requires_four_states_before_matrix_even_for_unchanged_mask()
         }
     }
 }
+
+#[test]
+fn symbolic_predicate_selectors_keep_memory_readiness_and_zero_delay_roles() {
+    for mask in ["vcc", "s[8:9]"] {
+        for (wait, safe) in [("", false), ("s_waitcnt vmcnt(0)", true)] {
+            let result = verify(&format!(
+                "global_load_dword v8, v2, s[4:5]\n{wait}\nv_cmp_eq_i32 {mask}, -1, v8\nv_mov_b32 v9, -1\nv_cndmask_b32 v10, 0, v9, {mask}\ns_waitcnt vmcnt(0)"
+            ));
+            if safe {
+                assert_eq!(result.graph.conclusion(), GraphConclusion::Verified);
+            } else {
+                assert_hazard(&result, AmdRegisterHazardKind::ReadBeforeReady);
+            }
+        }
+    }
+}

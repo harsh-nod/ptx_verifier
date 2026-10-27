@@ -108,6 +108,9 @@ impl Memory {
 
     pub fn write(&mut self, addr: u64, width: u64, value: Value) -> Result<Value, String> {
         let value = match (width, value) {
+            (_, Value::PredicateWord { .. }) => {
+                return Err("symbolic predicate mask cannot be stored as data bits".into());
+            }
             (1, Value::Bytes(bytes)) => Value::Byte(bytes[0]),
             (1 | 2, Value::Bits(bits)) => Value::Bits(bits & ((1u32 << (8 * width)) - 1)),
             (1 | 2, Value::Integer(bits)) => Value::Integer(bits & ((1u32 << (8 * width)) - 1)),
@@ -233,6 +236,7 @@ impl Memory {
             Value::Halves(..) => Err("packed output needs element-width extraction".into()),
             Value::PartialHalves(..)|Value::Bytes(..)=>Err("packed/partially initialized output needs element-width extraction".into()),
             Value::WidePart { .. } => Err("one word of a 64-bit mathematical value cannot be extracted as a scalar32".into()),
+            Value::PredicateWord { .. } => Err("symbolic predicate mask cannot be extracted as data bits".into()),
         }
     }
 }

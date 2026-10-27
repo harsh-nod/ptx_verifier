@@ -496,20 +496,39 @@ pub(super) fn set_target(
     span: SourceSpan,
 ) -> Result<(), ParseError> {
     let base = target.strip_prefix("amdgcn-amd-amdhsa--").unwrap_or(target);
-    let (gpu, features) = base.split_once(':').unwrap_or((base, ""));
+    let gpu = base.split(':').next().unwrap_or(base);
     if gpu != "gfx950" {
         return Err(ParseError {
             message: format!("unsupported AMD target `{target}`; expected gfx950"),
             span,
         });
     }
-    for feature in features.split(':').filter(|feature| !feature.is_empty()) {
+    let mut xnack = None;
+    let mut sramecc = None;
+    for feature in base.split(':').skip(1) {
         if !["xnack+", "xnack-", "sramecc+", "sramecc-"].contains(&feature) {
             return Err(ParseError {
                 message: format!("unsupported target feature `{feature}`"),
                 span,
             });
         }
+        let selected = if feature.starts_with("xnack") {
+            &mut xnack
+        } else {
+            &mut sramecc
+        };
+        if let Some(previous) = selected {
+            let kind = if *previous == feature {
+                "duplicate"
+            } else {
+                "conflicting"
+            };
+            return Err(ParseError {
+                message: format!("{kind} target features `{previous}` and `{feature}`"),
+                span,
+            });
+        }
+        *selected = Some(feature);
     }
     if let Some(previous) = &module.target
         && previous != base

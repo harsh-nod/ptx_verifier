@@ -536,6 +536,50 @@ fn rejects_other_targets_and_bad_descriptors() {
     }
 }
 
+#[test]
+fn target_features_preserve_unique_settings_and_reject_duplicates_or_conflicts() {
+    for suffix in [
+        "",
+        ":xnack-",
+        ":xnack+",
+        ":sramecc-",
+        ":sramecc+",
+        ":sramecc+:xnack-",
+        ":xnack+:sramecc-",
+    ] {
+        let target = format!("gfx950{suffix}");
+        let source = program("s_endpgm").replace("gfx950", &target);
+        assert_eq!(
+            parse(&source).unwrap().target.as_deref(),
+            Some(target.as_str())
+        );
+    }
+    for suffix in [
+        ":xnack+:xnack-",
+        ":xnack-:xnack+",
+        ":sramecc+:sramecc-",
+        ":sramecc-:sramecc+",
+        ":xnack+:xnack+",
+        ":xnack-:sramecc+:xnack-",
+        ":sramecc+:sramecc+",
+        ":sramecc-:sramecc-",
+        ":",
+        "::xnack-",
+        ":xnack-:",
+    ] {
+        let source = program("s_endpgm").replace("gfx950", &format!("gfx950{suffix}"));
+        assert!(parse(&source).is_err(), "accepted invalid target {suffix}");
+        let source = metadata("").replace(
+            "amdhsa.target: amdgcn-amd-amdhsa--gfx950",
+            &format!("amdhsa.target: amdgcn-amd-amdhsa--gfx950{suffix}"),
+        );
+        assert!(
+            parse(&source).is_err(),
+            "accepted invalid metadata target {suffix}"
+        );
+    }
+}
+
 fn metadata(args: &str) -> String {
     format!(
         "{}\n.amdgpu_metadata\n---\namdhsa.version: [1, 2]\namdhsa.target: amdgcn-amd-amdhsa--gfx950\namdhsa.kernels:\n  - .name: copy\n    .symbol: copy.kd\n    .kernarg_segment_size: 16\n    .wavefront_size: 64\n    .args:\n{args}\n...\n.end_amdgpu_metadata\n",

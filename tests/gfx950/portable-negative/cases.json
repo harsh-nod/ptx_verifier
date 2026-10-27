@@ -1,0 +1,365 @@
+{
+  "baseline": "e8f819919e5d4628b68aa735deacaaa48d46cf23",
+  "cases": [
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/constant_perturbation_ref.ptx",
+      "native_source": "tests/gfx950/portable-negative/constant_perturbation_ref.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/constant_perturbation_mut.ptx",
+      "native_source": "tests/gfx950/portable-negative/constant_perturbation_mut.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/dropped_term_ref.ptx",
+      "native_source": "tests/gfx950/portable-negative/dropped_term_ref.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/dropped_term_mut.ptx",
+      "native_source": "tests/gfx950/portable-negative/dropped_term_mut.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/swapped_noncommutative_ref.ptx",
+      "native_source": "tests/gfx950/portable-negative/swapped_noncommutative_ref.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 2,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/swapped_noncommutative_mut.ptx",
+      "native_source": "tests/gfx950/portable-negative/swapped_noncommutative_mut.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 2,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/off_by_one_index_ref.ptx",
+      "native_source": "tests/gfx950/portable-negative/off_by_one_index_ref.s",
+      "configuration": {
+        "block": [
+          4,
+          1,
+          1
+        ],
+        "input_elements": 8,
+        "output_elements": 4,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/off_by_one_index_mut.ptx",
+      "native_source": "tests/gfx950/portable-negative/off_by_one_index_mut.s",
+      "configuration": {
+        "block": [
+          4,
+          1,
+          1
+        ],
+        "input_elements": 8,
+        "output_elements": 4,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/missing_relu_clamp_ref.ptx",
+      "native_source": "tests/gfx950/portable-negative/missing_relu_clamp_ref.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 2
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/missing_relu_clamp_mut.ptx",
+      "native_source": "tests/gfx950/portable-negative/missing_relu_clamp_mut.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 2
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/sentinel_off_by_one_ref.ptx",
+      "native_source": "tests/gfx950/portable-negative/sentinel_off_by_one_ref.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/sentinel_off_by_one_mut.ptx",
+      "native_source": "tests/gfx950/portable-negative/sentinel_off_by_one_mut.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/fma_different_addend_ref.ptx",
+      "native_source": "tests/gfx950/portable-negative/fma_different_addend_ref.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/fma_different_addend_mut.ptx",
+      "native_source": "tests/gfx950/portable-negative/fma_different_addend_mut.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/linear_chain_sum.ptx",
+      "native_source": "tests/gfx950/portable-negative/linear_chain_sum.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/balanced_tree_sum.ptx",
+      "native_source": "tests/gfx950/portable-negative/balanced_tree_sum.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/balanced_tree_sum_doubled_leaf.ptx",
+      "native_source": "tests/gfx950/portable-negative/balanced_tree_sum_doubled_leaf.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/max_vs_min_ref.ptx",
+      "native_source": "tests/gfx950/portable-negative/max_vs_min_ref.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/max_vs_min_mut.ptx",
+      "native_source": "tests/gfx950/portable-negative/max_vs_min_mut.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/exp_product_of_exps.ptx",
+      "native_source": "tests/gfx950/portable-negative/exp_product_of_exps.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/exp_of_sum.ptx",
+      "native_source": "tests/gfx950/portable-negative/exp_of_sum.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/exp_of_product.ptx",
+      "native_source": "tests/gfx950/portable-negative/exp_of_product.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/integer_sign_bit_xor_ref.ptx",
+      "native_source": "tests/gfx950/portable-negative/integer_sign_bit_xor_ref.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/integer_sign_bit_xor_mut.ptx",
+      "native_source": "tests/gfx950/portable-negative/integer_sign_bit_xor_mut.s",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "status": "validation_pending"
+    }
+  ]
+}
