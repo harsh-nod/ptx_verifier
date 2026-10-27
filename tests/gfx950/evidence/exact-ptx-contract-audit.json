@@ -1,0 +1,684 @@
+{
+  "baseline_commit": "e8f819919e5d4628b68aa735deacaaa48d46cf23",
+  "reviewed_by": "coordinator after source and assertion review",
+  "integrated_rust_validation_revision": "ec332af",
+  "validation": "Full workspace1235passed, unchanged1baseline failure; exact PTX tests remain intact.",
+  "policy": "Only exact NVIDIA contract assertions with no tested portable computation are retained PTX-only. Ten initially proposed rows remain pending for portable obligations.",
+  "ptx_only_rows": [
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/bar_and_barrier_reject_a_missing_operation_bar.ptx",
+      "baseline_sha256": "5b1c438636aa7d53d3357e0fcfd79c71150bcfa742400afc5c9b314fc1294b37",
+      "precise_reason": "Bare bar0 omits the mandatory PTX operation suffix; Rust requires UnsupportedInstruction named Bar with MissingModifier. It contains no memory access, barrier execution result, or arithmetic output. Native s_barrier has no analogous mandatory operation suffix.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_bar_and_barrier_reject_a_missing_operation",
+          "line": 330,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "65999714d0306ef69d7f4e95c491e31b591b40a5b0058bdfcbc9f9207a182933"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/bar_and_barrier_reject_a_missing_operation_barrier.ptx",
+      "baseline_sha256": "1f02749c759480fcc9432517e3299e4461911c3d7d7ca7f79c64ab1f5e7d565f",
+      "precise_reason": "Bare barrier0 omits the mandatory PTX operation suffix; Rust requires UnsupportedInstruction named Barrier with MissingModifier. No synchronization behavior is actually executed or checked by this row.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_bar_and_barrier_reject_a_missing_operation",
+          "line": 330,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "65999714d0306ef69d7f4e95c491e31b591b40a5b0058bdfcbc9f9207a182933"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_multicast_try_cancel_is_rejected.ptx",
+      "baseline_sha256": "526b9b47c6027ebedcc5606daaaae0a4adbfd171a4332f8d28fa14471ff62d99",
+      "precise_reason": "The assertion is specifically refusal of clusterlaunchcontrol multicast::cluster::all, because it writes cancellation responses outside the single-CTA model. It does not assert a generic LDS publication result; the cancellation multicast protocol is not part of the selected gfx950 workgroup ABI.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_clusterlaunchcontrol_multicast_try_cancel_is_rejected",
+          "line": 1531,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "d8b12f7dd5913c9e5a4f40fc0140a1dad5f69ace38678beedd92dd67910ad947"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_query_of_a_fabricated_response_is_rejected.ptx",
+      "baseline_sha256": "837f84bd6ee192ca7b96489b8fcbf1ee48718cd32e651b07a1eff9b74328fdfb",
+      "precise_reason": "The assertion accepts only the diagnostic that an arbitrary packed b128 value is not a declined try_cancel response. Cancellation-response provenance is an exact PTX protocol with no object in this AMD backend; no output or ordinary memory property is asserted.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_clusterlaunchcontrol_query_of_a_fabricated_response_is_rejected",
+          "line": 1514,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "7c507785055c94007d55263a3cb3bf2bfaf9d72671c3c9dd49ca9e029414c646"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_try_cancel_after_observed_decline_is_rejected.ptx",
+      "baseline_sha256": "47354f7973fe162cf4be29e14bb9ea8ed1b51fb88b437280bab3002feaf210f4",
+      "precise_reason": "Rust requires the typed ClcMisuse::RequestAfterObservedDecline{observer0} after querying a declined launch cancellation and requesting again. This is cancellation state-machine misuse, not a general asynchronous memory completion test.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_clusterlaunchcontrol_try_cancel_after_observed_decline_is_rejected",
+          "line": 1491,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "3848a9a0030fcc2a99b4362c788fe156a22fb4ef656afa3441dfd336082f466b"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_unguarded_get_first_ctaid_is_rejected.ptx",
+      "baseline_sha256": "183878e5c3b119acd364da9df920333115d57d44933404270d4bd11131f8e8b5",
+      "precise_reason": "Rust requires ClcMisuse::CtaidOfDeclinedResponse when get_first_ctaid decodes a declined cancellation. This exact undefined launch-cancellation response operation has no selected native counterpart; readiness of unrelated memory is not asserted here.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_clusterlaunchcontrol_unguarded_get_first_ctaid_is_rejected",
+          "line": 1478,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "f30affad44f7c0e8ac9644f9c05980322d26872e24021a57daac4704b70624d6"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mapa_generic_is_rejected.ptx",
+      "baseline_sha256": "417c3189f1a84c86298f528cabc825f4579a39a66c84de8fcba97912a183a2b9",
+      "precise_reason": "The source invokes generic mapa on a shared address and the assertion requires the model-specific generic addressing rejection. This is a cluster address-mapping form; no address is dereferenced or output. Ordinary global/LDS identity remains separately pending in cvta rows.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_mapa_generic_is_rejected",
+          "line": 1555,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "f41d84bae5c56097ef1c502060666b3790c019ae892b02195951807c3a52b6c8"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mapa_nonzero_rank_is_rejected.ptx",
+      "baseline_sha256": "c4b6fa9b6bd56a0752618e46ea612f0aba8877fd292639ffcf8592907c6d910e",
+      "precise_reason": "The row requires MapaRankOutsideCluster{rank1} for the explicitly one-CTA PTX cluster model. A rank in distributed cluster shared memory has no selected gfx950 workgroup ABI equivalent; no ordinary bounds/load/store behavior is checked.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_mapa_nonzero_rank_is_rejected",
+          "line": 1545,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "7f37c104c7b900ed33ce885b742327a1f8e928d8583953aa6b1297bb0dbff936"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_inval_is_not_implemented.ptx",
+      "baseline_sha256": "3cc5db737cb63ee1a750ee508e971d1bf7b2a8010eb9a51de6defe038eaf46ea",
+      "precise_reason": "Only the lowerer diagnostic mbarrier.inval/not implemented is asserted after initialization. NVIDIA memory-resident barrier-object invalidation has no native s_barrier object lifetime operation; no post-invalidation memory access is tested.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_mbarrier_inval_is_not_implemented",
+          "line": 772,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "010d533afd7d1c49bd17ebad2e740239de76cd153ab8acb356a30121da58d9a3"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_relaxed_semantics_rejected_arrive.ptx",
+      "baseline_sha256": "181b6ad07e62f3ff12494543044bc677f69d3a8a195af4612f5826b0d83ea533",
+      "precise_reason": "The assertion rejects the exact .relaxed mbarrier.arrive qualifier before execution. No data publication or acquire/release outcome is asserted; native synchronization ordering needs its own valid AMD instructions and cannot be inferred from this test.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_mbarrier_relaxed_semantics_rejected",
+          "line": 262,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "c94278b8c15c1be1c8ec7fee848c9de9327b161594aa064867e77178bb360eff"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_relaxed_semantics_rejected_try_wait.ptx",
+      "baseline_sha256": "dd5cf1be34a07a8359c542f6ffde8ad83e3cbf1d075283fd1443d98432c9bfc8",
+      "precise_reason": "The assertion rejects .relaxed mbarrier.try_wait at lowering. Although the source contains a polling branch, it never reaches a runtime completion check under the test; its tested contract is the unsupported PTX qualifier.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_mbarrier_relaxed_semantics_rejected",
+          "line": 262,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "c94278b8c15c1be1c8ec7fee848c9de9327b161594aa064867e77178bb360eff"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_arrive.ptx",
+      "baseline_sha256": "1b21a2eec25cb71d747d0c936d80181c151fc863de9be2619ce793c6d2d7255d",
+      "precise_reason": "mbarrier.arrive.shared::cluster is a legal PTX distributed-barrier form rejected for single-CTA analysis only. Rust checks that exact reason; it does not validate an AMD or portable multi-workgroup memory protocol.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_mbarrier_shared_cluster_validity",
+          "line": 843,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "d7bb51618140be1b4ce364693db57a658d0bf98e08f780cc39d478b2b1a76a0f"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_init.ptx",
+      "baseline_sha256": "bcb85d929dc4edd35dd61095385dd4ec4bafd3e11dac8ef34d90b1d499c8a1be",
+      "precise_reason": "mbarrier.init has no .shared::cluster form and Rust requires that exact InvalidInstruction reason. This is a PTX scope/form grammar contract, with no initialized native barrier object or memory outcome.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_mbarrier_shared_cluster_validity",
+          "line": 843,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "d7bb51618140be1b4ce364693db57a658d0bf98e08f780cc39d478b2b1a76a0f"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_inval.ptx",
+      "baseline_sha256": "d31146ef8d7860ea5093c076982b521734f39908bb9b7cc471abdb0aae1ddf43",
+      "precise_reason": "mbarrier.inval has no .shared::cluster form and Rust requires that exact InvalidInstruction reason. No generic barrier lifetime behavior is exercised.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_mbarrier_shared_cluster_validity",
+          "line": 843,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "d7bb51618140be1b4ce364693db57a658d0bf98e08f780cc39d478b2b1a76a0f"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_test_wait.ptx",
+      "baseline_sha256": "324047710efe2ba39601cb847f01a205640253224f106f97d4673d9a311837bd",
+      "precise_reason": "mbarrier.test_wait has no .shared::cluster form and Rust requires that exact invalid-instruction diagnostic; the apparent polling branch never executes in the test.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_mbarrier_shared_cluster_validity",
+          "line": 843,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "d7bb51618140be1b4ce364693db57a658d0bf98e08f780cc39d478b2b1a76a0f"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_try_wait.ptx",
+      "baseline_sha256": "5c2f4256d921e4cb06bb9b5b0e76348cebedc44daa5a9f526dd3a2d9a25351e8",
+      "precise_reason": "mbarrier.try_wait has no .shared::cluster form and Rust requires that exact invalid-instruction diagnostic; no completion or memory publication result is asserted.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_mbarrier_shared_cluster_validity",
+          "line": 843,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "d7bb51618140be1b4ce364693db57a658d0bf98e08f780cc39d478b2b1a76a0f"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_alloc_rejects_invalid_sizes_and_order_16.ptx",
+      "baseline_sha256": "7305d951131c2cd1ed38ffbae3c6e608399b6e33d46fdeb84561d27704699382",
+      "precise_reason": "The assertion rejects tensor-memory allocation16columns because tcgen05 allocates in32-column units. Native gfx950 register/LDS allocation has different resources and no dynamic tensor-memory column allocator; the number16 rule is an exact PTX resource contract.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_alloc_rejects_invalid_sizes_and_order",
+          "line": 362,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "63ca2acbff33a354f03b67b35961493451b3407f5c7db75acef4f4cb8845b16a"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_alloc_rejects_invalid_sizes_and_order_32_then_64.ptx",
+      "baseline_sha256": "774e400a5f72692456301f4ac5531f403938d3687311c7e8185b2e0adf660108",
+      "precise_reason": "The assertion requires Tcgen05IncreasingColumnCount{previous32,requested64} for dynamic tensor-memory allocation order. AMD VGPR/LDS resources do not expose that decreasing-allocation-count protocol; no buffer memory property is asserted.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_alloc_rejects_invalid_sizes_and_order",
+          "line": 362,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "63ca2acbff33a354f03b67b35961493451b3407f5c7db75acef4f4cb8845b16a"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_exclusive_alloc_and_dealloc_are_not_implemented_alloc.ptx",
+      "baseline_sha256": "2aa9adcd00b9569ac9120afaa4511f394e3df381bd1e033c2f8c5e16621129c6",
+      "precise_reason": "The lowerer must reject .exclusive tcgen05.alloc with a not implemented reason. This is an unsupported NVIDIA tensor-memory allocation mode; no native arithmetic, allocation result or synchronization behavior is checked.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_exclusive_alloc_and_dealloc_are_not_implemented",
+          "line": 403,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "a293df97348999892e275b7ac08a3435f33d08bbfdb6965421ccf4031dcdb1b3"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_exclusive_alloc_and_dealloc_are_not_implemented_dealloc.ptx",
+      "baseline_sha256": "124596dc9c53feb3c5b582dfa7a8599e9e173da13dbec18b99e3c1ea414e76cd",
+      "precise_reason": "The lowerer must reject .exclusive tcgen05.dealloc with a not implemented reason. No allocated-data lifetime/load/store outcome is part of this test.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_exclusive_alloc_and_dealloc_are_not_implemented",
+          "line": 403,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "a293df97348999892e275b7ac08a3435f33d08bbfdb6965421ccf4031dcdb1b3"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_a_desc_bit15.ptx",
+      "baseline_sha256": "8aa018595dc97ea6e8e64fc6c5503c26a6079c1ba060e7ec0773102fdb78331a",
+      "precise_reason": "Rust requires InvalidEncoding mentioning a-desc for reserved A descriptor bit15. The kernel has no output and the test does not attempt a valid matrix multiplication; native MFMA consumes register tuples rather than this PTX shared descriptor.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_mma_rejects_malformed_descriptors",
+          "line": 694,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "aba4fd3996eb537574a67d05c9609f5ff1466925edf64a87a7d5501caefe0d0f"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_b_desc_no_bit46.ptx",
+      "baseline_sha256": "120268d50ed6297e72fab8218c8cdf7b171fe058df0401e2a29e8f0ce006bea0",
+      "precise_reason": "Rust requires InvalidEncoding naming B descriptor fixed constant bit46. This exact descriptor tag is absent from register-tuple MFMA; it is not evidence of portable matrix arithmetic.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_mma_rejects_malformed_descriptors",
+          "line": 694,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "aba4fd3996eb537574a67d05c9609f5ff1466925edf64a87a7d5501caefe0d0f"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_b_swizzle128b_atom32.ptx",
+      "baseline_sha256": "36c64f388b6a199a6ec88c5bf0e1c25c86c46217b56e0da10e13d2bd13585e9d",
+      "precise_reason": "Rust rejects the exact combination transposedB with128B swizzling/32B atomicity. It does not test a valid transpose computation or memory-swizzle result. Native matrix transpose/layout correctness remains an independent portable obligation in other rows.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_mma_rejects_invalid_layout_combinations",
+          "line": 728,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "33a3585165efba49cc4a8e3db1b76c621548e7c9f41cc14c0fb7923ff084b965"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_max_shift.ptx",
+      "baseline_sha256": "acc0f89e65dca74a212a96ee899629d68f1035bf8d79c4f98a91c4cc2c66a87b",
+      "precise_reason": "Rust requires InvalidEncoding naming the PTX idesc maximum-shift field. The raw F16 descriptor field is illegal/unmodeled at this stage; no shifted arithmetic output is asserted.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_mma_rejects_invalid_idesc_fields",
+          "line": 664,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "8f5a4de1212c8756f7fa9b1ab820025e25eb52ef4b1beb8e824e8d5e557983ee"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_reserved_bit23.ptx",
+      "baseline_sha256": "fcfaafd3517dd0353249f6863896d974f4c6398bd24c9c417a150f372fded3a3",
+      "precise_reason": "Rust requires InvalidEncoding for reserved idesc bit23. No numeric operation associated with this reserved field is validly executed or checked.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_mma_rejects_invalid_idesc_fields",
+          "line": 664,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "8f5a4de1212c8756f7fa9b1ab820025e25eb52ef4b1beb8e824e8d5e557983ee"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_reserved_bit6.ptx",
+      "baseline_sha256": "16f12987bc50a6d19adf70197af4ab2bfcd253e6a17460b9b186f41f698c4d75",
+      "precise_reason": "Rust requires InvalidEncoding for reserved idesc bit6. This bit-packing rule belongs to the PTX tensor instruction descriptor and has no native register-tuple descriptor analogue.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_mma_rejects_invalid_idesc_fields",
+          "line": 664,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "8f5a4de1212c8756f7fa9b1ab820025e25eb52ef4b1beb8e824e8d5e557983ee"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_saturate.ptx",
+      "baseline_sha256": "29ecf2e64adf5672b5e12c526c9606b09046d516f8605c0457b89be77b2d50ab",
+      "precise_reason": "Rust requires InvalidEncoding for the saturate bit in this F16 idesc. This is rejection of an illegal descriptor combination, not validation of a supported saturation computation. Portable clamp/saturation arithmetic remains separately required elsewhere.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_mma_rejects_invalid_idesc_fields",
+          "line": 664,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "8f5a4de1212c8756f7fa9b1ab820025e25eb52ef4b1beb8e824e8d5e557983ee"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_alloc_aligned.ptx",
+      "baseline_sha256": "193236147cbd70c3e4a1721b911d4c0d0ba53422d45170491d0a5d71788c3616",
+      "precise_reason": "tcgen05.alloc is missing its mandatory .aligned qualifier; Rust requires InvalidInstruction naming mandatory.aligned. This static PTX syntax rule checks no allocation synchronization behavior.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "670e4185b9e1bbeb6ca13de03a41273ac23da4bcebdfeae11582cf045c276d50"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_alloc_sync.ptx",
+      "baseline_sha256": "706e2202b519d0d83506b80360228755dbe997c51fac2fa6d8d80d458d8423bf",
+      "precise_reason": "tcgen05.alloc is missing mandatory.sync; the asserted failure is qualifier validation, not a missing executed barrier/readiness test.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "670e4185b9e1bbeb6ca13de03a41273ac23da4bcebdfeae11582cf045c276d50"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_dealloc.ptx",
+      "baseline_sha256": "e159172eacca1ee6aecee61c9deb78fed549d146c3c1f343d7f815dbd4e91a4f",
+      "precise_reason": "tcgen05.dealloc is missing mandatory.aligned; Rust asserts syntax validation before the uninitialized operand could be evaluated.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "670e4185b9e1bbeb6ca13de03a41273ac23da4bcebdfeae11582cf045c276d50"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_ld.ptx",
+      "baseline_sha256": "b5c374c772862f178b7a4c6635a8da50cdc8f1cfaa37cf1de01847b5e34ca609",
+      "precise_reason": "tcgen05.ld is missing mandatory.sync/.aligned; Rust checks the specific mandatory.sync qualifier rejection, not tensor-memory load data or readiness.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "670e4185b9e1bbeb6ca13de03a41273ac23da4bcebdfeae11582cf045c276d50"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_relinquish.ptx",
+      "baseline_sha256": "d5dd23f936dfb4ab4b5f589b05f025fd29d958cdc3446574740d38edffd736fb",
+      "precise_reason": "tcgen05.relinquish_alloc_permit is missing mandatory.aligned; the asserted contract is its PTX grammar, not a portable resource-permit algorithm.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "670e4185b9e1bbeb6ca13de03a41273ac23da4bcebdfeae11582cf045c276d50"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_st.ptx",
+      "baseline_sha256": "636ff304a777598f1368efdec176c1b2e567f6b4019212df043cc5ab0e87a002",
+      "precise_reason": "tcgen05.st.sync lacks mandatory.aligned; no store value, address or race result is checked because validation must reject it.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "670e4185b9e1bbeb6ca13de03a41273ac23da4bcebdfeae11582cf045c276d50"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_wait_ld.ptx",
+      "baseline_sha256": "1df5d62b414e51480f0f25e5c2ea6f173cac3536c8a9334852a6f5446a4773b4",
+      "precise_reason": "tcgen05.wait::ld lacks mandatory.sync; no pending operation exists and the test only asserts the qualifier diagnostic, so it is not a portable wait-completion test.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "test": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "pinned_file_sha256": "c3be4e2490d987313d6b38b33b6d4b933b7e4f87d91310c2e327d11f0d40c6a9",
+          "assertion_body_sha256": "670e4185b9e1bbeb6ca13de03a41273ac23da4bcebdfeae11582cf045c276d50"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_arrive_extra_operand.ptx",
+      "baseline_sha256": "c903f8433b35b3d9f333f52386697ca791799925a74e6948d6d8ef6843e1c6af",
+      "precise_reason": "mbarrier.arrive.expect_tx has a fourth trailing operand0xdeadbeef. The helper requires parser/lowerer rejection before execution; native s_barrier has no address/count/transaction object arity. General native arity validation remains a backend-wide gate, not an asserted data-flow result here.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "test": "mbarrier_arrive_must_reject_a_trailing_operand",
+          "line": 201,
+          "pinned_file_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80",
+          "assertion_body_sha256": "d2b0fae35de632b0dd06a5c43dee6348fd591a81acfdb7bc213078e13a16ee68"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_arrive_zero_count.ptx",
+      "baseline_sha256": "b68110e3c4e4797f5786d37820a97f5f914c236561ffe40d54c0146d0c4c583c",
+      "precise_reason": "A PTX mbarrier.arrive count of0 must fail before a verdict. Native s_barrier implicitly counts workgroup waves and has no decrement-count operand; the numerical zero-arrival contract cannot be transferred to an AMD barrier parameter.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "test": "mbarrier_arrive_must_reject_a_zero_count",
+          "line": 192,
+          "pinned_file_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80",
+          "assertion_body_sha256": "94d90d50627f4fe152f6413de8e92eff119aa9b136eca0db5bcb4f7eda280e2a"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_complete_tx_invalid_scope.ptx",
+      "baseline_sha256": "106c83e84dc54bb7eceafb6011131f3d13015a630d08b8339321a4dd689a0677",
+      "precise_reason": "mbarrier.complete_tx.relaxed.gpu.shared::cta uses a forbidden PTX scope combination and must fail static validation. No cross-agent memory publication is tested; native SC/cache scope semantics need their own tests.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "test": "mbarrier_complete_tx_must_reject_invalid_scope",
+          "line": 439,
+          "pinned_file_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80",
+          "assertion_body_sha256": "90957ee6966ba2c141d15af552008fb263593ab7864981935922eb730d7ecd56"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_complete_tx_invalid_semantics.ptx",
+      "baseline_sha256": "38a579f5058f9f94d2ad08714ca315c72f523ae9ff1a0c0e5abdd3e8f2bb10cb",
+      "precise_reason": "mbarrier.complete_tx.acquire is an invalid PTX semantics qualifier and must fail validation. This does not assert a successful acquire ordering relation; native cache/scope flags cannot substitute for it.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "test": "mbarrier_complete_tx_must_reject_invalid_semantics",
+          "line": 430,
+          "pinned_file_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80",
+          "assertion_body_sha256": "95204c2c68b449ed7cbbcbcd221aa5e937dffd1f3e34bb0b2d4b472beeb84815"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_expect_tx_invalid_scope.ptx",
+      "baseline_sha256": "58b2518232a6605d31b63257a9f50c0b35f3d7ee304c26953dd62c038eb1461a",
+      "precise_reason": "mbarrier.expect_tx.relaxed.gpu.shared::cta has invalid GPU scope for the shared CTA object and must fail validation. No ordinary memory conflict property is evaluated.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "test": "mbarrier_expect_tx_must_reject_invalid_scope",
+          "line": 421,
+          "pinned_file_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80",
+          "assertion_body_sha256": "04d978fcabb860fc0456b7e3fbb5b51b6cad93b88b37ff8a5ffeaff71e4e92a6"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_expect_tx_invalid_semantics.ptx",
+      "baseline_sha256": "a22178563c2cdf94a9ef598b8d3c9504888d1caf5f468c82ec81d40354b0ecfa",
+      "precise_reason": "mbarrier.expect_tx.acquire is an invalid PTX semantics form; the assertion concerns static legality, not publication of asynchronous memory data.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "test": "mbarrier_expect_tx_must_reject_invalid_semantics",
+          "line": 412,
+          "pinned_file_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80",
+          "assertion_body_sha256": "35c05487b53a0e9076c142a50fab4a225a9da8507399f0bf505255d2822eda92"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_init_count_out_of_range.ptx",
+      "baseline_sha256": "b325cad7ca4699fe924635006d46f6edc6a3782d3c3271f6055248141798a7c3",
+      "precise_reason": "Initializing the memory-resident PTX barrier count with2^20 violates its20-bit object range. Native s_barrier has no init count or memory object; launch/workgroup resource limits are distinct native obligations.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "test": "mbarrier_init_must_reject_a_count_above_the_ptx_limit",
+          "line": 183,
+          "pinned_file_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80",
+          "assertion_body_sha256": "4608468a17422f1fcf0a58ce0ad1c5ccea9a45a5c70f947effa62d35129ec774"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_init_zero_count.ptx",
+      "baseline_sha256": "c3114f576d0d893e577b2a38c65d43775dfb31fe4492915cbd5fc6e433a0f2c8",
+      "precise_reason": "Initializing a PTX mbarrier with0 violates its object count contract. Native s_barrier has no barrier-init instruction/count; this exact invalid object state is not an AMD execution form.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "test": "mbarrier_init_must_reject_a_zero_count",
+          "line": 174,
+          "pinned_file_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80",
+          "assertion_body_sha256": "854973ec2113d13a533c9cbfb9759b65481c0bb6ef6d050fd6c50ef0d2c9abe8"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_test_wait_extra_operand.ptx",
+      "baseline_sha256": "4a13675e1897550233e8371e287f7464995efb8158fe315abede465d828211f6",
+      "precise_reason": "mbarrier.test_wait has an extra trailing operand5; helper requires validation rejection before the poll executes. PTX object/parity arity is exact syntax; there is no native equivalent operand to silently ignore.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "test": "mbarrier_test_wait_must_reject_an_extra_operand",
+          "line": 457,
+          "pinned_file_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80",
+          "assertion_body_sha256": "56410b34e2bff38259edd172765d7197330ebaf6616a68a9b28a8d5a428fd41a"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_try_wait_extra_operand.ptx",
+      "baseline_sha256": "a17c8778c62cc28369f9964a4d25a47bc23c20c509c32f15b00ed199ec78800f",
+      "precise_reason": "mbarrier.try_wait has an operand after its optional suspend hint; helper requires static rejection. AMD wait encoding has a different immediate/counter ABI, already subject to separate native validation.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "test": "mbarrier_try_wait_must_reject_an_operand_after_the_suspend_hint",
+          "line": 466,
+          "pinned_file_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80",
+          "assertion_body_sha256": "2097ec8f828543ffd37c46967696d0a3c605a62635154f41d2d8d172833aa9a2"
+        }
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_try_wait_invalid_scope.ptx",
+      "baseline_sha256": "404241682cd489a7d8fa2b2d147d2949dcb6a0a4d5a1e1d6fd019974236d2879",
+      "precise_reason": "mbarrier.try_wait.parity.acquire.sys.shared::cta has forbidden scope and must fail static validation. It asserts no successful system-scope ordering or memory data behavior.",
+      "portable_obligations": [],
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "test": "mbarrier_try_wait_must_reject_invalid_scope",
+          "line": 448,
+          "pinned_file_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80",
+          "assertion_body_sha256": "346ca379ff357f596fcafc6d40e55f60afe423f70008908b93ac2fd27896da96"
+        }
+      ]
+    }
+  ]
+}

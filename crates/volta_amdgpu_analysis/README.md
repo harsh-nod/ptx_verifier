@@ -86,6 +86,11 @@ LDS barriers record wave arrivals and releases by generation. LDS visibility
 requires the appropriate memory waits as well as rendezvous. DS permutations
 snapshot source lanes before writing destinations and record LGKM readiness;
 they do not fabricate LDS accesses for the cross-lane network.
+`s_endpgm` records its implicit full memory-counter drain before all valid lanes
+exit. Terminated waves cease participating in later barriers; each surviving
+wave still arrives and releases in every generation, including a partial wave.
+Exit completion alone does not publish LDS data to another wave without its
+required barrier.
 
 Every matrix operation requires a full active wave64. A/B/C/D mappings derive
 from CDNA4 ISA sections 7.1.4–7.1.5; FP8 uses separate sixteen-K interleaving.
@@ -99,9 +104,9 @@ required, except explicitly supported FP8 format and unit-scale selectors.
 | Area | Supported behavior | Limits |
 | --- | --- | --- |
 | Integer/address ALU | Concrete fixed-width arithmetic, carry masks, bitfields, address packing; symbolic32 add/sub/mullo, bit operations, native shifts, min/max | Symbolic integer division/control and general64-bit integer data remain unsupported; data expressions cannot become address bits |
-| Floating data | Mathematical f32/f64 arithmetic, selected conversions/transcendentals, packed f32/f16 operations, partial-half preservation, OCP E4M3 decoding | No IEEE rounding/NaN claim; ordered whole-value F64 storage only; symbolic BF16/E5M2 storage remains unsupported |
+| Floating data | Mathematical f32/f64 arithmetic, selected conversions/transcendentals, packed f32/f16 operations, partial-half preservation, OCP E4M3 decoding; f32 clamp for arithmetic, trans, mov and cndmask VOP3 forms | No IEEE rounding/NaN claim; ordered whole-value F64 storage only; symbolic BF16/E5M2 storage remains unsupported; clamp with explicit e32/SDWA, integer/compare/conversion clamp meanings and output scaling remain unsupported |
 | Global and LDS memory | Byte/short/dword and wide transfers, sign extension, narrow-store truncation, dual-offset LDS, static/dynamic LDS bounds | Equal-offset dual LDS operations, scratch, buffer addressing, direct-to-LDS, and atomics remain unsupported |
-| Control and synchronization | Scalar branches, concrete EXEC/VCC/SCC, symbolic lane comparison masks and cndmask data selection, save/restore EXEC, memory waits, workgroup barriers | One workgroup; symbolic control/EXEC/carry/address masks remain unsupported; partial graph on abort; early-exit barrier patterns are conservative |
+| Control and synchronization | Scalar branches, concrete EXEC/VCC/SCC, symbolic lane comparison masks and cndmask data selection, save/restore EXEC, memory waits, surviving-wave barriers after whole-wave termination | One workgroup; symbolic control/EXEC/carry/address masks remain unsupported; live-wave loops remain inconclusive on budget exhaustion; partial graph on abort |
 | Cross-lane | DS permute/bpermute with source snapshots and LGKM readiness | DPP and ordinary readlane/readfirstlane/writelane require further software hazard checks |
 | Accumulator registers | Disjoint physical allocation, MFMA accumulation, native AGPR read/write/move and direct stores | Aliasing VGPR/AGPR allocations are rejected |
 | F32 MFMA | 16×16×4 and 32×32×2 | Full active wave64 and default layouts |

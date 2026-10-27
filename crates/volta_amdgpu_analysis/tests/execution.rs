@@ -1367,6 +1367,190 @@ fn vector_memory_requires_disabled_xnack_replay_scope() {
 }
 
 #[test]
+fn native_f32_clamp_saturates_supported_float_results() {
+    fn numeric(arena: &volta_expr::ExprArena, id: volta_expr::ExprId) -> f64 {
+        let value = |id| numeric(arena, id);
+        match arena.node(id) {
+            ExprNode::IntConst(value) => *value as f64,
+            ExprNode::RealConst(value) => value.to_f64(),
+            ExprNode::Add(a, b) => value(*a) + value(*b),
+            ExprNode::Sub(a, b) => value(*a) - value(*b),
+            ExprNode::Mul(a, b) => value(*a) * value(*b),
+            ExprNode::Div(a, b) => value(*a) / value(*b),
+            ExprNode::Fma(a, b, c) => value(*a) * value(*b) + value(*c),
+            ExprNode::Min(a, b) => value(*a).min(value(*b)),
+            ExprNode::Max(a, b) => value(*a).max(value(*b)),
+            ExprNode::Rcp(a) => value(*a).recip(),
+            ExprNode::Sqrt(a) => value(*a).sqrt(),
+            ExprNode::Exp(a) => value(*a).exp(),
+            ExprNode::Log(a) => value(*a).ln(),
+            node => panic!("unexpected nonconstant expression {node:?}"),
+        }
+    }
+    for (operation, expected) in [
+        ("v_mov_b32 v8, 0.75\nv_add_f32 v5, v8, v8 clamp", 1.0),
+        (
+            "v_mov_b32 v8, -0.75\nv_mov_b32 v9, 0.25\nv_add_f32 v5, v8, v9 clamp",
+            0.0,
+        ),
+        ("v_mov_b32 v8, 0.25\nv_add_f32 v5, v8, v8 clamp", 0.5),
+        ("v_mov_b32 v8, 0.25\nv_add_f32_e64 v5, v8, v8 clamp", 0.5),
+        ("v_sub_f32 v5, v9, v8 clamp", 1.0),
+        ("v_subrev_f32 v5, v9, v8 clamp", 0.0),
+        ("v_mul_f32 v5, v8, v9 clamp", 0.0),
+        ("v_min_f32 v5, v9, v10 clamp", 0.5),
+        ("v_max_f32 v5, v9, v10 clamp", 1.0),
+        ("v_fma_f32 v5, v8, v9, v10 clamp", 1.0),
+        ("v_mov_b32 v5, 0.5\nv_fmac_f32 v5, v8, v9 clamp", 0.0),
+        ("v_rcp_f32 v5, v9 clamp", 1.0),
+        ("v_sqrt_f32 v5, v10 clamp", 1.0),
+        ("v_rsq_f32 v5, v10 clamp", 0.5),
+        ("v_exp_f32 v5, 0 clamp", 1.0),
+        ("v_log_f32 v5, 1.0 clamp", 0.0),
+        ("v_mov_b32 v5, v8 clamp", 0.0),
+        (
+            "v_cmp_lt_u32 vcc, v0, 0\nv_cndmask_b32 v5, v8, v10, vcc clamp",
+            0.0,
+        ),
+    ] {
+        let instructions=COPY.replace("s_waitcnt vmcnt(0)",&format!("s_waitcnt vmcnt(0)\nv_mov_b32 v8, -2.0\nv_mov_b32 v9, 0.5\nv_mov_b32 v10, 4.0\n{operation}"));
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let result = analyze(&module, None, config(64, 64)).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        for index in 0..64 {
+            assert_eq!(
+                numeric(&outputs.arena, outputs.element("out", index).unwrap()),
+                expected,
+                "{operation}"
+            );
+        }
+    }
+    let instructions = COPY.replace(
+        "s_waitcnt vmcnt(0)",
+        "s_waitcnt vmcnt(0)\nv_add_f32 v5, v5, 0.5 clamp",
+    );
+    let module = frontend::parse(&source(&instructions, 0)).unwrap();
+    let result = analyze(&module, None, config(64, 64)).unwrap();
+    let outputs = result.symbolic_outputs().unwrap();
+    for index in 0..64 {
+        let ExprNode::Min(a, b) = outputs.arena.node(outputs.element("out", index).unwrap()) else {
+            panic!("not saturated")
+        };
+        assert!(
+            [a, b]
+                .iter()
+                .any(|id| outputs.arena.as_f64(**id) == Some(1.0))
+        );
+        assert!(
+            [a, b]
+                .iter()
+                .any(|id| matches!(outputs.arena.node(**id), ExprNode::Max(..)))
+        );
+    }
+}
+
+#[test]
+fn clamp_does_not_enable_other_modifier_or_integer_exception_semantics() {
+    for operation in [
+        "v_add_u32 v5, v0, 1 clamp",
+        "v_cmp_lt_f32 vcc, v5, 0 clamp",
+        "v_cvt_f32_i32 v5, v0 clamp",
+        "v_add_f32 v5, v5, 1.0 mul:2",
+        "v_add_f32 v5, v5, 1.0 clamp div:2",
+        "v_fmamk_f32 v5, v5, 1.0, v0 clamp",
+        "v_add_f32_e32 v5, v5, 1.0 clamp",
+        "v_add_f32_sdwa v5, v5, v5 clamp",
+    ] {
+        let instructions = COPY.replace(
+            "s_waitcnt vmcnt(0)",
+            &format!("s_waitcnt vmcnt(0)\n{operation}"),
+        );
+        match frontend::parse(&source(&instructions, 0)) {
+            Ok(module) => assert!(
+                analyze(&module, None, config(64, 64))
+                    .unwrap()
+                    .symbolic_outputs()
+                    .is_err(),
+                "{operation}"
+            ),
+            Err(_) => {}
+        }
+    }
+}
+
+#[test]
+fn terminated_producer_wave_drops_out_of_repeated_survivor_barriers() {
+    let instructions = r#"
+s_load_dwordx4 s[4:7], s[0:1], 0
+s_waitcnt lgkmcnt(0)
+v_lshlrev_b32 v2, 2, v0
+v_cmp_lt_u32 vcc, v0, 64
+s_cbranch_vccz .Lconsumer
+global_load_dword v5, v2, s[4:5]
+s_waitcnt vmcnt(0)
+ds_write_b32 v2, v5
+s_endpgm
+.Lconsumer:
+s_barrier
+v_sub_u32 v4, v0, 64
+v_lshlrev_b32 v4, 2, v4
+ds_read_b32 v5, v4
+s_waitcnt lgkmcnt(0)
+s_barrier
+global_store_dword v4, v5, s[6:7]
+s_endpgm
+"#;
+    let module = frontend::parse(&source(instructions, 256)).unwrap();
+    for block in [65, 96, 128] {
+        let mut cfg = config(block, (block - 64) as u64);
+        cfg.arrays[0].len = 64;
+        let result = analyze(&module, None, cfg).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        assert_eq!(outputs.outputs[0].1.len(), (block - 64) as usize);
+        for index in 0..(block - 64) as u64 {
+            assert!(
+                matches!(outputs.arena.node(outputs.element("out",index).unwrap()),ExprNode::InputElement{index:found,..}if *found==index)
+            );
+        }
+        let events = result.graph.amd_events();
+        assert_eq!(
+            events
+                .iter()
+                .filter(|event| matches!(
+                    event.kind,
+                    volta_graph::AmdEventKind::BarrierRelease { .. }
+                ))
+                .count(),
+            2
+        );
+        assert!(
+            events
+                .iter()
+                .filter(|event| matches!(
+                    event.kind,
+                    volta_graph::AmdEventKind::BarrierRelease { .. }
+                ))
+                .all(|event| event.wave == 1)
+        );
+        assert_eq!(
+            events
+                .iter()
+                .filter(|event| matches!(
+                    event.kind,
+                    volta_graph::AmdEventKind::Wait {
+                        vmcnt: Some(0),
+                        lgkmcnt: Some(0),
+                        expcnt: Some(0)
+                    }
+                ))
+                .count(),
+            2
+        );
+        assert!(result.graph.validate().is_ok());
+    }
+}
+
+#[test]
 fn scalar_min_max_scc_uses_native_tie_rules() {
     // CDNA4 SOP2: MIN selects src0 only on <; MAX selects it on >=.
     for (opcode, a, b, selected_first) in [

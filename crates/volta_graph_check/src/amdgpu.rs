@@ -217,7 +217,7 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                 let expected = match kind {
                     Some("scalar memory") => Some("memory"),
                     Some("vector memory" | "LDS") if *exec_mask != 0 => Some("memory"),
-                    Some("wait") => Some("wait"),
+                    Some("wait" | "s_endpgm") => Some("wait"),
                     Some("barrier") => Some("barrier"),
                     Some("MFMA") => Some("matrix"),
                     Some("s_nop") => Some("delay"),
@@ -315,13 +315,24 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                 lgkmcnt,
                 expcnt,
             } => {
-                claim_instruction(
+                let instruction = claim_instruction(
                     graph,
                     record,
                     &mut last_instruction,
                     "wait",
                     &mut unresolved,
                 );
+                if instruction.is_some_and(|i| {
+                    i.pc.is_some_and(|pc| {
+                        graph.provenance().instructions[pc.0 as usize].kind == "s_endpgm"
+                    })
+                }) && (*vmcnt != Some(0) || *lgkmcnt != Some(0) || *expcnt != Some(0))
+                {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "S_ENDPGM must record its implicit all-counter zero wait",
+                    ));
+                }
                 if vmcnt.is_some_and(|n| n > 63)
                     || lgkmcnt.is_some_and(|n| n > 15)
                     || expcnt.is_some_and(|n| n > 7)
@@ -663,6 +674,7 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
     let mut releases = HashSet::new();
     let mut next_generation = vec![0u32; waves];
     let mut barrier_violations = Vec::new();
+    let mut barrier_unresolved = Vec::new();
     let mut barrier_arrivals = 0;
     let mut ticks = vec![0u64; waves];
     let mut duration = vec![0u16; waves];
@@ -1092,16 +1104,20 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
             AmdEventKind::BarrierRelease { generation } => {
                 let arrivals = barriers.get(generation);
                 let mut missing = Vec::new();
+                let mut exited = Vec::new();
                 for w in 0..waves {
-                    let exited = (w * 64..((w + 1) * 64).min(graph.threads() as usize)).all(|t| {
-                        graph
-                            .program_order(volta_graph::ThreadIx(t as u32))
-                            .last()
-                            .is_some_and(|&e| {
-                                e < record.event && graph.event(e).kind == EventKind::Exit
-                            })
-                    });
-                    if !exited && !arrivals.is_some_and(|a| a.contains_key(&(w as u32))) {
+                    let wave_exited =
+                        (w * 64..((w + 1) * 64).min(graph.threads() as usize)).all(|t| {
+                            graph
+                                .program_order(volta_graph::ThreadIx(t as u32))
+                                .last()
+                                .is_some_and(|&e| {
+                                    e < record.event && graph.event(e).kind == EventKind::Exit
+                                })
+                        });
+                    if wave_exited {
+                        exited.push(w);
+                    } else if !arrivals.is_some_and(|a| a.contains_key(&(w as u32))) {
                         missing.push(w);
                     }
                 }
@@ -1129,6 +1145,22 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                 } else {
                     for (_, clock) in arrivals.unwrap().values() {
                         join(&mut clocks[wave], clock);
+                    }
+                    // CDNA4 §4.3 / S_BARRIER counts a terminated wave as
+                    // satisfied. S_ENDPGM (§12.5, printed142) implicitly waits
+                    // for every counter, so its completed effects also precede
+                    // this surviving-wave release. No exit or trace order by
+                    // itself manufactures completion for a missing drain.
+                    for exited_wave in exited {
+                        if !pending[exited_wave].is_empty() {
+                            barrier_unresolved.push(Unresolved::at(
+                                record.event,
+                                "terminated wave lacks its implicit completed-memory drain",
+                            ));
+                        } else {
+                            let frontier = clocks[exited_wave].clone();
+                            join(&mut clocks[wave], &frontier);
+                        }
                     }
                     next_generation[wave] = generation + 1;
                     blocked_at[wave] = None;
@@ -1165,7 +1197,7 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
             releases: releases.len(),
         },
         barrier_violations,
-        Vec::new(),
+        barrier_unresolved,
     );
     let memory_conflict = if barrier.verdict() == Verdict::Pass {
         memory_conflicts(graph, &operations, &issue_index)
