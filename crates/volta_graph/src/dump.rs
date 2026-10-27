@@ -279,11 +279,15 @@ impl EventGraph {
             }
         }
         for a in &self.amd_memory_effects {
-            writeln!(
+            write!(
                 out,
                 "amd-memory issue=e{} effect=e{}",
                 a.issue.0, a.effect.0
             )?;
+            if a.scope != crate::AmdMemoryScope::Unspecified {
+                write!(out, " scope={:?}", a.scope)?;
+            }
+            writeln!(out)?;
         }
         match &self.terminal {
             Terminal::Completed => writeln!(out, "terminal completed")?,

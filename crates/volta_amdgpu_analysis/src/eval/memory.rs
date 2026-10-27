@@ -108,6 +108,12 @@ impl Memory {
 
     pub fn write(&mut self, addr: u64, width: u64, value: Value) -> Result<Value, String> {
         let value = match (width, value) {
+            (_, Value::SharedApertureHi) => {
+                return Err("opaque shared aperture cannot be stored as data bits".into());
+            }
+            (_, Value::RelocationWord { .. }) => {
+                return Err("opaque PC relocation cannot be stored as data bits".into());
+            }
             (_, Value::PredicateWord { .. }) => {
                 return Err("symbolic predicate mask cannot be stored as data bits".into());
             }
@@ -258,6 +264,8 @@ impl Memory {
             Value::PartialHalves(..)|Value::Bytes(..)=>Err("packed/partially initialized output needs element-width extraction".into()),
             Value::WidePart { .. } => Err("one word of a 64-bit mathematical value cannot be extracted as a scalar32".into()),
             Value::PredicateWord { .. } => Err("symbolic predicate mask cannot be extracted as data bits".into()),
+            Value::RelocationWord { .. } => Err("opaque PC relocation cannot be extracted as data bits".into()),
+            Value::SharedApertureHi => Err("opaque shared aperture cannot be extracted as data bits".into()),
         }
     }
 }

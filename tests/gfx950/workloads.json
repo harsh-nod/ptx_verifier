@@ -76,6 +76,7 @@
     "crates/volta_amdgpu_analysis/src/frontend/fixtures/attention-cases.json",
     "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-gemm-cases.json",
     "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-convolution-cases.json",
-    "crates/volta_amdgpu_analysis/src/frontend/fixtures/advanced-cases.json"
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/advanced-cases.json",
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/abi-cases.json"
   ]
 }

@@ -328,6 +328,57 @@ fn dynamic_lds_extends_the_static_region_with_exact_fit_bounds() {
 }
 
 #[test]
+fn compiler_static_and_dynamic_lds_share_bytes_through_flat_and_ds() {
+    let source =
+        include_str!("../../volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.s");
+    let module = frontend::parse(source).unwrap();
+    let mut cfg = config(2, 2);
+    cfg.arrays[0].len = 4;
+    cfg.dynamic_shared_bytes = 8;
+    let result = gfx950_common::check(source, &module, Some("dynamic_lds"), cfg.clone()).unwrap();
+    assert_verified(&result);
+    let outputs = result.analysis.symbolic_outputs().unwrap();
+    assert_eq!(outputs.outputs[0].1.len(), 2);
+    for index in 0..2 {
+        let ExprNode::Add(a, b) = outputs.arena.node(outputs.element("out", index).unwrap()) else {
+            panic!("expected native static/dynamic LDS sum");
+        };
+        let mut inputs = [*a, *b].map(|id| match outputs.arena.node(id) {
+            ExprNode::InputElement { array, index } if outputs.arena.string(*array) == "x" => {
+                *index
+            }
+            other => panic!("unexpected input {other:?}"),
+        });
+        inputs.sort();
+        assert_eq!(inputs, [1 - index, 3 - index]);
+    }
+    let graph = &result.analysis.graph;
+    assert!(graph.amd_memory_effects().iter().any(|effect| {
+        let volta_graph::EventKind::Access(access) = graph.event(effect.effect).kind else {
+            return false;
+        };
+        let volta_graph::EventKind::Amd(record) = graph.event(effect.issue).kind else {
+            return false;
+        };
+        graph.access(access).space == Space::Shared
+            && effect.scope == volta_graph::AmdMemoryScope::Unspecified
+            && matches!(
+                graph.amd_event(record).unwrap().kind,
+                volta_graph::AmdEventKind::MemoryIssue {
+                    class: volta_graph::AmdMemoryClass::Flat,
+                    ..
+                }
+            )
+    }));
+    for capacity in [0, 4, 7] {
+        cfg.dynamic_shared_bytes = capacity;
+        let too_small =
+            gfx950_common::check(source, &module, Some("dynamic_lds"), cfg.clone()).unwrap();
+        assert_invalid(&too_small, "out-of-bounds LDS");
+    }
+}
+
+#[test]
 fn byte_and_halfword_lds_roundtrips_preserve_symbolic_elements() {
     for (width, load, store, ds_write, ds_read) in [
         (
@@ -509,6 +560,156 @@ fn matrix_result_readiness_uses_documented_states_not_memory_wait_counters() {
             assert_verified(&result);
         } else {
             assert_readiness(&result, AmdRegisterHazardKind::MatrixReadBeforeReady);
+        }
+    }
+}
+
+#[test]
+fn workgroup_scoped_global_publication_requires_scope_completion_and_rendezvous() {
+    // CDNA4 §9.1.10.2/Table49-50 and LLVM SIGfx6CacheControl:
+    // native GLOBAL SC0=1/SC1=0 supplies workgroup visibility. With TG_SPLIT
+    // disabled the workgroup shares one CU/L1; waits and S_BARRIER still supply
+    // completion and inter-wave ordering independently of those scope bits.
+    for (store_scope, load_scope, producer_wait, barrier, consumer_wait, expected) in [
+        (
+            "sc0",
+            "sc0",
+            "s_waitcnt vmcnt(0)",
+            "s_barrier",
+            "s_waitcnt vmcnt(0)",
+            "verified",
+        ),
+        (
+            "",
+            "sc0",
+            "s_waitcnt vmcnt(0)",
+            "s_barrier",
+            "s_waitcnt vmcnt(0)",
+            "unknown",
+        ),
+        (
+            "sc0",
+            "",
+            "s_waitcnt vmcnt(0)",
+            "s_barrier",
+            "s_waitcnt vmcnt(0)",
+            "unknown",
+        ),
+        (
+            "sc0 sc1",
+            "sc0",
+            "s_waitcnt vmcnt(0)",
+            "s_barrier",
+            "s_waitcnt vmcnt(0)",
+            "unknown",
+        ),
+        (
+            "sc0",
+            "sc0",
+            "",
+            "s_barrier",
+            "s_waitcnt vmcnt(0)",
+            "conflict",
+        ),
+        (
+            "sc0",
+            "sc0",
+            "s_waitcnt vmcnt(0)",
+            "",
+            "s_waitcnt vmcnt(0)",
+            "conflict",
+        ),
+        (
+            "sc0",
+            "sc0",
+            "s_waitcnt vmcnt(0)",
+            "s_barrier",
+            "",
+            "readiness",
+        ),
+    ] {
+        let body = format!(
+            "global_load_dword v5, v2, s[4:5]\ns_waitcnt vmcnt(0)\nv_mul_f32 v5, 2.0, v5\nglobal_store_dword v2, v5, s[4:5] {store_scope}\n{producer_wait}\n{barrier}\nv_xor_b32 v10, 256, v2\nglobal_load_dword v8, v10, s[4:5] {load_scope}\n{consumer_wait}\nglobal_store_dword v2, v8, s[6:7]"
+        );
+        let mut cfg = config(128, 128);
+        cfg.arrays[0].kind = ArrayKind::InputOutput;
+        let result = run_config(&body, 0, cfg);
+        assert!(result.analysis.symbolic_outputs().is_ok());
+        match expected {
+            "verified" => {
+                assert_verified(&result);
+                assert!(
+                    result
+                        .analysis
+                        .graph
+                        .provenance()
+                        .assumptions
+                        .contains(&volta_graph::Assumption::SingleCuWorkgroup)
+                );
+                assert_eq!(
+                    result
+                        .analysis
+                        .graph
+                        .amd_memory_effects()
+                        .iter()
+                        .filter(|effect| effect.scope == volta_graph::AmdMemoryScope::Workgroup)
+                        .count(),
+                    256
+                );
+                let outputs = result.analysis.symbolic_outputs().unwrap();
+                for (name, exchange) in [("x", false), ("out", true)] {
+                    let elements = &outputs
+                        .outputs
+                        .iter()
+                        .find(|(array, _)| array == name)
+                        .unwrap()
+                        .1;
+                    assert_eq!(elements.len(), 128);
+                    for &(index, expression) in elements {
+                        let expected_index = if exchange { index ^ 64 } else { index };
+                        let is_input = |id| matches!(outputs.arena.node(id), ExprNode::InputElement { array, index } if outputs.arena.string(*array) == "x" && *index == expected_index);
+                        match outputs.arena.node(expression) {
+                            ExprNode::Mul(a, b) => assert!(
+                                (outputs.arena.as_f64(*a) == Some(2.0) && is_input(*b))
+                                    || (outputs.arena.as_f64(*b) == Some(2.0) && is_input(*a))
+                            ),
+                            other => panic!(
+                                "expected independent doubled input at {name}[{index}]: {other:?}"
+                            ),
+                        }
+                    }
+                }
+            }
+            "unknown" => {
+                assert!(matches!(
+                    result.checks.conclusion(),
+                    GraphConclusion::Unknown { .. }
+                ));
+                assert!(matches!(
+                    result.checks.amd.as_ref().unwrap().memory_conflict,
+                    PropertyResult::Unknown(_)
+                ));
+            }
+            "conflict" => {
+                assert!(
+                    result
+                        .checks
+                        .amd
+                        .as_ref()
+                        .unwrap()
+                        .memory_conflict
+                        .violations()
+                        .iter()
+                        .any(|w| w.kind == ConflictKind::WriteRead
+                            && w.location.space == Space::Global)
+                );
+                assert!(matches!(
+                    result.checks.conclusion(),
+                    GraphConclusion::Rejected { .. }
+                ));
+            }
+            "readiness" => assert_readiness(&result, AmdRegisterHazardKind::ReadBeforeReady),
+            _ => unreachable!(),
         }
     }
 }
