@@ -76,7 +76,14 @@ impl<'a> EquivSession<'a> {
                 "recycling VC session at {} interned terms",
                 self.session.interned_terms()
             );
+            // These two arenas are immutably borrowed for this session's
+            // lifetime. Their parent counts remain valid across recycling;
+            // retain only that metadata, never any intern IDs or expression
+            // results. Large kernels otherwise rescan both entire DAGs for
+            // every small batch of checked output elements.
+            let ref_counts = std::mem::take(&mut self.session.ref_counts);
             self.session = Session::new();
+            self.session.ref_counts = ref_counts;
         }
         Ok(self
             .session
@@ -218,6 +225,33 @@ mod tests {
         for (ab, ba) in elements {
             assert!(session.check(ab, ba).unwrap());
         }
+    }
+
+    #[test]
+    fn forced_recycling_preserves_equal_unequal_and_undefined_results() {
+        let mut reference = ExprArena::new();
+        let mut optimized = ExprArena::new();
+        let r_name = reference.intern_string("x");
+        let o_name = optimized.intern_string("x");
+        let one = optimized.int(1);
+        let pairs: Vec<_> = (0..64)
+            .map(|i| {
+                let r = reference.input_element(r_name, i);
+                let o = optimized.input_element(o_name, i);
+                let equal = i % 3 != 0;
+                let o = if equal { o } else { optimized.add(o, one) };
+                (r, o, equal)
+            })
+            .collect();
+        let undefined = optimized.undefined();
+        let first = pairs[0].0;
+        let mut recycled = EquivSession::with_recycle_terms(&reference, &optimized, 1);
+        let mut retained = EquivSession::with_recycle_terms(&reference, &optimized, 0);
+        for (r, o, expected) in pairs {
+            assert_eq!(recycled.check(r, o).unwrap(), expected);
+            assert_eq!(retained.check(r, o).unwrap(), expected);
+        }
+        assert!(recycled.check(first, undefined).is_err());
     }
 
     #[test]

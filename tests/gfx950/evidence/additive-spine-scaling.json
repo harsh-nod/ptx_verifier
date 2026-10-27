@@ -1,0 +1,525 @@
+{
+  "revision": "f4998f9",
+  "independently_reviewed_by": "graph/checking agent; coordinator owns implementation, integration and closure",
+  "change": "Flatten unshared additive spines; canonicalize every leaf; bulk-merge exact polynomial coefficients, retaining shared memoization and existing rational fallback. No budget/output/sample changes.",
+  "test_command": "cargo test --release -p volta_equivalence -j4",
+  "passed": 122,
+  "focused_controls": [
+    "2048-term left/right Add chains with interleaved previously-interned terms under100000operations",
+    "wrong-term negative",
+    "shared Add roots",
+    "rational leaves",
+    "exact cancellation",
+    "Undefined and division-by-zero preserve typed errors"
+  ],
+  "probe_length": 4096,
+  "before": [
+    {
+      "n": 64,
+      "shape": "left",
+      "seed": "none",
+      "ops": 2272,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "left",
+      "seed": "forward",
+      "ops": 2016,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "left",
+      "seed": "interleaved",
+      "ops": 2047,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "right",
+      "seed": "none",
+      "ops": 319,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "right",
+      "seed": "forward",
+      "ops": 63,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "right",
+      "seed": "interleaved",
+      "ops": 1055,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "balanced",
+      "seed": "none",
+      "ops": 448,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "balanced",
+      "seed": "forward",
+      "ops": 192,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "balanced",
+      "seed": "interleaved",
+      "ops": 352,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "left",
+      "seed": "none",
+      "ops": 33664,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "left",
+      "seed": "forward",
+      "ops": 32640,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "left",
+      "seed": "interleaved",
+      "ops": 32767,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "right",
+      "seed": "none",
+      "ops": 1279,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "right",
+      "seed": "forward",
+      "ops": 255,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "right",
+      "seed": "interleaved",
+      "ops": 16511,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "balanced",
+      "seed": "none",
+      "ops": 2048,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "balanced",
+      "seed": "forward",
+      "ops": 1024,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "balanced",
+      "seed": "interleaved",
+      "ops": 1920,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "left",
+      "seed": "none",
+      "ops": 527872,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "left",
+      "seed": "forward",
+      "ops": 523776,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "left",
+      "seed": "interleaved",
+      "ops": 524287,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "right",
+      "seed": "none",
+      "ops": 5119,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "right",
+      "seed": "forward",
+      "ops": 1023,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "right",
+      "seed": "interleaved",
+      "ops": 262655,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "balanced",
+      "seed": "none",
+      "ops": 9216,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "balanced",
+      "seed": "forward",
+      "ops": 5120,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "balanced",
+      "seed": "interleaved",
+      "ops": 9728,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "left",
+      "seed": "none",
+      "ops": 8402944,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "left",
+      "seed": "forward",
+      "ops": 8386560,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "left",
+      "seed": "interleaved",
+      "ops": 8388607,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "right",
+      "seed": "none",
+      "ops": 20479,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "right",
+      "seed": "forward",
+      "ops": 4095,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "right",
+      "seed": "interleaved",
+      "ops": 4196351,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "balanced",
+      "seed": "none",
+      "ops": 40960,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "balanced",
+      "seed": "forward",
+      "ops": 24576,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "balanced",
+      "seed": "interleaved",
+      "ops": 47104,
+      "ok": true
+    }
+  ],
+  "after": [
+    {
+      "n": 64,
+      "shape": "left",
+      "seed": "none",
+      "ops": 320,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "left",
+      "seed": "forward",
+      "ops": 64,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "left",
+      "seed": "interleaved",
+      "ops": 64,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "right",
+      "seed": "none",
+      "ops": 320,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "right",
+      "seed": "forward",
+      "ops": 64,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "right",
+      "seed": "interleaved",
+      "ops": 64,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "balanced",
+      "seed": "none",
+      "ops": 320,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "balanced",
+      "seed": "forward",
+      "ops": 64,
+      "ok": true
+    },
+    {
+      "n": 64,
+      "shape": "balanced",
+      "seed": "interleaved",
+      "ops": 64,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "left",
+      "seed": "none",
+      "ops": 1280,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "left",
+      "seed": "forward",
+      "ops": 256,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "left",
+      "seed": "interleaved",
+      "ops": 256,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "right",
+      "seed": "none",
+      "ops": 1280,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "right",
+      "seed": "forward",
+      "ops": 256,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "right",
+      "seed": "interleaved",
+      "ops": 256,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "balanced",
+      "seed": "none",
+      "ops": 1280,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "balanced",
+      "seed": "forward",
+      "ops": 256,
+      "ok": true
+    },
+    {
+      "n": 256,
+      "shape": "balanced",
+      "seed": "interleaved",
+      "ops": 256,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "left",
+      "seed": "none",
+      "ops": 5120,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "left",
+      "seed": "forward",
+      "ops": 1024,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "left",
+      "seed": "interleaved",
+      "ops": 1024,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "right",
+      "seed": "none",
+      "ops": 5120,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "right",
+      "seed": "forward",
+      "ops": 1024,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "right",
+      "seed": "interleaved",
+      "ops": 1024,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "balanced",
+      "seed": "none",
+      "ops": 5120,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "balanced",
+      "seed": "forward",
+      "ops": 1024,
+      "ok": true
+    },
+    {
+      "n": 1024,
+      "shape": "balanced",
+      "seed": "interleaved",
+      "ops": 1024,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "left",
+      "seed": "none",
+      "ops": 20480,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "left",
+      "seed": "forward",
+      "ops": 4096,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "left",
+      "seed": "interleaved",
+      "ops": 4096,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "right",
+      "seed": "none",
+      "ops": 20480,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "right",
+      "seed": "forward",
+      "ops": 4096,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "right",
+      "seed": "interleaved",
+      "ops": 4096,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "balanced",
+      "seed": "none",
+      "ops": 20480,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "balanced",
+      "seed": "forward",
+      "ops": 4096,
+      "ok": true
+    },
+    {
+      "n": 4096,
+      "shape": "balanced",
+      "seed": "interleaved",
+      "ops": 4096,
+      "ok": true
+    }
+  ],
+  "scope": "Host equivalence scaling evidence, not full-size workload proof completion."
+}

@@ -1,0 +1,45 @@
+{
+  "revision": "f119c67",
+  "validated_by": "coordinator in isolated worktree",
+  "rust": {
+    "command": "cargo test --release --workspace --no-fail-fast -j4 -- --test-threads 4",
+    "passed": 1254,
+    "failed": 1,
+    "preexisting_failure": "volta_pipeline::false_positive_tests::test_aligned_bar_sync_reached_on_different_iterations",
+    "new_failures": 0
+  },
+  "python": {
+    "command": "uv run --reinstall-package volta pytest crates/volta_py",
+    "passed": 29
+  },
+  "static": {
+    "commands": [
+      "just check",
+      "cargo clippy --release --workspace --all-targets -j4"
+    ],
+    "exit_code": 0,
+    "warnings_present": true
+  },
+  "native_memory_control": {
+    "tests_passed": 27,
+    "command": "VOLTA_VIZ_DIR=<store> cargo test --release -p volta_pipeline --test gfx950_memory_control_tests",
+    "complete_output_identity_checks": true,
+    "typed_negative_witnesses": true,
+    "scope": "LDS exchange, waits/nonzero counters, barrier reuse, partial waves, bounds/definedness, pending register lifetimes, matrix result delays, EXEC0 participation, dynamic LDS, terminated waves, and incomplete budget diagnostics"
+  },
+  "viewer": {
+    "command": "volta --no-log-file viz <store> -o <page>.html",
+    "runs": 104,
+    "format": "volta-viz 1",
+    "all_documents_parsed": true,
+    "statuses": {
+      "check-failed": 1,
+      "race-free": 57,
+      "unsupported": 5,
+      "error": 20,
+      "race-condition": 21
+    },
+    "html_sha256": "8cd300e516ba58a47da178c97bcf1da222e8444f814ec682eb8b2809f0fa9c2e"
+  },
+  "scope": "M2 synchronization/safety checkpoint. Full user surface/corpus parity and final review remain incomplete."
+}
