@@ -1350,18 +1350,22 @@
   // word before it a directive and after it a modifier.
   const PTX_TOKENS =
     /(\/\/.*$|\/\*.*?\*\/)|("(?:[^"\\]|\\.)*")|(@!?%?[A-Za-z_$][\w$]*)|(%[A-Za-z_$][\w$.]*)|(\.[A-Za-z_][\w:]*)|(0[xX][0-9a-fA-F]+|0[fFdD][0-9a-fA-F]{8,16}|\d+(?:\.\d+)?)|([A-Za-z_$][\w$]*)/g;
+  const AMD_TOKENS =
+    /(\/\/.*$|;.*$|#.*$|\/\*.*?\*\/)|("(?:[^"\\]|\\.)*")|(@!?%?[A-Za-z_$][\w$]*)|\b((?:(?:acc|[avs])\d+|(?:acc|[avs])\[[^\]]+\]|exec(?:_lo|_hi)?|vcc(?:_lo|_hi)?|scc|m0|null))(?!\w)|(\.[A-Za-z_][\w:]*)|(0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?)|([A-Za-z_$][\w$]*)/g;
   function highlight(line) {
     const out = [];
     let last = 0;
     let opSeen = false;
     let declaration = false;
-    const label = /^(\s*)([A-Za-z_$][\w$]*):/.exec(line);
+    const amd = state.doc && state.doc.launch && state.doc.launch.source_language === "amdgpu";
+    const tokens = amd ? AMD_TOKENS : PTX_TOKENS;
+    const label = /^(\s*)([.A-Za-z_$][\w$\.]*):/.exec(line);
     if (label) {
       out.push(label[1], h("span", { class: "syn-label", text: label[2] + ":" }));
       last = label[0].length;
     }
-    PTX_TOKENS.lastIndex = last;
-    for (let m; (m = PTX_TOKENS.exec(line)); ) {
+    tokens.lastIndex = last;
+    for (let m; (m = tokens.exec(line)); ) {
       if (m.index > last) {
         const gap = line.slice(last, m.index);
         out.push(gap);

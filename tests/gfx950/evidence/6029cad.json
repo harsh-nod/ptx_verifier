@@ -1,0 +1,41 @@
+{
+  "revision": "6029cad51e077ef04a175c125404f7a77ec8e8b8",
+  "validation_checkout": "isolated from active swarm edits",
+  "rust": {
+    "command": "cargo test --release --workspace --no-fail-fast -j 4 -- --test-threads 4",
+    "passed": 1113,
+    "failed": 1,
+    "preexisting_failure": "volta_pipeline::false_positive_tests::test_aligned_bar_sync_reached_on_different_iterations",
+    "new_failures": 0
+  },
+  "python": {
+    "command": "uv run --reinstall-package volta pytest crates/volta_py",
+    "passed": 28,
+    "failed": 0
+  },
+  "clippy": {
+    "result": "completed with warnings",
+    "warnings_not_yet_cleaned": true
+  },
+  "hardware": {
+    "device": "AMD Instinct MI350X",
+    "architecture": "gfx950:sramecc+:xnack-",
+    "exact_native_assembly": true,
+    "copy_add_cases_passed": 36,
+    "mfma_patterns_passed": 129,
+    "mfma_output_checks_passed": 33024,
+    "fixtures": {
+      "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-copy-add.s": "efbdab3055e0fa697ca97a62275d7ab890d695aa1e46cb0a68280ddb442d9a1d",
+      "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-mfma-f32.s": "2f0e29c32184eea9fbae6a8c00e4a4a9297ad45e79acbc3642a5fd635b5a668a",
+      "tests/gfx950/hardware/native_copy_add.cpp": "7d4bdaad59981b3c255c89aa81202bb6640f8c4becdef8f8e8bbf1e7e5de03a2"
+    },
+    "commands": [
+      "llvm-mc --triple=amdgcn-amd-amdhsa --mcpu=gfx950 -filetype=obj SOURCE.s -o native.o",
+      "ld.lld -shared native.o -o native.hsaco",
+      "hipcc -O2 native_copy_add.cpp -o native-check",
+      "./native-check copy.hsaco mfma.hsaco"
+    ],
+    "tool_versions": "fixture compiler provenance checked in; hardware assembler/runtime version capture pending"
+  },
+  "scope": "Initial integration checkpoint; full parity, multidimensional IDs, software hazards, and lower precision are still under implementation/review."
+}

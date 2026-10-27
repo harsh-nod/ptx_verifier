@@ -71,6 +71,7 @@ class Array:
     elem_width: int
     len: int
     kind: Kind
+    base_address: int | None = None
 
 
 @dataclass(frozen=True)
@@ -107,6 +108,9 @@ class Variant:
     source_path: Path | None = None
     dynamic_shared: int | None = None
     dummy_params: int = DUMMY_PARAMS
+    reference_spec: Path | None = None
+    dimensions: tuple[tuple[str, int], ...] = ()
+    declared_arrays: tuple[Array, ...] = ()
 
     @property
     def name(self) -> str:
@@ -138,7 +142,9 @@ RACE_CHECKS = ("memory-conflict freedom", "proxy ordering", "tensor-operation or
 LOWERING_FAILED = re.compile(r"\blowering failed: (.*)")
 # A directive or instruction form the frontend does not know (the parse report's last line).
 PARSE_FAILED = re.compile(r"\b(Invalid [a-z ]+: \S+)$")
-EXECUTION_UNSUPPORTED = re.compile(r"^the execution stopped: (unsupported at .*)")
+EXECUTION_UNSUPPORTED = re.compile(
+    r"^(?:the )?execution stopped: (unsupported (?:at .*|gfx950 instruction.*))"
+)
 CHECK_LINE = re.compile(r"^  (\S.*?) \([^)]*\)\s+(PASS|FAIL|UNKNOWN)$")
 VERDICT_LINE = re.compile(r"^GRAPH VERIFICATION: (VERIFIED|REJECTED|UNKNOWN)")
 WRITTEN_LINE = re.compile(r"^  output '[^']*': (\d+) element\(s\) written$")
@@ -821,6 +827,36 @@ def load_amdgpu_variants() -> dict[str, list[Variant]]:
         if not variant.path.is_file():
             raise FileNotFoundError(variant.path)
         families.setdefault(row["family"], []).append(variant)
+    aliases = {"ReLUKernel": "relu", "SiLUKernel": "silu", "SigmoidKernel": "sigmoid",
+               "SwiGLUKernel": "swiglu", "RoPEKernel": "rope", "ReductionSumKernel": "reduction_sum",
+               "SoftmaxKernel": "softmax", "RMSNormKernel": "rmsnorm",
+               "MatrixVectorMultiplicationKernel": "matvec"}
+    for external in data.get("external_manifests", []):
+        path = REPO_ROOT / external
+        corpus = json.loads(path.read_text())
+        for row in corpus["cases"]:
+            arrays = {a["name"]: Array(a["name"], a["element_size"], a["length"],
+                                      Kind(a["kind"]), a.get("base_address"))
+                      for a in row["arrays"]}
+            params = []
+            for param in row["params"]:
+                kind, value = param.split(":", 1)
+                if kind == "ptr":
+                    params.append(arrays[value])
+                elif kind == "int":
+                    params.append(Int(int(value)))
+                else:
+                    raise ValueError(f"unsupported native manifest parameter: {param}")
+            declared_family = row.get("family", row["kernel"])
+            family = aliases.get(declared_family, declared_family)
+            variant = Variant(family, row["kernel"], tuple(row["block"]), tuple(params),
+                sum(a["length"] for a in row["arrays"] if a["kind"] in ("out", "inout")),
+                grid=tuple(row.get("grid", [1, 1, 1])), backend="amdgpu", entry=row["kernel"],
+                source_path=path.parent/row["assembly"], dynamic_shared=row.get("dynamic_shared", 0),
+                dummy_params=0, reference_spec=path.parent/row["spec"],
+                dimensions=tuple(row.get("dimensions", {}).items()),
+                declared_arrays=tuple(arrays.values()))
+            families.setdefault(family, []).append(variant)
     return families
 
 
@@ -839,12 +875,19 @@ def launch_args(variant: Variant, source: str) -> list[str]:
                             else MAX_DYNAMIC_SHARED[target_of(source)]),
     ]
     base = ARRAY_ALIGN
+    for array in variant.declared_arrays:
+        address = array.base_address if array.base_address is not None else base
+        args += ["--array", f"{array.name}:{address:#x}:{array.elem_width}:{array.len}:{array.kind.value}"]
+        base = address + -(-array.elem_width * array.len // ARRAY_ALIGN) * ARRAY_ALIGN
     for param in variant.params:
         match param:
             case Array():
-                spec = f"{param.name}:{base:#x}:{param.elem_width}:{param.len}:{param.kind.value}"
-                args += ["--array", spec, "--param", f"ptr:{param.name}"]
-                base += -(-param.elem_width * param.len // ARRAY_ALIGN) * ARRAY_ALIGN
+                if not variant.declared_arrays:
+                    address = param.base_address if param.base_address is not None else base
+                    spec = f"{param.name}:{address:#x}:{param.elem_width}:{param.len}:{param.kind.value}"
+                    args += ["--array", spec]
+                    base = address + -(-param.elem_width * param.len // ARRAY_ALIGN) * ARRAY_ALIGN
+                args += ["--param", f"ptr:{param.name}"]
             case Int():
                 args += ["--param", f"int:{param.value}"]
     for _ in range(variant.dummy_params):
@@ -998,7 +1041,21 @@ def analyze(variant: Variant, ptx: Path, echo: Callable[[str], None] | None) -> 
         "--print-outputs", "0", "--no-profile",
     ]
     stdout, stderr = run_volta(command, echo)
-    return classify(parse_cli(stdout), stderr, variant.expected_outputs)
+    outcome, detail = classify(parse_cli(stdout), stderr, variant.expected_outputs)
+    if outcome is Outcome.RACE_FREE and variant.reference_spec is not None:
+        verify = [str(VOLTA), "--no-log-file", "verify", str(ptx), str(variant.reference_spec),
+                  "--kernel", variant.entry, *launch_args(variant, ptx.read_text()), "--no-profile"]
+        for dim, value in variant.dimensions:
+            verify += ["--dim", f"{dim}={value}"]
+        checked, errors = run_volta(verify, echo)
+        verdict = re.search(r"^VERDICT: (ACCEPT|REJECT|UNKNOWN)$", checked, re.MULTILINE)
+        if verdict is None:
+            raise VoltaFailure("math specification produced no verdict: " + " ".join(errors.split()))
+        if verdict[1] != "ACCEPT":
+            return (Outcome.CHECK_FAILED if verdict[1] == "REJECT" else Outcome.UNKNOWN,
+                    f"{detail}; math spec {verdict[1]}: " + " ".join(checked.split())[-1200:])
+        detail += "; math spec ACCEPT"
+    return outcome, detail
 
 
 def analyze_variant(

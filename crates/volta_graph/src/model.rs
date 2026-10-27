@@ -517,6 +517,8 @@ pub struct MbarrierState {
 /// A modeling assumption the producer executed under, recorded so verdicts can cite it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Assumption {
+    /// Recognize the compiler's exact rounded f32 log2(e) multiply/exp2 idiom as exp.
+    CompilerExp2Idiom,
     /// Exactly one AMD workgroup is analyzed; no statement about other workgroups.
     SingleWorkgroupAnalyzed,
     /// Symbolic arithmetic uses mathematical reals, not bit-exact floating-point.
@@ -541,6 +543,9 @@ pub enum Assumption {
 impl Assumption {
     pub fn describe(self) -> &'static str {
         match self {
+            Assumption::CompilerExp2Idiom => {
+                "the compiler's exact rounded f32 log2(e) multiply/exp2 idiom is modeled as mathematical exp"
+            }
             Assumption::SingleWorkgroupAnalyzed => {
                 "one AMD workgroup is analyzed; other workgroups are outside this result"
             }

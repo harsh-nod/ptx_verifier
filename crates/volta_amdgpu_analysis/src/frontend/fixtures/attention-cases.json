@@ -1,0 +1,203 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "kernel": "flash_attention_reduced",
+      "family": "FlashAttentionNeurIPS2022Forward",
+      "assembly": "native-flash-attention.s",
+      "source": "native-flash-attention.hip",
+      "spec": "specs/flash_attention.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "Q": 32,
+        "T": 32,
+        "D": 64
+      },
+      "arrays": [
+        {
+          "name": "q",
+          "element_size": 2,
+          "length": 2048,
+          "base_address": 65536,
+          "kind": "in"
+        },
+        {
+          "name": "k",
+          "element_size": 2,
+          "length": 2048,
+          "base_address": 131072,
+          "kind": "in"
+        },
+        {
+          "name": "v",
+          "element_size": 2,
+          "length": 2048,
+          "base_address": 327680,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "element_size": 2,
+          "length": 2048,
+          "base_address": 524288,
+          "kind": "out"
+        },
+        {
+          "name": "lse",
+          "element_size": 4,
+          "length": 32,
+          "base_address": 589824,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:q",
+        "ptr:k",
+        "ptr:v",
+        "ptr:out",
+        "ptr:lse"
+      ],
+      "reduced_case": true,
+      "original_queries": 128,
+      "original_keys": 1024,
+      "original_head_dimension": 64,
+      "expected_output_footprint": {
+        "elements": 2080,
+        "bytes": 4224,
+        "arrays": [
+          "out",
+          "lse"
+        ]
+      },
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "preserved_patterns": [
+        "nativeF16MFMA QK and PV",
+        "online max/sum/accumulator rescaling",
+        "F16 probability storage",
+        "two key/value LDS buffers",
+        "cross-wave K/V tile producers",
+        "repeated workgroup barriers",
+        "natural-log LSE using exact encodedln2 multiplier",
+        "odd workgroups exit uniformly"
+      ],
+      "notes": [
+        "Source reconstructed from actual baseline PTX and harness; no original CUDA source provenance claimed.",
+        "Reduced entry has2keytiles/32queries; full entry preserves originalT1024/Q128/D64 and must receive separate capacity evidence.",
+        "IEEE rounding is abstracted, including half probabilities; native scalarcoefficients preserve encodedbinary32 values."
+      ]
+    },
+    {
+      "kernel": "flash_attention_full",
+      "family": "FlashAttentionNeurIPS2022Forward",
+      "assembly": "native-flash-attention.s",
+      "source": "native-flash-attention.hip",
+      "spec": "specs/flash_attention.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "Q": 128,
+        "T": 1024,
+        "D": 64
+      },
+      "arrays": [
+        {
+          "name": "q",
+          "element_size": 2,
+          "length": 8192,
+          "base_address": 65536,
+          "kind": "in"
+        },
+        {
+          "name": "k",
+          "element_size": 2,
+          "length": 65536,
+          "base_address": 131072,
+          "kind": "in"
+        },
+        {
+          "name": "v",
+          "element_size": 2,
+          "length": 65536,
+          "base_address": 327680,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "element_size": 2,
+          "length": 8192,
+          "base_address": 524288,
+          "kind": "out"
+        },
+        {
+          "name": "lse",
+          "element_size": 4,
+          "length": 128,
+          "base_address": 589824,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:q",
+        "ptr:k",
+        "ptr:v",
+        "ptr:out",
+        "ptr:lse"
+      ],
+      "reduced_case": false,
+      "original_queries": 128,
+      "original_keys": 1024,
+      "original_head_dimension": 64,
+      "expected_output_footprint": {
+        "elements": 8320,
+        "bytes": 16896,
+        "arrays": [
+          "out",
+          "lse"
+        ]
+      },
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "preserved_patterns": [
+        "nativeF16MFMA QK and PV",
+        "online max/sum/accumulator rescaling",
+        "F16 probability storage",
+        "two key/value LDS buffers",
+        "cross-wave K/V tile producers",
+        "repeated workgroup barriers",
+        "natural-log LSE using exact encodedln2 multiplier",
+        "odd workgroups exit uniformly"
+      ],
+      "notes": [
+        "Source reconstructed from actual baseline PTX and harness; no original CUDA source provenance claimed.",
+        "Reduced entry has2keytiles/32queries; full entry preserves originalT1024/Q128/D64 and must receive separate capacity evidence.",
+        "IEEE rounding is abstracted, including half probabilities; native scalarcoefficients preserve encodedbinary32 values."
+      ]
+    }
+  ]
+}
