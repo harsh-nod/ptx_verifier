@@ -10,8 +10,8 @@
 use std::collections::{HashMap, HashSet};
 
 use volta_graph::{
-    AmdCounter, AmdEventKind, AmdMemoryClass, AmdRegister, AmdRegisterFile, EventGraph, EventId,
-    EventKind, Footprint, OrderingKind, Proxy, Space, Terminal,
+    AmdCounter, AmdEventKind, AmdMatrixKind, AmdMemoryClass, AmdRegister, AmdRegisterFile,
+    EventGraph, EventId, EventKind, Footprint, OrderingKind, Proxy, Space, Terminal,
 };
 
 use crate::domain::{ByteLocation, ConflictKind, bytes, written_bytes};
@@ -42,6 +42,8 @@ pub enum AmdRegisterHazardKind {
     MatrixReadBeforeReady,
     MatrixDestinationReuse,
     MatrixOperandBeforeReady,
+    MatrixSourceReuse,
+    ValuReadBeforeReady,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -83,16 +85,19 @@ pub struct AmdReport {
 const CLASSES: usize = 6;
 fn class_index(class: AmdMemoryClass) -> usize {
     match class {
-        AmdMemoryClass::VectorMemory => 0,
+        AmdMemoryClass::VectorMemory | AmdMemoryClass::VectorStoreWide => 0,
         AmdMemoryClass::ScalarMemory => 1,
         AmdMemoryClass::Lds => 2,
-        AmdMemoryClass::Flat => 3,
+        AmdMemoryClass::Flat | AmdMemoryClass::FlatStoreWide => 3,
         AmdMemoryClass::Message => 4,
         AmdMemoryClass::CrossLane => 5,
     }
 }
 fn ordered(class: AmdMemoryClass) -> bool {
-    matches!(class, AmdMemoryClass::VectorMemory | AmdMemoryClass::Lds)
+    matches!(
+        class,
+        AmdMemoryClass::VectorMemory | AmdMemoryClass::VectorStoreWide | AmdMemoryClass::Lds
+    )
 }
 fn join(to: &mut [u32], from: &[u32]) {
     for (a, b) in to.iter_mut().zip(from) {
@@ -106,6 +111,7 @@ struct Operation {
     wave: u32,
     class: AmdMemoryClass,
     sequence: u32,
+    issued_tick: u64,
     remaining: Vec<(AmdCounter, u16)>,
     destinations: Vec<AmdRegister>,
     held_sources: Vec<AmdRegister>,
@@ -120,9 +126,15 @@ fn unknown<E, V>(reason: &str) -> PropertyResult<E, V> {
 fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
     let mut unresolved = Vec::new();
     if let Err(defects) = graph.validate() {
-        unresolved.extend(defects.into_iter().map(|d| Unresolved {
-            events: d.event.into_iter().collect(),
-            reason: d.message,
+        unresolved.extend(defects.into_iter().map(|d| {
+            Unresolved {
+                events: d
+                    .event
+                    .filter(|event| graph.events().get(*event).is_some())
+                    .into_iter()
+                    .collect(),
+                reason: d.message,
+            }
         }));
         return PropertyResult::Unknown(unresolved);
     }
@@ -145,6 +157,7 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
         let check_regs = |regs: &[AmdRegister], unresolved: &mut Vec<Unresolved>| {
             for r in regs {
                 if r.index >= 256
+                    || (r.file == AmdRegisterFile::Scalar && r.index > 101)
                     || (r.file != AmdRegisterFile::Scalar && (r.lanes == 0 || r.lanes & !mask != 0))
                 {
                     unresolved.push(Unresolved::at(
@@ -229,14 +242,16 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                     }
                 }
                 let valid = match class {
-                    AmdMemoryClass::VectorMemory => counters == &[(AmdCounter::Vm, 1)],
+                    AmdMemoryClass::VectorMemory | AmdMemoryClass::VectorStoreWide => {
+                        counters == &[(AmdCounter::Vm, 1)]
+                    }
                     AmdMemoryClass::ScalarMemory => {
                         counters == &[(AmdCounter::Lgkm, 1)] || counters == &[(AmdCounter::Lgkm, 2)]
                     }
                     AmdMemoryClass::Lds | AmdMemoryClass::Message | AmdMemoryClass::CrossLane => {
                         counters == &[(AmdCounter::Lgkm, 1)]
                     }
-                    AmdMemoryClass::Flat => {
+                    AmdMemoryClass::Flat | AmdMemoryClass::FlatStoreWide => {
                         counters.len() == 2
                             && counters.contains(&(AmdCounter::Vm, 1))
                             && counters.contains(&(AmdCounter::Lgkm, 1))
@@ -247,6 +262,25 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                         record.event,
                         "counter charges do not match the gfx950 instruction class",
                     ));
+                }
+                if matches!(
+                    class,
+                    AmdMemoryClass::VectorStoreWide | AmdMemoryClass::FlatStoreWide
+                ) && (!destinations.is_empty()
+                    || !matches!(held_sources.len(), 3 | 4)
+                    || held_sources.iter().any(|r| {
+                        !matches!(
+                            r.file,
+                            AmdRegisterFile::Vector | AmdRegisterFile::Accumulator
+                        )
+                    })
+                    || !held_sources.windows(2).all(|r| {
+                        r[0].file == r[1].file
+                            && r[0].lanes == r[1].lanes
+                            && r[0].index + 1 == r[1].index
+                    }))
+                {
+                    unresolved.push(Unresolved::at(record.event,"wide store needs its contiguous three/four data registers as source-timing operands"));
                 }
                 issue_events.insert(record.event, (record.wave, *class));
             }
@@ -288,10 +322,10 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                 );
             }
             AmdEventKind::MatrixIssue {
+                kind,
                 destinations,
                 sources_ab,
                 accumulator,
-                ..
             } => {
                 for regs in [destinations, sources_ab, accumulator] {
                     check_regs(regs, &mut unresolved);
@@ -322,14 +356,34 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                         ));
                     }
                 }
-                if destinations.len() != 4
-                    || sources_ab.len() != 2
-                    || (!accumulator.is_empty() && accumulator.len() != 4)
+                let contiguous = |registers: &[AmdRegister]| {
+                    registers
+                        .windows(2)
+                        .all(|r| r[0].file == r[1].file && r[0].index + 1 == r[1].index)
+                };
+                let inputs = kind.input_registers();
+                if destinations.len() != kind.destination_registers()
+                    || sources_ab.len() != 2 * inputs + kind.scale_registers()
+                    || (!accumulator.is_empty()
+                        && accumulator.len() != kind.destination_registers())
+                    || sources_ab.get(..inputs).is_some_and(|r| !contiguous(r))
+                    || sources_ab
+                        .get(inputs..2 * inputs)
+                        .is_some_and(|r| !contiguous(r))
                     || destinations
                         .iter()
                         .chain(sources_ab)
                         .chain(accumulator)
-                        .any(|r| r.file != AmdRegisterFile::Vector || r.lanes != u64::MAX)
+                        .any(|r| {
+                            !matches!(
+                                r.file,
+                                AmdRegisterFile::Vector | AmdRegisterFile::Accumulator
+                            ) || r.lanes != u64::MAX
+                        })
+                    || destinations.windows(2).any(|r| r[0].file != r[1].file)
+                    || accumulator
+                        .iter()
+                        .any(|r| destinations.first().is_some_and(|d| d.file != r.file))
                     || destinations.first().is_some_and(|r| r.index % 2 != 0)
                     || accumulator.first().is_some_and(|r| r.index % 2 != 0)
                     || !destinations
@@ -339,7 +393,7 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                 {
                     unresolved.push(Unresolved::at(
                         record.event,
-                        "unsupported register layout for MFMA f32_16x16x4",
+                        "unsupported register layout for the selected MFMA form",
                     ));
                 }
             }
@@ -377,9 +431,11 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
     }
     let mut linked = HashSet::new();
     let mut linked_issues = HashSet::new();
+    let mut effect_issues = HashMap::new();
     for link in graph.amd_memory_effects() {
         linked.insert(link.effect);
         linked_issues.insert(link.issue);
+        effect_issues.insert(link.effect, link.issue);
         if let Some((wave, class)) = issue_events.get(&link.issue) {
             if let Some(event) = graph.events().get(link.effect) {
                 if let EventKind::Access(a) = event.kind {
@@ -398,10 +454,10 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                     }
                     let correct_space = match class {
                         AmdMemoryClass::Lds => access.space == Space::Shared,
-                        AmdMemoryClass::VectorMemory | AmdMemoryClass::ScalarMemory => {
-                            access.space == Space::Global
-                        }
-                        AmdMemoryClass::Flat => {
+                        AmdMemoryClass::VectorMemory
+                        | AmdMemoryClass::VectorStoreWide
+                        | AmdMemoryClass::ScalarMemory => access.space == Space::Global,
+                        AmdMemoryClass::Flat | AmdMemoryClass::FlatStoreWide => {
                             matches!(access.space, Space::Global | Space::Shared)
                         }
                         AmdMemoryClass::Message | AmdMemoryClass::CrossLane => false,
@@ -426,14 +482,27 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
             ));
         }
     }
+    let mut last_wave_record = HashMap::new();
     for (id, event) in graph.events().iter() {
         match event.kind {
+            EventKind::Amd(index) => {
+                let record = &graph.amd_events()[index as usize];
+                last_wave_record.insert(record.wave, id);
+            }
             EventKind::Access(a) => {
                 let a = graph.access(a);
                 if !linked.contains(&id) {
                     unresolved.push(Unresolved::at(
                         id,
                         "memory effect lacks its AMD issue association",
+                    ));
+                }
+                if effect_issues.get(&id).is_some_and(|issue| {
+                    last_wave_record.get(&(a.attributed.0 / 64)) != Some(issue)
+                }) {
+                    unresolved.push(Unresolved::at(
+                        id,
+                        "AMD memory effect is recorded after the wave progressed beyond its issue",
                     ));
                 }
                 if a.ordering != OrderingKind::Ordinary
@@ -446,8 +515,15 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                         "memory effect is outside the AMD ordinary byte-memory contract",
                     ));
                 }
+                if matches!(a.footprint,Footprint::Bytes{addr,width} if addr.checked_add(u64::from(width)).is_none())
+                {
+                    unresolved.push(Unresolved::at(
+                        id,
+                        "AMD footprint end exceeds the representable byte-iterator range",
+                    ));
+                }
             }
-            EventKind::Amd(_) | EventKind::Exit => {}
+            EventKind::Exit => {}
             _ => unresolved.push(Unresolved::at(
                 id,
                 "unrecognized or PTX-only event in gfx950 trace",
@@ -513,6 +589,20 @@ fn claim_instruction<'a>(
     Some(instruction)
 }
 
+#[derive(Clone)]
+struct MatrixOperation {
+    event: EventId,
+    tick: u64,
+    kind: AmdMatrixKind,
+    destinations: Vec<AmdRegister>,
+    accumulator: Vec<AmdRegister>,
+}
+impl MatrixOperation {
+    fn ordinary_wait(&self) -> u64 {
+        self.kind.passes() + if self.kind.is_xdl() { 4 } else { 2 }
+    }
+}
+
 /// Explicitly selected by the suite for gfx950, never called as a PTX check.
 pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
     let trace = trace_contract(graph);
@@ -539,23 +629,25 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
     let mut barrier_arrivals = 0;
     let mut ticks = vec![0u64; waves];
     let mut duration = vec![0u16; waves];
-    let mut matrices = vec![Vec::<(EventId, u64, Vec<AmdRegister>)>::new(); waves];
+    let mut matrices = vec![Vec::<MatrixOperation>::new(); waves];
     let mut valu_writes = vec![Vec::<(EventId, u64, AmdRegister)>::new(); waves];
+    let mut trans_writes = vec![Vec::<(EventId, u64, AmdRegister)>::new(); waves];
+    let mut shifted_writes = vec![Vec::<(EventId, u64, AmdRegister)>::new(); waves];
     let mut matrix_at = HashMap::new();
     let mut last_instruction = HashMap::new();
     for record in graph.amd_events() {
         if matches!(record.kind, AmdEventKind::Instruction { .. }) {
             last_instruction.insert(record.wave, record.event);
         } else if let AmdEventKind::MatrixIssue {
+            kind,
             destinations,
             sources_ab,
             accumulator,
-            ..
         } = &record.kind
         {
             matrix_at.insert(
                 last_instruction[&record.wave],
-                (destinations, sources_ab, accumulator),
+                (*kind, destinations, sources_ab, accumulator),
             );
         }
     }
@@ -577,50 +669,123 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                 ticks[wave] = ticks[wave].saturating_add(u64::from(duration[wave]));
                 duration[wave] = 1;
                 let tick = ticks[wave];
-                matrices[wave].retain(|(_, issued, _)| tick.saturating_sub(*issued) < 11);
-                for (issue, _, destinations) in &matrices[wave] {
-                    let forwarded =
-                        matrix_at
-                            .get(&record.event)
-                            .is_some_and(|(next_dest, ab, acc)| {
-                                *acc == destinations
-                                    && *next_dest == destinations
-                                    && !ab
-                                        .iter()
-                                        .any(|r| destinations.iter().any(|d| d.overlaps(*r)))
+                let instruction_kind = graph
+                    .event(record.event)
+                    .pc
+                    .map(|pc| graph.provenance().instructions[pc.0 as usize].kind)
+                    .unwrap_or("");
+                trans_writes[wave].retain(|(_, written, _)| tick.saturating_sub(*written) < 2);
+                shifted_writes[wave].retain(|(_, written, _)| tick.saturating_sub(*written) < 2);
+                if matches!(instruction_kind, "vector ALU" | "shifted ALU") {
+                    for (issue, _, written) in &trans_writes[wave] {
+                        for &register in reads.iter().filter(|r| r.overlaps(*written)) {
+                            hazards.push(AmdRegisterHazard {
+                                issue: *issue,
+                                use_event: record.event,
+                                wave: record.wave,
+                                register,
+                                kind: AmdRegisterHazardKind::ValuReadBeforeReady,
                             });
-                    if forwarded {
-                        continue;
+                        }
                     }
+                }
+                if matches!(
+                    instruction_kind,
+                    "vector ALU" | "trans ALU" | "shifted ALU" | "MFMA"
+                ) {
+                    for (issue, _, written) in &shifted_writes[wave] {
+                        for &register in reads.iter().filter(|r| r.overlaps(*written)) {
+                            hazards.push(AmdRegisterHazard {
+                                issue: *issue,
+                                use_event: record.event,
+                                wave: record.wave,
+                                register,
+                                kind: AmdRegisterHazardKind::ValuReadBeforeReady,
+                            });
+                        }
+                    }
+                }
+                if instruction_kind == "shifted ALU" {
+                    shifted_writes[wave]
+                        .extend(writes.iter().copied().map(|r| (record.event, tick, r)));
+                }
+                if instruction_kind == "trans ALU" {
+                    trans_writes[wave]
+                        .extend(writes.iter().copied().map(|r| (record.event, tick, r)));
+                }
+                // CDNA4 §7.6 Table 38; LLVM GCNHazardRecognizer.cpp at
+                // 846473237377990d00b9c353f6a2c86116b52ea5, checkMAIHazards90A
+                // and checkMAIVALUHazards. Time excludes the issuing instruction.
+                matrices[wave].retain(|m| tick.saturating_sub(m.tick) <= m.ordinary_wait());
+                let next_matrix = matrix_at.get(&record.event);
+                for operation in &matrices[wave] {
+                    let independent = tick.saturating_sub(operation.tick).saturating_sub(1);
                     for &register in reads
                         .iter()
-                        .filter(|r| destinations.iter().any(|d| d.overlaps(**r)))
+                        .filter(|r| operation.destinations.iter().any(|d| d.overlaps(**r)))
                     {
-                        hazards.push(AmdRegisterHazard {
-                            issue: *issue,
-                            use_event: record.event,
-                            wave: record.wave,
-                            register,
-                            kind: AmdRegisterHazardKind::MatrixReadBeforeReady,
-                        });
+                        let wait = if let Some((kind, _, ab, accumulator)) = next_matrix {
+                            if ab.iter().any(|r| r.overlaps(register)) {
+                                operation.ordinary_wait()
+                            } else if accumulator.iter().any(|r| r.overlaps(register)) {
+                                if **accumulator == operation.destinations
+                                    && kind.passes() == operation.kind.passes()
+                                {
+                                    0 // Complete SrcC forwarding, including a different output range.
+                                } else if !operation.kind.is_xdl() && kind.is_xdl() {
+                                    0
+                                } else if operation.kind.is_xdl() {
+                                    operation.kind.passes() + 2
+                                } else {
+                                    operation.kind.passes()
+                                }
+                            } else {
+                                operation.ordinary_wait()
+                            }
+                        } else {
+                            operation.ordinary_wait()
+                        };
+                        if independent < wait {
+                            hazards.push(AmdRegisterHazard {
+                                issue: operation.event,
+                                use_event: record.event,
+                                wave: record.wave,
+                                register,
+                                kind: AmdRegisterHazardKind::MatrixReadBeforeReady,
+                            });
+                        }
                     }
-                    for &register in writes
-                        .iter()
-                        .filter(|r| destinations.iter().any(|d| d.overlaps(**r)))
-                    {
-                        hazards.push(AmdRegisterHazard {
-                            issue: *issue,
-                            use_event: record.event,
-                            wave: record.wave,
-                            register,
-                            kind: AmdRegisterHazardKind::MatrixDestinationReuse,
-                        });
+                    // MFMA destination scheduling is internally interlocked; legacy
+                    // VALU and memory destinations have the explicit WAW/WAR rules.
+                    if next_matrix.is_none() {
+                        for &register in writes {
+                            let kind =
+                                if operation.destinations.iter().any(|d| d.overlaps(register))
+                                    && independent < operation.ordinary_wait()
+                                {
+                                    Some(AmdRegisterHazardKind::MatrixDestinationReuse)
+                                } else if operation.kind.is_xdl()
+                                    && operation.accumulator.iter().any(|r| r.overlaps(register))
+                                    && independent < operation.kind.passes() - 1
+                                {
+                                    Some(AmdRegisterHazardKind::MatrixSourceReuse)
+                                } else {
+                                    None
+                                };
+                            if let Some(kind) = kind {
+                                hazards.push(AmdRegisterHazard {
+                                    issue: operation.event,
+                                    use_event: record.event,
+                                    wave: record.wave,
+                                    register,
+                                    kind,
+                                });
+                            }
+                        }
                     }
                 }
                 valu_writes[wave].retain(|(_, written, _)| tick.saturating_sub(*written) < 3);
-                if graph.event(record.event).pc.is_some_and(|pc| {
-                    graph.provenance().instructions[pc.0 as usize].kind == "vector ALU"
-                }) {
+                if matches!(instruction_kind, "vector ALU" | "trans ALU" | "shifted ALU") {
                     valu_writes[wave]
                         .extend(writes.iter().copied().map(|r| (record.event, tick, r)));
                 }
@@ -641,7 +806,23 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                         let kind = if op.destinations.iter().any(|d| d.overlaps(r)) {
                             Some(AmdRegisterHazardKind::DestinationReuse)
                         } else if op.held_sources.iter().any(|d| d.overlaps(r)) {
-                            Some(AmdRegisterHazardKind::SourceReuse)
+                            let wide = matches!(
+                                op.class,
+                                AmdMemoryClass::VectorStoreWide | AmdMemoryClass::FlatStoreWide
+                            );
+                            // CDNA4 §4.5 Table 11, VMEM FLAT/GLOBAL 3/4-DWORD store
+                            // -> data-register VALU overwrite: two independent states.
+                            // LLVM GCNHazardRecognizer.cpp (846473237377990d00b9c353f6a2c86116b52ea5)
+                            // PreEmitNoopsCommon invokes checkVALUHazards only for VALU;
+                            // checkSOFFSETWindowVALUHazardsHelper requires two states for
+                            // gfx950 wide FLAT stores. VM/LDS load destinations return
+                            // asynchronously and do not take this VALU issue-time rule.
+                            let valu = matches!(
+                                instruction_kind,
+                                "vector ALU" | "trans ALU" | "shifted ALU" | "MFMA"
+                            );
+                            (!wide || (valu && tick.saturating_sub(op.issued_tick) < 3))
+                                .then_some(AmdRegisterHazardKind::SourceReuse)
                         } else {
                             None
                         };
@@ -658,10 +839,10 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                 }
             }
             AmdEventKind::MatrixIssue {
+                kind,
                 destinations,
                 sources_ab,
                 accumulator,
-                ..
             } => {
                 for (issue, _, written) in &valu_writes[wave] {
                     for &register in sources_ab
@@ -678,7 +859,13 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                         });
                     }
                 }
-                matrices[wave].push((record.event, ticks[wave], destinations.clone()));
+                matrices[wave].push(MatrixOperation {
+                    event: record.event,
+                    tick: ticks[wave],
+                    kind: *kind,
+                    destinations: destinations.clone(),
+                    accumulator: accumulator.clone(),
+                });
             }
             AmdEventKind::Delay { cycles } => {
                 duration[wave] = *cycles;
@@ -704,6 +891,7 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                     wave: record.wave,
                     class: *class,
                     sequence: sequences[slot],
+                    issued_tick: ticks[wave],
                     remaining: counters.clone(),
                     destinations: destinations.clone(),
                     held_sources: held_sources.clone(),
@@ -729,9 +917,10 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                         .collect();
                     let homogeneous = tracked.first().is_some_and(|&first| {
                         ordered(operations[first].class)
-                            && tracked
-                                .iter()
-                                .all(|&o| operations[o].class == operations[first].class)
+                            && tracked.iter().all(|&o| {
+                                class_index(operations[o].class)
+                                    == class_index(operations[first].class)
+                            })
                     });
                     if threshold != 0 && !homogeneous {
                         continue;

@@ -1,0 +1,335 @@
+{
+  "schema": 1,
+  "compiler": "AMD clang version 22.0.0git",
+  "compiler_commit": "9b0f9aa3067a907226b0ebb8bee1fe51d1f0fca5",
+  "host": "mi350-2",
+  "code_object_version": 6,
+  "metadata_version": [
+    1,
+    2
+  ],
+  "fixtures": [
+    {
+      "source": "clang22-copy-add.hip",
+      "assembly": "clang22-copy-add.s",
+      "source_sha256": "a642a13803f6b824100b4a4a8f0193f99ba7fea2ffb35da211a106f17b6135fd",
+      "assembly_sha256": "efbdab3055e0fa697ca97a62275d7ab890d695aa1e46cb0a68280ddb442d9a1d",
+      "object_sha256": "d070ae367b965e5adb72e4383c3f6360dbe6af369a634cb21bde9ae30769b7ee",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-S",
+        "/tmp/ptx-verifier-frontend/copy.hip",
+        "-o",
+        "/tmp/ptx-verifier-frontend/copy.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-frontend/copy.s",
+        "-o",
+        "/tmp/ptx-verifier-frontend/copy.o"
+      ],
+      "assembly_validation": "passed on mi350-2; 2026-10-27"
+    },
+    {
+      "source": "clang22-exchange-reduce-relu.hip",
+      "assembly": "clang22-exchange-reduce-relu.s",
+      "source_sha256": "789fa06b18ddad6132b8d48e283fe02e73148ed48eca840c6f3d0dc56a0003f2",
+      "assembly_sha256": "3a4c4fdc220a9c5597915f60fea77f32872c58b298b167ed3f4eee17903c3eb9",
+      "object_sha256": "c8bb9a777d93346fc78b3a179222e84ff83e38e1cef1a47eca449d775a4e4383",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-S",
+        "/tmp/ptx-verifier-frontend/semantic.hip",
+        "-o",
+        "/tmp/ptx-verifier-frontend/semantic.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-frontend/semantic.s",
+        "-o",
+        "/tmp/ptx-verifier-frontend/semantic.o"
+      ],
+      "assembly_validation": "passed on mi350-2; 2026-10-27"
+    },
+    {
+      "source": "clang22-ids-3d.hip",
+      "assembly": "clang22-ids-3d.s",
+      "source_sha256": "c0b6e15a24ee2a194588f579645c06da30522b39fc31f2659a3c672b6db331cd",
+      "assembly_sha256": "c7641849607d3a8af8a3e7f26cdcb547b6a42e67ff8fee5a7f9183bbf8263181",
+      "object_sha256": "08747cc87b59e14e3ccdcf01fcd81f3f1f02cd7f357794416409d11b9caca21c",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-S",
+        "/tmp/ptx-verifier-frontend/clang22-ids-3d.hip",
+        "-o",
+        "/tmp/ptx-verifier-frontend/clang22-ids-3d.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-frontend/clang22-ids-3d.s",
+        "-o",
+        "/tmp/ptx-verifier-frontend/clang22-ids-3d.o"
+      ],
+      "assembly_validation": "passed on mi350-2; 2026-10-27"
+    },
+    {
+      "source": "clang22-mfma-f32.hip",
+      "assembly": "clang22-mfma-f32.s",
+      "source_sha256": "53b1578de94d3de9a000e4e96ec087a701e72c325ae9bd6fb3eab1378cdb4fb1",
+      "assembly_sha256": "2f0e29c32184eea9fbae6a8c00e4a4a9297ad45e79acbc3642a5fd635b5a668a",
+      "object_sha256": "22eda82122b26145e2d572f4f8ee2abcf2e65a232fcc860d6faf13cd2c8424b9",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-S",
+        "/tmp/ptx-verifier-frontend/mfma.hip",
+        "-o",
+        "/tmp/ptx-verifier-frontend/mfma.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-frontend/mfma.s",
+        "-o",
+        "/tmp/ptx-verifier-frontend/mfma.o"
+      ],
+      "assembly_validation": "passed on mi350-2; 2026-10-27"
+    },
+    {
+      "source": "clang22-pipelined-mfma-f16.hip",
+      "assembly": "clang22-pipelined-mfma-f16.s",
+      "source_sha256": "a3eeb872a7b8e9dcf3cd8cbe778cd234b17541ba0abcb11cfe1a384979187e3a",
+      "assembly_sha256": "11e6045bae8d22c26c5470cedd7bbffca23a5e085c07e281e7745845603e032c",
+      "object_sha256": "c670f413dc61bda21ce32f2e0da950469c7ceef62e8d07f6d576b0c9908024d7",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-S",
+        "/tmp/ptx-verifier-frontend/clang22-pipelined-mfma-f16.hip",
+        "-o",
+        "/tmp/ptx-verifier-frontend/clang22-pipelined-mfma-f16.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-frontend/clang22-pipelined-mfma-f16.s",
+        "-o",
+        "/tmp/ptx-verifier-frontend/clang22-pipelined-mfma-f16.o"
+      ],
+      "assembly_validation": "passed on mi350-2; 2026-10-27"
+    },
+    {
+      "source": "clang22-pipelined-mfma-f32.hip",
+      "assembly": "clang22-pipelined-mfma-f32.s",
+      "source_sha256": "952b66a1ed7cc4969407889ca7636b93179f9d2874a786804711513392c21688",
+      "assembly_sha256": "0628527f82fe09b6287eab2a0564b74a779850995172486911ea9a1563bddc15",
+      "object_sha256": "7489f9ad73f209b33b46e11e65a8bcef982b1f2f5507c6dcb7d6de40187fe1be",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-S",
+        "/tmp/ptx-verifier-frontend/clang22-pipelined-mfma-f32.hip",
+        "-o",
+        "/tmp/ptx-verifier-frontend/clang22-pipelined-mfma-f32.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-frontend/clang22-pipelined-mfma-f32.s",
+        "-o",
+        "/tmp/ptx-verifier-frontend/clang22-pipelined-mfma-f32.o"
+      ],
+      "assembly_validation": "passed on mi350-2; 2026-10-27"
+    },
+    {
+      "source": "portable-f16.hip",
+      "assembly": "portable-f16.s",
+      "source_sha256": "1703a0d225ab1c9654b254d2060ee4744b2b6e6c52d7d636c338ff132038965d",
+      "assembly_sha256": "122ca33f751b37c42460f1680194e4431310d4af2ada4f067e6638e2781f43c7",
+      "object_sha256": "e01cccbe610d01c574b05dcbcc62c116cee072e02ba936dc71397cd598ef3331",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-ffast-math",
+        "-S",
+        "/tmp/ptx-verifier-frontend/portable-f16.hip",
+        "-o",
+        "/tmp/ptx-verifier-frontend/portable-f16.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-frontend/portable-f16.s",
+        "-o",
+        "/tmp/ptx-verifier-frontend/portable-f16.o"
+      ],
+      "assembly_validation": "passed on mi350-2; 2026-10-27"
+    },
+    {
+      "source": "portable-f8.hip",
+      "assembly": "portable-f8.s",
+      "source_sha256": "d4ab3c860baca4d4552a7ac1b37c39e0e2eb9777e93c0b1d145f9239f41eec44",
+      "assembly_sha256": "50738f01ed840685557294b569e11a1b8bb85809031cc0628d78edd2d18e39d9",
+      "object_sha256": "ad09766355e58ee985d8e67dc486175a294a5c3804cbd2c7de95e920e5cfe0ca",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-ffast-math",
+        "-S",
+        "/tmp/ptx-verifier-frontend/portable-f8.hip",
+        "-o",
+        "/tmp/ptx-verifier-frontend/portable-f8.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-frontend/portable-f8.s",
+        "-o",
+        "/tmp/ptx-verifier-frontend/portable-f8.o"
+      ],
+      "assembly_validation": "passed on mi350-2; 2026-10-27"
+    },
+    {
+      "source": "native-convolution.hip",
+      "assembly": "native-convolution.s",
+      "source_sha256": "57fc39773249d90992294d7a08a32a45136891afd7a09d4c403f7ab06edb25f6",
+      "assembly_sha256": "bed0c5f8478b4edb1e9e47632285f60ba466e2d2d3c4141685c11e5ff6cda8bc",
+      "object_sha256": "4f37ca131edc419b5fabde6c4b72ca4e1495a4b1690110fce7a2d6b7f92c0b4a",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-S",
+        "/tmp/ptx-verifier-frontend/native-convolution.hip",
+        "-o",
+        "/tmp/ptx-verifier-frontend/native-convolution.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-frontend/native-convolution.s",
+        "-o",
+        "/tmp/ptx-verifier-frontend/native-convolution.o"
+      ],
+      "assembly_validation": "passed on mi350-2; 2026-10-27"
+    },
+    {
+      "source": "clang22-cdna4-mfma-types.hip",
+      "assembly": "clang22-cdna4-mfma-types.s",
+      "source_sha256": "f28d0ca6d421ab1b1565475b86e16cb2a405a81a5087fe116f4f4101f1b9dfd1",
+      "assembly_sha256": "3f19f97c3a2a018b502f960b5025e8b3e7c7ae62cc11196d1f940c5172796d5c",
+      "object_sha256": "f4d081d0076b7589e1bbb0158d9f0b63da13665ef56fc9a328e242661a58d308",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-S",
+        "/tmp/ptx-verifier-frontend/clang22-cdna4-mfma-types.hip",
+        "-o",
+        "/tmp/ptx-verifier-frontend/clang22-cdna4-mfma-types.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-frontend/clang22-cdna4-mfma-types.s",
+        "-o",
+        "/tmp/ptx-verifier-frontend/clang22-cdna4-mfma-types.o"
+      ],
+      "assembly_validation": "passed on mi350-2; 2026-10-27"
+    },
+    {
+      "source": "native-flash-attention.hip",
+      "assembly": "native-flash-attention.s",
+      "source_sha256": "8c2e58209c9669a22fb231829e9650ea7c14716020b96c058e5a12dd63e993a3",
+      "assembly_sha256": "ecf62822f322ba5b7f44b265246af39cacb08a421c01701829c681a86fe71c7c",
+      "object_sha256": "302c076396daa77fe5a82dc37edf47ec79f4e7d31afde48ff3b0506eb83b44a4",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-ffast-math",
+        "-S",
+        "/tmp/ptx-verifier-frontend/native-flash-attention.hip",
+        "-o",
+        "/tmp/ptx-verifier-frontend/native-flash-attention.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-frontend/native-flash-attention.s",
+        "-o",
+        "/tmp/ptx-verifier-frontend/native-flash-attention.o"
+      ],
+      "assembly_validation": "passed on mi350-2; 2026-10-27"
+    }
+  ]
+}

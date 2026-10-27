@@ -1,0 +1,258 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "kernel": "pipelined_mfma_f32",
+      "assembly": "clang22-pipelined-mfma-f32.s",
+      "source": "clang22-pipelined-mfma-f32.hip",
+      "spec": "specs/pipelined_mfma_f32.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "M": 32,
+        "N": 16,
+        "K": 8
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "length": 256,
+          "element_size": 4,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "b",
+          "length": 128,
+          "element_size": 4,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "out",
+          "length": 512,
+          "element_size": 4,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "expected_output_footprint": {
+        "array": "out",
+        "elements": 512,
+        "bytes": 2048
+      },
+      "reduced_case": true,
+      "preserved_patterns": [
+        "two wave64s",
+        "cross-wave LDS producers",
+        "two alternating LDS buffers",
+        "two MFMA tiles",
+        "repeated workgroup barriers"
+      ],
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "notes": [
+        "Reduced matrix mechanism coverage; does not close full-shape baseline workload parity."
+      ]
+    },
+    {
+      "kernel": "pipelined_mfma_f16",
+      "assembly": "clang22-pipelined-mfma-f16.s",
+      "source": "clang22-pipelined-mfma-f16.hip",
+      "spec": "specs/pipelined_mfma_f32.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "M": 32,
+        "N": 16,
+        "K": 32
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "b",
+          "length": 512,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "out",
+          "length": 512,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "expected_output_footprint": {
+        "array": "out",
+        "elements": 512,
+        "bytes": 1024
+      },
+      "reduced_case": true,
+      "preserved_patterns": [
+        "two wave64s",
+        "cross-wave LDS producers",
+        "two alternating LDS buffers",
+        "two MFMA tiles",
+        "repeated workgroup barriers"
+      ],
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "notes": [
+        "Reduced matrix mechanism coverage; does not close full-shape baseline workload parity."
+      ]
+    },
+    {
+      "kernel": "mfma_f32",
+      "assembly": "clang22-mfma-f32.s",
+      "source": "clang22-mfma-f32.hip",
+      "spec": "specs/mfma_f32.spec",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "K": 4,
+        "M": 16,
+        "N": 16,
+        "G": 4,
+        "C": 4
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "length": 64,
+          "element_size": 4,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "b",
+          "length": 64,
+          "element_size": 4,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "out",
+          "length": 256,
+          "element_size": 4,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "expected_output_footprint": {
+        "array": "out",
+        "elements": 256,
+        "bytes": 1024
+      },
+      "reduced_case": true,
+      "status": "compiler_and_assembler_validated; independent symbolic layout validated by executor; hardware pending"
+    },
+    {
+      "kernel": "ids_3d",
+      "assembly": "clang22-ids-3d.s",
+      "source": "clang22-ids-3d.hip",
+      "spec": "specs/ids_3d.spec",
+      "block": [
+        4,
+        3,
+        2
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "X": 4,
+        "Y": 3,
+        "Z": 2,
+        "GX": 0,
+        "GY": 0,
+        "GZ": 0
+      },
+      "arrays": [
+        {
+          "name": "out",
+          "length": 24,
+          "element_size": 4,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:out"
+      ],
+      "expected_output_footprint": {
+        "array": "out",
+        "elements": 24,
+        "bytes": 96
+      },
+      "reduced_case": false,
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending"
+    }
+  ]
+}

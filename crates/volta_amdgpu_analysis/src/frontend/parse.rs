@@ -43,6 +43,8 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
         text_section: true,
         metadata: None,
         metadata_start: SourceSpan::default(),
+        metadata_blocks: Vec::new(),
+        descriptors: BTreeSet::new(),
         in_block_comment: false,
     };
     let mut start = 0;
@@ -50,14 +52,14 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
         let span = SourceSpan {
             line: line_index + 1,
             column: raw.len() - raw.trim_start().len() + 1,
-            start,
+            start: start + raw.len() - raw.trim_start().len(),
             end: start + raw.trim_end_matches(['\r', '\n']).len(),
         };
         start += raw.len();
         if let Some(buffer) = &mut parser.metadata {
             if raw.trim() == ".end_amdgpu_metadata" {
                 let buffer = parser.metadata.take().unwrap();
-                metadata::apply_metadata(&mut parser.module, &buffer, parser.metadata_start)?;
+                parser.metadata_blocks.push((buffer, parser.metadata_start));
             } else {
                 buffer.push_str(raw);
             }
@@ -94,6 +96,30 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
             span: SourceSpan::default(),
         });
     }
+    if parser.metadata_blocks.len() > 1 {
+        return Err(ParseError {
+            message: "duplicate .amdgpu_metadata".into(),
+            span: parser.metadata_blocks[1].1,
+        });
+    }
+    for (buffer, span) in std::mem::take(&mut parser.metadata_blocks) {
+        metadata::apply_metadata(&mut parser.module, &buffer, span)?;
+    }
+    for kernel in &mut parser.module.kernels {
+        for instruction in &mut kernel.instructions {
+            if instruction.opcode == super::Opcode::Branch {
+                continue;
+            }
+            for operand in &mut instruction.operands {
+                if let super::Operand::Symbol(name) = operand
+                    && let Some(value) = parser.module.constants.get(name)
+                {
+                    *operand = super::Operand::Integer(*value);
+                }
+            }
+            instr::validate_control(instruction)?;
+        }
+    }
     if parser.module.kernels.is_empty() {
         return Err(ParseError {
             message: "no executable kernels found".into(),
@@ -121,6 +147,8 @@ struct Parser {
     text_section: bool,
     metadata: Option<String>,
     metadata_start: SourceSpan,
+    metadata_blocks: Vec<(String, SourceSpan)>,
+    descriptors: BTreeSet<String>,
     in_block_comment: bool,
 }
 
@@ -179,19 +207,26 @@ impl Parser {
                 if self.functions.contains(label)
                     || !label.starts_with('.') && self.active.is_none()
                 {
-                    if self
+                    let index = if let Some(index) = self
                         .module
                         .kernels
                         .iter()
-                        .any(|kernel| kernel.name == label)
+                        .position(|kernel| kernel.name == label)
                     {
-                        return Err(fail(format!("duplicate kernel `{label}`")));
-                    }
-                    let index = self.module.kernels.len();
-                    self.module.kernels.push(Kernel {
-                        name: label.into(),
-                        ..Kernel::default()
-                    });
+                        if !self.module.kernels[index].instructions.is_empty()
+                            || !self.module.kernels[index].labels.is_empty()
+                        {
+                            return Err(fail(format!("duplicate kernel `{label}`")));
+                        }
+                        index
+                    } else {
+                        let index = self.module.kernels.len();
+                        self.module.kernels.push(Kernel {
+                            name: label.into(),
+                            ..Kernel::default()
+                        });
+                        index
+                    };
                     self.active = Some(index);
                 }
                 if let Some(index) = self.active {
@@ -287,15 +322,25 @@ impl Parser {
                 if self.descriptor.is_some() {
                     return Err(fail("nested .amdhsa_kernel".into()));
                 }
-                let index = self
+                if !valid_symbol(args) {
+                    return Err(fail("malformed kernel descriptor name".into()));
+                }
+                let index = if let Some(index) = self
                     .module
                     .kernels
                     .iter()
                     .position(|kernel| kernel.name == args)
-                    .ok_or_else(|| {
-                        fail(format!("descriptor refers to undefined function `{args}`"))
-                    })?;
-                if !self.module.kernels[index].descriptor.fields.is_empty() {
+                {
+                    index
+                } else {
+                    let index = self.module.kernels.len();
+                    self.module.kernels.push(Kernel {
+                        name: args.into(),
+                        ..Kernel::default()
+                    });
+                    index
+                };
+                if !self.descriptors.insert(args.into()) {
                     return Err(fail(format!("duplicate descriptor for `{args}`")));
                 }
                 self.descriptor = Some(index);
@@ -572,6 +617,90 @@ fn validate_descriptor(kernel: &Kernel) -> Result<(), ParseError> {
         if key == "next_free_sgpr" && *value > 102 {
             return Err(fail("next_free_sgpr exceeds gfx950 register range".into()));
         }
+    }
+    fn register(operand: &super::Operand) -> Option<super::Register> {
+        match operand {
+            super::Operand::Register(register) => Some(*register),
+            super::Operand::Modified { value, .. } => register(value),
+            _ => None,
+        }
+    }
+    let registers = kernel
+        .instructions
+        .iter()
+        .flat_map(|instruction| instruction.operands.iter())
+        .filter_map(register)
+        .collect::<Vec<_>>();
+    let has_accumulators = registers
+        .iter()
+        .any(|register| register.class == super::RegisterClass::Accumulator);
+    let accum_offset = if has_accumulators {
+        let offset = kernel.descriptor.get("accum_offset").ok_or_else(|| fail("explicit AGPRs require an accum_offset descriptor to establish unified-register aliases".into()))?;
+        if offset == 0 || offset > 256 || !offset.is_multiple_of(4) {
+            return Err(fail(
+                "accum_offset must be a multiple of four in 4..=256".into(),
+            ));
+        }
+        Some(offset)
+    } else {
+        None
+    };
+    for register in registers {
+        let end = u64::from(register.index) + u64::from(register.count);
+        match register.class {
+            super::RegisterClass::Scalar => {
+                if kernel
+                    .descriptor
+                    .get("next_free_sgpr")
+                    .is_some_and(|count| end > count)
+                {
+                    return Err(fail(format!(
+                        "SGPR operand s{}..{} exceeds next_free_sgpr",
+                        register.index,
+                        end - 1
+                    )));
+                }
+            }
+            super::RegisterClass::Vector => {
+                if kernel
+                    .descriptor
+                    .get("next_free_vgpr")
+                    .is_some_and(|count| end > count)
+                {
+                    return Err(fail(format!(
+                        "VGPR operand v{}..{} exceeds next_free_vgpr",
+                        register.index,
+                        end - 1
+                    )));
+                }
+                if accum_offset.is_some_and(|offset| end > offset) {
+                    return Err(fail("explicit VGPR aliases an AGPR physical allocation; overlapping unified register names are unsupported".into()));
+                }
+            }
+            super::RegisterClass::Accumulator => {
+                if let (Some(offset), Some(count)) =
+                    (accum_offset, kernel.descriptor.get("next_free_vgpr"))
+                    && offset + end > count
+                {
+                    return Err(fail(
+                        "AGPR operand exceeds unified next_free_vgpr allocation".into(),
+                    ));
+                }
+            }
+            super::RegisterClass::Special => {}
+        }
+    }
+    if kernel.descriptor.flag("tg_split")
+        && kernel.instructions.iter().any(|instruction| {
+            matches!(
+                instruction.opcode,
+                super::Opcode::Lds | super::Opcode::Barrier
+            )
+        })
+    {
+        return Err(fail(
+            "tg_split kernels cannot use LDS or workgroup barriers".into(),
+        ));
     }
     Ok(())
 }

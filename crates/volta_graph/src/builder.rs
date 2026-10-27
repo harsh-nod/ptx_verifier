@@ -51,6 +51,13 @@ impl GraphBuilder {
         &self.graph
     }
 
+    /// Record an assumption discovered during execution, once, alongside launch assumptions.
+    pub fn assume(&mut self, assumption: crate::Assumption) {
+        if !self.graph.provenance.assumptions.contains(&assumption) {
+            self.graph.provenance.assumptions.push(assumption);
+        }
+    }
+
     /// Record a scalar-issued wave event in the program order of the wave's first lane.
     pub fn amd_event(&mut self, wave: u32, pc: ProgramPoint, kind: crate::AmdEventKind) -> EventId {
         let index = self.graph.amd_events.len() as u32;
