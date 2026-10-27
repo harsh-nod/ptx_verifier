@@ -1,4 +1,7 @@
-use super::{memory::Memory, value::Value};
+use super::{
+    memory::Memory,
+    value::{Value, WideKind},
+};
 use crate::{
     config::{AnalysisConfig, ArrayKind, ParamValue},
     ir::*,
@@ -326,6 +329,20 @@ pub(crate) struct Interpreter<'a> {
     stats: Stats,
     op_counts: BTreeMap<&'static str, u64>,
     lds_size: u64,
+    byte_formats: BTreeMap<volta_expr::StringId, ByteFormat>,
+    word_formats: BTreeMap<volta_expr::StringId, WordFormat>,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ByteFormat {
+    OcpE4m3,
+    SignedI8,
+    UnsignedU8,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum WordFormat {
+    Float32,
+    Integer32,
+    Float64,
 }
 impl<'a> Interpreter<'a> {
     pub fn new(
@@ -486,6 +503,8 @@ impl<'a> Interpreter<'a> {
             stats: Stats::default(),
             op_counts: BTreeMap::new(),
             lds_size,
+            byte_formats: BTreeMap::new(),
+            word_formats: BTreeMap::new(),
         };
         result.initialize_memory()?;
         for id in 0..threads.div_ceil(64) {
@@ -504,6 +523,37 @@ impl<'a> Interpreter<'a> {
             let name = self.arena.intern_string(array.name.clone());
             for index in 0..array.len {
                 let addr = array.base + index * array.elem_width;
+                if array.elem_width == 8 {
+                    let expr = if array.kind == ArrayKind::IndexInput {
+                        self.arena.int(index as i64)
+                    } else {
+                        self.arena.input_element(name, index)
+                    };
+                    let kind = if array.kind == ArrayKind::IndexInput {
+                        WideKind::Integer
+                    } else {
+                        WideKind::Input
+                    };
+                    self.global.initialize(
+                        addr,
+                        4,
+                        Value::WidePart {
+                            expr,
+                            high: false,
+                            kind,
+                        },
+                    );
+                    self.global.initialize(
+                        addr + 4,
+                        4,
+                        Value::WidePart {
+                            expr,
+                            high: true,
+                            kind,
+                        },
+                    );
+                    continue;
+                }
                 let value = if array.kind == ArrayKind::IndexInput {
                     Value::Integer(index as u32)
                 } else {
@@ -513,7 +563,7 @@ impl<'a> Interpreter<'a> {
                     } else if array.elem_width == 2 {
                         Value::Half(expr)
                     } else {
-                        Value::Real(expr)
+                        Value::Input(expr)
                     }
                 };
                 self.global.initialize(addr, array.elem_width, value);
@@ -531,9 +581,34 @@ impl<'a> Interpreter<'a> {
                     ))
                 })?;
                 position += 1;
+                if matches!(param, ParamValue::Float(_) | ParamValue::SymFloat(_)) {
+                    let expected = match arg.size {
+                        4 => "f32",
+                        8 => "f64",
+                        _ => {
+                            return Err(EvalError::InvalidConfig(
+                                "floating arguments require32-bit or64-bit storage".into(),
+                            ));
+                        }
+                    };
+                    if arg.value_kind != "by_value"
+                        || arg.value_type.as_deref().is_some_and(|ty| ty != expected)
+                    {
+                        return Err(EvalError::InvalidConfig(format!(
+                            "floating argument metadata must describe a by-value {expected}"
+                        )));
+                    }
+                }
                 match param {
                     ParamValue::Int(value) => Some((*value as u64, None)),
-                    ParamValue::Float(value) => Some(((*value as f32).to_bits() as u64, None)),
+                    ParamValue::Float(value) => Some((
+                        if arg.size == 8 {
+                            value.to_bits()
+                        } else {
+                            (*value as f32).to_bits() as u64
+                        },
+                        None,
+                    )),
                     ParamValue::SymFloat(name) => {
                         Some((0, Some(self.arena.param_symbol(name.clone()))))
                     }
@@ -550,13 +625,32 @@ impl<'a> Interpreter<'a> {
             };
             if let Some((bits, expression)) = value {
                 if let Some(expression) = expression {
-                    if arg.size != 4 {
-                        return Err(EvalError::InvalidConfig(
-                            "symbolic scalar arguments require f32 storage".into(),
-                        ));
+                    if arg.size == 8 {
+                        self.kernargs.initialize(
+                            KERNARG_BASE + arg.offset,
+                            4,
+                            Value::WidePart {
+                                expr: expression,
+                                high: false,
+                                kind: WideKind::Float,
+                            },
+                        );
+                        self.kernargs.initialize(
+                            KERNARG_BASE + arg.offset + 4,
+                            4,
+                            Value::WidePart {
+                                expr: expression,
+                                high: true,
+                                kind: WideKind::Float,
+                            },
+                        );
+                    } else {
+                        self.kernargs.initialize(
+                            KERNARG_BASE + arg.offset,
+                            4,
+                            Value::Real(expression),
+                        );
                     }
-                    self.kernargs
-                        .initialize(KERNARG_BASE + arg.offset, 4, Value::Real(expression));
                 } else {
                     for byte in 0..arg.size {
                         if byte >= 8 {
@@ -858,20 +952,34 @@ impl<'a> Interpreter<'a> {
         fn add(operand: &Operand, mask: u64, result: &mut Vec<AmdRegister>) {
             match operand {
                 Operand::Register(register) => {
-                    let file = match register.class {
-                        RegisterClass::Scalar => AmdRegisterFile::Scalar,
-                        RegisterClass::Vector => AmdRegisterFile::Vector,
-                        RegisterClass::Accumulator => AmdRegisterFile::Accumulator,
-                        RegisterClass::Special => return,
+                    let (file, base, count) = match register.class {
+                        RegisterClass::Scalar => {
+                            (AmdRegisterFile::Scalar, register.index, register.count)
+                        }
+                        RegisterClass::Vector => {
+                            (AmdRegisterFile::Vector, register.index, register.count)
+                        }
+                        RegisterClass::Accumulator => {
+                            (AmdRegisterFile::Accumulator, register.index, register.count)
+                        }
+                        RegisterClass::Special => match register.special {
+                            Some(SpecialRegister::Vcc) => (AmdRegisterFile::Scalar, 106, 2),
+                            Some(SpecialRegister::VccLo) => (AmdRegisterFile::Scalar, 106, 1),
+                            Some(SpecialRegister::VccHi) => (AmdRegisterFile::Scalar, 107, 1),
+                            Some(SpecialRegister::Exec) => (AmdRegisterFile::Scalar, 126, 2),
+                            Some(SpecialRegister::ExecLo) => (AmdRegisterFile::Scalar, 126, 1),
+                            Some(SpecialRegister::ExecHi) => (AmdRegisterFile::Scalar, 127, 1),
+                            _ => return,
+                        },
                     };
-                    if mask == 0 && register.class != RegisterClass::Scalar {
+                    if mask == 0 && file != AmdRegisterFile::Scalar {
                         return;
                     }
-                    for component in 0..register.count {
+                    for component in 0..count {
                         result.push(AmdRegister {
                             file,
-                            index: register.index + component,
-                            lanes: if register.class == RegisterClass::Scalar {
+                            index: base + component,
+                            lanes: if file == AmdRegisterFile::Scalar {
                                 u64::MAX
                             } else {
                                 mask
@@ -889,6 +997,13 @@ impl<'a> Interpreter<'a> {
             .mnemonic
             .trim_end_matches("_e32")
             .trim_end_matches("_e64");
+        if mnemonic.starts_with("v_cmpx_") {
+            writes.extend([126, 127].map(|index| AmdRegister {
+                file: AmdRegisterFile::Scalar,
+                index,
+                lanes: u64::MAX,
+            }));
+        }
         if wave.exec == 0
             && matches!(
                 instruction.opcode,
@@ -915,13 +1030,7 @@ impl<'a> Interpreter<'a> {
                 } else {
                     None
                 };
-            if let Some(
-                operand @ Operand::Register(Register {
-                    class: RegisterClass::Scalar,
-                    ..
-                }),
-            ) = mask_destination
-            {
+            if let Some(operand) = mask_destination {
                 add(operand, u64::MAX, &mut writes);
             }
             return (reads, writes);
@@ -1016,11 +1125,70 @@ impl<'a> Interpreter<'a> {
         }
         if matches!(
             mnemonic,
-            "v_fmac_f32" | "v_fma_mixlo_f16" | "v_fma_mixhi_f16" | "s_mulk_i32" | "s_addk_i32"
+            "v_fmac_f32"
+                | "v_fmac_f64"
+                | "v_fma_mixlo_f16"
+                | "v_fma_mixhi_f16"
+                | "s_mulk_i32"
+                | "s_addk_i32"
+                | "s_bitset1_b32"
         ) {
             add(&instruction.operands[0], wave.exec, &mut reads);
         }
         (reads, writes)
+    }
+    fn scalar_mask_reads(&self, instruction: &Instruction, wave: &Wave) -> Vec<AmdRegister> {
+        if wave.exec == 0 || instruction.opcode != Opcode::VectorAlu {
+            return Vec::new();
+        }
+        let name = instruction
+            .mnemonic
+            .trim_end_matches("_e32")
+            .trim_end_matches("_e64");
+        let role = if name == "v_cndmask_b32" {
+            Some(3)
+        } else if matches!(name, "v_addc_co_u32" | "v_subb_co_u32" | "v_subbrev_co_u32") {
+            Some(4)
+        } else {
+            None
+        };
+        let Some(role) = role else {
+            return Vec::new();
+        };
+        fn scalar(operand: &Operand, out: &mut Vec<AmdRegister>) {
+            match operand {
+                Operand::Modified { value, .. } => scalar(value, out),
+                Operand::Register(register) => {
+                    let (index, count) = match register.class {
+                        RegisterClass::Scalar => (register.index, register.count),
+                        RegisterClass::Special => match register.special {
+                            Some(SpecialRegister::Vcc) => (106, 2),
+                            Some(SpecialRegister::VccLo) => (106, 1),
+                            Some(SpecialRegister::VccHi) => (107, 1),
+                            _ => return,
+                        },
+                        _ => return,
+                    };
+                    out.extend((index..index + count).map(|index| AmdRegister {
+                        file: AmdRegisterFile::Scalar,
+                        index,
+                        lanes: u64::MAX,
+                    }));
+                }
+                _ => {}
+            }
+        }
+        let mut masks = Vec::new();
+        if let Some(operand) = instruction.operands.get(role) {
+            scalar(operand, &mut masks);
+        }
+        let mut data = Vec::new();
+        let first_source = if role == 4 { 2 } else { 1 };
+        for operand in &instruction.operands[first_source..role.min(instruction.operands.len())] {
+            scalar(operand, &mut data);
+        }
+        masks.retain(|register| !data.iter().any(|other| register.overlaps(*other)));
+        masks
     }
     fn step(&mut self, wave: &mut Wave) -> Result<(), EvalError> {
         let instruction = self
@@ -1029,7 +1197,14 @@ impl<'a> Interpreter<'a> {
             .get(wave.pc)
             .ok_or_else(|| wave.fail(None, "fell off kernel without s_endpgm"))?;
         let instruction = instruction.clone();
-        let (reads, writes) = self.instruction_registers(&instruction, wave);
+        let (mut reads, writes) = self.instruction_registers(&instruction, wave);
+        if instruction.opcode == Opcode::Matrix {
+            reads.extend([126, 127].map(|index| AmdRegister {
+                file: AmdRegisterFile::Scalar,
+                index,
+                lanes: u64::MAX,
+            }));
+        }
         self.builder.amd_event(
             wave.id,
             ProgramPoint(wave.pc as u32),
@@ -1037,6 +1212,7 @@ impl<'a> Interpreter<'a> {
                 exec_mask: wave.exec,
                 reads,
                 writes,
+                scalar_mask_reads: self.scalar_mask_reads(&instruction, wave),
             },
         );
         self.stats.instructions += 1;
@@ -1194,9 +1370,180 @@ impl<'a> Interpreter<'a> {
             }
             return Ok(expression);
         }
-        wave.value(operand, lane)?
+        let value = wave.value(operand, lane)?;
+        self.real_value(wave, value, lane)
+    }
+    fn real_value(&mut self, wave: &Wave, value: Value, lane: u8) -> Result<ExprId, EvalError> {
+        if let Value::Input(expr) = value {
+            self.claim_word_format(wave, expr, WordFormat::Float32)?;
+            return Ok(expr);
+        }
+        value
             .real(&mut self.arena)
             .map_err(|e| wave.fail(Some(lane), e))
+    }
+    fn claim_word_format(
+        &mut self,
+        wave: &Wave,
+        expr: ExprId,
+        format: WordFormat,
+    ) -> Result<(), EvalError> {
+        if let ExprNode::InputElement { array, .. } = self.arena.node(expr) {
+            if let Some(previous) = self.word_formats.get(array) {
+                if *previous != format {
+                    return Err(EvalError::Unsupported {
+                        pc: wave.pc,
+                        what: format!(
+                            "input array '{}' has conflicting word interpretations {previous:?} and {format:?}",
+                            self.arena.string(*array)
+                        ),
+                    });
+                }
+            } else {
+                self.word_formats.insert(*array, format);
+            }
+        }
+        Ok(())
+    }
+    fn integer_expression(
+        &mut self,
+        wave: &Wave,
+        operand: &Operand,
+        lane: u8,
+        ty: super::scalar::IntType,
+    ) -> Result<ExprId, EvalError> {
+        if let Operand::Integer(value) = operand {
+            return Ok(self.arena.int(*value));
+        }
+        match wave.value(operand, lane)? {
+            Value::Input(expr) => {
+                self.claim_word_format(wave, expr, WordFormat::Integer32)?;
+                Ok(expr)
+            }
+            Value::IntExpr(expr) | Value::NarrowInt { expr, .. } => Ok(expr),
+            Value::SignedInteger(value) => Ok(self.arena.int(value as i64)),
+            Value::Bits(value) | Value::Integer(value) => Ok(self.arena.int(if ty.signed {
+                value as i32 as i64
+            } else {
+                value as i64
+            })),
+            _ => Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "typed floating/packed data cannot be reinterpreted as a symbolic integer"
+                    .into(),
+            }),
+        }
+    }
+    fn integer_result(&self, expr: ExprId, signed: bool) -> Value {
+        match self.arena.as_int_const(expr) {
+            Some(value) if signed => Value::SignedInteger(value as i32),
+            Some(value) => Value::Integer(value as u32),
+            None => Value::IntExpr(expr),
+        }
+    }
+    fn real64(&mut self, wave: &Wave, operand: &Operand, lane: u8) -> Result<ExprId, EvalError> {
+        use super::scalar::{FloatType, decode_float};
+        if let Operand::Modified {
+            value,
+            negate,
+            absolute,
+        } = operand
+        {
+            let mut expr = self.real64(wave, value, lane)?;
+            if *absolute {
+                expr = self.arena.abs(expr);
+            }
+            if *negate {
+                expr = self.arena.neg(expr);
+            }
+            return Ok(expr);
+        }
+        if let Operand::Float(value) = operand {
+            let magnitude = value.abs();
+            if ![0.0, 0.5, 1.0, 2.0, 4.0].contains(&magnitude) {
+                return Err(EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "non-inline f64 constants require their actual encoded high-word literal"
+                        .into(),
+                });
+            }
+            return self
+                .arena
+                .float_from_f64(*value)
+                .map_err(|e| wave.fail(Some(lane), e.to_string()));
+        }
+        if let Operand::Integer(value) = operand {
+            if *value != 0 && (-16..=64).contains(value) {
+                return Err(EvalError::Unsupported{pc:wave.pc,what:"nonzero integer inline constants used as f64 need explicit encoding semantics".into()});
+            }
+            if *value < i32::MIN as i64 || *value > u32::MAX as i64 {
+                return Err(EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "f64 literal is one encoded32-bit high word".into(),
+                });
+            }
+            return decode_float(
+                &mut self.arena,
+                FloatType::F64,
+                (*value as u32 as u64) << 32,
+            )
+            .map_err(|what| EvalError::Unsupported { pc: wave.pc, what });
+        }
+        if let Operand::Register(register) = operand {
+            if register.count != 2 {
+                return Err(wave.fail(
+                    Some(lane),
+                    "f64 source must contain two ordered register words",
+                ));
+            }
+            let lo = wave.reg(*register, lane, 0)?;
+            let hi = wave.reg(*register, lane, 1)?;
+            match (lo, hi) {
+                (Value::WidePart { expr: a, high: false, kind: ak },
+                 Value::WidePart { expr: b, high: true, kind: bk })
+                 if a == b && ak == bk && matches!(ak, WideKind::Input | WideKind::Float) => {
+                    if ak==WideKind::Input {self.claim_word_format(wave,a,WordFormat::Float64)?;}
+                    return Ok(a);
+                 },
+                (lo, hi) if lo.bits().is_ok() && hi.bits().is_ok() => {},
+                _ => return Err(EvalError::Unsupported { pc: wave.pc, what: "f64 requires matching ordered words of one floating/input value; packed or integer words cannot be reinterpreted".into() }),
+            }
+        }
+        let bits = wave.wide(operand, lane)?;
+        decode_float(&mut self.arena, FloatType::F64, bits)
+            .map_err(|what| EvalError::Unsupported { pc: wave.pc, what })
+    }
+    fn put_real64(
+        &self,
+        wave: &mut Wave,
+        operand: &Operand,
+        lane: u8,
+        expr: ExprId,
+    ) -> Result<(), EvalError> {
+        let register = wave.destination(operand)?;
+        if register.count != 2 {
+            return Err(wave.fail(Some(lane), "f64 destination must contain two ordered words"));
+        }
+        wave.put(
+            register,
+            lane,
+            0,
+            Value::WidePart {
+                expr,
+                high: false,
+                kind: WideKind::Float,
+            },
+        )?;
+        wave.put(
+            register,
+            lane,
+            1,
+            Value::WidePart {
+                expr,
+                high: true,
+                kind: WideKind::Float,
+            },
+        )
     }
     fn real_component(
         &mut self,
@@ -1206,10 +1553,10 @@ impl<'a> Interpreter<'a> {
         component: u16,
     ) -> Result<ExprId, EvalError> {
         match operand {
-            Operand::Register(register) if register.count == 2 => wave
-                .reg(*register, lane, component)?
-                .real(&mut self.arena)
-                .map_err(|e| wave.fail(Some(lane), e)),
+            Operand::Register(register) if register.count == 2 => {
+                let value = wave.reg(*register, lane, component)?;
+                self.real_value(wave, value, lane)
+            }
             Operand::Modified {
                 value,
                 negate,
@@ -1279,8 +1626,18 @@ impl<'a> Interpreter<'a> {
             return Err(self.unsupported(wave, &self.program.instructions[wave.pc]));
         }
         let bits = match wave.value(operand, lane)? {
-            Value::Bytes(bytes) => return Ok(bytes[byte]),
-            Value::Byte(expr) => return Ok(if byte == 0 { expr } else { self.arena.int(0) }),
+            Value::Bytes(bytes) => {
+                self.claim_byte_format(wave, bytes[byte], ByteFormat::OcpE4m3)?;
+                return Ok(bytes[byte]);
+            }
+            Value::Byte(expr) => {
+                if byte == 0 {
+                    self.claim_byte_format(wave, expr, ByteFormat::OcpE4m3)?;
+                    return Ok(expr);
+                } else {
+                    return Ok(self.arena.int(0));
+                }
+            }
             value @ (Value::Bits(_) | Value::Integer(_) | Value::SignedInteger(_)) => {
                 (value.bits().unwrap() >> (8 * byte)) & 255
             }
@@ -1305,6 +1662,98 @@ impl<'a> Interpreter<'a> {
         self.arena
             .float_from_f64(value)
             .map_err(|e| wave.fail(Some(lane), e.to_string()))
+    }
+    fn claim_byte_format(
+        &mut self,
+        wave: &Wave,
+        expr: ExprId,
+        format: ByteFormat,
+    ) -> Result<(), EvalError> {
+        if let ExprNode::InputElement { array, .. } = self.arena.node(expr) {
+            if let Some(previous) = self.byte_formats.get(array) {
+                if *previous != format {
+                    return Err(EvalError::Unsupported {
+                        pc: wave.pc,
+                        what: format!(
+                            "input array '{}' has conflicting byte interpretations {previous:?} and {format:?}",
+                            self.arena.string(*array)
+                        ),
+                    });
+                }
+            } else {
+                self.byte_formats.insert(*array, format);
+            }
+        }
+        Ok(())
+    }
+    fn signed16_to_half(
+        &mut self,
+        wave: &Wave,
+        operand: &Operand,
+        lane: u8,
+        instruction: &Instruction,
+    ) -> Result<ExprId, EvalError> {
+        let selector = instruction
+            .modifiers
+            .iter()
+            .find(|modifier| modifier.name == "src0_sel")
+            .and_then(|modifier| modifier.value.as_deref())
+            .unwrap_or("DWORD");
+        let sext = instruction
+            .modifiers
+            .iter()
+            .any(|modifier| modifier.name == "src0_sext");
+        let byte = selector
+            .strip_prefix("BYTE_")
+            .and_then(|value| value.parse::<usize>().ok());
+        let value = wave.value(operand, lane)?;
+        let symbolic = match value {
+            Value::Byte(expr) if byte == Some(0) || selector == "DWORD" => Some(expr),
+            Value::Byte(_) if byte.is_some() => return Ok(self.arena.int(0)),
+            Value::Bytes(bytes) if byte.is_some() => Some(bytes[byte.unwrap()]),
+            Value::NarrowInt { expr, bits, signed }
+                if selector == "DWORD" && bits <= 16 && signed =>
+            {
+                return Ok(expr);
+            }
+            Value::NarrowInt {
+                expr,
+                bits: 8,
+                signed: true,
+            } if byte == Some(0) && sext => return Ok(expr),
+            _ => None,
+        };
+        if let Some(expr) = symbolic {
+            self.claim_byte_format(
+                wave,
+                expr,
+                if sext {
+                    ByteFormat::SignedI8
+                } else {
+                    ByteFormat::UnsignedU8
+                },
+            )?;
+            return Ok(expr);
+        }
+        let bits = value.bits().map_err(|_| EvalError::Unsupported {
+            pc: wave.pc,
+            what: "signed16 conversion requires concrete bits or a typed signed-byte data path"
+                .into(),
+        })?;
+        let selected = match selector {
+            "DWORD" => bits,
+            "WORD_0" => bits & 65535,
+            "WORD_1" => bits >> 16,
+            _ => byte
+                .map(|index| (bits >> (8 * index)) & 255)
+                .ok_or_else(|| self.unsupported(wave, instruction))?,
+        };
+        let number = if byte.is_some() && sext {
+            selected as i8 as i64
+        } else {
+            selected as i16 as i64
+        };
+        Ok(self.arena.int(number))
     }
     fn half(
         &mut self,
@@ -1363,7 +1812,13 @@ impl<'a> Interpreter<'a> {
                     .float_from_f64(value)
                     .map_err(|e| wave.fail(Some(lane), e.to_string()))
             }
-            Value::Real(_) | Value::Byte(_) | Value::Bytes(_) => Err(EvalError::Unsupported {
+            Value::Input(_)
+            | Value::IntExpr(_)
+            | Value::NarrowInt { .. }
+            | Value::WidePart { .. }
+            | Value::Real(_)
+            | Value::Byte(_)
+            | Value::Bytes(_) => Err(EvalError::Unsupported {
                 pc: wave.pc,
                 what: "symbolic non-f16 bits reinterpreted as half".into(),
             }),
@@ -1374,10 +1829,16 @@ impl<'a> Interpreter<'a> {
             self.builder.assume(Assumption::CompilerExp2Idiom);
             return self.arena.exp(unscaled);
         }
-        let two = self.arena.int(2);
-        let ln2 = self.arena.log(two);
+        let ln2 = self.ln2_constant();
         let scaled = self.arena.mul(argument, ln2);
         self.arena.exp(scaled)
+    }
+    fn ln2_constant(&mut self) -> ExprId {
+        self.builder.assume(Assumption::CompilerBase2Conversion);
+        let log2e = volta_expr::Real::from_f64(std::f64::consts::LOG2_E as f32 as f64)
+            .expect("the pinned finite LOG2_E_F32 constant is representable");
+        self.arena
+            .real(log2e.try_recip().expect("LOG2_E_F32 is nonzero"))
     }
     /// Only the exact rounded binary32 constant generated by the pinned compiler
     /// is abstracted as log2(e). Near constants and unfactored additive offsets
@@ -1452,6 +1913,7 @@ impl<'a> Interpreter<'a> {
                     | "s_movk_i32"
                     | "s_mulk_i32"
                     | "s_addk_i32"
+                    | "s_bitset1_b32"
                     | "s_ff1_i32_b64"
                     | "s_cselect_b32"
                     | "s_cselect_b64"
@@ -1553,6 +2015,10 @@ impl<'a> Interpreter<'a> {
             return Ok(());
         }
         let dest = &o[0];
+        if name == "s_bitset1_b32" {
+            let value = wave.bits(dest, 0)? | (1u32 << (wave.bits(&o[1], 0)? & 31));
+            return wave.put_value(dest, 0, Value::Integer(value));
+        }
         if name == "s_addk_i32" {
             let a = wave.bits(dest, 0)? as i32;
             let b = wave.bits(&o[1], 0)? as i16 as i32;
@@ -1677,9 +2143,9 @@ impl<'a> Interpreter<'a> {
                 ((a as i32) >> (b & 31)) != 0,
             ),
             "s_min_u32" => (a.min(b), a < b),
-            "s_max_u32" => (a.max(b), a > b),
+            "s_max_u32" => (a.max(b), a >= b),
             "s_min_i32" => ((a as i32).min(b as i32) as u32, (a as i32) < (b as i32)),
-            "s_max_i32" => ((a as i32).max(b as i32) as u32, (a as i32) > (b as i32)),
+            "s_max_i32" => ((a as i32).max(b as i32) as u32, (a as i32) >= (b as i32)),
             "s_bfe_u32" => {
                 let offset = b & 31;
                 let width = (b >> 16) & 127;
@@ -1869,9 +2335,8 @@ impl<'a> Interpreter<'a> {
             }
             for item in 0..output_items {
                 cv.push(if let Operand::Register(register) = o[3] {
-                    wave.reg(register, lane, item as u16)?
-                        .real(&mut self.arena)
-                        .map_err(|e| wave.fail(Some(lane), e))?
+                    let value = wave.reg(register, lane, item as u16)?;
+                    self.real_value(wave, value, lane)?
                 } else {
                     self.real(wave, &o[3], lane)?
                 });
@@ -1930,6 +2395,35 @@ impl<'a> Interpreter<'a> {
                 .modifiers
                 .iter()
                 .all(|modifier| matches!(modifier.name.as_str(), "op_sel" | "op_sel_hi"))
+        } else if name == "v_cvt_f16_i16" {
+            instruction.modifiers.iter().all(|modifier| {
+                matches!(
+                    (modifier.name.as_str(), modifier.value.as_deref()),
+                    ("src0_sext", None)
+                        | (
+                            "src0_sel",
+                            Some(
+                                "DWORD"
+                                    | "WORD_0"
+                                    | "WORD_1"
+                                    | "BYTE_0"
+                                    | "BYTE_1"
+                                    | "BYTE_2"
+                                    | "BYTE_3"
+                            )
+                        )
+                        | ("dst_sel", Some("DWORD"))
+                        | ("dst_unused", Some("UNUSED_PAD"))
+                )
+            })
+        } else if name == "v_bitop3_b32" {
+            instruction.modifiers.len() == 1
+                && instruction.modifiers[0].name == "bitop3"
+                && instruction.modifiers[0]
+                    .value
+                    .as_deref()
+                    .and_then(parse_u64)
+                    .is_some_and(|value| value <= 255)
         } else if name == "v_cvt_f32_fp8" {
             instruction.modifiers.iter().all(|modifier| {
                 matches!(
@@ -1983,7 +2477,66 @@ impl<'a> Interpreter<'a> {
         )
         .ok_or_else(|| self.unsupported(wave, instruction))?;
         let lanes: Vec<_> = wave.active().collect();
-        if integer_sdwa || matches!(name, "v_add_u16" | "v_sub_u16" | "v_lshrrev_b16") {
+        if matches!(
+            name,
+            "v_add_f64"
+                | "v_mul_f64"
+                | "v_min_f64"
+                | "v_max_f64"
+                | "v_fma_f64"
+                | "v_fmac_f64"
+                | "v_rcp_f64"
+                | "v_sqrt_f64"
+                | "v_cvt_f64_f32"
+                | "v_cvt_f32_f64"
+        ) {
+            use super::scalar::{FloatBinOp, FloatUnOp, float_binary, float_fma, float_unary};
+            for lane in lanes {
+                let a = if name == "v_cvt_f64_f32" {
+                    self.real(wave, &o[1], lane)?
+                } else {
+                    self.real64(wave, &o[1], lane)?
+                };
+                let result = match name {
+                    "v_cvt_f32_f64" => {
+                        wave.put_value(&o[0], lane, Value::Real(a))?;
+                        continue;
+                    }
+                    "v_cvt_f64_f32" => a,
+                    "v_rcp_f64" => float_unary(&mut self.arena, FloatUnOp::Rcp, a),
+                    "v_sqrt_f64" => float_unary(&mut self.arena, FloatUnOp::Sqrt, a),
+                    _ => {
+                        let b = self.real64(wave, &o[2], lane)?;
+                        match name {
+                            "v_fma_f64" | "v_fmac_f64" => {
+                                let c = self.real64(
+                                    wave,
+                                    &o[if name == "v_fmac_f64" { 0 } else { 3 }],
+                                    lane,
+                                )?;
+                                float_fma(&mut self.arena, a, b, c)
+                            }
+                            _ => float_binary(
+                                &mut self.arena,
+                                match name {
+                                    "v_add_f64" => FloatBinOp::Add,
+                                    "v_mul_f64" => FloatBinOp::Mul,
+                                    "v_min_f64" => FloatBinOp::Min,
+                                    _ => FloatBinOp::Max,
+                                },
+                                a,
+                                b,
+                            ),
+                        }
+                    }
+                };
+                self.put_real64(wave, &o[0], lane, result)?;
+            }
+            return Ok(());
+        }
+        if (integer_sdwa && (name != "v_add_u32" || !instruction.modifiers.is_empty()))
+            || matches!(name, "v_add_u16" | "v_sub_u16" | "v_lshrrev_b16")
+        {
             for lane in lanes {
                 let a = self.selected_bits(wave, &o[1], lane, instruction, 0)?;
                 let b = self.selected_bits(wave, &o[2], lane, instruction, 1)?;
@@ -2242,10 +2795,45 @@ impl<'a> Interpreter<'a> {
                     }
                 }
                 "v_lshrrev_b32" | "v_lshlrev_b32" => {
+                    if matches!(
+                        wave.value(&o[2], lane)?,
+                        Value::Input(_) | Value::IntExpr(_)
+                    ) {
+                        let ty = super::scalar::IntType {
+                            bits: 32,
+                            signed: false,
+                        };
+                        let a = self.integer_expression(wave, &o[2], lane, ty)?;
+                        let b = self.integer_expression(wave, &o[1], lane, ty)?;
+                        let operation = if name == "v_lshrrev_b32" {
+                            super::scalar::IntBinOp::LShr
+                        } else {
+                            super::scalar::IntBinOp::Shl
+                        };
+                        let expr = super::scalar::int_binary(&mut self.arena, ty, operation, a, b)
+                            .map_err(|what| EvalError::Unsupported { pc: wave.pc, what })?;
+                        wave.put_value(&o[0], lane, self.integer_result(expr, false))?;
+                        continue;
+                    }
                     let shift = wave.bits(&o[1], lane)? & 31;
                     let value = wave.value(&o[2], lane)?;
                     if shift == 0 {
                         value
+                    } else if shift % 8 == 0 && matches!(value, Value::Byte(_) | Value::Bytes(_)) {
+                        let zero = self.arena.int(0);
+                        let bytes = match value {
+                            Value::Byte(expr) => [expr, zero, zero, zero],
+                            Value::Bytes(bytes) => bytes,
+                            _ => unreachable!(),
+                        };
+                        let mut output = [zero; 4];
+                        let count = (shift / 8) as usize;
+                        if name == "v_lshrrev_b32" {
+                            output[..4 - count].copy_from_slice(&bytes[count..]);
+                        } else {
+                            output[count..].copy_from_slice(&bytes[..4 - count]);
+                        }
+                        Value::Bytes(output)
                     } else if shift == 16
                         && matches!(
                             value,
@@ -2327,6 +2915,9 @@ impl<'a> Interpreter<'a> {
                         wave.put_wide(&o[0], lane, value)?;
                     }
                     continue;
+                }
+                "v_cvt_f16_i16" => {
+                    Value::Half(self.signed16_to_half(wave, &o[1], lane, instruction)?)
                 }
                 "v_cvt_f32_f16" => Value::Real(self.half(wave, &o[1], lane, half_select_high)?),
                 "v_cvt_f16_f32" => Value::Half(self.real(wave, &o[1], lane)?),
@@ -2447,8 +3038,7 @@ impl<'a> Interpreter<'a> {
                         }
                         "v_exp_f32" => self.exp2(a),
                         _ => {
-                            let two = self.arena.int(2);
-                            let ln2 = self.arena.log(two);
+                            let ln2 = self.ln2_constant();
                             let log = self.arena.log(a);
                             self.arena.div(log, ln2)
                         }
@@ -2456,14 +3046,66 @@ impl<'a> Interpreter<'a> {
                     Value::Real(result)
                 }
                 "v_cvt_f32_u32" | "v_cvt_f32_i32" => {
-                    let bits = wave.bits(&o[1], lane)?;
-                    Value::Real(self.arena.int(if name == "v_cvt_f32_i32" {
-                        bits as i32 as i64
+                    if name == "v_cvt_f32_u32"
+                        && matches!(
+                            wave.value(&o[1], lane)?,
+                            Value::NarrowInt { signed: true, .. }
+                        )
+                    {
+                        return Err(EvalError::Unsupported{pc:wave.pc,what:"signed narrow data reinterpreted as unsigned32 before float conversion".into()});
+                    }
+                    let ty = super::scalar::IntType {
+                        bits: 32,
+                        signed: name == "v_cvt_f32_i32",
+                    };
+                    let expr = self.integer_expression(wave, &o[1], lane, ty)?;
+                    Value::Real(if let Some(value) = self.arena.as_int_const(expr) {
+                        let value = super::scalar::canonical_int(value, ty)
+                            .map_err(|e| wave.fail(Some(lane), e))?;
+                        self.arena.int(value)
                     } else {
-                        bits as i64
-                    }))
+                        expr
+                    })
                 }
                 _ => {
+                    use super::scalar::{IntBinOp, IntType};
+                    let operation = match name {
+                        "v_add_u32" | "v_add_nc_u32" => Some((IntBinOp::Add, false)),
+                        "v_sub_u32" | "v_sub_nc_u32" => Some((IntBinOp::Sub, false)),
+                        "v_subrev_u32" => Some((IntBinOp::Sub, true)),
+                        "v_mul_lo_u32" | "v_mul_lo_i32" => Some((IntBinOp::MulLo, false)),
+                        "v_min_u32" | "v_min_i32" => Some((IntBinOp::Min, false)),
+                        "v_max_u32" | "v_max_i32" => Some((IntBinOp::Max, false)),
+                        "v_and_b32" => Some((IntBinOp::And, false)),
+                        "v_or_b32" => Some((IntBinOp::Or, false)),
+                        "v_xor_b32" => Some((IntBinOp::Xor, false)),
+                        "v_ashrrev_i32" => Some((IntBinOp::AShr, true)),
+                        _ => None,
+                    };
+                    if let Some((operation, reverse)) = operation {
+                        let ty = IntType {
+                            bits: 32,
+                            signed: name.ends_with("i32"),
+                        };
+                        let a = self.integer_expression(
+                            wave,
+                            &o[if reverse { 2 } else { 1 }],
+                            lane,
+                            ty,
+                        )?;
+                        let b = self.integer_expression(
+                            wave,
+                            &o[if reverse { 1 } else { 2 }],
+                            lane,
+                            ty,
+                        )?;
+                        let result =
+                            super::scalar::int_binary(&mut self.arena, ty, operation, a, b)
+                                .map_err(|what| EvalError::Unsupported { pc: wave.pc, what })?;
+                        let value = self.integer_result(result, ty.signed);
+                        wave.put_value(&o[0], lane, value)?;
+                        continue;
+                    }
                     let a = wave.bits(&o[1], lane)?;
                     let b = if o.len() > 2 {
                         wave.bits(&o[2], lane)?
@@ -2502,13 +3144,26 @@ impl<'a> Interpreter<'a> {
                         "v_or3_b32" => a | b | wave.bits(&o[3], lane)?,
                         "v_and_or_b32" => (a & b) | wave.bits(&o[3], lane)?,
                         "v_add3_u32" => a.wrapping_add(b).wrapping_add(wave.bits(&o[3], lane)?),
-                        "v_bfe_u32" => {
-                            let width = wave.bits(&o[3], lane)? & 31;
-                            if width == 0 {
-                                0
-                            } else {
-                                (a >> (b & 31)) & ((1u32 << width) - 1)
+                        "v_bfe_u32" | "v_bfe_i32" => {
+                            super::scalar::bfe32(a, b, wave.bits(&o[3], lane)?, name == "v_bfe_i32")
+                        }
+                        "v_bfi_b32" => super::scalar::bfi32(a, b, wave.bits(&o[3], lane)?),
+                        "v_bitop3_b32" => {
+                            let c = wave.bits(&o[3], lane)?;
+                            let table = instruction.modifiers[0]
+                                .value
+                                .as_deref()
+                                .and_then(parse_u64)
+                                .unwrap() as u8;
+                            let mut result = 0;
+                            for index in 0..8 {
+                                if table & (1 << index) != 0 {
+                                    result |= (if index & 4 != 0 { a } else { !a })
+                                        & (if index & 2 != 0 { b } else { !b })
+                                        & (if index & 1 != 0 { c } else { !c });
+                                }
                             }
+                            result
                         }
                         "v_mbcnt_lo_u32_b32" => {
                             let below = if lane >= 32 {
@@ -2589,7 +3244,7 @@ impl<'a> Interpreter<'a> {
         let scalar = instruction.opcode == Opcode::ScalarMemory;
         let lds = instruction.opcode == Opcode::Lds;
         let dual = name.starts_with("ds_read2") || name.starts_with("ds_write2");
-        if name.contains("_d16") && name != "ds_write_b16_d16_hi" {
+        if name.contains("_d16") && !matches!(name, "ds_write_b16_d16_hi" | "ds_write_b8_d16_hi") {
             return Err(self.unsupported(wave, instruction));
         }
         if !scalar && wave.exec == 0 {
@@ -2611,13 +3266,13 @@ impl<'a> Interpreter<'a> {
             instruction
                 .modifiers
                 .iter()
-                .try_fold(0u64, |offset, modifier| match modifier.name.as_str() {
+                .try_fold(0i64, |offset, modifier| match modifier.name.as_str() {
                     "offset" => modifier
                         .value
                         .as_ref()
-                        .and_then(|value| parse_u64(value))
+                        .and_then(|value| parse_i64(value))
                         .ok_or_else(|| self.unsupported(wave, instruction)),
-                    "glc" | "slc" | "dlc" => Ok(offset),
+                    "glc" | "slc" | "dlc" | "sc0" | "sc1" => Ok(offset),
                     "offset0" | "offset1" if dual => {
                         let index = if modifier.name == "offset0" { 0 } else { 1 };
                         dual_offsets[index] = modifier
@@ -2629,6 +3284,21 @@ impl<'a> Interpreter<'a> {
                     }
                     _ => Err(self.unsupported(wave, instruction)),
                 })?;
+        let offset_valid = if lds {
+            (0..=65535).contains(&offset)
+        } else if flat {
+            (0..=4095).contains(&offset)
+        } else if scalar {
+            (0..=(1 << 21) - 1).contains(&offset)
+        } else {
+            (-4096..=4095).contains(&offset)
+        };
+        if !offset_valid || dual_offsets.iter().any(|&value| value > 255) {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "memory offset is outside its native encoded range".into(),
+            });
+        }
         let registers = if name.contains("dwordx16") {
             16
         } else if name.contains("dwordx8") {
@@ -2661,7 +3331,7 @@ impl<'a> Interpreter<'a> {
         } else if name.contains("byte")
             || name.ends_with("u8")
             || name.ends_with("i8")
-            || name.ends_with("b8")
+            || name.contains("_b8")
         {
             1
         } else {
@@ -2728,7 +3398,7 @@ impl<'a> Interpreter<'a> {
                 (
                     wave.wide(&o[1], lane)?
                         .checked_add(wave.wide(&o[2], lane)?)
-                        .and_then(|addr| addr.checked_add(offset))
+                        .and_then(|addr| addr.checked_add(offset as u64))
                         .ok_or_else(|| wave.fail(Some(lane), "scalar load address overflow"))?,
                     &o[0],
                 )
@@ -2752,8 +3422,7 @@ impl<'a> Interpreter<'a> {
                         } else {
                             0
                         })
-                        .checked_add(offset)
-                        .ok_or_else(|| wave.fail(Some(lane), "store address overflow"))?,
+                        .wrapping_add(offset as u64),
                     &o[1],
                 )
             } else {
@@ -2764,8 +3433,7 @@ impl<'a> Interpreter<'a> {
                         } else {
                             0
                         })
-                        .checked_add(offset)
-                        .ok_or_else(|| wave.fail(Some(lane), "load address overflow"))?,
+                        .wrapping_add(offset as u64),
                     &o[0],
                 )
             };
@@ -2805,7 +3473,15 @@ impl<'a> Interpreter<'a> {
                     } else {
                         component
                     };
-                    let value = if name == "ds_write_b16_d16_hi" {
+                    let value = if name == "ds_write_b8_d16_hi" {
+                        match wave.reg(source_register, lane, source_component)? {
+                            Value::Bytes(bytes) => Value::Byte(bytes[2]),
+                            Value::Byte(_) => Value::Bits(0),
+                            value => Value::Bits(
+                                (value.bits().map_err(|e| wave.fail(Some(lane), e))? >> 16) & 255,
+                            ),
+                        }
+                    } else if name == "ds_write_b16_d16_hi" {
                         let mut source = source_register;
                         source.index += source_component;
                         source.count = 1;
@@ -2844,12 +3520,27 @@ impl<'a> Interpreter<'a> {
                         )
                     })?;
                     if name.contains("sbyte") || name.ends_with("i8") {
-                        value = Value::SignedInteger(
-                            value
-                                .bits()
-                                .map_err(|_| self.unsupported(wave, instruction))?
-                                as i8 as i32,
-                        );
+                        value = match value {
+                            Value::Byte(expr) => {
+                                self.claim_byte_format(wave, expr, ByteFormat::SignedI8)?;
+                                Value::NarrowInt {
+                                    expr,
+                                    bits: 8,
+                                    signed: true,
+                                }
+                            }
+                            Value::NarrowInt {
+                                bits: 8,
+                                signed: true,
+                                ..
+                            } => value,
+                            _ => Value::SignedInteger(
+                                value
+                                    .bits()
+                                    .map_err(|_| self.unsupported(wave, instruction))?
+                                    as i8 as i32,
+                            ),
+                        };
                     }
                     if name.contains("sshort") || name.ends_with("i16") {
                         value = Value::SignedInteger(
@@ -2865,7 +3556,12 @@ impl<'a> Interpreter<'a> {
                 {
                     let stored = if let Some(value) = value {
                         Some(self.builder.value(match value {
-                            Value::Real(expression)
+                            Value::Input(expression)
+                            | Value::IntExpr(expression)
+                            | Value::NarrowInt {
+                                expr: expression, ..
+                            }
+                            | Value::Real(expression)
                             | Value::Half(expression)
                             | Value::Byte(expression) => StoredValue::Scalar(expression),
                             Value::Bits(bits) | Value::Integer(bits) => {
@@ -2876,7 +3572,9 @@ impl<'a> Interpreter<'a> {
                             }
                             Value::Halves(lo, hi) => StoredValue::Pair(lo, hi),
                             Value::Bytes(bytes) => StoredValue::Quad(bytes),
-                            Value::PartialHalves(..) => StoredValue::Opaque,
+                            Value::PartialHalves(..) | Value::WidePart { .. } => {
+                                StoredValue::Opaque
+                            }
                         }))
                     } else {
                         None
@@ -3002,6 +3700,13 @@ fn parse_u64(value: &str) -> Option<u64> {
         u64::from_str_radix(hex, 16).ok()
     } else {
         value.parse().ok()
+    }
+}
+fn parse_i64(value: &str) -> Option<i64> {
+    if let Some(value) = value.strip_prefix('-') {
+        i64::try_from(parse_u64(value)?).ok()?.checked_neg()
+    } else {
+        i64::try_from(parse_u64(value)?).ok()
     }
 }
 fn selectors(

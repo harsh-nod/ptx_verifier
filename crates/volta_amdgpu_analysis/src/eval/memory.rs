@@ -108,6 +108,7 @@ impl Memory {
 
     pub fn write(&mut self, addr: u64, width: u64, value: Value) -> Result<Value, String> {
         let value = match (width, value) {
+            (1, Value::Bytes(bytes)) => Value::Byte(bytes[0]),
             (1 | 2, Value::Bits(bits)) => Value::Bits(bits & ((1u32 << (8 * width)) - 1)),
             (1 | 2, Value::Integer(bits)) => Value::Integer(bits & ((1u32 << (8 * width)) - 1)),
             (1 | 2, Value::SignedInteger(bits)) => {
@@ -118,7 +119,14 @@ impl Memory {
             (2, Value::PartialHalves(None, _) | Value::Byte(_) | Value::Bytes(_)) => {
                 return Err("unsupported packed-byte/unknown-half reinterpretation".into());
             }
-            (2, Value::Real(_)) => {
+            (
+                2,
+                Value::Real(_)
+                | Value::Input(_)
+                | Value::IntExpr(_)
+                | Value::NarrowInt { .. }
+                | Value::WidePart { .. },
+            ) => {
                 return Err(
                     "partial f32-to-f16 bit reinterpretation is unsupported; convert first".into(),
                 );
@@ -126,10 +134,13 @@ impl Memory {
             (
                 1,
                 Value::Real(_)
+                | Value::Input(_)
+                | Value::IntExpr(_)
+                | Value::NarrowInt { .. }
+                | Value::WidePart { .. }
                 | Value::Half(_)
                 | Value::Halves(..)
-                | Value::PartialHalves(..)
-                | Value::Bytes(..),
+                | Value::PartialHalves(..),
             ) => return Err("symbolic byte truncation is unsupported".into()),
             (_, value) => value,
         };
@@ -193,14 +204,35 @@ impl Memory {
         width: u64,
         arena: &mut ExprArena,
     ) -> Result<ExprId, String> {
+        if width == 8 {
+            return match (self.read(addr, 4)?, self.read(addr + 4, 4)?) {
+                (
+                    Value::WidePart {
+                        expr: a,
+                        high: false,
+                        kind: ak,
+                    },
+                    Value::WidePart {
+                        expr: b,
+                        high: true,
+                        kind: bk,
+                    },
+                ) if a == b && ak == bk => Ok(a),
+                _ => Err(
+                    "64-bit output requires matching ordered words of one mathematical value"
+                        .into(),
+                ),
+            };
+        }
         match self.read(addr, width)? {
-            Value::Real(expr) | Value::Half(expr)|Value::Byte(expr) => Ok(expr),
+            Value::Input(expr) | Value::IntExpr(expr) | Value::NarrowInt{expr,..} | Value::Real(expr) | Value::Half(expr)|Value::Byte(expr) => Ok(expr),
             Value::Integer(bits) => Ok(arena.int(bits as i64)),
             Value::SignedInteger(value)=>Ok(arena.int(value as i64)),
             Value::Bits(0) => Ok(arena.int(0)),
             Value::Bits(_) => Err("raw register bits have ambiguous integer/float output type; convert explicitly before storing".into()),
             Value::Halves(..) => Err("packed output needs element-width extraction".into()),
             Value::PartialHalves(..)|Value::Bytes(..)=>Err("packed/partially initialized output needs element-width extraction".into()),
+            Value::WidePart { .. } => Err("one word of a 64-bit mathematical value cannot be extracted as a scalar32".into()),
         }
     }
 }

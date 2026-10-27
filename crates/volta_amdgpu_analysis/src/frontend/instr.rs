@@ -323,10 +323,11 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         "s_branch" | "s_cbranch_scc0" | "s_cbranch_scc1" | "s_cbranch_vccz" | "s_cbranch_vccnz"
         | "s_cbranch_execz" | "s_cbranch_execnz" => (Branch, 1, 1),
         "s_getpc_b64" => (ScalarAlu, 1, 1),
-        "s_cmpk_eq_u32" | "s_cmpk_lg_u32" | "s_addk_i32" | "s_cmpk_eq_i32" | "s_cmpk_lg_i32"
-        | "s_mulk_i32" | "s_movk_i32" | "s_mov_b32" | "s_mov_b64" | "s_not_b32" | "s_not_b64"
-        | "s_brev_b32" | "s_brev_b64" | "s_ff0_i32_b64" | "s_ff1_i32_b64" | "s_ff0_i32_b32"
-        | "s_ff1_i32_b32" | "s_flbit_i32_b32" | "s_abs_i32" => (ScalarAlu, 2, 2),
+        "s_cmpk_eq_u32" | "s_cmpk_lg_u32" | "s_cmpk_gt_u32" | "s_cmpk_lt_u32" | "s_addk_i32"
+        | "s_cmpk_eq_i32" | "s_cmpk_lg_i32" | "s_mulk_i32" | "s_movk_i32" | "s_mov_b32"
+        | "s_mov_b64" | "s_not_b32" | "s_not_b64" | "s_brev_b32" | "s_brev_b64"
+        | "s_ff0_i32_b64" | "s_ff1_i32_b64" | "s_ff0_i32_b32" | "s_ff1_i32_b32"
+        | "s_flbit_i32_b32" | "s_abs_i32" | "s_bitset1_b32" => (ScalarAlu, 2, 2),
         "s_add_u32" | "s_add_i32" | "s_addc_u32" | "s_sub_u32" | "s_sub_i32" | "s_subb_u32"
         | "s_mul_i32" | "s_mul_hi_u32" | "s_mul_hi_i32" | "s_and_b32" | "s_and_b64"
         | "s_or_b32" | "s_or_b64" | "s_xor_b32" | "s_xor_b64" | "s_andn2_b32" | "s_andn2_b64"
@@ -394,6 +395,7 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "buffer_store_dwordx3"
         | "buffer_store_dwordx4" => (VectorMemory, 4, 4),
         "ds_write_b16_d16_hi"
+        | "ds_write_b8_d16_hi"
         | "ds_read_b8"
         | "ds_read_u8"
         | "ds_read_i8"
@@ -430,7 +432,9 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_trunc_f32"
         | "v_fract_f32"
         | "v_rcp_f32"
+        | "v_rcp_f64"
         | "v_sqrt_f32"
+        | "v_sqrt_f64"
         | "v_rsq_f32"
         | "v_exp_f32"
         | "v_log_f32"
@@ -441,9 +445,12 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_cvt_u32_f32"
         | "v_cvt_i32_f32"
         | "v_cvt_f16_f32"
+        | "v_cvt_f16_i16"
         | "v_cvt_f32_f16"
         | "v_cvt_f32_bf16"
         | "v_cvt_bf16_f32"
+        | "v_cvt_f64_f32"
+        | "v_cvt_f32_f64"
         | "v_readfirstlane_b32"
         | "v_accvgpr_read_b32"
         | "v_accvgpr_write_b32" => (VectorAlu, 2, 2),
@@ -452,6 +459,7 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_mul_lo_u16"
         | "v_lshrrev_b16"
         | "v_fmac_f32"
+        | "v_fmac_f64"
         | "v_cvt_pk_f16_f32"
         | "v_pack_b32_f16"
         | "v_pk_mul_f32"
@@ -501,6 +509,8 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_pk_add_f16"
         | "v_pk_mul_f16"
         | "v_add_f64"
+        | "v_min_f64"
+        | "v_max_f64"
         | "v_mul_f64" => (VectorAlu, 3, 3),
         "v_add_co_u32" | "v_sub_co_u32" | "v_subrev_co_u32" => (VectorAlu, 4, 4),
         "v_mad_u64_u32" => (VectorAlu, 5, 5),
@@ -511,7 +521,7 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_min3_f32" | "v_fma_f32" | "v_mad_f32" | "v_fma_f16" | "v_pk_fma_f16" | "v_fma_f64"
         | "v_mad_u32_u24" | "v_mad_i32_i24" | "v_add3_u32" | "v_add_lshl_u32"
         | "v_lshl_add_u32" | "v_lshl_add_u64" | "v_lshl_or_b32" | "v_and_or_b32" | "v_bfi_b32"
-        | "v_bfe_u32" | "v_bfe_i32" | "v_perm_b32" => (VectorAlu, 4, 4),
+        | "v_bfe_u32" | "v_bfe_i32" | "v_perm_b32" | "v_bitop3_b32" => (VectorAlu, 4, 4),
         "v_mfma_scale_f32_16x16x128_f8f6f4" | "v_mfma_scale_f32_32x32x64_f8f6f4" => (Matrix, 6, 6),
         "v_mfma_f32_16x16x4_f32"
         | "v_mfma_f32_32x32x2_f32"
@@ -569,6 +579,7 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
             "v_cvt_f32_fp8",
             "v_cvt_f32_bf8",
             "v_cvt_f32_f16",
+            "v_cvt_f16_i16",
             "v_max_f16",
             "v_min_f16",
             "v_add_f16",
@@ -605,6 +616,7 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
         "gds" => opcode == Opcode::Lds,
         "clamp" | "mul" | "div" | "op_sel" | "op_sel_hi" | "neg_lo" | "neg_hi" => alu,
         "cbsz" | "abid" | "blgp" => opcode == Opcode::Matrix,
+        "bitop3" => mnemonic == "v_bitop3_b32",
         "dst_sel" | "dst_unused" | "src0_sel" | "src1_sel" => mnemonic.ends_with("_sdwa"),
         _ => false,
     };
@@ -613,12 +625,12 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
     }
     let numeric = matches!(
         name,
-        "offset" | "offset0" | "offset1" | "mul" | "div" | "cbsz" | "abid" | "blgp"
+        "offset" | "offset0" | "offset1" | "mul" | "div" | "cbsz" | "abid" | "blgp" | "bitop3"
     );
     if numeric && value.and_then(integer).is_none() {
         return Err(format!("modifier `{name}` requires an integer"));
     }
-    if matches!(name, "offset0" | "offset1")
+    if matches!(name, "offset0" | "offset1" | "bitop3")
         && !value
             .and_then(integer)
             .is_some_and(|n| (0..=255).contains(&n))
@@ -689,6 +701,27 @@ pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruct
     let mut modifiers = Vec::new();
     for group in split_top_level(rest, ',').map_err(&fail)? {
         for token in whitespace_tokens(group).map_err(&fail)? {
+            if let Some(inner) = token
+                .strip_prefix("sext(")
+                .and_then(|s| s.strip_suffix(')'))
+            {
+                if mnemonic != "v_cvt_f16_i16_sdwa" || operands.len() != 1 || !modifiers.is_empty()
+                {
+                    return Err(fail("unsupported source sign-extension form".into()));
+                }
+                let value = operand(inner).map_err(&fail)?;
+                if !matches!(&value, Operand::Register(register) if register.class == RegisterClass::Vector && register.count == 1)
+                {
+                    return Err(fail("SDWA sign extension requires one VGPR".into()));
+                }
+                operands.push(value);
+                // A semantic SDWA source flag, not a separately accepted token.
+                modifiers.push(Modifier {
+                    name: "src0_sext".into(),
+                    value: None,
+                });
+                continue;
+            }
             if opcode == Opcode::Wait && mnemonic == "s_waitcnt" {
                 if let Some((name, value)) = token
                     .split_once('(')
@@ -765,6 +798,17 @@ pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruct
         ));
     }
     validate_registers(mnemonic, opcode, &operands).map_err(&fail)?;
+    if mnemonic == "v_bitop3_b32"
+        && (modifiers.len() != 1
+            || modifiers[0].name != "bitop3"
+            || operands
+                .iter()
+                .any(|operand| !matches!(operand, Operand::Register(_) | Operand::Integer(_))))
+    {
+        return Err(fail(
+            "v_bitop3_b32 requires one explicit truth table and unmodified bit operands".into(),
+        ));
+    }
     if opcode == Opcode::Matrix && mnemonic.ends_with("f8f6f4") {
         for (operand_index, modifier_name) in [(1, "cbsz"), (2, "blgp")] {
             let format = modifiers
@@ -836,6 +880,108 @@ pub(super) fn validate_control(instruction: &Instruction) -> Result<(), ParseErr
             ),
             span: instruction.span,
         });
+    }
+    Ok(())
+}
+
+/// Canonicalize only encodable FP64 source constants. On gfx950 a literal word
+/// occupies the high 32 bits of a double; it is not a raw 64-bit immediate.
+/// LLVM accepts decimal constants with truncation, which is intentionally
+/// unsupported here rather than inventing precision absent from the encoding.
+pub(super) fn normalize_f64_sources(instruction: &mut Instruction) -> Result<(), ParseError> {
+    let name = instruction
+        .mnemonic
+        .trim_end_matches("_e32")
+        .trim_end_matches("_e64");
+    if instruction.opcode != Opcode::VectorAlu || !name.ends_with("_f64") {
+        return Ok(());
+    }
+    let inline = |value: f64| {
+        value == 0.0 && !value.is_sign_negative() || [0.5_f64, 1.0, 2.0, 4.0].contains(&value.abs())
+    };
+    fn normalize(
+        operand: &mut Operand,
+        literal: bool,
+        inline: &impl Fn(f64) -> bool,
+    ) -> Result<(), String> {
+        match operand {
+            Operand::Register(_) => Ok(()),
+            Operand::Modified { value, .. } => normalize(value, false, inline),
+            Operand::Integer(value) => {
+                if (-16..=64).contains(value) {
+                    return Ok(());
+                }
+                let bits = *value as u64;
+                // LLVM recognizes both the high-word and full-width spelling
+                // of the floating inline constants. Preserve its canonical kind.
+                let float = f64::from_bits(if bits <= u32::MAX as u64 {
+                    bits << 32
+                } else {
+                    bits
+                });
+                if inline(float) {
+                    *operand = Operand::Float(float);
+                    Ok(())
+                } else if literal && (i32::MIN as i64..=u32::MAX as i64).contains(value) {
+                    Ok(())
+                } else {
+                    Err("FP64 source is not an encodable inline constant or literal word".into())
+                }
+            }
+            Operand::Float(value) => {
+                if inline(*value) {
+                    Ok(())
+                } else if literal && value.to_bits() & 0xffff_ffff == 0 {
+                    *operand = Operand::Integer((value.to_bits() >> 32) as i64);
+                    Ok(())
+                } else {
+                    Err(
+                        "FP64 decimal source requires unsupported truncation or literal encoding"
+                            .into(),
+                    )
+                }
+            }
+            _ => Err("FP64 source must be a register or encodable immediate".into()),
+        }
+    }
+    let literal_src0 = ["v_rcp_f64", "v_sqrt_f64", "v_cvt_f32_f64", "v_fmac_f64"].contains(&name)
+        && !instruction.mnemonic.ends_with("_e64")
+        || (name.starts_with("v_cmp_") || name.starts_with("v_cmpx_"))
+            && !instruction.mnemonic.ends_with("_e64");
+    for (index, operand) in instruction.operands.iter_mut().enumerate().skip(1) {
+        // The lexer represents a leading '-' uniformly as a source modifier.
+        // A negative decimal inline constant is a native e32 immediate too.
+        let negative_literal = match operand {
+            Operand::Modified {
+                value,
+                negate: true,
+                absolute: false,
+            } if matches!(value.as_ref(), Operand::Float(_)) => {
+                let Operand::Float(value) = value.as_ref() else {
+                    unreachable!()
+                };
+                Some(-*value)
+            }
+            _ => None,
+        };
+        if let Some(value) = negative_literal {
+            *operand = Operand::Float(value);
+        }
+        if instruction.mnemonic.ends_with("_e32")
+            && (matches!(operand, Operand::Modified { .. })
+                || index == 2
+                    && (name == "v_fmac_f64" || name.starts_with("v_cmp"))
+                    && !matches!(operand, Operand::Register(register) if register.class == RegisterClass::Vector))
+        {
+            return Err(ParseError {
+                message: "FP64 e32 source requires its native register/inline operand form".into(),
+                span: instruction.span,
+            });
+        }
+        normalize(operand, literal_src0 && index == 1, &inline).map_err(|message| ParseError {
+            message,
+            span: instruction.span,
+        })?;
     }
     Ok(())
 }
@@ -1056,6 +1202,12 @@ fn validate_registers(mnemonic: &str, opcode: Opcode, operands: &[Operand]) -> R
             } else if ["v_cvt_pk_f32_fp8", "v_cvt_pk_f32_bf8"].contains(&stem) {
                 require(0, &[Vector], 2)?;
                 source_width(1, 1)?;
+            } else if stem == "v_cvt_f64_f32" {
+                require(0, &[Vector], 2)?;
+                source_width(1, 1)?;
+            } else if stem == "v_cvt_f32_f64" {
+                require(0, &[Vector], 1)?;
+                source_width(1, 2)?;
             } else if stem == "v_cndmask_b32" {
                 require(0, &[Vector], 1)?;
                 source_width(1, 1)?;
