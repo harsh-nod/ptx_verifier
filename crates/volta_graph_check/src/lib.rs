@@ -22,6 +22,7 @@
 
 pub mod allocation_order;
 pub mod allocation_permit;
+pub mod amdgpu;
 pub mod barrier_epoch;
 pub mod domain;
 mod logging;

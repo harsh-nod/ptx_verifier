@@ -1,3 +1,4 @@
+pub mod config;
 pub mod file_cache;
 pub mod report;
 pub mod run_log;

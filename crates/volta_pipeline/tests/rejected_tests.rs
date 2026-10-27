@@ -346,7 +346,9 @@ fn test_bar_and_barrier_reject_a_missing_operation() {
             }) => {
                 assert_eq!(instruction, expect, "wrong instruction name for {form}");
                 assert!(
-                    reason.as_deref().is_some_and(|r| r.contains("MissingModifier")),
+                    reason
+                        .as_deref()
+                        .is_some_and(|r| r.contains("MissingModifier")),
                     "expected a missing operation modifier for {form}, got: {reason:?}"
                 );
             }

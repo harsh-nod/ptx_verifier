@@ -1,0 +1,876 @@
+use std::collections::BTreeMap;
+
+use super::{Instruction, Modifier, Opcode, Operand, ParseError, Register, RegisterClass};
+use super::{SourceSpan, SpecialRegister};
+
+pub(super) fn integer(text: &str) -> Option<i64> {
+    let text = text.trim();
+    let (negative, magnitude) = text.strip_prefix('-').map_or((false, text), |s| (true, s));
+    let magnitude = magnitude.strip_prefix('+').unwrap_or(magnitude);
+    let value = if let Some(hex) = magnitude
+        .strip_prefix("0x")
+        .or_else(|| magnitude.strip_prefix("0X"))
+    {
+        u64::from_str_radix(hex, 16).ok()?
+    } else if let Some(binary) = magnitude.strip_prefix("0b") {
+        u64::from_str_radix(binary, 2).ok()?
+    } else {
+        magnitude.parse::<u64>().ok()?
+    };
+    if negative {
+        if value > (1_u64 << 63) {
+            return None;
+        }
+        Some((value as i64).wrapping_neg())
+    } else {
+        // Hex constants describe bit patterns, including full-width masks.
+        Some(value as i64)
+    }
+}
+
+/// Small assembly-constant expression grammar. It deliberately excludes
+/// relocations and arbitrary assembler functions rather than guessing a value.
+pub(super) fn constant_expression(text: &str, constants: &BTreeMap<String, i64>) -> Option<i64> {
+    if let Some(value) = integer(text) {
+        return Some(value);
+    }
+    if let Some(value) = constants.get(text.trim()) {
+        return Some(*value);
+    }
+    for (index, ch) in text.char_indices().rev() {
+        if index != 0 && (ch == '+' || ch == '-') {
+            let left = constant_expression(&text[..index], constants)?;
+            let right = constant_expression(&text[index + 1..], constants)?;
+            return if ch == '+' {
+                left.checked_add(right)
+            } else {
+                left.checked_sub(right)
+            };
+        }
+    }
+    None
+}
+
+/// Resolve symbolic register indices such as `v[base:base+3]`. The returned
+/// text is only an internal lexical normalization; source locations stay native.
+pub(super) fn resolve_register_indices(
+    text: &str,
+    constants: &BTreeMap<String, i64>,
+) -> Result<String, String> {
+    let mut normalized = String::new();
+    let mut position = 0;
+    while let Some(relative) = text[position..].find('[') {
+        let begin = position + relative;
+        let prefix = &text[..begin];
+        let register = prefix.ends_with('s')
+            || prefix.ends_with('v')
+            || prefix.ends_with('a')
+            || prefix.ends_with("acc");
+        normalized.push_str(&text[position..=begin]);
+        let end = text[begin + 1..]
+            .find(']')
+            .map(|relative| begin + 1 + relative)
+            .ok_or("unterminated operand range")?;
+        let range = &text[begin + 1..end];
+        if register {
+            let components = range.split(':').collect::<Vec<_>>();
+            if components.is_empty() || components.len() > 2 {
+                return Err("malformed register range".into());
+            }
+            for (index, component) in components.iter().enumerate() {
+                let value = constant_expression(component, constants)
+                    .ok_or_else(|| format!("unresolved register index `{component}`"))?;
+                if index != 0 {
+                    normalized.push(':');
+                }
+                normalized.push_str(&value.to_string());
+            }
+        } else {
+            normalized.push_str(range);
+        }
+        normalized.push(']');
+        position = end + 1;
+    }
+    normalized.push_str(&text[position..]);
+    Ok(normalized)
+}
+
+pub(super) fn split_top_level(text: &str, delimiter: char) -> Result<Vec<&str>, String> {
+    let mut start = 0;
+    let mut stack = Vec::new();
+    let mut result = Vec::new();
+    let mut absolute = false;
+    for (index, character) in text.char_indices() {
+        match character {
+            '[' | '(' => stack.push(character),
+            ']' | ')' => {
+                let expected = if character == ']' { '[' } else { '(' };
+                if stack.pop() != Some(expected) {
+                    return Err("unbalanced operand delimiters".into());
+                }
+            }
+            '|' => absolute = !absolute,
+            _ => {}
+        }
+        if character == delimiter && stack.is_empty() && !absolute {
+            let part = text[start..index].trim();
+            if part.is_empty() {
+                return Err("empty operand".into());
+            }
+            result.push(part);
+            start = index + character.len_utf8();
+        }
+    }
+    if !stack.is_empty() || absolute {
+        return Err("unbalanced operand delimiters".into());
+    }
+    let part = text[start..].trim();
+    if !part.is_empty() {
+        result.push(part);
+    } else if !result.is_empty() {
+        return Err("trailing operand separator".into());
+    }
+    Ok(result)
+}
+
+fn whitespace_tokens(text: &str) -> Result<Vec<&str>, String> {
+    let mut result = Vec::new();
+    let mut start = 0;
+    let mut stack = Vec::new();
+    for (index, ch) in text.char_indices() {
+        match ch {
+            '[' | '(' => stack.push(ch),
+            ']' | ')' => {
+                stack.pop();
+            }
+            _ => {}
+        }
+        if ch.is_whitespace() && stack.is_empty() {
+            let token = text[start..index].trim();
+            if !token.is_empty() {
+                result.push(token);
+            }
+            start = index + ch.len_utf8();
+        }
+    }
+    if !stack.is_empty() {
+        return Err("unbalanced operand delimiters".into());
+    }
+    if !text[start..].trim().is_empty() {
+        result.push(text[start..].trim());
+    }
+    Ok(result)
+}
+
+fn register(text: &str) -> Result<Option<Register>, String> {
+    let special = match text {
+        "exec" => Some((SpecialRegister::Exec, 2)),
+        "exec_lo" => Some((SpecialRegister::ExecLo, 1)),
+        "exec_hi" => Some((SpecialRegister::ExecHi, 1)),
+        "vcc" => Some((SpecialRegister::Vcc, 2)),
+        "vcc_lo" => Some((SpecialRegister::VccLo, 1)),
+        "vcc_hi" => Some((SpecialRegister::VccHi, 1)),
+        "scc" => Some((SpecialRegister::Scc, 1)),
+        "m0" => Some((SpecialRegister::M0, 1)),
+        "null" => Some((SpecialRegister::Null, 1)),
+        "flat_scratch" => Some((SpecialRegister::FlatScratch, 2)),
+        "flat_scratch_lo" => Some((SpecialRegister::FlatScratchLo, 1)),
+        "flat_scratch_hi" => Some((SpecialRegister::FlatScratchHi, 1)),
+        _ => None,
+    };
+    if let Some((special, count)) = special {
+        return Ok(Some(Register {
+            class: RegisterClass::Special,
+            index: 0,
+            count,
+            special: Some(special),
+        }));
+    }
+    let (class, suffix, limit) = if let Some(suffix) = text.strip_prefix("acc") {
+        (RegisterClass::Accumulator, suffix, 255)
+    } else if let Some(suffix) = text.strip_prefix('a') {
+        (RegisterClass::Accumulator, suffix, 255)
+    } else if let Some(suffix) = text.strip_prefix('v') {
+        (RegisterClass::Vector, suffix, 255)
+    } else if let Some(suffix) = text.strip_prefix('s') {
+        (RegisterClass::Scalar, suffix, 101)
+    } else {
+        return Ok(None);
+    };
+    if suffix.is_empty()
+        || (!suffix.starts_with('[') && !suffix.starts_with(|c: char| c.is_ascii_digit()))
+    {
+        return Ok(None);
+    }
+    let (index, end) =
+        if let Some(range) = suffix.strip_prefix('[').and_then(|s| s.strip_suffix(']')) {
+            let (begin, end) = range.split_once(':').unwrap_or((range, range));
+            (
+                begin
+                    .trim()
+                    .parse::<u16>()
+                    .map_err(|_| "invalid register index")?,
+                end.trim()
+                    .parse::<u16>()
+                    .map_err(|_| "invalid register index")?,
+            )
+        } else {
+            let index = suffix
+                .parse::<u16>()
+                .map_err(|_| "invalid register index")?;
+            (index, index)
+        };
+    if end < index || end > limit {
+        return Err(format!("invalid {class:?} register range `{text}`"));
+    }
+    if end != index {
+        let alignment = if class == RegisterClass::Scalar {
+            (end - index + 1).min(4)
+        } else {
+            2
+        };
+        if !index.is_multiple_of(alignment) {
+            return Err(format!("misaligned register tuple `{text}`"));
+        }
+    }
+    Ok(Some(Register {
+        class,
+        index,
+        count: end - index + 1,
+        special: None,
+    }))
+}
+
+fn operand(text: &str) -> Result<Operand, String> {
+    if let Some(value) = integer(text) {
+        return Ok(Operand::Integer(value));
+    }
+    if let Some(register) = register(text)? {
+        return Ok(Operand::Register(register));
+    }
+    if text.starts_with('-') || text.starts_with('|') || text.starts_with("abs(") {
+        let (negate, rest) = text
+            .strip_prefix('-')
+            .map_or((false, text), |rest| (true, rest));
+        let (absolute, inner) = if let Some(inner) =
+            rest.strip_prefix('|').and_then(|s| s.strip_suffix('|'))
+        {
+            (true, inner)
+        } else if let Some(inner) = rest.strip_prefix("abs(").and_then(|s| s.strip_suffix(')')) {
+            (true, inner)
+        } else {
+            (false, rest)
+        };
+        if inner == text || inner.is_empty() {
+            return Err(format!("malformed operand `{text}`"));
+        }
+        let value = operand(inner)?;
+        if !matches!(
+            value,
+            Operand::Register(_) | Operand::Float(_) | Operand::Integer(_)
+        ) {
+            return Err("source modifiers require a register or literal".into());
+        }
+        return Ok(Operand::Modified {
+            value: Box::new(value),
+            negate,
+            absolute,
+        });
+    }
+    if (text.contains('.') || text.contains('e') || text.contains('E'))
+        && let Ok(value) = text.parse::<f64>()
+    {
+        if !value.is_finite() {
+            return Err("nonfinite float literal is unsupported".into());
+        }
+        return Ok(Operand::Float(value));
+    }
+    if text
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || "_.$@".contains(c))
+        && !text.is_empty()
+        && !text.starts_with(|c: char| c.is_ascii_digit())
+    {
+        return Ok(Operand::Symbol(text.into()));
+    }
+    Err(format!("unsupported or malformed operand `{text}`"))
+}
+
+/// Explicit allowlist, not prefix dispatch. Recognition is not an execution claim:
+/// the evaluator must still reject recognized instructions it cannot model.
+fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
+    use Opcode::*;
+    let sdwa = mnemonic.ends_with("_sdwa");
+    let (stem, encoding) = mnemonic.strip_suffix("_e32").map_or_else(
+        || {
+            mnemonic.strip_suffix("_e64").map_or_else(
+                || {
+                    mnemonic
+                        .strip_suffix("_sdwa")
+                        .map_or((mnemonic, false), |s| (s, true))
+                },
+                |s| (s, true),
+            )
+        },
+        |s| (s, true),
+    );
+    let result = match stem {
+        "s_endpgm" => (Control, 0, 1),
+        "s_nop" | "s_sleep" | "s_sendmsg" | "s_setprio" => (Control, 1, 1),
+        "s_barrier" => (Barrier, 0, 0),
+        "s_waitcnt" => (Wait, 1, 3),
+        "s_waitcnt_vscnt" => (Wait, 2, 2),
+        "s_branch" | "s_cbranch_scc0" | "s_cbranch_scc1" | "s_cbranch_vccz" | "s_cbranch_vccnz"
+        | "s_cbranch_execz" | "s_cbranch_execnz" => (Branch, 1, 1),
+        "s_getpc_b64" => (ScalarAlu, 1, 1),
+        "s_movk_i32" | "s_mov_b32" | "s_mov_b64" | "s_not_b32" | "s_not_b64" | "s_brev_b32"
+        | "s_brev_b64" | "s_ff0_i32_b64" | "s_ff1_i32_b64" | "s_ff0_i32_b32" | "s_ff1_i32_b32"
+        | "s_flbit_i32_b32" | "s_abs_i32" => (ScalarAlu, 2, 2),
+        "s_add_u32" | "s_add_i32" | "s_addc_u32" | "s_sub_u32" | "s_sub_i32" | "s_subb_u32"
+        | "s_mul_i32" | "s_mul_hi_u32" | "s_mul_hi_i32" | "s_and_b32" | "s_and_b64"
+        | "s_or_b32" | "s_or_b64" | "s_xor_b32" | "s_xor_b64" | "s_andn2_b32" | "s_andn2_b64"
+        | "s_orn2_b32" | "s_orn2_b64" | "s_nand_b32" | "s_nand_b64" | "s_nor_b32" | "s_nor_b64"
+        | "s_xnor_b32" | "s_xnor_b64" | "s_lshl_b32" | "s_lshl_b64" | "s_lshr_b32"
+        | "s_lshr_b64" | "s_ashr_i32" | "s_ashr_i64" | "s_min_u32" | "s_min_i32" | "s_max_u32"
+        | "s_max_i32" | "s_cselect_b32" | "s_cselect_b64" | "s_bfe_u32" | "s_bfe_i32"
+        | "s_bfm_b32" | "s_bfm_b64" => (ScalarAlu, 3, 3),
+        "s_and_saveexec_b64"
+        | "s_or_saveexec_b64"
+        | "s_xor_saveexec_b64"
+        | "s_andn2_saveexec_b64"
+        | "s_orn2_saveexec_b64"
+        | "s_nand_saveexec_b64"
+        | "s_nor_saveexec_b64"
+        | "s_xnor_saveexec_b64" => (ScalarAlu, 2, 2),
+        "s_cmp_eq_u32" | "s_cmp_lg_u32" | "s_cmp_gt_u32" | "s_cmp_ge_u32" | "s_cmp_lt_u32"
+        | "s_cmp_le_u32" | "s_cmp_eq_i32" | "s_cmp_lg_i32" | "s_cmp_gt_i32" | "s_cmp_ge_i32"
+        | "s_cmp_lt_i32" | "s_cmp_le_i32" | "s_cmp_eq_u64" | "s_cmp_lg_u64" | "s_bitcmp0_b32"
+        | "s_bitcmp1_b32" => (ScalarAlu, 2, 2),
+        "s_load_dword"
+        | "s_load_dwordx2"
+        | "s_load_dwordx4"
+        | "s_load_dwordx8"
+        | "s_load_dwordx16"
+        | "s_buffer_load_dword"
+        | "s_buffer_load_dwordx2"
+        | "s_buffer_load_dwordx4"
+        | "s_buffer_load_dwordx8"
+        | "s_buffer_load_dwordx16" => (ScalarMemory, 3, 3),
+        "global_atomic_add_f32"
+        | "global_atomic_add"
+        | "global_atomic_cmpswap"
+        | "global_atomic_swap" => (VectorMemory, 3, 4),
+        "global_load_ubyte"
+        | "global_load_sbyte"
+        | "global_load_ushort"
+        | "global_load_sshort"
+        | "global_load_dword"
+        | "global_load_dwordx2"
+        | "global_load_dwordx3"
+        | "global_load_dwordx4"
+        | "global_store_byte"
+        | "global_store_short"
+        | "global_store_dword"
+        | "global_store_dwordx2"
+        | "global_store_dwordx3"
+        | "global_store_dwordx4" => (VectorMemory, 3, 3),
+        "flat_load_ubyte" | "flat_load_sbyte" | "flat_load_ushort" | "flat_load_sshort"
+        | "flat_load_dword" | "flat_load_dwordx2" | "flat_load_dwordx3" | "flat_load_dwordx4"
+        | "flat_store_byte" | "flat_store_short" | "flat_store_dword" | "flat_store_dwordx2"
+        | "flat_store_dwordx3" | "flat_store_dwordx4" => (VectorMemory, 2, 2),
+        "buffer_load_ubyte"
+        | "buffer_load_sbyte"
+        | "buffer_load_ushort"
+        | "buffer_load_sshort"
+        | "buffer_load_dword"
+        | "buffer_load_dwordx2"
+        | "buffer_load_dwordx3"
+        | "buffer_load_dwordx4"
+        | "buffer_store_byte"
+        | "buffer_store_short"
+        | "buffer_store_dword"
+        | "buffer_store_dwordx2"
+        | "buffer_store_dwordx3"
+        | "buffer_store_dwordx4" => (VectorMemory, 4, 4),
+        "ds_read_b8" | "ds_read_u8" | "ds_read_i8" | "ds_read_b16" | "ds_read_u16"
+        | "ds_read_i16" | "ds_read_b32" | "ds_read_b64" | "ds_read_b96" | "ds_read_b128"
+        | "ds_write_b8" | "ds_write_b16" | "ds_write_b32" | "ds_write_b64" | "ds_write_b96"
+        | "ds_write_b128" | "ds_swizzle_b32" => (Lds, 2, 2),
+        "ds_read2_b32" | "ds_read2_b64" | "ds_read2st64_b32" | "ds_read2st64_b64" => (Lds, 2, 2),
+        "ds_write2_b32" | "ds_write2_b64" | "ds_write2st64_b32" | "ds_write2st64_b64"
+        | "ds_bpermute_b32" | "ds_permute_b32" => (Lds, 3, 3),
+        "v_mov_b64"
+        | "v_mov_b32"
+        | "v_not_b32"
+        | "v_bfrev_b32"
+        | "v_ffbh_u32"
+        | "v_ffbl_b32"
+        | "v_floor_f32"
+        | "v_ceil_f32"
+        | "v_trunc_f32"
+        | "v_fract_f32"
+        | "v_rcp_f32"
+        | "v_sqrt_f32"
+        | "v_rsq_f32"
+        | "v_exp_f32"
+        | "v_log_f32"
+        | "v_sin_f32"
+        | "v_cos_f32"
+        | "v_cvt_f32_u32"
+        | "v_cvt_f32_i32"
+        | "v_cvt_u32_f32"
+        | "v_cvt_i32_f32"
+        | "v_cvt_f16_f32"
+        | "v_cvt_f32_f16"
+        | "v_cvt_f32_bf16"
+        | "v_cvt_bf16_f32"
+        | "v_readfirstlane_b32"
+        | "v_accvgpr_read_b32"
+        | "v_accvgpr_write_b32" => (VectorAlu, 2, 2),
+        "v_fmac_f32"
+        | "v_cvt_pk_f16_f32"
+        | "v_pack_b32_f16"
+        | "v_pk_mul_f32"
+        | "v_pk_add_f32"
+        | "v_pk_max_f16"
+        | "v_pk_min_f16"
+        | "v_sub_f16"
+        | "v_max_f16"
+        | "v_min_f16"
+        | "v_mbcnt_lo_u32_b32"
+        | "v_mbcnt_hi_u32_b32"
+        | "v_add_u32"
+        | "v_sub_u32"
+        | "v_subrev_u32"
+        | "v_add_f32"
+        | "v_sub_f32"
+        | "v_subrev_f32"
+        | "v_mul_f32"
+        | "v_mul_lo_u32"
+        | "v_mul_lo_i32"
+        | "v_mul_hi_u32"
+        | "v_mul_hi_i32"
+        | "v_mul_u32_u24"
+        | "v_mul_i32_i24"
+        | "v_and_b32"
+        | "v_or_b32"
+        | "v_xor_b32"
+        | "v_lshlrev_b32"
+        | "v_lshrrev_b32"
+        | "v_ashrrev_i32"
+        | "v_lshlrev_b64"
+        | "v_lshrrev_b64"
+        | "v_ashrrev_i64"
+        | "v_min_f32"
+        | "v_max_f32"
+        | "v_min_u32"
+        | "v_max_u32"
+        | "v_min_i32"
+        | "v_max_i32"
+        | "v_ldexp_f32"
+        | "v_readlane_b32"
+        | "v_writelane_b32"
+        | "v_cvt_pkrtz_f16_f32"
+        | "v_cvt_pk_bf16_f32"
+        | "v_add_f16"
+        | "v_mul_f16"
+        | "v_pk_add_f16"
+        | "v_pk_mul_f16"
+        | "v_add_f64"
+        | "v_mul_f64" => (VectorAlu, 3, 3),
+        "v_add_co_u32" | "v_sub_co_u32" | "v_subrev_co_u32" => (VectorAlu, 4, 4),
+        "v_addc_co_u32" | "v_subb_co_u32" | "v_subbrev_co_u32" => (VectorAlu, 5, 5),
+        "v_cndmask_b32" => (VectorAlu, if mnemonic.ends_with("_e32") { 3 } else { 4 }, 4),
+        "v_fma_mixlo_f16" | "v_fma_mixhi_f16" | "v_fma_mix_f32" | "v_pk_fma_f32"
+        | "v_alignbit_b32" | "v_max3_f16" | "v_max3_f32" | "v_min3_f16" | "v_min3_f32"
+        | "v_fma_f32" | "v_mad_f32" | "v_fma_f16" | "v_pk_fma_f16" | "v_fma_f64"
+        | "v_mad_u32_u24" | "v_mad_i32_i24" | "v_add3_u32" | "v_add_lshl_u32"
+        | "v_lshl_add_u32" | "v_lshl_add_u64" | "v_lshl_or_b32" | "v_and_or_b32" | "v_bfi_b32"
+        | "v_bfe_u32" | "v_bfe_i32" | "v_perm_b32" => (VectorAlu, 4, 4),
+        "v_mfma_f32_16x16x4_f32"
+        | "v_mfma_f32_32x32x2_f32"
+        | "v_mfma_f32_16x16x16_f16"
+        | "v_mfma_f32_32x32x8_f16"
+        | "v_mfma_f32_16x16x16_bf16"
+        | "v_mfma_f32_32x32x8_bf16"
+        | "v_mfma_f32_16x16x4f32"
+        | "v_mfma_f32_32x32x2f32"
+        | "v_mfma_f32_16x16x16f16"
+        | "v_mfma_f32_32x32x8f16"
+        | "v_mfma_f32_16x16x16bf16_1k"
+        | "v_mfma_f32_32x32x8bf16_1k"
+        | "v_mfma_f32_16x16x32_f16"
+        | "v_mfma_f32_32x32x16_f16"
+        | "v_mfma_f32_16x16x32_bf16"
+        | "v_mfma_f32_32x32x16_bf16"
+        | "v_mfma_f32_16x16x128_f8f6f4"
+        | "v_mfma_f32_32x32x64_f8f6f4"
+        | "v_mfma_i32_16x16x32_i8"
+        | "v_mfma_i32_32x32x16_i8"
+        | "v_mfma_f64_16x16x4f64" => (Matrix, 4, 4),
+        _ => {
+            // Compare relations and types are enumerated independently, avoiding
+            // accidental acceptance of arbitrary `v_cmp_*` spellings.
+            let comparison = stem
+                .strip_prefix("v_cmp_")
+                .or_else(|| stem.strip_prefix("v_cmpx_"));
+            let Some(comparison) = comparison else {
+                return None;
+            };
+            let Some((relation, ty)) = comparison.rsplit_once('_') else {
+                return None;
+            };
+            if ![
+                "eq", "lg", "ne", "lt", "le", "gt", "ge", "o", "u", "nlt", "nle", "ngt", "nge",
+                "neq", "nlg", "tru", "f",
+            ]
+            .contains(&relation)
+                || !["u32", "i32", "f32", "u64", "i64", "f64", "f16"].contains(&ty)
+            {
+                return None;
+            }
+            (VectorAlu, 3, 3)
+        }
+    };
+    if encoding && !matches!(result.0, VectorAlu) {
+        return None;
+    }
+    if sdwa
+        && ![
+            "v_cvt_f32_f16",
+            "v_max_f16",
+            "v_min_f16",
+            "v_add_f16",
+            "v_sub_f16",
+            "v_mul_f16",
+            "v_add_f32",
+            "v_sub_f32",
+            "v_mul_f32",
+            "v_mov_b32",
+        ]
+        .contains(&stem)
+    {
+        return None;
+    }
+    Some(result)
+}
+
+fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifier, String> {
+    let (name, value) = token
+        .split_once(':')
+        .map_or((token, None), |(key, value)| (key, Some(value)));
+    let memory = matches!(
+        opcode,
+        Opcode::ScalarMemory | Opcode::VectorMemory | Opcode::Lds
+    );
+    let alu = matches!(opcode, Opcode::VectorAlu | Opcode::Matrix);
+    let permitted = match name {
+        "offset" => memory,
+        "offset0" | "offset1" => opcode == Opcode::Lds,
+        "offen" | "idxen" | "addr64" | "lds" => mnemonic.starts_with("buffer_"),
+        "glc" | "slc" | "dlc" | "sc0" | "sc1" | "nt" => {
+            matches!(opcode, Opcode::ScalarMemory | Opcode::VectorMemory)
+        }
+        "gds" => opcode == Opcode::Lds,
+        "clamp" | "mul" | "div" | "op_sel" | "op_sel_hi" | "neg_lo" | "neg_hi" => alu,
+        "cbsz" | "abid" | "blgp" => opcode == Opcode::Matrix,
+        "dst_sel" | "dst_unused" | "src0_sel" | "src1_sel" => mnemonic.ends_with("_sdwa"),
+        _ => false,
+    };
+    if !permitted {
+        return Err(format!("unsupported modifier `{token}` for `{mnemonic}`"));
+    }
+    let numeric = matches!(
+        name,
+        "offset" | "offset0" | "offset1" | "mul" | "div" | "cbsz" | "abid" | "blgp"
+    );
+    if numeric && value.and_then(integer).is_none() {
+        return Err(format!("modifier `{name}` requires an integer"));
+    }
+    if matches!(name, "offset0" | "offset1")
+        && !value
+            .and_then(integer)
+            .is_some_and(|n| (0..=255).contains(&n))
+    {
+        return Err(format!("modifier `{name}` must fit in 8 bits"));
+    }
+    if matches!(name, "cbsz" | "abid" | "blgp")
+        && !value
+            .and_then(integer)
+            .is_some_and(|n| (0..=7).contains(&n))
+    {
+        return Err(format!("modifier `{name}` must fit in 3 bits"));
+    }
+    if matches!(name, "op_sel" | "op_sel_hi" | "neg_lo" | "neg_hi") {
+        let content = value
+            .and_then(|v| v.strip_prefix('['))
+            .and_then(|v| v.strip_suffix(']'))
+            .ok_or_else(|| format!("modifier `{name}` requires a bit list"))?;
+        let bits = split_top_level(content, ',')?;
+        if bits.is_empty() || bits.len() > 4 || bits.iter().any(|bit| !matches!(*bit, "0" | "1")) {
+            return Err(format!("invalid bit list for `{name}`"));
+        }
+    }
+    if matches!(name, "dst_sel" | "src0_sel" | "src1_sel")
+        && !value.is_some_and(|value| {
+            [
+                "BYTE_0", "BYTE_1", "BYTE_2", "BYTE_3", "WORD_0", "WORD_1", "DWORD",
+            ]
+            .contains(&value)
+        })
+    {
+        return Err(format!("invalid SDWA selector `{token}`"));
+    }
+    if name == "dst_unused"
+        && !value
+            .is_some_and(|value| ["UNUSED_PAD", "UNUSED_SEXT", "UNUSED_PRESERVE"].contains(&value))
+    {
+        return Err(format!("invalid SDWA destination behavior `{token}`"));
+    }
+    if !numeric
+        && !matches!(
+            name,
+            "op_sel"
+                | "op_sel_hi"
+                | "neg_lo"
+                | "neg_hi"
+                | "dst_sel"
+                | "dst_unused"
+                | "src0_sel"
+                | "src1_sel"
+        )
+        && value.is_some()
+    {
+        return Err(format!("flag modifier `{name}` does not take a value"));
+    }
+    Ok(Modifier {
+        name: name.into(),
+        value: value.map(str::to_owned),
+    })
+}
+
+pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruction, ParseError> {
+    let fail = |message| ParseError { message, span };
+    let (mnemonic, rest) = text.split_once(char::is_whitespace).unwrap_or((text, ""));
+    let (opcode, minimum, maximum) = signature(mnemonic)
+        .ok_or_else(|| fail(format!("unsupported gfx950 instruction `{mnemonic}`")))?;
+    let mut operands = Vec::new();
+    let mut modifiers = Vec::new();
+    for group in split_top_level(rest, ',').map_err(&fail)? {
+        for token in whitespace_tokens(group).map_err(&fail)? {
+            if opcode == Opcode::Wait && mnemonic == "s_waitcnt" {
+                if let Some((name, value)) = token
+                    .split_once('(')
+                    .and_then(|(name, tail)| tail.strip_suffix(')').map(|value| (name, value)))
+                {
+                    let limit = match name {
+                        "vmcnt" => 63,
+                        "lgkmcnt" => 15,
+                        "expcnt" => 7,
+                        _ => return Err(fail(format!("unsupported wait counter `{name}`"))),
+                    };
+                    let value = integer(value)
+                        .filter(|n| (0..=limit).contains(n))
+                        .ok_or_else(|| fail(format!("invalid `{name}` threshold")))?;
+                    if operands.iter().any(|operand| matches!(operand, Operand::WaitCounter { name: old, .. } if old == name)) { return Err(fail(format!("duplicate wait counter `{name}`"))); }
+                    operands.push(Operand::WaitCounter {
+                        name: name.into(),
+                        value: value as u32,
+                    });
+                    continue;
+                }
+            }
+            if token.split_once(':').is_some_and(|(name, _)| {
+                !name.is_empty()
+                    && name
+                        .chars()
+                        .all(|character| character.is_ascii_alphanumeric() || character == '_')
+            }) || [
+                "offen", "idxen", "addr64", "lds", "glc", "slc", "dlc", "sc0", "sc1", "nt", "gds",
+                "clamp",
+            ]
+            .contains(&token)
+            {
+                let modifier = parse_modifier(token, opcode, mnemonic).map_err(&fail)?;
+                if modifiers
+                    .iter()
+                    .any(|old: &Modifier| old.name == modifier.name)
+                {
+                    return Err(fail(format!("duplicate modifier `{}`", modifier.name)));
+                }
+                modifiers.push(modifier);
+            } else {
+                if !modifiers.is_empty() {
+                    return Err(fail("operand after instruction modifier".into()));
+                }
+                operands.push(operand(token).map_err(&fail)?);
+            }
+        }
+    }
+    if !(minimum..=maximum).contains(&operands.len()) {
+        return Err(fail(format!(
+            "`{mnemonic}` expects {minimum}{} operands, got {}",
+            if minimum == maximum {
+                String::new()
+            } else {
+                format!("..={maximum}")
+            },
+            operands.len()
+        )));
+    }
+    if opcode == Opcode::Branch && !matches!(operands.first(), Some(Operand::Symbol(_))) {
+        return Err(fail("branch target must be a label".into()));
+    }
+    if opcode == Opcode::Wait
+        && mnemonic == "s_waitcnt"
+        && !operands
+            .iter()
+            .all(|operand| matches!(operand, Operand::WaitCounter { .. }))
+        && !(operands.len() == 1
+            && matches!(operands[0], Operand::Integer(value) if (0..=0xffff).contains(&value)))
+    {
+        return Err(fail(
+            "s_waitcnt requires counters or one 16-bit immediate".into(),
+        ));
+    }
+    validate_registers(mnemonic, opcode, &operands).map_err(fail)?;
+    if mnemonic == "v_cndmask_b32_e32" && operands.len() == 3 {
+        // LLVM accepts the omitted mandatory VCC input and prints it explicitly.
+        operands.push(Operand::Register(Register {
+            class: RegisterClass::Special,
+            index: 0,
+            count: 2,
+            special: Some(SpecialRegister::Vcc),
+        }));
+    }
+    Ok(Instruction {
+        mnemonic: mnemonic.into(),
+        opcode,
+        operands,
+        modifiers,
+        span,
+    })
+}
+
+fn validate_registers(mnemonic: &str, opcode: Opcode, operands: &[Operand]) -> Result<(), String> {
+    use RegisterClass::*;
+    let register_at = |index: usize| -> Option<Register> {
+        match operands.get(index) {
+            Some(Operand::Register(register)) => Some(*register),
+            _ => None,
+        }
+    };
+    let require = |index: usize,
+                   classes: &[RegisterClass],
+                   count: Option<u16>|
+     -> Result<(), String> {
+        let register = register_at(index)
+            .ok_or_else(|| format!("operand {} of `{mnemonic}` must be a register", index + 1))?;
+        if !classes.contains(&register.class) || count.is_some_and(|count| count != register.count)
+        {
+            return Err(format!(
+                "invalid register class/width at operand {} of `{mnemonic}`",
+                index + 1
+            ));
+        }
+        Ok(())
+    };
+    if matches!(opcode, Opcode::ScalarAlu) {
+        if !mnemonic.starts_with("s_cmp_") && !mnemonic.starts_with("s_bitcmp") {
+            let width = if (mnemonic.contains("b64") || mnemonic.contains("i64"))
+                && !mnemonic.starts_with("s_ff")
+            {
+                2
+            } else {
+                1
+            };
+            require(0, &[Scalar, Special], Some(width))?;
+        }
+        for operand in operands {
+            if matches!(operand, Operand::Register(register) if matches!(register.class,Vector|Accumulator))
+            {
+                return Err("scalar instruction cannot access vector registers".into());
+            }
+        }
+    } else if opcode == Opcode::ScalarMemory {
+        let width = memory_width(mnemonic);
+        require(0, &[Scalar], Some(width))?;
+        require(
+            1,
+            &[Scalar],
+            Some(if mnemonic.starts_with("s_buffer_") {
+                4
+            } else {
+                2
+            }),
+        )?;
+    } else if opcode == Opcode::VectorMemory {
+        let store = mnemonic.contains("_store_") || mnemonic.contains("_atomic_");
+        let data = usize::from(store && !mnemonic.starts_with("buffer_"));
+        require(data, &[Vector], Some(memory_width(mnemonic)))?;
+        let address = usize::from(!store || mnemonic.starts_with("buffer_"));
+        if mnemonic.starts_with("global_") {
+            require(address, &[Vector], None)?;
+            match operands.get(2) {
+                Some(Operand::Symbol(off)) if off == "off" => require(address, &[Vector], Some(2))?,
+                Some(Operand::Register(register))
+                    if register.class == Scalar && register.count == 2 =>
+                {
+                    require(address, &[Vector], Some(1))?
+                }
+                _ => return Err("global instruction needs `off` or a scalar address pair".into()),
+            }
+        } else if mnemonic.starts_with("flat_") {
+            require(address, &[Vector], Some(2))?;
+        } else if mnemonic.starts_with("buffer_") {
+            require(2, &[Scalar], Some(4))?;
+        }
+    } else if opcode == Opcode::Lds {
+        require(0, &[Vector], None)?;
+        require(1, &[Vector], None)?;
+        if operands.len() == 3 {
+            require(2, &[Vector], None)?;
+        }
+    } else if matches!(opcode, Opcode::VectorAlu | Opcode::Matrix) {
+        let classes: &[RegisterClass] = if mnemonic.starts_with("v_readlane_")
+            || mnemonic.starts_with("v_readfirstlane_")
+            || mnemonic.starts_with("v_cmp")
+        {
+            &[Scalar, Special]
+        } else if opcode == Opcode::Matrix || mnemonic.starts_with("v_accvgpr_") {
+            &[Vector, Accumulator]
+        } else {
+            &[Vector]
+        };
+        require(0, classes, None)?;
+        if mnemonic.starts_with("v_cmp") {
+            require(0, &[Scalar, Special], Some(2))?;
+        }
+        if mnemonic.starts_with("v_add_co_")
+            || mnemonic.starts_with("v_addc_co_")
+            || mnemonic.starts_with("v_sub_co_")
+            || mnemonic.starts_with("v_subb_co_")
+            || mnemonic.starts_with("v_subrev_co_")
+            || mnemonic.starts_with("v_subbrev_co_")
+        {
+            require(1, &[Scalar, Special], Some(2))?;
+        }
+    }
+    Ok(())
+}
+
+fn memory_width(mnemonic: &str) -> u16 {
+    if mnemonic.ends_with("dwordx16") {
+        16
+    } else if mnemonic.ends_with("dwordx8") {
+        8
+    } else if mnemonic.ends_with("dwordx4") {
+        4
+    } else if mnemonic.ends_with("dwordx3") {
+        3
+    } else if mnemonic.ends_with("dwordx2") {
+        2
+    } else {
+        1
+    }
+}
