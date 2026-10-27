@@ -57,7 +57,9 @@ pub struct Run<'a> {
 
 /// The checks whose failure is a race condition: an unordered conflicting access, or a
 /// cross-proxy pair no proxy fence orders.
-const RACE_CHECKS: [Property; 3] = [
+const RACE_CHECKS: [Property; 5] = [
+    Property::AmdMemoryConflict,
+    Property::AmdWaitReadiness,
     Property::MemoryConflict,
     Property::ProxyOrder,
     Property::TensorOrder,
@@ -245,6 +247,22 @@ fn graph_fields(
         (
             "launch",
             Json::Obj(vec![
+                (
+                    "wave_size",
+                    Json::uint(if !graph.amd_events().is_empty() {
+                        64u32
+                    } else {
+                        32u32
+                    }),
+                ),
+                (
+                    "source_language",
+                    Json::str(if !graph.amd_events().is_empty() {
+                        "amdgpu"
+                    } else {
+                        "ptx"
+                    }),
+                ),
                 ("block", dims(p.block_dim)),
                 ("grid", dims(p.grid_dim)),
                 (
@@ -373,7 +391,11 @@ impl Lanes {
             lanes.thread.insert(t, lanes.lanes.len());
             lanes.lanes.push(Lane {
                 kind: LaneKind::Thread,
-                label: format!("t{}", t.0),
+                label: if !graph.amd_events().is_empty() {
+                    format!("w{}:l{}", t.0 / 64, t.0 % 64)
+                } else {
+                    format!("t{}", t.0)
+                },
                 thread: Some(t),
             });
             if issuers.contains(&t) {
@@ -482,6 +504,26 @@ fn edges(graph: &EventGraph) -> Json {
     for e in pipeline_edges(graph).edges(graph) {
         push("pipeline", e.from, e.to);
     }
+    for association in graph.amd_memory_effects() {
+        push("amd-issue", association.issue, association.effect);
+    }
+    let mut amd_arrivals = HashMap::<u32, Vec<EventId>>::new();
+    for record in graph.amd_events() {
+        match record.kind {
+            volta_graph::AmdEventKind::BarrierArrive { generation, .. } => amd_arrivals
+                .entry(generation)
+                .or_default()
+                .push(record.event),
+            volta_graph::AmdEventKind::BarrierRelease { generation } => {
+                if let Some(arrivals) = amd_arrivals.get(&generation) {
+                    for &arrival in arrivals {
+                        push("amd-barrier", arrival, record.event);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
     Json::Obj(
         by_kind
             .into_iter()
@@ -526,6 +568,80 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
     let ev = graph.event(id);
     let mut info: Info = vec![("context", context_name(graph, ev.ctx))];
     let (category, label) = match ev.kind {
+        EventKind::Amd(index) => {
+            let Some(record) = graph.amd_event(index) else {
+                return ("issue", "invalid AMD event".into(), info);
+            };
+            info.push(("wave", record.wave.to_string()));
+            match &record.kind {
+                volta_graph::AmdEventKind::MatrixIssue {
+                    kind,
+                    destinations,
+                    sources_ab,
+                    accumulator,
+                } => {
+                    info.push(("matrix form", format!("{kind:?}")));
+                    info.push(("destinations", format!("{destinations:?}")));
+                    info.push(("A/B sources", format!("{sources_ab:?}")));
+                    info.push(("accumulator", format!("{accumulator:?}")));
+                    ("issue", format!("wave {} MFMA {kind:?}", record.wave))
+                }
+                volta_graph::AmdEventKind::Delay { cycles } => {
+                    info.push(("independent wait states", cycles.to_string()));
+                    (
+                        "wait",
+                        format!("s_nop {} ({cycles} wait states)", cycles.saturating_sub(1)),
+                    )
+                }
+                volta_graph::AmdEventKind::Instruction {
+                    exec_mask,
+                    reads,
+                    writes,
+                } => {
+                    info.push(("EXEC", format!("{exec_mask:#018x}")));
+                    info.push(("reads", format!("{reads:?}")));
+                    info.push(("writes", format!("{writes:?}")));
+                    ("instruction", format!("wave {} instruction", record.wave))
+                }
+                volta_graph::AmdEventKind::MemoryIssue {
+                    class,
+                    counters,
+                    destinations,
+                    held_sources,
+                } => {
+                    info.push(("class", format!("{class:?}")));
+                    info.push(("counter charges", format!("{counters:?}")));
+                    info.push(("pending destinations", format!("{destinations:?}")));
+                    info.push(("held sources", format!("{held_sources:?}")));
+                    ("issue", format!("wave {} {class:?} issue", record.wave))
+                }
+                volta_graph::AmdEventKind::Wait {
+                    vmcnt,
+                    lgkmcnt,
+                    expcnt,
+                } => {
+                    info.push(("vmcnt", format!("{vmcnt:?}")));
+                    info.push(("lgkmcnt", format!("{lgkmcnt:?}")));
+                    info.push(("expcnt", format!("{expcnt:?}")));
+                    (
+                        "wait",
+                        format!("s_waitcnt vm={vmcnt:?} lgkm={lgkmcnt:?} exp={expcnt:?}"),
+                    )
+                }
+                volta_graph::AmdEventKind::BarrierArrive {
+                    generation,
+                    exec_mask,
+                } => {
+                    info.push(("generation", generation.to_string()));
+                    info.push(("EXEC", format!("{exec_mask:#018x}")));
+                    ("sync", format!("s_barrier arrive #{generation}"))
+                }
+                volta_graph::AmdEventKind::BarrierRelease { generation } => {
+                    info.push(("generation", generation.to_string()));
+                    ("resume", format!("s_barrier release #{generation}"))
+                }
+            }
+        }
         EventKind::Access(a) => {
             let a = graph.access(a);
             let mode = match a.mode {
@@ -843,6 +959,10 @@ fn terminal(graph: &EventGraph) -> Json {
             .iter()
             .map(|b| {
                 let on = match &b.on {
+                    BlockedOn::AmdBarrier {
+                        generation,
+                        missing_waves,
+                    } => format!("waits at AMD barrier #{generation} for waves {missing_waves:?}"),
                     BlockedOn::Barrier { generation } => {
                         format!("waits in {}", generation_name(graph, *generation))
                     }
@@ -1075,11 +1195,17 @@ fn release_order_violation(
 
 fn checks(graph: &EventGraph, report: &GraphReport) -> Json {
     Json::Arr(
-        Property::ALL
+        report.applicable_properties()
             .iter()
             .map(|&property| {
                 let summary = report.summary(property);
                 let findings = match property {
+                    Property::AmdTrace=>report.amd.as_ref().map(|a|findings(&a.trace,|u|(u.reason.clone(),u.events.clone()))).unwrap_or_default(),
+                    Property::AmdWaitReadiness=>report.amd.as_ref().map(|a|findings(&a.wait_readiness,|h|(
+                        format!("wave {} {:?}: {:?}{} lanes {:#018x} is pending from e{} at e{}",h.wave,h.kind,h.register.file,h.register.index,h.register.lanes,h.issue.0,h.use_event.0),vec![h.issue,h.use_event]))).unwrap_or_default(),
+                    Property::AmdBarrier=>report.amd.as_ref().map(|a|findings(&a.barrier,|v|(format!("wave {} barrier #{}: {}",v.wave,v.generation,v.reason),vec![v.event]))).unwrap_or_default(),
+                    Property::AmdMemoryConflict=>report.amd.as_ref().map(|a|findings(&a.memory_conflict,|c|(
+                        format!("{} conflict at {} {:#x}: e{} and e{} lack AMD ordering",conflict_kind(c.kind),space_name(c.location.space),c.location.addr,c.earlier.0,c.later.0),vec![c.earlier,c.later]))).unwrap_or_default(),
                     Property::NamedBarrierEpoch => {
                         findings(&report.named_barrier_epoch, |v| epoch_violation(graph, v))
                     }

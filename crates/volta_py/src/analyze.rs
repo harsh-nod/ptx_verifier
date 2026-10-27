@@ -5,16 +5,25 @@ use pyo3::prelude::*;
 
 use volta_expr::SymbolicOutputs;
 use volta_graph_check::GraphConclusion;
-use volta_pipeline::verify_kernel;
+use volta_pipeline::{Backend, KernelModule, verify_source_kernel};
 use volta_ptx_analysis::frontend::ascii::{AsAscii, AsciiChar};
 use volta_ptx_analysis::frontend::ast::Module;
 use volta_ptx_analysis::frontend::parse as ptx_parse;
 use volta_ptx_analysis::{AnalysisConfig, Stats};
 
 use crate::config::ConfigPy;
-use crate::error::{VoltaError, analysis_error_to_py, graph_failure_to_py, parse_error_to_py};
+use crate::error::{VoltaError, graph_failure_to_py, parse_error_to_py};
 
-pub(crate) fn parse_module(source: &str) -> PyResult<Module> {
+pub(crate) fn parse_module(source: &str, backend: Backend) -> PyResult<KernelModule> {
+    match backend {
+        Backend::Ptx => parse_ptx_module(source).map(KernelModule::Ptx),
+        Backend::Amdgpu => volta_amdgpu_analysis::frontend::parse(source)
+            .map(KernelModule::Amdgpu)
+            .map_err(|error| VoltaError::new_err(error.to_string())),
+    }
+}
+
+fn parse_ptx_module(source: &str) -> PyResult<Module> {
     let ascii_src: &[AsciiChar] = source
         .as_bytes()
         .as_ascii_slice()
@@ -27,8 +36,10 @@ pub(crate) fn parse_module(source: &str) -> PyResult<Module> {
 
 /// Parse PTX source and raise `VoltaError` on a syntax error.
 #[pyfunction]
-pub fn parse(source: &str) -> PyResult<()> {
-    parse_module(source)?;
+#[pyo3(signature = (source, *, backend="ptx", target=None))]
+pub fn parse(source: &str, backend: &str, target: Option<&str>) -> PyResult<()> {
+    let backend = Backend::select(backend, target).map_err(VoltaError::new_err)?;
+    parse_module(source, backend)?;
     Ok(())
 }
 
@@ -80,11 +91,11 @@ pub(crate) struct CheckedKernel {
 /// stands for a race-freedom proof.
 pub(crate) fn check_kernel(
     py: Python<'_>,
-    module: &Module,
+    module: &KernelModule,
     kernel: Option<&str>,
     config: AnalysisConfig,
 ) -> PyResult<CheckedKernel> {
-    let verified = verify_kernel(module, kernel, config).map_err(analysis_error_to_py)?;
+    let verified = verify_source_kernel(module, kernel, config).map_err(VoltaError::new_err)?;
     let unresolved = match verified.graph.conclusion() {
         GraphConclusion::Rejected { failed, deadlock } => {
             return Err(graph_failure_to_py(&failed, deadlock.as_ref()));
@@ -101,7 +112,7 @@ pub(crate) fn check_kernel(
             reasons
         }
     };
-    let parts = verified.analysis.into_parts();
+    let parts = verified.analysis;
     let exprs = parts
         .outputs
         .map_err(|why| VoltaError::new_err(why.to_string()))?;
@@ -124,7 +135,7 @@ pub fn analyze(
     config: &ConfigPy,
     kernel: Option<&str>,
 ) -> PyResult<AnalyzeResultPy> {
-    let module = parse_module(source)?;
+    let module = parse_module(source, config.1)?;
     let output = check_kernel(py, &module, kernel, config.0.clone())?;
 
     let outputs = output

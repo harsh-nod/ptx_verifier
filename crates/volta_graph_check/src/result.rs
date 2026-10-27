@@ -101,6 +101,10 @@ impl<E, V> PropertyResult<E, V> {
 /// allocation-order, allocation-permit and mbarrier release-order checks beyond it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Property {
+    AmdTrace,
+    AmdWaitReadiness,
+    AmdBarrier,
+    AmdMemoryConflict,
     /// Algorithm 1 over named barriers (`bar.arrive`, `bar.sync`).
     NamedBarrierEpoch,
     /// Algorithm 1 over mbarrier phases.
@@ -124,6 +128,14 @@ pub enum Property {
 }
 
 impl Property {
+    /// gfx950 obligations. `ALL` retains its original PTX meaning for compatibility;
+    /// consumers of a report should use `GraphReport::applicable_properties`.
+    pub const AMD: [Property; 4] = [
+        Self::AmdTrace,
+        Self::AmdWaitReadiness,
+        Self::AmdBarrier,
+        Self::AmdMemoryConflict,
+    ];
     pub const ALL: [Property; 10] = [
         Property::NamedBarrierEpoch,
         Property::MbarrierEpoch,
@@ -144,6 +156,9 @@ impl Property {
     pub fn prerequisites(self) -> &'static [Property] {
         use Property::*;
         match self {
+            AmdTrace => &[],
+            AmdWaitReadiness | AmdBarrier => &[AmdTrace],
+            AmdMemoryConflict => &[AmdTrace, AmdBarrier],
             NamedBarrierEpoch | MbarrierEpoch | MbarrierOrdering | MbarrierReleaseOrder => &[],
             MemoryConflict | TensorOrder | ResourceLifetime | AllocationOrder
             | AllocationPermit => &[NamedBarrierEpoch, MbarrierEpoch, MbarrierOrdering],
@@ -158,6 +173,10 @@ impl Property {
 
     pub fn name(self) -> &'static str {
         match self {
+            Property::AmdTrace => "AMD trace completeness",
+            Property::AmdWaitReadiness => "AMD wait and register readiness",
+            Property::AmdBarrier => "AMD workgroup barrier generations",
+            Property::AmdMemoryConflict => "AMD memory-conflict freedom",
             Property::NamedBarrierEpoch => "barrier epochs (named barriers)",
             Property::MbarrierEpoch => "barrier epochs (mbarrier phases)",
             Property::MbarrierOrdering => "mbarrier ordering",
@@ -175,6 +194,10 @@ impl Property {
     /// design, the rule each enforces.
     pub fn algorithm(self) -> &'static str {
         match self {
+            Property::AmdTrace => "gfx950 graph contract",
+            Property::AmdWaitReadiness => "CDNA4 counters and register dependencies",
+            Property::AmdBarrier => "CDNA4 S_BARRIER",
+            Property::AmdMemoryConflict => "AMD completed-effect happens-before",
             Property::NamedBarrierEpoch | Property::MbarrierEpoch => "Algorithm 1",
             Property::MbarrierOrdering => "Algorithm 2",
             Property::MemoryConflict => "Algorithm 3",
