@@ -533,6 +533,122 @@
         "/tmp/ptx-verifier-frontend/native-full-convolution.o"
       ],
       "assembly_validation": "passed on mi350-2; 2026-10-27"
+    },
+    {
+      "source": "clang22-module-globals.hip",
+      "assembly": "clang22-module-globals.s",
+      "source_sha256": "e481bf767cab8c8f273cd00c59784da0262bfe7ff551fe8d110de73daa5ab9a6",
+      "assembly_sha256": "4685d039ca74ebfb46c64326de9302af19675f60dac01990a7da3a07316d7009",
+      "object_sha256": "cd1caf870068838f676cc2695400ad26f1a3f6d96f6221c8899ae4fd48b9c9b2",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-S",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-module-globals.hip",
+        "-o",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-module-globals.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-module-globals.s",
+        "-o",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-module-globals.o"
+      ],
+      "assembly_validation": "passed on mi350-2;2026-10-27; no executable assembly edits"
+    },
+    {
+      "source": "clang22-dynamic-lds.hip",
+      "assembly": "clang22-dynamic-lds.s",
+      "source_sha256": "aa3b41d97d479c995e2644d72be3092b7f264063510863fd0480a8df490bb9fe",
+      "assembly_sha256": "2a48a0958061bbadaf75e21384071da2bb2fa7fb185de3deeab8db7231710e35",
+      "object_sha256": "4376482586f3671a74bdabf0eb124751b8567aeb7113202700f2ef6e367ffa24",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-S",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-dynamic-lds.hip",
+        "-o",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-dynamic-lds.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-dynamic-lds.s",
+        "-o",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-dynamic-lds.o"
+      ],
+      "assembly_validation": "passed on mi350-2;2026-10-27; no executable assembly edits"
+    },
+    {
+      "source": "clang22-grid-output.hip",
+      "assembly": "clang22-grid-output.s",
+      "source_sha256": "f19cfe99a544ae33dd3e124a0f549b8258f18fa517baa534c3776b3fd4f6f003",
+      "assembly_sha256": "4329c90b02b41cea7e7cbe81184b3b5552d00283a731fdbfd5a2496933e20000",
+      "object_sha256": "c351b00013fc0aa2d29c740cd632184ac326d9e2c3acfbd7b5bcbe9e69400e4c",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-S",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-grid-output.hip",
+        "-o",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-grid-output.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-grid-output.s",
+        "-o",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-grid-output.o"
+      ],
+      "assembly_validation": "passed on mi350-2;2026-10-27; no executable assembly edits"
+    },
+    {
+      "source": "clang22-mixed-byvalue.hip",
+      "assembly": "clang22-mixed-byvalue.s",
+      "source_sha256": "2d5d4cd7363b67230e041ad48f38d8502508ecf8736aac4aa9252210d2f72d3a",
+      "assembly_sha256": "72a7cea82b970a8e181f000d9de99cab9b9479a75d87e15e48b082d5f01c9014",
+      "object_sha256": "ff7fa5deb70957cb119b007b8fb5e8efb0e5707b3e804e15f06d16964e602aec",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-S",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-mixed-byvalue.hip",
+        "-o",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-mixed-byvalue.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-mixed-byvalue.s",
+        "-o",
+        "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-mixed-byvalue.o"
+      ],
+      "assembly_validation": "passed on mi350-2;2026-10-27; unchanged compiler output"
     }
   ]
 }

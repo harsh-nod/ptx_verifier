@@ -6141,362 +6141,794 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/balanced_tree_sum.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/balanced_tree_sum.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/balanced_tree_sum_doubled_leaf.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/balanced_tree_sum_doubled_leaf.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/constant_perturbation_mut.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/constant_perturbation_mut.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/constant_perturbation_ref.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/constant_perturbation_ref.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/dropped_term_mut.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/dropped_term_mut.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/dropped_term_ref.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/dropped_term_ref.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/exp_of_product.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/exp_of_product.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/exp_of_sum.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/exp_of_sum.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/exp_product_of_exps.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/exp_product_of_exps.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/fma_different_addend_mut.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/fma_different_addend_mut.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/fma_different_addend_ref.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/fma_different_addend_ref.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/integer_sign_bit_xor_mut.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/integer_sign_bit_xor_mut.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/integer_sign_bit_xor_ref.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/integer_sign_bit_xor_ref.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/linear_chain_sum.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/linear_chain_sum.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/max_vs_min_mut.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/max_vs_min_mut.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/max_vs_min_ref.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/max_vs_min_ref.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/missing_relu_clamp_mut.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/missing_relu_clamp_mut.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 2
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/missing_relu_clamp_ref.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/missing_relu_clamp_ref.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 2
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/off_by_one_index_mut.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/off_by_one_index_mut.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          4,
+          1,
+          1
+        ],
+        "input_elements": 8,
+        "output_elements": 4,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/off_by_one_index_ref.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/off_by_one_index_ref.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          4,
+          1,
+          1
+        ],
+        "input_elements": 8,
+        "output_elements": 4,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/sentinel_off_by_one_mut.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/sentinel_off_by_one_mut.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/sentinel_off_by_one_ref.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/sentinel_off_by_one_ref.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 1,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/swapped_noncommutative_mut.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/swapped_noncommutative_mut.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 2,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/swapped_noncommutative_ref.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "tests/gfx950/portable-negative/swapped_noncommutative_ref.s"
+      ],
+      "property_or_computation": "Native counterpart of the exact negative-equivalence algebra or positive reassociation control; compare full output footprint and exact mismatch indices.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "input_elements": 4,
+        "output_elements": 2,
+        "element_size": 4
+      },
+      "expected_outcome": "All source graph checks Verified; eleven changed pairs NotEquivalent at golden indices; valid identity controls Equivalent; .vexpr replay agrees.",
+      "assumptions": [
+        "mathematical real arithmetic",
+        "concrete addresses/control",
+        "single configured workgroup"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json",
+        "crates/volta_pipeline/tests/gfx950_negative_equivalence_tests.rs"
+      ],
+      "reason": "Coordinator reviewed actual source property and reproduced the integrated graph, complete-output, equivalence and assembler gates."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/address_constant_expression_race.ptx",
@@ -7198,32 +7630,60 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/concrete_fma_vs_mul_add.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "crates/volta_pipeline/tests/gfx950_scalar_parity_tests.rs::f64_fma_and_separate_multiply_add_share_the_existing_real_arithmetic_contract"
+      ],
+      "property_or_computation": "Preserve exact encoded binary64 coefficients and the existing real-number intermediate arithmetic contract.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "output_elements": 1,
+        "element_size": 8
+      },
+      "expected_outcome": "Graph Verified; complete binary64 output; pair Equivalent",
+      "assumptions": [
+        "mathematical real arithmetic, without intermediate IEEE rounding"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json"
+      ],
+      "reason": "Actual baseline assertions independently reviewed; exact native pair semantics and all four assembled sources reproduced."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/concrete_fma_vs_mul_add_2.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "crates/volta_pipeline/tests/gfx950_scalar_parity_tests.rs::f64_fma_and_separate_multiply_add_share_the_existing_real_arithmetic_contract"
+      ],
+      "property_or_computation": "Preserve exact encoded binary64 coefficients and the existing real-number intermediate arithmetic contract.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "output_elements": 1,
+        "element_size": 8
+      },
+      "expected_outcome": "Graph Verified; complete binary64 output; pair Equivalent",
+      "assumptions": [
+        "mathematical real arithmetic, without intermediate IEEE rounding"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json"
+      ],
+      "reason": "Actual baseline assertions independently reviewed; exact native pair semantics and all four assembled sources reproduced."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/concrete_scalar_granule_splits_for_half_width_access.ptx",
@@ -8458,32 +8918,60 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/runtime_sum_differs_from_prerounded_literal.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "crates/volta_pipeline/tests/gfx950_scalar_parity_tests.rs::f64_runtime_sum_keeps_encoded_coefficients_distinct_from_prerounded_literal"
+      ],
+      "property_or_computation": "Preserve exact encoded binary64 coefficients and the existing real-number intermediate arithmetic contract.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "output_elements": 1,
+        "element_size": 8
+      },
+      "expected_outcome": "Graph Verified; complete binary64 output; pair NotEquivalent",
+      "assumptions": [
+        "mathematical real arithmetic, without intermediate IEEE rounding"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json"
+      ],
+      "reason": "Actual baseline assertions independently reviewed; exact native pair semantics and all four assembled sources reproduced."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/runtime_sum_differs_from_prerounded_literal_2.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
-      "amd_fixtures": [],
-      "property_or_computation": "",
-      "configuration": {},
-      "expected_outcome": "",
-      "assumptions": [],
+      "status": "validated",
+      "applicability": "portable",
+      "amd_fixtures": [
+        "crates/volta_pipeline/tests/gfx950_scalar_parity_tests.rs::f64_runtime_sum_keeps_encoded_coefficients_distinct_from_prerounded_literal"
+      ],
+      "property_or_computation": "Preserve exact encoded binary64 coefficients and the existing real-number intermediate arithmetic contract.",
+      "configuration": {
+        "block": [
+          1,
+          1,
+          1
+        ],
+        "output_elements": 1,
+        "element_size": 8
+      },
+      "expected_outcome": "Graph Verified; complete binary64 output; pair NotEquivalent",
+      "assumptions": [
+        "mathematical real arithmetic, without intermediate IEEE rounding"
+      ],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/portable-equivalence-250087f.json"
+      ],
+      "reason": "Actual baseline assertions independently reviewed; exact native pair semantics and all four assembled sources reproduced."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/same_value_stores_separated_by_bar_sync_are_not_a_race.ptx",

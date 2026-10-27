@@ -23,6 +23,14 @@ pub(super) enum Value {
         mask: u32,
         high: bool,
     },
+    /// Opaque PC anchor, usable only by one validated adjacent rel32 sequence.
+    RelocationWord {
+        anchor: u32,
+        high: bool,
+    },
+    /// Unknown high32 of the 2^32-aligned LDS aperture. Only FLAT addressing
+    /// may consume it, paired with a concrete segment offset in the low word.
+    SharedApertureHi,
     NarrowInt {
         expr: ExprId,
         bits: u8,
@@ -53,6 +61,12 @@ impl Value {
             Self::PredicateWord { .. } => {
                 Err("symbolic predicate mask used as concrete integer/address bits".into())
             }
+            Self::RelocationWord { .. } => {
+                Err("opaque PC-relative relocation anchor used as ordinary bits".into())
+            }
+            Self::SharedApertureHi => {
+                Err("opaque shared aperture cannot be used as ordinary bits".into())
+            }
             _ => Err("symbolic mathematical data used as integer/address bits".into()),
         }
     }
@@ -71,6 +85,8 @@ impl Value {
             Self::Input(_)
             | Self::IntExpr(_)
             | Self::PredicateWord { .. }
+            | Self::RelocationWord { .. }
+            | Self::SharedApertureHi
             | Self::NarrowInt { .. }
             | Self::WidePart { .. }
             | Self::Half(..)

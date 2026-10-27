@@ -33,6 +33,8 @@ pub enum SpecialRegister {
     FlatScratch,
     FlatScratchLo,
     FlatScratchHi,
+    /// Opaque 64-bit LDS aperture base, only read by the pinned s_mov_b64 ABI.
+    SharedBase,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -51,6 +53,9 @@ pub enum Operand {
     Float(f64),
     /// A label, `off`, or an explicitly declared assembly constant.
     Symbol(String),
+    /// Direct LLVM AMDGPU split PC-relative relocation. Only a validated
+    /// contiguous address-construction sequence may consume this operand.
+    Relocation(Relocation),
     Modified {
         value: Box<Operand>,
         negate: bool,
@@ -62,6 +67,30 @@ pub enum Operand {
     },
     /// Only present after lowering.
     BranchTarget(usize),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RelocationKind {
+    Rel32Lo,
+    Rel32Hi,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Relocation {
+    pub symbol: String,
+    pub kind: RelocationKind,
+    pub addend: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Global {
+    pub symbol: String,
+    pub size: u64,
+    pub alignment: u64,
+    /// Exact assembler object bytes, including explicit BSS zero bytes.
+    pub initial_bytes: Vec<u8>,
+    pub read_only: bool,
+    pub span: SourceSpan,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -141,6 +170,7 @@ pub struct Module {
     pub metadata_version: Option<Vec<u32>>,
     pub kernels: Vec<Kernel>,
     pub constants: BTreeMap<String, i64>,
+    pub globals: Vec<Global>,
     /// Original source is retained for diagnostics and event-graph exports.
     pub source: String,
 }

@@ -10,8 +10,9 @@
 use std::collections::{HashMap, HashSet};
 
 use volta_graph::{
-    AmdCounter, AmdEventKind, AmdMatrixKind, AmdMemoryClass, AmdRegister, AmdRegisterFile,
-    EventGraph, EventId, EventKind, Footprint, OrderingKind, Proxy, Space, Terminal,
+    AmdCounter, AmdEventKind, AmdMatrixKind, AmdMemoryClass, AmdMemoryScope, AmdRegister,
+    AmdRegisterFile, EventGraph, EventId, EventKind, Footprint, OrderingKind, Proxy, Space,
+    Terminal,
 };
 
 use crate::domain::{ByteLocation, ConflictKind, bytes, written_bytes};
@@ -514,6 +515,18 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                         unresolved.push(Unresolved::at(
                             link.effect,
                             "AMD instruction class does not match its memory space",
+                        ));
+                    }
+                    if link.scope == AmdMemoryScope::Workgroup
+                        && !(access.space == Space::Global
+                            && matches!(
+                                class,
+                                AmdMemoryClass::VectorMemory | AmdMemoryClass::VectorStoreWide
+                            ))
+                    {
+                        unresolved.push(Unresolved::at(
+                            link.effect,
+                            "workgroup scope is supported only for native GLOBAL vector effects",
                         ));
                     }
                 }
@@ -1217,6 +1230,40 @@ struct EffectNode {
     operation: usize,
     mode: volta_graph::AccessMode,
     children: Vec<usize>,
+    scoped: bool,
+    subtree_scoped: bool,
+    subtree_writes: bool,
+    subtree_wave: Option<u32>,
+}
+
+/// Ordered read roots can hide older conflicting writes in the overlap forest.
+/// Check the relevant ancestors too; subtree summaries keep pure reads,
+/// single-wave traffic and fully scoped publication paths constant-time.
+fn missing_global_publication(
+    root: &EffectNode,
+    nodes: &[EffectNode],
+    operations: &[Operation],
+    later_wave: u32,
+    later_mode: volta_graph::AccessMode,
+    later_scoped: bool,
+) -> Option<EventId> {
+    let mut pending = vec![root];
+    while let Some(node) = pending.pop() {
+        if node.subtree_wave == Some(later_wave)
+            || (later_mode == volta_graph::AccessMode::Read && !node.subtree_writes)
+            || (later_scoped && node.subtree_scoped)
+        {
+            continue;
+        }
+        if operations[node.operation].wave != later_wave
+            && ConflictKind::of(node.mode, later_mode).is_some()
+            && (!later_scoped || !node.scoped)
+        {
+            return Some(node.event);
+        }
+        pending.extend(node.children.iter().map(|&child| &nodes[child]));
+    }
+    None
 }
 
 fn memory_conflicts(
@@ -1229,13 +1276,28 @@ fn memory_conflicts(
         .iter()
         .map(|l| (l.effect, issue_index[&l.issue]))
         .collect();
+    // CDNA4 §9.1.10.2/Table49-50: SC0=1, SC1=0 is group scope.
+    // LLVM SIMemoryLegalizer.cpp at846473237377990d00b9c353f6a2c86116b52ea5
+    // enableLoad/StoreCacheBypass selects SC0 for workgroup accesses;
+    // insertAcquire needs no CU-cache invalidate when TG_SPLIT is disabled,
+    // since every wave then shares the CU/L1. The scope supplies visibility,
+    // never completion or HB. No FLAT/SMEM/device/system protocol is inferred.
+    let single_cu = graph
+        .provenance()
+        .assumptions
+        .contains(&volta_graph::Assumption::SingleCuWorkgroup);
+    let scoped: HashSet<EventId> = graph
+        .amd_memory_effects()
+        .iter()
+        .filter(|link| single_cu && link.scope == AmdMemoryScope::Workgroup)
+        .map(|link| link.effect)
+        .collect();
     let written = written_bytes(graph);
     let mut roots = HashMap::<ByteLocation, Vec<usize>>::new();
     let mut nodes = Vec::<EffectNode>::new();
     let mut conflicts = Vec::new();
     let mut reported = HashSet::new();
     let mut unresolved = Vec::new();
-    let mut scope_reported = HashSet::new();
     for (event, ev) in graph.events().iter() {
         let EventKind::Access(a) = ev.kind else {
             continue;
@@ -1243,18 +1305,23 @@ fn memory_conflicts(
         let access = graph.access(a);
         let operation = links[&event];
         let later = &operations[operation];
-        let mut reaches = |node: &EffectNode| {
+        let later_scoped = scoped.contains(&event);
+        let mut reaches = |node: &EffectNode, forest: &[EffectNode]| {
             let earlier = &operations[node.operation];
             let ordered = later.clock[earlier.wave as usize * CLASSES + class_index(earlier.class)]
                 >= earlier.sequence;
-            if ordered
-                && access.space == Space::Global
-                && earlier.wave != later.wave
-                && unresolved.len() < CONFLICT_CAP
-                && scope_reported.insert((node.event, event))
-            {
-                unresolved.push(Unresolved::between(node.event,event,
-                    "cross-wave global communication needs gfx950 cache visibility/scope semantics beyond S_BARRIER; these are not modeled"));
+            if ordered && access.space == Space::Global && unresolved.is_empty() {
+                if let Some(earlier) = missing_global_publication(
+                    node,
+                    forest,
+                    operations,
+                    later.wave,
+                    access.mode,
+                    later_scoped,
+                ) {
+                    unresolved.push(Unresolved::between(earlier, event,
+                        "gfx950 cache visibility for an ordered cross-wave GLOBAL conflict requires workgroup-scoped endpoints and a single-CU workgroup premise"));
+                }
             }
             ordered
         };
@@ -1267,7 +1334,7 @@ fn memory_conflicts(
             let mut kept = Vec::new();
             let mut unordered = Vec::new();
             for node in previous {
-                if reaches(&nodes[node]) {
+                if reaches(&nodes[node], &nodes) {
                     children.push(node)
                 } else {
                     kept.push(node);
@@ -1286,17 +1353,31 @@ fn memory_conflicts(
                     }
                 }
                 for &child in &nodes[n].children {
-                    if !reaches(&nodes[child]) {
+                    if !reaches(&nodes[child], &nodes) {
                         unordered.push(child);
                     }
                 }
             }
             let index = nodes.len();
+            let mut subtree_scoped = later_scoped;
+            let mut subtree_writes = access.mode == volta_graph::AccessMode::Write;
+            let mut subtree_wave = Some(later.wave);
+            for &child in &children {
+                subtree_scoped &= nodes[child].subtree_scoped;
+                subtree_writes |= nodes[child].subtree_writes;
+                if nodes[child].subtree_wave != subtree_wave {
+                    subtree_wave = None;
+                }
+            }
             nodes.push(EffectNode {
                 event,
                 operation,
                 mode: access.mode,
                 children,
+                scoped: later_scoped,
+                subtree_scoped,
+                subtree_writes,
+                subtree_wave,
             });
             kept.push(index);
             roots.insert(location, kept);

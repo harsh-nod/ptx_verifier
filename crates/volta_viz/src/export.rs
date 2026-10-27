@@ -215,9 +215,13 @@ fn event_row(
     lanes: &Lanes,
     interner: &mut Interner,
     id: EventId,
+    scope: Option<volta_graph::AmdMemoryScope>,
 ) -> Json {
     let ev = graph.event(id);
-    let (category, label, info) = describe(graph, arena, id);
+    let (category, label, mut info) = describe(graph, arena, id);
+    if let Some(scope) = scope {
+        info.push(("AMD memory scope", format!("{scope:?}")));
+    }
     let mut row = vec![
         Json::uint(lanes.lane_of(graph, ev.ctx) as u64),
         ev.pc.map_or(Json::Int(-1), |pc| Json::uint(pc.0)),
@@ -236,10 +240,24 @@ fn graph_fields(
 ) -> Vec<(&'static str, Json)> {
     let lanes = Lanes::of(graph);
     let mut interner = Interner::default();
+    let amd_scopes: HashMap<_, _> = graph
+        .amd_memory_effects()
+        .iter()
+        .map(|effect| (effect.effect, effect.scope))
+        .collect();
     let events: Vec<Json> = graph
         .events()
         .iter()
-        .map(|(id, _)| event_row(graph, arena, &lanes, &mut interner, id))
+        .map(|(id, _)| {
+            event_row(
+                graph,
+                arena,
+                &lanes,
+                &mut interner,
+                id,
+                amd_scopes.get(&id).copied(),
+            )
+        })
         .collect();
     let lines = LineIndex::new(source);
     let p = graph.provenance();

@@ -133,7 +133,7 @@ def main():
     files = {OUTPUT / f"{name}.s": assembly(name, body) for name, body in CASES.items()}
     rows = [{"baseline_path": f"crates/volta_pipeline/tests/ptx/negative_equivalence/{name}.ptx",
              "native_source": str((OUTPUT / f"{name}.s").relative_to(ROOT)),
-             "configuration": configuration(name), "status": "validation_pending"}
+             "configuration": configuration(name)}
             for name in CASES]
     files[OUTPUT / "cases.json"] = json.dumps({"baseline": "e8f819919e5d4628b68aa735deacaaa48d46cf23", "cases": rows}, indent=2) + "\n"
     for path, content in files.items():
