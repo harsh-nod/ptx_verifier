@@ -115,6 +115,7 @@ class Variant:
     dimensions: tuple[tuple[str, int], ...] = ()
     declared_arrays: tuple[Array, ...] = ()
     reduced_case: bool = False
+    global_values: tuple[tuple[str, int], ...] = ()
 
     @property
     def name(self) -> str:
@@ -861,7 +862,8 @@ def load_amdgpu_variants() -> dict[str, list[Variant]]:
                 source_path=path.parent/row["assembly"], dynamic_shared=row.get("dynamic_shared", 0),
                 dummy_params=0, reference_spec=path.parent/row["spec"],
                 dimensions=tuple(row.get("dimensions", {}).items()),
-                declared_arrays=tuple(arrays.values()), reduced_case=row.get("reduced_case", False))
+                declared_arrays=tuple(arrays.values()), reduced_case=row.get("reduced_case", False),
+                global_values=tuple((name, int(value)) for name, value in row.get("global_values", [])))
             families.setdefault(family, []).append(variant)
     return families
 
@@ -898,6 +900,8 @@ def launch_args(variant: Variant, source: str) -> list[str]:
                 args += ["--param", f"int:{param.value}"]
     for _ in range(variant.dummy_params):
         args += ["--param", "int:0"]
+    for name, value in variant.global_values:
+        args += ["--global", f"{name}={value}"]
     if variant.backend == "amdgpu":
         args += ["--backend", "amdgpu", "--target", "gfx950"]
     return args

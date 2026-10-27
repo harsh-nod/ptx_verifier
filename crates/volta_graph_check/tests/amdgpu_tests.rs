@@ -69,6 +69,28 @@ impl Trace {
         addr: u64,
         write: bool,
     ) -> EventId {
+        self.issue_scoped(
+            wave,
+            pc,
+            class,
+            destinations,
+            held_sources,
+            addr,
+            write,
+            AmdMemoryScope::Unspecified,
+        )
+    }
+    fn issue_scoped(
+        &mut self,
+        wave: u32,
+        pc: u32,
+        class: AmdMemoryClass,
+        destinations: Vec<AmdRegister>,
+        held_sources: Vec<AmdRegister>,
+        addr: u64,
+        write: bool,
+        scope: AmdMemoryScope,
+    ) -> EventId {
         self.ins(wave, pc, held_sources.clone(), destinations.clone());
         let counters = match class {
             AmdMemoryClass::VectorMemory | AmdMemoryClass::VectorStoreWide => {
@@ -112,7 +134,7 @@ impl Trace {
                 value,
             },
         );
-        self.b.amd_memory_effect(issue, effect);
+        self.b.amd_memory_effect_scoped(issue, effect, scope);
         issue
     }
     fn wait(&mut self, wave: u32, pc: u32, vmcnt: Option<u16>, lgkmcnt: Option<u16>) {
@@ -918,6 +940,222 @@ fn cross_wave_global_visibility_is_not_proved_by_a_barrier() {
             .reason
             .contains("cache visibility")
     );
+}
+
+#[test]
+fn scoped_global_publication_requires_both_endpoints_single_cu_completion_and_barrier() {
+    for (producer_scoped, consumer_scoped, single_cu, wait, barrier, verified) in [
+        (true, true, true, true, true, true),
+        (false, true, true, true, true, false),
+        (true, false, true, true, true, false),
+        (true, true, false, true, true, false),
+        (true, true, true, false, true, false),
+        (true, true, true, true, false, false),
+    ] {
+        let mut t = Trace::new(128);
+        if single_cu {
+            t.b.assume(Assumption::SingleCuWorkgroup);
+        }
+        let scope = |yes| {
+            if yes {
+                AmdMemoryScope::Workgroup
+            } else {
+                AmdMemoryScope::Unspecified
+            }
+        };
+        t.issue_scoped(
+            0,
+            0,
+            AmdMemoryClass::VectorMemory,
+            vec![],
+            vec![],
+            0,
+            true,
+            scope(producer_scoped),
+        );
+        if wait {
+            t.wait(0, 1, Some(0), None);
+        }
+        if barrier {
+            t.arrive(0, 0);
+            t.arrive(1, 0);
+            t.release(0, 0);
+            t.release(1, 0);
+        }
+        t.issue_scoped(
+            1,
+            2,
+            AmdMemoryClass::VectorMemory,
+            vec![v(1, 1)],
+            vec![],
+            0,
+            false,
+            scope(consumer_scoped),
+        );
+        t.wait(1, 3, Some(0), None);
+        let report = check_graph(&t.finish());
+        if verified {
+            assert_eq!(report.conclusion(), GraphConclusion::Verified);
+        } else if !wait || !barrier {
+            assert_eq!(
+                report.verdict(Property::AmdMemoryConflict),
+                Verdict::Fail,
+                "{report:?}"
+            );
+        } else {
+            assert_eq!(
+                report.verdict(Property::AmdMemoryConflict),
+                Verdict::Unknown,
+                "{report:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn read_read_global_pairs_do_not_require_publication_scope() {
+    let mut t = Trace::new(128);
+    t.b.assume(Assumption::SingleCuWorkgroup);
+    t.issue_scoped(
+        0,
+        0,
+        AmdMemoryClass::VectorMemory,
+        vec![v(1, 1)],
+        vec![],
+        0,
+        false,
+        AmdMemoryScope::Workgroup,
+    );
+    t.wait(0, 1, Some(0), None);
+    t.arrive(0, 0);
+    t.arrive(1, 0);
+    t.release(0, 0);
+    t.release(1, 0);
+    // This unscoped read only crosses another read; the later scoped write is
+    // in the same wave and the earlier cross-wave read was scoped.
+    t.issue(
+        1,
+        2,
+        AmdMemoryClass::VectorMemory,
+        vec![v(1, 1)],
+        vec![],
+        0,
+        false,
+    );
+    t.wait(1, 3, Some(0), None);
+    t.issue_scoped(
+        1,
+        4,
+        AmdMemoryClass::VectorMemory,
+        vec![],
+        vec![],
+        0,
+        true,
+        AmdMemoryScope::Workgroup,
+    );
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
+    );
+}
+
+#[test]
+fn an_ordered_read_root_cannot_hide_an_unscoped_conflicting_write() {
+    for producer_scoped in [false, true] {
+        let mut t = Trace::new(128);
+        t.b.assume(Assumption::SingleCuWorkgroup);
+        t.issue_scoped(
+            0,
+            0,
+            AmdMemoryClass::VectorMemory,
+            vec![],
+            vec![],
+            0,
+            true,
+            if producer_scoped {
+                AmdMemoryScope::Workgroup
+            } else {
+                AmdMemoryScope::Unspecified
+            },
+        );
+        let producer_effect =
+            t.b.graph_so_far()
+                .amd_memory_effects()
+                .last()
+                .unwrap()
+                .effect;
+        t.wait(0, 1, Some(0), None);
+        t.issue_scoped(
+            0,
+            2,
+            AmdMemoryClass::VectorMemory,
+            vec![v(1, 1)],
+            vec![],
+            0,
+            false,
+            AmdMemoryScope::Workgroup,
+        );
+        t.wait(0, 3, Some(0), None);
+        t.arrive(0, 0);
+        t.arrive(1, 0);
+        t.release(0, 0);
+        t.release(1, 0);
+        t.issue_scoped(
+            1,
+            4,
+            AmdMemoryClass::VectorMemory,
+            vec![v(1, 1)],
+            vec![],
+            0,
+            false,
+            AmdMemoryScope::Workgroup,
+        );
+        t.wait(1, 5, Some(0), None);
+        let report = check_graph(&t.finish());
+        if producer_scoped {
+            assert_eq!(report.conclusion(), GraphConclusion::Verified);
+        } else {
+            assert_eq!(
+                report.verdict(Property::AmdMemoryConflict),
+                Verdict::Unknown
+            );
+            assert!(
+                report
+                    .amd
+                    .unwrap()
+                    .memory_conflict
+                    .unresolved()
+                    .iter()
+                    .any(|u| u.events.contains(&producer_effect))
+            );
+        }
+    }
+}
+
+#[test]
+fn workgroup_scope_cannot_be_attached_to_an_unmodeled_flat_or_scalar_protocol() {
+    for class in [
+        AmdMemoryClass::Flat,
+        AmdMemoryClass::ScalarMemory,
+        AmdMemoryClass::Lds,
+    ] {
+        let mut t = Trace::new(64);
+        t.b.assume(Assumption::SingleCuWorkgroup);
+        t.issue_scoped(
+            0,
+            0,
+            class,
+            vec![v(1, 1)],
+            vec![],
+            0,
+            false,
+            AmdMemoryScope::Workgroup,
+        );
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdTrace),
+            Verdict::Unknown
+        );
+    }
 }
 
 #[test]

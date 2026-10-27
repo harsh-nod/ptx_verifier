@@ -25,10 +25,19 @@ Explicit argument bytes come from AMDHSA argument offsets and sizes. Recognized
 hidden launch fields are initialized from configuration. Unknown hidden runtime
 facilities remain uninitialized and their consumption stops analysis.
 Descriptor/user-SGPR disagreement and argument-count disagreement are errors.
-Kernarg preloading and module global bindings remain unsupported. Launch checks
+Kernarg preloading remains unsupported. Launch checks
 enforce descriptor workgroup limits and required dimensions. Split workgroups
 are unsupported. Explicit VGPR/AGPR allocations must not alias in the unified
 physical register file.
+
+Defined module globals have bounded, aligned storage with their exact initialized
+bytes. `global_values` can override a writable scalar object of one, two, four,
+or eight bytes. Read-only objects cannot be rebound or written. Only the native
+contiguous `s_getpc_b64` / `s_add_u32 symbol@rel32@lo+4` /
+`s_addc_u32 symbol@rel32@hi+12` relocation sequence resolves an object address.
+Intermediate PC words remain opaque and the resulting SCC is undefined; the
+analyzer does not invent linker addresses or carry flags. Undefined externs,
+GOT relocations, arbitrary PC arithmetic, and overlapping storage are rejected.
 
 Concrete integers and addresses use native-width wrapping arithmetic. Symbolic
 integer add/sub/mullo follows the existing mathematical ring contract; native
@@ -60,6 +69,12 @@ Memory is byte-addressed with explicit symbolic granules. Global allocations mus
 be disjoint and accesses must lie inside one declared allocation; LDS is bounded
 by static plus dynamic size. Wide transfers preserve each register-sized granule
 and its byte footprint. Only completely written output elements are extracted.
+An exact native `s_mov_b64 ..., src_shared_base` produces an opaque shared-aperture
+high word and a zero low word. Copies preserve that token. A FLAT address pair
+with this high word and a concrete low offset accesses the same LDS bytes as DS
+instructions; its encoded displacement cannot carry out of the aperture.
+The token cannot become data bits, participate in arithmetic, or form a GLOBAL
+address. Other generic-pointer apertures remain unsupported.
 Generic `gfx950` assembly and explicit `xnack-` targets model execution with
 XNACK replay disabled, matching the test devices; provenance records the
 `XnackReplayDisabled` assumption. Target feature suffixes remain in provenance.
@@ -81,6 +96,13 @@ operands, and attributed byte effects. Kernarg accesses are also recorded.
 Counter waits are observations, not assumed universal completion of every
 operation. The graph checker owns readiness and ordering proofs. The interpreter
 constructs candidate values at issue.
+
+Unsplit workgroups record the `SingleCuWorkgroup` premise. Only native GLOBAL
+loads/stores with `sc0` and without `sc1` annotate workgroup visibility; these
+cache controls add no synchronization edges. Cross-wave GLOBAL publication also
+requires the graph checker's supported completion-and-barrier protocol. Other
+GLOBAL scope combinations, SMEM, and FLAT accesses do not acquire this visibility
+annotation.
 
 LDS barriers record wave arrivals and releases by generation. LDS visibility
 requires the appropriate memory waits as well as rendezvous. DS permutations
@@ -105,7 +127,7 @@ required, except explicitly supported FP8 format and unit-scale selectors.
 | --- | --- | --- |
 | Integer/address ALU | Concrete fixed-width arithmetic, carry masks, bitfields, address packing; symbolic32 add/sub/mullo, bit operations, native shifts, min/max | Symbolic integer division/control and general64-bit integer data remain unsupported; data expressions cannot become address bits |
 | Floating data | Mathematical f32/f64 arithmetic, selected conversions/transcendentals, packed f32/f16 operations, partial-half preservation, OCP E4M3 decoding; f32 clamp for arithmetic, trans, mov and cndmask VOP3 forms | No IEEE rounding/NaN claim; ordered whole-value F64 storage only; symbolic BF16/E5M2 storage remains unsupported; clamp with explicit e32/SDWA, integer/compare/conversion clamp meanings and output scaling remain unsupported |
-| Global and LDS memory | Byte/short/dword and wide transfers, sign extension, narrow-store truncation, dual-offset LDS, static/dynamic LDS bounds | Equal-offset dual LDS operations, scratch, buffer addressing, direct-to-LDS, and atomics remain unsupported |
+| Global and LDS memory | Byte/short/dword and wide transfers, sign extension, narrow-store truncation, dual-offset LDS, static/dynamic LDS bounds, exact opaque shared-aperture FLAT accesses, bounded module globals and scalar bindings | Equal-offset dual LDS operations, scratch/private apertures, arbitrary PC/GOT relocations, buffer addressing, direct-to-LDS, and atomics remain unsupported |
 | Control and synchronization | Scalar branches, concrete EXEC/VCC/SCC, symbolic lane comparison masks and cndmask data selection, save/restore EXEC, memory waits, surviving-wave barriers after whole-wave termination | One workgroup; symbolic control/EXEC/carry/address masks remain unsupported; live-wave loops remain inconclusive on budget exhaustion; partial graph on abort |
 | Cross-lane | DS permute/bpermute with source snapshots and LGKM readiness | DPP and ordinary readlane/readfirstlane/writelane require further software hazard checks |
 | Accumulator registers | Disjoint physical allocation, MFMA accumulation, native AGPR read/write/move and direct stores | Aliasing VGPR/AGPR allocations are rejected |
@@ -134,6 +156,8 @@ narrow transfers; missing stores; budget-limited partial graphs; cross-wave LDS
 exchange; wave reductions; F16/FP8 activation and RoPE packing; undefined flag and
 empty-EXEC safety; native symbolic integer/F64 data; and complete MFMA dot products against independently enumerated
 coordinates. Native compiler fixtures also exercise two-wave LDS/MFMA pipelines,
+module-global relocations and bindings, static LDS padding with genuine external
+dynamic LDS, multidimensional grid/group/block output,
 a convolution tile with the original 576-term reduction and physical pitches,
 and reduced online-softmax attention with QK/PV MFMA and LSE outputs. Reduced
 fixtures do not establish full original-launch capacity or baseline parity.
