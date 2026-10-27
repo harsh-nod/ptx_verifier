@@ -44,6 +44,8 @@ pub enum AmdRegisterHazardKind {
     MatrixOperandBeforeReady,
     MatrixSourceReuse,
     ValuReadBeforeReady,
+    ValuDestinationBeforeReady,
+    ValuScalarReadBeforeReady,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -82,21 +84,28 @@ pub struct AmdReport {
     pub memory_conflict: MemoryConflictResult,
 }
 
-const CLASSES: usize = 6;
+const CLASSES: usize = 5;
 fn class_index(class: AmdMemoryClass) -> usize {
+    // CDNA4 §4.4 orders same-type LDS instructions. §12.12's DS_(B)PERMUTE
+    // uses LDS hardware, with no LDS memory footprint. LLVM AMDGPUHWEvents.cpp
+    // getEventsForImpl at846473237377990d00b9c353f6a2c86116b52ea5 assigns both
+    // ordinary non-GDS DS operations and permutations to LDS_ACCESS. They share
+    // the completion FIFO, while memory effects remain explicitly separate.
     match class {
         AmdMemoryClass::VectorMemory | AmdMemoryClass::VectorStoreWide => 0,
         AmdMemoryClass::ScalarMemory => 1,
-        AmdMemoryClass::Lds => 2,
+        AmdMemoryClass::Lds | AmdMemoryClass::CrossLane => 2,
         AmdMemoryClass::Flat | AmdMemoryClass::FlatStoreWide => 3,
         AmdMemoryClass::Message => 4,
-        AmdMemoryClass::CrossLane => 5,
     }
 }
 fn ordered(class: AmdMemoryClass) -> bool {
     matches!(
         class,
-        AmdMemoryClass::VectorMemory | AmdMemoryClass::VectorStoreWide | AmdMemoryClass::Lds
+        AmdMemoryClass::VectorMemory
+            | AmdMemoryClass::VectorStoreWide
+            | AmdMemoryClass::Lds
+            | AmdMemoryClass::CrossLane
     )
 }
 fn join(to: &mut [u32], from: &[u32]) {
@@ -157,7 +166,9 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
         let check_regs = |regs: &[AmdRegister], unresolved: &mut Vec<Unresolved>| {
             for r in regs {
                 if r.index >= 256
-                    || (r.file == AmdRegisterFile::Scalar && r.index > 101)
+                    || (r.file == AmdRegisterFile::Scalar
+                        && r.index > 101
+                        && !matches!(r.index, 106 | 107 | 126 | 127))
                     || (r.file != AmdRegisterFile::Scalar && (r.lanes == 0 || r.lanes & !mask != 0))
                 {
                     unresolved.push(Unresolved::at(
@@ -172,6 +183,7 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                 exec_mask,
                 reads,
                 writes,
+                scalar_mask_reads,
             } => {
                 instructions += 1;
                 seen[record.wave as usize] = true;
@@ -183,11 +195,25 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                 }
                 check_regs(reads, &mut unresolved);
                 check_regs(writes, &mut unresolved);
+                if scalar_mask_reads.iter().any(|r| {
+                    r.file != AmdRegisterFile::Scalar
+                        || matches!(r.index, 126 | 127)
+                        || !reads.contains(r)
+                }) {
+                    unresolved.push(Unresolved::at(record.event,
+                        "scalar carry/condition roles must be scalar-register reads of this instruction"));
+                }
                 if let Some(previous) = last_instruction.get(&record.wave) {
                     check_missing_semantic(previous, &mut unresolved);
                 }
                 let pc = graph.event(record.event).pc;
                 let kind = pc.map(|p| graph.provenance().instructions[p.0 as usize].kind);
+                if !scalar_mask_reads.is_empty() && kind != Some("vector ALU") {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "carry/condition roles require a supported vector ALU instruction",
+                    ));
+                }
                 let expected = match kind {
                     Some("scalar memory") => Some("memory"),
                     Some("vector memory" | "LDS") if *exec_mask != 0 => Some("memory"),
@@ -341,6 +367,17 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                         unresolved.push(Unresolved::at(
                             record.event,
                             "MFMA requires a complete wave64 in this model",
+                        ));
+                    }
+                    if ![126, 127].iter().all(|&index| {
+                        instruction
+                            .reads
+                            .iter()
+                            .any(|r| r.file == AmdRegisterFile::Scalar && r.index == index)
+                    }) {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "MFMA instruction must record its implicit EXEC low/high reads",
                         ));
                     }
                     if instruction.writes.len() != destinations.len()
@@ -633,6 +670,7 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
     let mut valu_writes = vec![Vec::<(EventId, u64, AmdRegister)>::new(); waves];
     let mut trans_writes = vec![Vec::<(EventId, u64, AmdRegister)>::new(); waves];
     let mut shifted_writes = vec![Vec::<(EventId, u64, AmdRegister)>::new(); waves];
+    let mut scalar_valu_writes = vec![HashMap::<u16, (EventId, u64)>::new(); waves];
     let mut matrix_at = HashMap::new();
     let mut last_instruction = HashMap::new();
     for record in graph.amd_events() {
@@ -665,7 +703,12 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
             }
         }
         match &record.kind {
-            AmdEventKind::Instruction { reads, writes, .. } => {
+            AmdEventKind::Instruction {
+                reads,
+                writes,
+                scalar_mask_reads,
+                ..
+            } => {
                 ticks[wave] = ticks[wave].saturating_add(u64::from(duration[wave]));
                 duration[wave] = 1;
                 let tick = ticks[wave];
@@ -674,6 +717,47 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                     .pc
                     .map(|pc| graph.provenance().instructions[pc.0 as usize].kind)
                     .unwrap_or("");
+                // CDNA4 §4.5 Table11: VALU-produced scalar data needs two
+                // independent states before a VALU constant-data read, five
+                // before VMEM uses it. Carry/condition inputs are interlocked.
+                // VCC low/high occupy scalar106/107 in this instrumentation;
+                // source aliases do not make them invisible to these checks.
+                // EXEC126/127 has a separate four-state VALU→MFMA rule in
+                // CDNA4 §7.6 Table38, including writes that leave EXEC unchanged.
+                scalar_valu_writes[wave].retain(|_, (_, issued)| tick.saturating_sub(*issued) <= 5);
+                let scalar_wait = if instruction_kind == "vector memory" {
+                    5
+                } else if matches!(
+                    instruction_kind,
+                    "vector ALU" | "trans ALU" | "shifted ALU" | "MFMA"
+                ) {
+                    2
+                } else {
+                    0
+                };
+                for &register in reads.iter().filter(|r| {
+                    r.file == AmdRegisterFile::Scalar
+                        && !scalar_mask_reads.iter().any(|mask| mask.overlaps(**r))
+                }) {
+                    if let Some(&(issue, issued)) = scalar_valu_writes[wave].get(&register.index) {
+                        let required = if matrix_at.contains_key(&record.event)
+                            && matches!(register.index, 126 | 127)
+                        {
+                            4
+                        } else {
+                            scalar_wait
+                        };
+                        if tick.saturating_sub(issued).saturating_sub(1) < required {
+                            hazards.push(AmdRegisterHazard {
+                                issue,
+                                use_event: record.event,
+                                wave: record.wave,
+                                register,
+                                kind: AmdRegisterHazardKind::ValuScalarReadBeforeReady,
+                            });
+                        }
+                    }
+                }
                 trans_writes[wave].retain(|(_, written, _)| tick.saturating_sub(*written) < 2);
                 shifted_writes[wave].retain(|(_, written, _)| tick.saturating_sub(*written) < 2);
                 if matches!(instruction_kind, "vector ALU" | "shifted ALU") {
@@ -701,6 +785,18 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                                 wave: record.wave,
                                 register,
                                 kind: AmdRegisterHazardKind::ValuReadBeforeReady,
+                            });
+                        }
+                        // LLVM consumesDstSelForwardingOperand also considers
+                        // destination overlap: preserving/ECC paths can read
+                        // the preceding shifted result through a WAW operand.
+                        for &register in writes.iter().filter(|r| r.overlaps(*written)) {
+                            hazards.push(AmdRegisterHazard {
+                                issue: *issue,
+                                use_event: record.event,
+                                wave: record.wave,
+                                register,
+                                kind: AmdRegisterHazardKind::ValuDestinationBeforeReady,
                             });
                         }
                     }
@@ -835,6 +931,12 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                                 kind,
                             });
                         }
+                    }
+                }
+                for register in writes.iter().filter(|r| r.file == AmdRegisterFile::Scalar) {
+                    scalar_valu_writes[wave].remove(&register.index);
+                    if matches!(instruction_kind, "vector ALU" | "trans ALU" | "shifted ALU") {
+                        scalar_valu_writes[wave].insert(register.index, (record.event, tick));
                     }
                 }
             }

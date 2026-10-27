@@ -94,6 +94,7 @@ impl AmdMatrixKind {
 
 /// One 32-bit register, restricted to a lane mask for vector/accumulator registers.
 /// A register pair/range is represented by one entry per register. Scalar masks are ignored.
+/// VCC low/high use scalar106/107; EXEC low/high use scalar126/127.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct AmdRegister {
     pub file: AmdRegisterFile,
@@ -127,6 +128,9 @@ pub enum AmdEventKind {
         exec_mask: u64,
         reads: Vec<AmdRegister>,
         writes: Vec<AmdRegister>,
+        /// Scalar reads serving only as carry-in/condition masks, rather than
+        /// ordinary scalar data. This is a validated subset of `reads`.
+        scalar_mask_reads: Vec<AmdRegister>,
     },
     /// One issued instruction, not one lane. SMEM charges 1 for dword and 2 for wider
     /// transfers. FLAT charges both VM and LGKM. Destinations remain unavailable until

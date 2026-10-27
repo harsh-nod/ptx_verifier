@@ -52,6 +52,7 @@ impl Trace {
             wave,
             ProgramPoint(pc),
             AmdEventKind::Instruction {
+                scalar_mask_reads: vec![],
                 exec_mask: mask,
                 reads,
                 writes,
@@ -162,6 +163,62 @@ fn target_selects_amd_checks_and_empty_graph_cannot_verify() {
     assert_eq!(r.verdict(Property::AmdTrace), Verdict::Unknown);
     assert_eq!(r.verdict(Property::MemoryConflict), Verdict::Unknown);
     assert!(matches!(r.conclusion(), GraphConclusion::Unknown { .. }));
+}
+
+#[test]
+fn recognized_target_features_select_amd_checks_and_conflicts_remain_unknown() {
+    for (target, supported) in [
+        ("gfx950", true),
+        ("gfx950:xnack-", true),
+        ("gfx950:xnack+", true),
+        ("gfx950:sramecc+:xnack-", true),
+        ("gfx950:xnack+:sramecc-", true),
+        ("gfx950:xnack-:xnack+", false),
+        ("gfx950:xnack-:xnack-", false),
+        ("gfx950:sramecc+:sramecc-", false),
+        ("gfx950:wave32", false),
+        ("gfx950:", false),
+        ("gfx942:xnack-", false),
+    ] {
+        let mut builder = GraphBuilder::new(Provenance {
+            kernel: "target_features".into(),
+            block_dim: (64, 1, 1),
+            grid_dim: (1, 1, 1),
+            targets: vec![target.into()],
+            assumptions: vec![],
+            instructions: vec![InstructionInfo {
+                kind: "vector ALU",
+                span: None,
+            }],
+        });
+        builder.amd_event(
+            0,
+            ProgramPoint(0),
+            AmdEventKind::Instruction {
+                exec_mask: u64::MAX,
+                reads: vec![],
+                writes: vec![],
+                scalar_mask_reads: vec![],
+            },
+        );
+        for thread in 0..64 {
+            builder.exit(ThreadIx(thread), ProgramPoint(0));
+        }
+        let checks = check_graph(&builder.finish(Terminal::Completed));
+        assert_eq!(checks.applicable_properties(), &Property::AMD, "{target}");
+        if supported {
+            assert_eq!(
+                checks.conclusion(),
+                GraphConclusion::Verified,
+                "{target}: {checks:?}"
+            );
+        } else {
+            assert!(
+                matches!(checks.conclusion(), GraphConclusion::Unknown { .. }),
+                "{target}"
+            );
+        }
+    }
 }
 
 #[test]
@@ -480,6 +537,7 @@ fn malformed_source_point_and_nonphysical_exec_mask_are_unknown_without_panics()
         0,
         ProgramPoint(0),
         AmdEventKind::Instruction {
+            scalar_mask_reads: vec![],
             exec_mask: 1u64 << 63,
             reads: vec![],
             writes: vec![],
@@ -575,6 +633,7 @@ fn matrix(t: &mut Trace, pc: u32, accumulate: bool) {
     };
     let mut reads = sources_ab.clone();
     reads.extend(accumulator.clone());
+    reads.extend([s(126), s(127)]);
     t.ins(0, pc, reads, destinations.clone());
     t.b.amd_event(
         0,
@@ -837,6 +896,7 @@ fn exact_accumulator_forwarding_does_not_require_reusing_the_output_registers() 
     let accumulator = (2..6).map(|r| v(r, u64::MAX)).collect::<Vec<_>>();
     let mut reads = sources_ab.clone();
     reads.extend(accumulator.clone());
+    reads.extend([s(126), s(127)]);
     t.ins(0, 1, reads, destinations.clone());
     t.b.amd_event(
         0,
@@ -872,6 +932,7 @@ fn matrix_form(t: &mut Trace, pc: u32, kind: AmdMatrixKind, c_start: Option<u16>
         .unwrap_or_default();
     let mut reads = sources_ab.clone();
     reads.extend(accumulator.clone());
+    reads.extend([s(126), s(127)]);
     t.ins(0, pc, reads, destinations.clone());
     t.b.amd_event(
         0,
@@ -1048,5 +1109,326 @@ fn exact_src_c_does_not_forward_between_different_matrix_pass_counts() {
     assert_eq!(
         check_graph(&t.finish()).conclusion(),
         GraphConclusion::Verified
+    );
+}
+
+fn cross_lane_issue(t: &mut Trace, pc: u32, destination: u16) {
+    let destinations = vec![v(destination, u64::MAX)];
+    t.ins(0, pc, vec![v(0, u64::MAX)], destinations.clone());
+    t.b.amd_event(
+        0,
+        ProgramPoint(pc),
+        AmdEventKind::MemoryIssue {
+            class: AmdMemoryClass::CrossLane,
+            counters: vec![(AmdCounter::Lgkm, 1)],
+            destinations,
+            held_sources: vec![],
+        },
+    );
+}
+
+#[test]
+fn partial_cross_lane_wait_retires_only_guaranteed_ds_fifo_prefix() {
+    for (threshold, read, expected) in [
+        (3, 20, Verdict::Pass),
+        (3, 21, Verdict::Fail),
+        (4, 20, Verdict::Fail),
+    ] {
+        let mut t = Trace::new(64);
+        for index in 0..4 {
+            cross_lane_issue(&mut t, index, 20 + index as u16);
+        }
+        t.wait(0, 4, None, Some(threshold));
+        t.ins(0, 5, vec![v(read, u64::MAX)], vec![]);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass, "{r:?}");
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            expected,
+            "threshold={threshold},read=v{read}: {r:?}"
+        );
+    }
+}
+
+#[test]
+fn lds_memory_and_permutation_share_ds_fifo_but_smem_remains_unordered() {
+    let mut t = Trace::new(64);
+    t.issue(
+        0,
+        0,
+        AmdMemoryClass::Lds,
+        vec![v(10, u64::MAX)],
+        vec![],
+        0,
+        false,
+    );
+    cross_lane_issue(&mut t, 1, 20);
+    cross_lane_issue(&mut t, 2, 21);
+    t.wait(0, 3, None, Some(2));
+    t.ins(0, 4, vec![v(10, u64::MAX)], vec![]);
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
+    );
+    for zero in [false, true] {
+        let mut t = Trace::new(64);
+        cross_lane_issue(&mut t, 0, 20);
+        t.issue(
+            0,
+            1,
+            AmdMemoryClass::ScalarMemory,
+            vec![s(4)],
+            vec![],
+            100,
+            false,
+        );
+        cross_lane_issue(&mut t, 2, 21);
+        t.wait(0, 3, None, Some(if zero { 0 } else { 2 }));
+        t.ins(0, 4, vec![v(20, u64::MAX)], vec![]);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass, "{r:?}");
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            if zero { Verdict::Pass } else { Verdict::Fail }
+        );
+    }
+}
+
+#[test]
+fn valu_generated_scalar_data_requires_two_valu_or_five_vmem_states() {
+    for (memory, required) in [(false, 2u16), (true, 5u16)] {
+        for independent in [0, required - 1, required] {
+            let mut p = Trace::new(64).b.graph_so_far().provenance().clone();
+            p.instructions[0].kind = "vector ALU";
+            p.instructions[1].kind = "s_nop";
+            p.instructions[2].kind = if memory {
+                "vector memory"
+            } else {
+                "vector ALU"
+            };
+            let mut t = Trace {
+                b: GraphBuilder::new(p),
+                threads: 64,
+            };
+            t.ins(0, 0, vec![], vec![s(4)]);
+            if independent != 0 {
+                delay(&mut t, 1, independent);
+            }
+            let consumer = if memory {
+                t.issue(
+                    0,
+                    2,
+                    AmdMemoryClass::VectorMemory,
+                    vec![v(3, u64::MAX)],
+                    vec![s(4)],
+                    100,
+                    false,
+                )
+            } else {
+                t.ins(0, 2, vec![s(4)], vec![v(3, u64::MAX)])
+            };
+            let r = check_graph(&t.finish());
+            assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass, "{r:?}");
+            assert_eq!(
+                r.verdict(Property::AmdWaitReadiness),
+                if independent == required {
+                    Verdict::Pass
+                } else {
+                    Verdict::Fail
+                },
+                "memory={memory},independent={independent}: {r:?}"
+            );
+            if independent != required {
+                assert!(
+                    r.amd
+                        .unwrap()
+                        .wait_readiness
+                        .violations()
+                        .iter()
+                        .any(
+                            |h| h.kind == AmdRegisterHazardKind::ValuScalarReadBeforeReady
+                                && h.register == s(4)
+                                && (h.use_event == consumer || memory)
+                        )
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn vcc_masks_are_visible_but_carry_selector_roles_need_no_software_bubble() {
+    for index in [106, 107] {
+        for mask in [false, true] {
+            let mut p = Trace::new(64).b.graph_so_far().provenance().clone();
+            p.instructions[0].kind = "vector ALU";
+            p.instructions[1].kind = "vector ALU";
+            let mut t = Trace {
+                b: GraphBuilder::new(p),
+                threads: 64,
+            };
+            t.ins(0, 0, vec![], vec![s(index)]);
+            t.b.amd_event(
+                0,
+                ProgramPoint(1),
+                AmdEventKind::Instruction {
+                    exec_mask: u64::MAX,
+                    reads: vec![s(index)],
+                    writes: vec![v(0, u64::MAX)],
+                    scalar_mask_reads: if mask { vec![s(index)] } else { vec![] },
+                },
+            );
+            let r = check_graph(&t.finish());
+            assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass, "{r:?}");
+            assert_eq!(
+                r.verdict(Property::AmdWaitReadiness),
+                if mask { Verdict::Pass } else { Verdict::Fail }
+            );
+        }
+    }
+    let mut t = Trace::new(64);
+    t.b.amd_event(
+        0,
+        ProgramPoint(0),
+        AmdEventKind::Instruction {
+            exec_mask: u64::MAX,
+            reads: vec![s(4)],
+            writes: vec![],
+            scalar_mask_reads: vec![s(5)],
+        },
+    );
+    assert_eq!(
+        check_graph(&t.finish()).verdict(Property::AmdTrace),
+        Verdict::Unknown
+    );
+}
+
+#[test]
+fn later_salu_write_replaces_the_pending_valu_scalar_producer() {
+    let mut p = Trace::new(64).b.graph_so_far().provenance().clone();
+    p.instructions[0].kind = "vector ALU";
+    p.instructions[1].kind = "scalar ALU";
+    p.instructions[2].kind = "vector ALU";
+    let mut t = Trace {
+        b: GraphBuilder::new(p),
+        threads: 64,
+    };
+    t.ins(0, 0, vec![], vec![s(4)]);
+    t.ins(0, 1, vec![], vec![s(4)]);
+    t.ins(0, 2, vec![s(4)], vec![v(0, u64::MAX)]);
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
+    );
+}
+
+#[test]
+fn valu_exec_write_requires_four_states_before_mfma_even_when_mask_stays_full() {
+    for independent in [0, 3, 4] {
+        let mut p = Trace::new(64).b.graph_so_far().provenance().clone();
+        p.instructions[0].kind = "vector ALU";
+        p.instructions[1].kind = "s_nop";
+        p.instructions[2].kind = "MFMA";
+        let mut t = Trace {
+            b: GraphBuilder::new(p),
+            threads: 64,
+        };
+        // The concrete EXEC mask remains all ones; its VALU write still needs
+        // a software bubble because hardware does not forward EXEC to MFMA.
+        t.ins(0, 0, vec![], vec![s(126), s(127)]);
+        if independent != 0 {
+            delay(&mut t, 1, independent);
+        }
+        matrix(&mut t, 2, false);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass, "{r:?}");
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            if independent == 4 {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            },
+            "{r:?}"
+        );
+        if independent != 4 {
+            assert!(
+                r.amd
+                    .unwrap()
+                    .wait_readiness
+                    .violations()
+                    .iter()
+                    .any(
+                        |h| h.kind == AmdRegisterHazardKind::ValuScalarReadBeforeReady
+                            && h.register.index == 126
+                    )
+            );
+        }
+    }
+}
+
+#[test]
+fn shifted_result_overwrite_requires_one_state_for_destination_forwarding() {
+    for independent in [false, true] {
+        let mut p = Trace::new(64).b.graph_so_far().provenance().clone();
+        p.instructions[0].kind = "shifted ALU";
+        p.instructions[2].kind = "vector ALU";
+        let mut t = Trace {
+            b: GraphBuilder::new(p),
+            threads: 64,
+        };
+        t.ins(0, 0, vec![v(0, 1)], vec![v(1, 1)]);
+        if independent {
+            t.ins(0, 1, vec![], vec![]);
+        }
+        let overwrite = t.ins(0, 2, vec![], vec![v(1, 1)]);
+        let r = check_graph(&t.finish());
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            if independent {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            }
+        );
+        if !independent {
+            assert!(
+                r.amd
+                    .unwrap()
+                    .wait_readiness
+                    .violations()
+                    .iter()
+                    .any(|h| h.use_event == overwrite
+                        && h.kind == AmdRegisterHazardKind::ValuDestinationBeforeReady)
+            );
+        }
+    }
+}
+
+#[test]
+fn mfma_missing_implicit_exec_reads_is_incomplete_instrumentation() {
+    let mut t = Trace::new(64);
+    let destinations = (2..6).map(|r| v(r, u64::MAX)).collect::<Vec<_>>();
+    let sources_ab = vec![v(0, u64::MAX), v(1, u64::MAX)];
+    t.ins(0, 0, sources_ab.clone(), destinations.clone());
+    t.b.amd_event(
+        0,
+        ProgramPoint(0),
+        AmdEventKind::MatrixIssue {
+            kind: AmdMatrixKind::F32_16x16x4,
+            destinations,
+            sources_ab,
+            accumulator: vec![],
+        },
+    );
+    let r = check_graph(&t.finish());
+    assert_eq!(r.verdict(Property::AmdTrace), Verdict::Unknown);
+    assert!(
+        r.amd
+            .unwrap()
+            .trace
+            .unresolved()
+            .iter()
+            .any(|u| u.reason.contains("implicit EXEC"))
     );
 }

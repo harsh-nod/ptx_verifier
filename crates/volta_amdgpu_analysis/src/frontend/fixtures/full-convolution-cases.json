@@ -1,0 +1,6351 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "kernel": "convolution_f16_full",
+      "family": "Convolution2DKernel",
+      "source": "native-full-convolution.hip",
+      "assembly": "native-full-convolution.s",
+      "spec": "specs/full_convolution.spec",
+      "baseline_path": "ai_compiler_kernels/Convolution2DKernel/NVIDIA_B200_Float16_1.3590x.ptx",
+      "baseline_sha256": "49596b37404efe90d1501b76148a01d4f73aacb127660d8f9badcf933f1a67b5",
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "C": 64,
+        "H": 56,
+        "W": 56,
+        "O": 128,
+        "R": 3,
+        "S": 3,
+        "ROW": 54,
+        "TAIL": 20
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 1048576,
+          "element_size": 2,
+          "length": 200704,
+          "kind": "in"
+        },
+        {
+          "name": "weight",
+          "base_address": 2097152,
+          "element_size": 2,
+          "length": 73728,
+          "kind": "in"
+        },
+        {
+          "name": "out000_r0",
+          "base_address": 3145728,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out000_r1",
+          "base_address": 3145836,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out000_r2",
+          "base_address": 3145944,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out001_r0",
+          "base_address": 3151560,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out001_r1",
+          "base_address": 3151668,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out001_r2",
+          "base_address": 3151776,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out002_r0",
+          "base_address": 3157392,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out002_r1",
+          "base_address": 3157500,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out002_r2",
+          "base_address": 3157608,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out003_r0",
+          "base_address": 3163224,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out003_r1",
+          "base_address": 3163332,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out003_r2",
+          "base_address": 3163440,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out004_r0",
+          "base_address": 3169056,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out004_r1",
+          "base_address": 3169164,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out004_r2",
+          "base_address": 3169272,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out005_r0",
+          "base_address": 3174888,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out005_r1",
+          "base_address": 3174996,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out005_r2",
+          "base_address": 3175104,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out006_r0",
+          "base_address": 3180720,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out006_r1",
+          "base_address": 3180828,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out006_r2",
+          "base_address": 3180936,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out007_r0",
+          "base_address": 3186552,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out007_r1",
+          "base_address": 3186660,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out007_r2",
+          "base_address": 3186768,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out008_r0",
+          "base_address": 3192384,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out008_r1",
+          "base_address": 3192492,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out008_r2",
+          "base_address": 3192600,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out009_r0",
+          "base_address": 3198216,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out009_r1",
+          "base_address": 3198324,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out009_r2",
+          "base_address": 3198432,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out010_r0",
+          "base_address": 3204048,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out010_r1",
+          "base_address": 3204156,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out010_r2",
+          "base_address": 3204264,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out011_r0",
+          "base_address": 3209880,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out011_r1",
+          "base_address": 3209988,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out011_r2",
+          "base_address": 3210096,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out012_r0",
+          "base_address": 3215712,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out012_r1",
+          "base_address": 3215820,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out012_r2",
+          "base_address": 3215928,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out013_r0",
+          "base_address": 3221544,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out013_r1",
+          "base_address": 3221652,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out013_r2",
+          "base_address": 3221760,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out014_r0",
+          "base_address": 3227376,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out014_r1",
+          "base_address": 3227484,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out014_r2",
+          "base_address": 3227592,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out015_r0",
+          "base_address": 3233208,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out015_r1",
+          "base_address": 3233316,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out015_r2",
+          "base_address": 3233424,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out016_r0",
+          "base_address": 3239040,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out016_r1",
+          "base_address": 3239148,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out016_r2",
+          "base_address": 3239256,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out017_r0",
+          "base_address": 3244872,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out017_r1",
+          "base_address": 3244980,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out017_r2",
+          "base_address": 3245088,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out018_r0",
+          "base_address": 3250704,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out018_r1",
+          "base_address": 3250812,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out018_r2",
+          "base_address": 3250920,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out019_r0",
+          "base_address": 3256536,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out019_r1",
+          "base_address": 3256644,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out019_r2",
+          "base_address": 3256752,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out020_r0",
+          "base_address": 3262368,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out020_r1",
+          "base_address": 3262476,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out020_r2",
+          "base_address": 3262584,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out021_r0",
+          "base_address": 3268200,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out021_r1",
+          "base_address": 3268308,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out021_r2",
+          "base_address": 3268416,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out022_r0",
+          "base_address": 3274032,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out022_r1",
+          "base_address": 3274140,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out022_r2",
+          "base_address": 3274248,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out023_r0",
+          "base_address": 3279864,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out023_r1",
+          "base_address": 3279972,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out023_r2",
+          "base_address": 3280080,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out024_r0",
+          "base_address": 3285696,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out024_r1",
+          "base_address": 3285804,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out024_r2",
+          "base_address": 3285912,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out025_r0",
+          "base_address": 3291528,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out025_r1",
+          "base_address": 3291636,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out025_r2",
+          "base_address": 3291744,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out026_r0",
+          "base_address": 3297360,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out026_r1",
+          "base_address": 3297468,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out026_r2",
+          "base_address": 3297576,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out027_r0",
+          "base_address": 3303192,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out027_r1",
+          "base_address": 3303300,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out027_r2",
+          "base_address": 3303408,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out028_r0",
+          "base_address": 3309024,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out028_r1",
+          "base_address": 3309132,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out028_r2",
+          "base_address": 3309240,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out029_r0",
+          "base_address": 3314856,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out029_r1",
+          "base_address": 3314964,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out029_r2",
+          "base_address": 3315072,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out030_r0",
+          "base_address": 3320688,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out030_r1",
+          "base_address": 3320796,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out030_r2",
+          "base_address": 3320904,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out031_r0",
+          "base_address": 3326520,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out031_r1",
+          "base_address": 3326628,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out031_r2",
+          "base_address": 3326736,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out032_r0",
+          "base_address": 3332352,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out032_r1",
+          "base_address": 3332460,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out032_r2",
+          "base_address": 3332568,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out033_r0",
+          "base_address": 3338184,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out033_r1",
+          "base_address": 3338292,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out033_r2",
+          "base_address": 3338400,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out034_r0",
+          "base_address": 3344016,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out034_r1",
+          "base_address": 3344124,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out034_r2",
+          "base_address": 3344232,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out035_r0",
+          "base_address": 3349848,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out035_r1",
+          "base_address": 3349956,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out035_r2",
+          "base_address": 3350064,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out036_r0",
+          "base_address": 3355680,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out036_r1",
+          "base_address": 3355788,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out036_r2",
+          "base_address": 3355896,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out037_r0",
+          "base_address": 3361512,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out037_r1",
+          "base_address": 3361620,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out037_r2",
+          "base_address": 3361728,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out038_r0",
+          "base_address": 3367344,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out038_r1",
+          "base_address": 3367452,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out038_r2",
+          "base_address": 3367560,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out039_r0",
+          "base_address": 3373176,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out039_r1",
+          "base_address": 3373284,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out039_r2",
+          "base_address": 3373392,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out040_r0",
+          "base_address": 3379008,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out040_r1",
+          "base_address": 3379116,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out040_r2",
+          "base_address": 3379224,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out041_r0",
+          "base_address": 3384840,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out041_r1",
+          "base_address": 3384948,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out041_r2",
+          "base_address": 3385056,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out042_r0",
+          "base_address": 3390672,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out042_r1",
+          "base_address": 3390780,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out042_r2",
+          "base_address": 3390888,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out043_r0",
+          "base_address": 3396504,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out043_r1",
+          "base_address": 3396612,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out043_r2",
+          "base_address": 3396720,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out044_r0",
+          "base_address": 3402336,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out044_r1",
+          "base_address": 3402444,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out044_r2",
+          "base_address": 3402552,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out045_r0",
+          "base_address": 3408168,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out045_r1",
+          "base_address": 3408276,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out045_r2",
+          "base_address": 3408384,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out046_r0",
+          "base_address": 3414000,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out046_r1",
+          "base_address": 3414108,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out046_r2",
+          "base_address": 3414216,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out047_r0",
+          "base_address": 3419832,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out047_r1",
+          "base_address": 3419940,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out047_r2",
+          "base_address": 3420048,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out048_r0",
+          "base_address": 3425664,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out048_r1",
+          "base_address": 3425772,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out048_r2",
+          "base_address": 3425880,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out049_r0",
+          "base_address": 3431496,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out049_r1",
+          "base_address": 3431604,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out049_r2",
+          "base_address": 3431712,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out050_r0",
+          "base_address": 3437328,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out050_r1",
+          "base_address": 3437436,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out050_r2",
+          "base_address": 3437544,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out051_r0",
+          "base_address": 3443160,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out051_r1",
+          "base_address": 3443268,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out051_r2",
+          "base_address": 3443376,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out052_r0",
+          "base_address": 3448992,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out052_r1",
+          "base_address": 3449100,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out052_r2",
+          "base_address": 3449208,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out053_r0",
+          "base_address": 3454824,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out053_r1",
+          "base_address": 3454932,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out053_r2",
+          "base_address": 3455040,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out054_r0",
+          "base_address": 3460656,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out054_r1",
+          "base_address": 3460764,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out054_r2",
+          "base_address": 3460872,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out055_r0",
+          "base_address": 3466488,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out055_r1",
+          "base_address": 3466596,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out055_r2",
+          "base_address": 3466704,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out056_r0",
+          "base_address": 3472320,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out056_r1",
+          "base_address": 3472428,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out056_r2",
+          "base_address": 3472536,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out057_r0",
+          "base_address": 3478152,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out057_r1",
+          "base_address": 3478260,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out057_r2",
+          "base_address": 3478368,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out058_r0",
+          "base_address": 3483984,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out058_r1",
+          "base_address": 3484092,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out058_r2",
+          "base_address": 3484200,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out059_r0",
+          "base_address": 3489816,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out059_r1",
+          "base_address": 3489924,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out059_r2",
+          "base_address": 3490032,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out060_r0",
+          "base_address": 3495648,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out060_r1",
+          "base_address": 3495756,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out060_r2",
+          "base_address": 3495864,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out061_r0",
+          "base_address": 3501480,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out061_r1",
+          "base_address": 3501588,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out061_r2",
+          "base_address": 3501696,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out062_r0",
+          "base_address": 3507312,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out062_r1",
+          "base_address": 3507420,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out062_r2",
+          "base_address": 3507528,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out063_r0",
+          "base_address": 3513144,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out063_r1",
+          "base_address": 3513252,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out063_r2",
+          "base_address": 3513360,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out064_r0",
+          "base_address": 3518976,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out064_r1",
+          "base_address": 3519084,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out064_r2",
+          "base_address": 3519192,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out065_r0",
+          "base_address": 3524808,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out065_r1",
+          "base_address": 3524916,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out065_r2",
+          "base_address": 3525024,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out066_r0",
+          "base_address": 3530640,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out066_r1",
+          "base_address": 3530748,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out066_r2",
+          "base_address": 3530856,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out067_r0",
+          "base_address": 3536472,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out067_r1",
+          "base_address": 3536580,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out067_r2",
+          "base_address": 3536688,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out068_r0",
+          "base_address": 3542304,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out068_r1",
+          "base_address": 3542412,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out068_r2",
+          "base_address": 3542520,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out069_r0",
+          "base_address": 3548136,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out069_r1",
+          "base_address": 3548244,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out069_r2",
+          "base_address": 3548352,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out070_r0",
+          "base_address": 3553968,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out070_r1",
+          "base_address": 3554076,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out070_r2",
+          "base_address": 3554184,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out071_r0",
+          "base_address": 3559800,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out071_r1",
+          "base_address": 3559908,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out071_r2",
+          "base_address": 3560016,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out072_r0",
+          "base_address": 3565632,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out072_r1",
+          "base_address": 3565740,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out072_r2",
+          "base_address": 3565848,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out073_r0",
+          "base_address": 3571464,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out073_r1",
+          "base_address": 3571572,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out073_r2",
+          "base_address": 3571680,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out074_r0",
+          "base_address": 3577296,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out074_r1",
+          "base_address": 3577404,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out074_r2",
+          "base_address": 3577512,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out075_r0",
+          "base_address": 3583128,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out075_r1",
+          "base_address": 3583236,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out075_r2",
+          "base_address": 3583344,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out076_r0",
+          "base_address": 3588960,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out076_r1",
+          "base_address": 3589068,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out076_r2",
+          "base_address": 3589176,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out077_r0",
+          "base_address": 3594792,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out077_r1",
+          "base_address": 3594900,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out077_r2",
+          "base_address": 3595008,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out078_r0",
+          "base_address": 3600624,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out078_r1",
+          "base_address": 3600732,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out078_r2",
+          "base_address": 3600840,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out079_r0",
+          "base_address": 3606456,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out079_r1",
+          "base_address": 3606564,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out079_r2",
+          "base_address": 3606672,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out080_r0",
+          "base_address": 3612288,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out080_r1",
+          "base_address": 3612396,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out080_r2",
+          "base_address": 3612504,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out081_r0",
+          "base_address": 3618120,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out081_r1",
+          "base_address": 3618228,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out081_r2",
+          "base_address": 3618336,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out082_r0",
+          "base_address": 3623952,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out082_r1",
+          "base_address": 3624060,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out082_r2",
+          "base_address": 3624168,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out083_r0",
+          "base_address": 3629784,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out083_r1",
+          "base_address": 3629892,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out083_r2",
+          "base_address": 3630000,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out084_r0",
+          "base_address": 3635616,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out084_r1",
+          "base_address": 3635724,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out084_r2",
+          "base_address": 3635832,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out085_r0",
+          "base_address": 3641448,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out085_r1",
+          "base_address": 3641556,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out085_r2",
+          "base_address": 3641664,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out086_r0",
+          "base_address": 3647280,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out086_r1",
+          "base_address": 3647388,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out086_r2",
+          "base_address": 3647496,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out087_r0",
+          "base_address": 3653112,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out087_r1",
+          "base_address": 3653220,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out087_r2",
+          "base_address": 3653328,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out088_r0",
+          "base_address": 3658944,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out088_r1",
+          "base_address": 3659052,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out088_r2",
+          "base_address": 3659160,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out089_r0",
+          "base_address": 3664776,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out089_r1",
+          "base_address": 3664884,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out089_r2",
+          "base_address": 3664992,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out090_r0",
+          "base_address": 3670608,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out090_r1",
+          "base_address": 3670716,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out090_r2",
+          "base_address": 3670824,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out091_r0",
+          "base_address": 3676440,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out091_r1",
+          "base_address": 3676548,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out091_r2",
+          "base_address": 3676656,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out092_r0",
+          "base_address": 3682272,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out092_r1",
+          "base_address": 3682380,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out092_r2",
+          "base_address": 3682488,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out093_r0",
+          "base_address": 3688104,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out093_r1",
+          "base_address": 3688212,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out093_r2",
+          "base_address": 3688320,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out094_r0",
+          "base_address": 3693936,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out094_r1",
+          "base_address": 3694044,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out094_r2",
+          "base_address": 3694152,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out095_r0",
+          "base_address": 3699768,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out095_r1",
+          "base_address": 3699876,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out095_r2",
+          "base_address": 3699984,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out096_r0",
+          "base_address": 3705600,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out096_r1",
+          "base_address": 3705708,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out096_r2",
+          "base_address": 3705816,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out097_r0",
+          "base_address": 3711432,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out097_r1",
+          "base_address": 3711540,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out097_r2",
+          "base_address": 3711648,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out098_r0",
+          "base_address": 3717264,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out098_r1",
+          "base_address": 3717372,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out098_r2",
+          "base_address": 3717480,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out099_r0",
+          "base_address": 3723096,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out099_r1",
+          "base_address": 3723204,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out099_r2",
+          "base_address": 3723312,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out100_r0",
+          "base_address": 3728928,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out100_r1",
+          "base_address": 3729036,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out100_r2",
+          "base_address": 3729144,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out101_r0",
+          "base_address": 3734760,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out101_r1",
+          "base_address": 3734868,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out101_r2",
+          "base_address": 3734976,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out102_r0",
+          "base_address": 3740592,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out102_r1",
+          "base_address": 3740700,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out102_r2",
+          "base_address": 3740808,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out103_r0",
+          "base_address": 3746424,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out103_r1",
+          "base_address": 3746532,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out103_r2",
+          "base_address": 3746640,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out104_r0",
+          "base_address": 3752256,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out104_r1",
+          "base_address": 3752364,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out104_r2",
+          "base_address": 3752472,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out105_r0",
+          "base_address": 3758088,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out105_r1",
+          "base_address": 3758196,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out105_r2",
+          "base_address": 3758304,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out106_r0",
+          "base_address": 3763920,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out106_r1",
+          "base_address": 3764028,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out106_r2",
+          "base_address": 3764136,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out107_r0",
+          "base_address": 3769752,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out107_r1",
+          "base_address": 3769860,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out107_r2",
+          "base_address": 3769968,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out108_r0",
+          "base_address": 3775584,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out108_r1",
+          "base_address": 3775692,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out108_r2",
+          "base_address": 3775800,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out109_r0",
+          "base_address": 3781416,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out109_r1",
+          "base_address": 3781524,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out109_r2",
+          "base_address": 3781632,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out110_r0",
+          "base_address": 3787248,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out110_r1",
+          "base_address": 3787356,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out110_r2",
+          "base_address": 3787464,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out111_r0",
+          "base_address": 3793080,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out111_r1",
+          "base_address": 3793188,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out111_r2",
+          "base_address": 3793296,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out112_r0",
+          "base_address": 3798912,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out112_r1",
+          "base_address": 3799020,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out112_r2",
+          "base_address": 3799128,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out113_r0",
+          "base_address": 3804744,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out113_r1",
+          "base_address": 3804852,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out113_r2",
+          "base_address": 3804960,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out114_r0",
+          "base_address": 3810576,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out114_r1",
+          "base_address": 3810684,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out114_r2",
+          "base_address": 3810792,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out115_r0",
+          "base_address": 3816408,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out115_r1",
+          "base_address": 3816516,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out115_r2",
+          "base_address": 3816624,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out116_r0",
+          "base_address": 3822240,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out116_r1",
+          "base_address": 3822348,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out116_r2",
+          "base_address": 3822456,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out117_r0",
+          "base_address": 3828072,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out117_r1",
+          "base_address": 3828180,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out117_r2",
+          "base_address": 3828288,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out118_r0",
+          "base_address": 3833904,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out118_r1",
+          "base_address": 3834012,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out118_r2",
+          "base_address": 3834120,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out119_r0",
+          "base_address": 3839736,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out119_r1",
+          "base_address": 3839844,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out119_r2",
+          "base_address": 3839952,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out120_r0",
+          "base_address": 3845568,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out120_r1",
+          "base_address": 3845676,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out120_r2",
+          "base_address": 3845784,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out121_r0",
+          "base_address": 3851400,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out121_r1",
+          "base_address": 3851508,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out121_r2",
+          "base_address": 3851616,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out122_r0",
+          "base_address": 3857232,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out122_r1",
+          "base_address": 3857340,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out122_r2",
+          "base_address": 3857448,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out123_r0",
+          "base_address": 3863064,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out123_r1",
+          "base_address": 3863172,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out123_r2",
+          "base_address": 3863280,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out124_r0",
+          "base_address": 3868896,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out124_r1",
+          "base_address": 3869004,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out124_r2",
+          "base_address": 3869112,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out125_r0",
+          "base_address": 3874728,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out125_r1",
+          "base_address": 3874836,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out125_r2",
+          "base_address": 3874944,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out126_r0",
+          "base_address": 3880560,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out126_r1",
+          "base_address": 3880668,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out126_r2",
+          "base_address": 3880776,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out127_r0",
+          "base_address": 3886392,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out127_r1",
+          "base_address": 3886500,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out127_r2",
+          "base_address": 3886608,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:weight",
+        "ptr:out000_r0"
+      ],
+      "expected_output_footprint": {
+        "arrays": [
+          "out000_r0",
+          "out000_r1",
+          "out000_r2",
+          "out001_r0",
+          "out001_r1",
+          "out001_r2",
+          "out002_r0",
+          "out002_r1",
+          "out002_r2",
+          "out003_r0",
+          "out003_r1",
+          "out003_r2",
+          "out004_r0",
+          "out004_r1",
+          "out004_r2",
+          "out005_r0",
+          "out005_r1",
+          "out005_r2",
+          "out006_r0",
+          "out006_r1",
+          "out006_r2",
+          "out007_r0",
+          "out007_r1",
+          "out007_r2",
+          "out008_r0",
+          "out008_r1",
+          "out008_r2",
+          "out009_r0",
+          "out009_r1",
+          "out009_r2",
+          "out010_r0",
+          "out010_r1",
+          "out010_r2",
+          "out011_r0",
+          "out011_r1",
+          "out011_r2",
+          "out012_r0",
+          "out012_r1",
+          "out012_r2",
+          "out013_r0",
+          "out013_r1",
+          "out013_r2",
+          "out014_r0",
+          "out014_r1",
+          "out014_r2",
+          "out015_r0",
+          "out015_r1",
+          "out015_r2",
+          "out016_r0",
+          "out016_r1",
+          "out016_r2",
+          "out017_r0",
+          "out017_r1",
+          "out017_r2",
+          "out018_r0",
+          "out018_r1",
+          "out018_r2",
+          "out019_r0",
+          "out019_r1",
+          "out019_r2",
+          "out020_r0",
+          "out020_r1",
+          "out020_r2",
+          "out021_r0",
+          "out021_r1",
+          "out021_r2",
+          "out022_r0",
+          "out022_r1",
+          "out022_r2",
+          "out023_r0",
+          "out023_r1",
+          "out023_r2",
+          "out024_r0",
+          "out024_r1",
+          "out024_r2",
+          "out025_r0",
+          "out025_r1",
+          "out025_r2",
+          "out026_r0",
+          "out026_r1",
+          "out026_r2",
+          "out027_r0",
+          "out027_r1",
+          "out027_r2",
+          "out028_r0",
+          "out028_r1",
+          "out028_r2",
+          "out029_r0",
+          "out029_r1",
+          "out029_r2",
+          "out030_r0",
+          "out030_r1",
+          "out030_r2",
+          "out031_r0",
+          "out031_r1",
+          "out031_r2",
+          "out032_r0",
+          "out032_r1",
+          "out032_r2",
+          "out033_r0",
+          "out033_r1",
+          "out033_r2",
+          "out034_r0",
+          "out034_r1",
+          "out034_r2",
+          "out035_r0",
+          "out035_r1",
+          "out035_r2",
+          "out036_r0",
+          "out036_r1",
+          "out036_r2",
+          "out037_r0",
+          "out037_r1",
+          "out037_r2",
+          "out038_r0",
+          "out038_r1",
+          "out038_r2",
+          "out039_r0",
+          "out039_r1",
+          "out039_r2",
+          "out040_r0",
+          "out040_r1",
+          "out040_r2",
+          "out041_r0",
+          "out041_r1",
+          "out041_r2",
+          "out042_r0",
+          "out042_r1",
+          "out042_r2",
+          "out043_r0",
+          "out043_r1",
+          "out043_r2",
+          "out044_r0",
+          "out044_r1",
+          "out044_r2",
+          "out045_r0",
+          "out045_r1",
+          "out045_r2",
+          "out046_r0",
+          "out046_r1",
+          "out046_r2",
+          "out047_r0",
+          "out047_r1",
+          "out047_r2",
+          "out048_r0",
+          "out048_r1",
+          "out048_r2",
+          "out049_r0",
+          "out049_r1",
+          "out049_r2",
+          "out050_r0",
+          "out050_r1",
+          "out050_r2",
+          "out051_r0",
+          "out051_r1",
+          "out051_r2",
+          "out052_r0",
+          "out052_r1",
+          "out052_r2",
+          "out053_r0",
+          "out053_r1",
+          "out053_r2",
+          "out054_r0",
+          "out054_r1",
+          "out054_r2",
+          "out055_r0",
+          "out055_r1",
+          "out055_r2",
+          "out056_r0",
+          "out056_r1",
+          "out056_r2",
+          "out057_r0",
+          "out057_r1",
+          "out057_r2",
+          "out058_r0",
+          "out058_r1",
+          "out058_r2",
+          "out059_r0",
+          "out059_r1",
+          "out059_r2",
+          "out060_r0",
+          "out060_r1",
+          "out060_r2",
+          "out061_r0",
+          "out061_r1",
+          "out061_r2",
+          "out062_r0",
+          "out062_r1",
+          "out062_r2",
+          "out063_r0",
+          "out063_r1",
+          "out063_r2",
+          "out064_r0",
+          "out064_r1",
+          "out064_r2",
+          "out065_r0",
+          "out065_r1",
+          "out065_r2",
+          "out066_r0",
+          "out066_r1",
+          "out066_r2",
+          "out067_r0",
+          "out067_r1",
+          "out067_r2",
+          "out068_r0",
+          "out068_r1",
+          "out068_r2",
+          "out069_r0",
+          "out069_r1",
+          "out069_r2",
+          "out070_r0",
+          "out070_r1",
+          "out070_r2",
+          "out071_r0",
+          "out071_r1",
+          "out071_r2",
+          "out072_r0",
+          "out072_r1",
+          "out072_r2",
+          "out073_r0",
+          "out073_r1",
+          "out073_r2",
+          "out074_r0",
+          "out074_r1",
+          "out074_r2",
+          "out075_r0",
+          "out075_r1",
+          "out075_r2",
+          "out076_r0",
+          "out076_r1",
+          "out076_r2",
+          "out077_r0",
+          "out077_r1",
+          "out077_r2",
+          "out078_r0",
+          "out078_r1",
+          "out078_r2",
+          "out079_r0",
+          "out079_r1",
+          "out079_r2",
+          "out080_r0",
+          "out080_r1",
+          "out080_r2",
+          "out081_r0",
+          "out081_r1",
+          "out081_r2",
+          "out082_r0",
+          "out082_r1",
+          "out082_r2",
+          "out083_r0",
+          "out083_r1",
+          "out083_r2",
+          "out084_r0",
+          "out084_r1",
+          "out084_r2",
+          "out085_r0",
+          "out085_r1",
+          "out085_r2",
+          "out086_r0",
+          "out086_r1",
+          "out086_r2",
+          "out087_r0",
+          "out087_r1",
+          "out087_r2",
+          "out088_r0",
+          "out088_r1",
+          "out088_r2",
+          "out089_r0",
+          "out089_r1",
+          "out089_r2",
+          "out090_r0",
+          "out090_r1",
+          "out090_r2",
+          "out091_r0",
+          "out091_r1",
+          "out091_r2",
+          "out092_r0",
+          "out092_r1",
+          "out092_r2",
+          "out093_r0",
+          "out093_r1",
+          "out093_r2",
+          "out094_r0",
+          "out094_r1",
+          "out094_r2",
+          "out095_r0",
+          "out095_r1",
+          "out095_r2",
+          "out096_r0",
+          "out096_r1",
+          "out096_r2",
+          "out097_r0",
+          "out097_r1",
+          "out097_r2",
+          "out098_r0",
+          "out098_r1",
+          "out098_r2",
+          "out099_r0",
+          "out099_r1",
+          "out099_r2",
+          "out100_r0",
+          "out100_r1",
+          "out100_r2",
+          "out101_r0",
+          "out101_r1",
+          "out101_r2",
+          "out102_r0",
+          "out102_r1",
+          "out102_r2",
+          "out103_r0",
+          "out103_r1",
+          "out103_r2",
+          "out104_r0",
+          "out104_r1",
+          "out104_r2",
+          "out105_r0",
+          "out105_r1",
+          "out105_r2",
+          "out106_r0",
+          "out106_r1",
+          "out106_r2",
+          "out107_r0",
+          "out107_r1",
+          "out107_r2",
+          "out108_r0",
+          "out108_r1",
+          "out108_r2",
+          "out109_r0",
+          "out109_r1",
+          "out109_r2",
+          "out110_r0",
+          "out110_r1",
+          "out110_r2",
+          "out111_r0",
+          "out111_r1",
+          "out111_r2",
+          "out112_r0",
+          "out112_r1",
+          "out112_r2",
+          "out113_r0",
+          "out113_r1",
+          "out113_r2",
+          "out114_r0",
+          "out114_r1",
+          "out114_r2",
+          "out115_r0",
+          "out115_r1",
+          "out115_r2",
+          "out116_r0",
+          "out116_r1",
+          "out116_r2",
+          "out117_r0",
+          "out117_r1",
+          "out117_r2",
+          "out118_r0",
+          "out118_r1",
+          "out118_r2",
+          "out119_r0",
+          "out119_r1",
+          "out119_r2",
+          "out120_r0",
+          "out120_r1",
+          "out120_r2",
+          "out121_r0",
+          "out121_r1",
+          "out121_r2",
+          "out122_r0",
+          "out122_r1",
+          "out122_r2",
+          "out123_r0",
+          "out123_r1",
+          "out123_r2",
+          "out124_r0",
+          "out124_r1",
+          "out124_r2",
+          "out125_r0",
+          "out125_r1",
+          "out125_r2",
+          "out126_r0",
+          "out126_r1",
+          "out126_r2",
+          "out127_r0",
+          "out127_r1",
+          "out127_r2"
+        ],
+        "elements": 16384,
+        "bytes": 32768
+      },
+      "full_baseline_shape": true,
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "preserved_patterns": [
+        "complete128spatial x128channel CTA tile",
+        "all64x3x3=576 reduction terms",
+        "original NCHW56x56 input and OIHW128x64x3x3 weights",
+        "valid54x54 output and2916-element channel pitch",
+        "native F16 MFMA",
+        "two alternating LDS buffers",
+        "cross-wave producers and repeated workgroup barriers"
+      ],
+      "notes": [
+        "Native block512 replaces original128 threads to distribute the full16384-element output tile across8wave64s; output/reduction shape is unchanged.",
+        "Both input dtypes are preserved externally. OCP E4M3 is decoded exactly into F16 before matrix consumption; no FNUZ substitution.",
+        "The first128 output spatial positions cross two full54-column rows and20 positions in a third. Three affine slices per channel retain the actual pitch and complete footprint.",
+        "Volatile half stores preserve actual2-byte transfers, preventing widening across reference-slice boundaries.",
+        "Case is the full original CTA0 tile; whole-grid padded/tail behavior is not certified by this case."
+      ],
+      "baseline_output_tile": {
+        "spatial": 128,
+        "channels": 128,
+        "elements": 16384
+      },
+      "native_output_tile": {
+        "spatial": 128,
+        "channels": 128,
+        "elements": 16384
+      },
+      "baseline_tile_mapping": {
+        "kind": "same-output-tile",
+        "elements": 16384,
+        "channel_pitch_elements": 2916
+      }
+    },
+    {
+      "kernel": "convolution_f8_full",
+      "family": "Convolution2DKernel",
+      "source": "native-full-convolution.hip",
+      "assembly": "native-full-convolution.s",
+      "spec": "specs/full_convolution.spec",
+      "baseline_path": "ai_compiler_kernels/Convolution2DKernel/NVIDIA_B200_Float8_2.0810x.ptx",
+      "baseline_sha256": "d18ceac4018f8fffbbad2b251f9279a2b220c066d9352b85bc8674913d674b0b",
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "C": 64,
+        "H": 56,
+        "W": 56,
+        "O": 128,
+        "R": 3,
+        "S": 3,
+        "ROW": 54,
+        "TAIL": 20
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 1048576,
+          "element_size": 1,
+          "length": 200704,
+          "kind": "in"
+        },
+        {
+          "name": "weight",
+          "base_address": 2097152,
+          "element_size": 1,
+          "length": 73728,
+          "kind": "in"
+        },
+        {
+          "name": "out000_r0",
+          "base_address": 3145728,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out000_r1",
+          "base_address": 3145836,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out000_r2",
+          "base_address": 3145944,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out001_r0",
+          "base_address": 3151560,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out001_r1",
+          "base_address": 3151668,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out001_r2",
+          "base_address": 3151776,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out002_r0",
+          "base_address": 3157392,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out002_r1",
+          "base_address": 3157500,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out002_r2",
+          "base_address": 3157608,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out003_r0",
+          "base_address": 3163224,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out003_r1",
+          "base_address": 3163332,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out003_r2",
+          "base_address": 3163440,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out004_r0",
+          "base_address": 3169056,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out004_r1",
+          "base_address": 3169164,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out004_r2",
+          "base_address": 3169272,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out005_r0",
+          "base_address": 3174888,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out005_r1",
+          "base_address": 3174996,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out005_r2",
+          "base_address": 3175104,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out006_r0",
+          "base_address": 3180720,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out006_r1",
+          "base_address": 3180828,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out006_r2",
+          "base_address": 3180936,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out007_r0",
+          "base_address": 3186552,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out007_r1",
+          "base_address": 3186660,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out007_r2",
+          "base_address": 3186768,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out008_r0",
+          "base_address": 3192384,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out008_r1",
+          "base_address": 3192492,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out008_r2",
+          "base_address": 3192600,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out009_r0",
+          "base_address": 3198216,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out009_r1",
+          "base_address": 3198324,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out009_r2",
+          "base_address": 3198432,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out010_r0",
+          "base_address": 3204048,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out010_r1",
+          "base_address": 3204156,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out010_r2",
+          "base_address": 3204264,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out011_r0",
+          "base_address": 3209880,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out011_r1",
+          "base_address": 3209988,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out011_r2",
+          "base_address": 3210096,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out012_r0",
+          "base_address": 3215712,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out012_r1",
+          "base_address": 3215820,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out012_r2",
+          "base_address": 3215928,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out013_r0",
+          "base_address": 3221544,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out013_r1",
+          "base_address": 3221652,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out013_r2",
+          "base_address": 3221760,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out014_r0",
+          "base_address": 3227376,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out014_r1",
+          "base_address": 3227484,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out014_r2",
+          "base_address": 3227592,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out015_r0",
+          "base_address": 3233208,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out015_r1",
+          "base_address": 3233316,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out015_r2",
+          "base_address": 3233424,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out016_r0",
+          "base_address": 3239040,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out016_r1",
+          "base_address": 3239148,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out016_r2",
+          "base_address": 3239256,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out017_r0",
+          "base_address": 3244872,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out017_r1",
+          "base_address": 3244980,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out017_r2",
+          "base_address": 3245088,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out018_r0",
+          "base_address": 3250704,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out018_r1",
+          "base_address": 3250812,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out018_r2",
+          "base_address": 3250920,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out019_r0",
+          "base_address": 3256536,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out019_r1",
+          "base_address": 3256644,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out019_r2",
+          "base_address": 3256752,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out020_r0",
+          "base_address": 3262368,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out020_r1",
+          "base_address": 3262476,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out020_r2",
+          "base_address": 3262584,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out021_r0",
+          "base_address": 3268200,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out021_r1",
+          "base_address": 3268308,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out021_r2",
+          "base_address": 3268416,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out022_r0",
+          "base_address": 3274032,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out022_r1",
+          "base_address": 3274140,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out022_r2",
+          "base_address": 3274248,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out023_r0",
+          "base_address": 3279864,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out023_r1",
+          "base_address": 3279972,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out023_r2",
+          "base_address": 3280080,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out024_r0",
+          "base_address": 3285696,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out024_r1",
+          "base_address": 3285804,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out024_r2",
+          "base_address": 3285912,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out025_r0",
+          "base_address": 3291528,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out025_r1",
+          "base_address": 3291636,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out025_r2",
+          "base_address": 3291744,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out026_r0",
+          "base_address": 3297360,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out026_r1",
+          "base_address": 3297468,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out026_r2",
+          "base_address": 3297576,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out027_r0",
+          "base_address": 3303192,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out027_r1",
+          "base_address": 3303300,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out027_r2",
+          "base_address": 3303408,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out028_r0",
+          "base_address": 3309024,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out028_r1",
+          "base_address": 3309132,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out028_r2",
+          "base_address": 3309240,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out029_r0",
+          "base_address": 3314856,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out029_r1",
+          "base_address": 3314964,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out029_r2",
+          "base_address": 3315072,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out030_r0",
+          "base_address": 3320688,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out030_r1",
+          "base_address": 3320796,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out030_r2",
+          "base_address": 3320904,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out031_r0",
+          "base_address": 3326520,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out031_r1",
+          "base_address": 3326628,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out031_r2",
+          "base_address": 3326736,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out032_r0",
+          "base_address": 3332352,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out032_r1",
+          "base_address": 3332460,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out032_r2",
+          "base_address": 3332568,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out033_r0",
+          "base_address": 3338184,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out033_r1",
+          "base_address": 3338292,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out033_r2",
+          "base_address": 3338400,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out034_r0",
+          "base_address": 3344016,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out034_r1",
+          "base_address": 3344124,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out034_r2",
+          "base_address": 3344232,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out035_r0",
+          "base_address": 3349848,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out035_r1",
+          "base_address": 3349956,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out035_r2",
+          "base_address": 3350064,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out036_r0",
+          "base_address": 3355680,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out036_r1",
+          "base_address": 3355788,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out036_r2",
+          "base_address": 3355896,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out037_r0",
+          "base_address": 3361512,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out037_r1",
+          "base_address": 3361620,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out037_r2",
+          "base_address": 3361728,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out038_r0",
+          "base_address": 3367344,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out038_r1",
+          "base_address": 3367452,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out038_r2",
+          "base_address": 3367560,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out039_r0",
+          "base_address": 3373176,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out039_r1",
+          "base_address": 3373284,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out039_r2",
+          "base_address": 3373392,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out040_r0",
+          "base_address": 3379008,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out040_r1",
+          "base_address": 3379116,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out040_r2",
+          "base_address": 3379224,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out041_r0",
+          "base_address": 3384840,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out041_r1",
+          "base_address": 3384948,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out041_r2",
+          "base_address": 3385056,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out042_r0",
+          "base_address": 3390672,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out042_r1",
+          "base_address": 3390780,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out042_r2",
+          "base_address": 3390888,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out043_r0",
+          "base_address": 3396504,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out043_r1",
+          "base_address": 3396612,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out043_r2",
+          "base_address": 3396720,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out044_r0",
+          "base_address": 3402336,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out044_r1",
+          "base_address": 3402444,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out044_r2",
+          "base_address": 3402552,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out045_r0",
+          "base_address": 3408168,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out045_r1",
+          "base_address": 3408276,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out045_r2",
+          "base_address": 3408384,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out046_r0",
+          "base_address": 3414000,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out046_r1",
+          "base_address": 3414108,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out046_r2",
+          "base_address": 3414216,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out047_r0",
+          "base_address": 3419832,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out047_r1",
+          "base_address": 3419940,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out047_r2",
+          "base_address": 3420048,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out048_r0",
+          "base_address": 3425664,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out048_r1",
+          "base_address": 3425772,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out048_r2",
+          "base_address": 3425880,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out049_r0",
+          "base_address": 3431496,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out049_r1",
+          "base_address": 3431604,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out049_r2",
+          "base_address": 3431712,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out050_r0",
+          "base_address": 3437328,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out050_r1",
+          "base_address": 3437436,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out050_r2",
+          "base_address": 3437544,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out051_r0",
+          "base_address": 3443160,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out051_r1",
+          "base_address": 3443268,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out051_r2",
+          "base_address": 3443376,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out052_r0",
+          "base_address": 3448992,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out052_r1",
+          "base_address": 3449100,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out052_r2",
+          "base_address": 3449208,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out053_r0",
+          "base_address": 3454824,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out053_r1",
+          "base_address": 3454932,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out053_r2",
+          "base_address": 3455040,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out054_r0",
+          "base_address": 3460656,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out054_r1",
+          "base_address": 3460764,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out054_r2",
+          "base_address": 3460872,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out055_r0",
+          "base_address": 3466488,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out055_r1",
+          "base_address": 3466596,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out055_r2",
+          "base_address": 3466704,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out056_r0",
+          "base_address": 3472320,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out056_r1",
+          "base_address": 3472428,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out056_r2",
+          "base_address": 3472536,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out057_r0",
+          "base_address": 3478152,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out057_r1",
+          "base_address": 3478260,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out057_r2",
+          "base_address": 3478368,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out058_r0",
+          "base_address": 3483984,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out058_r1",
+          "base_address": 3484092,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out058_r2",
+          "base_address": 3484200,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out059_r0",
+          "base_address": 3489816,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out059_r1",
+          "base_address": 3489924,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out059_r2",
+          "base_address": 3490032,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out060_r0",
+          "base_address": 3495648,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out060_r1",
+          "base_address": 3495756,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out060_r2",
+          "base_address": 3495864,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out061_r0",
+          "base_address": 3501480,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out061_r1",
+          "base_address": 3501588,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out061_r2",
+          "base_address": 3501696,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out062_r0",
+          "base_address": 3507312,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out062_r1",
+          "base_address": 3507420,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out062_r2",
+          "base_address": 3507528,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out063_r0",
+          "base_address": 3513144,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out063_r1",
+          "base_address": 3513252,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out063_r2",
+          "base_address": 3513360,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out064_r0",
+          "base_address": 3518976,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out064_r1",
+          "base_address": 3519084,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out064_r2",
+          "base_address": 3519192,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out065_r0",
+          "base_address": 3524808,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out065_r1",
+          "base_address": 3524916,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out065_r2",
+          "base_address": 3525024,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out066_r0",
+          "base_address": 3530640,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out066_r1",
+          "base_address": 3530748,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out066_r2",
+          "base_address": 3530856,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out067_r0",
+          "base_address": 3536472,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out067_r1",
+          "base_address": 3536580,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out067_r2",
+          "base_address": 3536688,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out068_r0",
+          "base_address": 3542304,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out068_r1",
+          "base_address": 3542412,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out068_r2",
+          "base_address": 3542520,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out069_r0",
+          "base_address": 3548136,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out069_r1",
+          "base_address": 3548244,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out069_r2",
+          "base_address": 3548352,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out070_r0",
+          "base_address": 3553968,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out070_r1",
+          "base_address": 3554076,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out070_r2",
+          "base_address": 3554184,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out071_r0",
+          "base_address": 3559800,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out071_r1",
+          "base_address": 3559908,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out071_r2",
+          "base_address": 3560016,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out072_r0",
+          "base_address": 3565632,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out072_r1",
+          "base_address": 3565740,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out072_r2",
+          "base_address": 3565848,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out073_r0",
+          "base_address": 3571464,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out073_r1",
+          "base_address": 3571572,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out073_r2",
+          "base_address": 3571680,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out074_r0",
+          "base_address": 3577296,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out074_r1",
+          "base_address": 3577404,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out074_r2",
+          "base_address": 3577512,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out075_r0",
+          "base_address": 3583128,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out075_r1",
+          "base_address": 3583236,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out075_r2",
+          "base_address": 3583344,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out076_r0",
+          "base_address": 3588960,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out076_r1",
+          "base_address": 3589068,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out076_r2",
+          "base_address": 3589176,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out077_r0",
+          "base_address": 3594792,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out077_r1",
+          "base_address": 3594900,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out077_r2",
+          "base_address": 3595008,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out078_r0",
+          "base_address": 3600624,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out078_r1",
+          "base_address": 3600732,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out078_r2",
+          "base_address": 3600840,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out079_r0",
+          "base_address": 3606456,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out079_r1",
+          "base_address": 3606564,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out079_r2",
+          "base_address": 3606672,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out080_r0",
+          "base_address": 3612288,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out080_r1",
+          "base_address": 3612396,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out080_r2",
+          "base_address": 3612504,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out081_r0",
+          "base_address": 3618120,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out081_r1",
+          "base_address": 3618228,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out081_r2",
+          "base_address": 3618336,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out082_r0",
+          "base_address": 3623952,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out082_r1",
+          "base_address": 3624060,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out082_r2",
+          "base_address": 3624168,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out083_r0",
+          "base_address": 3629784,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out083_r1",
+          "base_address": 3629892,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out083_r2",
+          "base_address": 3630000,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out084_r0",
+          "base_address": 3635616,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out084_r1",
+          "base_address": 3635724,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out084_r2",
+          "base_address": 3635832,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out085_r0",
+          "base_address": 3641448,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out085_r1",
+          "base_address": 3641556,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out085_r2",
+          "base_address": 3641664,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out086_r0",
+          "base_address": 3647280,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out086_r1",
+          "base_address": 3647388,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out086_r2",
+          "base_address": 3647496,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out087_r0",
+          "base_address": 3653112,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out087_r1",
+          "base_address": 3653220,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out087_r2",
+          "base_address": 3653328,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out088_r0",
+          "base_address": 3658944,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out088_r1",
+          "base_address": 3659052,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out088_r2",
+          "base_address": 3659160,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out089_r0",
+          "base_address": 3664776,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out089_r1",
+          "base_address": 3664884,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out089_r2",
+          "base_address": 3664992,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out090_r0",
+          "base_address": 3670608,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out090_r1",
+          "base_address": 3670716,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out090_r2",
+          "base_address": 3670824,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out091_r0",
+          "base_address": 3676440,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out091_r1",
+          "base_address": 3676548,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out091_r2",
+          "base_address": 3676656,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out092_r0",
+          "base_address": 3682272,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out092_r1",
+          "base_address": 3682380,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out092_r2",
+          "base_address": 3682488,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out093_r0",
+          "base_address": 3688104,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out093_r1",
+          "base_address": 3688212,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out093_r2",
+          "base_address": 3688320,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out094_r0",
+          "base_address": 3693936,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out094_r1",
+          "base_address": 3694044,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out094_r2",
+          "base_address": 3694152,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out095_r0",
+          "base_address": 3699768,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out095_r1",
+          "base_address": 3699876,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out095_r2",
+          "base_address": 3699984,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out096_r0",
+          "base_address": 3705600,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out096_r1",
+          "base_address": 3705708,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out096_r2",
+          "base_address": 3705816,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out097_r0",
+          "base_address": 3711432,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out097_r1",
+          "base_address": 3711540,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out097_r2",
+          "base_address": 3711648,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out098_r0",
+          "base_address": 3717264,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out098_r1",
+          "base_address": 3717372,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out098_r2",
+          "base_address": 3717480,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out099_r0",
+          "base_address": 3723096,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out099_r1",
+          "base_address": 3723204,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out099_r2",
+          "base_address": 3723312,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out100_r0",
+          "base_address": 3728928,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out100_r1",
+          "base_address": 3729036,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out100_r2",
+          "base_address": 3729144,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out101_r0",
+          "base_address": 3734760,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out101_r1",
+          "base_address": 3734868,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out101_r2",
+          "base_address": 3734976,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out102_r0",
+          "base_address": 3740592,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out102_r1",
+          "base_address": 3740700,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out102_r2",
+          "base_address": 3740808,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out103_r0",
+          "base_address": 3746424,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out103_r1",
+          "base_address": 3746532,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out103_r2",
+          "base_address": 3746640,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out104_r0",
+          "base_address": 3752256,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out104_r1",
+          "base_address": 3752364,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out104_r2",
+          "base_address": 3752472,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out105_r0",
+          "base_address": 3758088,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out105_r1",
+          "base_address": 3758196,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out105_r2",
+          "base_address": 3758304,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out106_r0",
+          "base_address": 3763920,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out106_r1",
+          "base_address": 3764028,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out106_r2",
+          "base_address": 3764136,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out107_r0",
+          "base_address": 3769752,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out107_r1",
+          "base_address": 3769860,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out107_r2",
+          "base_address": 3769968,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out108_r0",
+          "base_address": 3775584,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out108_r1",
+          "base_address": 3775692,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out108_r2",
+          "base_address": 3775800,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out109_r0",
+          "base_address": 3781416,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out109_r1",
+          "base_address": 3781524,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out109_r2",
+          "base_address": 3781632,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out110_r0",
+          "base_address": 3787248,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out110_r1",
+          "base_address": 3787356,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out110_r2",
+          "base_address": 3787464,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out111_r0",
+          "base_address": 3793080,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out111_r1",
+          "base_address": 3793188,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out111_r2",
+          "base_address": 3793296,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out112_r0",
+          "base_address": 3798912,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out112_r1",
+          "base_address": 3799020,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out112_r2",
+          "base_address": 3799128,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out113_r0",
+          "base_address": 3804744,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out113_r1",
+          "base_address": 3804852,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out113_r2",
+          "base_address": 3804960,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out114_r0",
+          "base_address": 3810576,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out114_r1",
+          "base_address": 3810684,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out114_r2",
+          "base_address": 3810792,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out115_r0",
+          "base_address": 3816408,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out115_r1",
+          "base_address": 3816516,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out115_r2",
+          "base_address": 3816624,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out116_r0",
+          "base_address": 3822240,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out116_r1",
+          "base_address": 3822348,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out116_r2",
+          "base_address": 3822456,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out117_r0",
+          "base_address": 3828072,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out117_r1",
+          "base_address": 3828180,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out117_r2",
+          "base_address": 3828288,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out118_r0",
+          "base_address": 3833904,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out118_r1",
+          "base_address": 3834012,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out118_r2",
+          "base_address": 3834120,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out119_r0",
+          "base_address": 3839736,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out119_r1",
+          "base_address": 3839844,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out119_r2",
+          "base_address": 3839952,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out120_r0",
+          "base_address": 3845568,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out120_r1",
+          "base_address": 3845676,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out120_r2",
+          "base_address": 3845784,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out121_r0",
+          "base_address": 3851400,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out121_r1",
+          "base_address": 3851508,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out121_r2",
+          "base_address": 3851616,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out122_r0",
+          "base_address": 3857232,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out122_r1",
+          "base_address": 3857340,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out122_r2",
+          "base_address": 3857448,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out123_r0",
+          "base_address": 3863064,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out123_r1",
+          "base_address": 3863172,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out123_r2",
+          "base_address": 3863280,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out124_r0",
+          "base_address": 3868896,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out124_r1",
+          "base_address": 3869004,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out124_r2",
+          "base_address": 3869112,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out125_r0",
+          "base_address": 3874728,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out125_r1",
+          "base_address": 3874836,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out125_r2",
+          "base_address": 3874944,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out126_r0",
+          "base_address": 3880560,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out126_r1",
+          "base_address": 3880668,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out126_r2",
+          "base_address": 3880776,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        },
+        {
+          "name": "out127_r0",
+          "base_address": 3886392,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out127_r1",
+          "base_address": 3886500,
+          "element_size": 2,
+          "length": 54,
+          "kind": "out"
+        },
+        {
+          "name": "out127_r2",
+          "base_address": 3886608,
+          "element_size": 2,
+          "length": 20,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:weight",
+        "ptr:out000_r0"
+      ],
+      "expected_output_footprint": {
+        "arrays": [
+          "out000_r0",
+          "out000_r1",
+          "out000_r2",
+          "out001_r0",
+          "out001_r1",
+          "out001_r2",
+          "out002_r0",
+          "out002_r1",
+          "out002_r2",
+          "out003_r0",
+          "out003_r1",
+          "out003_r2",
+          "out004_r0",
+          "out004_r1",
+          "out004_r2",
+          "out005_r0",
+          "out005_r1",
+          "out005_r2",
+          "out006_r0",
+          "out006_r1",
+          "out006_r2",
+          "out007_r0",
+          "out007_r1",
+          "out007_r2",
+          "out008_r0",
+          "out008_r1",
+          "out008_r2",
+          "out009_r0",
+          "out009_r1",
+          "out009_r2",
+          "out010_r0",
+          "out010_r1",
+          "out010_r2",
+          "out011_r0",
+          "out011_r1",
+          "out011_r2",
+          "out012_r0",
+          "out012_r1",
+          "out012_r2",
+          "out013_r0",
+          "out013_r1",
+          "out013_r2",
+          "out014_r0",
+          "out014_r1",
+          "out014_r2",
+          "out015_r0",
+          "out015_r1",
+          "out015_r2",
+          "out016_r0",
+          "out016_r1",
+          "out016_r2",
+          "out017_r0",
+          "out017_r1",
+          "out017_r2",
+          "out018_r0",
+          "out018_r1",
+          "out018_r2",
+          "out019_r0",
+          "out019_r1",
+          "out019_r2",
+          "out020_r0",
+          "out020_r1",
+          "out020_r2",
+          "out021_r0",
+          "out021_r1",
+          "out021_r2",
+          "out022_r0",
+          "out022_r1",
+          "out022_r2",
+          "out023_r0",
+          "out023_r1",
+          "out023_r2",
+          "out024_r0",
+          "out024_r1",
+          "out024_r2",
+          "out025_r0",
+          "out025_r1",
+          "out025_r2",
+          "out026_r0",
+          "out026_r1",
+          "out026_r2",
+          "out027_r0",
+          "out027_r1",
+          "out027_r2",
+          "out028_r0",
+          "out028_r1",
+          "out028_r2",
+          "out029_r0",
+          "out029_r1",
+          "out029_r2",
+          "out030_r0",
+          "out030_r1",
+          "out030_r2",
+          "out031_r0",
+          "out031_r1",
+          "out031_r2",
+          "out032_r0",
+          "out032_r1",
+          "out032_r2",
+          "out033_r0",
+          "out033_r1",
+          "out033_r2",
+          "out034_r0",
+          "out034_r1",
+          "out034_r2",
+          "out035_r0",
+          "out035_r1",
+          "out035_r2",
+          "out036_r0",
+          "out036_r1",
+          "out036_r2",
+          "out037_r0",
+          "out037_r1",
+          "out037_r2",
+          "out038_r0",
+          "out038_r1",
+          "out038_r2",
+          "out039_r0",
+          "out039_r1",
+          "out039_r2",
+          "out040_r0",
+          "out040_r1",
+          "out040_r2",
+          "out041_r0",
+          "out041_r1",
+          "out041_r2",
+          "out042_r0",
+          "out042_r1",
+          "out042_r2",
+          "out043_r0",
+          "out043_r1",
+          "out043_r2",
+          "out044_r0",
+          "out044_r1",
+          "out044_r2",
+          "out045_r0",
+          "out045_r1",
+          "out045_r2",
+          "out046_r0",
+          "out046_r1",
+          "out046_r2",
+          "out047_r0",
+          "out047_r1",
+          "out047_r2",
+          "out048_r0",
+          "out048_r1",
+          "out048_r2",
+          "out049_r0",
+          "out049_r1",
+          "out049_r2",
+          "out050_r0",
+          "out050_r1",
+          "out050_r2",
+          "out051_r0",
+          "out051_r1",
+          "out051_r2",
+          "out052_r0",
+          "out052_r1",
+          "out052_r2",
+          "out053_r0",
+          "out053_r1",
+          "out053_r2",
+          "out054_r0",
+          "out054_r1",
+          "out054_r2",
+          "out055_r0",
+          "out055_r1",
+          "out055_r2",
+          "out056_r0",
+          "out056_r1",
+          "out056_r2",
+          "out057_r0",
+          "out057_r1",
+          "out057_r2",
+          "out058_r0",
+          "out058_r1",
+          "out058_r2",
+          "out059_r0",
+          "out059_r1",
+          "out059_r2",
+          "out060_r0",
+          "out060_r1",
+          "out060_r2",
+          "out061_r0",
+          "out061_r1",
+          "out061_r2",
+          "out062_r0",
+          "out062_r1",
+          "out062_r2",
+          "out063_r0",
+          "out063_r1",
+          "out063_r2",
+          "out064_r0",
+          "out064_r1",
+          "out064_r2",
+          "out065_r0",
+          "out065_r1",
+          "out065_r2",
+          "out066_r0",
+          "out066_r1",
+          "out066_r2",
+          "out067_r0",
+          "out067_r1",
+          "out067_r2",
+          "out068_r0",
+          "out068_r1",
+          "out068_r2",
+          "out069_r0",
+          "out069_r1",
+          "out069_r2",
+          "out070_r0",
+          "out070_r1",
+          "out070_r2",
+          "out071_r0",
+          "out071_r1",
+          "out071_r2",
+          "out072_r0",
+          "out072_r1",
+          "out072_r2",
+          "out073_r0",
+          "out073_r1",
+          "out073_r2",
+          "out074_r0",
+          "out074_r1",
+          "out074_r2",
+          "out075_r0",
+          "out075_r1",
+          "out075_r2",
+          "out076_r0",
+          "out076_r1",
+          "out076_r2",
+          "out077_r0",
+          "out077_r1",
+          "out077_r2",
+          "out078_r0",
+          "out078_r1",
+          "out078_r2",
+          "out079_r0",
+          "out079_r1",
+          "out079_r2",
+          "out080_r0",
+          "out080_r1",
+          "out080_r2",
+          "out081_r0",
+          "out081_r1",
+          "out081_r2",
+          "out082_r0",
+          "out082_r1",
+          "out082_r2",
+          "out083_r0",
+          "out083_r1",
+          "out083_r2",
+          "out084_r0",
+          "out084_r1",
+          "out084_r2",
+          "out085_r0",
+          "out085_r1",
+          "out085_r2",
+          "out086_r0",
+          "out086_r1",
+          "out086_r2",
+          "out087_r0",
+          "out087_r1",
+          "out087_r2",
+          "out088_r0",
+          "out088_r1",
+          "out088_r2",
+          "out089_r0",
+          "out089_r1",
+          "out089_r2",
+          "out090_r0",
+          "out090_r1",
+          "out090_r2",
+          "out091_r0",
+          "out091_r1",
+          "out091_r2",
+          "out092_r0",
+          "out092_r1",
+          "out092_r2",
+          "out093_r0",
+          "out093_r1",
+          "out093_r2",
+          "out094_r0",
+          "out094_r1",
+          "out094_r2",
+          "out095_r0",
+          "out095_r1",
+          "out095_r2",
+          "out096_r0",
+          "out096_r1",
+          "out096_r2",
+          "out097_r0",
+          "out097_r1",
+          "out097_r2",
+          "out098_r0",
+          "out098_r1",
+          "out098_r2",
+          "out099_r0",
+          "out099_r1",
+          "out099_r2",
+          "out100_r0",
+          "out100_r1",
+          "out100_r2",
+          "out101_r0",
+          "out101_r1",
+          "out101_r2",
+          "out102_r0",
+          "out102_r1",
+          "out102_r2",
+          "out103_r0",
+          "out103_r1",
+          "out103_r2",
+          "out104_r0",
+          "out104_r1",
+          "out104_r2",
+          "out105_r0",
+          "out105_r1",
+          "out105_r2",
+          "out106_r0",
+          "out106_r1",
+          "out106_r2",
+          "out107_r0",
+          "out107_r1",
+          "out107_r2",
+          "out108_r0",
+          "out108_r1",
+          "out108_r2",
+          "out109_r0",
+          "out109_r1",
+          "out109_r2",
+          "out110_r0",
+          "out110_r1",
+          "out110_r2",
+          "out111_r0",
+          "out111_r1",
+          "out111_r2",
+          "out112_r0",
+          "out112_r1",
+          "out112_r2",
+          "out113_r0",
+          "out113_r1",
+          "out113_r2",
+          "out114_r0",
+          "out114_r1",
+          "out114_r2",
+          "out115_r0",
+          "out115_r1",
+          "out115_r2",
+          "out116_r0",
+          "out116_r1",
+          "out116_r2",
+          "out117_r0",
+          "out117_r1",
+          "out117_r2",
+          "out118_r0",
+          "out118_r1",
+          "out118_r2",
+          "out119_r0",
+          "out119_r1",
+          "out119_r2",
+          "out120_r0",
+          "out120_r1",
+          "out120_r2",
+          "out121_r0",
+          "out121_r1",
+          "out121_r2",
+          "out122_r0",
+          "out122_r1",
+          "out122_r2",
+          "out123_r0",
+          "out123_r1",
+          "out123_r2",
+          "out124_r0",
+          "out124_r1",
+          "out124_r2",
+          "out125_r0",
+          "out125_r1",
+          "out125_r2",
+          "out126_r0",
+          "out126_r1",
+          "out126_r2",
+          "out127_r0",
+          "out127_r1",
+          "out127_r2"
+        ],
+        "elements": 16384,
+        "bytes": 32768
+      },
+      "full_baseline_shape": false,
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "preserved_patterns": [
+        "complete original64spatial x128channel CTA tile within a native128spatial x128channel tile",
+        "all64x3x3=576 reduction terms",
+        "original NCHW56x56 input and OIHW128x64x3x3 weights",
+        "valid54x54 output and2916-element channel pitch",
+        "native F16 MFMA",
+        "two alternating LDS buffers",
+        "cross-wave producers and repeated workgroup barriers"
+      ],
+      "notes": [
+        "Original FP8 PTX block_m64 x block_n128 writes8192 output elements per CTA. Native block512 writes128spatial x128channels (16384 elements), retaining the complete original CTA0 tile at spatial positions0..63 and adding the neighboring64..127 tile at the same2916-element channel pitch.",
+        "Both input dtypes are preserved externally. OCP E4M3 is decoded exactly into F16 before matrix consumption; no FNUZ substitution.",
+        "The first128 output spatial positions cross two full54-column rows and20 positions in a third. Three affine slices per channel retain the actual pitch and complete footprint.",
+        "Volatile half stores preserve actual2-byte transfers, preventing widening across reference-slice boundaries.",
+        "This is an explicit tile-superset mapping, not equal CTA/output footprints. Original CTA0 coverage comprises128 separate64-element channel slices (8192 outputs); the additional8192 outputs belong to the neighboring spatial tile. Whole-grid padded/tail behavior is not certified."
+      ],
+      "baseline_output_tile": {
+        "spatial": 64,
+        "channels": 128,
+        "elements": 8192
+      },
+      "native_output_tile": {
+        "spatial": 128,
+        "channels": 128,
+        "elements": 16384
+      },
+      "covers_full_baseline_shape": true,
+      "baseline_tile_mapping": {
+        "kind": "validated-tile-superset-candidate",
+        "original_tile": {
+          "channel_count": 128,
+          "spatial_begin": 0,
+          "spatial_end_exclusive": 64,
+          "elements": 8192,
+          "channel_pitch_elements": 2916
+        },
+        "additional_neighbor_tile": {
+          "channel_count": 128,
+          "spatial_begin": 64,
+          "spatial_end_exclusive": 128,
+          "elements": 8192,
+          "channel_pitch_elements": 2916
+        },
+        "validation": "Coordinator must validate graph, mathematical reference and physical hardware evidence separately; compilation alone does not validate this mapping."
+      }
+    }
+  ]
+}

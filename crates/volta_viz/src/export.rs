@@ -601,10 +601,12 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
                     exec_mask,
                     reads,
                     writes,
+                    scalar_mask_reads,
                 } => {
                     info.push(("EXEC", format!("{exec_mask:#018x}")));
                     info.push(("reads", format!("{reads:?}")));
                     info.push(("writes", format!("{writes:?}")));
+                    info.push(("carry/condition masks", format!("{scalar_mask_reads:?}")));
                     ("instruction", format!("wave {} instruction", record.wave))
                 }
                 volta_graph::AmdEventKind::MemoryIssue {

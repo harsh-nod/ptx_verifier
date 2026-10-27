@@ -41,12 +41,15 @@ import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from functools import partial
+from functools import cache, partial
 from pathlib import Path
 
 KERNEL_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = KERNEL_ROOT.parent
-VOLTA = REPO_ROOT / "target" / "release" / "volta"
+_cargo_target_dir = Path(os.environ.get("CARGO_TARGET_DIR", str(REPO_ROOT / "target")))
+if not _cargo_target_dir.is_absolute():
+    _cargo_target_dir = REPO_ROOT / _cargo_target_dir
+VOLTA = _cargo_target_dir / "release" / "volta"
 ARRAY_ALIGN = 0x10000
 DUMMY_PARAMS = 2  # dummy_ptr1, dummy_ptr2: declared, never dereferenced
 # The JSON files give no shared size: grant each target's opt-in maximum.
@@ -111,6 +114,7 @@ class Variant:
     reference_spec: Path | None = None
     dimensions: tuple[tuple[str, int], ...] = ()
     declared_arrays: tuple[Array, ...] = ()
+    reduced_case: bool = False
 
     @property
     def name(self) -> str:
@@ -826,7 +830,9 @@ def load_amdgpu_variants() -> dict[str, list[Variant]]:
     aliases = {"ReLUKernel": "relu", "SiLUKernel": "silu", "SigmoidKernel": "sigmoid",
                "SwiGLUKernel": "swiglu", "RoPEKernel": "rope", "ReductionSumKernel": "reduction_sum",
                "SoftmaxKernel": "softmax", "RMSNormKernel": "rmsnorm",
-               "MatrixVectorMultiplicationKernel": "matvec"}
+               "MatrixVectorMultiplicationKernel": "matvec", "Convolution2DKernel": "conv2d",
+               "FlashAttentionNeurIPS2022Forward": "flash_attention",
+               "MatrixMultiplication": "matmul", "FusedGEMMAddSiLUKernel": "gemm_add_silu"}
     for external in data.get("external_manifests", []):
         path = REPO_ROOT / external
         corpus = json.loads(path.read_text())
@@ -851,7 +857,7 @@ def load_amdgpu_variants() -> dict[str, list[Variant]]:
                 source_path=path.parent/row["assembly"], dynamic_shared=row.get("dynamic_shared", 0),
                 dummy_params=0, reference_spec=path.parent/row["spec"],
                 dimensions=tuple(row.get("dimensions", {}).items()),
-                declared_arrays=tuple(arrays.values()))
+                declared_arrays=tuple(arrays.values()), reduced_case=row.get("reduced_case", False))
             families.setdefault(family, []).append(variant)
     return families
 
@@ -1028,10 +1034,20 @@ def run_volta(command: list[str], echo: Callable[[str], None] | None) -> tuple[s
     return "".join(stdout), "".join(stderr)
 
 
+@cache
+def cli_has_logging(binary: Path, modified_ns: int) -> bool:
+    """Feature-dependent flags must match the executable actually being tested."""
+    del modified_ns  # The cache key changes when a rebuild replaces the executable.
+    help_text = subprocess.run([str(binary), "--help"], capture_output=True, text=True, check=True).stdout
+    return "--log-level" in help_text
+
+
 def analyze(variant: Variant, ptx: Path, echo: Callable[[str], None] | None) -> tuple[Outcome, str]:
     # Rendering outputs can cost GBs (shared subterms print as trees); counts suffice.
     command = [
-        str(VOLTA), "--no-log-file", "--log-level", "error" if echo is None else "info",
+        str(VOLTA), "--no-log-file",
+        *(["--log-level", "error" if echo is None else "info"]
+          if cli_has_logging(VOLTA, VOLTA.stat().st_mtime_ns) else []),
         "analyze", str(ptx),
         "--kernel", variant.entry, *launch_args(variant, ptx.read_text()),
         "--print-outputs", "0", "--no-profile",
@@ -1040,7 +1056,8 @@ def analyze(variant: Variant, ptx: Path, echo: Callable[[str], None] | None) -> 
     outcome, detail = classify(parse_cli(stdout), stderr, variant.expected_outputs)
     if outcome is Outcome.RACE_FREE and variant.reference_spec is not None:
         verify = [str(VOLTA), "--no-log-file", "verify", str(ptx), str(variant.reference_spec),
-                  "--kernel", variant.entry, *launch_args(variant, ptx.read_text()), "--no-profile"]
+                  "--kernel", variant.entry, *launch_args(variant, ptx.read_text()),
+                  "--no-profile"]
         for dim, value in variant.dimensions:
             verify += ["--dim", f"{dim}={value}"]
         checked, errors = run_volta(verify, echo)
@@ -1051,6 +1068,9 @@ def analyze(variant: Variant, ptx: Path, echo: Callable[[str], None] | None) -> 
             return (Outcome.CHECK_FAILED if verdict[1] == "REJECT" else Outcome.UNKNOWN,
                     f"{detail}; math spec {verdict[1]}: " + " ".join(checked.split())[-1200:])
         detail += "; math spec ACCEPT"
+    if outcome is Outcome.RACE_FREE and variant.reduced_case:
+        outcome = Outcome.REDUCED_RACE_FREE
+        detail = "reduced native case; full baseline shape remains a separate requirement; " + detail
     return outcome, detail
 
 
@@ -1279,7 +1299,8 @@ def main() -> int:
     if args.list:
         width = max(len(family) for family, _ in selected)
         for family, v in selected:
-            marker = "" if v.reduction is None else "  (K loop reduced unless --full)"
+            marker = ("  (reduced native case; --full does not enlarge it)" if v.reduced_case else
+                      "" if v.reduction is None else "  (K loop reduced unless --full)")
             print(f"{family:<{width}}  {v.name}{marker}")
             if args.mutate:
                 for site in mutation_sites(v.path.read_text(), v.backend, v.entry):
@@ -1321,8 +1342,8 @@ def main() -> int:
     print(f"\n{verified}" + (f"; {others}" if others else ""))
     if any(r.outcome is Outcome.REDUCED_RACE_FREE for r in reports):
         print(
-            f"{Outcome.REDUCED_RACE_FREE.value}: race-free with the K loop cut short, which does "
-            "not verify the full kernel (--full analyzes it whole)"
+            f"{Outcome.REDUCED_RACE_FREE.value}: a reduced case does not verify the full baseline kernel. "
+            "--full restores configured PTX K-loop reductions; native cases require a separate full-size entry."
         )
     return 0 if race_free == len(reports) else 1
 
