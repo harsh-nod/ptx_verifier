@@ -11,6 +11,12 @@ pub(super) enum WideKind {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) enum Value {
     Bits(u32),
+    /// Concrete ABI bytes loaded together with uninitialized padding. Unknown
+    /// bits have no numeric value and may only be bypassed by exact selection.
+    PartialBits {
+        bits: u32,
+        defined: u32,
+    },
     /// Integer arithmetic provenance for mathematically typed output extraction.
     Integer(u32),
     SignedInteger(i32),
@@ -50,6 +56,8 @@ pub(super) enum Value {
     PartialHalves(Option<ExprId>, Option<ExprId>),
     /// Encoded input bytes; the first numeric decoder fixes the array format.
     Byte(ExprId),
+    /// Two encoded bytes in low16, with a zero-filled upper half.
+    BytePair(ExprId, ExprId),
     Bytes([ExprId; 4]),
 }
 
@@ -58,6 +66,9 @@ impl Value {
         match self {
             Self::Bits(bits) | Self::Integer(bits) => Ok(bits),
             Self::SignedInteger(bits) => Ok(bits as u32),
+            Self::PartialBits { .. } => {
+                Err("undefined bits in a partially initialized ABI word".into())
+            }
             Self::PredicateWord { .. } => {
                 Err("symbolic predicate mask used as concrete integer/address bits".into())
             }
@@ -68,6 +79,22 @@ impl Value {
                 Err("opaque shared aperture cannot be used as ordinary bits".into())
             }
             _ => Err("symbolic mathematical data used as integer/address bits".into()),
+        }
+    }
+
+    pub fn selected_bits(self, offset: u32, width: u32) -> Result<u32, String> {
+        if width == 0 || width > 32 || offset > 32 - width {
+            return Err("invalid register-bit selection".into());
+        }
+        let mask = u32::MAX >> (32 - width);
+        match self {
+            Self::PartialBits { bits, defined } => {
+                if (defined >> offset) & mask != mask {
+                    return Err("selected undefined bits from ABI padding".into());
+                }
+                Ok((bits >> offset) & mask)
+            }
+            value => Ok((value.bits()? >> offset) & mask),
         }
     }
 
@@ -82,6 +109,9 @@ impl Value {
                 super::scalar::FloatType::F32,
                 bits as u32 as u64,
             ),
+            Self::PartialBits { .. } => {
+                Err("undefined bits in a partially initialized ABI float".into())
+            }
             Self::Input(_)
             | Self::IntExpr(_)
             | Self::PredicateWord { .. }
@@ -93,6 +123,7 @@ impl Value {
             | Self::Halves(..)
             | Self::PartialHalves(..)
             | Self::Byte(..)
+            | Self::BytePair(..)
             | Self::Bytes(..) => Err("encoded packed data used as one f32 value".into()),
         }
     }
