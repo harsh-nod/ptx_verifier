@@ -1,0 +1,421 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "kernel": "mamba2_chunk_state_full",
+      "family": "Mamba2ChunkStateForward",
+      "source": "native-mamba2-state.hip",
+      "assembly": "native-mamba2-state.s",
+      "spec": "specs/mamba2_chunk_state.spec",
+      "baseline_path": "ai_compiler_kernels/Mamba2ChunkStateForward/NVIDIA_B200_Unknown_1.0984x.ptx",
+      "baseline_sha256": "183dbc76b8989c1f650ccc26bdc6012f2802ec3e38ae7c0998dd1ae3da6ddbcb",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "T": 256,
+        "PITCH": 512,
+        "M": 64,
+        "N": 128
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 1048576,
+          "element_size": 2,
+          "length": 131072,
+          "kind": "in"
+        },
+        {
+          "name": "b",
+          "base_address": 2097152,
+          "element_size": 2,
+          "length": 131072,
+          "kind": "in"
+        },
+        {
+          "name": "states",
+          "base_address": 5242880,
+          "element_size": 4,
+          "length": 8192,
+          "kind": "out"
+        },
+        {
+          "name": "dt",
+          "base_address": 3145728,
+          "element_size": 4,
+          "length": 256,
+          "kind": "in"
+        },
+        {
+          "name": "da",
+          "base_address": 4194304,
+          "element_size": 4,
+          "length": 256,
+          "kind": "in"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:b",
+        "ptr:states",
+        "ptr:dt",
+        "ptr:da"
+      ],
+      "expected_output_footprint": {
+        "arrays": [
+          "states"
+        ],
+        "elements": 8192,
+        "bytes": 32768
+      },
+      "full_baseline_shape": true,
+      "preserved_patterns": [
+        "complete64x128 state",
+        "all256 time steps",
+        "original512-element time-major X/B pitches",
+        "actual batch/chunk/head permutation",
+        "dt times exp(min(last-da,0)) B weighting before F16 conversion",
+        "native32x32x16 F16 MFMA",
+        "two alternating LDS buffers",
+        "cross-wave operand production and repeated barriers"
+      ],
+      "notes": [
+        "Native block128 replaces original64-thread warp32 launch; full output/state reduction shape is unchanged.",
+        "Native K16 partition replaces the original K64 staging partition, retaining the complete256-term weighted reduction."
+      ],
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending"
+    },
+    {
+      "kernel": "forgetting_attention_full",
+      "family": "ForgettingAttentionICLR2025Forward",
+      "source": "native-forgetting-attention.hip",
+      "assembly": "native-forgetting-attention.s",
+      "spec": "specs/forgetting_attention.spec",
+      "baseline_path": "ai_compiler_kernels/ForgettingAttentionICLR2025Forward/NVIDIA_B200_Unknown_1.0139x.ptx",
+      "baseline_sha256": "57c77d6ce7ac4927ca520bf629b05d6b303cb095af348a3da7c079787ce17e01",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        8,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "Q": 128,
+        "T": 1024,
+        "D": 64
+      },
+      "arrays": [
+        {
+          "name": "q",
+          "base_address": 1048576,
+          "element_size": 2,
+          "length": 8192,
+          "kind": "in"
+        },
+        {
+          "name": "k",
+          "base_address": 2097152,
+          "element_size": 2,
+          "length": 65536,
+          "kind": "in"
+        },
+        {
+          "name": "v",
+          "base_address": 3145728,
+          "element_size": 2,
+          "length": 65536,
+          "kind": "in"
+        },
+        {
+          "name": "log_lambda",
+          "base_address": 4194304,
+          "element_size": 4,
+          "length": 1024,
+          "kind": "in"
+        },
+        {
+          "name": "lse",
+          "base_address": 5242880,
+          "element_size": 4,
+          "length": 128,
+          "kind": "out"
+        },
+        {
+          "name": "out",
+          "base_address": 6291456,
+          "element_size": 2,
+          "length": 8192,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:q",
+        "ptr:k",
+        "ptr:v",
+        "ptr:log_lambda",
+        "ptr:lse",
+        "ptr:out"
+      ],
+      "expected_output_footprint": {
+        "arrays": [
+          "out",
+          "lse"
+        ],
+        "elements": 8320,
+        "bytes": 16896
+      },
+      "full_baseline_shape": true,
+      "preserved_patterns": [
+        "all128 queries/1024 keys/D64",
+        "native F16 MFMA QK and PV",
+        "actual key log-lambda bias and per-query final LSE offset",
+        "actual encoded base2 scoring and ln2 multiplier",
+        "online max/sum/accumulator rescaling",
+        "half probabilities before PV",
+        "two K/V LDS buffers",
+        "cross-wave production and repeated barriers"
+      ],
+      "notes": [
+        "Native block128 replaces original256 threads; four32-query wave64 batches retain all128 query outputs.",
+        "Native key tiles16 replace original64-key staging tiles, retaining all1024 keys and online normalization.",
+        "LSE retains actual rounded LN2_F32 and LOG2_E_F32 coefficients under the disclosed shared base-conversion abstraction."
+      ],
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending"
+    },
+    {
+      "kernel": "flash_sinkhorn_full",
+      "family": "FlashSinkhornFusedSchurMatvec",
+      "source": "native-flash-sinkhorn.hip",
+      "assembly": "native-flash-sinkhorn.s",
+      "spec": "specs/flash_sinkhorn.spec",
+      "baseline_path": "ai_compiler_kernels/FlashSinkhornFusedSchurMatvec/NVIDIA_B200_Unknown_1.5491x.ptx",
+      "baseline_sha256": "b3047824738c49706f514000a1a59d132492fc64e3403ed03280dcaa8930eca4",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        64,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "R": 32,
+        "T": 1024,
+        "D": 64
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 1048576,
+          "element_size": 2,
+          "length": 2048,
+          "kind": "in"
+        },
+        {
+          "name": "y",
+          "base_address": 2097152,
+          "element_size": 2,
+          "length": 65536,
+          "kind": "in"
+        },
+        {
+          "name": "f_hat",
+          "base_address": 3145728,
+          "element_size": 4,
+          "length": 32,
+          "kind": "in"
+        },
+        {
+          "name": "g_hat",
+          "base_address": 4194304,
+          "element_size": 4,
+          "length": 1024,
+          "kind": "in"
+        },
+        {
+          "name": "log_b",
+          "base_address": 5242880,
+          "element_size": 4,
+          "length": 1024,
+          "kind": "in"
+        },
+        {
+          "name": "f_out",
+          "base_address": 6291456,
+          "element_size": 4,
+          "length": 32,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:y",
+        "ptr:f_hat",
+        "ptr:g_hat",
+        "int:0",
+        "ptr:log_b",
+        "ptr:f_out",
+        "int:0"
+      ],
+      "expected_output_footprint": {
+        "arrays": [
+          "f_out"
+        ],
+        "elements": 32,
+        "bytes": 128
+      },
+      "full_baseline_shape": true,
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "preserved_patterns": [
+        "all32 fixed rows and1024 reduction rows,D64",
+        "actual symmetric f/g pointer selection",
+        "native F16 MFMA over all64 coordinates",
+        "actual potential/log-weight base2 bias",
+        "online stable max/sum",
+        "actual denominator floor0x000116c2 and encoded ln2 factor",
+        "cross-wave LDS producers, two buffers and repeated barriers"
+      ],
+      "notes": [
+        "Native block128 replaces original256 threads; CTA0 f-update scope and32 outputs are preserved.",
+        "CTAs32..63 perform symmetric g update when corresponding x/y and log_a/g_out storage is supplied; the declared baseline case is CTA0 only."
+      ]
+    },
+    {
+      "kernel": "sage_attention_full",
+      "family": "SageAttentionICLR2025",
+      "source": "native-sage-attention.hip",
+      "assembly": "native-sage-attention.s",
+      "spec": "specs/sage_attention.spec",
+      "baseline_path": "ai_compiler_kernels/SageAttentionICLR2025/NVIDIA_B200_Unknown_1.4104x.ptx",
+      "baseline_sha256": "60495f2a95422279c4997e0ad554518dd6c90d670dcd951ec45be03899b12303",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        8,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "Q": 128,
+        "T": 128,
+        "D": 64,
+        "HALF": 64,
+        "ONE": 1,
+        "TWO": 2
+      },
+      "arrays": [
+        {
+          "name": "q",
+          "base_address": 1048576,
+          "element_size": 1,
+          "length": 8192,
+          "kind": "in"
+        },
+        {
+          "name": "k",
+          "base_address": 2097152,
+          "element_size": 1,
+          "length": 8192,
+          "kind": "in"
+        },
+        {
+          "name": "v",
+          "base_address": 3145728,
+          "element_size": 2,
+          "length": 8192,
+          "kind": "in"
+        },
+        {
+          "name": "q_scale",
+          "base_address": 4194304,
+          "element_size": 4,
+          "length": 1,
+          "kind": "in"
+        },
+        {
+          "name": "k_scale",
+          "base_address": 5242880,
+          "element_size": 4,
+          "length": 2,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 6291456,
+          "element_size": 2,
+          "length": 8192,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:q",
+        "ptr:k",
+        "ptr:v",
+        "ptr:q_scale",
+        "ptr:k_scale",
+        "ptr:out"
+      ],
+      "expected_output_footprint": {
+        "arrays": [
+          "out"
+        ],
+        "elements": 8192,
+        "bytes": 16384
+      },
+      "full_baseline_shape": true,
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "preserved_patterns": [
+        "all128 queries and128 keys,D64",
+        "external signed-I8 Q/K storage",
+        "exact signed-I8\u2192F16 conversion before native F16 MFMA",
+        "per-query-tile Q scale and distinct per64-key K scales",
+        "actual base2 softmax without extra1/8 factor",
+        "F16 probabilities and V/output",
+        "eight-query-head KV grouping",
+        "two LDS buffers and repeated cross-wave barriers"
+      ],
+      "notes": [
+        "Coordinator-authorized architecture choice: use exact signed-I8\u2192F16 conversion before F32-accumulating F16 MFMA. Every I8 value is exactly representable; D64 dot magnitude is bounded by2^20, so the integer dot is exact in F32. No native I8 MFMA support is claimed.",
+        "Native block128 replaces original256 threads. Native16-key online/PV partitions replace64-key partitions; IEEE rounding is abstracted in symbolic analysis, with independent physical numeric validation still required.",
+        "LLVM metadata contains no pointer element dtype. Signed-byte numeric decoding must follow actual signed loads/SDWA sext conversion and reject conflicting FP8 interpretation."
+      ]
+    }
+  ]
+}

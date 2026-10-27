@@ -108,6 +108,10 @@ impl Memory {
 
     pub fn write(&mut self, addr: u64, width: u64, value: Value) -> Result<Value, String> {
         let value = match (width, value) {
+            (_, Value::PredicateWord { .. }) => {
+                return Err("symbolic predicate mask cannot be stored as data bits".into());
+            }
+            (1, Value::Bytes(bytes)) => Value::Byte(bytes[0]),
             (1 | 2, Value::Bits(bits)) => Value::Bits(bits & ((1u32 << (8 * width)) - 1)),
             (1 | 2, Value::Integer(bits)) => Value::Integer(bits & ((1u32 << (8 * width)) - 1)),
             (1 | 2, Value::SignedInteger(bits)) => {
@@ -118,7 +122,14 @@ impl Memory {
             (2, Value::PartialHalves(None, _) | Value::Byte(_) | Value::Bytes(_)) => {
                 return Err("unsupported packed-byte/unknown-half reinterpretation".into());
             }
-            (2, Value::Real(_)) => {
+            (
+                2,
+                Value::Real(_)
+                | Value::Input(_)
+                | Value::IntExpr(_)
+                | Value::NarrowInt { .. }
+                | Value::WidePart { .. },
+            ) => {
                 return Err(
                     "partial f32-to-f16 bit reinterpretation is unsupported; convert first".into(),
                 );
@@ -126,18 +137,33 @@ impl Memory {
             (
                 1,
                 Value::Real(_)
+                | Value::Input(_)
+                | Value::IntExpr(_)
+                | Value::NarrowInt { .. }
+                | Value::WidePart { .. }
                 | Value::Half(_)
                 | Value::Halves(..)
-                | Value::PartialHalves(..)
-                | Value::Bytes(..),
+                | Value::PartialHalves(..),
             ) => return Err("symbolic byte truncation is unsupported".into()),
             (_, value) => value,
         };
         let end = addr.checked_add(width).ok_or("address overflow")?;
-        let overlapping: Vec<_> = self
+        // Cells never overlap: only the preceding cell can begin below addr
+        // and still intersect this write. Scanning every lower address makes
+        // stores to an output allocation repeatedly walk all symbolic inputs.
+        let predecessor = self
             .cells
-            .range(..end)
-            .filter_map(|(&start, cell)| (start + cell.width > addr).then_some((start, *cell)))
+            .range(..addr)
+            .next_back()
+            .filter(|(start, cell)| **start + cell.width > addr)
+            .map(|(&start, cell)| (start, *cell));
+        let overlapping: Vec<_> = predecessor
+            .into_iter()
+            .chain(
+                self.cells
+                    .range(addr..end)
+                    .map(|(&start, cell)| (start, *cell)),
+            )
             .collect();
         for (start, cell) in overlapping {
             let old_end = start + cell.width;
@@ -172,10 +198,19 @@ impl Memory {
         self.initialize(addr, width, value);
         let mut written_start = addr;
         let mut written_end = end;
-        let merged: Vec<_> = self
+        let predecessor = self
             .written
-            .range(..=end)
-            .filter_map(|(&start, &size)| (start + size >= addr).then_some((start, size)))
+            .range(..addr)
+            .next_back()
+            .filter(|(start, size)| **start + **size >= addr)
+            .map(|(&start, &size)| (start, size));
+        let merged: Vec<_> = predecessor
+            .into_iter()
+            .chain(
+                self.written
+                    .range(addr..=end)
+                    .map(|(&start, &size)| (start, size)),
+            )
             .collect();
         for (start, size) in merged {
             written_start = written_start.min(start);
@@ -193,14 +228,108 @@ impl Memory {
         width: u64,
         arena: &mut ExprArena,
     ) -> Result<ExprId, String> {
+        if width == 8 {
+            return match (self.read(addr, 4)?, self.read(addr + 4, 4)?) {
+                (
+                    Value::WidePart {
+                        expr: a,
+                        high: false,
+                        kind: ak,
+                    },
+                    Value::WidePart {
+                        expr: b,
+                        high: true,
+                        kind: bk,
+                    },
+                ) if a == b && ak == bk => Ok(a),
+                _ => Err(
+                    "64-bit output requires matching ordered words of one mathematical value"
+                        .into(),
+                ),
+            };
+        }
         match self.read(addr, width)? {
-            Value::Real(expr) | Value::Half(expr)|Value::Byte(expr) => Ok(expr),
+            Value::Input(expr) | Value::IntExpr(expr) | Value::NarrowInt{expr,..} | Value::Real(expr) | Value::Half(expr)|Value::Byte(expr) => Ok(expr),
             Value::Integer(bits) => Ok(arena.int(bits as i64)),
             Value::SignedInteger(value)=>Ok(arena.int(value as i64)),
             Value::Bits(0) => Ok(arena.int(0)),
             Value::Bits(_) => Err("raw register bits have ambiguous integer/float output type; convert explicitly before storing".into()),
             Value::Halves(..) => Err("packed output needs element-width extraction".into()),
             Value::PartialHalves(..)|Value::Bytes(..)=>Err("packed/partially initialized output needs element-width extraction".into()),
+            Value::WidePart { .. } => Err("one word of a 64-bit mathematical value cannot be extracted as a scalar32".into()),
+            Value::PredicateWord { .. } => Err("symbolic predicate mask cannot be extracted as data bits".into()),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn overlapping_concrete_writes_match_an_independent_byte_memory() {
+        let mut memory = Memory::default();
+        let mut expected = [0u8; 256];
+        let mut written = [false; 256];
+        for (address, byte) in expected.iter_mut().enumerate() {
+            *byte = address as u8;
+            memory.initialize(address as u64, 1, Value::Bits(*byte as u32));
+        }
+        let mut state = 0x9283_7165u32;
+        for _ in 0..512 {
+            state = state.wrapping_mul(1664525).wrapping_add(1013904223);
+            let width = 1usize << (state as usize % 3);
+            let address = 64 + ((state >> 8) as usize % 128);
+            let bits = state.rotate_left(13);
+            memory
+                .write(address as u64, width as u64, Value::Bits(bits))
+                .unwrap();
+            for offset in 0..width {
+                expected[address + offset] = (bits >> (8 * offset)) as u8;
+                written[address + offset] = true;
+            }
+            for address in 0..256 {
+                assert_eq!(
+                    memory.read(address as u64, 1).unwrap().bits().unwrap(),
+                    u32::from(expected[address])
+                );
+                let actual_written = memory
+                    .written
+                    .range(..=address as u64)
+                    .next_back()
+                    .is_some_and(|(&start, &size)| address as u64 - start < size);
+                assert_eq!(actual_written, written[address], "written byte {address}");
+            }
+            let cells: Vec<_> = memory.cells.iter().collect();
+            assert!(
+                cells
+                    .windows(2)
+                    .all(|pair| pair[0].0 + pair[0].1.width <= *pair[1].0)
+            );
+        }
+    }
+
+    #[test]
+    fn partial_half_overwrite_preserves_the_other_symbolic_half_and_neighbors() {
+        let mut arena = ExprArena::new();
+        let name = arena.intern_string("x");
+        let lo = arena.input_element(name, 0);
+        let hi = arena.input_element(name, 1);
+        let replacement = arena.input_element(name, 2);
+        let mut memory = Memory::default();
+        memory.initialize(0, 4, Value::Bits(0x12345678));
+        memory.initialize(100, 4, Value::Halves(lo, hi));
+        memory.initialize(200, 4, Value::Bits(0xabcdef01));
+        memory.write(100, 2, Value::Half(replacement)).unwrap();
+        assert!(matches!(memory.read(100, 2).unwrap(), Value::Half(value) if value == replacement));
+        assert!(matches!(memory.read(102, 2).unwrap(), Value::Half(value) if value == hi));
+        assert_eq!(memory.read(0, 4).unwrap().bits().unwrap(), 0x12345678);
+        assert_eq!(memory.read(200, 4).unwrap().bits().unwrap(), 0xabcdef01);
+        assert!(
+            memory
+                .write(103, 1, Value::Bits(7))
+                .unwrap_err()
+                .contains("partial overwrite of a symbolic granule")
+        );
     }
 }
