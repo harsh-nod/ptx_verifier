@@ -12,6 +12,9 @@ use volta_graph::*;
 
 const KERNARG_BASE: u64 = 0xffff_0000_0000;
 const DISPATCH_BASE: u64 = 0xffff_1000_0000;
+// Synthetic module storage is disjoint from host-bound arrays and analyzer ABI
+// packets. Match the existing PTX module-window convention without a dependency.
+pub const MODULE_GLOBAL_BASE: u64 = 0x7000_0000_0000_0000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ThreadId(pub u32);
@@ -171,6 +174,19 @@ impl Wave {
             RegisterClass::Accumulator => self.accumulator.get(&(index, lane)).copied(),
             RegisterClass::Special => {
                 let val = match reg.special {
+                    Some(SpecialRegister::SharedBase) => {
+                        if reg.count != 2 {
+                            return Err(self.fail(
+                                Some(lane),
+                                "shared aperture source requires its approved64-bit profile",
+                            ));
+                        }
+                        return Ok(if component == 0 {
+                            Value::Bits(0)
+                        } else {
+                            Value::SharedApertureHi
+                        });
+                    }
                     Some(SpecialRegister::Exec) => self.exec,
                     Some(SpecialRegister::ExecLo) => self.exec as u32 as u64,
                     Some(SpecialRegister::ExecHi) => self.exec >> 32,
@@ -378,6 +394,13 @@ pub(crate) struct Interpreter<'a> {
     word_formats: BTreeMap<volta_expr::StringId, WordFormat>,
     predicate_masks: Vec<[ExprId; 64]>,
     xnack_replay_enabled: bool,
+    module_globals: BTreeMap<String, GlobalAllocation>,
+}
+#[derive(Debug, Clone, Copy)]
+struct GlobalAllocation {
+    base: u64,
+    size: u64,
+    read_only: bool,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ByteFormat {
@@ -402,10 +425,77 @@ impl<'a> Interpreter<'a> {
             .targets
             .iter()
             .any(|target| target.split(':').any(|feature| feature == "xnack+"));
-        if !config.global_values.is_empty() {
-            return Err(EvalError::InvalidConfig(
-                "AMD module global bindings are not yet implemented".into(),
-            ));
+        let mut module_globals = BTreeMap::new();
+        let mut module_end = MODULE_GLOBAL_BASE;
+        for object in &program.globals {
+            if object.symbol.is_empty()
+                || object.size == 0
+                || !object.alignment.is_power_of_two()
+                || object.initial_bytes.len() as u64 != object.size
+            {
+                return Err(EvalError::InvalidConfig(format!(
+                    "invalid size/alignment/initializer for module global '{}'",
+                    object.symbol
+                )));
+            }
+            let base = module_end
+                .checked_add(object.alignment - 1)
+                .map(|address| address & !(object.alignment - 1))
+                .ok_or_else(|| {
+                    EvalError::InvalidConfig(
+                        "module-global alignment overflows address space".into(),
+                    )
+                })?;
+            module_end = base.checked_add(object.size).ok_or_else(|| {
+                EvalError::InvalidConfig("module-global window overflows address space".into())
+            })?;
+            if module_globals
+                .insert(
+                    object.symbol.clone(),
+                    GlobalAllocation {
+                        base,
+                        size: object.size,
+                        read_only: object.read_only,
+                    },
+                )
+                .is_some()
+            {
+                return Err(EvalError::InvalidConfig(format!(
+                    "duplicate module global '{}'",
+                    object.symbol
+                )));
+            }
+        }
+        let mut bound_globals = std::collections::BTreeSet::new();
+        for (name, _) in &config.global_values {
+            if !bound_globals.insert(name) {
+                return Err(EvalError::InvalidConfig(format!(
+                    "duplicate module-global binding '{name}'"
+                )));
+            }
+            let object = module_globals.get(name).ok_or_else(|| {
+                EvalError::InvalidConfig(format!("no module global named '{name}'"))
+            })?;
+            if object.read_only {
+                return Err(EvalError::InvalidConfig(format!(
+                    "read-only module global '{name}' cannot be rebound"
+                )));
+            }
+            if ![1, 2, 4, 8].contains(&object.size) {
+                return Err(EvalError::InvalidConfig(format!(
+                    "module-global binding '{name}' requires a scalar object of 1,2,4 or8 bytes"
+                )));
+            }
+        }
+        if module_end > MODULE_GLOBAL_BASE {
+            for array in &config.arrays {
+                if array.base < module_end && MODULE_GLOBAL_BASE < array.base + array.size_bytes() {
+                    return Err(EvalError::InvalidConfig(format!(
+                        "array '{}' overlaps the reserved module-global window",
+                        array.name
+                    )));
+                }
+            }
         }
         let threads = config
             .block_dim
@@ -558,6 +648,7 @@ impl<'a> Interpreter<'a> {
             word_formats: BTreeMap::new(),
             predicate_masks: Vec::new(),
             xnack_replay_enabled,
+            module_globals,
         };
         result.initialize_memory()?;
         for id in 0..threads.div_ceil(64) {
@@ -569,6 +660,45 @@ impl<'a> Interpreter<'a> {
         Ok(result)
     }
     fn initialize_memory(&mut self) -> Result<(), EvalError> {
+        for object in &self.program.globals {
+            let allocation = self.module_globals[&object.symbol];
+            if let Some((_, binding)) = self
+                .config
+                .global_values
+                .iter()
+                .find(|(name, _)| name == &object.symbol)
+            {
+                if object.size <= 4 {
+                    let bits = (*binding as u64)
+                        & if object.size == 4 {
+                            u32::MAX as u64
+                        } else {
+                            (1u64 << (8 * object.size)) - 1
+                        };
+                    self.global.initialize(
+                        allocation.base,
+                        object.size,
+                        Value::Integer(bits as u32),
+                    );
+                } else {
+                    self.global
+                        .initialize(allocation.base, 4, Value::Integer(*binding as u32));
+                    self.global.initialize(
+                        allocation.base + 4,
+                        4,
+                        Value::Integer((*binding as u64 >> 32) as u32),
+                    );
+                }
+            } else {
+                for (offset, &byte) in object.initial_bytes.iter().enumerate() {
+                    self.global.initialize(
+                        allocation.base + offset as u64,
+                        1,
+                        Value::Bits(byte as u32),
+                    );
+                }
+            }
+        }
         for array in &self.config.arrays {
             if !array.kind.is_input() {
                 continue;
@@ -704,6 +834,15 @@ impl<'a> Interpreter<'a> {
                             Value::Real(expression),
                         );
                     }
+                } else if arg.value_kind.starts_with("hidden_") && arg.size == 4 {
+                    // These fields are numeric launch quantities, rather than
+                    // pointers or arbitrary data bits. Preserve that distinction
+                    // when native code copies grid dimensions directly to output.
+                    self.kernargs.initialize(
+                        KERNARG_BASE + arg.offset,
+                        4,
+                        Value::Integer(bits as u32),
+                    );
                 } else {
                     for byte in 0..arg.size {
                         if byte >= 8 {
@@ -827,7 +966,7 @@ impl<'a> Interpreter<'a> {
             "system_sgpr_workgroup_id_z",
         ] {
             if descriptor.flag(field) {
-                wave.scalar[sgpr] = Some(Value::Bits(0));
+                wave.scalar[sgpr] = Some(Value::Integer(0));
                 sgpr += 1;
             }
         }
@@ -850,7 +989,7 @@ impl<'a> Interpreter<'a> {
             let packed = x
                 | if dimensions >= 1 { y << 10 } else { 0 }
                 | if dimensions >= 2 { z << 20 } else { 0 };
-            wave.vector.insert((0, lane), Value::Bits(packed));
+            wave.vector.insert((0, lane), Value::Integer(packed));
         }
         Ok(())
     }
@@ -1490,6 +1629,14 @@ impl<'a> Interpreter<'a> {
             } else {
                 value as i64
             })),
+            Value::SharedApertureHi => Err(wave.fail(
+                Some(lane),
+                "opaque shared aperture cannot be used as integer data",
+            )),
+            Value::RelocationWord { .. } => Err(wave.fail(
+                Some(lane),
+                "opaque PC relocation cannot be used as integer data",
+            )),
             _ => Err(EvalError::Unsupported {
                 pc: wave.pc,
                 what: "typed floating/packed data cannot be reinterpreted as a symbolic integer"
@@ -2014,6 +2161,8 @@ impl<'a> Interpreter<'a> {
             Value::Input(_)
             | Value::IntExpr(_)
             | Value::PredicateWord { .. }
+            | Value::RelocationWord { .. }
+            | Value::SharedApertureHi
             | Value::NarrowInt { .. }
             | Value::WidePart { .. }
             | Value::Real(_)
@@ -2103,6 +2252,9 @@ impl<'a> Interpreter<'a> {
         instruction: &Instruction,
         name: &str,
     ) -> Result<(), EvalError> {
+        if self.module_address_scalar(wave, instruction)? {
+            return Ok(());
+        }
         if !name.starts_with("s_cmp_")
             && !name.starts_with("s_cmpk_")
             && !name.starts_with("s_bitcmp")
@@ -2373,6 +2525,76 @@ impl<'a> Interpreter<'a> {
                 Value::Integer(value)
             },
         )
+    }
+    fn module_address_scalar(
+        &self,
+        wave: &mut Wave,
+        instruction: &Instruction,
+    ) -> Result<bool, EvalError> {
+        let sequence = (0..=2).find_map(|stage| {
+            wave.pc.checked_sub(stage).and_then(|anchor| {
+                self.program
+                    .global_address_sequences
+                    .get(&anchor)
+                    .map(|sequence| (stage, sequence))
+            })
+        });
+        let Some((stage, sequence)) = sequence else {
+            return Ok(false);
+        };
+        if sequence.anchor_pc + stage != wave.pc
+            || instruction.mnemonic != ["s_getpc_b64", "s_add_u32", "s_addc_u32"][stage]
+        {
+            return Err(wave.fail(None, "invalid approved module-address sequence stage"));
+        }
+        let anchor = u32::try_from(sequence.anchor_pc)
+            .map_err(|_| wave.fail(None, "module-address anchor exceeds program-point range"))?;
+        let pair = sequence.register_pair;
+        let address = self
+            .module_globals
+            .get(&sequence.symbol)
+            .ok_or_else(|| wave.fail(None, "approved relocation has no allocated module object"))?
+            .base;
+        match stage {
+            0 => {
+                wave.put(
+                    pair,
+                    0,
+                    0,
+                    Value::RelocationWord {
+                        anchor,
+                        high: false,
+                    },
+                )?;
+                wave.put(pair, 0, 1, Value::RelocationWord { anchor, high: true })?;
+            }
+            1 => {
+                if wave.reg(pair, 0, 0)?
+                    != (Value::RelocationWord {
+                        anchor,
+                        high: false,
+                    })
+                    || wave.reg(pair, 0, 1)? != (Value::RelocationWord { anchor, high: true })
+                {
+                    return Err(wave.fail(None, "PC-relative low stage lost its opaque anchor"));
+                }
+                wave.put(pair, 0, 0, Value::Bits(address as u32))?;
+                wave.scc_defined = false;
+            }
+            2 => {
+                if wave.reg(pair, 0, 0)?.bits().ok() != Some(address as u32)
+                    || wave.reg(pair, 0, 1)? != (Value::RelocationWord { anchor, high: true })
+                {
+                    return Err(wave.fail(None, "PC-relative high stage lost its approved anchor"));
+                }
+                wave.put(pair, 0, 1, Value::Bits((address >> 32) as u32))?;
+                // The chosen abstract storage address determines the pointer,
+                // not the actual code address or linker carry/overflow bits.
+                wave.scc_defined = false;
+            }
+            _ => unreachable!(),
+        }
+        Ok(true)
     }
     fn matrix_input(
         &mut self,
@@ -3639,6 +3861,7 @@ impl<'a> Interpreter<'a> {
             wave.active().collect()
         };
         for lane in lanes {
+            let mut effective_lds = lds;
             let (address, data_operand) = if scalar {
                 (
                     wave.wide(&o[1], lane)?
@@ -3659,6 +3882,12 @@ impl<'a> Interpreter<'a> {
                         &o[0],
                     )
                 }
+            } else if flat {
+                let operand = if store { &o[0] } else { &o[1] };
+                let (address, shared) =
+                    self.flat_memory_address(wave, operand, lane, offset as u64)?;
+                effective_lds = shared;
+                (address, if store { &o[1] } else { &o[0] })
             } else if store {
                 (
                     wave.wide(&o[0], lane)?
@@ -3705,7 +3934,7 @@ impl<'a> Interpreter<'a> {
                 let dispatch = scalar && addr >= DISPATCH_BASE && addr - DISPATCH_BASE < 64;
                 let abi = kernarg || dispatch;
                 if !abi {
-                    self.validate_address(wave, lane, lds, addr, width)?;
+                    self.validate_address(wave, lane, effective_lds, addr, width, store)?;
                 }
                 let value = if store {
                     let source_register = if dual && component >= registers_per_part {
@@ -3734,7 +3963,11 @@ impl<'a> Interpreter<'a> {
                     } else {
                         wave.reg(source_register, lane, source_component)?
                     };
-                    let memory = if lds { &mut self.lds } else { &mut self.global };
+                    let memory = if effective_lds {
+                        &mut self.lds
+                    } else {
+                        &mut self.global
+                    };
                     let value = memory
                         .write(addr, width, value)
                         .map_err(|e| wave.fail(Some(lane), e))?;
@@ -3744,7 +3977,7 @@ impl<'a> Interpreter<'a> {
                         &self.dispatch
                     } else if kernarg {
                         &self.kernargs
-                    } else if lds {
+                    } else if effective_lds {
                         &self.lds
                     } else {
                         &self.global
@@ -3754,7 +3987,7 @@ impl<'a> Interpreter<'a> {
                             Some(lane),
                             format!(
                                 "{} {addr:#x}: {e}",
-                                if lds {
+                                if effective_lds {
                                     "LDS"
                                 } else if abi {
                                     "kernarg"
@@ -3819,7 +4052,9 @@ impl<'a> Interpreter<'a> {
                             Value::Bytes(bytes) => StoredValue::Quad(bytes),
                             Value::PartialHalves(..)
                             | Value::WidePart { .. }
-                            | Value::PredicateWord { .. } => StoredValue::Opaque,
+                            | Value::PredicateWord { .. }
+                            | Value::RelocationWord { .. }
+                            | Value::SharedApertureHi => StoredValue::Opaque,
                         }))
                     } else {
                         None
@@ -3828,7 +4063,11 @@ impl<'a> Interpreter<'a> {
                         ThreadIx(wave.id * 64 + lane as u32),
                         ProgramPoint(wave.pc as u32),
                         MemAccess {
-                            space: if lds { Space::Shared } else { Space::Global },
+                            space: if effective_lds {
+                                Space::Shared
+                            } else {
+                                Space::Global
+                            },
                             mode: if store {
                                 AccessMode::Write
                             } else {
@@ -3845,11 +4084,49 @@ impl<'a> Interpreter<'a> {
                             value: stored,
                         },
                     );
-                    self.builder.amd_memory_effect(issue, effect);
+                    let scope = if name.starts_with("global_")
+                        && instruction
+                            .modifiers
+                            .iter()
+                            .any(|modifier| modifier.name == "sc0")
+                        && !instruction
+                            .modifiers
+                            .iter()
+                            .any(|modifier| modifier.name == "sc1")
+                    {
+                        AmdMemoryScope::Workgroup
+                    } else {
+                        AmdMemoryScope::Unspecified
+                    };
+                    self.builder.amd_memory_effect_scoped(issue, effect, scope);
                 }
             }
         }
         Ok(())
+    }
+    fn flat_memory_address(
+        &self,
+        wave: &Wave,
+        operand: &Operand,
+        lane: u8,
+        offset: u64,
+    ) -> Result<(u64, bool), EvalError> {
+        if let Operand::Register(register) = operand {
+            if register.count == 2 && wave.reg(*register, lane, 1)? == Value::SharedApertureHi {
+                let low =
+                    wave.reg(*register, lane, 0)?
+                        .bits()
+                        .map_err(|error| wave.fail(Some(lane), error))? as u64;
+                let address = low
+                    .checked_add(offset)
+                    .filter(|value| *value <= u32::MAX as u64)
+                    .ok_or_else(|| {
+                        wave.fail(Some(lane), "FLAT offset escapes the shared aperture")
+                    })?;
+                return Ok((address, true));
+            }
+        }
+        Ok((wave.wide(operand, lane)?.wrapping_add(offset), false))
     }
     /// CDNA4 §8.2.1 forbids replay-enabled scalar-memory clauses from overwriting
     /// an address-source SGPR, except one DWORD loaded by an isolated instruction.
@@ -3947,6 +4224,7 @@ impl<'a> Interpreter<'a> {
         lds: bool,
         addr: u64,
         width: u64,
+        write: bool,
     ) -> Result<(), EvalError> {
         let valid = if lds {
             addr <= self.lds_size && width <= self.lds_size - addr
@@ -3955,6 +4233,10 @@ impl<'a> Interpreter<'a> {
                 width <= array.size_bytes()
                     && addr >= array.base
                     && addr - array.base <= array.size_bytes() - width
+            }) || self.module_globals.values().any(|object| {
+                addr >= object.base
+                    && width <= object.size
+                    && addr - object.base <= object.size - width
             })
         };
         if !valid {
@@ -3965,6 +4247,14 @@ impl<'a> Interpreter<'a> {
                     if lds { "LDS" } else { "global" }
                 ),
             ));
+        }
+        if !lds
+            && write
+            && self.module_globals.values().any(|object| {
+                object.read_only && addr >= object.base && addr - object.base < object.size
+            })
+        {
+            return Err(wave.fail(Some(lane), "store to read-only module-global object"));
         }
         if addr % width.min(4) != 0 {
             return Err(wave.fail(

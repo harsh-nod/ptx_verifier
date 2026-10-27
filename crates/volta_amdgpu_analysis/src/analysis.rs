@@ -3,7 +3,7 @@ use crate::{
     config::AnalysisConfig,
     eval::{EvalError, Interpreter, OutputsUnavailable, RunArtifacts, Stats},
     frontend::Module,
-    lower::{LowerError, lower_kernel},
+    lower::{LowerError, lower_kernel_in_module},
 };
 use std::{collections::BTreeMap, error::Error, fmt};
 use volta_expr::{ExprArena, SymbolicOutputs};
@@ -89,7 +89,7 @@ pub fn analyze(
         .ok_or_else(|| AnalysisError::KernelNotFound {
             name: name.map(str::to_string),
         })?;
-    let program = lower_kernel(kernel).map_err(AnalysisError::Lower)?;
+    let program = lower_kernel_in_module(module, kernel).map_err(AnalysisError::Lower)?;
     let target = module.target.clone().unwrap_or_else(|| "gfx950".into());
     let replay_enabled = target.split(':').any(|feature| feature == "xnack+");
     let mut assumptions = vec![
@@ -100,6 +100,9 @@ pub fn analyze(
     ];
     if !replay_enabled {
         assumptions.push(Assumption::XnackReplayDisabled);
+    }
+    if !program.descriptor.flag("tg_split") {
+        assumptions.push(Assumption::SingleCuWorkgroup);
     }
     let provenance = Provenance {
         kernel: kernel.name.clone(),

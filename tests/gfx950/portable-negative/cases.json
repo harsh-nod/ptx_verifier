@@ -13,8 +13,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/constant_perturbation_mut.ptx",
@@ -28,8 +27,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/dropped_term_ref.ptx",
@@ -43,8 +41,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/dropped_term_mut.ptx",
@@ -58,8 +55,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/swapped_noncommutative_ref.ptx",
@@ -73,8 +69,7 @@
         "input_elements": 4,
         "output_elements": 2,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/swapped_noncommutative_mut.ptx",
@@ -88,8 +83,7 @@
         "input_elements": 4,
         "output_elements": 2,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/off_by_one_index_ref.ptx",
@@ -103,8 +97,7 @@
         "input_elements": 8,
         "output_elements": 4,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/off_by_one_index_mut.ptx",
@@ -118,8 +111,7 @@
         "input_elements": 8,
         "output_elements": 4,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/missing_relu_clamp_ref.ptx",
@@ -133,8 +125,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 2
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/missing_relu_clamp_mut.ptx",
@@ -148,8 +139,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 2
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/sentinel_off_by_one_ref.ptx",
@@ -163,8 +153,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/sentinel_off_by_one_mut.ptx",
@@ -178,8 +167,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/fma_different_addend_ref.ptx",
@@ -193,8 +181,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/fma_different_addend_mut.ptx",
@@ -208,8 +195,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/linear_chain_sum.ptx",
@@ -223,8 +209,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/balanced_tree_sum.ptx",
@@ -238,8 +223,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/balanced_tree_sum_doubled_leaf.ptx",
@@ -253,8 +237,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/max_vs_min_ref.ptx",
@@ -268,8 +251,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/max_vs_min_mut.ptx",
@@ -283,8 +265,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/exp_product_of_exps.ptx",
@@ -298,8 +279,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/exp_of_sum.ptx",
@@ -313,8 +293,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/exp_of_product.ptx",
@@ -328,8 +307,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/integer_sign_bit_xor_ref.ptx",
@@ -343,8 +321,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/negative_equivalence/integer_sign_bit_xor_mut.ptx",
@@ -358,8 +335,7 @@
         "input_elements": 4,
         "output_elements": 1,
         "element_size": 4
-      },
-      "status": "validation_pending"
+      }
     }
   ]
 }

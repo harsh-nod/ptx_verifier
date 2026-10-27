@@ -527,6 +527,9 @@ pub enum Assumption {
     XnackReplayDisabled,
     /// Exactly one AMD workgroup is analyzed; no statement about other workgroups.
     SingleWorkgroupAnalyzed,
+    /// Every wave of the analyzed AMD workgroup resides on the same CU:
+    /// threadgroup splitting is disabled.
+    SingleCuWorkgroup,
     /// Symbolic arithmetic uses mathematical reals, not bit-exact floating-point.
     MathematicalRealArithmetic,
     /// Addresses, branch conditions and synchronization parameters are concrete: the
@@ -560,6 +563,9 @@ impl Assumption {
             }
             Assumption::SingleWorkgroupAnalyzed => {
                 "one AMD workgroup is analyzed; other workgroups are outside this result"
+            }
+            Assumption::SingleCuWorkgroup => {
+                "all waves of the analyzed AMD workgroup share one CU; threadgroup splitting is disabled"
             }
             Assumption::MathematicalRealArithmetic => {
                 "arithmetic is modeled over mathematical reals, not bit-exact floating-point"

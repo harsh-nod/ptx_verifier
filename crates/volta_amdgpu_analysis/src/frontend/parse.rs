@@ -4,7 +4,11 @@ use std::{
     fmt,
 };
 
-use super::{Kernel, Module, SourceSpan, instr, metadata};
+use super::{Global, Kernel, Module, SourceSpan, instr, metadata};
+
+// Explicit bounded object-data envelope. Larger ELF objects are rejected before
+// allocating host storage; their bytes must never be silently discarded.
+const MAX_OBJECT_BYTES: u64 = 16 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParseError {
@@ -46,6 +50,10 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
         metadata_blocks: Vec::new(),
         descriptors: BTreeSet::new(),
         in_block_comment: false,
+        data_object: None,
+        data_alignment: 1,
+        data_read_only: false,
+        data_section_supported: false,
     };
     let mut start = 0;
     for (line_index, raw) in source.split_inclusive('\n').enumerate() {
@@ -94,6 +102,15 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
                 parser.module.kernels[index].name
             ),
             span: SourceSpan::default(),
+        });
+    }
+    if let Some(index) = parser.data_object {
+        return Err(ParseError {
+            message: format!(
+                "module object `{}` has no explicit .size",
+                parser.module.globals[index].symbol
+            ),
+            span: parser.module.globals[index].span,
         });
     }
     if parser.metadata_blocks.len() > 1 {
@@ -151,6 +168,10 @@ struct Parser {
     metadata_blocks: Vec<(String, SourceSpan)>,
     descriptors: BTreeSet<String>,
     in_block_comment: bool,
+    data_object: Option<usize>,
+    data_alignment: u64,
+    data_read_only: bool,
+    data_section_supported: bool,
 }
 
 impl Parser {
@@ -242,6 +263,35 @@ impl Parser {
                 } else if !label.starts_with(".Lfunc_end") {
                     return Err(fail(format!("label `{label}` outside executable function")));
                 }
+            } else if self.globals.contains(label) {
+                if self.data_object.is_some() {
+                    return Err(fail(
+                        "a module object must have .size before the next object".into(),
+                    ));
+                }
+                if !self.data_section_supported {
+                    return Err(fail(
+                        "module object is outside a supported data/rodata/bss section".into(),
+                    ));
+                }
+                if self
+                    .module
+                    .globals
+                    .iter()
+                    .any(|object| object.symbol == label)
+                {
+                    return Err(fail(format!("duplicate module object `{label}`")));
+                }
+                self.data_object = Some(self.module.globals.len());
+                self.module.globals.push(Global {
+                    symbol: label.into(),
+                    size: 0,
+                    alignment: self.data_alignment,
+                    initial_bytes: Vec::new(),
+                    read_only: self.data_read_only,
+                    span,
+                });
+                self.data_alignment = 1;
             }
             if !rest.trim().is_empty() {
                 self.line(rest.trim(), span)?;
@@ -364,8 +414,16 @@ impl Parser {
                 self.metadata = Some(String::new());
                 self.metadata_start = span;
             }
-            ".text" => self.text_section = true,
-            ".data" | ".rodata" | ".bss" => self.text_section = false,
+            ".text" => {
+                self.finish_section(span)?;
+                self.text_section = true;
+            }
+            ".data" | ".rodata" | ".bss" => {
+                self.finish_section(span)?;
+                self.text_section = false;
+                self.data_read_only = name == ".rodata";
+                self.data_section_supported = true;
+            }
             ".section" | ".pushsection" => {
                 if name == ".pushsection" {
                     return Err(fail(
@@ -373,6 +431,7 @@ impl Parser {
                     ));
                 }
                 let section = args.split(',').next().unwrap_or_default().trim_matches('"');
+                self.finish_section(span)?;
                 self.text_section = section == ".text" || section.starts_with(".text.");
                 let flags = args
                     .split(',')
@@ -383,6 +442,13 @@ impl Parser {
                 if flags.contains('x') && !self.text_section {
                     return Err(fail("unsupported executable section".into()));
                 }
+                self.data_read_only = !flags.contains('w');
+                self.data_section_supported = [".data", ".rodata", ".bss"].iter().any(|prefix| {
+                    section == *prefix
+                        || section
+                            .strip_prefix(prefix)
+                            .is_some_and(|rest| rest.starts_with('.'))
+                });
             }
             ".type" => {
                 let parts = instr::split_top_level(args, ',').map_err(&fail)?;
@@ -391,9 +457,15 @@ impl Parser {
                 }
                 match parts[1] {
                     "@function" | "%function" => {
+                        if self.globals.contains(parts[0]) {
+                            return Err(fail("symbol is both function and object".into()));
+                        }
                         self.functions.insert(parts[0].into());
                     }
                     "@object" | "%object" => {
+                        if self.functions.contains(parts[0]) {
+                            return Err(fail("symbol is both function and object".into()));
+                        }
                         self.globals.insert(parts[0].into());
                     }
                     _ => return Err(fail(format!("unsupported .type kind `{}`", parts[1]))),
@@ -409,6 +481,27 @@ impl Parser {
                     .is_some_and(|index| self.module.kernels[index].name == parts[0])
                 {
                     self.active = None;
+                }
+                if self.globals.contains(parts[0]) {
+                    let index = self
+                        .data_object
+                        .ok_or_else(|| fail("object .size has no active definition".into()))?;
+                    let object = &mut self.module.globals[index];
+                    let size = instr::integer(parts[1])
+                        .and_then(|value| u64::try_from(value).ok())
+                        .filter(|size| *size > 0 && *size <= MAX_OBJECT_BYTES)
+                        .ok_or_else(|| {
+                            fail(
+                                "module object size must be a positive integer at most16MiB".into(),
+                            )
+                        })?;
+                    if object.symbol != parts[0] || object.initial_bytes.len() as u64 != size {
+                        return Err(fail(
+                            "module object .size must match its exact initialized bytes".into(),
+                        ));
+                    }
+                    object.size = size;
+                    self.data_object = None;
                 }
             }
             ".set" | ".equ" | ".equiv" => {
@@ -454,6 +547,36 @@ impl Parser {
                 {
                     return Err(fail(format!("malformed `{name}` alignment")));
                 }
+                if !self.text_section {
+                    if parts.len() == 3 {
+                        return Err(fail(
+                            "conditional max-skip module-object alignment is unsupported".into(),
+                        ));
+                    }
+                    if name == ".align" {
+                        return Err(fail(
+                            "module data requires explicit .p2align or .balign".into(),
+                        ));
+                    }
+                    if self.data_object.is_some() {
+                        return Err(fail(
+                            "internal module-object alignment padding is unsupported".into(),
+                        ));
+                    }
+                    let value = instr::integer(parts[0]).unwrap();
+                    let alignment = if name.starts_with(".p2align") {
+                        u32::try_from(value)
+                            .ok()
+                            .and_then(|shift| 1u64.checked_shl(shift))
+                    } else {
+                        u64::try_from(value).ok()
+                    };
+                    self.data_alignment = alignment
+                        .filter(|alignment| {
+                            alignment.is_power_of_two() && *alignment <= MAX_OBJECT_BYTES
+                        })
+                        .ok_or_else(|| fail("unsupported module-object alignment".into()))?;
+                }
             }
             ".byte" | ".short" | ".hword" | ".long" | ".word" | ".quad" | ".zero" | ".space"
             | ".fill" | ".ascii" | ".asciz" | ".string" => {
@@ -465,12 +588,96 @@ impl Parser {
                 if args.is_empty() {
                     return Err(fail(format!("missing data for `{name}`")));
                 }
-                // These object bytes are not initialized as implicit global
-                // allocations. A reference to one remains an explicit symbol;
-                // lowering/evaluation must diagnose unsupported relocations.
+                if self.data_object.is_some() {
+                    self.object_data(name, args, span)?;
+                }
             }
             _ => return Err(fail(format!("unsupported assembly directive `{name}`"))),
         }
+        Ok(())
+    }
+
+    fn finish_section(&mut self, span: SourceSpan) -> Result<(), ParseError> {
+        if self.data_object.is_some() {
+            return Err(ParseError {
+                message: "module object changes section before explicit .size".into(),
+                span,
+            });
+        }
+        self.data_alignment = 1;
+        Ok(())
+    }
+
+    fn object_data(
+        &mut self,
+        directive: &str,
+        args: &str,
+        span: SourceSpan,
+    ) -> Result<(), ParseError> {
+        let fail = |message: &str| ParseError {
+            message: message.into(),
+            span,
+        };
+        let parts = instr::split_top_level(args, ',').map_err(|_| fail("malformed module data"))?;
+        let numbers = parts
+            .iter()
+            .map(|part| instr::constant_expression(part, &self.module.constants))
+            .collect::<Option<Vec<_>>>()
+            .ok_or_else(|| {
+                fail(
+                    "module data requires exact integer bytes; relocations/strings are unsupported",
+                )
+            })?;
+        let mut bytes = Vec::new();
+        let width = match directive {
+            ".byte" => Some(1),
+            ".short" => Some(2),
+            ".long" => Some(4),
+            ".quad" => Some(8),
+            _ => None,
+        };
+        if let Some(width) = width {
+            for value in numbers {
+                bytes.extend_from_slice(&(value as u64).to_le_bytes()[..width]);
+            }
+        } else if matches!(directive, ".zero" | ".space") && (1..=2).contains(&numbers.len()) {
+            let count = u64::try_from(numbers[0])
+                .ok()
+                .filter(|count| *count <= MAX_OBJECT_BYTES)
+                .ok_or_else(|| fail("module zero/space data exceeds bounded object envelope"))?;
+            let fill = numbers.get(1).copied().unwrap_or(0);
+            if !(0..=255).contains(&fill) {
+                return Err(fail("module data fill must be one byte"));
+            }
+            bytes.resize(count as usize, fill as u8);
+        } else if directive == ".fill" && (1..=3).contains(&numbers.len()) {
+            let count = u64::try_from(numbers[0])
+                .ok()
+                .ok_or_else(|| fail("negative module fill count"))?;
+            let width = numbers.get(1).copied().unwrap_or(1);
+            if ![1, 2, 4].contains(&width) {
+                return Err(fail("module fill size must be1,2or4"));
+            }
+            let size = count
+                .checked_mul(width as u64)
+                .filter(|size| *size <= MAX_OBJECT_BYTES)
+                .ok_or_else(|| fail("module fill data exceeds bounded object envelope"))?;
+            let value = numbers.get(2).copied().unwrap_or(0) as u64;
+            bytes.reserve(size as usize);
+            for _ in 0..count {
+                bytes.extend_from_slice(&value.to_le_bytes()[..width as usize]);
+            }
+        } else {
+            return Err(fail("unsupported module object data directive"));
+        }
+        let object = &mut self.module.globals[self.data_object.unwrap()];
+        if (object.initial_bytes.len() as u64)
+            .checked_add(bytes.len() as u64)
+            .is_none_or(|size| size > MAX_OBJECT_BYTES)
+        {
+            return Err(fail("module object exceeds bounded16MiB data envelope"));
+        }
+        object.initial_bytes.extend(bytes);
         Ok(())
     }
 }

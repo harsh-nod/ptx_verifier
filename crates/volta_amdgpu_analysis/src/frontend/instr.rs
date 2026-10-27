@@ -1,6 +1,9 @@
 use std::collections::BTreeMap;
 
-use super::{Instruction, Modifier, Opcode, Operand, ParseError, Register, RegisterClass};
+use super::{
+    Instruction, Modifier, Opcode, Operand, ParseError, Register, RegisterClass, Relocation,
+    RelocationKind,
+};
 use super::{SourceSpan, SpecialRegister};
 
 pub(super) fn integer(text: &str) -> Option<i64> {
@@ -176,6 +179,7 @@ fn register(text: &str) -> Result<Option<Register>, String> {
         "flat_scratch" => Some((SpecialRegister::FlatScratch, 2)),
         "flat_scratch_lo" => Some((SpecialRegister::FlatScratchLo, 1)),
         "flat_scratch_hi" => Some((SpecialRegister::FlatScratchHi, 1)),
+        "src_shared_base" => Some((SpecialRegister::SharedBase, 2)),
         _ => None,
     };
     if let Some((special, count)) = special {
@@ -247,6 +251,35 @@ fn operand(text: &str) -> Result<Operand, String> {
     }
     if let Some(register) = register(text)? {
         return Ok(Operand::Register(register));
+    }
+    if let Some((symbol, suffix)) = text.split_once("@rel32@") {
+        if symbol.is_empty()
+            || symbol.starts_with(|c: char| c.is_ascii_digit())
+            || !symbol
+                .chars()
+                .all(|character| character.is_ascii_alphanumeric() || "_.$".contains(character))
+        {
+            return Err(format!("invalid relocation symbol `{symbol}`"));
+        }
+        let (kind, addend) = if let Some(rest) = suffix.strip_prefix("lo") {
+            (RelocationKind::Rel32Lo, rest)
+        } else if let Some(rest) = suffix.strip_prefix("hi") {
+            (RelocationKind::Rel32Hi, rest)
+        } else {
+            return Err(format!("unsupported relocation `{text}`"));
+        };
+        let addend = if addend.is_empty() {
+            0
+        } else if addend.starts_with(['+', '-']) {
+            integer(addend).ok_or_else(|| format!("invalid relocation addend `{text}`"))?
+        } else {
+            return Err(format!("invalid relocation suffix `{text}`"));
+        };
+        return Ok(Operand::Relocation(Relocation {
+            symbol: symbol.into(),
+            kind,
+            addend,
+        }));
     }
     if text.starts_with('-') || text.starts_with('|') || text.starts_with("abs(") {
         let (negate, rest) = text
@@ -1029,6 +1062,18 @@ fn validate_registers(mnemonic: &str, opcode: Opcode, operands: &[Operand]) -> R
         .any(|register| register.special == Some(SpecialRegister::Scc))
     {
         return Err("SCC cannot be used as an explicit general-purpose register operand".into());
+    }
+    for (index, operand) in operands.iter().enumerate() {
+        if register(operand)
+            .is_some_and(|register| register.special == Some(SpecialRegister::SharedBase))
+        {
+            // CDNA4 selector235 and LLVM Generic address-space ABI: the base
+            // is2^32 aligned. Numeric values remain unknown to this frontend.
+            if mnemonic != "s_mov_b64" || index != 1 || !matches!(operand, Operand::Register(_)) {
+                return Err("SRC_SHARED_BASE is modeled only as the source of s_mov_b64".into());
+            }
+            require(0, &[Scalar], 2)?;
+        }
     }
     match opcode {
         Opcode::ScalarAlu => {

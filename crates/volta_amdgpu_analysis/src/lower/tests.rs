@@ -41,3 +41,71 @@ fn rejects_undefined_and_nonexecutable_branch_destinations() {
         assert!(lower_kernel(&module.kernels[0]).is_err());
     }
 }
+
+#[test]
+fn native_module_relocations_preserve_all_original_instructions() {
+    let module = frontend::parse(include_str!(
+        "../frontend/fixtures/clang22-module-globals.s"
+    ))
+    .unwrap();
+    let lowered = lower_kernel_in_module(&module, &module.kernels[0]).unwrap();
+    assert_eq!(lowered.instructions, module.kernels[0].instructions);
+    assert_eq!(lowered.globals, module.globals);
+    assert_eq!(lowered.global_address_sequences.len(), 3);
+    for (pc, sequence) in lowered.global_address_sequences {
+        assert_eq!(pc, sequence.anchor_pc);
+        assert_eq!(lowered.instructions[pc].mnemonic, "s_getpc_b64");
+    }
+    assert!(
+        lower_kernel(&module.kernels[0]).is_err(),
+        "module context is mandatory"
+    );
+}
+
+#[test]
+fn only_complete_matching_unbranched_address_sequences_can_resolve_objects() {
+    let source = include_str!("../frontend/fixtures/clang22-module-globals.s");
+    let cases = [
+        source.replacen("constant_table@rel32@lo+4", "constant_table@rel32@lo+8", 1),
+        source.replacen("constant_table@rel32@hi+12", "constant_table@rel32@hi+4", 1),
+        source.replacen("constant_table@rel32@hi+12", "global_bias@rel32@hi+12", 1),
+        source
+            .replacen("constant_table@rel32@lo+4", "undefined@rel32@lo+4", 1)
+            .replacen("constant_table@rel32@hi+12", "undefined@rel32@hi+12", 1),
+        source.replacen(
+            "s_add_u32 s2, s2, constant_table",
+            "s_add_u32 s4, s2, constant_table",
+            1,
+        ),
+        source
+            .replacen(
+                "s_add_u32 s2, s2, constant_table",
+                ".Lmiddle:\n\ts_add_u32 s2, s2, constant_table",
+                1,
+            )
+            .replacen("module_globals:", "module_globals:\n\ts_branch .Lmiddle", 1),
+        source
+            .replacen(
+                "s_addc_u32 s3, s3, constant_table",
+                ".Lmiddle:\n\ts_addc_u32 s3, s3, constant_table",
+                1,
+            )
+            .replacen("module_globals:", "module_globals:\n\ts_branch .Lmiddle", 1),
+        source.replacen("s_getpc_b64 s[2:3]", "s_mov_b64 s[2:3], 0", 1),
+    ];
+    for bad in cases {
+        let module = frontend::parse(&bad).unwrap();
+        assert!(lower_kernel_in_module(&module, &module.kernels[0]).is_err());
+    }
+    for bad in [
+        "constant_table@gotpcrel+4",
+        "constant_table@rel32@unknown+4",
+        "constant_table@rel32@lo+arbitrary",
+    ] {
+        let source = source.replacen("constant_table@rel32@lo+4", bad, 1);
+        match frontend::parse(&source) {
+            Err(_) => {}
+            Ok(module) => assert!(lower_kernel_in_module(&module, &module.kernels[0]).is_err()),
+        }
+    }
+}

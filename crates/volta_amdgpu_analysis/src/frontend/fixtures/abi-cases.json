@@ -1,0 +1,188 @@
+{
+  "schema": 1,
+  "scope": "Native ABI portability cases; compilation is not a semantic validation claim.",
+  "cases": [
+    {
+      "kernel": "module_globals",
+      "family": "module-global-bindings",
+      "source": "clang22-module-globals.hip",
+      "assembly": "clang22-module-globals.s",
+      "spec": "specs/module_globals.spec",
+      "block": [
+        4,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 4,
+        "BOUND": 17,
+        "BIAS": 5
+      },
+      "arrays": [
+        {
+          "name": "out",
+          "base_address": 1048576,
+          "element_size": 4,
+          "length": 4,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:out"
+      ],
+      "global_values": [
+        [
+          "bound_global",
+          17
+        ],
+        [
+          "global_bias",
+          5
+        ]
+      ],
+      "expected_output_footprint": {
+        "elements": 4,
+        "bytes": 16
+      },
+      "notes": [
+        "Both bindings override native initial bytes0and3. Read-only constant_table retains exact2,3,5,7 storage.",
+        "Only compiler-proven contiguous getpc/rel32lo+4/rel32hi+12 constructs may resolve defined bounded objects; arbitrary PC arithmetic/GOT/undefined externs stay unsupported."
+      ],
+      "status": "compiler_and_assembler_validated; integrated_symbolic_and_hardware_pending"
+    },
+    {
+      "kernel": "dynamic_lds",
+      "family": "dynamic-lds-abi",
+      "source": "clang22-dynamic-lds.hip",
+      "assembly": "clang22-dynamic-lds.s",
+      "spec": "specs/dynamic_lds.spec",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 2,
+        "INPUT": 4
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 4,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 1048576,
+          "element_size": 4,
+          "length": 2,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "dynamic_shared": 8,
+      "expected_output_footprint": {
+        "elements": 2,
+        "bytes": 8
+      },
+      "notes": [
+        "Actual12-byte static array is followed by32-byte-aligned dynamic LDS; descriptor fixed size32 includes padding. Native accesses dynamic bytes32..39.",
+        "Require8dynamic bytes; smaller capacity must fail bounds, and static/extern writes must retain distinct addresses."
+      ],
+      "status": "compiler_and_assembler_validated; integrated_symbolic_and_hardware_pending"
+    },
+    {
+      "kernel": "grid_output",
+      "family": "multidimensional-grid-abi",
+      "source": "clang22-grid-output.hip",
+      "assembly": "clang22-grid-output.s",
+      "spec": "specs/grid_output.spec",
+      "block": [
+        4,
+        3,
+        2
+      ],
+      "grid": [
+        2,
+        3,
+        4
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "TWO": 2,
+        "FOUR": 4,
+        "THREE": 3,
+        "GX": 2,
+        "GY": 3,
+        "GZ": 4,
+        "X": 4,
+        "Y": 3,
+        "Z": 2
+      },
+      "arrays": [
+        {
+          "name": "grid_xy",
+          "base_address": 1048576,
+          "element_size": 4,
+          "length": 2,
+          "kind": "out"
+        },
+        {
+          "name": "grid_z_and_group",
+          "base_address": 1048584,
+          "element_size": 4,
+          "length": 4,
+          "kind": "out"
+        },
+        {
+          "name": "block_xyz",
+          "base_address": 1048600,
+          "element_size": 4,
+          "length": 3,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:grid_xy"
+      ],
+      "expected_output_footprint": {
+        "elements": 9,
+        "bytes": 36
+      },
+      "notes": [
+        "One all-coordinate-zero workitem writes9fields per workgroup. Actual2/4/3-dword transfers retain3separate reference records.",
+        "Analyzer selects group0; physical full-grid validation may allocate216uints for24workgroups and compare each unique9-field row."
+      ],
+      "status": "compiler_and_assembler_validated; integrated_symbolic_and_hardware_pending"
+    }
+  ]
+}
