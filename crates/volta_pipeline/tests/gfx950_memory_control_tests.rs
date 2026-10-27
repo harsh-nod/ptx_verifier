@@ -1075,6 +1075,251 @@ fn vector_transfers_check_every_component_at_the_region_end() {
 }
 
 #[test]
+fn flat_and_ds_access_the_same_lds_bytes_with_native_completion_rules() {
+    // AMDGPUUsage's flat address-space model maps the shared aperture to the
+    // same workgroup allocation addressed by DS. The two issue formats retain
+    // different completion classes; constructing a FLAT pointer adds no HB.
+    for (store, load) in [
+        ("flat_store_dword v[2:3], v5", "ds_read_b32 v8, v10"),
+        ("ds_write_b32 v2, v5", "flat_load_dword v8, v[10:11]"),
+    ] {
+        let body = format!(
+            "s_mov_b64 s[8:9], src_shared_base\nv_mov_b32 v3, s9\nglobal_load_dword v5, v2, s[4:5]\ns_waitcnt vmcnt(0)\n{store}\ns_waitcnt vmcnt(0) lgkmcnt(0)\ns_barrier\nv_xor_b32 v10, 256, v2\nv_mov_b32 v11, s9\n{load}\ns_waitcnt vmcnt(0) lgkmcnt(0)\nglobal_store_dword v2, v8, s[6:7]"
+        );
+        let positive = run(&body, 512, 128);
+        assert_input_permutation(&positive, 128, |index| index ^ 64);
+        assert!(
+            positive
+                .analysis
+                .graph
+                .amd_memory_effects()
+                .iter()
+                .any(|link| {
+                    let issue = positive
+                        .analysis
+                        .graph
+                        .amd_events()
+                        .iter()
+                        .find(|record| record.event == link.issue)
+                        .unwrap();
+                    matches!(
+                        issue.kind,
+                        volta_graph::AmdEventKind::MemoryIssue {
+                            class: volta_graph::AmdMemoryClass::Flat,
+                            ..
+                        }
+                    ) && positive
+                        .analysis
+                        .graph
+                        .access(match positive.analysis.graph.event(link.effect).kind {
+                            volta_graph::EventKind::Access(access) => access,
+                            _ => unreachable!(),
+                        })
+                        .space
+                        == Space::Shared
+                })
+        );
+        assert_shared_conflict(
+            &run(&body.replace("s_barrier", ""), 512, 128),
+            ConflictKind::WriteRead,
+        );
+        if load.starts_with("flat_") {
+            let missing_lgkm = body.replace(
+                "flat_load_dword v8, v[10:11]\ns_waitcnt vmcnt(0) lgkmcnt(0)",
+                "flat_load_dword v8, v[10:11]\ns_waitcnt vmcnt(0)",
+            );
+            assert_readiness(
+                &run(&missing_lgkm, 512, 128),
+                AmdRegisterHazardKind::ReadBeforeReady,
+            );
+        }
+    }
+}
+
+#[test]
+fn identical_numeric_global_and_lds_offsets_are_different_locations() {
+    let mut cfg = config(64, 64);
+    cfg.arrays[0].base = 0;
+    let body = "v_mov_b32 v8, 7\nds_write_b32 v2, v8\ns_waitcnt lgkmcnt(0)\nglobal_load_dword v8, v2, s[4:5]\ns_waitcnt vmcnt(0)\nglobal_store_dword v2, v8, s[6:7]";
+    assert_input_permutation(&run_config(body, 256, cfg), 64, |index| index);
+}
+
+#[test]
+fn an_lds_128_bit_read_preserves_four_independently_stored_words() {
+    let body = "global_load_dwordx4 v[8:11], v2, s[4:5]\ns_waitcnt vmcnt(0)\nds_write_b32 v2, v8\nds_write_b32 v2, v9 offset:4\nds_write_b32 v2, v10 offset:8\nds_write_b32 v2, v11 offset:12\ns_waitcnt lgkmcnt(0)\nds_read_b128 v[12:15], v2\ns_waitcnt lgkmcnt(0)\nglobal_store_dwordx4 v2, v[12:15], s[6:7]";
+    assert_input_permutation(&run_config(body, 16, config(1, 4)), 4, |index| index);
+    let absent_fourth_word = body.replace("ds_write_b32 v2, v11 offset:12", "");
+    assert_invalid(
+        &run_config(&absent_fourth_word, 16, config(1, 4)),
+        "uninitialized byte",
+    );
+}
+
+#[test]
+fn a_halfword_overwrite_preserves_the_other_initialized_bytes() {
+    let body = "global_load_dword v8, v2, s[4:5]\ns_waitcnt vmcnt(0)\nv_cvt_f16_f32 v8, v8\nv_mov_b32 v9, 0\nds_write_b32 v2, v9\ns_waitcnt lgkmcnt(0)\nds_write_b16 v2, v8 offset:2\ns_waitcnt lgkmcnt(0)\nds_read_u16 v8, v2 offset:2\nds_read_u16 v9, v2\ns_waitcnt lgkmcnt(0)\nv_cvt_f32_f16 v8, v8\nv_cvt_f32_f16 v9, v9\nglobal_store_dword v2, v8, s[6:7]\nglobal_store_dword v2, v9, s[6:7] offset:4\nv_add_f32 v10, v8, v9\nglobal_store_dword v2, v10, s[6:7] offset:8";
+    let result = run_config(body, 4, config(1, 3));
+    assert_verified(&result);
+    let outputs = result.analysis.symbolic_outputs().unwrap();
+    assert_eq!(outputs.outputs[0].1.len(), 3);
+    for index in [0, 2] {
+        assert!(matches!(
+            outputs.arena.node(outputs.element("out", index).unwrap()),
+            ExprNode::InputElement { array, index: 0 }
+                if outputs.arena.string(*array) == "x"
+        ));
+    }
+    assert_eq!(
+        outputs.arena.as_f64(outputs.element("out", 1).unwrap()),
+        Some(0.0)
+    );
+    assert_invalid(
+        &run_config(&body.replace("ds_write_b32 v2, v9", ""), 4, config(1, 3)),
+        "uninitialized byte",
+    );
+}
+
+#[test]
+fn global_addresses_cross_the_signed_boundary_without_changing_array_identity() {
+    let mut cfg = config(1, 8);
+    cfg.arrays[0].base = 0x7fff_ffff_ffff_fff0;
+    let body = "global_load_dword v8, v2, s[4:5] offset:16\ns_waitcnt vmcnt(0)\nglobal_store_dword v2, v8, s[6:7]";
+    assert_input_permutation(&run_config(body, 0, cfg.clone()), 1, |_| 4);
+    assert_invalid(
+        &run_config(&body.replace("offset:16", "offset:32"), 0, cfg),
+        "out-of-bounds",
+    );
+}
+
+#[test]
+fn maximal_wait_fields_do_not_prove_completion_after_many_issues() {
+    // The encoded maximum is the counter's don't-care field. This checks the
+    // model's conservative logical queue above the native field width, rather
+    // than treating a PTX transaction-credit overflow as an AMD counter feature.
+    for (counter, count, maximum, prefix, instruction) in [
+        ("vmcnt", 65, 63, "", "global_load_dword"),
+        (
+            "lgkmcnt",
+            17,
+            15,
+            "v_mov_b32 v10, 0\nv_mov_b32 v8, 0\nds_write_b32 v10, v8\ns_waitcnt lgkmcnt(0)\n",
+            "ds_read_b32",
+        ),
+    ] {
+        let mut issues = prefix.to_string();
+        for index in 0..count {
+            issues.push_str(&if counter == "vmcnt" {
+                format!("{instruction} v{}, v2, s[4:5]\n", 16 + index)
+            } else {
+                format!("{instruction} v{}, v10\n", 16 + index)
+            });
+        }
+        for threshold in [maximum, maximum - 1, 0] {
+            let body = format!(
+                "{issues}s_waitcnt {counter}({threshold})\nglobal_store_dword v2, v16, s[6:7]"
+            );
+            let result = run(&body, 4, 1);
+            if threshold == maximum {
+                assert_readiness(&result, AmdRegisterHazardKind::ReadBeforeReady);
+            } else {
+                assert_verified(&result);
+            }
+        }
+    }
+}
+
+#[test]
+fn a_global_source_read_must_complete_and_synchronize_before_another_wave_overwrites_it() {
+    for (wait, barrier, valid) in [
+        ("s_waitcnt vmcnt(0)", "s_barrier", true),
+        ("", "s_barrier", false),
+        ("s_waitcnt vmcnt(0)", "", false),
+    ] {
+        let body = format!(
+            "v_cmp_lt_u32 vcc, v0, 64\ns_cbranch_vccz .Ljoin\nglobal_load_dword v8, v2, s[4:5] sc0\n{wait}\n.Ljoin:\n{barrier}\ns_cbranch_vccnz .Lreader\nv_and_b32 v10, 63, v0\nv_lshlrev_b32 v10, 2, v10\nv_mov_b32 v8, 0\nglobal_store_dword v10, v8, s[4:5] sc0\ns_waitcnt vmcnt(0)\ns_branch .Ldone\n.Lreader:\nglobal_store_dword v2, v8, s[6:7]\n.Ldone:"
+        );
+        let mut cfg = config(128, 64);
+        cfg.arrays[0].kind = ArrayKind::InputOutput;
+        let result = run_config(&body, 0, cfg);
+        assert!(result.analysis.symbolic_outputs().is_ok());
+        if valid {
+            assert_verified(&result);
+            let outputs = result.analysis.symbolic_outputs().unwrap();
+            for index in 0..64 {
+                assert!(matches!(
+                    outputs.arena.node(outputs.element("out", index).unwrap()),
+                    ExprNode::InputElement { array, index: found }
+                        if outputs.arena.string(*array) == "x" && *found == index
+                ));
+                assert_eq!(
+                    outputs
+                        .arena
+                        .as_int_const(outputs.element("x", index).unwrap()),
+                    Some(0)
+                );
+            }
+        } else {
+            assert!(matches!(
+                result.checks.conclusion(),
+                GraphConclusion::Rejected { .. }
+            ));
+            assert!(
+                result
+                    .checks
+                    .amd
+                    .as_ref()
+                    .unwrap()
+                    .memory_conflict
+                    .violations()
+                    .iter()
+                    .any(|witness| witness.kind == ConflictKind::ReadWrite
+                        && witness.location.space == Space::Global)
+            );
+        }
+    }
+}
+
+#[test]
+fn constant_integer_address_expressions_preserve_alias_identity() {
+    for barrier in ["s_barrier", ""] {
+        let body = format!(
+            "v_and_b32 v10, 63, v0\nv_cmp_eq_u32 vcc, v10, 0\ns_and_b64 exec, exec, vcc\nv_cmp_lt_u32 vcc, v0, 64\ns_cbranch_vccz .Ljoin\nv_or_b32 v10, 4, 4\nv_add_u32 v8, 1, 0\nglobal_store_dword v10, v8, s[6:7] sc0\ns_waitcnt vmcnt(0)\n.Ljoin:\n{barrier}\ns_cbranch_vccnz .Ldone\nv_mov_b32 v10, 4\nv_add_u32 v8, 2, 0\nglobal_store_dword v10, v8, s[6:7] sc0\n.Ldone:"
+        );
+        let result = run_config(&body, 0, config(128, 2));
+        assert!(result.analysis.symbolic_outputs().is_ok());
+        if !barrier.is_empty() {
+            assert_verified(&result);
+            let outputs = result.analysis.symbolic_outputs().unwrap();
+            assert_eq!(outputs.outputs[0].1.len(), 1);
+            assert_eq!(
+                outputs
+                    .arena
+                    .as_int_const(outputs.element("out", 1).unwrap()),
+                Some(2)
+            );
+        } else {
+            assert!(matches!(
+                result.checks.conclusion(),
+                GraphConclusion::Rejected { .. }
+            ));
+            assert!(
+                result
+                    .checks
+                    .amd
+                    .as_ref()
+                    .unwrap()
+                    .memory_conflict
+                    .violations()
+                    .iter()
+                    .any(|witness| witness.kind == ConflictKind::WriteWrite
+                        && witness.location.space == Space::Global
+                        && witness.location.addr == 0x20004)
+            );
+        }
+    }
+}
+
+#[test]
 fn incomplete_execution_never_receives_a_verified_graph() {
     let mut cfg = config(64, 64);
     cfg.max_instructions = 20;

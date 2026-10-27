@@ -360,7 +360,7 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "s_cmpk_eq_i32" | "s_cmpk_lg_i32" | "s_mulk_i32" | "s_movk_i32" | "s_mov_b32"
         | "s_mov_b64" | "s_not_b32" | "s_not_b64" | "s_brev_b32" | "s_brev_b64"
         | "s_ff0_i32_b64" | "s_ff1_i32_b64" | "s_ff0_i32_b32" | "s_ff1_i32_b32"
-        | "s_flbit_i32_b32" | "s_abs_i32" | "s_bitset1_b32" => (ScalarAlu, 2, 2),
+        | "s_flbit_i32_b32" | "s_abs_i32" | "s_bitset1_b32" | "s_sext_i32_i16" => (ScalarAlu, 2, 2),
         "s_add_u32" | "s_add_i32" | "s_addc_u32" | "s_sub_u32" | "s_sub_i32" | "s_subb_u32"
         | "s_mul_i32" | "s_mul_hi_u32" | "s_mul_hi_i32" | "s_and_b32" | "s_and_b64"
         | "s_or_b32" | "s_or_b64" | "s_xor_b32" | "s_xor_b64" | "s_andn2_b32" | "s_andn2_b64"
@@ -475,6 +475,7 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_cos_f32"
         | "v_cvt_f32_u32"
         | "v_cvt_f32_i32"
+        | "v_cvt_f32_ubyte2"
         | "v_cvt_u32_f32"
         | "v_cvt_i32_f32"
         | "v_cvt_f16_f32"

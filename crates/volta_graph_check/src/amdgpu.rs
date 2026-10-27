@@ -1037,6 +1037,21 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                     (AmdCounter::Exp, *expcnt),
                 ] {
                     let Some(threshold) = threshold else { continue };
+                    // CDNA4 SOPP S_WAITCNT uses 6/4/3-bit VM/LGKM/EXP fields.
+                    // LLVM AMDGPUWaitcntUtils::HardwareLimits and
+                    // SIGfx6CacheControl::insertWait select the all-ones field
+                    // for a counter that is not being waited on. Logical issue
+                    // histories may exceed that field width; do not turn this
+                    // don't-care encoding into a completion proof by counting
+                    // that history. Implicit hardware throttling is not modeled.
+                    let maximum = match counter {
+                        AmdCounter::Vm => 63,
+                        AmdCounter::Lgkm => 15,
+                        AmdCounter::Exp => 7,
+                    };
+                    if threshold == maximum {
+                        continue;
+                    }
                     let tracked: Vec<usize> = pending[wave]
                         .iter()
                         .copied()

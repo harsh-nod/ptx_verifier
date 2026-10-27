@@ -24,6 +24,12 @@ Initial user/system register assignments come from kernel descriptor enable bits
 Explicit argument bytes come from AMDHSA argument offsets and sizes. Recognized
 hidden launch fields are initialized from configuration. Unknown hidden runtime
 facilities remain uninitialized and their consumption stops analysis.
+Concrete partial kernarg words retain a bit-definedness mask when native loads
+include padding. Exact low16 sign extension and byte2-to-f32 conversion can
+consume their defined portions; copying a word preserves unknown bits. Whole-word
+arithmetic, floating decoding, and stores that observe padding stop analysis.
+Padding is never initialized to a numeric value, and ordinary global/LDS reads
+retain their existing uninitialized-memory checks.
 Descriptor/user-SGPR disagreement and argument-count disagreement are errors.
 Kernarg preloading remains unsupported. Launch checks
 enforce descriptor workgroup limits and required dimensions. Split workgroups
@@ -61,6 +67,11 @@ Byte inputs acquire a numeric interpretation at their first decoder. OCP E4M3
 and signed/unsigned integer-byte interpretations of the same input array cannot
 be mixed. Signed loads and native signed-byte-to-F16 conversions preserve numeric
 input identities while packing keeps the original byte positions.
+Two-byte encoded byte pairs retain both identities through native 16-bit memory
+transfers. Exact 32-bit word transport via b64 shifts by zero or 32 and OR with a
+concrete zero preserves symbolic data tags; other symbolic b64 shifts require
+encoded bits. Concrete b64 shifts retain unsigned integer provenance for numeric
+64-bit output extraction while remaining usable as native address bits.
 General base2 exponentials/logarithms use the exact reciprocal of rounded f32
 log2(e), matching the existing PTX mathematical contract; executing that path
 records `CompilerBase2Conversion`. Actual instruction coefficients remain exact.
