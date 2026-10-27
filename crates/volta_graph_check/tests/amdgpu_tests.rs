@@ -165,6 +165,138 @@ fn target_selects_amd_checks_and_empty_graph_cannot_verify() {
     assert!(matches!(r.conclusion(), GraphConclusion::Unknown { .. }));
 }
 
+fn terminated_producer_trace(
+    threads: u32,
+    labelled_end: bool,
+    drain: Option<(Option<u16>, Option<u16>, Option<u16>)>,
+    barrier: bool,
+) -> EventGraph {
+    let mut instructions = vec![
+        InstructionInfo {
+            kind: "amd",
+            span: None
+        };
+        100
+    ];
+    instructions[0].kind = "LDS";
+    instructions[1].kind = if labelled_end { "s_endpgm" } else { "control" };
+    instructions[3].kind = "LDS";
+    instructions[4].kind = "wait";
+    instructions[90].kind = "barrier";
+    let mut t = Trace {
+        b: GraphBuilder::new(Provenance {
+            kernel: "terminated_producer".into(),
+            block_dim: (threads, 1, 1),
+            grid_dim: (1, 1, 1),
+            targets: vec!["gfx950".into()],
+            assumptions: vec![],
+            instructions,
+        }),
+        threads,
+    };
+    t.issue(0, 0, AmdMemoryClass::Lds, vec![], vec![], 0, true);
+    t.ins(0, 1, vec![], vec![]);
+    if let Some((vmcnt, lgkmcnt, expcnt)) = drain {
+        t.b.amd_event(
+            0,
+            ProgramPoint(1),
+            AmdEventKind::Wait {
+                vmcnt,
+                lgkmcnt,
+                expcnt,
+            },
+        );
+    }
+    for lane in 0..64 {
+        t.b.exit(ThreadIx(lane), ProgramPoint(1));
+    }
+    if barrier {
+        t.arrive(1, 0);
+        t.release(1, 0);
+    }
+    t.issue(1, 3, AmdMemoryClass::Lds, vec![v(7, 1)], vec![], 0, false);
+    t.wait(1, 4, None, Some(0));
+    t.ins(1, 5, vec![v(7, 1)], vec![]);
+    for lane in 64..threads {
+        t.b.exit(ThreadIx(lane), ProgramPoint(99));
+    }
+    t.b.finish(Terminal::Completed)
+}
+
+#[test]
+fn terminated_wave_implicit_drain_joins_only_at_surviving_wave_barrier() {
+    for threads in [65, 96, 128] {
+        let complete = Some((Some(0), Some(0), Some(0)));
+        let with_barrier = check_graph(&terminated_producer_trace(threads, true, complete, true));
+        assert_eq!(
+            with_barrier.conclusion(),
+            GraphConclusion::Verified,
+            "{with_barrier:?}"
+        );
+        assert_eq!(
+            with_barrier
+                .amd
+                .as_ref()
+                .unwrap()
+                .barrier
+                .violations()
+                .len(),
+            0
+        );
+
+        let without_barrier =
+            check_graph(&terminated_producer_trace(threads, true, complete, false));
+        assert_eq!(
+            without_barrier.verdict(Property::AmdMemoryConflict),
+            Verdict::Fail
+        );
+        assert!(
+            without_barrier
+                .amd
+                .unwrap()
+                .memory_conflict
+                .violations()
+                .iter()
+                .any(|w| {
+                    w.kind == volta_graph_check::domain::ConflictKind::WriteRead
+                        && w.location.space == Space::Shared
+                })
+        );
+    }
+}
+
+#[test]
+fn missing_or_partial_endpgm_implicit_wait_is_an_incomplete_trace() {
+    for drain in [
+        None,
+        Some((Some(0), Some(0), None)),
+        Some((Some(0), Some(1), Some(0))),
+    ] {
+        let report = check_graph(&terminated_producer_trace(128, true, drain, true));
+        assert_eq!(
+            report.verdict(Property::AmdTrace),
+            Verdict::Unknown,
+            "{report:?}"
+        );
+        assert!(matches!(
+            report.conclusion(),
+            GraphConclusion::Unknown { .. }
+        ));
+    }
+    // Legacy/unlabelled Exit events also cannot make pending data complete.
+    let report = check_graph(&terminated_producer_trace(128, false, None, true));
+    assert_eq!(report.verdict(Property::AmdTrace), Verdict::Pass);
+    assert_eq!(report.verdict(Property::AmdBarrier), Verdict::Unknown);
+    assert_eq!(
+        report.verdict(Property::AmdMemoryConflict),
+        Verdict::Unknown
+    );
+    assert!(matches!(
+        report.conclusion(),
+        GraphConclusion::Unknown { .. }
+    ));
+}
+
 #[test]
 fn recognized_target_features_select_amd_checks_and_conflicts_remain_unknown() {
     for (target, supported) in [

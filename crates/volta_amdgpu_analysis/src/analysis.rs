@@ -113,6 +113,8 @@ pub fn analyze(
             .map(|instruction| InstructionInfo {
                 kind: if instruction.mnemonic == "s_nop" {
                     "s_nop"
+                } else if instruction.mnemonic == "s_endpgm" {
+                    "s_endpgm"
                 } else if matches!(
                     instruction.mnemonic.as_str(),
                     "v_fma_mixlo_f16" | "v_fma_mixhi_f16"

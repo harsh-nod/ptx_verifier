@@ -277,6 +277,243 @@ global_store_dword v2, v8, s[6:7]
 }
 
 #[test]
+fn scalar_barrier_participation_is_independent_of_empty_exec() {
+    for empty_wave in ["", "v_cmp_lt_u32 vcc, v0, 64\ns_cbranch_vccz .Larrive"] {
+        let barrier = format!(
+            "s_mov_b64 s[8:9], exec\n{empty_wave}\ns_mov_b64 exec, 0\n.Larrive:\ns_barrier\ns_mov_b64 exec, s[8:9]"
+        );
+        let result = run(&EXCHANGE.replace("s_barrier", &barrier), 512, 128);
+        assert_input_permutation(&result, 128, |i| i ^ 64);
+        let mut arrivals: Vec<_> = result
+            .analysis
+            .graph
+            .amd_events()
+            .iter()
+            .filter_map(|e| {
+                if let volta_graph::AmdEventKind::BarrierArrive { exec_mask, .. } = e.kind {
+                    Some((e.wave, exec_mask))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        arrivals.sort_by_key(|&(wave, _)| wave);
+        assert_eq!(arrivals.len(), 2);
+        assert_eq!(arrivals[0], (0, 0));
+        assert_eq!(
+            arrivals[1],
+            (1, if empty_wave.is_empty() { 0 } else { u64::MAX })
+        );
+    }
+}
+
+#[test]
+fn dynamic_lds_extends_the_static_region_with_exact_fit_bounds() {
+    let body = "v_mov_b32 v10, 28\nv_add_u32 v8, 7, 0\nds_write_b32 v10, v8\ns_waitcnt lgkmcnt(0)\nds_read_b32 v8, v10\ns_waitcnt lgkmcnt(0)\nglobal_store_dword v2, v8, s[6:7]";
+    for (static_bytes, dynamic_bytes) in [(16, 16), (0, 32), (32, 0)] {
+        let mut cfg = config(1, 1);
+        cfg.dynamic_shared_bytes = dynamic_bytes;
+        let result = run_config(body, static_bytes, cfg);
+        assert_verified(&result);
+        let outputs = result.analysis.symbolic_outputs().unwrap();
+        assert_eq!(outputs.outputs[0].1.len(), 1);
+        assert!(matches!(
+            outputs.arena.node(outputs.element("out", 0).unwrap()),
+            ExprNode::IntConst(7)
+        ));
+    }
+    let mut too_small = config(1, 1);
+    too_small.dynamic_shared_bytes = 12;
+    assert_invalid(&run_config(body, 16, too_small), "out-of-bounds");
+}
+
+#[test]
+fn byte_and_halfword_lds_roundtrips_preserve_symbolic_elements() {
+    for (width, load, store, ds_write, ds_read) in [
+        (
+            1,
+            "global_load_ubyte",
+            "global_store_byte",
+            "ds_write_b8",
+            "ds_read_u8",
+        ),
+        (
+            2,
+            "global_load_ushort",
+            "global_store_short",
+            "ds_write_b16",
+            "ds_read_u16",
+        ),
+    ] {
+        let body = format!(
+            "v_mul_lo_u32 v10, {width}, v0\n{load} v5, v10, s[4:5]\ns_waitcnt vmcnt(0)\n{ds_write} v10, v5\ns_waitcnt lgkmcnt(0)\n{ds_read} v8, v10\ns_waitcnt lgkmcnt(0)\n{store} v10, v8, s[6:7]"
+        );
+        let mut cfg = config(65, 65);
+        for array in &mut cfg.arrays {
+            array.elem_width = width;
+        }
+        assert_input_permutation(&run_config(&body, 65 * width, cfg), 65, |i| i);
+    }
+}
+
+#[test]
+fn ds_permute_and_its_completion_do_not_create_crosswave_memory_order() {
+    let permute = "ds_bpermute_b32 v9, v2, v5\ns_waitcnt lgkmcnt(0)";
+    let no_barrier = run(&EXCHANGE.replace("s_barrier", permute), 512, 128);
+    assert_eq!(no_barrier.analysis.stats.warp_syncs, 2);
+    assert_shared_conflict(&no_barrier, ConflictKind::WriteRead);
+    let with_barrier = EXCHANGE.replace("s_barrier", &format!("{permute}\ns_barrier"));
+    assert_input_permutation(&run(&with_barrier, 512, 128), 128, |i| i ^ 64);
+}
+
+#[test]
+fn pending_load_destinations_cannot_be_reused_before_their_wait() {
+    for wait in ["", "s_waitcnt vmcnt(0)"] {
+        let result = run(
+            &format!(
+                "global_load_dword v8, v2, s[4:5]\n{wait}\nv_add_u32 v8, 0, 0\ns_waitcnt vmcnt(0)"
+            ),
+            0,
+            64,
+        );
+        if wait.is_empty() {
+            assert_readiness(&result, AmdRegisterHazardKind::DestinationReuse);
+        } else {
+            assert_verified(&result);
+        }
+    }
+}
+
+#[test]
+fn wide_store_data_lifetime_uses_two_independent_states_not_full_completion() {
+    for (delay, safe) in [
+        ("", false),
+        ("s_nop 0", false),
+        ("s_nop 1", true),
+        ("s_waitcnt vmcnt(0)", true),
+    ] {
+        let body = format!(
+            "global_load_dwordx4 v[8:11], v2, s[4:5]\ns_waitcnt vmcnt(0)\nglobal_store_dwordx4 v2, v[8:11], s[6:7]\n{delay}\nv_add_u32 v8, 0, 0"
+        );
+        let result = run_config(&body, 0, config(1, 4));
+        if safe {
+            assert_input_permutation(&result, 4, |i| i);
+        } else {
+            assert_readiness(&result, AmdRegisterHazardKind::SourceReuse);
+        }
+    }
+    // A one-DWORD GLOBAL store does not have the wide-store data hold.
+    let narrow = "global_load_dword v8, v2, s[4:5]\ns_waitcnt vmcnt(0)\nglobal_store_dword v2, v8, s[6:7]\nv_add_u32 v8, 0, 0";
+    assert_input_permutation(&run(narrow, 0, 64), 64, |i| i);
+}
+
+#[test]
+fn terminated_waves_do_not_block_later_surviving_wave_generations() {
+    for block in [65, 96, 128] {
+        for empty_exec in ["", "s_mov_b64 exec, 0"] {
+            let body = format!(
+                "v_cmp_lt_u32 vcc, v0, 64\ns_cbranch_vccz .Lsurvive\n{empty_exec}\ns_endpgm\n.Lsurvive:\ns_barrier\ns_barrier\nv_add_u32 v8, v0, 0\nglobal_store_dword v2, v8, s[6:7]"
+            );
+            let result = run(&body, 0, block);
+            assert_verified(&result);
+            let outputs = result.analysis.symbolic_outputs().unwrap();
+            assert_eq!(outputs.outputs[0].1.len(), (block - 64) as usize);
+            for index in 64..u64::from(block) {
+                assert!(
+                    matches!(outputs.arena.node(outputs.element("out", index).unwrap()), ExprNode::IntConst(value) if *value == index as i64)
+                );
+            }
+            match &result.checks.amd.as_ref().unwrap().barrier {
+                PropertyResult::Pass(evidence) => {
+                    assert_eq!(evidence.generations, 2);
+                    assert_eq!(evidence.arrivals, 2);
+                    assert_eq!(evidence.releases, 2);
+                }
+                other => panic!("{other:?}"),
+            }
+        }
+    }
+}
+
+#[test]
+fn endpgm_completes_pending_lds_but_a_survivor_still_needs_its_barrier() {
+    // Four separate independent instructions ensure the candidate interpreter
+    // visits the producer write before the negative control reads it. They do
+    // not establish inter-wave ordering in the graph.
+    let body = r#"
+v_cmp_lt_u32 vcc, v0, 64
+s_cbranch_vccz .Lsurvive
+global_load_dword v5, v2, s[4:5]
+s_waitcnt vmcnt(0)
+ds_write_b32 v2, v5
+s_endpgm
+.Lsurvive:
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+{join}
+v_xor_b32 v10, 256, v2
+ds_read_b32 v8, v10
+s_waitcnt lgkmcnt(0)
+global_store_dword v2, v8, s[6:7]
+"#;
+    for block in [65, 96, 128] {
+        let ordered = run(&body.replace("{join}", "s_barrier"), 256, block);
+        assert_verified(&ordered);
+        let outputs = ordered.analysis.symbolic_outputs().unwrap();
+        assert_eq!(outputs.outputs[0].1.len(), (block - 64) as usize);
+        for index in 64..u64::from(block) {
+            assert!(
+                matches!(outputs.arena.node(outputs.element("out", index).unwrap()), ExprNode::InputElement { index: found, .. } if *found == index - 64)
+            );
+        }
+        let unordered = run(&body.replace("{join}", ""), 256, block);
+        assert_shared_conflict(&unordered, ConflictKind::WriteRead);
+    }
+}
+
+#[test]
+fn a_live_wave_that_never_arrives_is_not_treated_as_terminated() {
+    let body = "v_cmp_lt_u32 vcc, v0, 64\ns_cbranch_vccz .Lsurvive\n.Lspin:\ns_branch .Lspin\n.Lsurvive:\ns_barrier";
+    let mut cfg = config(128, 128);
+    cfg.max_instructions = 100;
+    let result = run_config(body, 0, cfg);
+    assert!(matches!(
+        result.analysis.symbolic_outputs(),
+        Err(OutputsUnavailable::Aborted(EvalError::BudgetExceeded {
+            limit: 100
+        }))
+    ));
+    assert!(matches!(
+        result.checks.conclusion(),
+        GraphConclusion::Unknown { .. }
+    ));
+}
+
+#[test]
+fn matrix_result_readiness_uses_documented_states_not_memory_wait_counters() {
+    // Selected SGEMM form has eight passes and a ten-state ordinary result
+    // dependency (CDNA4 §7.6/Table38). Numeric zero inputs isolate readiness.
+    for (delay, safe) in [
+        ("", false),
+        ("s_waitcnt vmcnt(0) lgkmcnt(0)", false),
+        ("s_nop 8", false),
+        ("s_nop 9", true),
+    ] {
+        let body = format!(
+            "v_mov_b32 v8, 0\nv_mov_b32 v9, 0\ns_nop 1\nv_mfma_f32_16x16x4_f32 v[12:15], v8, v9, 0\n{delay}\nglobal_store_dword v2, v12, s[6:7]"
+        );
+        let result = run(&body, 0, 64);
+        if safe {
+            assert_verified(&result);
+        } else {
+            assert_readiness(&result, AmdRegisterHazardKind::MatrixReadBeforeReady);
+        }
+    }
+}
+
+#[test]
 fn repeated_doublebuffer_generations_preserve_both_producer_and_consumer_order() {
     let body = r#"
 global_load_dword v5, v2, s[4:5]

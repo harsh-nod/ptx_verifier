@@ -1,0 +1,258 @@
+{
+  "host": "mi350",
+  "compiler": "AMD LLVM version 22.0.0git",
+  "argv": [
+    "/opt/rocm/llvm/bin/llvm-mc",
+    "--triple=amdgcn-amd-amdhsa",
+    "--mcpu=gfx950",
+    "-filetype=obj",
+    "INPUT.s",
+    "-o",
+    "OUTPUT.o"
+  ],
+  "cases": [
+    {
+      "op": "v_add_f32",
+      "args": "v0, v1, v2",
+      "assembly": ".text\nk:\nv_add_f32 v0, v1, v2 clamp\ns_endpgm\n",
+      "source_sha256": "6facfcf595c45e887d4cfb2422e0eaee5da9a3525642e9c3c36c6c180b6613c5",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "d7d562f2258f2568273856cd3a43048132865d72a7b46bf9df657152f0acb9b2",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_sub_f32",
+      "args": "v0, v1, v2",
+      "assembly": ".text\nk:\nv_sub_f32 v0, v1, v2 clamp\ns_endpgm\n",
+      "source_sha256": "f7ecccbf2d30ac61300e7b3d8343985c8ec5f75046028e73f9eff574132c78a1",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "16f420f809ddc196af7ad2f13405251e0388ba2209ba9c8296cea3820735fcea",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_subrev_f32",
+      "args": "v0, v1, v2",
+      "assembly": ".text\nk:\nv_subrev_f32 v0, v1, v2 clamp\ns_endpgm\n",
+      "source_sha256": "2838ca1e9e7abbca1a2ae97c0460b35ae1eb8d99747f4a700112cc83012daa5b",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "a9934582d2e6547e1ed3d5bf3b4d512957b1269e569aab50869fd55f9669cdbe",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_mul_f32",
+      "args": "v0, v1, v2",
+      "assembly": ".text\nk:\nv_mul_f32 v0, v1, v2 clamp\ns_endpgm\n",
+      "source_sha256": "4c583484b27ad9ee95a57918e5ba1b0ab1ff4165272b62d2bc91be0b0e93c8ec",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "9577cec3bfae18e0761dcb72b65950652b12a1e5284bb6f47780c82683f813c7",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_min_f32",
+      "args": "v0, v1, v2",
+      "assembly": ".text\nk:\nv_min_f32 v0, v1, v2 clamp\ns_endpgm\n",
+      "source_sha256": "74240ea4d54683b7690ed3e39a52212716fd79b6f223a36aec19082254adfcad",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "d7ae9412bb2d7fa5c539aca2754d6d1c1965f63eb984d9ffa6a4ce85cdd9ed35",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_max_f32",
+      "args": "v0, v1, v2",
+      "assembly": ".text\nk:\nv_max_f32 v0, v1, v2 clamp\ns_endpgm\n",
+      "source_sha256": "ce0e3c9a9fcae48d69fff1c28a1dba0478283ec378ff781b0a65886a8c92017f",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "a66b306fc7bdebb34122976d4b4975aadc5ad001b5a2c3957f87f8c7672aff2f",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_fma_f32",
+      "args": "v0, v1, v2, v3",
+      "assembly": ".text\nk:\nv_fma_f32 v0, v1, v2, v3 clamp\ns_endpgm\n",
+      "source_sha256": "a5261bd3ba5703e51bc60f051e8ceca1852e56210f3bb9e8750181e4a08a02fc",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "d4a167d262d85e6aef50803fae18d2c181bebfbb01dcaa5207ad3bebca1a9293",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_mad_f32",
+      "args": "v0, v1, v2, v3",
+      "assembly": ".text\nk:\nv_mad_f32 v0, v1, v2, v3 clamp\ns_endpgm\n",
+      "source_sha256": "29416fe9233e68b240b7517e1a8c198bd7882cdb50b8a2b4d7a8b63c4c6f6099",
+      "returncode": 1,
+      "stderr": "/tmp/ptx-verifier-execution-clamp/v_mad_f32.s:3:1: error: instruction not supported on this GPU\nv_mad_f32 v0, v1, v2, v3 clamp\n^\n",
+      "object_sha256": null,
+      "analyzer_support": "unsupported"
+    },
+    {
+      "op": "v_fmac_f32",
+      "args": "v0, v1, v2",
+      "assembly": ".text\nk:\nv_fmac_f32 v0, v1, v2 clamp\ns_endpgm\n",
+      "source_sha256": "6b289ed1d2861488433b2b634f7018691e4f7ba0ef0625859a959e32a5f4fac6",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "933b8e3d66fd86e27711b0a70e369b1d67db051e0e9e603dd869639deb74a5ea",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_fmamk_f32",
+      "args": "v0, v1, 1.0, v2",
+      "assembly": ".text\nk:\nv_fmamk_f32 v0, v1, 1.0, v2 clamp\ns_endpgm\n",
+      "source_sha256": "bbbde9782b3eb18418b9049cd6c44ee5aadbfdf416638dd69a28d30cdad55e06",
+      "returncode": 1,
+      "stderr": "/tmp/ptx-verifier-execution-clamp/v_fmamk_f32.s:3:29: error: invalid operand for instruction\nv_fmamk_f32 v0, v1, 1.0, v2 clamp\n                            ^\n",
+      "object_sha256": null,
+      "analyzer_support": "unsupported"
+    },
+    {
+      "op": "v_fmaak_f32",
+      "args": "v0, v1, v2, 1.0",
+      "assembly": ".text\nk:\nv_fmaak_f32 v0, v1, v2, 1.0 clamp\ns_endpgm\n",
+      "source_sha256": "3f85dbb75d80e7439b4de03deeab939ae6a2bbee1cacd9aeddbd3ed6434c8af8",
+      "returncode": 1,
+      "stderr": "/tmp/ptx-verifier-execution-clamp/v_fmaak_f32.s:3:29: error: invalid operand for instruction\nv_fmaak_f32 v0, v1, v2, 1.0 clamp\n                            ^\n",
+      "object_sha256": null,
+      "analyzer_support": "unsupported"
+    },
+    {
+      "op": "v_rcp_f32",
+      "args": "v0, v1",
+      "assembly": ".text\nk:\nv_rcp_f32 v0, v1 clamp\ns_endpgm\n",
+      "source_sha256": "6063989cdd96217bd6091b4ba563a5581e028591f146098a6a996ed18cceb05e",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "e385cf90af409c2e1f69dbd28e76ffa4f92e37d0f0f4f554ded7b742ae5ce239",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_sqrt_f32",
+      "args": "v0, v1",
+      "assembly": ".text\nk:\nv_sqrt_f32 v0, v1 clamp\ns_endpgm\n",
+      "source_sha256": "af986f0340857cf88b940f5a21401ce9e3a1a81b68b63823a9d9d72fc7b8e862",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "fd5934ff5de652a2315a92c198efeaafb8979c6e5892f07b79d5090aad70012b",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_rsq_f32",
+      "args": "v0, v1",
+      "assembly": ".text\nk:\nv_rsq_f32 v0, v1 clamp\ns_endpgm\n",
+      "source_sha256": "afd9d846d83c3aa57a8c019d7ec97d89de1e5dceca66c7accf84cdaf342f5165",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "3d689b94184b5fd4ce4cd7d33fb358449b88269b362557e28dd5a5cc4d8ed75e",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_exp_f32",
+      "args": "v0, v1",
+      "assembly": ".text\nk:\nv_exp_f32 v0, v1 clamp\ns_endpgm\n",
+      "source_sha256": "fc170ebfe53279956ca078dc8b4bc7fa3a069cebb1fe06f751a2e3dfb342b9cd",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "c15b5278fc7b50fd987c0351a07dde97608f8b5dbbaca336566e2eaa8a55ea96",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_log_f32",
+      "args": "v0, v1",
+      "assembly": ".text\nk:\nv_log_f32 v0, v1 clamp\ns_endpgm\n",
+      "source_sha256": "77e61f9f3a4eb25804556f3744c8ebfd36d3aaf7113e272d598f9dc52f377082",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "aeb58ce1ed01b9f4d12f27ccdffe072986ed19ddd2d6573d7f8cafc2bd3d1d33",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_cndmask_b32",
+      "args": "v0, v1, v2, vcc",
+      "assembly": ".text\nk:\nv_cndmask_b32 v0, v1, v2, vcc clamp\ns_endpgm\n",
+      "source_sha256": "077a5cf4bd57dc1ff04776a6017c9cfa04847c40e59474c50add52cf4189d59c",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "e3b1a79aa97298fbaf018dcbfb85b76ff730721b615bfc909420fb95231a0841",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_mov_b32",
+      "args": "v0, v1",
+      "assembly": ".text\nk:\nv_mov_b32 v0, v1 clamp\ns_endpgm\n",
+      "source_sha256": "461884f859c12a205e170af318d315778df7a0ad74c36d05d5bf598f2b7e7607",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "99f8d44c5bbdecc6c62ae6ab8fa188de3631fff034b72ab1b0710e3637e628ef",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_cvt_f32_i32",
+      "args": "v0, v1",
+      "assembly": ".text\nk:\nv_cvt_f32_i32 v0, v1 clamp\ns_endpgm\n",
+      "source_sha256": "89d48eedc88d2e2f7d562594f3e72882c177d23b284a165e4149f10e23fb858e",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "ae9d75b9b12385d2965cb03d49544cafe3e56aa50aac0a36641df8d31b4ed049",
+      "analyzer_support": "unsupported"
+    },
+    {
+      "op": "v_add_u32",
+      "args": "v0, v1, v2",
+      "assembly": ".text\nk:\nv_add_u32 v0, v1, v2 clamp\ns_endpgm\n",
+      "source_sha256": "187128637177697361ae5cf3eabf2d594befa7df15821d67febb1699f0d50ef8",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "057bab3b35c27bf25f7edb37ac35cdba7128633cb13779eb7c748472ec90e5ac",
+      "analyzer_support": "unsupported"
+    },
+    {
+      "op": "v_cmp_lt_f32",
+      "args": "vcc, v0, v1",
+      "assembly": ".text\nk:\nv_cmp_lt_f32 vcc, v0, v1 clamp\ns_endpgm\n",
+      "source_sha256": "611cddb4dc0f9fb1b131334ea1bd8cbbd49bd3651a37653c2a360f97548ab363",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "200a4c2d6d249fbbb07f2f50090c70b7e62bccf900c4748bda9a17d0d182ad4c",
+      "analyzer_support": "unsupported"
+    },
+    {
+      "op": "v_add_f32_e64",
+      "args": "v0, v1, v2",
+      "assembly": ".text\nk:\nv_add_f32_e64 v0, v1, v2 clamp\ns_endpgm\n",
+      "source_sha256": "7645adea8cfe66eec299dc9662e3aa863a2b3a4ddaa56651efd94f669afc7c14",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "d7d562f2258f2568273856cd3a43048132865d72a7b46bf9df657152f0acb9b2",
+      "analyzer_support": "supported"
+    },
+    {
+      "op": "v_add_f32_e32",
+      "args": "v0, v1, v2",
+      "assembly": ".text\nk:\nv_add_f32_e32 v0, v1, v2 clamp\ns_endpgm\n",
+      "source_sha256": "fbadf941349c746c11d3c21411bd2675088c75a2f8a25276e315c119ae5e1d1f",
+      "returncode": 1,
+      "stderr": "/tmp/ptx-verifier-execution-clamp/v_add_f32_e32.s:3:26: error: invalid operand for instruction\nv_add_f32_e32 v0, v1, v2 clamp\n                         ^\n",
+      "object_sha256": null,
+      "analyzer_support": "unsupported"
+    },
+    {
+      "op": "v_add_f32_sdwa",
+      "args": "v0, v1, v2",
+      "assembly": ".text\nk:\nv_add_f32_sdwa v0, v1, v2 clamp\ns_endpgm\n",
+      "source_sha256": "565aaaecf1765ac51d3dfa9e8705f76e0e5263051e54b8aac17006542ffe7e5a",
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "ea2fa1ec3f0b577ead88a3473d56b9e382aa5c668ad91f1b3428dbc5b39d4ad3",
+      "analyzer_support": "unsupported"
+    }
+  ],
+  "schema": 1,
+  "validation_date": "2026-10-27",
+  "scope": "Instruction encoding evidence only; CPU execution tests separately validate mathematical saturation. Integer/compare/conversion clamp and SDWA are not claimed."
+}
