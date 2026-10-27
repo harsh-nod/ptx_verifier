@@ -105,7 +105,24 @@ pub fn analyze(
             .instructions
             .iter()
             .map(|instruction| InstructionInfo {
-                kind: if instruction.mnemonic=="s_nop" {"s_nop"} else {super::eval::interp_kind(instruction.opcode)},
+                kind: if instruction.mnemonic == "s_nop" {
+                    "s_nop"
+                } else if matches!(
+                    instruction.mnemonic.as_str(),
+                    "v_fma_mixlo_f16" | "v_fma_mixhi_f16"
+                ) {
+                    "shifted ALU"
+                } else if matches!(
+                    instruction
+                        .mnemonic
+                        .trim_end_matches("_e32")
+                        .trim_end_matches("_e64"),
+                    "v_exp_f32" | "v_log_f32" | "v_rcp_f32" | "v_rsq_f32" | "v_sqrt_f32"
+                ) {
+                    "trans ALU"
+                } else {
+                    super::eval::interp_kind(instruction.opcode)
+                },
                 span: Some((instruction.span.start, instruction.span.end)),
             })
             .collect(),

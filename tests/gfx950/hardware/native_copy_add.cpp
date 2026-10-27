@@ -77,6 +77,7 @@ int main(int argc, char **argv) {
       }
       check(hipMemcpy(da, a.data(), 64 * sizeof(float), hipMemcpyHostToDevice), "upload MFMA A");
       check(hipMemcpy(db, b.data(), 64 * sizeof(float), hipMemcpyHostToDevice), "upload MFMA B");
+      check(hipMemset(dout, 0xff, 256 * sizeof(float)), "initialize MFMA output sentinel");
       void *arguments[] = {&da, &db, &dout};
       check(hipModuleLaunchKernel(mfma, 1, 1, 1, 64, 1, 1, 0, nullptr, arguments, nullptr), "launch MFMA");
       check(hipDeviceSynchronize(), "synchronize MFMA");

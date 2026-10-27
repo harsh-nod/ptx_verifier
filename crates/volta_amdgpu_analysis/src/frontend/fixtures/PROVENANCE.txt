@@ -9,8 +9,9 @@ Command:
 AMDHSA code object: 6
 AMDHSA metadata: 1.2
 Wavefront: 64
-The source file was generated under the name copy.hip; the checked-in source is
-formatted for readability but has the same kernel declarations and computation.
+The source file was generated under the name copy.hip; the checked-in source
+contains the exact compiler input bytes.
+See compiler-provenance.json for hashes and commands for the entire corpus.
 Assembly SHA256: efbdab3055e0fa697ca97a62275d7ab890d695aa1e46cb0a68280ddb442d9a1d
 Assembled object SHA256: d070ae367b965e5adb72e4383c3f6360dbe6af369a634cb21bde9ae30769b7ee
 Assembler validation: passed on mi350-2, 2026-10-27.

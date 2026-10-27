@@ -88,7 +88,9 @@ struct Wave {
     valid: u64,
     exec: u64,
     vcc: u64,
+    vcc_defined: u8,
     scc: bool,
+    scc_defined: bool,
     m0: u32,
     scalar: Vec<Option<Value>>,
     vector: BTreeMap<(u16, u8), Value>,
@@ -110,7 +112,9 @@ impl Wave {
             valid,
             exec: valid,
             vcc: 0,
+            vcc_defined: 0,
             scc: false,
+            scc_defined: false,
             m0: 0,
             scalar: vec![None; 128],
             vector: BTreeMap::new(),
@@ -132,6 +136,22 @@ impl Wave {
         let mask = self.exec;
         (0..64).filter(move |lane| mask & (1u64 << lane) != 0)
     }
+    fn read_vcc(&self) -> Result<u64, EvalError> {
+        if self.vcc_defined != 3 {
+            return Err(self.fail(None, "uninitialized VCC flag (both halves must be defined)"));
+        }
+        Ok(self.vcc)
+    }
+    fn read_scc(&self) -> Result<bool, EvalError> {
+        if !self.scc_defined {
+            return Err(self.fail(None, "uninitialized SCC flag"));
+        }
+        Ok(self.scc)
+    }
+    fn set_scc(&mut self, value: bool) {
+        self.scc = value;
+        self.scc_defined = true;
+    }
     fn reg(&self, reg: Register, lane: u8, component: u16) -> Result<Value, EvalError> {
         let index = reg.index + component;
         let value = match reg.class {
@@ -143,11 +163,31 @@ impl Wave {
                     Some(SpecialRegister::Exec) => self.exec,
                     Some(SpecialRegister::ExecLo) => self.exec as u32 as u64,
                     Some(SpecialRegister::ExecHi) => self.exec >> 32,
-                    Some(SpecialRegister::Vcc) => self.vcc,
-                    Some(SpecialRegister::VccLo) => self.vcc as u32 as u64,
-                    Some(SpecialRegister::VccHi) => self.vcc >> 32,
-                    Some(SpecialRegister::Scc) => self.scc as u64,
-                    Some(SpecialRegister::M0) => self.m0 as u64,
+                    Some(SpecialRegister::Vcc) => {
+                        if self.vcc_defined & (1 << component) == 0 {
+                            return Err(self.fail(Some(lane), "uninitialized VCC flag component"));
+                        }
+                        self.vcc
+                    }
+                    Some(SpecialRegister::VccLo) => {
+                        if self.vcc_defined & 1 == 0 {
+                            return Err(self.fail(Some(lane), "uninitialized VCC_LO flag"));
+                        }
+                        self.vcc as u32 as u64
+                    }
+                    Some(SpecialRegister::VccHi) => {
+                        if self.vcc_defined & 2 == 0 {
+                            return Err(self.fail(Some(lane), "uninitialized VCC_HI flag"));
+                        }
+                        self.vcc >> 32
+                    }
+                    Some(SpecialRegister::Scc) => self.read_scc()? as u64,
+                    Some(SpecialRegister::M0) => {
+                        return Err(EvalError::Unsupported {
+                            pc: self.pc,
+                            what: "initial M0 value is not part of the modeled kernel ABI".into(),
+                        });
+                    }
                     Some(SpecialRegister::Null) => 0,
                     _ => return Err(self.fail(Some(lane), "unsupported special register")),
                 };
@@ -195,16 +235,25 @@ impl Wave {
                     }
                     Some(SpecialRegister::Vcc) => {
                         self.vcc = (self.vcc & !(0xffff_ffffu64 << (32 * component)))
-                            | (bits << (32 * component))
+                            | (bits << (32 * component));
+                        self.vcc_defined |= 1 << component;
                     }
                     Some(SpecialRegister::VccLo) => {
-                        self.vcc = (self.vcc & 0xffff_ffff_0000_0000) | bits
+                        self.vcc = (self.vcc & 0xffff_ffff_0000_0000) | bits;
+                        self.vcc_defined |= 1;
                     }
                     Some(SpecialRegister::VccHi) => {
-                        self.vcc = (self.vcc & 0xffff_ffff) | (bits << 32)
+                        self.vcc = (self.vcc & 0xffff_ffff) | (bits << 32);
+                        self.vcc_defined |= 2;
                     }
-                    Some(SpecialRegister::Scc) => self.scc = bits != 0,
-                    Some(SpecialRegister::M0) => return Err(EvalError::Unsupported{pc:self.pc,what:"explicit M0 writes need software dependency-spacing checks".into()}),
+                    Some(SpecialRegister::Scc) => self.set_scc(bits != 0),
+                    Some(SpecialRegister::M0) => {
+                        return Err(EvalError::Unsupported {
+                            pc: self.pc,
+                            what: "explicit M0 writes need software dependency-spacing checks"
+                                .into(),
+                        });
+                    }
                     Some(SpecialRegister::Null) => {}
                     _ => return Err(self.fail(Some(lane), "unsupported special destination")),
                 }
@@ -286,7 +335,9 @@ impl<'a> Interpreter<'a> {
     ) -> Result<Self, EvalError> {
         config.validate().map_err(EvalError::InvalidConfig)?;
         if !config.global_values.is_empty() {
-            return Err(EvalError::InvalidConfig("AMD module global bindings are not yet implemented".into()));
+            return Err(EvalError::InvalidConfig(
+                "AMD module global bindings are not yet implemented".into(),
+            ));
         }
         let threads = config
             .block_dim
@@ -304,7 +355,26 @@ impl<'a> Interpreter<'a> {
                 "grid dimensions must be nonzero".into(),
             ));
         }
+        for (groups, threads) in [
+            (config.grid_dim.0, config.block_dim.0),
+            (config.grid_dim.1, config.block_dim.1),
+            (config.grid_dim.2, config.block_dim.2),
+        ] {
+            if groups.checked_mul(threads).is_none() {
+                return Err(EvalError::InvalidConfig(
+                    "HSA grid size exceeds the 32-bit dispatch-packet field".into(),
+                ));
+            }
+        }
         for array in &config.arrays {
+            if array.kind == ArrayKind::IndexInput
+                && array.elem_width < 4
+                && array.len > 1u64 << (8 * array.elem_width)
+            {
+                return Err(EvalError::InvalidConfig(
+                    "index array element width cannot represent its indices".into(),
+                ));
+            }
             if array.base < DISPATCH_BASE + 64 && array.base + array.size_bytes() > KERNARG_BASE {
                 return Err(EvalError::InvalidConfig(
                     "allocation overlaps analyzer ABI address window".into(),
@@ -325,6 +395,71 @@ impl<'a> Interpreter<'a> {
             return Err(EvalError::InvalidConfig(
                 "requested LDS exceeds gfx950 capacity".into(),
             ));
+        }
+        if program.descriptor.flag("tg_split") {
+            return Err(EvalError::InvalidConfig(
+                "tg_split workgroups require a different LDS/barrier execution model".into(),
+            ));
+        }
+        fn registers(operand: &Operand, result: &mut Vec<Register>) {
+            match operand {
+                Operand::Register(register) => result.push(*register),
+                Operand::Modified { value, .. } => registers(value, result),
+                _ => {}
+            }
+        }
+        let mut referenced = Vec::new();
+        for instruction in &program.instructions {
+            for operand in &instruction.operands {
+                registers(operand, &mut referenced);
+            }
+        }
+        if referenced
+            .iter()
+            .any(|register| register.class == RegisterClass::Accumulator)
+        {
+            let offset = program.descriptor.get("accum_offset").ok_or_else(|| {
+                EvalError::InvalidConfig(
+                    "AGPR use requires explicit accum_offset descriptor".into(),
+                )
+            })?;
+            if offset < 4 || offset % 4 != 0 || offset > 512 {
+                return Err(EvalError::InvalidConfig(
+                    "invalid accumulator register offset".into(),
+                ));
+            }
+            if referenced.iter().any(|register| {
+                register.class == RegisterClass::Vector
+                    && register.index as u64 + register.count as u64 > offset
+            }) {
+                return Err(EvalError::InvalidConfig(
+                    "explicit VGPR range aliases the AGPR register window".into(),
+                ));
+            }
+        }
+        if program
+            .descriptor
+            .get("max_flat_workgroup_size")
+            .is_some_and(|max| threads as u64 > max)
+        {
+            return Err(EvalError::InvalidConfig(
+                "launch exceeds metadata max_flat_workgroup_size".into(),
+            ));
+        }
+        for (field, actual) in [
+            ("reqd_workgroup_size_x", config.block_dim.0),
+            ("reqd_workgroup_size_y", config.block_dim.1),
+            ("reqd_workgroup_size_z", config.block_dim.2),
+        ] {
+            if program
+                .descriptor
+                .get(field)
+                .is_some_and(|required| required != actual as u64)
+            {
+                return Err(EvalError::InvalidConfig(format!(
+                    "launch does not match metadata {field}"
+                )));
+            }
         }
         if program.descriptor.flag("wavefront_size32") {
             return Err(EvalError::InvalidConfig("gfx950 requires wave64".into()));
@@ -372,8 +507,14 @@ impl<'a> Interpreter<'a> {
                 let value = if array.kind == ArrayKind::IndexInput {
                     Value::Integer(index as u32)
                 } else {
-                    let expr=self.arena.input_element(name,index);
-                    if array.elem_width==2{Value::Half(expr)}else{Value::Real(expr)}
+                    let expr = self.arena.input_element(name, index);
+                    if array.elem_width == 1 {
+                        Value::Byte(expr)
+                    } else if array.elem_width == 2 {
+                        Value::Half(expr)
+                    } else {
+                        Value::Real(expr)
+                    }
                 };
                 self.global.initialize(addr, array.elem_width, value);
             }
@@ -525,8 +666,13 @@ impl<'a> Interpreter<'a> {
                 sgpr += count;
             }
         }
-        if descriptor.get("user_sgpr_count").is_some_and(|count|count!=sgpr as u64) {
-            return Err(EvalError::InvalidConfig(format!("descriptor user_sgpr_count disagrees with enabled ABI inputs: expected {sgpr}")));
+        if descriptor
+            .get("user_sgpr_count")
+            .is_some_and(|count| count != sgpr as u64)
+        {
+            return Err(EvalError::InvalidConfig(format!(
+                "descriptor user_sgpr_count disagrees with enabled ABI inputs: expected {sgpr}"
+            )));
         }
         for field in [
             "system_sgpr_workgroup_id_x",
@@ -552,11 +698,12 @@ impl<'a> Interpreter<'a> {
             let x = linear % self.config.block_dim.0;
             let y = (linear / self.config.block_dim.0) % self.config.block_dim.1;
             let z = linear / (self.config.block_dim.0 * self.config.block_dim.1);
-            for (register, value) in [(0, x), (1, y), (2, z)] {
-                if register as u64 <= dimensions {
-                    wave.vector.insert((register, lane), Value::Bits(value));
-                }
-            }
+            // gfx950 uses the packed-workitem-ID ABI: x in 9:0, enabled y in
+            // 19:10 and enabled z in 29:20 of v0. v1/v2 are not initialized.
+            let packed = x
+                | if dimensions >= 1 { y << 10 } else { 0 }
+                | if dimensions >= 2 { z << 20 } else { 0 };
+            wave.vector.insert((0, lane), Value::Bits(packed));
         }
         Ok(())
     }
@@ -717,7 +864,9 @@ impl<'a> Interpreter<'a> {
                         RegisterClass::Accumulator => AmdRegisterFile::Accumulator,
                         RegisterClass::Special => return,
                     };
-                    if mask==0 && register.class!=RegisterClass::Scalar {return;}
+                    if mask == 0 && register.class != RegisterClass::Scalar {
+                        return;
+                    }
                     for component in 0..register.count {
                         result.push(AmdRegister {
                             file,
@@ -736,32 +885,140 @@ impl<'a> Interpreter<'a> {
         }
         let mut reads = Vec::new();
         let mut writes = Vec::new();
-        let mnemonic=instruction.mnemonic.trim_end_matches("_e32").trim_end_matches("_e64");
-        if mnemonic=="v_readfirstlane_b32" || mnemonic=="v_readlane_b32" {
-            let lane=if mnemonic=="v_readfirstlane_b32" {wave.exec.trailing_zeros().min(63)}else{wave.bits(&instruction.operands[2],0).unwrap_or(0)&63};
-            add(&instruction.operands[0],u64::MAX,&mut writes);
-            add(&instruction.operands[1],1u64<<lane,&mut reads);
-            if instruction.operands.len()>2{add(&instruction.operands[2],u64::MAX,&mut reads);}
-            return (reads,writes);
+        let mnemonic = instruction
+            .mnemonic
+            .trim_end_matches("_e32")
+            .trim_end_matches("_e64");
+        if wave.exec == 0
+            && matches!(
+                instruction.opcode,
+                Opcode::VectorAlu | Opcode::VectorMemory | Opcode::Lds
+            )
+        {
+            // Compare and carry masks overwrite their complete scalar result,
+            // including clearing bits for inactive lanes. Ordinary vector data
+            // sources and destinations have no obligations under empty EXEC.
+            let mask_destination =
+                if mnemonic.starts_with("v_cmp_") || mnemonic.starts_with("v_cmpx_") {
+                    instruction.operands.first()
+                } else if matches!(
+                    mnemonic,
+                    "v_add_co_u32"
+                        | "v_addc_co_u32"
+                        | "v_sub_co_u32"
+                        | "v_subb_co_u32"
+                        | "v_subrev_co_u32"
+                        | "v_subbrev_co_u32"
+                        | "v_mad_u64_u32"
+                ) {
+                    instruction.operands.get(1)
+                } else {
+                    None
+                };
+            if let Some(
+                operand @ Operand::Register(Register {
+                    class: RegisterClass::Scalar,
+                    ..
+                }),
+            ) = mask_destination
+            {
+                add(operand, u64::MAX, &mut writes);
+            }
+            return (reads, writes);
         }
-        if mnemonic=="v_writelane_b32" {
-            let lane=wave.bits(&instruction.operands[2],0).unwrap_or(0)&63;
-            add(&instruction.operands[0],1u64<<lane,&mut writes);
-            add(&instruction.operands[1],u64::MAX,&mut reads);add(&instruction.operands[2],u64::MAX,&mut reads);
-            return (reads,writes);
+        if matches!(mnemonic, "v_pk_mul_f32" | "v_pk_add_f32" | "v_pk_fma_f32") {
+            add(&instruction.operands[0], wave.exec, &mut writes);
+            let count = instruction.operands.len() - 1;
+            if let (Some(low), Some(high)) = (
+                selectors(instruction, "op_sel", count, 0),
+                selectors(instruction, "op_sel_hi", count, 1),
+            ) {
+                fn selected(
+                    operand: &Operand,
+                    component: u16,
+                    mask: u64,
+                    result: &mut Vec<AmdRegister>,
+                ) {
+                    match operand {
+                        Operand::Register(register) if register.count == 2 => {
+                            let mut register = *register;
+                            register.index += component;
+                            register.count = 1;
+                            add(&Operand::Register(register), mask, result);
+                        }
+                        Operand::Modified { value, .. } => selected(value, component, mask, result),
+                        _ => add(operand, mask, result),
+                    }
+                }
+                for index in 0..count {
+                    selected(
+                        &instruction.operands[index + 1],
+                        low[index],
+                        wave.exec,
+                        &mut reads,
+                    );
+                    if high[index] != low[index] {
+                        selected(
+                            &instruction.operands[index + 1],
+                            high[index],
+                            wave.exec,
+                            &mut reads,
+                        );
+                    }
+                }
+                return (reads, writes);
+            }
+        }
+        if mnemonic == "v_readfirstlane_b32" || mnemonic == "v_readlane_b32" {
+            let lane = if mnemonic == "v_readfirstlane_b32" {
+                wave.exec.trailing_zeros().min(63)
+            } else {
+                wave.bits(&instruction.operands[2], 0).unwrap_or(0) & 63
+            };
+            add(&instruction.operands[0], u64::MAX, &mut writes);
+            add(&instruction.operands[1], 1u64 << lane, &mut reads);
+            if instruction.operands.len() > 2 {
+                add(&instruction.operands[2], u64::MAX, &mut reads);
+            }
+            return (reads, writes);
+        }
+        if mnemonic == "v_writelane_b32" {
+            let lane = wave.bits(&instruction.operands[2], 0).unwrap_or(0) & 63;
+            add(&instruction.operands[0], 1u64 << lane, &mut writes);
+            add(&instruction.operands[1], u64::MAX, &mut reads);
+            add(&instruction.operands[2], u64::MAX, &mut reads);
+            return (reads, writes);
         }
         let store =
             instruction.mnemonic.contains("store") || instruction.mnemonic.starts_with("ds_write");
         let no_destination = matches!(
             instruction.opcode,
             Opcode::Branch | Opcode::Wait | Opcode::Barrier | Opcode::Control
-        ) || instruction.mnemonic.starts_with("s_cmp");
+        ) || instruction.mnemonic.starts_with("s_cmp")
+            || instruction.mnemonic.starts_with("s_bitcmp");
         for (index, operand) in instruction.operands.iter().enumerate() {
-            if (index == 0 || (index==1 && (mnemonic.starts_with("v_add_co_")||mnemonic.starts_with("v_addc_co_")||mnemonic.starts_with("v_sub_co_")||mnemonic.starts_with("v_subb_co_")||mnemonic.starts_with("v_subrev_co_")||mnemonic.starts_with("v_subbrev_co_")))) && !store && !no_destination {
+            if (index == 0
+                || (index == 1
+                    && (mnemonic.starts_with("v_add_co_")
+                        || mnemonic.starts_with("v_addc_co_")
+                        || mnemonic.starts_with("v_sub_co_")
+                        || mnemonic.starts_with("v_subb_co_")
+                        || mnemonic.starts_with("v_subrev_co_")
+                        || mnemonic.starts_with("v_subbrev_co_")
+                        || mnemonic == "v_mad_u64_u32")))
+                && !store
+                && !no_destination
+            {
                 add(operand, wave.exec, &mut writes)
             } else {
                 add(operand, wave.exec, &mut reads)
             }
+        }
+        if matches!(
+            mnemonic,
+            "v_fmac_f32" | "v_fma_mixlo_f16" | "v_fma_mixhi_f16" | "s_mulk_i32" | "s_addk_i32"
+        ) {
+            add(&instruction.operands[0], wave.exec, &mut reads);
         }
         (reads, writes)
     }
@@ -792,6 +1049,52 @@ impl<'a> Interpreter<'a> {
             .trim_end_matches("_e32")
             .trim_end_matches("_e64")
             .trim_end_matches("_sdwa");
+        // Mask flags used as ordinary vector data have additional software
+        // dependency/alias requirements. Carry and cndmask selector roles are
+        // separately supported; treating all such reads as scalar data would
+        // bypass those obligations because the graph has no special-file slice.
+        if matches!(
+            instruction.opcode,
+            Opcode::VectorAlu | Opcode::VectorMemory | Opcode::Matrix
+        ) {
+            fn special(operand: &Operand) -> Option<SpecialRegister> {
+                match operand {
+                    Operand::Register(register) => register.special,
+                    Operand::Modified { value, .. } => special(value),
+                    _ => None,
+                }
+            }
+            let dual_destination = matches!(
+                name,
+                "v_add_co_u32"
+                    | "v_addc_co_u32"
+                    | "v_sub_co_u32"
+                    | "v_subb_co_u32"
+                    | "v_subrev_co_u32"
+                    | "v_subbrev_co_u32"
+                    | "v_mad_u64_u32"
+            );
+            for (index, operand) in instruction.operands.iter().enumerate() {
+                if instruction.opcode != Opcode::VectorMemory
+                    && (index == 0 || (dual_destination && index == 1))
+                {
+                    continue;
+                }
+                let Some(register) = special(operand) else {
+                    continue;
+                };
+                if register == SpecialRegister::Null {
+                    continue;
+                }
+                let selector = name == "v_cndmask_b32" && index == 3;
+                let carry = matches!(name, "v_addc_co_u32" | "v_subb_co_u32" | "v_subbrev_co_u32")
+                    && index == 4;
+                if (selector || carry) && register == SpecialRegister::Vcc {
+                    continue;
+                }
+                return Err(EvalError::Unsupported{pc:wave.pc,what:"special mask registers used as vector data require additional Table 11 dependency checks".into()});
+            }
+        }
         match instruction.opcode {
             Opcode::ScalarMemory | Opcode::VectorMemory | Opcode::Lds => {
                 self.memory_instruction(wave, &instruction)?
@@ -813,10 +1116,10 @@ impl<'a> Interpreter<'a> {
             Opcode::Branch => {
                 let take = match name {
                     "s_branch" => true,
-                    "s_cbranch_scc0" => !wave.scc,
-                    "s_cbranch_scc1" => wave.scc,
-                    "s_cbranch_vccz" => wave.vcc == 0,
-                    "s_cbranch_vccnz" => wave.vcc != 0,
+                    "s_cbranch_scc0" => !wave.read_scc()?,
+                    "s_cbranch_scc1" => wave.read_scc()?,
+                    "s_cbranch_vccz" => wave.read_vcc()? == 0,
+                    "s_cbranch_vccnz" => wave.read_vcc()? != 0,
                     "s_cbranch_execz" => wave.exec == 0,
                     "s_cbranch_execnz" => wave.exec != 0,
                     _ => return Err(self.unsupported(wave, &instruction)),
@@ -840,15 +1143,31 @@ impl<'a> Interpreter<'a> {
                     wave.exited = true;
                 }
                 "s_nop" => {
-                    let Some(Operand::Integer(count))=instruction.operands.first() else {return Err(self.unsupported(wave,&instruction));};
-                    if !(0..=15).contains(count){return Err(wave.fail(None,"s_nop wait count outside 0..15"));}
-                    self.builder.amd_event(wave.id,ProgramPoint(wave.pc as u32),AmdEventKind::Delay{cycles:*count as u16+1});
+                    let Some(Operand::Integer(count)) = instruction.operands.first() else {
+                        return Err(self.unsupported(wave, &instruction));
+                    };
+                    if !(0..=15).contains(count) {
+                        return Err(wave.fail(None, "s_nop wait count outside 0..15"));
+                    }
+                    self.builder.amd_event(
+                        wave.id,
+                        ProgramPoint(wave.pc as u32),
+                        AmdEventKind::Delay {
+                            cycles: *count as u16 + 1,
+                        },
+                    );
                 }
                 _ => return Err(self.unsupported(wave, &instruction)),
             },
             Opcode::ScalarAlu => self.scalar(wave, &instruction, name)?,
             Opcode::VectorAlu => self.vector(wave, &instruction, name)?,
-            Opcode::Matrix => self.matrix(wave,&instruction)?,
+            Opcode::Matrix => self.matrix(wave, &instruction)?,
+        }
+        if wave.exec & !wave.valid != 0 {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "EXEC activates lanes outside the launched partial wave".into(),
+            });
         }
         wave.pc += 1;
         Ok(())
@@ -879,13 +1198,242 @@ impl<'a> Interpreter<'a> {
             .real(&mut self.arena)
             .map_err(|e| wave.fail(Some(lane), e))
     }
-    fn half(&mut self,wave:&Wave,operand:&Operand,lane:u8,high:bool)->Result<ExprId,EvalError>{
-        if let Operand::Modified{value,negate,absolute}=operand {let mut expr=self.half(wave,value,lane,high)?;if *absolute{expr=self.arena.abs(expr);}if *negate{expr=self.arena.neg(expr);}return Ok(expr);}
-        match wave.value(operand,lane)? {
-            Value::Halves(lo,hi)=>Ok(if high{hi}else{lo}),
-            Value::Half(expr)=>Ok(if high{self.arena.int(0)}else{expr}),
-            Value::Bits(bits)|Value::Integer(bits)=>{let bits=if high{bits>>16}else{bits&0xffff};let sign=if bits&0x8000==0{1.0}else{-1.0};let exponent=(bits>>10)&31;let fraction=bits&1023;let value=if exponent==31{if fraction!=0{return Err(wave.fail(Some(lane),"half NaN outside real arithmetic model"));}sign*f64::INFINITY}else if exponent==0{sign*(fraction as f64)*2f64.powi(-24)}else{sign*(1.0+fraction as f64/1024.0)*2f64.powi(exponent as i32-15)};self.arena.float_from_f64(value).map_err(|e|wave.fail(Some(lane),e.to_string()))},
-            Value::Real(_)=>Err(EvalError::Unsupported{pc:wave.pc,what:"symbolic f32 bits reinterpreted as half".into()}),
+    fn real_component(
+        &mut self,
+        wave: &Wave,
+        operand: &Operand,
+        lane: u8,
+        component: u16,
+    ) -> Result<ExprId, EvalError> {
+        match operand {
+            Operand::Register(register) if register.count == 2 => wave
+                .reg(*register, lane, component)?
+                .real(&mut self.arena)
+                .map_err(|e| wave.fail(Some(lane), e)),
+            Operand::Modified {
+                value,
+                negate,
+                absolute,
+            } => {
+                let mut expr = self.real_component(wave, value, lane, component)?;
+                if *absolute {
+                    expr = self.arena.abs(expr);
+                }
+                if *negate {
+                    expr = self.arena.neg(expr);
+                }
+                Ok(expr)
+            }
+            _ => self.real(wave, operand, lane),
+        }
+    }
+    fn selected_bits(
+        &self,
+        wave: &Wave,
+        operand: &Operand,
+        lane: u8,
+        instruction: &Instruction,
+        index: u8,
+    ) -> Result<u32, EvalError> {
+        let bits = wave.bits(operand, lane)?;
+        let field = if index == 0 { "src0_sel" } else { "src1_sel" };
+        Ok(
+            match instruction
+                .modifiers
+                .iter()
+                .find(|modifier| modifier.name == field)
+                .and_then(|modifier| modifier.value.as_deref())
+                .unwrap_or("DWORD")
+            {
+                "DWORD" => bits,
+                "WORD_0" => bits & 65535,
+                "WORD_1" => bits >> 16,
+                "BYTE_0" => bits & 255,
+                "BYTE_1" => (bits >> 8) & 255,
+                "BYTE_2" => (bits >> 16) & 255,
+                "BYTE_3" => bits >> 24,
+                _ => return Err(self.unsupported(wave, instruction)),
+            },
+        )
+    }
+    fn modified_value(
+        &mut self,
+        wave: &Wave,
+        operand: &Operand,
+        lane: u8,
+    ) -> Result<Value, EvalError> {
+        if matches!(operand, Operand::Modified { .. }) {
+            Ok(Value::Real(self.real(wave, operand, lane)?))
+        } else {
+            wave.value(operand, lane)
+        }
+    }
+    fn fp8(
+        &mut self,
+        wave: &Wave,
+        operand: &Operand,
+        lane: u8,
+        byte: usize,
+    ) -> Result<ExprId, EvalError> {
+        if byte > 3 {
+            return Err(self.unsupported(wave, &self.program.instructions[wave.pc]));
+        }
+        let bits = match wave.value(operand, lane)? {
+            Value::Bytes(bytes) => return Ok(bytes[byte]),
+            Value::Byte(expr) => return Ok(if byte == 0 { expr } else { self.arena.int(0) }),
+            value @ (Value::Bits(_) | Value::Integer(_) | Value::SignedInteger(_)) => {
+                (value.bits().unwrap() >> (8 * byte)) & 255
+            }
+            _ => {
+                return Err(EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "non-FP8 storage used by OCP E4M3 decoder".into(),
+                });
+            }
+        };
+        let sign = if bits & 128 == 0 { 1.0 } else { -1.0 };
+        let exponent = (bits >> 3) & 15;
+        let fraction = bits & 7;
+        if exponent == 15 && fraction == 7 {
+            return Err(wave.fail(Some(lane), "OCP E4M3 NaN is outside the real-number model"));
+        }
+        let value = if exponent == 0 {
+            sign * fraction as f64 * 2f64.powi(-9)
+        } else {
+            sign * (1.0 + fraction as f64 / 8.0) * 2f64.powi(exponent as i32 - 7)
+        };
+        self.arena
+            .float_from_f64(value)
+            .map_err(|e| wave.fail(Some(lane), e.to_string()))
+    }
+    fn half(
+        &mut self,
+        wave: &Wave,
+        operand: &Operand,
+        lane: u8,
+        high: bool,
+    ) -> Result<ExprId, EvalError> {
+        if let Operand::Float(value) = operand {
+            return self
+                .arena
+                .float_from_f64(*value)
+                .map_err(|e| wave.fail(Some(lane), e.to_string()));
+        }
+        if let Operand::Modified {
+            value,
+            negate,
+            absolute,
+        } = operand
+        {
+            let mut expr = self.half(wave, value, lane, high)?;
+            if *absolute {
+                expr = self.arena.abs(expr);
+            }
+            if *negate {
+                expr = self.arena.neg(expr);
+            }
+            return Ok(expr);
+        }
+        match wave.value(operand, lane)? {
+            Value::Halves(lo, hi) => Ok(if high { hi } else { lo }),
+            Value::PartialHalves(lo, hi) => {
+                if high { hi } else { lo }.ok_or_else(|| EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "unknown half after partial register write".into(),
+                })
+            }
+            Value::Half(expr) => Ok(if high { self.arena.int(0) } else { expr }),
+            value @ (Value::Bits(_) | Value::Integer(_) | Value::SignedInteger(_)) => {
+                let bits = value.bits().unwrap();
+                let bits = if high { bits >> 16 } else { bits & 0xffff };
+                let sign = if bits & 0x8000 == 0 { 1.0 } else { -1.0 };
+                let exponent = (bits >> 10) & 31;
+                let fraction = bits & 1023;
+                let value = if exponent == 31 {
+                    if fraction != 0 {
+                        return Err(wave.fail(Some(lane), "half NaN outside real arithmetic model"));
+                    }
+                    sign * f64::INFINITY
+                } else if exponent == 0 {
+                    sign * (fraction as f64) * 2f64.powi(-24)
+                } else {
+                    sign * (1.0 + fraction as f64 / 1024.0) * 2f64.powi(exponent as i32 - 15)
+                };
+                self.arena
+                    .float_from_f64(value)
+                    .map_err(|e| wave.fail(Some(lane), e.to_string()))
+            }
+            Value::Real(_) | Value::Byte(_) | Value::Bytes(_) => Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "symbolic non-f16 bits reinterpreted as half".into(),
+            }),
+        }
+    }
+    fn exp2(&mut self, argument: ExprId) -> ExprId {
+        if let Some(unscaled) = self.factor_exp2_idiom(argument) {
+            self.builder.assume(Assumption::CompilerExp2Idiom);
+            return self.arena.exp(unscaled);
+        }
+        let two = self.arena.int(2);
+        let ln2 = self.arena.log(two);
+        let scaled = self.arena.mul(argument, ln2);
+        self.arena.exp(scaled)
+    }
+    /// Only the exact rounded binary32 constant generated by the pinned compiler
+    /// is abstracted as log2(e). Near constants and unfactored additive offsets
+    /// deliberately retain their actual exp2 expression.
+    fn factor_exp2_idiom(&mut self, argument: ExprId) -> Option<ExprId> {
+        let constant = std::f64::consts::LOG2_E as f32 as f64;
+        let factor = |arena: &ExprArena, id| match arena.node(id) {
+            ExprNode::RealConst(value) if value.to_f64().abs() == constant => {
+                Some(value.to_f64().is_sign_negative())
+            }
+            _ => None,
+        };
+        match self.arena.node(argument).clone() {
+            ExprNode::IntConst(0) => Some(argument),
+            ExprNode::RealConst(value) if value.to_f64() == 0.0 => Some(argument),
+            ExprNode::Mul(a, b) => {
+                for (value, other) in [(a, b), (b, a)] {
+                    if let Some(negative) = factor(&self.arena, value) {
+                        return Some(if negative {
+                            self.arena.neg(other)
+                        } else {
+                            other
+                        });
+                    }
+                }
+                None
+            }
+            ExprNode::Add(a, b) => {
+                let a = self.factor_exp2_idiom(a)?;
+                let b = self.factor_exp2_idiom(b)?;
+                Some(self.arena.add(a, b))
+            }
+            ExprNode::Sub(a, b) => {
+                let a = self.factor_exp2_idiom(a)?;
+                let b = self.factor_exp2_idiom(b)?;
+                Some(self.arena.sub(a, b))
+            }
+            ExprNode::Neg(a) => {
+                let a = self.factor_exp2_idiom(a)?;
+                Some(self.arena.neg(a))
+            }
+            ExprNode::Fma(a, b, c) => {
+                let (other, negative) = if let Some(negative) = factor(&self.arena, a) {
+                    (b, negative)
+                } else {
+                    (a, factor(&self.arena, b)?)
+                };
+                let product = if negative {
+                    self.arena.neg(other)
+                } else {
+                    other
+                };
+                let rest = self.factor_exp2_idiom(c)?;
+                Some(self.arena.add(product, rest))
+            }
+            _ => None,
         }
     }
     fn scalar(
@@ -894,9 +1442,98 @@ impl<'a> Interpreter<'a> {
         instruction: &Instruction,
         name: &str,
     ) -> Result<(), EvalError> {
+        if !name.starts_with("s_cmp_")
+            && !name.starts_with("s_cmpk_")
+            && !name.starts_with("s_bitcmp")
+            && !matches!(
+                name,
+                "s_mov_b32"
+                    | "s_mov_b64"
+                    | "s_movk_i32"
+                    | "s_mulk_i32"
+                    | "s_addk_i32"
+                    | "s_ff1_i32_b64"
+                    | "s_cselect_b32"
+                    | "s_cselect_b64"
+                    | "s_and_b64"
+                    | "s_or_b64"
+                    | "s_xor_b64"
+                    | "s_andn2_b64"
+                    | "s_orn2_b64"
+                    | "s_not_b64"
+                    | "s_and_saveexec_b64"
+                    | "s_or_saveexec_b64"
+                    | "s_xor_saveexec_b64"
+                    | "s_andn2_saveexec_b64"
+                    | "s_lshl_b64"
+                    | "s_lshr_b64"
+                    | "s_add_u32"
+                    | "s_add_i32"
+                    | "s_sub_i32"
+                    | "s_addc_u32"
+                    | "s_sub_u32"
+                    | "s_subb_u32"
+                    | "s_mul_i32"
+                    | "s_mul_hi_u32"
+                    | "s_and_b32"
+                    | "s_or_b32"
+                    | "s_xor_b32"
+                    | "s_andn2_b32"
+                    | "s_not_b32"
+                    | "s_lshl_b32"
+                    | "s_lshr_b32"
+                    | "s_ashr_i32"
+                    | "s_min_u32"
+                    | "s_max_u32"
+                    | "s_min_i32"
+                    | "s_max_i32"
+                    | "s_bfe_u32"
+            )
+        {
+            return Err(self.unsupported(wave, instruction));
+        }
         let o = &instruction.operands;
         if !instruction.modifiers.is_empty() {
             return Err(self.unsupported(wave, instruction));
+        }
+        if name.starts_with("s_bitcmp") {
+            let bits = if name.ends_with("b64") {
+                wave.wide(&o[0], 0)?
+            } else {
+                wave.bits(&o[0], 0)? as u64
+            };
+            let bit = wave.bits(&o[1], 0)? & if name.ends_with("b64") { 63 } else { 31 };
+            let set = bits & (1u64 << bit) != 0;
+            wave.set_scc(if name.starts_with("s_bitcmp1") {
+                set
+            } else {
+                !set
+            });
+            return Ok(());
+        }
+        if name.starts_with("s_cmpk_") {
+            let signed = name.ends_with("i32");
+            if !signed && !name.ends_with("u32") {
+                return Err(self.unsupported(wave, instruction));
+            }
+            let a = wave.bits(&o[0], 0)?;
+            let b = wave.bits(&o[1], 0)?;
+            let comparison = name
+                .trim_start_matches("s_cmpk_")
+                .trim_end_matches("_i32")
+                .trim_end_matches("_u32");
+            let result = compare(
+                comparison,
+                if signed { a as i32 as i64 } else { a as i64 },
+                if signed {
+                    b as i16 as i64
+                } else {
+                    b as u16 as i64
+                },
+            )
+            .ok_or_else(|| self.unsupported(wave, instruction))?;
+            wave.set_scc(result);
+            return Ok(());
         }
         if name.starts_with("s_cmp_") {
             let a = wave.bits(&o[0], 0)?;
@@ -906,15 +1543,41 @@ impl<'a> Interpreter<'a> {
                 .trim_start_matches("s_cmp_")
                 .trim_end_matches("_u32")
                 .trim_end_matches("_i32");
-            wave.scc = compare(
+            let result = compare(
                 cmp,
                 if signed { a as i32 as i64 } else { a as i64 },
                 if signed { b as i32 as i64 } else { b as i64 },
             )
             .ok_or_else(|| self.unsupported(wave, instruction))?;
+            wave.set_scc(result);
             return Ok(());
         }
         let dest = &o[0];
+        if name == "s_addk_i32" {
+            let a = wave.bits(dest, 0)? as i32;
+            let b = wave.bits(&o[1], 0)? as i16 as i32;
+            let (value, overflow) = a.overflowing_add(b);
+            wave.set_scc(overflow);
+            return wave.put_value(dest, 0, Value::SignedInteger(value));
+        }
+        if name == "s_ff1_i32_b64" {
+            let source = wave.wide(&o[1], 0)?;
+            let first = if source == 0 {
+                -1
+            } else {
+                source.trailing_zeros() as i32
+            };
+            return wave.put_value(dest, 0, Value::SignedInteger(first));
+        }
+        if name == "s_movk_i32" {
+            let value = wave.bits(&o[1], 0)? as i16 as i32 as u32;
+            return wave.put_value(dest, 0, Value::Integer(value));
+        }
+        if name == "s_mulk_i32" {
+            let old = wave.bits(dest, 0)?;
+            let multiplier = wave.bits(&o[1], 0)? as i16 as i32 as u32;
+            return wave.put_value(dest, 0, Value::Integer(old.wrapping_mul(multiplier)));
+        }
         if name == "s_mov_b64" {
             let bits = wave.wide(&o[1], 0)?;
             return wave.put_wide(dest, 0, bits);
@@ -924,7 +1587,7 @@ impl<'a> Interpreter<'a> {
             return wave.put_value(dest, 0, value);
         }
         if name == "s_cselect_b32" || name == "s_cselect_b64" {
-            let source = if wave.scc { &o[1] } else { &o[2] };
+            let source = if wave.read_scc()? { &o[1] } else { &o[2] };
             return if name.ends_with("64") {
                 let bits = wave.wide(source, 0)?;
                 wave.put_wide(dest, 0, bits)
@@ -964,23 +1627,31 @@ impl<'a> Interpreter<'a> {
                 "s_lshr_b64" => a.wrapping_shr((b & 63) as u32),
                 _ => return Err(self.unsupported(wave, instruction)),
             };
-            wave.scc = if name.contains("saveexec") {
+            wave.set_scc(if name.contains("saveexec") {
                 wave.exec != 0
             } else {
                 value != 0
-            };
+            });
             return wave.put_wide(dest, 0, value);
         }
         let a = wave.bits(&o[1], 0)?;
         let b = if o.len() > 2 { wave.bits(&o[2], 0)? } else { 0 };
         let (value, scc) = match name {
+            "s_add_i32" => {
+                let (value, overflow) = (a as i32).overflowing_add(b as i32);
+                (value as u32, overflow)
+            }
+            "s_sub_i32" => {
+                let (value, overflow) = (a as i32).overflowing_sub(b as i32);
+                (value as u32, overflow)
+            }
             "s_add_u32" => {
                 let (v, c) = a.overflowing_add(b);
                 (v, c)
             }
             "s_addc_u32" => {
                 let (v, c) = a.overflowing_add(b);
-                let (v, d) = v.overflowing_add(wave.scc as u32);
+                let (v, d) = v.overflowing_add(wave.read_scc()? as u32);
                 (v, c || d)
             }
             "s_sub_u32" => {
@@ -989,7 +1660,7 @@ impl<'a> Interpreter<'a> {
             }
             "s_subb_u32" => {
                 let (v, c) = a.overflowing_sub(b);
-                let (v, d) = v.overflowing_sub(wave.scc as u32);
+                let (v, d) = v.overflowing_sub(wave.read_scc()? as u32);
                 (v, c || d)
             }
             "s_mul_i32" => (a.wrapping_mul(b), wave.scc),
@@ -1026,39 +1697,203 @@ impl<'a> Interpreter<'a> {
             }
             _ => return Err(self.unsupported(wave, instruction)),
         };
-        wave.scc = scc;
-        wave.put_value(dest, 0, Value::Integer(value))
+        if !matches!(name, "s_mul_i32" | "s_mul_hi_u32") {
+            wave.set_scc(scc);
+        }
+        wave.put_value(
+            dest,
+            0,
+            if name.contains("i32") {
+                Value::SignedInteger(value as i32)
+            } else {
+                Value::Integer(value)
+            },
+        )
     }
-    /// CDNA4 ISA §7.1.4, pp.47–50: K_L=1, H=4, B_I=1, M_I=4.
-    /// A[i,k] and B[k,j] live on lanes i+16k and j+16k respectively;
-    /// D[i,j] is register i%4 of lane j+16*floor(i/4).
-    fn matrix(&mut self,wave:&mut Wave,instruction:&Instruction)->Result<(),EvalError>{
-        if !matches!(instruction.mnemonic.as_str(),"v_mfma_f32_16x16x4_f32"|"v_mfma_f32_16x16x4f32") {
-            return Err(self.unsupported(wave,instruction));
-        }
-        if instruction.modifiers.iter().any(|modifier| !matches!(modifier.name.as_str(),"cbsz"|"abid"|"blgp")||modifier.value.as_deref()!=Some("0")) {
-            return Err(self.unsupported(wave,instruction));
-        }
-        if wave.exec!=u64::MAX||wave.valid!=u64::MAX {return Err(EvalError::Unsupported{pc:wave.pc,what:"MFMA requires a complete wave64 with all lanes active".into()});}
-        let o=&instruction.operands;let destination=wave.destination(&o[0])?;
-        if destination.count!=4||destination.index%2!=0{return Err(wave.fail(None,"MFMA f32_16x16x4 destination requires four registers aligned to two registers"));}
-        let (_,writes)=self.instruction_registers(instruction,wave);
-        let mut source_instruction=instruction.clone();source_instruction.operands=vec![o[0].clone(),o[1].clone(),o[2].clone()];
-        let (sources_ab,_)=self.instruction_registers(&source_instruction,wave);
-        source_instruction.operands=vec![o[0].clone(),o[3].clone()];let (accumulator,_)=self.instruction_registers(&source_instruction,wave);
-        self.builder.amd_event(wave.id,ProgramPoint(wave.pc as u32),AmdEventKind::MatrixIssue{kind:AmdMatrixKind::F32_16x16x4,destinations:writes,sources_ab,accumulator});
-        let mut a=Vec::with_capacity(64);let mut b=Vec::with_capacity(64);
-        for lane in 0..64 {a.push(self.real(wave,&o[1],lane)?);b.push(self.real(wave,&o[2],lane)?);}
-        let mut outputs=Vec::with_capacity(256);
-        for lane in 0..64u8 {let column=lane as usize%16;
-            for component in 0..4 {let row=(lane as usize/16)*4+component as usize;
-                let mut sum=if let Operand::Register(register)=o[3] {if register.count!=4{return Err(wave.fail(Some(lane),"MFMA accumulator requires four registers"));}wave.reg(register,lane,component)?.real(&mut self.arena).map_err(|e|wave.fail(Some(lane),e))?}else{self.real(wave,&o[3],lane)?};
-                for k in 0..4 {let product=self.arena.mul(a[row+16*k],b[column+16*k]);sum=self.arena.add(sum,product);}
-                outputs.push((lane,component,sum));
+    fn matrix_input(
+        &mut self,
+        wave: &Wave,
+        operand: &Operand,
+        lane: u8,
+        item: usize,
+        kind: super::matrix::InputKind,
+    ) -> Result<ExprId, EvalError> {
+        use super::matrix::InputKind;
+        let per_register = match kind {
+            InputKind::F32 => 1,
+            InputKind::F16 | InputKind::Bf16 => 2,
+            InputKind::Fp8E4m3 | InputKind::Fp8E5m2 => 4,
+        };
+        let component = item / per_register;
+        let selected = if let Operand::Register(register) = operand {
+            let mut register = *register;
+            register.index += component as u16;
+            register.count = 1;
+            Operand::Register(register)
+        } else {
+            operand.clone()
+        };
+        match kind {
+            InputKind::F32 => self.real(wave, &selected, lane),
+            InputKind::F16 => self.half(wave, &selected, lane, item % 2 != 0),
+            InputKind::Fp8E4m3 => self.fp8(wave, &selected, lane, item % 4),
+            InputKind::Bf16 | InputKind::Fp8E5m2 => {
+                let bits =
+                    wave.bits(&selected, lane)? >> (8 * (item % per_register) * (4 / per_register));
+                let value = super::matrix::decode_bits(kind, bits)
+                    .map_err(|what| EvalError::Unsupported { pc: wave.pc, what })?;
+                self.arena
+                    .float_from_f64(value)
+                    .map_err(|e| wave.fail(Some(lane), e.to_string()))
             }
         }
-        for (lane,component,expression) in outputs {wave.put(destination,lane,component,Value::Real(expression))?;}
-        self.stats.warp_syncs+=1;Ok(())
+    }
+    fn matrix(&mut self, wave: &mut Wave, instruction: &Instruction) -> Result<(), EvalError> {
+        use super::matrix::{Form, InputKind};
+        let mut form = Form::from_mnemonic(&instruction.mnemonic)
+            .ok_or_else(|| self.unsupported(wave, instruction))?;
+        let mut cbsz = 0u8;
+        let mut blgp = 0u8;
+        for modifier in &instruction.modifiers {
+            match modifier.name.as_str() {
+                "cbsz" => {
+                    cbsz = modifier
+                        .value
+                        .as_deref()
+                        .and_then(parse_u64)
+                        .and_then(|value| u8::try_from(value).ok())
+                        .ok_or_else(|| self.unsupported(wave, instruction))?
+                }
+                "blgp" => {
+                    blgp = modifier
+                        .value
+                        .as_deref()
+                        .and_then(parse_u64)
+                        .and_then(|value| u8::try_from(value).ok())
+                        .ok_or_else(|| self.unsupported(wave, instruction))?
+                }
+                "abid" if modifier.value.as_deref() == Some("0") => {}
+                "op_sel" | "op_sel_hi" if form.is_scaled() => {}
+                _ => return Err(self.unsupported(wave, instruction)),
+            }
+        }
+        if matches!(form.input_kind, InputKind::Fp8E4m3 | InputKind::Fp8E5m2) {
+            form = form
+                .with_fp8_formats(cbsz, blgp)
+                .ok_or_else(|| self.unsupported(wave, instruction))?;
+        } else if cbsz != 0 || blgp != 0 {
+            return Err(self.unsupported(wave, instruction));
+        }
+        if wave.exec != u64::MAX || wave.valid != u64::MAX {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "MFMA requires a complete active wave64".into(),
+            });
+        }
+        let o = &instruction.operands;
+        let destination = wave.destination(&o[0])?;
+        let output_items = form.accumulator_items_per_lane();
+        if destination.count as usize != output_items || destination.index % 2 != 0 {
+            return Err(wave.fail(None, "MFMA destination register count/alignment mismatch"));
+        }
+        for source in [&o[1], &o[2]] {
+            if let Operand::Register(register) = source {
+                if register.count as usize != form.input_registers_per_operand() {
+                    return Err(wave.fail(None, "MFMA input register count mismatch"));
+                }
+            } else if !matches!(source, Operand::Integer(0) | Operand::Float(0.0)) {
+                return Err(self.unsupported(wave, instruction));
+            }
+        }
+        if let Operand::Register(register) = o[3] {
+            if register.count as usize != output_items {
+                return Err(wave.fail(None, "MFMA accumulator register count mismatch"));
+            }
+        }
+        if form.is_scaled() {
+            if o.len() != 6 {
+                return Err(self.unsupported(wave, instruction));
+            }
+            let low = selectors(instruction, "op_sel", 3, 0)
+                .ok_or_else(|| self.unsupported(wave, instruction))?;
+            let high = selectors(instruction, "op_sel_hi", 3, 0)
+                .ok_or_else(|| self.unsupported(wave, instruction))?;
+            if low[2] != 0 || high[2] != 0 {
+                return Err(self.unsupported(wave, instruction));
+            }
+            for lane in 0..64 {
+                for index in 0..2 {
+                    let exponent = if let Operand::Float(value) = o[4 + index] {
+                        ((value as f32).to_bits() >> 23) & 255
+                    } else {
+                        let byte = (2 * high[index] + low[index]) as u32;
+                        (wave.bits(&o[4 + index], lane)? >> (8 * byte)) & 255
+                    };
+                    if exponent != 127 {
+                        return Err(EvalError::Unsupported{pc:wave.pc,what:"block-scaled MFMA currently requires every selected E8M0 scale byte to equal127 (unit scale)".into()});
+                    }
+                }
+            }
+        } else if o.len() != 4 {
+            return Err(self.unsupported(wave, instruction));
+        }
+        let (_, writes) = self.instruction_registers(instruction, wave);
+        let mut source_instruction = instruction.clone();
+        source_instruction.operands = vec![o[0].clone(), o[1].clone(), o[2].clone()];
+        if form.is_scaled() {
+            source_instruction.operands.extend_from_slice(&o[4..6]);
+        }
+        let (sources_ab, _) = self.instruction_registers(&source_instruction, wave);
+        source_instruction.operands = vec![o[0].clone(), o[3].clone()];
+        let (accumulator, _) = self.instruction_registers(&source_instruction, wave);
+        self.builder.amd_event(
+            wave.id,
+            ProgramPoint(wave.pc as u32),
+            AmdEventKind::MatrixIssue {
+                kind: form.graph_kind(),
+                destinations: writes,
+                sources_ab,
+                accumulator,
+            },
+        );
+        let mut a = Vec::with_capacity(64);
+        let mut b = Vec::with_capacity(64);
+        let mut c = Vec::with_capacity(64);
+        for lane in 0..64 {
+            let mut av = Vec::new();
+            let mut bv = Vec::new();
+            let mut cv = Vec::new();
+            for item in 0..form.input_items_per_lane() {
+                av.push(self.matrix_input(wave, &o[1], lane, item, form.input_kind)?);
+                bv.push(self.matrix_input(wave, &o[2], lane, item, form.input_kind_b)?);
+            }
+            for item in 0..output_items {
+                cv.push(if let Operand::Register(register) = o[3] {
+                    wave.reg(register, lane, item as u16)?
+                        .real(&mut self.arena)
+                        .map_err(|e| wave.fail(Some(lane), e))?
+                } else {
+                    self.real(wave, &o[3], lane)?
+                });
+            }
+            a.push(av);
+            b.push(bv);
+            c.push(cv);
+        }
+        let outputs = super::matrix::compute(&mut self.arena, form, &a, &b, &c)
+            .map_err(|what| EvalError::Unsupported { pc: wave.pc, what })?;
+        for (lane, values) in outputs.into_iter().enumerate() {
+            for (component, expression) in values.into_iter().enumerate() {
+                wave.put(
+                    destination,
+                    lane as u8,
+                    component as u16,
+                    Value::Real(expression),
+                )?;
+            }
+        }
+        self.stats.warp_syncs += 1;
+        Ok(())
     }
     fn vector(
         &mut self,
@@ -1066,12 +1901,148 @@ impl<'a> Interpreter<'a> {
         instruction: &Instruction,
         name: &str,
     ) -> Result<(), EvalError> {
-        let half_select_high=instruction.modifiers.iter().any(|modifier|modifier.name=="src0_sel"&&modifier.value.as_deref()==Some("WORD_1"));
-        if !instruction.modifiers.is_empty() && !(name=="v_cvt_f32_f16"&&instruction.modifiers.iter().all(|modifier|matches!((modifier.name.as_str(),modifier.value.as_deref()),("src0_sel",Some("WORD_0"|"WORD_1"))|("dst_sel",Some("DWORD"))|("dst_unused",Some("UNUSED_PAD"))))) {
-            return Err(self.unsupported(wave, instruction));
+        if matches!(
+            name,
+            "v_readlane_b32" | "v_readfirstlane_b32" | "v_writelane_b32"
+        ) {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "lane/accumulator register moves need Table 11 software dependency checks"
+                    .into(),
+            });
         }
         let o = &instruction.operands;
+        let packed = name.starts_with("v_pk_");
+        let mix = matches!(name, "v_fma_mixlo_f16" | "v_fma_mixhi_f16");
+        let half_select_high = instruction.modifiers.iter().any(|modifier| {
+            modifier.name == "src0_sel" && modifier.value.as_deref() == Some("WORD_1")
+        });
+        let half_select_high1 = instruction.modifiers.iter().any(|modifier| {
+            modifier.name == "src1_sel" && modifier.value.as_deref() == Some("WORD_1")
+        });
+        let half_op = matches!(
+            name,
+            "v_cvt_f32_f16" | "v_add_f16" | "v_sub_f16" | "v_mul_f16" | "v_max_f16" | "v_min_f16"
+        );
+        let integer_sdwa = matches!(name, "v_add_u32" | "v_mul_lo_u16" | "v_mul_u32_u24");
+        let valid_modifiers = if packed || mix {
+            instruction
+                .modifiers
+                .iter()
+                .all(|modifier| matches!(modifier.name.as_str(), "op_sel" | "op_sel_hi"))
+        } else if name == "v_cvt_f32_fp8" {
+            instruction.modifiers.iter().all(|modifier| {
+                matches!(
+                    (modifier.name.as_str(), modifier.value.as_deref()),
+                    ("src0_sel", Some("BYTE_0" | "BYTE_1" | "BYTE_2" | "BYTE_3"))
+                        | ("dst_sel", Some("DWORD"))
+                        | ("dst_unused", Some("UNUSED_PAD"))
+                )
+            })
+        } else if half_op {
+            instruction.modifiers.iter().all(|modifier| {
+                matches!(
+                    (modifier.name.as_str(), modifier.value.as_deref()),
+                    ("src0_sel" | "src1_sel", Some("DWORD" | "WORD_0" | "WORD_1"))
+                        | ("dst_sel", Some("DWORD"))
+                        | ("dst_unused", Some("UNUSED_PAD"))
+                )
+            })
+        } else if integer_sdwa {
+            instruction.modifiers.iter().all(|modifier| {
+                matches!(
+                    (modifier.name.as_str(), modifier.value.as_deref()),
+                    (
+                        "src0_sel" | "src1_sel",
+                        Some(
+                            "DWORD"
+                                | "WORD_0"
+                                | "WORD_1"
+                                | "BYTE_0"
+                                | "BYTE_1"
+                                | "BYTE_2"
+                                | "BYTE_3"
+                        )
+                    ) | ("dst_sel", Some("DWORD"))
+                        | ("dst_unused", Some("UNUSED_PAD"))
+                )
+            })
+        } else {
+            instruction.modifiers.is_empty()
+        };
+        if !valid_modifiers {
+            return Err(self.unsupported(wave, instruction));
+        }
+        let low_select = selectors(instruction, "op_sel", o.len() - 1, 0)
+            .ok_or_else(|| self.unsupported(wave, instruction))?;
+        let high_select = selectors(
+            instruction,
+            "op_sel_hi",
+            o.len() - 1,
+            if mix { 0 } else { 1 },
+        )
+        .ok_or_else(|| self.unsupported(wave, instruction))?;
         let lanes: Vec<_> = wave.active().collect();
+        if integer_sdwa || matches!(name, "v_add_u16" | "v_sub_u16" | "v_lshrrev_b16") {
+            for lane in lanes {
+                let a = self.selected_bits(wave, &o[1], lane, instruction, 0)?;
+                let b = self.selected_bits(wave, &o[2], lane, instruction, 1)?;
+                let result = match name {
+                    "v_add_u16" => (a & 65535).wrapping_add(b & 65535) & 65535,
+                    "v_sub_u16" => (a & 65535).wrapping_sub(b & 65535) & 65535,
+                    "v_mul_lo_u16" => (a & 65535).wrapping_mul(b & 65535) & 65535,
+                    "v_lshrrev_b16" => (b & 65535) >> (a & 15),
+                    "v_add_u32" => a.wrapping_add(b),
+                    _ => (a & 0xffffff).wrapping_mul(b & 0xffffff),
+                };
+                wave.put_value(&o[0], lane, Value::Integer(result))?;
+            }
+            return Ok(());
+        }
+        if matches!(name, "v_pk_mul_f32" | "v_pk_add_f32" | "v_pk_fma_f32") {
+            let destination = wave.destination(&o[0])?;
+            if destination.count != 2 {
+                return Err(self.unsupported(wave, instruction));
+            }
+            for lane in lanes {
+                let mut results = Vec::with_capacity(2);
+                for component in 0..2 {
+                    let select = if component == 0 {
+                        &low_select
+                    } else {
+                        &high_select
+                    };
+                    let a = self.real_component(wave, &o[1], lane, select[0])?;
+                    let b = self.real_component(wave, &o[2], lane, select[1])?;
+                    results.push(match name {
+                        "v_pk_mul_f32" => self.arena.mul(a, b),
+                        "v_pk_add_f32" => self.arena.add(a, b),
+                        _ => {
+                            let c = self.real_component(wave, &o[3], lane, select[2])?;
+                            self.arena.fma(a, b, c)
+                        }
+                    });
+                }
+                for (component, result) in results.into_iter().enumerate() {
+                    wave.put(destination, lane, component as u16, Value::Real(result))?;
+                }
+            }
+            return Ok(());
+        }
+        if name == "v_mad_u64_u32" {
+            let mut mask = 0;
+            for lane in lanes {
+                let a = wave.bits(&o[2], lane)? as u64;
+                let b = wave.bits(&o[3], lane)? as u64;
+                let addend = wave.wide(&o[4], lane)?;
+                let (result, carry) = a.wrapping_mul(b).overflowing_add(addend);
+                wave.put_wide(&o[0], lane, result)?;
+                if carry {
+                    mask |= 1u64 << lane;
+                }
+            }
+            return wave.put_wide(&o[1], 0, mask);
+        }
         if name.starts_with("v_cmp_") || name.starts_with("v_cmpx_") {
             let cmpx = name.starts_with("v_cmpx_");
             let prefix = if cmpx { "v_cmpx_" } else { "v_cmp_" };
@@ -1079,6 +2050,9 @@ impl<'a> Interpreter<'a> {
                 .trim_start_matches(prefix)
                 .rsplit_once('_')
                 .ok_or_else(|| self.unsupported(wave, instruction))?;
+            if !matches!(kind, "f32" | "i32" | "u32") {
+                return Err(self.unsupported(wave, instruction));
+            }
             let start = if matches!(o.first(),Some(Operand::Register(reg)) if reg.class==RegisterClass::Special || reg.class==RegisterClass::Scalar)
             {
                 1
@@ -1125,6 +2099,7 @@ impl<'a> Interpreter<'a> {
                 wave.put_wide(&o[0], 0, mask)?;
             } else {
                 wave.vcc = mask;
+                wave.vcc_defined = 3;
             }
             if cmpx {
                 wave.exec &= mask;
@@ -1164,7 +2139,11 @@ impl<'a> Interpreter<'a> {
                 | "v_subrev_co_u32"
                 | "v_subbrev_co_u32"
         ) {
-            let incoming = if o.len() > 4 { wave.wide(&o[4], 0)? } else { 0 };
+            let incoming = if o.len() > 4 && wave.exec != 0 {
+                wave.wide(&o[4], 0)?
+            } else {
+                0
+            };
             let mut mask = 0;
             for lane in lanes {
                 let a = wave.bits(&o[2], lane)?;
@@ -1199,22 +2178,215 @@ impl<'a> Interpreter<'a> {
         }
         for lane in lanes {
             let value = match name {
-                "v_cvt_f32_f16"=>Value::Real(self.half(wave,&o[1],lane,half_select_high)?),
-                "v_cvt_f16_f32"=>Value::Half(self.real(wave,&o[1],lane)?),
-                "v_cvt_pkrtz_f16_f32"|"v_cvt_pk_f16_f32"=>Value::Halves(self.real(wave,&o[1],lane)?,self.real(wave,&o[2],lane)?),
-                "v_pack_b32_f16"=>Value::Halves(self.half(wave,&o[1],lane,false)?,self.half(wave,&o[2],lane,false)?),
-                "v_add_f16"|"v_sub_f16"|"v_mul_f16"|"v_max_f16"|"v_min_f16"=>{let a=self.half(wave,&o[1],lane,false)?;let b=self.half(wave,&o[2],lane,false)?;Value::Half(match name{"v_add_f16"=>self.arena.add(a,b),"v_sub_f16"=>self.arena.sub(a,b),"v_mul_f16"=>self.arena.mul(a,b),"v_max_f16"=>self.arena.max(a,b),_=>self.arena.min(a,b)})},
-                "v_pk_add_f16"|"v_pk_mul_f16"|"v_pk_max_f16"|"v_pk_min_f16"|"v_pk_fma_f16"=>{let mut pair=Vec::with_capacity(2);for high in [false,true]{let a=self.half(wave,&o[1],lane,high)?;let b=self.half(wave,&o[2],lane,high)?;pair.push(match name{"v_pk_add_f16"=>self.arena.add(a,b),"v_pk_mul_f16"=>self.arena.mul(a,b),"v_pk_max_f16"=>self.arena.max(a,b),"v_pk_min_f16"=>self.arena.min(a,b),_=>{let c=self.half(wave,&o[3],lane,high)?;self.arena.fma(a,b,c)}});}Value::Halves(pair[0],pair[1])},
-                "v_mov_b32" | "v_accvgpr_read_b32" | "v_accvgpr_write_b32" => {
-                    wave.value(&o[1], lane)?
+                "v_perm_b32" => {
+                    let selector = wave.bits(&o[3], lane)?;
+                    let a = wave.value(&o[1], lane)?;
+                    let b = wave.value(&o[2], lane)?;
+                    if let (Ok(a), Ok(b)) = (a.bits(), b.bits()) {
+                        let source = (a as u64) << 32 | b as u64;
+                        let mut output = 0;
+                        for byte in 0..4 {
+                            let select = (selector >> (8 * byte)) & 255;
+                            let value = match select {
+                                0..=7 => (source >> (8 * select)) as u8,
+                                8..=11 => {
+                                    if source & (1u64 << (8 * (2 * (select - 8) + 1) + 7)) != 0 {
+                                        255
+                                    } else {
+                                        0
+                                    }
+                                }
+                                12 => 0,
+                                _ => 255,
+                            };
+                            output |= (value as u32) << (8 * byte);
+                        }
+                        Value::Bits(output)
+                    } else {
+                        let mut halves = Vec::new();
+                        for half in 0..2 {
+                            let lo = (selector >> (16 * half)) & 255;
+                            let hi = (selector >> (16 * half + 8)) & 255;
+                            if lo == 12 && hi == 12 {
+                                halves.push(self.arena.int(0));
+                            } else {
+                                if lo >= 8 || lo % 2 != 0 || hi != lo + 1 {
+                                    return Err(self.unsupported(wave, instruction));
+                                }
+                                let source = if lo < 4 { &o[2] } else { &o[1] };
+                                halves.push(self.half(wave, source, lane, lo % 4 == 2)?);
+                            }
+                        }
+                        Value::Halves(halves[0], halves[1])
+                    }
                 }
+                "v_fma_f16" => {
+                    let a = self.half(wave, &o[1], lane, false)?;
+                    let b = self.half(wave, &o[2], lane, false)?;
+                    let c = self.half(wave, &o[3], lane, false)?;
+                    Value::Half(self.arena.fma(a, b, c))
+                }
+                "v_alignbit_b32" => {
+                    let shift = wave.bits(&o[3], lane)? & 31;
+                    if shift == 0 {
+                        wave.value(&o[2], lane)?
+                    } else if shift == 16 {
+                        Value::Halves(
+                            self.half(wave, &o[2], lane, true)?,
+                            self.half(wave, &o[1], lane, false)?,
+                        )
+                    } else {
+                        let a = wave.bits(&o[1], lane)? as u64;
+                        let b = wave.bits(&o[2], lane)? as u64;
+                        Value::Bits((((a << 32) | b) >> shift) as u32)
+                    }
+                }
+                "v_lshrrev_b32" | "v_lshlrev_b32" => {
+                    let shift = wave.bits(&o[1], lane)? & 31;
+                    let value = wave.value(&o[2], lane)?;
+                    if shift == 0 {
+                        value
+                    } else if shift == 16
+                        && matches!(
+                            value,
+                            Value::Half(_) | Value::Halves(..) | Value::PartialHalves(..)
+                        )
+                    {
+                        if name == "v_lshrrev_b32" {
+                            Value::Half(self.half(wave, &o[2], lane, true)?)
+                        } else {
+                            let zero = self.arena.int(0);
+                            Value::Halves(zero, self.half(wave, &o[2], lane, false)?)
+                        }
+                    } else {
+                        let bits = value.bits().map_err(|e| wave.fail(Some(lane), e))?;
+                        Value::Integer(if name == "v_lshrrev_b32" {
+                            bits >> shift
+                        } else {
+                            bits.wrapping_shl(shift)
+                        })
+                    }
+                }
+                "v_cvt_f32_fp8" => {
+                    let byte = instruction
+                        .modifiers
+                        .iter()
+                        .find(|modifier| modifier.name == "src0_sel")
+                        .and_then(|modifier| modifier.value.as_deref())
+                        .and_then(|value| value.strip_prefix("BYTE_"))
+                        .and_then(|value| value.parse::<usize>().ok())
+                        .unwrap_or(0);
+                    Value::Real(self.fp8(wave, &o[1], lane, byte)?)
+                }
+                "v_fma_mixlo_f16" | "v_fma_mixhi_f16" => {
+                    let mut arguments = Vec::with_capacity(3);
+                    for index in 0..3 {
+                        arguments.push(if high_select[index] != 0 {
+                            self.half(wave, &o[index + 1], lane, low_select[index] != 0)?
+                        } else {
+                            self.real(wave, &o[index + 1], lane)?
+                        });
+                    }
+                    let result = self.arena.fma(arguments[0], arguments[1], arguments[2]);
+                    let old = wave.value(&o[0], lane).ok();
+                    let old_half = |high| match old {
+                        Some(Value::Halves(lo, hi)) => Some(if high { hi } else { lo }),
+                        Some(Value::Half(expr)) if !high => Some(expr),
+                        Some(Value::PartialHalves(lo, hi)) => {
+                            if high {
+                                hi
+                            } else {
+                                lo
+                            }
+                        }
+                        _ => None,
+                    };
+                    let (lo, hi) = if name == "v_fma_mixlo_f16" {
+                        (Some(result), old_half(true))
+                    } else {
+                        (old_half(false), Some(result))
+                    };
+                    if let (Some(lo), Some(hi)) = (lo, hi) {
+                        Value::Halves(lo, hi)
+                    } else {
+                        Value::PartialHalves(lo, hi)
+                    }
+                }
+                "v_mov_b64" => {
+                    let destination = wave.destination(&o[0])?;
+                    if let Operand::Register(source) = o[1] {
+                        if source.count != 2 {
+                            return Err(self.unsupported(wave, instruction));
+                        }
+                        let lo = wave.reg(source, lane, 0)?;
+                        let hi = wave.reg(source, lane, 1)?;
+                        wave.put(destination, lane, 0, lo)?;
+                        wave.put(destination, lane, 1, hi)?;
+                    } else {
+                        let value = wave.wide(&o[1], lane)?;
+                        wave.put_wide(&o[0], lane, value)?;
+                    }
+                    continue;
+                }
+                "v_cvt_f32_f16" => Value::Real(self.half(wave, &o[1], lane, half_select_high)?),
+                "v_cvt_f16_f32" => Value::Half(self.real(wave, &o[1], lane)?),
+                "v_cvt_pkrtz_f16_f32" | "v_cvt_pk_f16_f32" => {
+                    Value::Halves(self.real(wave, &o[1], lane)?, self.real(wave, &o[2], lane)?)
+                }
+                "v_pack_b32_f16" => Value::Halves(
+                    self.half(wave, &o[1], lane, false)?,
+                    self.half(wave, &o[2], lane, false)?,
+                ),
+                "v_add_f16" | "v_sub_f16" | "v_mul_f16" | "v_max_f16" | "v_min_f16" => {
+                    let a = self.half(wave, &o[1], lane, half_select_high)?;
+                    let b = self.half(wave, &o[2], lane, half_select_high1)?;
+                    Value::Half(match name {
+                        "v_add_f16" => self.arena.add(a, b),
+                        "v_sub_f16" => self.arena.sub(a, b),
+                        "v_mul_f16" => self.arena.mul(a, b),
+                        "v_max_f16" => self.arena.max(a, b),
+                        _ => self.arena.min(a, b),
+                    })
+                }
+                "v_max3_f16" => {
+                    let a = self.half(wave, &o[1], lane, false)?;
+                    let b = self.half(wave, &o[2], lane, false)?;
+                    let c = self.half(wave, &o[3], lane, false)?;
+                    let partial = self.arena.max(a, b);
+                    Value::Half(self.arena.max(partial, c))
+                }
+                "v_pk_add_f16" | "v_pk_mul_f16" | "v_pk_max_f16" | "v_pk_min_f16"
+                | "v_pk_fma_f16" => {
+                    let mut pair = Vec::with_capacity(2);
+                    for high in [false, true] {
+                        let select = if high { &high_select } else { &low_select };
+                        let a = self.half(wave, &o[1], lane, select[0] != 0)?;
+                        let b = self.half(wave, &o[2], lane, select[1] != 0)?;
+                        pair.push(match name {
+                            "v_pk_add_f16" => self.arena.add(a, b),
+                            "v_pk_mul_f16" => self.arena.mul(a, b),
+                            "v_pk_max_f16" => self.arena.max(a, b),
+                            "v_pk_min_f16" => self.arena.min(a, b),
+                            _ => {
+                                let c = self.half(wave, &o[3], lane, select[2] != 0)?;
+                                self.arena.fma(a, b, c)
+                            }
+                        });
+                    }
+                    Value::Halves(pair[0], pair[1])
+                }
+                "v_mov_b32"
+                | "v_accvgpr_read_b32"
+                | "v_accvgpr_write_b32"
+                | "v_accvgpr_mov_b32" => self.modified_value(wave, &o[1], lane)?,
                 "v_cndmask_b32" => {
                     let mask = if o.len() > 3 {
                         wave.wide(&o[3], lane)?
                     } else {
-                        wave.vcc
+                        wave.read_vcc()?
                     };
-                    wave.value(
+                    self.modified_value(
+                        wave,
                         if mask & (1u64 << lane) == 0 {
                             &o[1]
                         } else {
@@ -1257,10 +2429,11 @@ impl<'a> Interpreter<'a> {
                         _ => self.arena.min(a, b),
                     })
                 }
-                "v_fma_f32" | "v_mad_f32" | "v_fmac_f32"=> {
+                "v_fma_f32" | "v_mad_f32" | "v_fmac_f32" | "v_fmamk_f32" | "v_fmaak_f32" => {
                     let a = self.real(wave, &o[1], lane)?;
                     let b = self.real(wave, &o[2], lane)?;
-                    let c = self.real(wave, if name=="v_fmac_f32"{&o[0]}else{&o[3]}, lane)?;
+                    let c =
+                        self.real(wave, if name == "v_fmac_f32" { &o[0] } else { &o[3] }, lane)?;
                     Value::Real(self.arena.fma(a, b, c))
                 }
                 "v_rcp_f32" | "v_sqrt_f32" | "v_rsq_f32" | "v_exp_f32" | "v_log_f32" => {
@@ -1272,13 +2445,10 @@ impl<'a> Interpreter<'a> {
                             let root = self.arena.sqrt(a);
                             self.arena.rcp(root)
                         }
-                        "v_exp_f32" => {
-                            let ln2 = self.arena.float_from_f64(std::f64::consts::LN_2).unwrap();
-                            let scaled = self.arena.mul(a, ln2);
-                            self.arena.exp(scaled)
-                        }
+                        "v_exp_f32" => self.exp2(a),
                         _ => {
-                            let ln2 = self.arena.float_from_f64(std::f64::consts::LN_2).unwrap();
+                            let two = self.arena.int(2);
+                            let ln2 = self.arena.log(two);
                             let log = self.arena.log(a);
                             self.arena.div(log, ln2)
                         }
@@ -1311,6 +2481,7 @@ impl<'a> Interpreter<'a> {
                         "v_or_b32" => a | b,
                         "v_xor_b32" => a ^ b,
                         "v_not_b32" => !a,
+                        "v_bfrev_b32" => a.reverse_bits(),
                         "v_lshlrev_b32" => b.wrapping_shl(a & 31),
                         "v_lshrrev_b32" => b.wrapping_shr(a & 31),
                         "v_ashrrev_i32" => ((b as i32) >> (a & 31)) as u32,
@@ -1328,6 +2499,17 @@ impl<'a> Interpreter<'a> {
                             a.wrapping_add(b).wrapping_shl(wave.bits(&o[3], lane)? & 31)
                         }
                         "v_lshl_or_b32" => a.wrapping_shl(b & 31) | wave.bits(&o[3], lane)?,
+                        "v_or3_b32" => a | b | wave.bits(&o[3], lane)?,
+                        "v_and_or_b32" => (a & b) | wave.bits(&o[3], lane)?,
+                        "v_add3_u32" => a.wrapping_add(b).wrapping_add(wave.bits(&o[3], lane)?),
+                        "v_bfe_u32" => {
+                            let width = wave.bits(&o[3], lane)? & 31;
+                            if width == 0 {
+                                0
+                            } else {
+                                (a >> (b & 31)) & ((1u32 << width) - 1)
+                            }
+                        }
                         "v_mbcnt_lo_u32_b32" => {
                             let below = if lane >= 32 {
                                 u32::MAX
@@ -1348,7 +2530,11 @@ impl<'a> Interpreter<'a> {
                         }
                         _ => return Err(self.unsupported(wave, instruction)),
                     };
-                    Value::Integer(value)
+                    if name.contains("i32") {
+                        Value::SignedInteger(value as i32)
+                    } else {
+                        Value::Integer(value)
+                    }
                 }
             };
             wave.put_value(&o[0], lane, value)?;
@@ -1402,19 +2588,25 @@ impl<'a> Interpreter<'a> {
         let store = name.contains("store") || name.starts_with("ds_write");
         let scalar = instruction.opcode == Opcode::ScalarMemory;
         let lds = instruction.opcode == Opcode::Lds;
+        let dual = name.starts_with("ds_read2") || name.starts_with("ds_write2");
+        if name.contains("_d16") && name != "ds_write_b16_d16_hi" {
+            return Err(self.unsupported(wave, instruction));
+        }
         if !scalar && wave.exec == 0 {
             return Ok(());
         }
-        let flat = name.starts_with("flat_");
+        let flat = name.starts_with("flat_load_") || name.starts_with("flat_store_");
         if !(name.starts_with("s_load_")
             || name.starts_with("global_load_")
             || name.starts_with("global_store_")
             || flat
             || name.starts_with("ds_read_")
-            || name.starts_with("ds_write_"))
+            || name.starts_with("ds_write_")
+            || dual)
         {
             return Err(self.unsupported(wave, instruction));
         }
+        let mut dual_offsets = [0u64; 2];
         let offset =
             instruction
                 .modifiers
@@ -1426,6 +2618,15 @@ impl<'a> Interpreter<'a> {
                         .and_then(|value| parse_u64(value))
                         .ok_or_else(|| self.unsupported(wave, instruction)),
                     "glc" | "slc" | "dlc" => Ok(offset),
+                    "offset0" | "offset1" if dual => {
+                        let index = if modifier.name == "offset0" { 0 } else { 1 };
+                        dual_offsets[index] = modifier
+                            .value
+                            .as_deref()
+                            .and_then(parse_u64)
+                            .ok_or_else(|| self.unsupported(wave, instruction))?;
+                        Ok(offset)
+                    }
                     _ => Err(self.unsupported(wave, instruction)),
                 })?;
         let registers = if name.contains("dwordx16") {
@@ -1434,19 +2635,43 @@ impl<'a> Interpreter<'a> {
             8
         } else if name.contains("dwordx4") || name.ends_with("b128") {
             4
+        } else if name.contains("dwordx3") || name.ends_with("b96") {
+            3
         } else if name.contains("dwordx2") || name.ends_with("b64") {
             2
         } else {
             1
         };
-        let width = if name.contains("ushort") || name.ends_with("u16") || name.ends_with("b16") {
+        let registers_per_part = registers;
+        let registers = if dual { registers * 2 } else { registers };
+        if dual && dual_offsets[0] == dual_offsets[1] {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what:
+                    "equal-offset DS_READ2/DS_WRITE2 requires explicit duplicate-access semantics"
+                        .into(),
+            });
+        }
+        let width = if name.contains("short")
+            || name.ends_with("u16")
+            || name.ends_with("i16")
+            || name.contains("_b16")
+        {
             2
-        } else if name.contains("ubyte") || name.ends_with("u8") || name.ends_with("b8") {
+        } else if name.contains("byte")
+            || name.ends_with("u8")
+            || name.ends_with("i8")
+            || name.ends_with("b8")
+        {
             1
         } else {
             4
         };
-        let class = if flat {
+        let class = if flat && store && registers >= 3 {
+            AmdMemoryClass::FlatStoreWide
+        } else if !scalar && !lds && store && registers >= 3 {
+            AmdMemoryClass::VectorStoreWide
+        } else if flat {
             AmdMemoryClass::Flat
         } else if scalar {
             AmdMemoryClass::ScalarMemory
@@ -1465,6 +2690,24 @@ impl<'a> Interpreter<'a> {
             vec![(AmdCounter::Vm, 1)]
         };
         let (reads, writes) = self.instruction_registers(instruction, wave);
+        let held_sources = if store && !lds && registers >= 3 {
+            let data_register = wave.destination(&o[1])?;
+            reads
+                .iter()
+                .copied()
+                .filter(|register| {
+                    register.index >= data_register.index
+                        && register.index < data_register.index + data_register.count
+                        && matches!(
+                            (register.file, data_register.class),
+                            (AmdRegisterFile::Vector, RegisterClass::Vector)
+                                | (AmdRegisterFile::Accumulator, RegisterClass::Accumulator)
+                        )
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
         let issue = self.builder.amd_event(
             wave.id,
             ProgramPoint(wave.pc as u32),
@@ -1472,7 +2715,7 @@ impl<'a> Interpreter<'a> {
                 class,
                 counters,
                 destinations: if store { Vec::new() } else { writes },
-                held_sources: if store { reads } else { Vec::new() },
+                held_sources,
             },
         );
         let lanes: Vec<_> = if scalar {
@@ -1491,9 +2734,15 @@ impl<'a> Interpreter<'a> {
                 )
             } else if lds {
                 if store {
-                    (wave.bits(&o[0], lane)? as u64 + offset, &o[1])
+                    (
+                        wave.bits(&o[0], lane)?.wrapping_add(offset as u32) as u64,
+                        &o[1],
+                    )
                 } else {
-                    (wave.bits(&o[1], lane)? as u64 + offset, &o[0])
+                    (
+                        wave.bits(&o[1], lane)?.wrapping_add(offset as u32) as u64,
+                        &o[0],
+                    )
                 }
             } else if store {
                 (
@@ -1522,31 +2771,64 @@ impl<'a> Interpreter<'a> {
             };
             let register = wave.destination(data_operand)?;
             for component in 0..registers {
-                let addr = address
-                    .checked_add(component as u64 * width)
-                    .ok_or_else(|| wave.fail(Some(lane), "memory address overflow"))?;
-                let abi = scalar && addr >= KERNARG_BASE;
+                let displacement = if dual {
+                    let part = component / registers_per_part;
+                    let unit = if name.ends_with("b64") { 8 } else { 4 };
+                    let stride = if name.contains("st64") { 64 } else { 1 };
+                    dual_offsets[part as usize] * unit * stride
+                        + (component % registers_per_part) as u64 * width
+                } else {
+                    component as u64 * width
+                };
+                let addr = if lds {
+                    (address as u32).wrapping_add(displacement as u32) as u64
+                } else {
+                    address
+                        .checked_add(displacement)
+                        .ok_or_else(|| wave.fail(Some(lane), "memory address overflow"))?
+                };
+                let kernarg_size = self.program.descriptor.value("kernarg_size", 0);
+                let kernarg = scalar && addr >= KERNARG_BASE && addr - KERNARG_BASE < kernarg_size;
+                let dispatch = scalar && addr >= DISPATCH_BASE && addr - DISPATCH_BASE < 64;
+                let abi = kernarg || dispatch;
                 if !abi {
                     self.validate_address(wave, lane, lds, addr, width)?;
                 }
                 let value = if store {
-                    let value = wave.reg(register, lane, component)?;
+                    let source_register = if dual && component >= registers_per_part {
+                        wave.destination(&o[2])?
+                    } else {
+                        register
+                    };
+                    let source_component = if dual {
+                        component % registers_per_part
+                    } else {
+                        component
+                    };
+                    let value = if name == "ds_write_b16_d16_hi" {
+                        let mut source = source_register;
+                        source.index += source_component;
+                        source.count = 1;
+                        Value::Half(self.half(wave, &Operand::Register(source), lane, true)?)
+                    } else {
+                        wave.reg(source_register, lane, source_component)?
+                    };
                     let memory = if lds { &mut self.lds } else { &mut self.global };
-                    memory
+                    let value = memory
                         .write(addr, width, value)
                         .map_err(|e| wave.fail(Some(lane), e))?;
                     Some(value)
                 } else {
-                    let memory = if scalar && addr >= DISPATCH_BASE {
+                    let memory = if dispatch {
                         &self.dispatch
-                    } else if abi {
+                    } else if kernarg {
                         &self.kernargs
                     } else if lds {
                         &self.lds
                     } else {
                         &self.global
                     };
-                    let value = memory.read(addr, width).map_err(|e| {
+                    let mut value = memory.read(addr, width).map_err(|e| {
                         wave.fail(
                             Some(lane),
                             format!(
@@ -1561,15 +2843,40 @@ impl<'a> Interpreter<'a> {
                             ),
                         )
                     })?;
+                    if name.contains("sbyte") || name.ends_with("i8") {
+                        value = Value::SignedInteger(
+                            value
+                                .bits()
+                                .map_err(|_| self.unsupported(wave, instruction))?
+                                as i8 as i32,
+                        );
+                    }
+                    if name.contains("sshort") || name.ends_with("i16") {
+                        value = Value::SignedInteger(
+                            value
+                                .bits()
+                                .map_err(|_| self.unsupported(wave, instruction))?
+                                as i16 as i32,
+                        );
+                    }
                     wave.put(register, lane, component, value)?;
                     None
                 };
                 {
                     let stored = if let Some(value) = value {
                         Some(self.builder.value(match value {
-                            Value::Real(expression) | Value::Half(expression) => StoredValue::Scalar(expression),
-                            Value::Bits(bits) | Value::Integer(bits) => StoredValue::Scalar(self.arena.int(bits as i64)),
+                            Value::Real(expression)
+                            | Value::Half(expression)
+                            | Value::Byte(expression) => StoredValue::Scalar(expression),
+                            Value::Bits(bits) | Value::Integer(bits) => {
+                                StoredValue::Scalar(self.arena.int(bits as i64))
+                            }
+                            Value::SignedInteger(value) => {
+                                StoredValue::Scalar(self.arena.int(value as i64))
+                            }
                             Value::Halves(lo, hi) => StoredValue::Pair(lo, hi),
+                            Value::Bytes(bytes) => StoredValue::Quad(bytes),
+                            Value::PartialHalves(..) => StoredValue::Opaque,
                         }))
                     } else {
                         None
@@ -1609,7 +2916,7 @@ impl<'a> Interpreter<'a> {
             return Ok(());
         }
         let o = &instruction.operands;
-        let (reads, writes) = self.instruction_registers(instruction, wave);
+        let (_, writes) = self.instruction_registers(instruction, wave);
         self.builder.amd_event(
             wave.id,
             ProgramPoint(wave.pc as u32),
@@ -1617,7 +2924,7 @@ impl<'a> Interpreter<'a> {
                 class: AmdMemoryClass::CrossLane,
                 counters: vec![(AmdCounter::Lgkm, 1)],
                 destinations: writes,
-                held_sources: reads,
+                held_sources: Vec::new(),
             },
         );
         let mut data = [Value::Bits(0); 64];
@@ -1695,5 +3002,29 @@ fn parse_u64(value: &str) -> Option<u64> {
         u64::from_str_radix(hex, 16).ok()
     } else {
         value.parse().ok()
+    }
+}
+fn selectors(
+    instruction: &Instruction,
+    name: &str,
+    count: usize,
+    default: u16,
+) -> Option<Vec<u16>> {
+    match instruction
+        .modifiers
+        .iter()
+        .find(|modifier| modifier.name == name)
+    {
+        None => Some(vec![default; count]),
+        Some(modifier) => {
+            let value = modifier.value.as_deref()?;
+            let values: Option<Vec<_>> = value
+                .strip_prefix('[')?
+                .strip_suffix(']')?
+                .split(',')
+                .map(|value| value.trim().parse::<u16>().ok().filter(|value| *value <= 1))
+                .collect();
+            values.filter(|values| values.len() == count)
+        }
     }
 }

@@ -1,0 +1,39 @@
+{
+  "revision": "c64c062",
+  "validation_checkout": "isolated from active swarm edits; dedicated checkout target directory",
+  "rust": {
+    "command": "cargo test --release --workspace --no-fail-fast -j4 -- --test-threads 4",
+    "passed": 1157,
+    "failed": 1,
+    "preexisting_failure": "volta_pipeline::false_positive_tests::test_aligned_bar_sync_reached_on_different_iterations",
+    "new_failures": 0
+  },
+  "python": {
+    "command": "uv run --reinstall-package volta pytest crates/volta_py",
+    "passed": 29,
+    "failed": 0
+  },
+  "static": {
+    "commands": [
+      "just check",
+      "cargo clippy --release --workspace --all-targets -j4"
+    ],
+    "exit_code": 0,
+    "warnings_present": true,
+    "ruff": "passed"
+  },
+  "native_workloads": {
+    "command": "python3 ai_compiler_kernels/check_races.py --backend amdgpu",
+    "accepted_complete_outputs_and_math_spec": 19,
+    "infrastructure_graph_and_footprint_only": 2,
+    "unsupported": 1,
+    "unsupported_kernel": "reduction_f16",
+    "unsupported_detail": "lane-register software dependencies and atomic reduction remain incomplete; original PTX reduction also unsupported",
+    "reference": "tests/gfx950/workloads.json"
+  },
+  "hardware_evidence": [
+    "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
+    "tests/gfx950/evidence/hardware-attention-2026-10-27.json"
+  ],
+  "scope": "M1 basic native analysis validated. Full corpus parity and later milestones remain incomplete."
+}
