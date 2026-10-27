@@ -69,6 +69,115 @@ fn parses_real_portable_f16_compiler_corpus() {
 }
 
 #[test]
+fn parses_real_ocp_e4m3_input_half_output_corpus() {
+    let module = parse(include_str!("fixtures/portable-f8.s")).unwrap();
+    assert_eq!(module.kernels.len(), 7);
+    assert!(
+        module.kernels[0]
+            .instructions
+            .iter()
+            .any(|instruction| instruction.mnemonic.starts_with("v_cvt_f32_fp8"))
+    );
+}
+
+#[test]
+fn parses_native_convolution_with_original_reduction_and_layout() {
+    let module = parse(include_str!("fixtures/native-convolution.s")).unwrap();
+    assert_eq!(module.kernels.len(), 2);
+    assert!(
+        module
+            .kernels
+            .iter()
+            .all(|kernel| kernel.descriptor.get("group_segment_fixed_size") == Some(4096))
+    );
+}
+
+#[test]
+fn parses_native_cdna4_f16_bf16_and_scaled_e4m3_matrix_forms() {
+    let module = parse(include_str!("fixtures/clang22-cdna4-mfma-types.s")).unwrap();
+    assert_eq!(module.kernels.len(), 3);
+    let instruction = module.kernels[2]
+        .instructions
+        .iter()
+        .find(|instruction| instruction.opcode == Opcode::Matrix)
+        .unwrap();
+    assert_eq!(instruction.mnemonic, "v_mfma_scale_f32_16x16x128_f8f6f4");
+    assert_eq!(instruction.operands.len(), 6);
+}
+
+#[test]
+fn parses_reduced_and_original_capacity_native_flash_attention() {
+    let module = parse(include_str!("fixtures/native-flash-attention.s")).unwrap();
+    assert_eq!(module.kernels.len(), 2);
+    assert_eq!(module.kernels[0].name, "flash_attention_reduced");
+    assert_eq!(module.kernels[1].name, "flash_attention_full");
+    assert!(
+        module
+            .kernels
+            .iter()
+            .all(
+                |kernel| kernel.descriptor.get("group_segment_fixed_size") == Some(9216)
+                    && kernel.descriptor.get("private_segment_fixed_size") == Some(0)
+            )
+    );
+}
+
+#[test]
+fn parses_native_pipelined_mfma_and_packed_three_dimensional_ids() {
+    let module = parse(include_str!("fixtures/clang22-pipelined-mfma-f32.s")).unwrap();
+    assert_eq!(
+        module.kernels[0].descriptor.get("group_segment_fixed_size"),
+        Some(2048)
+    );
+    let module = parse(include_str!("fixtures/clang22-ids-3d.s")).unwrap();
+    assert_eq!(
+        module.kernels[0].descriptor.get("system_vgpr_workitem_id"),
+        Some(2)
+    );
+    assert!(
+        module.kernels[0]
+            .descriptor
+            .flag("system_sgpr_workgroup_id_z")
+    );
+    let module = parse(include_str!("fixtures/clang22-pipelined-mfma-f16.s")).unwrap();
+    assert_eq!(
+        module.kernels[0].descriptor.get("group_segment_fixed_size"),
+        Some(4096)
+    );
+}
+
+#[test]
+fn rejects_registers_outside_declared_allocations_and_unified_aliases() {
+    for (body, fields) in [
+        ("s_mov_b32 s4, 0\ns_endpgm", ".amdhsa_next_free_sgpr 4"),
+        ("v_mov_b32 v4, 0\ns_endpgm", ".amdhsa_next_free_vgpr 4"),
+        (
+            "v_mfma_f32_16x16x4_f32 a[0:3], v4, v0, 0\ns_endpgm",
+            ".amdhsa_next_free_vgpr 8\n.amdhsa_accum_offset 4",
+        ),
+        (
+            "v_mfma_f32_16x16x4_f32 a[0:3], v0, v1, 0\ns_endpgm",
+            ".amdhsa_next_free_vgpr 8\n.amdhsa_accum_offset 6",
+        ),
+        ("s_barrier\ns_endpgm", ".amdhsa_tg_split 1"),
+    ] {
+        let source = format!(
+            "{}\n.amdhsa_kernel copy\n{fields}\n.end_amdhsa_kernel\n",
+            program(body)
+        );
+        assert!(parse(&source).is_err(), "{body}: {fields}");
+    }
+}
+
+#[test]
+fn descriptors_and_metadata_can_precede_native_code() {
+    let source = ".amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n.amdhsa_kernel copy\n.amdhsa_kernarg_size 8\n.end_amdhsa_kernel\n.amdgpu_metadata\n---\namdhsa.version: [1,2]\namdhsa.kernels:\n  - .name: copy\n    .args:\n      - .offset: 0\n        .size: 8\n        .value_kind: global_buffer\n...\n.end_amdgpu_metadata\n.text\n.type copy,@function\ncopy:\ns_endpgm\n";
+    let module = parse(source).unwrap();
+    assert_eq!(module.kernels[0].args.len(), 1);
+    assert_eq!(module.kernels[0].descriptor.get("kernarg_size"), Some(8));
+}
+
+#[test]
 fn parses_ranges_special_aliases_literals_and_source_positions() {
     let module = parse(&program("s_mov_b64 exec, -1\nv_add_f32_e64 v2, -|v0|, v1 clamp\ns_waitcnt vmcnt(2) lgkmcnt(0)\ns_endpgm")).unwrap();
     let instructions = &module.kernels[0].instructions;
@@ -131,6 +240,56 @@ fn resolves_named_register_indices_and_implicit_vcc() {
 }
 
 #[test]
+fn control_immediates_have_explicit_encoded_ranges() {
+    for body in [
+        "s_endpgm",
+        "s_endpgm 0",
+        "s_endpgm 65535",
+        "s_nop 0\ns_nop 15\ns_endpgm",
+        "s_sleep 0\ns_sleep 127\ns_endpgm",
+        "s_setprio 0\ns_setprio 3\ns_endpgm",
+        "s_sendmsg 0\ns_sendmsg 65535\ns_endpgm",
+        ".set delay, 15\ns_nop delay\ns_endpgm",
+        "s_nop delay\ns_endpgm\n.set delay, 15",
+    ] {
+        parse(&program(body)).expect(body);
+    }
+    for body in [
+        "s_endpgm s0",
+        "s_endpgm v0",
+        "s_endpgm exec",
+        "s_endpgm unresolved",
+        "s_endpgm 0.5",
+        "s_endpgm -1",
+        "s_endpgm 65536",
+        "s_endpgm 0, 1",
+        "s_endpgm 0 clamp",
+        "s_endpgm offset:0",
+        "s_nop",
+        "s_nop s0",
+        "s_nop -1",
+        "s_nop 16",
+        "s_nop 0, 1",
+        "s_nop 0 offset:0",
+        "s_sleep s0",
+        "s_sleep -1",
+        "s_sleep 128",
+        "s_setprio s0",
+        "s_setprio -1",
+        "s_setprio 4",
+        "s_sendmsg s0",
+        "s_sendmsg -1",
+        "s_sendmsg 65536",
+        "s_sendmsg 0, 1",
+        ".set delay, 16\ns_nop delay",
+        "s_nop delay\ns_endpgm\n.set delay, 16",
+    ] {
+        let error = parse(&program(body)).expect_err(body);
+        assert!(error.span.line >= 5, "{body}: {error}");
+    }
+}
+
+#[test]
 fn rejects_unknown_and_malformed_executable_syntax() {
     for body in [
         "v_imaginary_f32 v0, v1, v2",
@@ -143,6 +302,15 @@ fn rejects_unknown_and_malformed_executable_syntax() {
         "v_mov_b64 v[1:2], 0",
         "s_mov_b32 s102, 0",
         "s_mov_b32 s0, v0",
+        "s_mov_b32 s0, -v0",
+        "s_mov_b32 scc, 0",
+        "s_mov_b64 s[0:1], s2",
+        "v_add_f32 v[2:3], v0, v1",
+        "v_add_f32 v2, v[0:1], v1",
+        "ds_read_b64 v0, v1",
+        "ds_write_b128 v0, v1",
+        "v_cndmask_b32 v0, v1, v2, s0",
+        "v_mfma_f32_16x16x4_f32 v0, v1, v2, 0",
         "s_load_dwordx4 s[0:1], s[2:3], 0",
         "global_load_dword v0, v1, off",
         "s_waitcnt lgkmcnt(16)",

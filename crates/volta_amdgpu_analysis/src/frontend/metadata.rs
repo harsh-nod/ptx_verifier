@@ -151,6 +151,31 @@ pub(super) fn apply_metadata(
                     .ok_or_else(|| fail("max_flat_workgroup_size must be 1..=1024".into()))?,
             );
         }
+        if let Some(required) = get(entry, ".reqd_workgroup_size") {
+            let required = required
+                .as_sequence()
+                .filter(|required| required.len() == 3)
+                .ok_or_else(|| fail("reqd_workgroup_size requires three dimensions".into()))?;
+            let mut total = 1_u64;
+            for (axis, value) in ["x", "y", "z"].iter().zip(required) {
+                let value = number(value)
+                    .filter(|value| (1..=1024).contains(value))
+                    .ok_or_else(|| fail("required workgroup dimension must be 1..=1024".into()))?;
+                total = total
+                    .checked_mul(value)
+                    .ok_or_else(|| fail("required workgroup size overflows".into()))?;
+                fields.insert(format!("reqd_workgroup_size_{axis}"), value);
+            }
+            if total > 1024 {
+                return Err(fail("required workgroup size exceeds gfx950 limit".into()));
+            }
+        }
+        if let Some(uniform) = get(entry, ".uniform_work_group_size") {
+            let uniform = number(uniform)
+                .filter(|value| *value <= 1)
+                .ok_or_else(|| fail("uniform_work_group_size must be zero or one".into()))?;
+            fields.insert("uniform_work_group_size".into(), uniform);
+        }
         if let Some(dynamic_stack) = get(entry, ".uses_dynamic_stack") {
             fields.insert(
                 "uses_dynamic_stack".into(),

@@ -323,9 +323,10 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         "s_branch" | "s_cbranch_scc0" | "s_cbranch_scc1" | "s_cbranch_vccz" | "s_cbranch_vccnz"
         | "s_cbranch_execz" | "s_cbranch_execnz" => (Branch, 1, 1),
         "s_getpc_b64" => (ScalarAlu, 1, 1),
-        "s_movk_i32" | "s_mov_b32" | "s_mov_b64" | "s_not_b32" | "s_not_b64" | "s_brev_b32"
-        | "s_brev_b64" | "s_ff0_i32_b64" | "s_ff1_i32_b64" | "s_ff0_i32_b32" | "s_ff1_i32_b32"
-        | "s_flbit_i32_b32" | "s_abs_i32" => (ScalarAlu, 2, 2),
+        "s_cmpk_eq_u32" | "s_cmpk_lg_u32" | "s_addk_i32" | "s_cmpk_eq_i32" | "s_cmpk_lg_i32"
+        | "s_mulk_i32" | "s_movk_i32" | "s_mov_b32" | "s_mov_b64" | "s_not_b32" | "s_not_b64"
+        | "s_brev_b32" | "s_brev_b64" | "s_ff0_i32_b64" | "s_ff1_i32_b64" | "s_ff0_i32_b32"
+        | "s_ff1_i32_b32" | "s_flbit_i32_b32" | "s_abs_i32" => (ScalarAlu, 2, 2),
         "s_add_u32" | "s_add_i32" | "s_addc_u32" | "s_sub_u32" | "s_sub_i32" | "s_subb_u32"
         | "s_mul_i32" | "s_mul_hi_u32" | "s_mul_hi_i32" | "s_and_b32" | "s_and_b64"
         | "s_or_b32" | "s_or_b64" | "s_xor_b32" | "s_xor_b64" | "s_andn2_b32" | "s_andn2_b64"
@@ -392,14 +393,33 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "buffer_store_dwordx2"
         | "buffer_store_dwordx3"
         | "buffer_store_dwordx4" => (VectorMemory, 4, 4),
-        "ds_read_b8" | "ds_read_u8" | "ds_read_i8" | "ds_read_b16" | "ds_read_u16"
-        | "ds_read_i16" | "ds_read_b32" | "ds_read_b64" | "ds_read_b96" | "ds_read_b128"
-        | "ds_write_b8" | "ds_write_b16" | "ds_write_b32" | "ds_write_b64" | "ds_write_b96"
-        | "ds_write_b128" | "ds_swizzle_b32" => (Lds, 2, 2),
+        "ds_write_b16_d16_hi"
+        | "ds_read_b8"
+        | "ds_read_u8"
+        | "ds_read_i8"
+        | "ds_read_b16"
+        | "ds_read_u16"
+        | "ds_read_i16"
+        | "ds_read_b32"
+        | "ds_read_b64"
+        | "ds_read_b96"
+        | "ds_read_b128"
+        | "ds_write_b8"
+        | "ds_write_b16"
+        | "ds_write_b32"
+        | "ds_write_b64"
+        | "ds_write_b96"
+        | "ds_write_b128"
+        | "ds_swizzle_b32" => (Lds, 2, 2),
         "ds_read2_b32" | "ds_read2_b64" | "ds_read2st64_b32" | "ds_read2st64_b64" => (Lds, 2, 2),
         "ds_write2_b32" | "ds_write2_b64" | "ds_write2st64_b32" | "ds_write2st64_b64"
         | "ds_bpermute_b32" | "ds_permute_b32" => (Lds, 3, 3),
-        "v_mov_b64"
+        "v_accvgpr_mov_b32"
+        | "v_cvt_f32_fp8"
+        | "v_cvt_f32_bf8"
+        | "v_cvt_pk_f32_fp8"
+        | "v_cvt_pk_f32_bf8"
+        | "v_mov_b64"
         | "v_mov_b32"
         | "v_not_b32"
         | "v_bfrev_b32"
@@ -427,7 +447,11 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_readfirstlane_b32"
         | "v_accvgpr_read_b32"
         | "v_accvgpr_write_b32" => (VectorAlu, 2, 2),
-        "v_fmac_f32"
+        "v_add_u16"
+        | "v_sub_u16"
+        | "v_mul_lo_u16"
+        | "v_lshrrev_b16"
+        | "v_fmac_f32"
         | "v_cvt_pk_f16_f32"
         | "v_pack_b32_f16"
         | "v_pk_mul_f32"
@@ -479,14 +503,16 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_add_f64"
         | "v_mul_f64" => (VectorAlu, 3, 3),
         "v_add_co_u32" | "v_sub_co_u32" | "v_subrev_co_u32" => (VectorAlu, 4, 4),
+        "v_mad_u64_u32" => (VectorAlu, 5, 5),
         "v_addc_co_u32" | "v_subb_co_u32" | "v_subbrev_co_u32" => (VectorAlu, 5, 5),
         "v_cndmask_b32" => (VectorAlu, if mnemonic.ends_with("_e32") { 3 } else { 4 }, 4),
-        "v_fma_mixlo_f16" | "v_fma_mixhi_f16" | "v_fma_mix_f32" | "v_pk_fma_f32"
-        | "v_alignbit_b32" | "v_max3_f16" | "v_max3_f32" | "v_min3_f16" | "v_min3_f32"
-        | "v_fma_f32" | "v_mad_f32" | "v_fma_f16" | "v_pk_fma_f16" | "v_fma_f64"
+        "v_fmamk_f32" | "v_or3_b32" | "v_fma_mixlo_f16" | "v_fma_mixhi_f16" | "v_fma_mix_f32"
+        | "v_pk_fma_f32" | "v_alignbit_b32" | "v_max3_f16" | "v_max3_f32" | "v_min3_f16"
+        | "v_min3_f32" | "v_fma_f32" | "v_mad_f32" | "v_fma_f16" | "v_pk_fma_f16" | "v_fma_f64"
         | "v_mad_u32_u24" | "v_mad_i32_i24" | "v_add3_u32" | "v_add_lshl_u32"
         | "v_lshl_add_u32" | "v_lshl_add_u64" | "v_lshl_or_b32" | "v_and_or_b32" | "v_bfi_b32"
         | "v_bfe_u32" | "v_bfe_i32" | "v_perm_b32" => (VectorAlu, 4, 4),
+        "v_mfma_scale_f32_16x16x128_f8f6f4" | "v_mfma_scale_f32_32x32x64_f8f6f4" => (Matrix, 6, 6),
         "v_mfma_f32_16x16x4_f32"
         | "v_mfma_f32_32x32x2_f32"
         | "v_mfma_f32_16x16x16_f16"
@@ -537,6 +563,11 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
     }
     if sdwa
         && ![
+            "v_add_u32",
+            "v_mul_lo_u16",
+            "v_mul_u32_u24",
+            "v_cvt_f32_fp8",
+            "v_cvt_f32_bf8",
             "v_cvt_f32_f16",
             "v_max_f16",
             "v_min_f16",
@@ -733,7 +764,30 @@ pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruct
             "s_waitcnt requires counters or one 16-bit immediate".into(),
         ));
     }
-    validate_registers(mnemonic, opcode, &operands).map_err(fail)?;
+    validate_registers(mnemonic, opcode, &operands).map_err(&fail)?;
+    if opcode == Opcode::Matrix && mnemonic.ends_with("f8f6f4") {
+        for (operand_index, modifier_name) in [(1, "cbsz"), (2, "blgp")] {
+            let format = modifiers
+                .iter()
+                .find(|modifier| modifier.name == modifier_name)
+                .and_then(|modifier| modifier.value.as_deref())
+                .and_then(integer)
+                .unwrap_or(0);
+            let width = match format {
+                0 | 1 => 8,
+                2 | 3 => 6,
+                4 => 4,
+                _ => return Err(fail(format!("reserved f8f6f4 input format `{format}`"))),
+            };
+            if !matches!(operands.get(operand_index), Some(Operand::Register(register)) if register.count == width)
+            {
+                return Err(fail(format!(
+                    "input format {format} requires {width} source registers"
+                )));
+            }
+        }
+        if operands.len() == 6 && operands[4..].iter().any(|operand| !matches!(operand, Operand::Register(register) if register.class == RegisterClass::Vector && register.count == 1)) { return Err(fail("scaled MFMA requires one VGPR per scale source".into())); }
+    }
     if mnemonic == "v_cndmask_b32_e32" && operands.len() == 3 {
         // LLVM accepts the omitted mandatory VCC input and prints it explicitly.
         operands.push(Operand::Register(Register {
@@ -752,109 +806,301 @@ pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruct
     })
 }
 
+/// Validate controls after assembly constants have been resolved. SOPP source
+/// fields are immediates, never register operands. For controls which use only
+/// part of SIMM16, accept its canonical meaningful bits: LLVM also accepts some
+/// larger/negative values and truncates them, but those aliases are outside our
+/// supported syntax. CDNA4 ISA section 12.5 specifies the 4/7/2-bit fields below.
+pub(super) fn validate_control(instruction: &Instruction) -> Result<(), ParseError> {
+    if instruction.opcode != Opcode::Control {
+        return Ok(());
+    }
+    let maximum = match instruction.mnemonic.as_str() {
+        "s_nop" => 15,
+        "s_sleep" => 127,
+        "s_setprio" => 3,
+        // The gfx950 assembler accepts an optional unsigned SIMM16 on ENDPGM;
+        // omitting it is the ordinary compiler-generated spelling.
+        "s_endpgm" | "s_sendmsg" => 0xffff,
+        _ => unreachable!("control signatures have explicit immediate contracts"),
+    };
+    if instruction
+        .operands
+        .iter()
+        .any(|operand| !matches!(operand, Operand::Integer(value) if (0..=maximum).contains(value)))
+    {
+        return Err(ParseError {
+            message: format!(
+                "`{}` requires an integer immediate in 0..={maximum}",
+                instruction.mnemonic
+            ),
+            span: instruction.span,
+        });
+    }
+    Ok(())
+}
+
 fn validate_registers(mnemonic: &str, opcode: Opcode, operands: &[Operand]) -> Result<(), String> {
     use RegisterClass::*;
-    let register_at = |index: usize| -> Option<Register> {
-        match operands.get(index) {
-            Some(Operand::Register(register)) => Some(*register),
+    let stem = mnemonic
+        .strip_suffix("_e32")
+        .or_else(|| mnemonic.strip_suffix("_e64"))
+        .or_else(|| mnemonic.strip_suffix("_sdwa"))
+        .unwrap_or(mnemonic);
+    fn register(operand: &Operand) -> Option<Register> {
+        match operand {
+            Operand::Register(register) => Some(*register),
+            Operand::Modified { value, .. } => register(value),
             _ => None,
         }
-    };
-    let require = |index: usize,
-                   classes: &[RegisterClass],
-                   count: Option<u16>|
-     -> Result<(), String> {
+    }
+    let register_at = |index: usize| operands.get(index).and_then(register);
+    let require = |index: usize, classes: &[RegisterClass], count: u16| -> Result<(), String> {
         let register = register_at(index)
             .ok_or_else(|| format!("operand {} of `{mnemonic}` must be a register", index + 1))?;
-        if !classes.contains(&register.class) || count.is_some_and(|count| count != register.count)
-        {
+        if !classes.contains(&register.class) || register.count != count {
             return Err(format!(
-                "invalid register class/width at operand {} of `{mnemonic}`",
+                "invalid register class/width at operand {} of `{mnemonic}`: expected {count} register(s)",
                 index + 1
             ));
         }
         Ok(())
     };
-    if matches!(opcode, Opcode::ScalarAlu) {
-        if !mnemonic.starts_with("s_cmp_") && !mnemonic.starts_with("s_bitcmp") {
-            let width = if (mnemonic.contains("b64") || mnemonic.contains("i64"))
-                && !mnemonic.starts_with("s_ff")
+    let source_width = |index: usize, count: u16| -> Result<(), String> {
+        if register_at(index).is_some_and(|register| register.count != count) {
+            return Err(format!(
+                "invalid source register width at operand {} of `{mnemonic}`: expected {count} register(s)",
+                index + 1
+            ));
+        }
+        Ok(())
+    };
+    // SCC is an implicit condition bit, never a general-purpose encoded source
+    // or destination. Treating it as an SGPR would accept nonexistent programs.
+    if operands
+        .iter()
+        .filter_map(register)
+        .any(|register| register.special == Some(SpecialRegister::Scc))
+    {
+        return Err("SCC cannot be used as an explicit general-purpose register operand".into());
+    }
+    match opcode {
+        Opcode::ScalarAlu => {
+            if operands
+                .iter()
+                .any(|operand| matches!(operand, Operand::Modified { .. }))
             {
+                return Err("scalar ALU operands do not support vector source modifiers".into());
+            }
+            for operand in operands {
+                if register(operand)
+                    .is_some_and(|register| matches!(register.class, Vector | Accumulator))
+                {
+                    return Err("scalar instruction cannot access vector registers".into());
+                }
+            }
+            let compare = stem.starts_with("s_cmp_")
+                || stem.starts_with("s_cmpk_")
+                || stem.starts_with("s_bitcmp");
+            let wide = stem.ends_with("b64") || stem.ends_with("i64") || stem.ends_with("u64");
+            let data_width = if wide { 2 } else { 1 };
+            if compare {
+                for index in 0..operands.len() {
+                    source_width(index, data_width)?;
+                }
+            } else {
+                let destination_width = if stem.starts_with("s_ff") {
+                    1
+                } else {
+                    data_width
+                };
+                require(0, &[Scalar, Special], destination_width)?;
+                for index in 1..operands.len() {
+                    let shift =
+                        index == 2 && (stem.starts_with("s_lsh") || stem.starts_with("s_ashr"));
+                    let bfm = stem.starts_with("s_bfm_");
+                    source_width(index, if shift || bfm { 1 } else { data_width })?;
+                }
+            }
+        }
+        Opcode::ScalarMemory => {
+            require(0, &[Scalar], memory_width(stem))?;
+            require(
+                1,
+                &[Scalar],
+                if stem.starts_with("s_buffer_") { 4 } else { 2 },
+            )?;
+            source_width(2, 1)?;
+            if register_at(2).is_some_and(|register| !matches!(register.class, Scalar | Special)) {
+                return Err("scalar memory offset must use a scalar register".into());
+            }
+        }
+        Opcode::VectorMemory => {
+            let atomic = stem.contains("_atomic_");
+            let store = stem.contains("_store_") || atomic;
+            let buffer = stem.starts_with("buffer_");
+            let data = if atomic && operands.len() == 4 {
+                2
+            } else {
+                usize::from(store && !buffer)
+            };
+            require(data, &[Vector, Accumulator], memory_width(stem))?;
+            let address = if atomic && operands.len() == 4 {
+                1
+            } else {
+                usize::from(!store || buffer)
+            };
+            if atomic && operands.len() == 4 {
+                require(0, &[Vector], 1)?;
+            }
+            if stem.starts_with("global_") {
+                let scalar_address = if atomic && operands.len() == 4 { 3 } else { 2 };
+                match operands.get(scalar_address) {
+                    Some(Operand::Symbol(off)) if off == "off" => require(address, &[Vector], 2)?,
+                    Some(Operand::Register(register))
+                        if register.class == Scalar && register.count == 2 =>
+                    {
+                        require(address, &[Vector], 1)?
+                    }
+                    _ => {
+                        return Err(
+                            "global instruction needs `off` or a scalar address pair".into()
+                        );
+                    }
+                }
+            } else if stem.starts_with("flat_") {
+                require(address, &[Vector], 2)?;
+            } else if buffer {
+                require(2, &[Scalar], 4)?;
+                source_width(3, 1)?;
+            }
+        }
+        Opcode::Lds => {
+            let element_width = if stem.ends_with("b128") {
+                4
+            } else if stem.ends_with("b96") {
+                3
+            } else if stem.ends_with("b64") {
                 2
             } else {
                 1
             };
-            require(0, &[Scalar, Special], Some(width))?;
-        }
-        for operand in operands {
-            if matches!(operand, Operand::Register(register) if matches!(register.class,Vector|Accumulator))
-            {
-                return Err("scalar instruction cannot access vector registers".into());
-            }
-        }
-    } else if opcode == Opcode::ScalarMemory {
-        let width = memory_width(mnemonic);
-        require(0, &[Scalar], Some(width))?;
-        require(
-            1,
-            &[Scalar],
-            Some(if mnemonic.starts_with("s_buffer_") {
-                4
-            } else {
-                2
-            }),
-        )?;
-    } else if opcode == Opcode::VectorMemory {
-        let store = mnemonic.contains("_store_") || mnemonic.contains("_atomic_");
-        let data = usize::from(store && !mnemonic.starts_with("buffer_"));
-        require(data, &[Vector], Some(memory_width(mnemonic)))?;
-        let address = usize::from(!store || mnemonic.starts_with("buffer_"));
-        if mnemonic.starts_with("global_") {
-            require(address, &[Vector], None)?;
-            match operands.get(2) {
-                Some(Operand::Symbol(off)) if off == "off" => require(address, &[Vector], Some(2))?,
-                Some(Operand::Register(register))
-                    if register.class == Scalar && register.count == 2 =>
-                {
-                    require(address, &[Vector], Some(1))?
+            let pair = stem.starts_with("ds_read2") || stem.starts_with("ds_write2");
+            if stem.starts_with("ds_read") {
+                require(0, &[Vector], element_width * if pair { 2 } else { 1 })?;
+                require(1, &[Vector], 1)?;
+            } else if stem.starts_with("ds_write") {
+                require(0, &[Vector], 1)?;
+                require(1, &[Vector], element_width)?;
+                if pair {
+                    require(2, &[Vector], element_width)?;
                 }
-                _ => return Err("global instruction needs `off` or a scalar address pair".into()),
+            } else {
+                for index in 0..operands.len() {
+                    require(index, &[Vector], 1)?;
+                }
             }
-        } else if mnemonic.starts_with("flat_") {
-            require(address, &[Vector], Some(2))?;
-        } else if mnemonic.starts_with("buffer_") {
-            require(2, &[Scalar], Some(4))?;
         }
-    } else if opcode == Opcode::Lds {
-        require(0, &[Vector], None)?;
-        require(1, &[Vector], None)?;
-        if operands.len() == 3 {
-            require(2, &[Vector], None)?;
+        Opcode::Matrix => {
+            let width = if stem.contains("32x32") {
+                16
+            } else if stem.contains("f64") {
+                8
+            } else {
+                4
+            };
+            require(0, &[Vector, Accumulator], width)?;
+            source_width(3, width)?;
+            if stem.ends_with("_f32") || stem.ends_with("x4f32") || stem.ends_with("x2f32") {
+                source_width(1, 1)?;
+                source_width(2, 1)?;
+            } else if stem.contains("f16") || stem.contains("bf16") {
+                let input_width = if stem.contains("16x16x32") || stem.contains("32x32x16") {
+                    4
+                } else {
+                    2
+                };
+                source_width(1, input_width)?;
+                source_width(2, input_width)?;
+            }
         }
-    } else if matches!(opcode, Opcode::VectorAlu | Opcode::Matrix) {
-        let classes: &[RegisterClass] = if mnemonic.starts_with("v_readlane_")
-            || mnemonic.starts_with("v_readfirstlane_")
-            || mnemonic.starts_with("v_cmp")
-        {
-            &[Scalar, Special]
-        } else if opcode == Opcode::Matrix || mnemonic.starts_with("v_accvgpr_") {
-            &[Vector, Accumulator]
-        } else {
-            &[Vector]
-        };
-        require(0, classes, None)?;
-        if mnemonic.starts_with("v_cmp") {
-            require(0, &[Scalar, Special], Some(2))?;
+        Opcode::VectorAlu => {
+            let comparison = stem.starts_with("v_cmp");
+            let carry = stem.starts_with("v_add_co_")
+                || stem.starts_with("v_addc_co_")
+                || stem.starts_with("v_sub_co_")
+                || stem.starts_with("v_subb_co_")
+                || stem.starts_with("v_subrev_co_")
+                || stem.starts_with("v_subbrev_co_");
+            let scalar_destination =
+                stem.starts_with("v_readlane_") || stem.starts_with("v_readfirstlane_");
+            if comparison {
+                require(0, &[Scalar, Special], 2)?;
+                let width = if stem.ends_with("64") { 2 } else { 1 };
+                source_width(1, width)?;
+                source_width(2, width)?;
+            } else if carry {
+                require(0, &[Vector], 1)?;
+                require(1, &[Scalar, Special], 2)?;
+                source_width(2, 1)?;
+                source_width(3, 1)?;
+                if operands.len() == 5 {
+                    source_width(4, 2)?;
+                }
+            } else if stem == "v_mad_u64_u32" {
+                require(0, &[Vector], 2)?;
+                require(1, &[Scalar, Special], 2)?;
+                source_width(2, 1)?;
+                source_width(3, 1)?;
+                source_width(4, 2)?;
+            } else if ["v_cvt_pk_f32_fp8", "v_cvt_pk_f32_bf8"].contains(&stem) {
+                require(0, &[Vector], 2)?;
+                source_width(1, 1)?;
+            } else if stem == "v_cndmask_b32" {
+                require(0, &[Vector], 1)?;
+                source_width(1, 1)?;
+                source_width(2, 1)?;
+                if operands.len() == 4 {
+                    require(3, &[Scalar, Special], 2)?;
+                }
+            } else if stem == "v_lshl_add_u64" {
+                require(0, &[Vector], 2)?;
+                source_width(1, 2)?;
+                source_width(2, 1)?;
+                source_width(3, 2)?;
+            } else if ["v_lshlrev_b64", "v_lshrrev_b64", "v_ashrrev_i64"].contains(&stem) {
+                require(0, &[Vector], 2)?;
+                source_width(1, 1)?;
+                source_width(2, 2)?;
+            } else {
+                let width = if stem == "v_mov_b64"
+                    || stem.ends_with("f64")
+                    || stem.starts_with("v_pk_") && stem.ends_with("f32")
+                {
+                    2
+                } else {
+                    1
+                };
+                let destination_class: &[RegisterClass] = if scalar_destination {
+                    &[Scalar, Special]
+                } else if ["v_accvgpr_write_b32", "v_accvgpr_mov_b32"].contains(&stem) {
+                    &[Accumulator]
+                } else {
+                    &[Vector]
+                };
+                require(0, destination_class, width)?;
+                for index in 1..operands.len() {
+                    source_width(index, width)?;
+                }
+                if ["v_accvgpr_read_b32", "v_accvgpr_mov_b32"].contains(&stem) {
+                    require(1, &[Accumulator], 1)?;
+                }
+                if stem.starts_with("v_readlane_") {
+                    require(1, &[Vector], 1)?;
+                }
+            }
         }
-        if mnemonic.starts_with("v_add_co_")
-            || mnemonic.starts_with("v_addc_co_")
-            || mnemonic.starts_with("v_sub_co_")
-            || mnemonic.starts_with("v_subb_co_")
-            || mnemonic.starts_with("v_subrev_co_")
-            || mnemonic.starts_with("v_subbrev_co_")
-        {
-            require(1, &[Scalar, Special], Some(2))?;
-        }
+        _ => {}
     }
     Ok(())
 }

@@ -1,5 +1,6 @@
 //! One candidate wave64 execution; semantic checking consumes its recorded graph.
 mod interp;
+mod matrix;
 mod memory;
 mod value;
 pub use interp::{EvalError, OutputsUnavailable, Stats, ThreadId};
