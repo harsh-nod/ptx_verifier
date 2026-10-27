@@ -77,14 +77,21 @@ Full positive advanced sources (advanced-cases.json):
   differ from PTX; the existing symbolic real-number model abstracts rounding.
 
 Full convolution (full-convolution-cases.json):
-  Both original input dtypes retain the complete128x128 output tile and all576
+  Both native input dtypes compute128spatial x128channel outputs and all576
   reduction terms, original56x56 NCHW/OIHW data and2916-element output-channel
-  pitch. The first128 spatial positions cross54+54+20 output rows; affine
-  reference slices retain all16384 outputs without flattening away pitches.
+  pitch. The original F16 CTA has this same128x128 output tile. The original
+  FP8 CTA has64spatial x128channels (8192 outputs), so its native128x128 tile
+  is an explicit tile superset, not an equal CTA/output footprint: spatial
+  positions0..63 in each of128 channel slices cover original CTA0, and64..127
+  cover its neighboring spatial tile. This distinction is recorded explicitly
+  in the manifest and requires coordinator-reviewed mapping evidence.
+  The first128 spatial positions cross54+54+20 output rows; affine reference
+  slices retain all16384 native outputs without flattening away pitches.
   Native block512,8wave64s,16384bytes double-buffer LDS,no private spills.
   Volatile half stores preserve actual2-byte transfers across reference-slice
-  boundaries. The checked case is the original full CTA0; whole-grid tail
-  behavior requires its own launch/bounds validation.
+  boundaries. Whole-grid tail behavior requires separate validation. Source
+  comments describing a shared original128x128 tile predate this corrected
+  mapping; sources/assembly stay byte-identical to pinned compiler provenance.
 
 Scalar portability fixture clang22-scalar-types provides genuine compiler
 signed/unsigned32-bit ring arithmetic and F64 add/mul/FMAC/reciprocal/sqrt and

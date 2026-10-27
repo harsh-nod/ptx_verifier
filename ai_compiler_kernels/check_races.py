@@ -1061,7 +1061,7 @@ def analyze(variant: Variant, ptx: Path, echo: Callable[[str], None] | None) -> 
     if outcome is Outcome.RACE_FREE and variant.reference_spec is not None:
         verify = [str(VOLTA), "--no-log-file", "verify", str(ptx), str(variant.reference_spec),
                   "--kernel", variant.entry, *launch_args(variant, ptx.read_text()),
-                  "--no-profile", "--print-outputs", "0"]
+                  "--no-profile"]
         for dim, value in variant.dimensions:
             verify += ["--dim", f"{dim}={value}"]
         checked, errors = run_volta(verify, echo)

@@ -175,6 +175,15 @@ fn native_compare_and_both_expression_replay_modes_work() {
         "2".into(),
     ];
     compare.extend(copy_config(65, 65));
+    compare.extend([
+        "--block2".into(),
+        "128".into(),
+        "--grid2".into(),
+        "2,1,1".into(),
+        "--verify-numeric".into(),
+        "--recycle-terms".into(),
+        "16".into(),
+    ]);
     assert!(assert_code(&run(&compare), 0).contains("VERDICT: ACCEPT"));
     assert_code(
         &run(&[
@@ -197,6 +206,62 @@ fn native_compare_and_both_expression_replay_modes_work() {
         ]),
         0,
     );
+    std::fs::remove_dir_all(directory).unwrap();
+}
+
+#[test]
+fn native_graph_dumps_profiles_and_run_logs_preserve_success_and_failure() {
+    let directory = temporary_directory();
+    let source = std::fs::read_to_string(fixture()).unwrap();
+    let bad = directory.join("missing-wait.s");
+    std::fs::write(&bad, source.replace("s_waitcnt vmcnt(0)", "s_nop 0")).unwrap();
+    for (name, file, expected_code) in [("good", fixture(), 0), ("bad", bad, 1)] {
+        let dump = directory.join(format!("{name}.graph"));
+        let log_directory = directory.join(format!("{name}-logs"));
+        let mut args = vec![
+            "--backend".into(),
+            "amdgpu".into(),
+            "--target".into(),
+            "gfx950".into(),
+            "--log-dir".into(),
+            log_directory.display().to_string(),
+            "analyze".into(),
+            file.display().to_string(),
+            "-k".into(),
+            "copy".into(),
+            "--dump-graph".into(),
+            dump.display().to_string(),
+            "--print-outputs".into(),
+            "0".into(),
+        ];
+        args.extend(copy_config(65, 65));
+        args.retain(|arg| arg != "--no-profile");
+        let output = Command::new(env!("CARGO_BIN_EXE_volta"))
+            .args(args)
+            .output()
+            .unwrap();
+        let stdout = assert_code(&output, expected_code);
+        assert!(stdout.contains("instruction profile:"), "{stdout}");
+        assert!(stdout.contains("65 element(s) written"), "{stdout}");
+        let graph = std::fs::read_to_string(dump).unwrap();
+        assert!(graph.starts_with("volta-graph 2\n"), "{graph}");
+        assert!(graph.contains("gfx950"), "{graph}");
+        assert!(graph.contains("MemoryIssue"), "{graph}");
+        assert!(graph.contains("Wait"), "{graph}");
+        let paths = std::fs::read_dir(log_directory)
+            .unwrap()
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        assert_eq!(paths.len(), 1);
+        let log = std::fs::read_to_string(paths[0].path()).unwrap();
+        assert!(log.contains("--backend amdgpu --target gfx950"), "{log}");
+        let verdict = if expected_code == 0 {
+            "VERIFIED"
+        } else {
+            "REJECTED"
+        };
+        assert!(log.contains(verdict), "{log}");
+    }
     std::fs::remove_dir_all(directory).unwrap();
 }
 
