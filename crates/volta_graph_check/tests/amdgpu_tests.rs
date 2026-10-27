@@ -70,8 +70,12 @@ impl Trace {
     ) -> EventId {
         self.ins(wave, pc, held_sources.clone(), destinations.clone());
         let counters = match class {
-            AmdMemoryClass::VectorMemory => vec![(AmdCounter::Vm, 1)],
-            AmdMemoryClass::Flat => vec![(AmdCounter::Vm, 1), (AmdCounter::Lgkm, 1)],
+            AmdMemoryClass::VectorMemory | AmdMemoryClass::VectorStoreWide => {
+                vec![(AmdCounter::Vm, 1)]
+            }
+            AmdMemoryClass::Flat | AmdMemoryClass::FlatStoreWide => {
+                vec![(AmdCounter::Vm, 1), (AmdCounter::Lgkm, 1)]
+            }
             _ => vec![(AmdCounter::Lgkm, 1)],
         };
         let issue = self.b.amd_event(
@@ -682,5 +686,367 @@ fn unpinned_delay_cannot_forge_matrix_readiness() {
     assert_eq!(
         check_graph(&t.finish()).verdict(Property::AmdTrace),
         Verdict::Unknown
+    );
+}
+
+#[test]
+fn structural_bad_associations_return_unknown_before_indexing() {
+    let mut t = Trace::new(64);
+    t.ins(0, 0, vec![], vec![]);
+    t.b.amd_memory_effect(EventId(u32::MAX), EventId(u32::MAX));
+    assert_eq!(
+        check_graph(&t.finish()).verdict(Property::AmdTrace),
+        Verdict::Unknown
+    );
+}
+
+#[test]
+fn cross_wave_global_visibility_is_not_proved_by_a_barrier() {
+    let mut t = Trace::new(128);
+    t.issue(0, 0, AmdMemoryClass::VectorMemory, vec![], vec![], 0, true);
+    t.ins(1, 0, vec![], vec![]);
+    t.wait(0, 1, Some(0), None);
+    t.arrive(0, 0);
+    t.arrive(1, 0);
+    t.release(0, 0);
+    t.release(1, 0);
+    t.issue(
+        1,
+        2,
+        AmdMemoryClass::VectorMemory,
+        vec![v(1, 1)],
+        vec![],
+        0,
+        false,
+    );
+    t.wait(1, 3, Some(0), None);
+    let r = check_graph(&t.finish());
+    assert_eq!(r.verdict(Property::AmdMemoryConflict), Verdict::Unknown);
+    assert!(
+        r.amd.unwrap().memory_conflict.unresolved()[0]
+            .reason
+            .contains("cache visibility")
+    );
+}
+
+#[test]
+fn wide_store_source_overwrite_needs_two_states_for_valu_but_not_a_full_wait() {
+    for independent in [0, 1, 2] {
+        let mut p = Trace::new(64).b.graph_so_far().provenance().clone();
+        p.instructions[90].kind = "vector ALU";
+        let mut t = Trace {
+            b: GraphBuilder::new(p),
+            threads: 64,
+        };
+        t.issue(
+            0,
+            0,
+            AmdMemoryClass::VectorStoreWide,
+            vec![],
+            vec![v(4, 1), v(5, 1), v(6, 1)],
+            0,
+            true,
+        );
+        for pc in 1..=independent {
+            t.ins(0, pc, vec![], vec![]);
+        }
+        t.ins(0, 90, vec![], vec![v(4, 1)]);
+        let r = check_graph(&t.finish());
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            if independent == 2 {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            },
+            "{r:?}"
+        );
+    }
+}
+
+#[test]
+fn trans_alu_result_needs_one_independent_state_before_nontrans_alu() {
+    for independent in [false, true] {
+        let mut p = Trace::new(64).b.graph_so_far().provenance().clone();
+        p.instructions[0].kind = "trans ALU";
+        p.instructions[2].kind = "vector ALU";
+        let mut t = Trace {
+            b: GraphBuilder::new(p),
+            threads: 64,
+        };
+        t.ins(0, 0, vec![v(0, 1)], vec![v(1, 1)]);
+        if independent {
+            t.ins(0, 1, vec![], vec![]);
+        }
+        t.ins(0, 2, vec![v(1, 1)], vec![v(2, 1)]);
+        let r = check_graph(&t.finish());
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            if independent {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            }
+        );
+        if !independent {
+            assert!(
+                r.amd
+                    .unwrap()
+                    .wait_readiness
+                    .violations()
+                    .iter()
+                    .any(|h| h.kind == AmdRegisterHazardKind::ValuReadBeforeReady)
+            );
+        }
+    }
+}
+
+#[test]
+fn shifted_result_needs_one_independent_state_even_for_trans_valu_consumer() {
+    for independent in [false, true] {
+        let mut p = Trace::new(64).b.graph_so_far().provenance().clone();
+        p.instructions[0].kind = "shifted ALU";
+        p.instructions[2].kind = "trans ALU";
+        let mut t = Trace {
+            b: GraphBuilder::new(p),
+            threads: 64,
+        };
+        t.ins(0, 0, vec![v(0, 1)], vec![v(1, 1)]);
+        if independent {
+            t.ins(0, 1, vec![], vec![]);
+        }
+        t.ins(0, 2, vec![v(1, 1)], vec![v(2, 1)]);
+        let r = check_graph(&t.finish());
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            if independent {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            }
+        );
+    }
+}
+
+#[test]
+fn exact_accumulator_forwarding_does_not_require_reusing_the_output_registers() {
+    let mut t = Trace::new(64);
+    matrix(&mut t, 0, false);
+    let destinations = (6..10).map(|r| v(r, u64::MAX)).collect::<Vec<_>>();
+    let sources_ab = vec![v(0, u64::MAX), v(1, u64::MAX)];
+    let accumulator = (2..6).map(|r| v(r, u64::MAX)).collect::<Vec<_>>();
+    let mut reads = sources_ab.clone();
+    reads.extend(accumulator.clone());
+    t.ins(0, 1, reads, destinations.clone());
+    t.b.amd_event(
+        0,
+        ProgramPoint(1),
+        AmdEventKind::MatrixIssue {
+            kind: AmdMatrixKind::F32_16x16x4,
+            destinations,
+            sources_ab,
+            accumulator,
+        },
+    );
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
+    );
+}
+
+fn matrix_form(t: &mut Trace, pc: u32, kind: AmdMatrixKind, c_start: Option<u16>) {
+    let destinations = (32..32 + kind.destination_registers() as u16)
+        .map(|r| v(r, u64::MAX))
+        .collect::<Vec<_>>();
+    let mut sources_ab = (0..kind.input_registers() as u16)
+        .chain(16..16 + kind.input_registers() as u16)
+        .map(|r| v(r, u64::MAX))
+        .collect::<Vec<_>>();
+    sources_ab.extend((0..kind.scale_registers()).map(|_| v(24, u64::MAX)));
+    let accumulator = c_start
+        .map(|start| {
+            (start..start + kind.destination_registers() as u16)
+                .map(|r| v(r, u64::MAX))
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    let mut reads = sources_ab.clone();
+    reads.extend(accumulator.clone());
+    t.ins(0, pc, reads, destinations.clone());
+    t.b.amd_event(
+        0,
+        ProgramPoint(pc),
+        AmdEventKind::MatrixIssue {
+            kind,
+            destinations,
+            sources_ab,
+            accumulator,
+        },
+    );
+}
+
+#[test]
+fn selected_mfma_forms_have_distinct_documented_result_waits() {
+    for (kind, required) in [
+        (AmdMatrixKind::F32_32x32x2, 18),
+        (AmdMatrixKind::F16_16x16x16, 8),
+        (AmdMatrixKind::F16_16x16x32, 8),
+        (AmdMatrixKind::Bf16_32x32x16, 12),
+        (AmdMatrixKind::Fp8_16x16x128, 12),
+        (AmdMatrixKind::Fp8Scale_16x16x128, 12),
+        (AmdMatrixKind::Fp8Scale_32x32x64, 20),
+    ] {
+        for independent in [required - 1, required] {
+            let mut p = Trace::new(64).b.graph_so_far().provenance().clone();
+            p.instructions[1].kind = "s_nop";
+            p.instructions[2].kind = "s_nop";
+            let mut t = Trace {
+                b: GraphBuilder::new(p),
+                threads: 64,
+            };
+            matrix_form(&mut t, 0, kind, None);
+            // S_NOP max16; split longer delays without inventing encoding.
+            delay(&mut t, 1, independent.min(16));
+            if independent > 16 {
+                delay(&mut t, 2, independent - 16);
+            }
+            t.ins(0, 3, vec![v(32, u64::MAX)], vec![]);
+            let r = check_graph(&t.finish());
+            assert_eq!(
+                r.verdict(Property::AmdTrace),
+                Verdict::Pass,
+                "{kind:?}: {r:?}"
+            );
+            assert_eq!(
+                r.verdict(Property::AmdWaitReadiness),
+                if independent == required {
+                    Verdict::Pass
+                } else {
+                    Verdict::Fail
+                },
+                "{kind:?} needs{required} independent states, supplied{independent}: {r:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn xdl_src_c_war_needs_three_states_and_exact_forwarding_needs_none() {
+    for independent in [0, 2, 3] {
+        let mut p = Trace::new(64).b.graph_so_far().provenance().clone();
+        p.instructions[1].kind = "s_nop";
+        p.instructions[2].kind = "vector ALU";
+        let mut t = Trace {
+            b: GraphBuilder::new(p),
+            threads: 64,
+        };
+        matrix_form(&mut t, 0, AmdMatrixKind::F16_16x16x16, Some(64));
+        if independent != 0 {
+            delay(&mut t, 1, independent);
+        }
+        let overwrite = t.ins(0, 2, vec![], vec![v(64, u64::MAX)]);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass, "{r:?}");
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            if independent == 3 {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            }
+        );
+        if independent != 3 {
+            assert!(
+                r.amd
+                    .unwrap()
+                    .wait_readiness
+                    .violations()
+                    .iter()
+                    .any(|h| h.use_event == overwrite
+                        && h.kind == AmdRegisterHazardKind::MatrixSourceReuse)
+            );
+        }
+    }
+    let mut t = Trace::new(64);
+    matrix_form(&mut t, 0, AmdMatrixKind::F16_16x16x16, None);
+    matrix_form(&mut t, 1, AmdMatrixKind::F16_16x16x16, Some(32));
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
+    );
+}
+
+#[test]
+fn wide_store_followed_by_async_load_destination_does_not_invent_a_valu_overwrite() {
+    let mut t = Trace::new(64);
+    t.issue(
+        0,
+        0,
+        AmdMemoryClass::VectorStoreWide,
+        vec![],
+        vec![
+            v(0, u64::MAX),
+            v(1, u64::MAX),
+            v(2, u64::MAX),
+            v(3, u64::MAX),
+        ],
+        100,
+        true,
+    );
+    t.issue(
+        0,
+        1,
+        AmdMemoryClass::VectorMemory,
+        vec![v(0, u64::MAX)],
+        vec![],
+        200,
+        false,
+    );
+    t.wait(0, 2, Some(0), None);
+    t.ins(0, 3, vec![v(0, u64::MAX)], vec![]);
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
+    );
+}
+
+#[test]
+fn exact_src_c_does_not_forward_between_different_matrix_pass_counts() {
+    // Table38 requires the same number of passes for exact XDL SrcC forwarding.
+    // F16(4passes) -> FP8(8passes), and XDL F16 -> SGEMM(8passes), must each
+    // take the six-state overlapping-C path despite equal four-register ranges.
+    for consumer in [AmdMatrixKind::Fp8_16x16x128, AmdMatrixKind::F32_16x16x4] {
+        for independent in [0, 5, 6] {
+            let mut p = Trace::new(64).b.graph_so_far().provenance().clone();
+            p.instructions[1].kind = "s_nop";
+            let mut t = Trace {
+                b: GraphBuilder::new(p),
+                threads: 64,
+            };
+            matrix_form(&mut t, 0, AmdMatrixKind::F16_16x16x16, None);
+            if independent != 0 {
+                delay(&mut t, 1, independent);
+            }
+            matrix_form(&mut t, 2, consumer, Some(32));
+            let r = check_graph(&t.finish());
+            assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass, "{r:?}");
+            assert_eq!(
+                r.verdict(Property::AmdWaitReadiness),
+                if independent == 6 {
+                    Verdict::Pass
+                } else {
+                    Verdict::Fail
+                },
+                "{consumer:?}, independent={independent}: {r:?}"
+            );
+        }
+    }
+    // The separately documented SGEMM -> XDL overlapping-C path needs zero.
+    let mut t = Trace::new(64);
+    matrix_form(&mut t, 0, AmdMatrixKind::F32_16x16x4, None);
+    matrix_form(&mut t, 1, AmdMatrixKind::F16_16x16x16, Some(32));
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
     );
 }

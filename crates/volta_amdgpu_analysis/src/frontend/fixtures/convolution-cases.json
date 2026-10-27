@@ -1,0 +1,361 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "kernel": "convolution_f16",
+      "family": "Convolution2DKernel",
+      "assembly": "native-convolution.s",
+      "source": "native-convolution.hip",
+      "spec": "specs/convolution.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "C": 64,
+        "H": 56,
+        "W": 56,
+        "O": 128,
+        "R": 3,
+        "S": 3,
+        "P": 32
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 2,
+          "length": 200704,
+          "kind": "in"
+        },
+        {
+          "name": "weight",
+          "base_address": 1048576,
+          "element_size": 2,
+          "length": 73728,
+          "kind": "in"
+        },
+        {
+          "name": "out00",
+          "base_address": 2097152,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out01",
+          "base_address": 2102984,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out02",
+          "base_address": 2108816,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out03",
+          "base_address": 2114648,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out04",
+          "base_address": 2120480,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out05",
+          "base_address": 2126312,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out06",
+          "base_address": 2132144,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out07",
+          "base_address": 2137976,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out08",
+          "base_address": 2143808,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out09",
+          "base_address": 2149640,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out10",
+          "base_address": 2155472,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out11",
+          "base_address": 2161304,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out12",
+          "base_address": 2167136,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out13",
+          "base_address": 2172968,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out14",
+          "base_address": 2178800,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out15",
+          "base_address": 2184632,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:weight",
+        "ptr:out00"
+      ],
+      "reduced_case": true,
+      "reduction_shortened": false,
+      "original_reduction_terms": 576,
+      "expected_output_footprint": {
+        "elements": 512,
+        "bytes": 1024,
+        "description": "16 disjoint32-element slices at original NCHW channel pitch2916"
+      },
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "notes": [
+        "CTA tile reduced from baseline128x128 to32spatialx16channels; full64x3x3 reduction unchanged.",
+        "No flattening of original layout: output slices retain physical NCHW pitch2916.",
+        "F8 inputs are OCP E4M3 decoded exactly tohalf before nativeF16MFMA; outputsF16."
+      ]
+    },
+    {
+      "kernel": "convolution_f8",
+      "family": "Convolution2DKernel",
+      "assembly": "native-convolution.s",
+      "source": "native-convolution.hip",
+      "spec": "specs/convolution.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "C": 64,
+        "H": 56,
+        "W": 56,
+        "O": 128,
+        "R": 3,
+        "S": 3,
+        "P": 32
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 1,
+          "length": 200704,
+          "kind": "in"
+        },
+        {
+          "name": "weight",
+          "base_address": 1048576,
+          "element_size": 1,
+          "length": 73728,
+          "kind": "in"
+        },
+        {
+          "name": "out00",
+          "base_address": 2097152,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out01",
+          "base_address": 2102984,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out02",
+          "base_address": 2108816,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out03",
+          "base_address": 2114648,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out04",
+          "base_address": 2120480,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out05",
+          "base_address": 2126312,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out06",
+          "base_address": 2132144,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out07",
+          "base_address": 2137976,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out08",
+          "base_address": 2143808,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out09",
+          "base_address": 2149640,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out10",
+          "base_address": 2155472,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out11",
+          "base_address": 2161304,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out12",
+          "base_address": 2167136,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out13",
+          "base_address": 2172968,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out14",
+          "base_address": 2178800,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        },
+        {
+          "name": "out15",
+          "base_address": 2184632,
+          "element_size": 2,
+          "length": 32,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:weight",
+        "ptr:out00"
+      ],
+      "reduced_case": true,
+      "reduction_shortened": false,
+      "original_reduction_terms": 576,
+      "expected_output_footprint": {
+        "elements": 512,
+        "bytes": 1024,
+        "description": "16 disjoint32-element slices at original NCHW channel pitch2916"
+      },
+      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "notes": [
+        "CTA tile reduced from baseline128x128 to32spatialx16channels; full64x3x3 reduction unchanged.",
+        "No flattening of original layout: output slices retain physical NCHW pitch2916.",
+        "F8 inputs are OCP E4M3 decoded exactly tohalf before nativeF16MFMA; outputsF16."
+      ]
+    }
+  ]
+}

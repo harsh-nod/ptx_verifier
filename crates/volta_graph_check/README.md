@@ -19,21 +19,35 @@ two for wider loads; FLAT retires only after both VM and LGKM charges clear. Non
 LGKM waits do not assume FIFO for scalar/mixed classes. Cross-lane permutations use
 zero waits conservatively. Register reads, pending destination overwrites and held
 store-source overwrites have distinct witnesses, respecting physical lane slices.
+Ordinary DS, cross-lane, and narrow store sources use hardware operand handling;
+they are not held until a counter wait. Three/four-dword Global/Flat store data
+requires two independent states before a VALU overwrite (CDNA4 Table 11).
+VM/LDS destination writes occur on asynchronous return and use hardware dependency
+handling; their issue events do not act as immediate overwrites. A trans-VALU result similarly needs one independent
+state before a non-trans VALU consumes it. Minimal failing and corrected controls
+cover these timing rules.
 
-The initial MFMA timing model pins `F32_16x16x4` (eight passes): ordinary RAW/WAW
-requires ten independent states, VALU operand production requires two, and an exact
-same-form accumulator chain can forward. S_NOP contributes its encoded immediate
-plus one and must have a pinned source instruction. Other matrix timing forms,
-general DPP/special-register software hazards, and global cache visibility policies
-are not inferred from this model. Cross-wave global communication remains `Unknown`
+The MFMA timing model pins the dense, single-block F32 16x16x4/32x32x2,
+F16/BF16 16x16x16/16x16x32/32x32x8/32x32x16, and OCP FP8
+16x16x128/32x32x64 forms (including unit-scaled forms). SGEMM ordinary RAW/WAW
+requires `passes + 2` independent states; XDL requires `passes + 4` on gfx950.
+VALU operand production requires two states. A complete accumulator can forward
+without a bubble when the pass counts match; partial accumulator overlap and matrix-to-A/B dependencies have
+separate rules. XDL accumulator-source overwrites require `passes - 1` states.
+S_NOP contributes its encoded immediate plus one and must have a pinned source
+instruction. Other matrix forms, general DPP/special-register software hazards,
+and global cache visibility policies are not inferred from this model.
+Cross-wave global communication remains `Unknown`
 even when waits/barriers establish execution order, until its cache scopes are modeled.
 Disjoint global outputs and LDS communication are covered by the ordinary checks.
 
 References: [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
-(5-August-2025, sections 4.3–4.5, 7.6, 8.3, 10.2 and 12.12), and LLVM
+(5-August-2025, sections 4.3–4.5, 7.6 Table 38, 8.3, 10.2 and 12.12), and LLVM
 `GCNHazardRecognizer.cpp` / `SIInstrInfo.cpp` at local review revision
-`846473237377990d00b9c353f6a2c86116b52ea5`. The former supplies the SGEMM
-`NumPasses + 2` dependency cross-check; the latter counts S_NOP states.
+`846473237377990d00b9c353f6a2c86116b52ea5`. The former's `checkMAIHazards90A`
+and `checkMAIVALUHazards` cross-check the per-form timing rules; the latter
+counts S_NOP states. `SISchedule.td` pins the gfx950 pass counts, including the
+FP8-dependent doubled pass counts for F8F6F4 instructions.
 
 Focused regression suite: `cargo test -p volta_graph_check --test amdgpu_tests`.
 The PTX tests remain in the same package and are required independently.

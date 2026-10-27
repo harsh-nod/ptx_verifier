@@ -13,9 +13,11 @@ pub enum AmdCounter {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AmdMemoryClass {
     VectorMemory,
+    VectorStoreWide,
     ScalarMemory,
     Lds,
     Flat,
+    FlatStoreWide,
     Message,
     CrossLane,
 }
@@ -28,8 +30,66 @@ pub enum AmdRegisterFile {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[allow(non_camel_case_types)] // Match the ISA's matrix dimensions and data-type names.
 pub enum AmdMatrixKind {
     F32_16x16x4,
+    F32_32x32x2,
+    F16_16x16x16,
+    F16_32x32x8,
+    F16_16x16x32,
+    F16_32x32x16,
+    Bf16_16x16x16,
+    Bf16_32x32x8,
+    Bf16_16x16x32,
+    Bf16_32x32x16,
+    Fp8_16x16x128,
+    Fp8_32x32x64,
+    Fp8Scale_16x16x128,
+    Fp8Scale_32x32x64,
+}
+
+impl AmdMatrixKind {
+    pub fn destination_registers(self) -> usize {
+        match self {
+            Self::F32_32x32x2
+            | Self::F16_32x32x8
+            | Self::F16_32x32x16
+            | Self::Bf16_32x32x8
+            | Self::Bf16_32x32x16
+            | Self::Fp8_32x32x64
+            | Self::Fp8Scale_32x32x64 => 16,
+            _ => 4,
+        }
+    }
+    pub fn input_registers(self) -> usize {
+        match self {
+            Self::F32_16x16x4 | Self::F32_32x32x2 => 1,
+            Self::F16_16x16x16 | Self::F16_32x32x8 | Self::Bf16_16x16x16 | Self::Bf16_32x32x8 => 2,
+            Self::F16_16x16x32 | Self::F16_32x32x16 | Self::Bf16_16x16x32 | Self::Bf16_32x32x16 => {
+                4
+            }
+            _ => 8,
+        }
+    }
+    pub fn scale_registers(self) -> usize {
+        if matches!(self, Self::Fp8Scale_16x16x128 | Self::Fp8Scale_32x32x64) {
+            2
+        } else {
+            0
+        }
+    }
+    pub fn passes(self) -> u64 {
+        match self {
+            Self::F32_32x32x2 | Self::Fp8_32x32x64 | Self::Fp8Scale_32x32x64 => 16,
+            Self::F16_16x16x16 | Self::F16_16x16x32 | Self::Bf16_16x16x16 | Self::Bf16_16x16x32 => {
+                4
+            }
+            _ => 8,
+        }
+    }
+    pub fn is_xdl(self) -> bool {
+        !matches!(self, Self::F32_16x16x4 | Self::F32_32x32x2)
+    }
 }
 
 /// One 32-bit register, restricted to a lane mask for vector/accumulator registers.
@@ -70,7 +130,8 @@ pub enum AmdEventKind {
     },
     /// One issued instruction, not one lane. SMEM charges 1 for dword and 2 for wider
     /// transfers. FLAT charges both VM and LGKM. Destinations remain unavailable until
-    /// completion; held sources cannot be overwritten until the operation releases them.
+    /// completion. Wide-store held sources use Table 11's independent-state rules;
+    /// other explicitly held sources remain held until operation completion.
     MemoryIssue {
         class: AmdMemoryClass,
         counters: Vec<(AmdCounter, u16)>,

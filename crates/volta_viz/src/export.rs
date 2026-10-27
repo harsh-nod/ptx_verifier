@@ -505,7 +505,11 @@ fn edges(graph: &EventGraph) -> Json {
         push("pipeline", e.from, e.to);
     }
     for association in graph.amd_memory_effects() {
-        push("amd-issue", association.issue, association.effect);
+        if graph.events().get(association.issue).is_some()
+            && graph.events().get(association.effect).is_some()
+        {
+            push("amd-issue", association.issue, association.effect);
+        }
     }
     let mut amd_arrivals = HashMap::<u32, Vec<EventId>>::new();
     for record in graph.amd_events() {
