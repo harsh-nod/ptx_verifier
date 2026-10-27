@@ -7633,7 +7633,7 @@
       "status": "validated",
       "applicability": "portable",
       "amd_fixtures": [
-        "crates/volta_pipeline/tests/gfx950_scalar_parity_tests.rs::f64_fma_and_separate_multiply_add_share_the_existing_real_arithmetic_contract"
+        "crates/volta_pipeline/tests/gfx950_scalar_parity_tests.rs"
       ],
       "property_or_computation": "Preserve exact encoded binary64 coefficients and the existing real-number intermediate arithmetic contract.",
       "configuration": {
@@ -7654,7 +7654,8 @@
       "evidence": [
         "tests/gfx950/evidence/portable-equivalence-250087f.json"
       ],
-      "reason": "Actual baseline assertions independently reviewed; exact native pair semantics and all four assembled sources reproduced."
+      "reason": "Actual baseline assertions independently reviewed; exact native pair semantics and all four assembled sources reproduced.",
+      "amd_test": "f64_fma_and_separate_multiply_add_share_the_existing_real_arithmetic_contract"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/concrete_fma_vs_mul_add_2.ptx",
@@ -7662,7 +7663,7 @@
       "status": "validated",
       "applicability": "portable",
       "amd_fixtures": [
-        "crates/volta_pipeline/tests/gfx950_scalar_parity_tests.rs::f64_fma_and_separate_multiply_add_share_the_existing_real_arithmetic_contract"
+        "crates/volta_pipeline/tests/gfx950_scalar_parity_tests.rs"
       ],
       "property_or_computation": "Preserve exact encoded binary64 coefficients and the existing real-number intermediate arithmetic contract.",
       "configuration": {
@@ -7683,7 +7684,8 @@
       "evidence": [
         "tests/gfx950/evidence/portable-equivalence-250087f.json"
       ],
-      "reason": "Actual baseline assertions independently reviewed; exact native pair semantics and all four assembled sources reproduced."
+      "reason": "Actual baseline assertions independently reviewed; exact native pair semantics and all four assembled sources reproduced.",
+      "amd_test": "f64_fma_and_separate_multiply_add_share_the_existing_real_arithmetic_contract"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/concrete_scalar_granule_splits_for_half_width_access.ptx",
@@ -8921,7 +8923,7 @@
       "status": "validated",
       "applicability": "portable",
       "amd_fixtures": [
-        "crates/volta_pipeline/tests/gfx950_scalar_parity_tests.rs::f64_runtime_sum_keeps_encoded_coefficients_distinct_from_prerounded_literal"
+        "crates/volta_pipeline/tests/gfx950_scalar_parity_tests.rs"
       ],
       "property_or_computation": "Preserve exact encoded binary64 coefficients and the existing real-number intermediate arithmetic contract.",
       "configuration": {
@@ -8942,7 +8944,8 @@
       "evidence": [
         "tests/gfx950/evidence/portable-equivalence-250087f.json"
       ],
-      "reason": "Actual baseline assertions independently reviewed; exact native pair semantics and all four assembled sources reproduced."
+      "reason": "Actual baseline assertions independently reviewed; exact native pair semantics and all four assembled sources reproduced.",
+      "amd_test": "f64_runtime_sum_keeps_encoded_coefficients_distinct_from_prerounded_literal"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/runtime_sum_differs_from_prerounded_literal_2.ptx",
@@ -8950,7 +8953,7 @@
       "status": "validated",
       "applicability": "portable",
       "amd_fixtures": [
-        "crates/volta_pipeline/tests/gfx950_scalar_parity_tests.rs::f64_runtime_sum_keeps_encoded_coefficients_distinct_from_prerounded_literal"
+        "crates/volta_pipeline/tests/gfx950_scalar_parity_tests.rs"
       ],
       "property_or_computation": "Preserve exact encoded binary64 coefficients and the existing real-number intermediate arithmetic contract.",
       "configuration": {
@@ -8971,7 +8974,8 @@
       "evidence": [
         "tests/gfx950/evidence/portable-equivalence-250087f.json"
       ],
-      "reason": "Actual baseline assertions independently reviewed; exact native pair semantics and all four assembled sources reproduced."
+      "reason": "Actual baseline assertions independently reviewed; exact native pair semantics and all four assembled sources reproduced.",
+      "amd_test": "f64_runtime_sum_keeps_encoded_coefficients_distinct_from_prerounded_literal"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/same_value_stores_separated_by_bar_sync_are_not_a_race.ptx",
