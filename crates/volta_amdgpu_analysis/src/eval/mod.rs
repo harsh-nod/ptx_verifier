@@ -2,6 +2,7 @@
 mod interp;
 mod matrix;
 mod memory;
+mod scalar;
 mod value;
 pub use interp::{EvalError, OutputsUnavailable, Stats, ThreadId};
 pub(crate) use interp::{Interpreter, RunArtifacts};

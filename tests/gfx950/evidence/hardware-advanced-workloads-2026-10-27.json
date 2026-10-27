@@ -1,0 +1,92 @@
+{
+  "date": "2026-10-27",
+  "validated_by": "coordinator on a separate gfx950 host after worker test",
+  "fixture_revision": "3be886e",
+  "driver": "tests/gfx950/hardware/native_advanced_workloads.cpp",
+  "device": "DEVICE name=AMD Instinct MI350X arch=gfx950:sramecc+:xnack- wave=64 runtime=70253211 driver=70253211 selected_workgroup=0,0,0 patterns=3",
+  "toolchain_reference": "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
+  "hashes": {
+    "native_advanced_workloads.cpp": "74f498c7590ffdddfe5956352dcd6de8464c01d4f3ecf20793b49f5019209800",
+    "native-mamba2-state.s": "3c91cc3a0d5fe94c714921fa9a3a79aee3fb616d9a04fb69ddd9ec5d170995cb",
+    "native-mamba2-state.o": "392e6405e20787ea58a1d1161aca0475ec7632babb600a854c3b20075fb0ad6e",
+    "native-mamba2-state.hsaco": "596337b0e57d6281c8b4be9282e4d980b68a4e1f65b0cebf873b4c054a2df55a",
+    "native-forgetting-attention.s": "b33fc1f2ad927e3bf78ab151e3e70dc3e6dde73e42bd2ebf44f24c2dad5849b2",
+    "native-forgetting-attention.o": "aa6aacd598a24f297e145ce7ad837a445e4f2c5bd8273552f2f74a4aab7af4f7",
+    "native-forgetting-attention.hsaco": "6aa283f9e3a3b1f11b0b0746b54d3a54357aa14e008f71ecd8fdd1526d6aa2cf",
+    "native-flash-sinkhorn.s": "b4b40e5b150763553effe5c29d50d5e5e85a8260b4d060815a1cede8e58d73fe",
+    "native-flash-sinkhorn.o": "dfe79a26afa12c85438e09fd1f3b7d70523d0e458a6934c8a70f2b0585808175",
+    "native-flash-sinkhorn.hsaco": "f3839ca88cd6c53a08c243bd58725e0d41c0b2099a8e6fbc103272766af1bfbb",
+    "native-sage-attention.s": "3ab93445f6a88e85164d8cf2c9e5a1b3d626726db9491ef070e44e94f8045285",
+    "native-sage-attention.o": "bd42eb93b3a1aeaef089e55dcf5fc55f5083bb4ec03b93e3a9d45f47c2f90393",
+    "native-sage-attention.hsaco": "d5754bbcb3df69b868f23f8561def99a9cdcaac4a85faa95995a2872c8bc66ec"
+  },
+  "commands": [
+    "For each stem native-mamba2-state, native-forgetting-attention, native-flash-sinkhorn, native-sage-attention: llvm-mc --triple=amdgcn-amd-amdhsa --mcpu=gfx950 -filetype=obj STEM.s -o STEM.o; ld.lld -shared STEM.o -o STEM.hsaco",
+    "hipcc -O2 -std=c++17 -Wall -Wextra native_advanced_workloads.cpp -o native-advanced-workloads",
+    "./native-advanced-workloads --self-test",
+    "HIP_VISIBLE_DEVICES=0 ./native-advanced-workloads native-mamba2-state.hsaco native-forgetting-attention.hsaco native-flash-sinkhorn.hsaco native-sage-attention.hsaco 3"
+  ],
+  "patterns": 3,
+  "reference": "Independent ordinary dense CPU loops and stable softmax/logsumexp; full original shapes/pitches. Sage uses signed I8 range -128..127 and distinct 64-key scale groups, physical base2 softmax. Other references use natural exp/log. Mamba explicitly rounds the weighted B operand to F16.",
+  "tolerances": {
+    "mamba": {
+      "absolute": 0.0002,
+      "relative": 0.002
+    },
+    "forgetting_output": {
+      "absolute": 8e-05,
+      "relative": 0.002
+    },
+    "forgetting_lse": {
+      "absolute": 2e-05,
+      "relative": 0
+    },
+    "sinkhorn": {
+      "absolute": 2e-05,
+      "relative": 2e-06
+    },
+    "sage": {
+      "absolute": 8e-05,
+      "relative": 0.002
+    }
+  },
+  "results": [
+    "PASS host dense-softmax anchor and missing-output/prefix/suffix-guard negative controls",
+    "PASS host dense-softmax anchor and missing-output/prefix/suffix-guard negative controls",
+    "DEVICE name=AMD Instinct MI350X arch=gfx950:sramecc+:xnack- wave=64 runtime=70253211 driver=70253211 selected_workgroup=0,0,0 patterns=3",
+    "REFERENCE mamba2_chunk_state_full pattern=0 state=64x128 T=256 input_pitch=512 natural_exp_then_F16_weight",
+    "PASS mamba2_chunk_state_full pattern=0 outputs=8192 guards=128 max_abs=0 max_rel=0 atol=0.0002 rtol=0.002",
+    "REFERENCE mamba2_chunk_state_full pattern=1 state=64x128 T=256 input_pitch=512 natural_exp_then_F16_weight",
+    "PASS mamba2_chunk_state_full pattern=1 outputs=8192 guards=128 max_abs=0 max_rel=0 atol=0.0002 rtol=0.002",
+    "REFERENCE mamba2_chunk_state_full pattern=2 state=64x128 T=256 input_pitch=512 natural_exp_then_F16_weight",
+    "PASS mamba2_chunk_state_full pattern=2 outputs=8192 guards=128 max_abs=0 max_rel=0 atol=0.0002 rtol=0.002",
+    "REFERENCE forgetting_attention_full pattern=0 Q=128 T=1024 D=64 natural_softmax(QK/8-lambda_key),LSE_plus_lambda_query",
+    "PASS forgetting_attention_full.Out pattern=0 outputs=8192 guards=128 max_abs=5.32591632832e-06 max_rel=0.0139929798044 atol=8e-05 rtol=0.002",
+    "PASS forgetting_attention_full.LSE pattern=0 outputs=128 guards=128 max_abs=1.11549294335e-06 max_rel=1.63462792835e-07 atol=2e-05 rtol=0",
+    "REFERENCE forgetting_attention_full pattern=1 Q=128 T=1024 D=64 natural_softmax(QK/8-lambda_key),LSE_plus_lambda_query",
+    "PASS forgetting_attention_full.Out pattern=1 outputs=8192 guards=128 max_abs=5.46734916702e-06 max_rel=0.119481003232 atol=8e-05 rtol=0.002",
+    "PASS forgetting_attention_full.LSE pattern=1 outputs=128 guards=128 max_abs=1.20509241519e-06 max_rel=1.71977796818e-07 atol=2e-05 rtol=0",
+    "REFERENCE forgetting_attention_full pattern=2 Q=128 T=1024 D=64 natural_softmax(QK/8-lambda_key),LSE_plus_lambda_query",
+    "PASS forgetting_attention_full.Out pattern=2 outputs=8192 guards=128 max_abs=5.1308235521e-06 max_rel=1.45022113728 atol=8e-05 rtol=0.002",
+    "PASS forgetting_attention_full.LSE pattern=2 outputs=128 guards=128 max_abs=1.1201593404e-06 max_rel=1.65064814939e-07 atol=2e-05 rtol=0",
+    "REFERENCE flash_sinkhorn_full pattern=0 rows=32 T=1024 D=64 f_update=0.5*(fhat-logsumexp(2XY+ghat+logb))",
+    "PASS flash_sinkhorn_full pattern=0 outputs=32 guards=128 max_abs=4.25502380885e-07 max_rel=1.23316698295e-07 atol=2e-05 rtol=2e-06",
+    "REFERENCE flash_sinkhorn_full pattern=1 rows=32 T=1024 D=64 f_update=0.5*(fhat-logsumexp(2XY+ghat+logb))",
+    "PASS flash_sinkhorn_full pattern=1 outputs=32 guards=128 max_abs=5.11132112635e-07 max_rel=1.47914875347e-07 atol=2e-05 rtol=2e-06",
+    "REFERENCE flash_sinkhorn_full pattern=2 rows=32 T=1024 D=64 f_update=0.5*(fhat-logsumexp(2XY+ghat+logb))",
+    "PASS flash_sinkhorn_full pattern=2 outputs=32 guards=128 max_abs=5.05003482587e-07 max_rel=1.46413130157e-07 atol=2e-05 rtol=2e-06",
+    "REFERENCE sage_attention_full pattern=0 Q=128 T=128 D=64 signed_I8_range=-128..127 base2_softmax qscale=0.0078125 kscale0=0.001953125 kscale1=0.00244140625",
+    "PASS sage_attention_full pattern=0 outputs=8192 guards=128 max_abs=1.94900478202e-05 max_rel=2.11902464627 atol=8e-05 rtol=0.002",
+    "REFERENCE sage_attention_full pattern=1 Q=128 T=128 D=64 signed_I8_range=-128..127 base2_softmax qscale=0.00390625 kscale0=0.00390625 kscale1=0.0029296875",
+    "PASS sage_attention_full pattern=1 outputs=8192 guards=128 max_abs=1.90241231584e-05 max_rel=0.828332594142 atol=8e-05 rtol=0.002",
+    "REFERENCE sage_attention_full pattern=2 Q=128 T=128 D=64 signed_I8_range=-128..127 base2_softmax qscale=0.0078125 kscale0=0.005859375 kscale1=0.00341796875",
+    "PASS sage_attention_full pattern=2 outputs=8192 guards=128 max_abs=3.07985912322e-05 max_rel=1.81001321391 atol=8e-05 rtol=0.002",
+    "PASS all4 full advanced native workloads patterns=3 output_checks=74208 guard_checks=1920"
+  ],
+  "counts": {
+    "outputs": 74208,
+    "guards": 1920
+  },
+  "status": "passed",
+  "scope": "Hardware numerical evidence only, selected workgroup zero; symbolic equivalence/safety remain separate gates. Relative error near zero must be read alongside fixed absolute tolerance."
+}

@@ -90,17 +90,23 @@ pub fn analyze(
             name: name.map(str::to_string),
         })?;
     let program = lower_kernel(kernel).map_err(AnalysisError::Lower)?;
+    let target = module.target.clone().unwrap_or_else(|| "gfx950".into());
+    let replay_enabled = target.split(':').any(|feature| feature == "xnack+");
+    let mut assumptions = vec![
+        Assumption::StructuredCta,
+        Assumption::SingleWorkgroupAnalyzed,
+        Assumption::MathematicalRealArithmetic,
+        Assumption::EagerAsyncData,
+    ];
+    if !replay_enabled {
+        assumptions.push(Assumption::XnackReplayDisabled);
+    }
     let provenance = Provenance {
         kernel: kernel.name.clone(),
         block_dim: config.block_dim,
         grid_dim: config.grid_dim,
-        targets: vec!["gfx950".into()],
-        assumptions: vec![
-            Assumption::StructuredCta,
-            Assumption::SingleWorkgroupAnalyzed,
-            Assumption::MathematicalRealArithmetic,
-            Assumption::EagerAsyncData,
-        ],
+        targets: vec![target],
+        assumptions,
         instructions: program
             .instructions
             .iter()
@@ -117,7 +123,13 @@ pub fn analyze(
                         .mnemonic
                         .trim_end_matches("_e32")
                         .trim_end_matches("_e64"),
-                    "v_exp_f32" | "v_log_f32" | "v_rcp_f32" | "v_rsq_f32" | "v_sqrt_f32"
+                    "v_exp_f32"
+                        | "v_log_f32"
+                        | "v_rcp_f32"
+                        | "v_rsq_f32"
+                        | "v_sqrt_f32"
+                        | "v_rcp_f64"
+                        | "v_sqrt_f64"
                 ) {
                     "trans ALU"
                 } else {

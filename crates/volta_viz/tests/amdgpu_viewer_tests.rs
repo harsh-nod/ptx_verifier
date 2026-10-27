@@ -48,6 +48,7 @@ fn instruction(
         wave,
         ProgramPoint(pc),
         AmdEventKind::Instruction {
+            scalar_mask_reads: vec![],
             exec_mask: u64::MAX,
             reads,
             writes,
