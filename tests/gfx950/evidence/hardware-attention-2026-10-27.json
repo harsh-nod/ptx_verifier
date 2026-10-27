@@ -1,0 +1,21 @@
+{
+  "tested_revision": "c64c062",
+  "validated_by": "coordinator",
+  "date": "2026-10-27",
+  "device": "AMD Instinct MI350X",
+  "architecture": "gfx950:sramecc+:xnack-",
+  "source_sha256": {
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-attention.s": "ecf62822f322ba5b7f44b265246af39cacb08a421c01701829c681a86fe71c7c",
+    "tests/gfx950/hardware/native_attention.cpp": "72762e7f97f71e7b069c771d591bf20d317112b99ed3fbc6fa8ad019763df036"
+  },
+  "code_object_sha256": "c1b4142a058b617941b0e7867ee9a7db6e28e3c9c0000bd0b529254ab9f8357b",
+  "toolchain_reference": "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
+  "reference": "Independent CPU dense QK/8 -> stable softmax -> PV, with natural-log LSE. Native arithmetic rounds probabilities toF16; tolerance accounts for native rounding. Full Q128/T1024/D64 and reduced Q32/T32/D64 tested at workgroupzero.",
+  "patterns": "Three asymmetric finite dyadic patterns; all Out/LSE entries initialized toNaN sentinel before each launch.",
+  "observed_results": [
+    "PASS flash_attention_reduced Q=32 T=32 D=64 patterns=3 output_checks=6144 LSE_checks=96 max_output_abs_error=5.51589604e-05 max_lse_abs_error=3.65300753e-07 output_atol=8e-5 output_rtol=.002 lse_atol=2e-5",
+    "PASS flash_attention_full Q=128 T=1024 D=64 patterns=3 output_checks=24576 LSE_checks=384 max_output_abs_error=4.80614731e-06 max_lse_abs_error=1.30319634e-06 output_atol=8e-5 output_rtol=.002 lse_atol=2e-5",
+    "PASS exact-native attention device=AMD Instinct MI350X arch=gfx950:sramecc+:xnack-"
+  ],
+  "scope": "Hardware numeric evidence only. Symbolic equivalence and complete corpus parity remain separate gates."
+}

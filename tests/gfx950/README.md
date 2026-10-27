@@ -18,8 +18,10 @@ python3 ai_compiler_kernels/check_races.py --backend amdgpu --mutate copy
 ```
 
 The strict completeness check intentionally fails while work remains. The
-native workload manifest initially includes infrastructure copy/add cases;
-that is not coverage of all 20 baseline workload families. Compiler fixtures,+sources, provenance, emitted-instruction inventory, and portable-workload specs
+native workload manifest includes infrastructure copy/add, portable FP16/FP8,
+and matrix/ID mechanism cases. This is not coverage of all 20 baseline workload
+families. Compiler fixtures,
+sources, provenance, emitted-instruction inventory, and portable-workload specs
 live under `crates/volta_amdgpu_analysis/src/frontend/fixtures/`.
 
 `baseline.json` records 1059 passing Rust tests, one existing Rust false-positive
@@ -49,3 +51,31 @@ an actual gfx950 device. Numerical agreement provides additional validation;
 it does not prove race freedom or bit-exact equivalence of the real-number
 symbolic model. Hardware evidence must identify fixture hashes, tools, device,
 tested revision, and observed results.
+
+The additional hardware runners consume code objects assembled in the same way:
+
+```sh
+hipcc -O2 native_portable_f16.cpp -o native-f16
+./native-f16 portable-f16.hsaco
+hipcc -O2 native_portable_f8.cpp -o native-f8
+./native-f8 portable-f8.hsaco
+hipcc -O2 native_pipeline.cpp -o native-pipeline
+./native-pipeline clang22-ids-3d.hsaco \
+  clang22-pipelined-mfma-f32.hsaco clang22-pipelined-mfma-f16.hsaco
+hipcc -O2 native_mfma_types.cpp -o native-matrix-types
+./native-matrix-types cdna4-mfma-types.hsaco
+```
+
+The portable FP8 runner independently decodes OCP E4M3 inputs and compares the
+native results to CPU formulas. Matrix checks cover individual A/B basis inputs
+and asymmetric dense patterns; pipeline references use ordinary row-major
+matrix multiplication. Output buffers start from a sentinel before execution.
+`evidence/hardware-2026-10-27-initial-corpus.json` records the exact source and
+code-object hashes, toolchain, patterns, tolerances, and observed results.
+
+`evidence/baseline-workloads.json` records all 32 original PTX workload outcomes
+under an 8 GiB per-process address-space cap. The four original full-K4096 GEMM
+cases pass when rerun with a larger memory envelope, as recorded separately in
+`evidence/baseline-workloads-large-memory.json`. These are required positive
+parity cases. Their earlier resource failures are not an unsupported-feature
+exception.

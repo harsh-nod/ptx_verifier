@@ -49,3 +49,16 @@ def test_native_launch_does_not_inherit_ptx_dummy_parameters():
     assert args.count("--param") == 3
     assert "gfx950" in args and "amdgpu" in args
     assert args[args.index("--dyn-shared") + 1] == "0"
+
+
+def test_disjoint_output_slices_keep_native_pitches_without_extra_parameters():
+    x = RUNNER.Array("x", 2, 64, RUNNER.Kind.INPUT, 0x10000)
+    out0 = RUNNER.Array("out0", 2, 32, RUNNER.Kind.OUTPUT, 0x100000)
+    out1 = RUNNER.Array("out1", 2, 32, RUNNER.Kind.OUTPUT, 0x100000 + 2916 * 2)
+    variant = RUNNER.Variant("conv2d", "pitched", (128, 1, 1), (x, out0), 64,
+                             backend="amdgpu", dynamic_shared=0, dummy_params=0,
+                             declared_arrays=(x, out0, out1))
+    args = RUNNER.launch_args(variant, "")
+    arrays = [args[i + 1] for i, arg in enumerate(args) if arg == "--array"]
+    assert arrays == ["x:0x10000:2:64:in", "out0:0x100000:2:32:out", "out1:0x1016c8:2:32:out"]
+    assert args.count("--param") == 2

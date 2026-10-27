@@ -27,6 +27,18 @@ impl Memory {
             }
         }
         if width == 4 {
+            let bytes: Option<Vec<_>> = (0..4)
+                .map(|index| match self.cells.get(&(addr + index)) {
+                    Some(Cell {
+                        width: 1,
+                        value: Value::Byte(value),
+                    }) => Some(*value),
+                    _ => None,
+                })
+                .collect();
+            if let Some(bytes) = bytes {
+                return Ok(Value::Bytes(bytes.try_into().unwrap()));
+            }
             if let (Some(lo), Some(hi)) = (self.cells.get(&addr), self.cells.get(&(addr + 2))) {
                 if lo.width == 2 && hi.width == 2 {
                     if let (Value::Half(lo), Value::Half(hi)) = (lo.value, hi.value) {
@@ -41,6 +53,29 @@ impl Memory {
                     if cell.width == 4 && (addr == start || addr == start + 2) {
                         return Ok(Value::Half(if addr == start { lo } else { hi }));
                     }
+                }
+                if let Value::PartialHalves(lo, hi) = cell.value {
+                    if cell.width == 4 && (addr == start || addr == start + 2) {
+                        return if addr == start { lo } else { hi }
+                            .map(Value::Half)
+                            .ok_or_else(|| {
+                                "read of unknown half after partial register write".into()
+                            });
+                    }
+                }
+            }
+        }
+        if width == 1 {
+            if let Some((
+                &start,
+                Cell {
+                    width: 4,
+                    value: Value::Bytes(bytes),
+                },
+            )) = self.cells.range(..=addr).next_back()
+            {
+                if addr - start < 4 {
+                    return Ok(Value::Byte(bytes[(addr - start) as usize]));
                 }
             }
         }
@@ -71,12 +106,32 @@ impl Memory {
         Ok(Value::Bits(result))
     }
 
-    pub fn write(&mut self, addr: u64, width: u64, value: Value) -> Result<(), String> {
-        let value=match (width,value) {
-            (2,Value::Halves(lo,_))=>Value::Half(lo),
-            (2,Value::Real(_))=>return Err("partial f32-to-f16 bit reinterpretation is unsupported; convert first".into()),
-            (1,Value::Real(_)|Value::Half(_)|Value::Halves(..))=>return Err("symbolic byte truncation is unsupported".into()),
-            (_,value)=>value,
+    pub fn write(&mut self, addr: u64, width: u64, value: Value) -> Result<Value, String> {
+        let value = match (width, value) {
+            (1 | 2, Value::Bits(bits)) => Value::Bits(bits & ((1u32 << (8 * width)) - 1)),
+            (1 | 2, Value::Integer(bits)) => Value::Integer(bits & ((1u32 << (8 * width)) - 1)),
+            (1 | 2, Value::SignedInteger(bits)) => {
+                Value::Integer(bits as u32 & ((1u32 << (8 * width)) - 1))
+            }
+            (2, Value::Halves(lo, _)) => Value::Half(lo),
+            (2, Value::PartialHalves(Some(lo), _)) => Value::Half(lo),
+            (2, Value::PartialHalves(None, _) | Value::Byte(_) | Value::Bytes(_)) => {
+                return Err("unsupported packed-byte/unknown-half reinterpretation".into());
+            }
+            (2, Value::Real(_)) => {
+                return Err(
+                    "partial f32-to-f16 bit reinterpretation is unsupported; convert first".into(),
+                );
+            }
+            (
+                1,
+                Value::Real(_)
+                | Value::Half(_)
+                | Value::Halves(..)
+                | Value::PartialHalves(..)
+                | Value::Bytes(..),
+            ) => return Err("symbolic byte truncation is unsupported".into()),
+            (_, value) => value,
         };
         let end = addr.checked_add(width).ok_or("address overflow")?;
         let overlapping: Vec<_> = self
@@ -87,6 +142,17 @@ impl Memory {
         for (start, cell) in overlapping {
             let old_end = start + cell.width;
             if start < addr || old_end > end {
+                if cell.width == 4 && width == 2 && (addr == start || addr == start + 2) {
+                    if let Value::Halves(lo, hi) = cell.value {
+                        self.cells.remove(&start);
+                        if addr == start {
+                            self.initialize(start + 2, 2, Value::Half(hi));
+                        } else {
+                            self.initialize(start, 2, Value::Half(lo));
+                        }
+                        continue;
+                    }
+                }
                 // Preserve untouched concrete bytes. Partial writes into symbolic f32 storage
                 // cannot preserve its exact bit representation in the real arithmetic model.
                 let bits = cell
@@ -104,11 +170,21 @@ impl Memory {
             }
         }
         self.initialize(addr, width, value);
-        let mut written_start=addr;let mut written_end=end;
-        let merged:Vec<_>=self.written.range(..=end).filter_map(|(&start,&size)|(start+size>=addr).then_some((start,size))).collect();
-        for (start,size) in merged {written_start=written_start.min(start);written_end=written_end.max(start+size);self.written.remove(&start);}
-        self.written.insert(written_start,written_end-written_start);
-        Ok(())
+        let mut written_start = addr;
+        let mut written_end = end;
+        let merged: Vec<_> = self
+            .written
+            .range(..=end)
+            .filter_map(|(&start, &size)| (start + size >= addr).then_some((start, size)))
+            .collect();
+        for (start, size) in merged {
+            written_start = written_start.min(start);
+            written_end = written_end.max(start + size);
+            self.written.remove(&start);
+        }
+        self.written
+            .insert(written_start, written_end - written_start);
+        Ok(value)
     }
 
     pub fn expression(
@@ -118,11 +194,13 @@ impl Memory {
         arena: &mut ExprArena,
     ) -> Result<ExprId, String> {
         match self.read(addr, width)? {
-            Value::Real(expr) | Value::Half(expr) => Ok(expr),
+            Value::Real(expr) | Value::Half(expr)|Value::Byte(expr) => Ok(expr),
             Value::Integer(bits) => Ok(arena.int(bits as i64)),
+            Value::SignedInteger(value)=>Ok(arena.int(value as i64)),
             Value::Bits(0) => Ok(arena.int(0)),
             Value::Bits(_) => Err("raw register bits have ambiguous integer/float output type; convert explicitly before storing".into()),
             Value::Halves(..) => Err("packed output needs element-width extraction".into()),
+            Value::PartialHalves(..)|Value::Bytes(..)=>Err("packed/partially initialized output needs element-width extraction".into()),
         }
     }
 }
