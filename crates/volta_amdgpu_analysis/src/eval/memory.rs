@@ -312,11 +312,16 @@ impl Memory {
         if width == 8 {
             return match (self.read(addr, 4)?, self.read(addr + 4, 4)?) {
                 (Value::Integer(lo), Value::Integer(hi)) => {
-                    let low = arena.int(lo as i64);
-                    let high = arena.int(hi as i64);
-                    let scale = arena.int(1i64 << 32);
-                    let high = arena.mul(high, scale);
-                    Ok(arena.add(high, low))
+                    let value = lo as u64 | ((hi as u64) << 32);
+                    // IntConst's arithmetic deliberately wraps at i64. Values
+                    // in the upper half of u64 need an exact positive rational
+                    // atom instead of an overflowing intermediate multiply.
+                    Ok(match i64::try_from(value) {
+                        Ok(value) => arena.int(value),
+                        Err(_) => {
+                            arena.real(volta_expr::Real::from_rational(rug::Rational::from(value)))
+                        }
+                    })
                 }
                 (
                     Value::WidePart {
