@@ -519,6 +519,9 @@ pub struct MbarrierState {
 pub enum Assumption {
     /// Recognize the compiler's exact rounded f32 log2(e) multiply/exp2 idiom as exp.
     CompilerExp2Idiom,
+    /// Base2 operations use the exact reciprocal of rounded f32 log2(e) as ln(2),
+    /// matching the existing PTX mathematical abstraction.
+    CompilerBase2Conversion,
     /// Exactly one AMD workgroup is analyzed; no statement about other workgroups.
     SingleWorkgroupAnalyzed,
     /// Symbolic arithmetic uses mathematical reals, not bit-exact floating-point.
@@ -545,6 +548,9 @@ impl Assumption {
         match self {
             Assumption::CompilerExp2Idiom => {
                 "the compiler's exact rounded f32 log2(e) multiply/exp2 idiom is modeled as mathematical exp"
+            }
+            Assumption::CompilerBase2Conversion => {
+                "general base2 exp/log use the exact reciprocal of rounded f32 log2(e) for ln(2), matching the PTX mathematical abstraction"
             }
             Assumption::SingleWorkgroupAnalyzed => {
                 "one AMD workgroup is analyzed; other workgroups are outside this result"

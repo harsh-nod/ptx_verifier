@@ -16,8 +16,8 @@ frontiers. Candidate trace order and a barrier alone do not complete memory oper
 The checker reuses the existing byte-overlap domain and conflict forest, with clocks
 bounded by wave count and instruction class. SMEM charges one LGKM count for a dword,
 two for wider loads; FLAT retires only after both VM and LGKM charges clear. Nonzero
-LGKM waits do not assume FIFO for scalar/mixed classes. Cross-lane permutations use
-zero waits conservatively. Register reads, pending destination overwrites and held
+LGKM waits do not assume FIFO for scalar/mixed classes. Cross-lane DS permutations
+share the LDS completion FIFO while recording no LDS memory footprint. Register reads, pending destination overwrites and held
 store-source overwrites have distinct witnesses, respecting physical lane slices.
 Ordinary DS, cross-lane, and narrow store sources use hardware operand handling;
 they are not held until a counter wait. Three/four-dword Global/Flat store data
@@ -26,6 +26,15 @@ VM/LDS destination writes occur on asynchronous return and use hardware dependen
 handling; their issue events do not act as immediate overwrites. A trans-VALU result similarly needs one independent
 state before a non-trans VALU consumes it. Minimal failing and corrected controls
 cover these timing rules.
+
+VALU-produced scalar registers (including VCC low/high) require two independent
+states before ordinary VALU data use, and five before vector-memory data/address
+use. Explicit carry/condition-mask roles require no software bubble; recording
+those roles never bypasses asynchronous register readiness checks. Later scalar
+writes replace earlier producers. Scalar-mask roles must be actual scalar reads
+of the corresponding instruction.
+VALU writes of EXEC require four states before MFMA, including writes that leave
+the active mask unchanged. MFMA traces must include both implicit EXEC reads.
 
 The MFMA timing model pins the dense, single-block F32 16x16x4/32x32x2,
 F16/BF16 16x16x16/16x16x32/32x32x8/32x32x16, and OCP FP8

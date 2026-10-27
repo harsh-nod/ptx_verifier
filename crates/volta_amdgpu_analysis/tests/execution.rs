@@ -393,6 +393,12 @@ fn exp2_compiler_idiom_is_exactly_matched_and_disclosed() {
     let result = analyze(&module, None, config(64, 64)).unwrap();
     let outputs = result.symbolic_outputs().unwrap();
     assert!(
+        !result
+            .graph
+            .provenance()
+            .assumes(volta_graph::Assumption::CompilerBase2Conversion)
+    );
+    assert!(
         result
             .graph
             .provenance()
@@ -412,6 +418,12 @@ fn exp2_compiler_idiom_is_exactly_matched_and_disclosed() {
     let result = analyze(&module, None, config(64, 64)).unwrap();
     let outputs = result.symbolic_outputs().unwrap();
     assert!(
+        result
+            .graph
+            .provenance()
+            .assumes(volta_graph::Assumption::CompilerBase2Conversion)
+    );
+    assert!(
         !result
             .graph
             .provenance()
@@ -424,6 +436,63 @@ fn exp2_compiler_idiom_is_exactly_matched_and_disclosed() {
         outputs.arena.node(*argument),
         ExprNode::InputElement { .. }
     ));
+}
+
+#[test]
+fn general_base2_conversion_matches_the_explicit_ptx_constant_contract() {
+    use volta_expr::{ExprArena, ExprId, Real};
+    fn coefficient(arena: &ExprArena, id: ExprId) -> (Real, u32) {
+        match arena.node(id) {
+            ExprNode::Mul(a, b) => {
+                let (a, ac) = coefficient(arena, *a);
+                let (b, bc) = coefficient(arena, *b);
+                (a.try_mul(&b).unwrap(), ac + bc)
+            }
+            ExprNode::RealConst(value) => (value.clone(), 0),
+            ExprNode::IntConst(value) => (Real::from_f64(*value as f64).unwrap(), 0),
+            ExprNode::InputElement { .. } => (Real::one(), 1),
+            other => panic!("unexpected exp coefficient: {other:?}"),
+        }
+    }
+    for bits in [0x3e38aa3b, 0x3e38aa3c] {
+        let instructions = COPY.replace(
+            "global_store_dword",
+            &format!("v_mul_f32 v5, {bits:#x}, v5\nv_exp_f32 v5, v5\nglobal_store_dword"),
+        );
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let result = analyze(&module, None, config(1, 1)).unwrap();
+        assert!(
+            result
+                .graph
+                .provenance()
+                .assumes(volta_graph::Assumption::CompilerBase2Conversion)
+        );
+        assert!(
+            !result
+                .graph
+                .provenance()
+                .assumes(volta_graph::Assumption::CompilerExp2Idiom)
+        );
+        let outputs = result.symbolic_outputs().unwrap();
+        let ExprNode::Exp(argument) = outputs.arena.node(outputs.element("out", 0).unwrap()) else {
+            panic!("not exp")
+        };
+        let (factor, inputs) = coefficient(&outputs.arena, *argument);
+        assert_eq!(inputs, 1);
+        assert_eq!(factor == Real::from_f64(0.125).unwrap(), bits == 0x3e38aa3b);
+    }
+    let module = frontend::parse(&source(
+        &COPY.replace("global_store_dword", "v_log_f32 v5, v5\nglobal_store_dword"),
+        0,
+    ))
+    .unwrap();
+    let result = analyze(&module, None, config(1, 1)).unwrap();
+    assert!(
+        result
+            .graph
+            .provenance()
+            .assumes(volta_graph::Assumption::CompilerBase2Conversion)
+    );
 }
 
 #[test]
@@ -623,7 +692,7 @@ fn inactive_vector_interval_records_no_register_obligations() {
     let module = frontend::parse(&source(&instructions, 0)).unwrap();
     let result = analyze(&module, None, config(64, 64)).unwrap();
     assert!(result.symbolic_outputs().is_ok());
-    assert!(result.graph.amd_events().iter().any(|event|matches!(&event.kind,volta_graph::AmdEventKind::Instruction{exec_mask:0,reads,writes}if reads.is_empty()&&writes.is_empty())));
+    assert!(result.graph.amd_events().iter().any(|event|matches!(&event.kind,volta_graph::AmdEventKind::Instruction{exec_mask:0,reads,writes,..}if reads.is_empty()&&writes.is_empty())));
 }
 #[test]
 fn inactive_mask_result_records_pending_scalar_destination_overwrite() {
@@ -659,7 +728,7 @@ fn inactive_mask_result_records_pending_scalar_destination_overwrite() {
             .iter()
             .position(|event| {
                 matches!(&event.kind,
-                    AmdEventKind::Instruction { exec_mask: 0, reads, writes }
+                    AmdEventKind::Instruction { exec_mask: 0, reads, writes, .. }
                     if reads.is_empty() && writes == &expected
                 )
             })
@@ -674,6 +743,42 @@ fn inactive_mask_result_records_pending_scalar_destination_overwrite() {
         )));
         assert!(result.graph.validate().is_ok());
     }
+}
+
+#[test]
+fn scalar_mask_roles_preserve_dual_use_and_vcc_physical_aliases() {
+    use volta_graph::{AmdEventKind, AmdRegisterFile};
+    for (mask, base) in [("s[8:9]", 8), ("vcc", 106)] {
+        let prefix = format!("v_cmp_eq_u32 {mask}, v0, v0\nv_cndmask_b32 v8, v0, v0, {mask}");
+        let module = frontend::parse(&source(&format!("{prefix}\n{COPY}"), 0)).unwrap();
+        let result = analyze(&module, None, config(64, 64)).unwrap();
+        assert!(result.symbolic_outputs().is_ok());
+        let masks = result
+            .graph
+            .amd_events()
+            .iter()
+            .find_map(|event| match &event.kind {
+                AmdEventKind::Instruction {
+                    scalar_mask_reads, ..
+                } if !scalar_mask_reads.is_empty() => Some(scalar_mask_reads),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(masks.len(), 2);
+        assert!(
+            masks
+                .iter()
+                .enumerate()
+                .all(|(component, r)| r.file == AmdRegisterFile::Scalar
+                    && r.index == base + component as u16)
+        );
+    }
+    let prefix = "v_cmp_eq_u32 s[8:9], v0, v0\nv_cndmask_b32 v8, s8, v0, s[8:9]";
+    let module = frontend::parse(&source(&format!("{prefix}\n{COPY}"), 0)).unwrap();
+    let result = analyze(&module, None, config(64, 64)).unwrap();
+    assert!(result.graph.amd_events().iter().any(|event|matches!(&event.kind,
+        AmdEventKind::Instruction{scalar_mask_reads,..}if scalar_mask_reads.len()==1&&scalar_mask_reads[0].index==9
+    )));
 }
 
 #[test]
@@ -710,6 +815,434 @@ fn undefined_condition_flags_fail_closed_until_each_required_bit_is_defined() {
         let module = frontend::parse(&source(&format!("{prefix}\n{COPY}"), 0)).unwrap();
         let result = analyze(&module, None, config(1, 1)).unwrap();
         assert!(result.symbolic_outputs().is_ok(), "{prefix}");
+    }
+}
+
+#[test]
+fn symbolic_integer_ring_operations_preserve_signed_immediate_values() {
+    for (operation, immediate) in [("v_add_u32", -7), ("v_sub_u32", -3), ("v_mul_lo_i32", -1)] {
+        let instructions = COPY.replace(
+            "s_waitcnt vmcnt(0)",
+            &format!("s_waitcnt vmcnt(0)\n{operation} v5, v5, {immediate}"),
+        );
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let result = analyze(&module, None, config(64, 64)).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        for index in 0..64 {
+            let root = outputs.element("out", index).unwrap();
+            let (a, b, expected) = match (operation, outputs.arena.node(root)) {
+                ("v_add_u32", ExprNode::Sub(a, b)) => (*a, Some(*b), 7),
+                ("v_sub_u32", ExprNode::Add(a, b)) => (*a, Some(*b), 3),
+                ("v_mul_lo_i32", ExprNode::Mul(a, b)) => (*a, Some(*b), -1),
+                other => panic!("{operation}: {other:?}"),
+            };
+            assert!(
+                matches!(outputs.arena.node(a),ExprNode::InputElement { index: found, .. } if *found == index)
+            );
+            if let Some(b) = b {
+                assert!(
+                    matches!(outputs.arena.node(b),ExprNode::IntConst(value) if *value == expected)
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn f64_storage_preserves_ordered_whole_values_and_rejects_mixed_words() {
+    let copy64 = COPY
+        .replace("v_lshlrev_b32 v2, 2", "v_lshlrev_b32 v2, 3")
+        .replace("global_load_dword v5", "global_load_dwordx2 v[8:9]")
+        .replace(
+            "global_store_dword v[6:7], v5",
+            "global_store_dwordx2 v[6:7], v[8:9]",
+        );
+    let mut cfg = config(64, 64);
+    cfg.arrays.iter_mut().for_each(|array| array.elem_width = 8);
+    for operation in [
+        "",
+        "v_add_f64 v[8:9], v[8:9], 2.0",
+        "v_add_f64 v[8:9], v[8:9], 0x40000000",
+        "v_mov_b32 v10, 0\nv_mov_b32 v11, 0x40000000\nv_add_f64 v[8:9], v[8:9], v[10:11]",
+    ] {
+        let instructions = copy64.replace(
+            "s_waitcnt vmcnt(0)",
+            &format!("s_waitcnt vmcnt(0)\n{operation}"),
+        );
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let result = analyze(&module, None, cfg.clone()).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        assert_eq!(outputs.outputs[0].1.len(), 64);
+        for index in 0..64 {
+            let root = outputs.element("out", index).unwrap();
+            if operation.is_empty() {
+                assert!(
+                    matches!(outputs.arena.node(root),ExprNode::InputElement {index:found,..}if *found==index)
+                );
+            } else {
+                let ExprNode::Add(a, b) = outputs.arena.node(root) else {
+                    panic!("not f64 add")
+                };
+                assert!([*a,*b].iter().any(|id|matches!(outputs.arena.node(*id),ExprNode::InputElement{index:found,..}if *found==index)));
+                assert!(
+                    [*a, *b]
+                        .iter()
+                        .any(|id| outputs.arena.as_f64(*id) == Some(2.0))
+                );
+            }
+        }
+    }
+    for corruption in [
+        "v_mov_b32 v9, 0",
+        "v_mov_b32 v10, v9\nv_mov_b32 v9, v8\nv_mov_b32 v8, v10",
+    ] {
+        let instructions = copy64.replace(
+            "s_waitcnt vmcnt(0)",
+            &format!("s_waitcnt vmcnt(0)\n{corruption}\nv_add_f64 v[8:9], v[8:9], 2.0"),
+        );
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let result = analyze(&module, None, cfg.clone()).unwrap();
+        assert!(result.symbolic_outputs().is_err());
+        assert!(result.graph.validate().is_ok());
+    }
+    for literal in ["1", "0.1", "0x3ff199999999999a"] {
+        let instructions = copy64.replace(
+            "s_waitcnt vmcnt(0)",
+            &format!("s_waitcnt vmcnt(0)\nv_add_f64 v[8:9], v[8:9], {literal}"),
+        );
+        if let Ok(module) = frontend::parse(&source(&instructions, 0)) {
+            let result = analyze(&module, None, cfg.clone()).unwrap();
+            assert!(result.symbolic_outputs().is_err(), "{literal}");
+        }
+    }
+}
+
+#[test]
+fn f64_kernarg_floats_use_all_eight_bytes_and_preserve_symbolic_parameters() {
+    let instructions=COPY.replace("v_lshlrev_b32 v2, 2","v_lshlrev_b32 v2, 3")
+        .replace("global_load_dword v5","global_load_dwordx2 v[8:9]")
+        .replace("s_waitcnt vmcnt(0)","s_waitcnt vmcnt(0)\ns_load_dwordx2 s[8:9], s[0:1], 16\ns_waitcnt lgkmcnt(0)\nv_add_f64 v[8:9], v[8:9], s[8:9]")
+        .replace("global_store_dword v[6:7], v5","global_store_dwordx2 v[6:7], v[8:9]");
+    let text=source(&instructions,0).replace(".amdhsa_kernarg_size 16",".amdhsa_kernarg_size 24")
+        .replace(".kernarg_segment_size: 16",".kernarg_segment_size: 24")
+        .replace("...\n.end_amdgpu_metadata","      - .name: alpha\n        .offset: 16\n        .size: 8\n        .value_kind: by_value\n        .value_type: f64\n...\n.end_amdgpu_metadata");
+    let module = frontend::parse(&text).unwrap();
+    for param in [ParamValue::Float(2.0), ParamValue::SymFloat("alpha".into())] {
+        let symbolic = matches!(param, ParamValue::SymFloat(_));
+        let mut cfg = config(1, 1);
+        cfg.arrays.iter_mut().for_each(|array| array.elem_width = 8);
+        cfg.params.push(param);
+        let result = analyze(&module, None, cfg).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        let ExprNode::Add(a, b) = outputs.arena.node(outputs.element("out", 0).unwrap()) else {
+            panic!("not add")
+        };
+        assert!([*a, *b].iter().any(|id| matches!(
+            outputs.arena.node(*id),
+            ExprNode::InputElement { index: 0, .. }
+        )));
+        if symbolic {
+            assert!([*a,*b].iter().any(|id|matches!(outputs.arena.node(*id),ExprNode::ParamSymbol(name)if outputs.arena.string(*name)=="alpha")));
+        } else {
+            assert!(
+                [*a, *b]
+                    .iter()
+                    .any(|id| outputs.arena.as_f64(*id) == Some(2.0))
+            );
+        }
+    }
+}
+
+#[test]
+fn fp8_byte_lds_packing_preserves_low_high_and_shifted_positions() {
+    for (prepare, write, selected) in [
+        ("", "ds_write_b8", 0),
+        ("", "ds_write_b8_d16_hi", 2),
+        ("v_lshrrev_b32 v5, 8, v5", "ds_write_b8", 1),
+        ("v_lshrrev_b32 v5, 24, v5", "ds_write_b8", 3),
+    ] {
+        let instructions=COPY.replace("s_waitcnt vmcnt(0)",&format!("s_waitcnt vmcnt(0)\n{prepare}\n{write} v0, v5\ns_waitcnt lgkmcnt(0)\nds_read_u8 v5, v0\ns_waitcnt lgkmcnt(0)"))
+            .replace("global_store_dword","global_store_byte");
+        let module = frontend::parse(&source(&instructions, 64)).unwrap();
+        let mut cfg = config(64, 256);
+        cfg.arrays.iter_mut().for_each(|array| array.elem_width = 1);
+        let result = analyze(&module, None, cfg).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        assert_eq!(outputs.outputs[0].1.len(), 64);
+        for lane in 0..64 {
+            assert!(
+                matches!(outputs.arena.node(outputs.element("out",4*lane).unwrap()),ExprNode::InputElement{index,..}if *index==4*lane+selected)
+            );
+        }
+    }
+}
+
+#[test]
+fn signed_global_offsets_preserve_the_original_address() {
+    let instructions = COPY.replace(
+        "global_load_dword v5, v[6:7], off",
+        "v_add_u32 v6, v6, 4096\nglobal_load_dword v5, v[6:7], off offset:-4096",
+    );
+    let module = frontend::parse(&source(&instructions, 0)).unwrap();
+    let result = analyze(&module, None, config(64, 64)).unwrap();
+    let outputs = result.symbolic_outputs().unwrap();
+    for index in 0..64 {
+        assert!(
+            matches!(outputs.arena.node(outputs.element("out",index).unwrap()),ExprNode::InputElement{index:found,..}if *found==index)
+        );
+    }
+    for offset in ["-4097", "4096"] {
+        let invalid = instructions.replace("offset:-4096", &format!("offset:{offset}"));
+        if let Ok(module) = frontend::parse(&source(&invalid, 0)) {
+            let result = analyze(&module, None, config(64, 64)).unwrap();
+            assert!(result.symbolic_outputs().is_err());
+        }
+    }
+}
+
+#[test]
+fn native_bitop3_truth_tables_and_scalar_bitset_have_exact_effects() {
+    for table in 0u32..256 {
+        let operations = format!(
+            "v_lshrrev_b32 v8, 2, v0\nv_and_b32 v8, 1, v8\nv_lshrrev_b32 v9, 1, v0\nv_and_b32 v9, 1, v9\nv_and_b32 v10, 1, v0\nv_bitop3_b32 v5, v8, v9, v10 bitop3:{table}\nv_and_b32 v5, 1, v5"
+        );
+        let instructions = COPY.replace(
+            "global_store_dword",
+            &format!("{operations}\nglobal_store_dword"),
+        );
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let result = analyze(&module, None, config(8, 8)).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        for index in 0..8 {
+            let expected = ((table >> index) & 1) as i64;
+            assert!(
+                matches!(outputs.arena.node(outputs.element("out",index).unwrap()),ExprNode::IntConst(value)if *value==expected)
+            );
+        }
+    }
+    let instructions = COPY.replace(
+        "global_store_dword",
+        "s_mov_b32 s8, 1\ns_bitset1_b32 s8, 13\nv_add_u32 v5, 0, s8\nglobal_store_dword",
+    );
+    let module = frontend::parse(&source(&instructions, 0)).unwrap();
+    let result = analyze(&module, None, config(1, 1)).unwrap();
+    let outputs = result.symbolic_outputs().unwrap();
+    assert!(matches!(
+        outputs.arena.node(outputs.element("out", 0).unwrap()),
+        ExprNode::IntConst(8193)
+    ));
+    assert!(result.graph.amd_events().iter().any(|event|matches!(&event.kind,volta_graph::AmdEventKind::Instruction{reads,writes,..}if reads.iter().any(|r|r.file==volta_graph::AmdRegisterFile::Scalar&&r.index==8)&&writes.iter().any(|r|r.file==volta_graph::AmdRegisterFile::Scalar&&r.index==8))));
+}
+
+#[test]
+fn signed_byte_conversion_preserves_numeric_inputs_and_rejects_mixed_formats() {
+    for (shift, selected) in [(0, 0), (8, 1), (16, 2), (24, 3)] {
+        let instruction = format!(
+            "v_lshrrev_b32 v5, {shift}, v5\nv_cvt_f16_i16_sdwa v5, sext(v5) src0_sel:BYTE_0 dst_sel:DWORD dst_unused:UNUSED_PAD\nv_lshlrev_b32 v2, 1, v0"
+        );
+        let instructions = COPY
+            .replace(
+                "s_waitcnt vmcnt(0)",
+                &format!("s_waitcnt vmcnt(0)\n{instruction}"),
+            )
+            .replace("global_store_dword", "global_store_short");
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let mut cfg = config(64, 64);
+        cfg.arrays[0].elem_width = 1;
+        cfg.arrays[0].len = 256;
+        cfg.arrays[1].elem_width = 2;
+        let result = analyze(&module, None, cfg.clone()).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        for index in 0..64 {
+            assert!(
+                matches!(outputs.arena.node(outputs.element("out",index).unwrap()),ExprNode::InputElement{index:found,..}if *found==4*index+selected)
+            );
+        }
+        if shift == 0 {
+            let conflicting =
+                instructions.replace("v_lshrrev_b32 v5, 0, v5", "v_cvt_f32_fp8 v8, v5");
+            let module = frontend::parse(&source(&conflicting, 0)).unwrap();
+            let result = analyze(&module, None, cfg).unwrap();
+            let error = result.symbolic_outputs().unwrap_err().to_string();
+            assert!(
+                error.contains("conflicting byte interpretations"),
+                "{error}"
+            );
+        }
+    }
+    let instructions = COPY
+        .replace("v_lshlrev_b32 v2, 2, v0", "v_mov_b32 v2, v0")
+        .replace("global_load_dword", "global_load_sbyte")
+        .replace(
+            "s_waitcnt vmcnt(0)",
+            "s_waitcnt vmcnt(0)\nv_cvt_f16_i16 v5, v5\nv_lshlrev_b32 v2, 1, v0",
+        )
+        .replace("global_store_dword", "global_store_short");
+    let module = frontend::parse(&source(&instructions, 0)).unwrap();
+    let mut cfg = config(64, 64);
+    cfg.arrays[0].elem_width = 1;
+    cfg.arrays[1].elem_width = 2;
+    let result = analyze(&module, None, cfg).unwrap();
+    let outputs = result.symbolic_outputs().unwrap();
+    for index in 0..64 {
+        assert!(
+            matches!(outputs.arena.node(outputs.element("out",index).unwrap()),ExprNode::InputElement{index:found,..}if *found==index)
+        );
+    }
+}
+
+#[test]
+fn valu_exec_update_with_matrix_never_bypasses_software_dependency_checks() {
+    let module = frontend::parse(&source(
+        "v_cmpx_eq_u32 vcc, v0, v0\nv_mfma_f32_16x16x4_f32 v[8:11], v0, v0, 0\ns_endpgm",
+        0,
+    ))
+    .unwrap();
+    let result = analyze(&module, None, config(64, 64)).unwrap();
+    assert!(result.symbolic_outputs().is_ok());
+    let expected = [126, 127];
+    assert!(result.graph.amd_events().iter().any(|event|matches!(&event.kind,volta_graph::AmdEventKind::Instruction{writes,..}if expected.iter().all(|index|writes.iter().any(|r|r.file==volta_graph::AmdRegisterFile::Scalar&&r.index==*index)))));
+    assert!(result.graph.amd_events().iter().any(|event|matches!(&event.kind,volta_graph::AmdEventKind::Instruction{reads,..}if expected.iter().all(|index|reads.iter().any(|r|r.file==volta_graph::AmdRegisterFile::Scalar&&r.index==*index)))));
+    assert!(result.graph.validate().is_ok());
+}
+
+#[test]
+fn produced_symbolic_types_cannot_escape_into_bitcasts_or_addresses() {
+    for operations in [
+        "v_add_u32 v5, v5, -7\nv_add_f32 v5, v5, 1.0",
+        "v_add_f32 v5, v5, 1.0\nv_add_u32 v5, v5, -7",
+        "v_add_u32 v5, v5, -7\nv_mov_b32 v6, v5\nv_mov_b32 v7, 0\nglobal_load_dword v8, v[6:7], off",
+    ] {
+        let instructions = COPY.replace(
+            "s_waitcnt vmcnt(0)",
+            &format!("s_waitcnt vmcnt(0)\n{operations}"),
+        );
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let result = analyze(&module, None, config(64, 64)).unwrap();
+        assert!(result.symbolic_outputs().is_err(), "{operations}");
+        assert!(result.graph.validate().is_ok());
+    }
+}
+
+#[test]
+fn input_word_aliases_cannot_acquire_conflicting_numeric_interpretations() {
+    for operations in [
+        "v_add_f32 v8, v5, 1.0\nv_add_u32 v9, v5, -7",
+        "v_add_u32 v8, v5, -7\nv_add_f32 v9, v5, 1.0",
+        "v_add_f32 v8, v5, 1.0\nglobal_load_dword v9, v2, s[4:5]\ns_waitcnt vmcnt(0)\nv_add_u32 v9, v9, -7",
+    ] {
+        let instructions = COPY.replace(
+            "s_waitcnt vmcnt(0)",
+            &format!("s_waitcnt vmcnt(0)\n{operations}"),
+        );
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let result = analyze(&module, None, config(64, 64)).unwrap();
+        let error = result.symbolic_outputs().unwrap_err().to_string();
+        assert!(
+            error.contains("conflicting word interpretations"),
+            "{operations}: {error}"
+        );
+        assert!(result.graph.validate().is_ok());
+    }
+}
+
+#[test]
+fn scalar_min_max_scc_uses_native_tie_rules() {
+    // CDNA4 SOP2: MIN selects src0 only on <; MAX selects it on >=.
+    for (opcode, a, b, selected_first) in [
+        ("s_max_u32", 7, 7, true),
+        ("s_max_u32", 6, 7, false),
+        ("s_max_u32", 8, 7, true),
+        ("s_max_i32", -7, -7, true),
+        ("s_max_i32", -8, -7, false),
+        ("s_max_i32", -6, -7, true),
+        ("s_min_u32", 7, 7, false),
+        ("s_min_i32", -7, -7, false),
+    ] {
+        let instructions = COPY.replace(
+            "s_waitcnt vmcnt(0)",
+            &format!("s_waitcnt vmcnt(0)\n{opcode} s8, {a}, {b}\ns_cselect_b32 s9, 1, 0\nv_add_u32 v5, s9, 0"),
+        );
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let result = analyze(&module, None, config(64, 64)).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        for index in 0..64 {
+            assert!(
+                matches!(outputs.arena.node(outputs.element("out",index).unwrap()),ExprNode::IntConst(value)if *value==selected_first as i64),
+                "{opcode} {a}, {b}"
+            );
+        }
+    }
+}
+
+#[test]
+fn compiler_symbolic_integer_and_f64_data_use_typed_storage() {
+    let module = frontend::parse(include_str!(
+        "../src/frontend/fixtures/clang22-scalar-types.s"
+    ))
+    .unwrap();
+    for kernel in ["int_ring_signed", "int_ring_unsigned"] {
+        let mut cfg = config(64, 64);
+        cfg.arrays = vec![
+            array("x", 0x10000, 64, ArrayKind::Input),
+            array("plus", 0x20000, 64, ArrayKind::Output),
+            array("minus", 0x30000, 64, ArrayKind::Output),
+            array("times", 0x40000, 64, ArrayKind::Output),
+        ];
+        cfg.params = ["x", "plus", "minus", "times"]
+            .map(|name| ParamValue::ArrayPtr(name.into()))
+            .to_vec();
+        let result = analyze(&module, Some(kernel), cfg).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        for index in 0..64 {
+            for (name, expected) in [("plus", 1), ("minus", 7), ("times", -3)] {
+                let root = outputs.element(name, index).unwrap();
+                let (a, b) = match (name, outputs.arena.node(root)) {
+                    ("plus", ExprNode::Sub(a, b))
+                    | ("minus", ExprNode::Add(a, b))
+                    | ("times", ExprNode::Mul(a, b)) => (*a, *b),
+                    other => panic!("{kernel}: {other:?}"),
+                };
+                assert!([a,b].iter().any(|id|matches!(outputs.arena.node(*id),ExprNode::InputElement{index:found,..}if *found==index)));
+                assert!([a,b].iter().any(|id|matches!(outputs.arena.node(*id),ExprNode::IntConst(value)if *value==expected)));
+            }
+        }
+    }
+    let mut cfg = AnalysisConfig::new((64, 1, 1));
+    cfg.arrays = vec![
+        array("x", 0x10000, 64, ArrayKind::Input),
+        array("y", 0x20000, 64, ArrayKind::Input),
+        array("z", 0x30000, 64, ArrayKind::Input),
+        array("out", 0x40000, 384, ArrayKind::Output),
+    ];
+    cfg.arrays.iter_mut().for_each(|array| array.elem_width = 8);
+    cfg.params = ["x", "y", "z", "out"]
+        .map(|name| ParamValue::ArrayPtr(name.into()))
+        .to_vec();
+    let result = analyze(&module, Some("scalar_f64"), cfg).unwrap();
+    let outputs = result.symbolic_outputs().unwrap();
+    assert_eq!(outputs.outputs[0].1.len(), 384);
+    for index in 0..64 {
+        let input = outputs.element("out", 320 + index).unwrap();
+        assert!(
+            matches!(outputs.arena.node(input),ExprNode::InputElement{index:found,..}if *found==index)
+        );
+        assert!(matches!(
+            outputs.arena.node(outputs.element("out", index).unwrap()),
+            ExprNode::Add(..)
+        ));
+        assert!(matches!(
+            outputs
+                .arena
+                .node(outputs.element("out", 64 + index).unwrap()),
+            ExprNode::Mul(..)
+        ));
+        assert!(matches!(
+            outputs
+                .arena
+                .node(outputs.element("out", 128 + index).unwrap()),
+            ExprNode::Fma(..)
+        ));
     }
 }
 #[test]
