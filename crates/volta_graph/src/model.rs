@@ -32,6 +32,8 @@ pub struct Event {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EventKind {
+    /// A gfx950 wave event; indexes [`crate::EventGraph::amd_events`].
+    Amd(u32),
     /// A memory effect: synchronous in a `Thread` context, an async op's in an `Async` one.
     Access(AccessId),
     /// The thread contributes to a generation; how is the generation's [`Contribution`].
@@ -483,6 +485,11 @@ pub struct BlockedThread {
 /// A blocked thread's wait condition, with the state that disables it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BlockedOn {
+    /// An AMD scalar S_BARRIER rendezvous (wave-level generation, no PTX sync object).
+    AmdBarrier {
+        generation: u32,
+        missing_waves: Vec<u32>,
+    },
     /// Waiting in a named barrier generation.
     Barrier { generation: GenerationId },
     /// Waiting at a collective instance's entry for the missing live lanes.
@@ -510,6 +517,10 @@ pub struct MbarrierState {
 /// A modeling assumption the producer executed under, recorded so verdicts can cite it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Assumption {
+    /// Exactly one AMD workgroup is analyzed; no statement about other workgroups.
+    SingleWorkgroupAnalyzed,
+    /// Symbolic arithmetic uses mathematical reals, not bit-exact floating-point.
+    MathematicalRealArithmetic,
     /// Addresses, branch conditions and synchronization parameters are concrete: the
     /// kernel is a structured CTA under the launch configuration.
     StructuredCta,
@@ -530,6 +541,12 @@ pub enum Assumption {
 impl Assumption {
     pub fn describe(self) -> &'static str {
         match self {
+            Assumption::SingleWorkgroupAnalyzed => {
+                "one AMD workgroup is analyzed; other workgroups are outside this result"
+            }
+            Assumption::MathematicalRealArithmetic => {
+                "arithmetic is modeled over mathematical reals, not bit-exact floating-point"
+            }
             Assumption::StructuredCta => {
                 "addresses, branch conditions and synchronization parameters are concrete"
             }

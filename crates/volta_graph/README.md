@@ -1,5 +1,25 @@
 # volta_graph
 
+The gfx950 producer uses the same `EventGraph` and `GraphBuilder`. Its additive
+`AmdEventKind` records retain wave64 EXEC masks, individual register/lane slices,
+memory counter charges, waits, matrix operand roles, independent S_NOP states, and
+workgroup barrier generations. `EventKind::Amd(index)` indexes `amd_events()`;
+`amd_memory_effects()` associates existing byte-footprint memory events with their
+issuing wave instruction. Those effects are pending in the AMD interpretation even
+though their data is calculated eagerly. Their event positions do not certify completion.
+
+Record one `Instruction` before each issued instruction and its semantic event,
+one `MemoryIssue` per wave instruction, and an association for every memory effect
+(including kernarg/dispatch reads). EXEC=0 vector instructions produce an instruction
+record but no memory issue. Cross-lane DS permutations have LGKM charges and pending
+registers with no fabricated LDS footprint. MFMA has a separate `MatrixIssue`.
+Register ranges use one entry per 32-bit register and full 64-bit lane masks.
+
+PTX text dumps remain `volta-graph 1`; graphs with AMD records use
+`volta-graph 2` and include their sidecar associations. The text dump is a diagnostic
+format, not an executable replay input. AMD rendezvous deadlocks use
+`BlockedOn::AmdBarrier` without inventing a PTX synchronization object.
+
 The typed event graph of **one candidate execution** of a kernel. The analysis
 (`volta_ptx_analysis`) records it while it interprets the kernel; the graph checks
 (`volta_graph_check`) and the viewer (`volta_viz`) read it. Neither side

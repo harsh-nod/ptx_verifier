@@ -19,15 +19,13 @@ use volta_expr::SymbolicOutputs;
 use volta_graph::EventGraph;
 use volta_graph_check::{GraphConclusion, GraphReport};
 use volta_pipeline::{
-    Decision, EquivalenceVerdict, KernelEvidence, Verdict, check_equivalence, decide, verify_kernel,
+    Backend, Decision, EquivalenceVerdict, KernelEvidence, KernelModule, SourceAnalysisParts,
+    Verdict, check_equivalence, decide, verify_source_kernel,
 };
 use volta_ptx_analysis::frontend::ascii::{AsAscii, AsciiChar};
 use volta_ptx_analysis::frontend::ast::{Module, TopLevelItem};
 use volta_ptx_analysis::frontend::parse;
-use volta_ptx_analysis::{
-    AnalysisConfig, AnalysisParts, ArrayDef, ArrayKind, OutputsUnavailable, ParamValue, Stats,
-    write_op_counts,
-};
+use volta_ptx_analysis::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue, Stats, write_op_counts};
 use volta_spec::unfold;
 
 /// Log level for controlling output verbosity
@@ -65,6 +63,14 @@ impl From<LogLevel> for log::LevelFilter {
 #[command(about = "The Volta PTX analysis engine.")]
 #[command(version)]
 struct Cli {
+    /// Instruction-set backend (PTX is the backward-compatible default).
+    #[arg(long, default_value = "ptx", global = true)]
+    backend: String,
+
+    /// AMDGPU target; the AMD backend currently supports gfx950.
+    #[arg(long, global = true)]
+    target: Option<String>,
+
     #[command(subcommand)]
     command: Commands,
 
@@ -298,6 +304,13 @@ struct VerifyArgs {
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
+    let backend = match Backend::select(&cli.backend, cli.target.as_deref()) {
+        Ok(backend) => backend,
+        Err(error) => {
+            eprintln!("error: {error}");
+            return ExitCode::FAILURE;
+        }
+    };
 
     let command_name = match &cli.command {
         Commands::Parse { .. } => "parse",
@@ -317,10 +330,10 @@ fn main() -> ExitCode {
         .init();
 
     let code = match cli.command {
-        Commands::Parse { file } => cmd_parse(&file),
-        Commands::Analyze(args) => cmd_analyze(args, &mut log),
-        Commands::Compare(args) => cmd_compare(args, &mut log),
-        Commands::Verify(args) => cmd_verify(args, &mut log),
+        Commands::Parse { file } => cmd_parse(&file, backend),
+        Commands::Analyze(args) => cmd_analyze(args, &mut log, backend),
+        Commands::Compare(args) => cmd_compare(args, &mut log, backend),
+        Commands::Verify(args) => cmd_verify(args, &mut log, backend),
         Commands::Viz(args) => cmd_viz(&args),
     };
 
@@ -535,7 +548,7 @@ fn print_decision(decision: &Decision) -> ExitCode {
 
 /// One kernel's analysis artifacts other than its graph.
 struct KernelRun {
-    outputs: Result<SymbolicOutputs, OutputsUnavailable>,
+    outputs: Result<SymbolicOutputs, String>,
     stats: Stats,
     op_counts: BTreeMap<&'static str, u64>,
 }
@@ -543,18 +556,18 @@ struct KernelRun {
 /// Analysis stage plus graph branch for one kernel, split into its owned parts.
 fn run_kernel(
     label: &'static str,
-    module: &Module,
+    module: &KernelModule,
     kernel: Option<&str>,
     config: AnalysisConfig,
 ) -> Result<(KernelRun, KernelSide), String> {
-    let verified =
-        verify_kernel(module, kernel, config).map_err(|e| format!("{} kernel: {}", label, e))?;
-    let AnalysisParts {
+    let verified = verify_source_kernel(module, kernel, config)
+        .map_err(|e| format!("{} kernel: {}", label, e))?;
+    let SourceAnalysisParts {
         outputs,
         graph,
         stats,
         op_counts,
-    } = verified.analysis.into_parts();
+    } = verified.analysis;
     Ok((
         KernelRun {
             outputs,
@@ -569,9 +582,9 @@ fn run_kernel(
     ))
 }
 
-fn cmd_analyze(args: AnalyzeArgs, log: &mut run_log::RunLog) -> ExitCode {
+fn cmd_analyze(args: AnalyzeArgs, log: &mut run_log::RunLog, backend: Backend) -> ExitCode {
     let file = &args.file;
-    let module = match load_module(file) {
+    let module = match load_module(file, backend) {
         Ok(m) => m,
         Err(code) => return code,
     };
@@ -690,7 +703,7 @@ fn validate_check_arrays(arrays: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog) -> ExitCode {
+fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog, backend: Backend) -> ExitCode {
     if let Err(e) = validate_check_arrays(&args.check_arrays) {
         eprintln!("error: {}", e);
         return ExitCode::FAILURE;
@@ -741,11 +754,11 @@ fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog) -> ExitCode {
                 return ExitCode::FAILURE;
             };
 
-            let module1 = match load_module(file1) {
+            let module1 = match load_module(file1, backend) {
                 Ok(m) => m,
                 Err(code) => return code,
             };
-            let module2 = match load_module(file2) {
+            let module2 = match load_module(file2, backend) {
                 Ok(m) => m,
                 Err(code) => return code,
             };
@@ -986,8 +999,8 @@ fn parse_dim(s: &str) -> Result<(String, u64), String> {
     Ok((name.to_string(), parse_u64_value(value)?))
 }
 
-fn cmd_verify(args: VerifyArgs, log: &mut run_log::RunLog) -> ExitCode {
-    let module = match load_module(&args.file) {
+fn cmd_verify(args: VerifyArgs, log: &mut run_log::RunLog, backend: Backend) -> ExitCode {
+    let module = match load_module(&args.file, backend) {
         Ok(m) => m,
         Err(code) => return code,
     };
@@ -1252,7 +1265,23 @@ fn cmd_verify(args: VerifyArgs, log: &mut run_log::RunLog) -> ExitCode {
 }
 
 /// Load and parse a module, reporting errors nicely.
-fn load_module(file: &Path) -> Result<Module, ExitCode> {
+fn load_module(file: &Path, backend: Backend) -> Result<KernelModule, ExitCode> {
+    if backend == Backend::Ptx {
+        return load_ptx_module(file).map(KernelModule::Ptx);
+    }
+    let source = std::fs::read_to_string(file).map_err(|error| {
+        eprintln!("error: failed to read {}: {error}", file.display());
+        ExitCode::FAILURE
+    })?;
+    volta_amdgpu_analysis::frontend::parse(&source)
+        .map(KernelModule::Amdgpu)
+        .map_err(|error| {
+            eprintln!("error: {}: {error}", file.display());
+            ExitCode::FAILURE
+        })
+}
+
+fn load_ptx_module(file: &Path) -> Result<Module, ExitCode> {
     let mut files = FileCache::new();
     let contents = match files.read(file) {
         Ok(c) => c,
@@ -1312,7 +1341,18 @@ fn cmd_viz(args: &VizArgs) -> ExitCode {
 }
 
 /// Parse a PTX file and report any errors
-fn cmd_parse(file: &Path) -> ExitCode {
+fn cmd_parse(file: &Path, backend: Backend) -> ExitCode {
+    if backend == Backend::Amdgpu {
+        return match load_module(file, backend) {
+            Ok(KernelModule::Amdgpu(module)) => {
+                println!("Parsed successfully: {} (gfx950)", file.display());
+                println!("  Entries (kernels): {}", module.kernels.len());
+                ExitCode::SUCCESS
+            }
+            Ok(_) => unreachable!(),
+            Err(code) => code,
+        };
+    }
     let mut files = FileCache::new();
 
     let contents = match files.read(file) {

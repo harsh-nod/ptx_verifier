@@ -51,7 +51,7 @@ pub fn verify(
     sample: u64,
     verify_numeric: bool,
 ) -> PyResult<VerifyResultPy> {
-    let module = parse_module(source)?;
+    let module = parse_module(source, config.1)?;
 
     let parsed_spec = volta_spec::parse_spec(spec).map_err(|e| spec_parse_error_to_py(spec, &e))?;
 

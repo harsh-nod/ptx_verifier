@@ -56,7 +56,70 @@ impl EventGraph {
         self.validate_generations(&mut d);
         self.validate_objects(&mut d);
         self.validate_terminal(&mut d);
+        self.validate_amd(&mut d);
         if d.0.is_empty() { Ok(()) } else { Err(d.0) }
+    }
+
+    fn validate_amd(&self, d: &mut Defects) {
+        for (index, record) in self.amd_events.iter().enumerate() {
+            match self.events.get(record.event) {
+                Some(event)
+                    if event.kind == EventKind::Amd(index as u32)
+                        && event.ctx
+                            == ExecContext::Thread(crate::amd_wave_thread(record.wave)) => {}
+                _ => d.at(record.event, "AMD record has no matching wave event".into()),
+            }
+            if record.wave.saturating_mul(64) >= self.threads() {
+                d.at(record.event, "AMD wave is outside the workgroup".into());
+            }
+        }
+        for (id, event) in self.events.iter() {
+            if let EventKind::Amd(index) = event.kind {
+                if self
+                    .amd_events
+                    .get(index as usize)
+                    .is_none_or(|r| r.event != id)
+                {
+                    d.at(id, "AMD event has no matching record".into());
+                }
+            }
+        }
+        let mut linked = std::collections::HashSet::new();
+        for association in &self.amd_memory_effects {
+            let valid_issue = self
+                .events
+                .get(association.issue)
+                .and_then(|e| {
+                    if let EventKind::Amd(index) = e.kind {
+                        self.amd_event(index)
+                    } else {
+                        None
+                    }
+                })
+                .is_some_and(|r| matches!(r.kind, crate::AmdEventKind::MemoryIssue { .. }));
+            if !valid_issue || association.issue >= association.effect {
+                d.at(
+                    association.effect,
+                    "AMD memory effect has invalid or nonpreceding issue".into(),
+                );
+            }
+            if !self
+                .events
+                .get(association.effect)
+                .is_some_and(|e| matches!(e.kind, EventKind::Access(_)))
+            {
+                d.at(
+                    association.effect,
+                    "AMD memory association does not name an access".into(),
+                );
+            }
+            if !linked.insert(association.effect) {
+                d.at(
+                    association.effect,
+                    "AMD memory effect is associated more than once".into(),
+                );
+            }
+        }
     }
 
     fn validate_contexts(&self, d: &mut Defects) {

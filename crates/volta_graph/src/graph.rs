@@ -9,6 +9,8 @@ use crate::model::{
 /// A finished candidate-execution graph. Immutable: built only by [`crate::GraphBuilder`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EventGraph {
+    pub(crate) amd_events: Vec<crate::AmdEvent>,
+    pub(crate) amd_memory_effects: Vec<crate::AmdMemoryEffect>,
     pub(crate) provenance: Provenance,
     pub(crate) events: IdVec<EventId, Event>,
     pub(crate) accesses: IdVec<AccessId, MemAccess>,
@@ -22,6 +24,18 @@ pub struct EventGraph {
 }
 
 impl EventGraph {
+    pub fn amd_events(&self) -> &[crate::AmdEvent] {
+        &self.amd_events
+    }
+
+    pub fn amd_memory_effects(&self) -> &[crate::AmdMemoryEffect] {
+        &self.amd_memory_effects
+    }
+
+    pub fn amd_event(&self, index: u32) -> Option<&crate::AmdEvent> {
+        self.amd_events.get(index as usize)
+    }
+
     pub fn provenance(&self) -> &Provenance {
         &self.provenance
     }

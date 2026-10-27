@@ -8,7 +8,6 @@ use pyo3::exceptions::PyException;
 
 use volta_common::Span;
 use volta_graph_check::{Deadlock, Property, PropertySummary};
-use volta_ptx_analysis::AnalysisError;
 use volta_ptx_analysis::frontend::parse::ParseError;
 
 create_exception!(
@@ -87,10 +86,6 @@ pub fn spec_parse_error_to_py(source: &str, err: &volta_spec::parse::ParseError)
     VoltaError::new_err(text)
 }
 
-pub fn analysis_error_to_py(err: AnalysisError) -> PyErr {
-    VoltaError::new_err(err.to_string())
-}
-
 /// The exception for a kernel whose event graph failed `failed`, or whose trace `deadlock`ed:
 /// `DataRaceError` if memory-conflict freedom failed, else `DeadlockError` for a deadlock,
 /// else `VoltaError`. The message names the deadlock and every failed check with its first
@@ -110,10 +105,12 @@ pub fn graph_failure_to_py(failed: &[PropertySummary], deadlock: Option<&Deadloc
         }))
         .collect::<Vec<_>>()
         .join("; ");
-    if failed
-        .iter()
-        .any(|s| s.property == Property::MemoryConflict)
-    {
+    if failed.iter().any(|s| {
+        matches!(
+            s.property,
+            Property::MemoryConflict | Property::AmdMemoryConflict | Property::AmdWaitReadiness
+        )
+    }) {
         DataRaceError::new_err(message)
     } else if deadlock.is_some() {
         DeadlockError::new_err(message)
