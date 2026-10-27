@@ -73,9 +73,22 @@ impl GraphBuilder {
     }
 
     pub fn amd_memory_effect(&mut self, issue: EventId, effect: EventId) {
-        self.graph
-            .amd_memory_effects
-            .push(crate::AmdMemoryEffect { issue, effect });
+        self.amd_memory_effect_scoped(issue, effect, crate::AmdMemoryScope::Unspecified);
+    }
+
+    /// Associate an AMD effect with its native visibility scope. The scope is
+    /// provenance only; the checker separately requires completion and HB.
+    pub fn amd_memory_effect_scoped(
+        &mut self,
+        issue: EventId,
+        effect: EventId,
+        scope: crate::AmdMemoryScope,
+    ) {
+        self.graph.amd_memory_effects.push(crate::AmdMemoryEffect {
+            issue,
+            effect,
+            scope,
+        });
     }
 
     fn push(&mut self, ctx: ExecContext, kind: EventKind, pc: Option<ProgramPoint>) -> EventId {

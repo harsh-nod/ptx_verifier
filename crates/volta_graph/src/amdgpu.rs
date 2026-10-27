@@ -165,13 +165,23 @@ pub struct AmdEvent {
     pub kind: AmdEventKind,
 }
 
-/// Associates an ordinary graph memory event with the AMD instruction that issues it.
-/// Its thread attribution identifies the lane; this association makes it pending rather
-/// than a synchronous memory effect in AMD's ordering model.
+/// Native visibility policy of an ordinary AMD memory effect.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum AmdMemoryScope {
+    #[default]
+    Unspecified,
+    /// Native GLOBAL SC0=1, SC1=0. Visibility additionally requires a recorded
+    /// single-CU workgroup premise; scope does not create memory ordering.
+    Workgroup,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// Associates an ordinary memory event with its issuing AMD instruction. Its
+/// lane attribution and this association retain asynchronous completion.
 pub struct AmdMemoryEffect {
     pub issue: EventId,
     pub effect: EventId,
+    pub scope: AmdMemoryScope,
 }
 
 pub fn amd_wave_thread(wave: u32) -> ThreadIx {
