@@ -1,5 +1,20 @@
 # volta_viz
 
+The existing run store also accepts gfx950 graphs. AMD runs show wave64/lane labels,
+64-bit EXEC and register masks, counter charges and wait thresholds, MFMA operands
+and independent NOP states, LDS footprints and barrier generations. Typed AMD findings
+link the issuing and consuming events back to their source lines. AMD barrier deadlocks
+name missing waves directly.
+
+The wire format remains `volta-viz 1`: `launch.wave_size` and
+`launch.source_language` are additive fields. Old stores without them retain warp32
+grouping. Source filenames still occupy the legacy `ptx` metadata key, including `.s`
+files, so stored-run readers remain compatible. Candidate barrier/issue edges are
+visualized as recorded associations; check findings establish their validity.
+
+Run `cargo test -p volta_viz --test amdgpu_viewer_tests` for AMD source mapping,
+wait/readiness witnesses, aborted/unsupported status, and deadlock export coverage.
+
 The event-graph viewer. It records kernel runs into a directory (a **run
 store**) and turns that store into **one self-contained HTML page** showing
 each run's event graph as a space-time diagram. The diagram has a lane per

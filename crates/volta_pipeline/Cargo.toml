@@ -8,6 +8,7 @@ default = []
 logging = ["dep:log"]  # Full logging when enabled
 
 [dependencies]
+volta_amdgpu_analysis.workspace = true
 log = { workspace = true, optional = true }
 volta_equivalence.workspace = true
 volta_expr.workspace = true

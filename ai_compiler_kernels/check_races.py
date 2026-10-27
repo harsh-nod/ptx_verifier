@@ -102,6 +102,11 @@ class Variant:
     grid: tuple[int, int, int] = (1, 1, 1)
     # Set only where the full kernel cannot be analyzed in this machine's memory.
     reduction: Reduction | None = None
+    backend: str = "ptx"
+    entry: str = "kernel"
+    source_path: Path | None = None
+    dynamic_shared: int | None = None
+    dummy_params: int = DUMMY_PARAMS
 
     @property
     def name(self) -> str:
@@ -109,7 +114,7 @@ class Variant:
 
     @property
     def path(self) -> Path:
-        return KERNEL_ROOT / self.folder / f"{self.stem}.ptx"
+        return self.source_path or KERNEL_ROOT / self.folder / f"{self.stem}.ptx"
 
 
 class Outcome(enum.Enum):
@@ -127,13 +132,14 @@ OUTCOME_WIDTH = max(len(outcome.value) for outcome in Outcome)
 # `Property::name`s of the checks whose failure is a race condition: an unordered
 # conflicting access (Algorithm 2 on global/shared memory, Algorithm 4 on Tensor Memory) or
 # a cross-proxy pair no proxy fence orders (Algorithm 3).
-RACE_CHECKS = ("memory-conflict freedom", "proxy ordering", "tensor-operation ordering")
+RACE_CHECKS = ("memory-conflict freedom", "proxy ordering", "tensor-operation ordering",
+               "AMD memory-conflict freedom", "AMD wait and register readiness")
 # A construct Volta does not model, rejected at lowering or when the execution reaches it.
 LOWERING_FAILED = re.compile(r"\blowering failed: (.*)")
 # A directive or instruction form the frontend does not know (the parse report's last line).
 PARSE_FAILED = re.compile(r"\b(Invalid [a-z ]+: \S+)$")
 EXECUTION_UNSUPPORTED = re.compile(r"^the execution stopped: (unsupported at .*)")
-CHECK_LINE = re.compile(r"^  (\S.*?) \((?:Algorithms? |PTX ISA |phase chain)[^)]*\)\s+(PASS|FAIL|UNKNOWN)$")
+CHECK_LINE = re.compile(r"^  (\S.*?) \([^)]*\)\s+(PASS|FAIL|UNKNOWN)$")
 VERDICT_LINE = re.compile(r"^GRAPH VERIFICATION: (VERIFIED|REJECTED|UNKNOWN)")
 WRITTEN_LINE = re.compile(r"^  output '[^']*': (\d+) element\(s\) written$")
 NO_OUTPUTS_LINE = re.compile(r"^  no outputs: (.*)$")
@@ -241,6 +247,8 @@ def classify(report: CliReport, stderr: str, expected_outputs: int) -> tuple[Out
     coverage = f"{report.written}/{expected_outputs} tile outputs written"
     findings = [f"{check}: {finding}" for check, verdict, finding in report.checks if verdict != "PASS"]
     if report.verdict == "VERIFIED":
+        if report.written != expected_outputs:
+            return Outcome.CHECK_FAILED, f"incomplete output footprint: {coverage}"
         return Outcome.RACE_FREE, coverage
     if report.verdict == "REJECTED":
         failed = [(check, finding) for check, verdict, finding in report.checks if verdict == "FAIL"]
@@ -794,6 +802,28 @@ FAMILIES = {
 }
 
 
+
+def load_amdgpu_variants() -> dict[str, list[Variant]]:
+    """Native launch data is explicit; PTX pointer padding/warp counts do not transfer."""
+    manifest = REPO_ROOT / "tests/gfx950/workloads.json"
+    data = json.loads(manifest.read_text())
+    if data.get("target") != "gfx950" or data.get("schema_version") != 1:
+        raise ValueError("invalid native gfx950 workload manifest")
+    families: dict[str, list[Variant]] = {}
+    for row in data["kernels"]:
+        params = tuple(Array(p["name"], p["elem_width"], p["len"], Kind(p["kind"]))
+                       if "name" in p else Int(p["int"]) for p in row["params"])
+        variant = Variant(row["family"], row["name"], tuple(row["block"]), params,
+                          row["expected_outputs"], grid=tuple(row.get("grid", [1, 1, 1])),
+                          backend="amdgpu", entry=row["entry"],
+                          source_path=REPO_ROOT / row["source"],
+                          dynamic_shared=row.get("dynamic_shared", 0), dummy_params=0)
+        if not variant.path.is_file():
+            raise FileNotFoundError(variant.path)
+        families.setdefault(row["family"], []).append(variant)
+    return families
+
+
 def target_of(source: str) -> str:
     match = re.search(r"^\s*\.target\s+(\w+)", source, re.MULTILINE)
     if match is None:
@@ -805,7 +835,8 @@ def launch_args(variant: Variant, source: str) -> list[str]:
     args = [
         "--block", ",".join(map(str, variant.block)),
         "--grid", ",".join(map(str, variant.grid)),
-        "--dyn-shared", str(MAX_DYNAMIC_SHARED[target_of(source)]),
+        "--dyn-shared", str(variant.dynamic_shared if variant.dynamic_shared is not None
+                            else MAX_DYNAMIC_SHARED[target_of(source)]),
     ]
     base = ARRAY_ALIGN
     for param in variant.params:
@@ -816,8 +847,10 @@ def launch_args(variant: Variant, source: str) -> list[str]:
                 base += -(-param.elem_width * param.len // ARRAY_ALIGN) * ARRAY_ALIGN
             case Int():
                 args += ["--param", f"int:{param.value}"]
-    for _ in range(DUMMY_PARAMS):
+    for _ in range(variant.dummy_params):
         args += ["--param", "int:0"]
+    if variant.backend == "amdgpu":
+        args += ["--backend", "amdgpu", "--target", "gfx950"]
     return args
 
 
@@ -862,9 +895,25 @@ def blank_comments(source: str) -> str:
     return re.sub(r"//[^\n]*|/\*.*?\*/", blank, source, flags=re.DOTALL)
 
 
-def statements(source: str) -> list[tuple[Mutation, int, int]]:
+def statements(source: str, backend: str = "ptx", entry: str | None = None) -> list[tuple[Mutation, int, int]]:
     """Each removable statement of `source` with its character span (guard to `;`)."""
     code = blank_comments(source)
+    if backend == "amdgpu":
+        # AMD semicolons start comments; assembly is line-delimited, unlike PTX.
+        code = re.sub(r";[^\n]*", lambda match: " " * len(match[0]), code)
+        low, high = 0, len(code)
+        if entry is not None:
+            start = re.search(rf"(?m)^{re.escape(entry)}:[^\n]*", code)
+            if start is None:
+                raise ValueError(f"native kernel entry label not found: {entry}")
+            low = start.end()
+            end = re.search(rf"(?m)^\s*\.size\s+{re.escape(entry)}\b|^\s*\.globl\s+", code[low:])
+            if end is not None:
+                high = low + end.start()
+        pattern = re.compile(r"(?m)^\s*(?:[.$\w]+:[ \t]*)?(?P<body>(?P<instr>s_waitcnt|s_barrier)\b[^\n;]*)")
+        return [(Mutation(code.count("\n", 0, match.start("body")) + 1, 1, match["instr"]),
+                 match.start("body"), match.end("body")) for match in pattern.finditer(code)
+                if low <= match.start("body") < high]
     found = []
     nth: dict[int, int] = {}
     for statement in STATEMENT.finditer(code):
@@ -879,13 +928,13 @@ def statements(source: str) -> list[tuple[Mutation, int, int]]:
     return found
 
 
-def mutation_sites(source: str) -> list[Mutation]:
-    return [mutation for mutation, _, _ in statements(source)]
+def mutation_sites(source: str, backend: str = "ptx", entry: str | None = None) -> list[Mutation]:
+    return [mutation for mutation, _, _ in statements(source, backend, entry)]
 
 
-def remove_statement(source: str, mutation: Mutation) -> str:
+def remove_statement(source: str, mutation: Mutation, backend: str = "ptx", entry: str | None = None) -> str:
     """`source` with `mutation`'s statement, guard included, blanked out; lines keep their numbers."""
-    for found, start, end in statements(source):
+    for found, start, end in statements(source, backend, entry):
         if found == mutation:
             gap = re.sub(r"[^\n]", " ", source[start:end])
             return source[:start] + gap + source[end:]
@@ -945,7 +994,7 @@ def analyze(variant: Variant, ptx: Path, echo: Callable[[str], None] | None) -> 
     command = [
         str(VOLTA), "--no-log-file", "--log-level", "error" if echo is None else "info",
         "analyze", str(ptx),
-        "--kernel", "kernel", *launch_args(variant, ptx.read_text()),
+        "--kernel", variant.entry, *launch_args(variant, ptx.read_text()),
         "--print-outputs", "0", "--no-profile",
     ]
     stdout, stderr = run_volta(command, echo)
@@ -1009,7 +1058,7 @@ def run_mutations(
         print(style.paint(f"== {variant.name}", BOLD), flush=True)
         sites = [
             site
-            for site in mutation_sites(variant.path.read_text())
+            for site in mutation_sites(variant.path.read_text(), variant.backend, variant.entry)
             if not lines or site.line in lines
         ]
         if not sites:
@@ -1036,7 +1085,7 @@ def run_mutations(
             start = time.perf_counter()
             try:
                 result, detail = analyze_variant(
-                    variant, full, echo, partial(remove_statement, mutation=site)
+                    variant, full, echo, partial(remove_statement, mutation=site, backend=variant.backend, entry=variant.entry)
                 )
                 fate = FATES[result]
                 shown = fate.value if fate is Fate.SURVIVED else result.value
@@ -1077,15 +1126,7 @@ def build_volta() -> None:
     )
     if build.returncode == 0:
         return
-    if not VOLTA.exists():
-        sys.exit(f"cargo build failed and {VOLTA} does not exist:\n{build.stderr}")
-    reason = next(iter(build.stderr.strip().splitlines()), f"exit status {build.returncode}")
-    built = time.strftime("%Y-%m-%d %H:%M", time.localtime(VOLTA.stat().st_mtime))
-    print(
-        f"warning: cargo build failed ({reason}); using the existing "
-        f"{VOLTA.relative_to(REPO_ROOT)} built {built}",
-        file=sys.stderr,
-    )
+    sys.exit(f"cargo build failed; refusing to test a stale binary:\n{build.stderr}")
 
 
 def kernel_name(arg: str) -> str:
@@ -1101,7 +1142,8 @@ def kernel_name(arg: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("families", nargs="*", choices=list(FAMILIES), help="default: all")
+    parser.add_argument("families", nargs="*", help="default: all families for the selected backend")
+    parser.add_argument("--backend", choices=("ptx", "amdgpu"), default="ptx")
     parser.add_argument(
         "--kernel",
         action="append",
@@ -1144,13 +1186,14 @@ def main() -> int:
         parser.error("--site needs --mutate")
 
     try:
-        every_family = {family: variants() for family, variants in FAMILIES.items()}
+        every_family = (load_amdgpu_variants() if args.backend == "amdgpu" else
+                        {family: variants() for family, variants in FAMILIES.items()})
     except FileNotFoundError as missing:
         parser.error(f"a configured kernel's file is missing: {missing.filename}")
     on_disk = {
         ptx.relative_to(KERNEL_ROOT).with_suffix("").as_posix()
         for ptx in KERNEL_ROOT.glob("*/*.ptx")
-    }
+    } if args.backend == "ptx" else {v.name for vs in every_family.values() for v in vs}
     unconfigured = sorted(on_disk - {v.name for vs in every_family.values() for v in vs})
     if unconfigured:
         message = f"not configured, so never checked: {', '.join(unconfigured)} (add to FAMILIES)"
@@ -1159,9 +1202,17 @@ def main() -> int:
             print(f"warning: {message}", file=sys.stderr)
         else:
             parser.error(message)
-    families = args.families or list(FAMILIES)
+    unknown_families = sorted(set(args.families) - set(every_family))
+    if unknown_families:
+        parser.error(f"unknown {args.backend} families: {', '.join(unknown_families)}; available: {', '.join(every_family)}")
+    families = args.families or list(every_family)
     configured = [(family, v) for family in families for v in every_family[family]]
     wanted = {kernel_name(arg): arg for arg in args.kernel}
+    if args.backend == "amdgpu":
+        wanted = {v.name: arg for arg in args.kernel for _, v in configured
+                  if arg == v.name or Path(arg).resolve() == v.path.resolve()} | {
+                      arg: arg for arg in args.kernel if not any(
+                          arg == v.name or Path(arg).resolve() == v.path.resolve() for _, v in configured)}
     unknown = [arg for name, arg in wanted.items() if name not in {v.name for _, v in configured}]
     if unknown:
         parser.error(f"not a configured kernel: {', '.join(unknown)} (see --list)")
@@ -1178,7 +1229,7 @@ def main() -> int:
             marker = "" if v.reduction is None else "  (K loop reduced unless --full)"
             print(f"{family:<{width}}  {v.name}{marker}")
             if args.mutate:
-                for site in mutation_sites(v.path.read_text()):
+                for site in mutation_sites(v.path.read_text(), v.backend, v.entry):
                     print(f"{'':<{width}}    {site.name[1:]}")
         return 0
 

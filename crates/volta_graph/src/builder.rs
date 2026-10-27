@@ -22,6 +22,8 @@ impl GraphBuilder {
         let threads = provenance.threads();
         GraphBuilder {
             graph: EventGraph {
+                amd_events: Vec::new(),
+                amd_memory_effects: Vec::new(),
                 provenance,
                 events: IdVec::new(),
                 accesses: IdVec::new(),
@@ -47,6 +49,26 @@ impl GraphBuilder {
 
     pub fn graph_so_far(&self) -> &EventGraph {
         &self.graph
+    }
+
+    /// Record a scalar-issued wave event in the program order of the wave's first lane.
+    pub fn amd_event(&mut self, wave: u32, pc: ProgramPoint, kind: crate::AmdEventKind) -> EventId {
+        let index = self.graph.amd_events.len() as u32;
+        let event = self.push(
+            ExecContext::Thread(crate::amd_wave_thread(wave)),
+            EventKind::Amd(index),
+            Some(pc),
+        );
+        self.graph
+            .amd_events
+            .push(crate::AmdEvent { event, wave, kind });
+        event
+    }
+
+    pub fn amd_memory_effect(&mut self, issue: EventId, effect: EventId) {
+        self.graph
+            .amd_memory_effects
+            .push(crate::AmdMemoryEffect { issue, effect });
     }
 
     fn push(&mut self, ctx: ExecContext, kind: EventKind, pc: Option<ProgramPoint>) -> EventId {
