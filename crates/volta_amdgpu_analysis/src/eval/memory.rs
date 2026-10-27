@@ -41,6 +41,9 @@ impl Memory {
             }
             if let (Some(lo), Some(hi)) = (self.cells.get(&addr), self.cells.get(&(addr + 2))) {
                 if lo.width == 2 && hi.width == 2 {
+                    if let (Value::BytePair(a, b), Value::BytePair(c, d)) = (lo.value, hi.value) {
+                        return Ok(Value::Bytes([a, b, c, d]));
+                    }
                     if let (Value::Half(lo), Value::Half(hi)) = (lo.value, hi.value) {
                         return Ok(Value::Halves(lo, hi));
                     }
@@ -48,6 +51,13 @@ impl Memory {
             }
         }
         if width == 2 {
+            if let (Some(lo), Some(hi)) = (self.cells.get(&addr), self.cells.get(&(addr + 1))) {
+                if lo.width == 1 && hi.width == 1 {
+                    if let (Value::Byte(a), Value::Byte(b)) = (lo.value, hi.value) {
+                        return Ok(Value::BytePair(a, b));
+                    }
+                }
+            }
             if let Some((&start, cell)) = self.cells.range(..=addr).next_back() {
                 if let Value::Halves(lo, hi) = cell.value {
                     if cell.width == 4 && (addr == start || addr == start + 2) {
@@ -66,6 +76,22 @@ impl Memory {
             }
         }
         if width == 1 {
+            if let Some((
+                &start,
+                Cell {
+                    width,
+                    value: Value::BytePair(a, b),
+                },
+            )) = self.cells.range(..=addr).next_back()
+            {
+                if addr - start < *width {
+                    return Ok(match addr - start {
+                        0 => Value::Byte(*a),
+                        1 => Value::Byte(*b),
+                        _ => Value::Bits(0),
+                    });
+                }
+            }
             if let Some((
                 &start,
                 Cell {
@@ -106,8 +132,46 @@ impl Memory {
         Ok(Value::Bits(result))
     }
 
+    /// Preserve holes in a native kernarg load instead of assigning values to
+    /// padding. This path is deliberately not used for ordinary global/LDS
+    /// memory: uninitialized data reads there retain their existing errors.
+    pub fn read_partial_abi(&self, addr: u64, width: u64) -> Result<Value, String> {
+        if width == 0 || width > 4 {
+            return Err("partial ABI load must fit in one register".into());
+        }
+        let mut bits = 0u32;
+        let mut defined = 0u32;
+        for byte in 0..width {
+            let byte_addr = addr.checked_add(byte).ok_or("ABI address overflow")?;
+            if let Some((&start, cell)) = self.cells.range(..=byte_addr).next_back() {
+                let displacement = byte_addr - start;
+                if displacement < cell.width {
+                    let selected = cell.value.selected_bits((8 * displacement) as u32, 8)?;
+                    bits |= selected << (8 * byte);
+                    defined |= 255 << (8 * byte);
+                }
+            }
+        }
+        if defined == 0 {
+            return Err(format!("uninitialized ABI word at {addr:#x}"));
+        }
+        let mask = u32::MAX >> (32 - 8 * width);
+        Ok(if defined == mask {
+            Value::Bits(bits)
+        } else {
+            Value::PartialBits { bits, defined }
+        })
+    }
+
     pub fn write(&mut self, addr: u64, width: u64, value: Value) -> Result<Value, String> {
         let value = match (width, value) {
+            (1, Value::BytePair(lo, _)) => Value::Byte(lo),
+            (1 | 2, value @ Value::PartialBits { .. }) => {
+                Value::Bits(value.selected_bits(0, (8 * width) as u32)?)
+            }
+            (_, Value::PartialBits { .. }) => {
+                return Err("store observes undefined bits from ABI padding".into());
+            }
             (_, Value::SharedApertureHi) => {
                 return Err("opaque shared aperture cannot be stored as data bits".into());
             }
@@ -185,6 +249,17 @@ impl Memory {
                         continue;
                     }
                 }
+                if cell.width == 2 && width == 1 && (addr == start || addr == start + 1) {
+                    if let Value::BytePair(lo, hi) = cell.value {
+                        self.cells.remove(&start);
+                        self.initialize(
+                            if addr == start { start + 1 } else { start },
+                            1,
+                            Value::Byte(if addr == start { hi } else { lo }),
+                        );
+                        continue;
+                    }
+                }
                 // Preserve untouched concrete bytes. Partial writes into symbolic f32 storage
                 // cannot preserve its exact bit representation in the real arithmetic model.
                 let bits = cell
@@ -236,6 +311,13 @@ impl Memory {
     ) -> Result<ExprId, String> {
         if width == 8 {
             return match (self.read(addr, 4)?, self.read(addr + 4, 4)?) {
+                (Value::Integer(lo), Value::Integer(hi)) => {
+                    let low = arena.int(lo as i64);
+                    let high = arena.int(hi as i64);
+                    let scale = arena.int(1i64 << 32);
+                    let high = arena.mul(high, scale);
+                    Ok(arena.add(high, low))
+                }
                 (
                     Value::WidePart {
                         expr: a,
@@ -260,7 +342,8 @@ impl Memory {
             Value::SignedInteger(value)=>Ok(arena.int(value as i64)),
             Value::Bits(0) => Ok(arena.int(0)),
             Value::Bits(_) => Err("raw register bits have ambiguous integer/float output type; convert explicitly before storing".into()),
-            Value::Halves(..) => Err("packed output needs element-width extraction".into()),
+            Value::PartialBits { .. } => Err("output observes undefined bits from ABI padding".into()),
+            Value::Halves(..)|Value::BytePair(..) => Err("packed output needs element-width extraction".into()),
             Value::PartialHalves(..)|Value::Bytes(..)=>Err("packed/partially initialized output needs element-width extraction".into()),
             Value::WidePart { .. } => Err("one word of a 64-bit mathematical value cannot be extracted as a scalar32".into()),
             Value::PredicateWord { .. } => Err("symbolic predicate mask cannot be extracted as data bits".into()),
@@ -273,6 +356,72 @@ impl Memory {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn encoded_byte_pairs_roundtrip_at_two_bytes_without_defining_neighbor_memory() {
+        let mut arena = ExprArena::new();
+        let name = arena.intern_string("bytes");
+        let a = arena.input_element(name, 0);
+        let b = arena.input_element(name, 1);
+        let c = arena.input_element(name, 2);
+        let mut memory = Memory::default();
+        memory.initialize(0, 1, Value::Byte(a));
+        memory.initialize(1, 1, Value::Byte(b));
+        let pair = memory.read(0, 2).unwrap();
+        assert_eq!(pair, Value::BytePair(a, b));
+        assert!(memory.read(0, 4).is_err());
+        assert!(memory.read(2, 1).unwrap_err().contains("uninitialized"));
+        memory.write(100, 2, pair).unwrap();
+        assert_eq!(memory.read(100, 1).unwrap(), Value::Byte(a));
+        assert_eq!(memory.read(101, 1).unwrap(), Value::Byte(b));
+        memory.write(100, 1, Value::Byte(c)).unwrap();
+        assert_eq!(memory.read(100, 2).unwrap(), Value::BytePair(c, b));
+        assert!(memory.read(102, 1).unwrap_err().contains("uninitialized"));
+    }
+
+    #[test]
+    fn partial_abi_words_preserve_padding_definedness_until_exact_selection() {
+        let mut memory = Memory::default();
+        memory.initialize(28, 2, Value::Bits((-3i16) as u16 as u32));
+        memory.initialize(30, 1, Value::Bits(250));
+        assert!(memory.read(28, 4).unwrap_err().contains("uninitialized"));
+        let partial = memory.read_partial_abi(28, 4).unwrap();
+        assert_eq!(
+            partial,
+            Value::PartialBits {
+                bits: 0x00fa_fffd,
+                defined: 0x00ff_ffff
+            }
+        );
+        assert_eq!(partial.selected_bits(0, 16).unwrap(), 0xfffd);
+        assert_eq!(partial.selected_bits(16, 8).unwrap(), 250);
+        assert!(
+            partial
+                .selected_bits(24, 8)
+                .unwrap_err()
+                .contains("undefined")
+        );
+        assert!(partial.bits().unwrap_err().contains("undefined"));
+        assert!(
+            memory
+                .write(100, 4, partial)
+                .unwrap_err()
+                .contains("undefined")
+        );
+        memory.write(100, 2, partial).unwrap();
+        assert_eq!(memory.read(100, 2).unwrap().bits().unwrap(), 0xfffd);
+        assert!(
+            memory
+                .read_partial_abi(32, 4)
+                .unwrap_err()
+                .contains("uninitialized")
+        );
+        memory.initialize(31, 1, Value::Bits(0xab));
+        assert_eq!(
+            memory.read_partial_abi(28, 4).unwrap(),
+            Value::Bits(0xabfa_fffd)
+        );
+    }
 
     #[test]
     fn overlapping_concrete_writes_match_an_independent_byte_memory() {

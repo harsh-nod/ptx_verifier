@@ -484,6 +484,62 @@ fn flat_needs_both_counters() {
 }
 
 #[test]
+fn maximal_wait_fields_do_not_retire_an_overfull_logical_issue_history() {
+    for (class, count, maximum) in [
+        (AmdMemoryClass::VectorMemory, 65, 63),
+        (AmdMemoryClass::Lds, 17, 15),
+    ] {
+        for threshold in [maximum, maximum - 1, 0] {
+            let mut t = Trace::new(64);
+            for index in 0..count {
+                t.issue(
+                    0,
+                    index,
+                    class,
+                    vec![v(index as u16, 1)],
+                    vec![],
+                    u64::from(index) * 4,
+                    false,
+                );
+            }
+            t.wait(
+                0,
+                count,
+                (class == AmdMemoryClass::VectorMemory).then_some(threshold),
+                (class == AmdMemoryClass::Lds).then_some(threshold),
+            );
+            t.ins(0, count + 1, vec![v(0, 1)], vec![]);
+            let report = check_graph(&t.finish());
+            assert_eq!(report.verdict(Property::AmdTrace), Verdict::Pass);
+            assert_eq!(
+                report.verdict(Property::AmdWaitReadiness),
+                if threshold == maximum {
+                    Verdict::Fail
+                } else {
+                    Verdict::Pass
+                },
+                "{class:?}, threshold={threshold}: {report:?}"
+            );
+            if threshold == maximum {
+                assert!(
+                    report
+                        .amd
+                        .as_ref()
+                        .unwrap()
+                        .wait_readiness
+                        .violations()
+                        .iter()
+                        .any(|w| {
+                            w.kind == AmdRegisterHazardKind::ReadBeforeReady
+                                && w.register == v(0, 1)
+                        })
+                );
+            }
+        }
+    }
+}
+
+#[test]
 fn register_readiness_respects_slices_and_held_store_sources() {
     let mut t = Trace::new(64);
     t.issue(

@@ -287,6 +287,31 @@ fn parses_native_scalar_integer_and_binary64_types() {
 }
 
 #[test]
+fn parses_mixed_byvalue_abi_without_inventing_padding_arguments() {
+    let module = parse(include_str!("fixtures/clang22-mixed-byvalue.s")).unwrap();
+    let kernel = &module.kernels[0];
+    assert_eq!(kernel.args.len(), 6);
+    for body in [
+        "s_sext_i32_i16 s0, s1",
+        "v_cvt_f32_ubyte2_e32 v0, v1",
+        "v_cvt_f32_ubyte2_e64 v0, s1",
+    ] {
+        parse(&program(body)).unwrap_or_else(|error| panic!("{body}: {error}"));
+    }
+    for body in [
+        "s_sext_i32_i16 s[0:1], s2",
+        "s_sext_i32_i16 s0, s[2:3]",
+        "s_sext_i32_i16 s0, v1",
+        "s_sext_i32_i16 s0, s1, s2",
+        "v_cvt_f32_ubyte2 v[0:1], v2",
+        "v_cvt_f32_ubyte2 v0, v[2:3]",
+        "v_cvt_f32_ubyte2 v0, v1, v2",
+    ] {
+        parse(&program(body)).expect_err(body);
+    }
+}
+
+#[test]
 fn parses_full_shape_weighted_state_and_forgetting_attention() {
     for (assembly, name, shared) in [
         (
@@ -635,6 +660,23 @@ fn rejects_unknown_and_malformed_executable_syntax() {
     ] {
         let error = parse(&program(body)).expect_err(body);
         assert!(error.span.line >= 5, "{body}: {error}");
+    }
+}
+
+#[test]
+fn malformed_native_instructions_are_rejected_even_when_unreachable_or_exec_zero() {
+    for malformed in [
+        "v_add_f32 v0, v1",
+        "v_add_f32 v0, v1, v2 mystery:1",
+        "v_mfma_f32_16x16x4_f32 v0, v1, v2, 0",
+        "s_waitcnt v0",
+    ] {
+        for body in [
+            format!("s_branch .Ldone\n{malformed}\n.Ldone:\ns_endpgm"),
+            format!("s_mov_b64 exec, 0\n{malformed}\ns_endpgm"),
+        ] {
+            parse(&program(&body)).expect_err(&body);
+        }
     }
 }
 

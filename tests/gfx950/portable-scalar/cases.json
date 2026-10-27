@@ -1,0 +1,1332 @@
+{
+  "schema": 2,
+  "cases": [
+    {
+      "name": "copysign_combines_the_sign_of_a_with_the_magnitude_of_b",
+      "expected": "zero",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/copysign_combines_the_sign_of_a_with_the_magnitude_of_b.ptx",
+          "sha256": "594a0c485525d2f44382bb162ce3857a764485c417fb07564b46dca5b3f2441f",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1526,
+              "test": "test_copysign_combines_the_sign_of_a_with_the_magnitude_of_b"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/copysign_combines_the_sign_of_a_with_the_magnitude_of_b.out",
+          "expected_outputs": "out[0] = 0\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/copysign_combines_the_sign_of_a_with_the_magnitude_of_b.s",
+      "native_sha256": "fb6771afe6552d7f91628bece5df49f38403f2f76da911f3aa20cd9db8ecfa8d",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::copysign_combines_the_sign_of_a_with_the_magnitude_of_b"
+    },
+    {
+      "name": "float_abs_decodes_raw_bits",
+      "expected": "abs_bits",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 3,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/float_abs_decodes_raw_bits.ptx",
+          "sha256": "2b3009e9eba6ca80849b8956f7c697abf7364ddd0d092f72bb01ac52aa612295",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 769,
+              "test": "test_float_abs_decodes_raw_bits"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/float_abs_decodes_raw_bits.out",
+          "expected_outputs": "out[0] = 5\nout[1] = inf\nout[2] = abs(in[0])\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/float_abs_decodes_raw_bits.s",
+      "native_sha256": "7a42507716f67db13ef6eebc53c472a41d3e2efe56732cca521a4aca8174aaa0",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::float_abs_decodes_raw_bits"
+    },
+    {
+      "name": "float_ops_decode_raw_bit_patterns",
+      "expected": "raw_math",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 6,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/float_ops_decode_raw_bit_patterns.ptx",
+          "sha256": "46181a42aa59f2805e5d545930bcc6d001600a281913c283ee32e6fab2b29591",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 777,
+              "test": "test_float_ops_decode_raw_bit_patterns"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/float_ops_decode_raw_bit_patterns.out",
+          "expected_outputs": "out[0] = 2\nout[1] = 0.25\nout[2] = sqrt(4)\nout[3] = 1\nout[4] = -4\nout[5] = (-abs(in[0]))\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/float_ops_decode_raw_bit_patterns.s",
+      "native_sha256": "3f77b509fb2cb7bb845879729e4beaa7600f16de47022b65d485ece43de2e663",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::float_ops_decode_raw_bit_patterns"
+    },
+    {
+      "name": "neg_reads_operand_as_instruction_type",
+      "expected": "neg_bits",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 5,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/neg_reads_operand_as_instruction_type.ptx",
+          "sha256": "358ad2b9d3069e2209ed2021ac899afe128d1cbb6370244d5b6b7a0020dc8778",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 799,
+              "test": "test_neg_reads_operand_as_instruction_type"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/neg_reads_operand_as_instruction_type.out",
+          "expected_outputs": "out[0] = 5\nout[1] = 2147483648\nout[2] = 5\nout[3] = inf\nout[4] = (-in[0])\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/neg_reads_operand_as_instruction_type.s",
+      "native_sha256": "f65f2ebaba85b440efa7fc8069603bb3e21062079908c52e6afe42d36bc378a1",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::neg_reads_operand_as_instruction_type"
+    },
+    {
+      "name": "mixed_precision_fma_decodes_multiplicands_at_their_own_type",
+      "expected": "three",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/mixed_precision_fma_decodes_multiplicands_at_their_own_type.ptx",
+          "sha256": "5aeb9d965fbcc4ad7114c89099a550e24b05741d1c650a9d674f5d7cd3f2a6e3",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 788,
+              "test": "test_mixed_precision_fma_decodes_multiplicands_at_their_own_type"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/mixed_precision_fma_decodes_multiplicands_at_their_own_type.out",
+          "expected_outputs": "out[0] = 3\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/mixed_precision_fma_decodes_multiplicands_at_their_own_type.s",
+      "native_sha256": "2bbf9ddfd0fb27271f15b318586a4da1c496373c9b3cc10bc0366415bdb8b1ad",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::mixed_precision_fma_decodes_multiplicands_at_their_own_type"
+    },
+    {
+      "name": "f32x2_constant_bit_pattern_operand",
+      "expected": "packed_fma",
+      "block": 2,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/f32x2_constant_bit_pattern_operand.ptx",
+          "sha256": "79fff3937789d297ee2947cda1f86f741d6a3b53f50cde28a376af0d2d3c853b",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1452,
+              "test": "test_f32x2_constant_bit_pattern_operand"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/f32x2_constant_bit_pattern_operand.out",
+          "expected_outputs": "out[0] = fma((fma(in[0], 1, in[0]) - in[0]), (fma(in[0], 1, in[0]) - in[0]), (fma(in[0], 1, in[0]) - in[0]))\nout[1] = fma((fma(in[1], 1, in[1]) - in[1]), (fma(in[1], 1, in[1]) - in[1]), (fma(in[1], 1, in[1]) - in[1]))\nout[2] = fma((fma(in[2], 1, in[2]) - in[2]), (fma(in[2], 1, in[2]) - in[2]), (fma(in[2], 1, in[2]) - in[2]))\nout[3] = fma((fma(in[3], 1, in[3]) - in[3]), (fma(in[3], 1, in[3]) - in[3]), (fma(in[3], 1, in[3]) - in[3]))\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/f32x2_constant_bit_pattern_operand.s",
+      "native_sha256": "b749b3d36725b0a8a0704c58405d72dc7ecee877ef9e9277c09b842e830bca3c",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_constant_bit_pattern_operand"
+    },
+    {
+      "name": "f32x2_fma_via_64bit_memory_access",
+      "expected": "packed_fma",
+      "block": 2,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/f32x2_fma_via_64bit_memory_access.ptx",
+          "sha256": "4626eae4bb124e63beeded201b79ef0cd14467a48df99d37ca13638f525ae8f0",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1442,
+              "test": "test_f32x2_fma_via_64bit_memory_access"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/f32x2_fma_via_64bit_memory_access.out",
+          "expected_outputs": "out[0] = fma(in[0], in[0], in[0])\nout[1] = fma(in[1], in[1], in[1])\nout[2] = fma(in[2], in[2], in[2])\nout[3] = fma(in[3], in[3], in[3])\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/f32x2_fma_via_64bit_memory_access.s",
+      "native_sha256": "19394d3235399ead7aa1b4268864611f9608c6909a3f6ee399850966de7e3c00",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_fma_via_64bit_memory_access"
+    },
+    {
+      "name": "f32x2_fma_via_register_pack",
+      "expected": "packed_fma",
+      "block": 2,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/f32x2_fma_via_register_pack.ptx",
+          "sha256": "7ddadae40b53e47e9775e12f7a4b4fabd57ff2131fe119e18b587daa56ea5400",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1426,
+              "test": "test_f32x2_fma_via_register_pack"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/f32x2_fma_via_register_pack.out",
+          "expected_outputs": "out[0] = fma(in[0], in[0], in[0])\nout[1] = fma(in[1], in[1], in[1])\nout[2] = fma(in[2], in[2], in[2])\nout[3] = fma(in[3], in[3], in[3])\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/f32x2_fma_via_register_pack.s",
+      "native_sha256": "c3ba0519c5082dc8e36a30da9eb50db339690ee1fc5825869aff603446d0a4e8",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_fma_via_register_pack"
+    },
+    {
+      "name": "f32x2_lane_extracted_with_shift",
+      "expected": "packed_fma",
+      "block": 2,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/f32x2_lane_extracted_with_shift.ptx",
+          "sha256": "a52172caa34b88b514b32aca344a091a618b50da23e8f9d3abe92fbed14e73bc",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1494,
+              "test": "test_f32x2_lane_extracted_with_shift"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/f32x2_lane_extracted_with_shift.out",
+          "expected_outputs": "out[0] = fma(in[0], in[0], in[0])\nout[1] = fma(in[1], in[1], in[1])\nout[2] = fma(in[2], in[2], in[2])\nout[3] = fma(in[3], in[3], in[3])\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/f32x2_lane_extracted_with_shift.s",
+      "native_sha256": "ef6f370ec675f8f88d5a1548d3c94ee8063e3e393a5841d15e8c4b3c8148ab54",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_lane_extracted_with_shift"
+    },
+    {
+      "name": "f32x2_mul_add_via_register_pack",
+      "expected": "packed_fma",
+      "block": 2,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/f32x2_mul_add_via_register_pack.ptx",
+          "sha256": "2eddbfcd768653c63a023b106b30b2139ce58b36a430f2c15f15b9cc636cc09c",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1432,
+              "test": "test_f32x2_mul_add_via_register_pack"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/f32x2_mul_add_via_register_pack.out",
+          "expected_outputs": "out[0] = ((in[0] * in[0]) + in[0])\nout[1] = ((in[1] * in[1]) + in[1])\nout[2] = ((in[2] * in[2]) + in[2])\nout[3] = ((in[3] * in[3]) + in[3])\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/f32x2_mul_add_via_register_pack.s",
+      "native_sha256": "014eb8b2d9485d002979a8aaded63c9ef5bcf99f7db7de520281cf3ad0167116",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_mul_add_via_register_pack"
+    },
+    {
+      "name": "f32x2_operand_assembled_with_cvt_zero_extension",
+      "expected": "packed_fma",
+      "block": 2,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/f32x2_operand_assembled_with_cvt_zero_extension.ptx",
+          "sha256": "5898b58979e01ed64456e0999751a2396aed2e3822b87614dd5ada4881e418b3",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1504,
+              "test": "test_f32x2_operand_assembled_with_cvt_zero_extension"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/f32x2_operand_assembled_with_cvt_zero_extension.out",
+          "expected_outputs": "out[0] = fma(in[0], in[0], in[0])\nout[1] = fma(in[1], in[1], in[1])\nout[2] = fma(in[2], in[2], in[2])\nout[3] = fma(in[3], in[3], in[3])\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/f32x2_operand_assembled_with_cvt_zero_extension.s",
+      "native_sha256": "04d4753c11b93c7fe8559203a287822bbc3f130a791511932973eb06604ad616",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_operand_assembled_with_cvt_zero_extension"
+    },
+    {
+      "name": "f32x2_operand_assembled_with_shift_and_or",
+      "expected": "packed_fma",
+      "block": 2,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/f32x2_operand_assembled_with_shift_and_or.ptx",
+          "sha256": "79a7c862db76ac826012039318db6c141dc89b4039a95e55d5f32320f9065c9a",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1484,
+              "test": "test_f32x2_operand_assembled_with_shift_and_or"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/f32x2_operand_assembled_with_shift_and_or.out",
+          "expected_outputs": "out[0] = fma(in[0], in[0], in[0])\nout[1] = fma(in[1], in[1], in[1])\nout[2] = fma(in[2], in[2], in[2])\nout[3] = fma(in[3], in[3], in[3])\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/f32x2_operand_assembled_with_shift_and_or.s",
+      "native_sha256": "b1edbdbc958ceb7d590d67f3707cb78d3e5f70b0c7b52dd92294ef4883e620d1",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_operand_assembled_with_shift_and_or"
+    },
+    {
+      "name": "f32x2_scalar_reference",
+      "expected": "packed_fma",
+      "block": 2,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/f32x2_scalar_reference.ptx",
+          "sha256": "bbdd760cadbab5214537ca62283b214b10acb6ecc5a6ff57317f2581f095cc38",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1419,
+              "test": "test_f32x2_scalar_reference"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/f32x2_scalar_reference.out",
+          "expected_outputs": "out[0] = fma(in[0], in[0], in[0])\nout[1] = fma(in[1], in[1], in[1])\nout[2] = fma(in[2], in[2], in[2])\nout[3] = fma(in[3], in[3], in[3])\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/f32x2_scalar_reference.s",
+      "native_sha256": "835701c7638d25d379b2cfc3dd98e8d517a7d266007174a4e022283f1f5c69f3",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_scalar_reference"
+    },
+    {
+      "name": "f32x2_wrong_lane_math",
+      "expected": "packed_square",
+      "block": 2,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/f32x2_wrong_lane_math.ptx",
+          "sha256": "585619aeaa13884f7363931f7304754a295416eda531a55b12c6f5af87ff933c",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1461,
+              "test": "test_f32x2_wrong_lane_math"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/f32x2_wrong_lane_math.out",
+          "expected_outputs": "out[0] = (in[0] * in[0])\nout[1] = (in[1] * in[1])\nout[2] = (in[2] * in[2])\nout[3] = (in[3] * in[3])\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/f32x2_wrong_lane_math.s",
+      "native_sha256": "0be07d4841c3cef13684f56505903161d3ec658907d5ba93cda7b365e1247668",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_wrong_lane_math"
+    },
+    {
+      "name": "b16_shift_amount_is_read_as_u32",
+      "expected": "shift16",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 3,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/b16_shift_amount_is_read_as_u32.ptx",
+          "sha256": "2a282918853e155fbca68a550c46ad0ebe2d224942447aac6c7c1fd11e9e4906",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 751,
+              "test": "test_b16_shift_amount_is_read_as_u32"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/b16_shift_amount_is_read_as_u32.out",
+          "expected_outputs": "out[0] = 0\nout[1] = 0\nout[2] = 65535\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/b16_shift_amount_is_read_as_u32.s",
+      "native_sha256": "2dd3c56b9c321a3f5104b43e5bf43e0f5667448f4e98e00d1c32eb6199ba4c52",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::b16_shift_amount_is_read_as_u32"
+    },
+    {
+      "name": "b64_shift_by_u32_register",
+      "expected": "shift64",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 8,
+      "output_len": 2,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/b64_shift_by_u32_register.ptx",
+          "sha256": "5c9562c6fdf0791c716c8cb0e9a5aaa5ec956e28a9f268e0df4b3f3e107ca47a",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 809,
+              "test": "test_b64_shift_by_u32_register"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/b64_shift_by_u32_register.out",
+          "expected_outputs": "out[0] = 3298534883328\nout[1] = 3\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/b64_shift_by_u32_register.s",
+      "native_sha256": "40ba29433e3027365939e06a1bf8b51cf901f608fad0a097bdc43d50442dfb03",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::b64_shift_by_u32_register"
+    },
+    {
+      "name": "bfe_extract_and_sign_fill",
+      "expected": "bfe",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/bfe_extract_and_sign_fill.ptx",
+          "sha256": "a34673de4b4c32424f7fb41d6c8c38a09b93c3ffdfd57868de09f07864fd3307",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 849,
+              "test": "test_bfe_extract_and_sign_fill"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/bfe_extract_and_sign_fill.out",
+          "expected_outputs": "out[0] = 10\nout[1] = 4294967290\nout[2] = 4294967295\nout[3] = 0\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/bfe_extract_and_sign_fill.s",
+      "native_sha256": "a2002498f20b82132476d2b2452fb83967eed00a127f34bc787f08327b79a9b9",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::bfe_extract_and_sign_fill"
+    },
+    {
+      "name": "bfi_clips_field_to_register_width",
+      "expected": "bfi",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/bfi_clips_field_to_register_width.ptx",
+          "sha256": "052e354a26877e38706db2b2b9eb16a35f8692c89af71a34ddeb3f294376b708",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 854,
+              "test": "test_bfi_clips_field_to_register_width"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/bfi_clips_field_to_register_width.out",
+          "expected_outputs": "out[0] = 48\nout[1] = 5\nout[2] = 5\nout[3] = 7\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/bfi_clips_field_to_register_width.s",
+      "native_sha256": "dfbaabfedb8737ee8aeb97976273a1e5c6f24ad3d8f60c087e08f30fe5cd809d",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::bfi_clips_field_to_register_width"
+    },
+    {
+      "name": "int_abs_read_at_signed_width",
+      "expected": "intabs",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 2,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/int_abs_read_at_signed_width.ptx",
+          "sha256": "828253e94afdaadc5a83fa587156dce44fb418be502f6200d179edc291689d48",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 762,
+              "test": "test_int_abs_read_at_signed_width"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/int_abs_read_at_signed_width.out",
+          "expected_outputs": "out[0] = 5\nout[1] = 2147483648\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/int_abs_read_at_signed_width.s",
+      "native_sha256": "b9a8a562cf13263686c2dac2ae739b9ccecb76684e1600a4f2b8b62d75d17f2f",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::int_abs_read_at_signed_width"
+    },
+    {
+      "name": "mul_hi_u32_negative_operand",
+      "expected": "one",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/mul_hi_u32_negative_operand.ptx",
+          "sha256": "aa5720bb29711cf82dfbf939706591fb57dcff5d22c879c476c456132587eb9c",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 733,
+              "test": "test_mul_hi_u32_negative_operand"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/mul_hi_u32_negative_operand.out",
+          "expected_outputs": "out[0] = 1\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/mul_hi_u32_negative_operand.s",
+      "native_sha256": "5271165c4a6eaa50fa81235585ac86a26ea85705d6157641a3953d81e3a972a5",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::mul_hi_u32_negative_operand"
+    },
+    {
+      "name": "mul_wide_u16_magic_division",
+      "expected": "magicdiv",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 2,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/mul_wide_u16_magic_division.ptx",
+          "sha256": "3638ff20c6e5ec59091f18b2ceb37a4e3c1c41a27f2a04753b885a9693a6dfbf",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 726,
+              "test": "test_mul_wide_u16_magic_division"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/mul_wide_u16_magic_division.out",
+          "expected_outputs": "out[0] = 1\nout[1] = 3\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/mul_wide_u16_magic_division.s",
+      "native_sha256": "51b58c575085a6d6ac5fc90086ae95ece26237c2960445303eaa2bf1f0c8c8e2",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::mul_wide_u16_magic_division"
+    },
+    {
+      "name": "shf_clamp_negative_shift_amount_saturates",
+      "expected": "funnel",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/shf_clamp_negative_shift_amount_saturates.ptx",
+          "sha256": "c46d912b26f463796ea818755b1fd5e3c502e602bfe6e5c6e30f51a6ba6e06eb",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 741,
+              "test": "test_shf_clamp_negative_shift_amount_saturates"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/shf_clamp_negative_shift_amount_saturates.out",
+          "expected_outputs": "out[0] = 286331153\nout[1] = 572662306\nout[2] = 143165576\nout[3] = 1145324612\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/shf_clamp_negative_shift_amount_saturates.s",
+      "native_sha256": "df37817c39353e0825abd84910aeefe4f716fe6fd94d0e4adb9653e935717e72",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::shf_clamp_negative_shift_amount_saturates"
+    },
+    {
+      "name": "div_by_three_vs_rcp_of_three",
+      "expected": "div3",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/div_by_three_vs_rcp_of_three.ptx",
+          "sha256": "c8153405f2b46763af6604b95775cc7adbdfc0e1f17d870dc2b91107f02a1882",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1123,
+              "test": "test_div_by_three_vs_rcp_of_three"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/div_by_three_vs_rcp_of_three.out",
+          "expected_outputs": "out[0] = (in[0] * 1/3)\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/div_by_three_vs_rcp_of_three.s",
+      "native_sha256": "dc8b2b279694b8af5b3f29fc6e99f3d0618ab1af9f19debb68dd71dfe46bcdb0",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::div_by_three_vs_rcp_of_three"
+    },
+    {
+      "name": "div_by_three_vs_rcp_of_three_2",
+      "expected": "div3",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/div_by_three_vs_rcp_of_three_2.ptx",
+          "sha256": "f98f6de89892e865bd91439f6cd01cb6c86c993a0f39c994c74f8df00017e783",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1123,
+              "test": "test_div_by_three_vs_rcp_of_three"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/div_by_three_vs_rcp_of_three_2.out",
+          "expected_outputs": "out[0] = (in[0] * 1/3)\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/div_by_three_vs_rcp_of_three_2.s",
+      "native_sha256": "02d8652b2b07b97e06b3a388e50f1f41102c1a88a0c52810236957a42004b012",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::div_by_three_vs_rcp_of_three_2"
+    },
+    {
+      "name": "div_by_n_vs_mul_by_computed_reciprocal",
+      "expected": "div768",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/div_by_n_vs_mul_by_computed_reciprocal.ptx",
+          "sha256": "4c2102846c50beaff577f1ea4746cf720b68b6ba4ef20937d5b1f19837542eaa",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1133,
+              "test": "test_div_by_n_vs_mul_by_computed_reciprocal"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/div_by_n_vs_mul_by_computed_reciprocal.out",
+          "expected_outputs": "out[0] = (in[0] / 768)\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/div_by_n_vs_mul_by_computed_reciprocal.s",
+      "native_sha256": "9feb78d0e3567d6b8a28f2d599981c779132903b3e9bbe3599a6bd14a9d17b62",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::div_by_n_vs_mul_by_computed_reciprocal"
+    },
+    {
+      "name": "div_by_n_vs_mul_by_computed_reciprocal_2",
+      "expected": "div768",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/div_by_n_vs_mul_by_computed_reciprocal_2.ptx",
+          "sha256": "90dbe5f3d6eb2d37c6a376e9616c167954bdaf58475ad07e3a4f145aad4e215e",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1133,
+              "test": "test_div_by_n_vs_mul_by_computed_reciprocal"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/div_by_n_vs_mul_by_computed_reciprocal_2.out",
+          "expected_outputs": "out[0] = (in[0] * 1/768)\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/div_by_n_vs_mul_by_computed_reciprocal_2.s",
+      "native_sha256": "dd8130dc3ad95ce17ca93e17ca5c82f9cab9e6aea93ca2277e0db23fb39aec0b",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::div_by_n_vs_mul_by_computed_reciprocal_2"
+    },
+    {
+      "name": "elect_sync_elects_the_lowest_active_lane",
+      "expected": "elect",
+      "block": 32,
+      "input_width": 4,
+      "input_len": 32,
+      "output_width": 4,
+      "output_len": 32,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/elect_sync_elects_the_lowest_active_lane.ptx",
+          "sha256": "7ffb3757693b5f74b2c56aad92a2b1f50c1d228436d7f3bbf7b6c9373e4d5c0c",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 409,
+              "test": "test_elect_sync_elects_the_lowest_active_lane"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/elect_sync_elects_the_lowest_active_lane.out",
+          "expected_outputs": "out[0] = 1000\nout[1] = 0\nout[2] = 0\nout[3] = 0\nout[4] = 0\nout[5] = 0\nout[6] = 0\nout[7] = 0\nout[8] = 0\nout[9] = 0\nout[10] = 0\nout[11] = 0\nout[12] = 0\nout[13] = 0\nout[14] = 0\nout[15] = 0\nout[16] = 0\nout[17] = 0\nout[18] = 0\nout[19] = 0\nout[20] = 0\nout[21] = 0\nout[22] = 0\nout[23] = 0\nout[24] = 0\nout[25] = 0\nout[26] = 0\nout[27] = 0\nout[28] = 0\nout[29] = 0\nout[30] = 0\nout[31] = 0\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/elect_sync_elects_the_lowest_active_lane.s",
+      "native_sha256": "5c3143340ff6a2600e784c9cbccde4e785eb45def254d36a73ed23dd4eb31f6c",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::elect_sync_elects_the_lowest_active_lane"
+    },
+    {
+      "name": "elect_sync_skips_an_already_exited_lane",
+      "expected": "elect_skip",
+      "block": 32,
+      "input_width": 4,
+      "input_len": 32,
+      "output_width": 4,
+      "output_len": 32,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/elect_sync_skips_an_already_exited_lane.ptx",
+          "sha256": "09e0b13f8ab91e3f693d13aa1ffc2eb7024d4ba588e0adc37783f5655e97e102",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 425,
+              "test": "test_elect_sync_skips_an_already_exited_lane"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/elect_sync_skips_an_already_exited_lane.out",
+          "expected_outputs": "out[1] = 1001\nout[2] = 0\nout[3] = 0\nout[4] = 0\nout[5] = 0\nout[6] = 0\nout[7] = 0\nout[8] = 0\nout[9] = 0\nout[10] = 0\nout[11] = 0\nout[12] = 0\nout[13] = 0\nout[14] = 0\nout[15] = 0\nout[16] = 0\nout[17] = 0\nout[18] = 0\nout[19] = 0\nout[20] = 0\nout[21] = 0\nout[22] = 0\nout[23] = 0\nout[24] = 0\nout[25] = 0\nout[26] = 0\nout[27] = 0\nout[28] = 0\nout[29] = 0\nout[30] = 0\nout[31] = 0\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/elect_sync_skips_an_already_exited_lane.s",
+      "native_sha256": "9797d2ae64061a7378d5675ad6a98c70e58bc2b25b3f069cb5d81979d035ccca",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::elect_sync_skips_an_already_exited_lane"
+    },
+    {
+      "name": "shfl_sync_idx_exchange",
+      "expected": "exchange",
+      "block": 2,
+      "input_width": 4,
+      "input_len": 2,
+      "output_width": 4,
+      "output_len": 2,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/shfl_sync_idx_exchange.ptx",
+          "sha256": "202f110482a3ed232fb1ab7974bfe80c2db86d956bb8e3795c0588c7af7e3595",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1074,
+              "test": "test_shfl_sync_idx_exchange"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/shfl_sync_idx_exchange.out",
+          "expected_outputs": "out[0] = in[1]\nout[1] = in[0]\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/shfl_sync_idx_exchange.s",
+      "native_sha256": "2a7f9a248508fc7d8681e5f09bae7f17cdeba60e4b216aded8b87c2c75288628",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::shfl_sync_idx_exchange"
+    },
+    {
+      "name": "tail_exit_warp_shfl_reduction",
+      "expected": "sum16",
+      "block": 32,
+      "input_width": 4,
+      "input_len": 16,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/tail_exit_warp_shfl_reduction.ptx",
+          "sha256": "5a70fc8646d58bfb8ae0d67e3e60ca7d55e841b54a04f348af4baf172d141be6",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/graph_tests.rs",
+              "line": 244,
+              "test": "exited_lanes_count_as_arrived_at_warp_collectives"
+            },
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1172,
+              "test": "test_tail_exit_warp_shfl_reduction"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/tail_exit_warp_shfl_reduction.out",
+          "expected_outputs": "out[0] = ((((in[0] + in[8]) + (in[4] + in[12])) + ((in[2] + in[10]) + (in[6] + in[14]))) + (((in[1] + in[9]) + (in[5] + in[13])) + ((in[3] + in[11]) + (in[7] + in[15]))))\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/tail_exit_warp_shfl_reduction.s",
+      "native_sha256": "330f2f6cd0ba19fe06a29f3e0561814fba2b60e63933f89d7de54c4d2a9e3543",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::tail_exit_warp_shfl_reduction"
+    },
+    {
+      "name": "tail_exit_warp_shfl_reduction_reference",
+      "expected": "sum16",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 16,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/tail_exit_warp_shfl_reduction_reference.ptx",
+          "sha256": "a2a34abed00f53617a06e7e05d25d9c8c24cee1075c1ad163b39447cb2813f51",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1172,
+              "test": "test_tail_exit_warp_shfl_reduction"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/tail_exit_warp_shfl_reduction_reference.out",
+          "expected_outputs": "out[0] = (((((((((((((((in[0] + in[1]) + in[2]) + in[3]) + in[4]) + in[5]) + in[6]) + in[7]) + in[8]) + in[9]) + in[10]) + in[11]) + in[12]) + in[13]) + in[14]) + in[15])\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/tail_exit_warp_shfl_reduction_reference.s",
+      "native_sha256": "5ef1b4fbf4386b6d8867c3bab7d37ef2dbbe1a29364261b1939d2d2c86d3a45b",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::tail_exit_warp_shfl_reduction_reference"
+    },
+    {
+      "name": "symexpf_callseq",
+      "expected": "exp",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/symexpf_callseq.ptx",
+          "sha256": "bfde56b45ad3c356f1de1a59630420ec4aab06fb8992dd45cc84720c76cfc0f3",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1048,
+              "test": "test_symexpf_callseq"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/symexpf_callseq.out",
+          "expected_outputs": "out[0] = exp(in[0])\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/symexpf_callseq.s",
+      "native_sha256": "a410a1d9bc5ee532a61e4876bdc4e56f6226aa109102bbe81f73819d0cc3bd10",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::symexpf_callseq"
+    },
+    {
+      "name": "tanh_approx_expands_to_exp_fragment",
+      "expected": "tanh",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/tanh_approx_expands_to_exp_fragment.ptx",
+          "sha256": "d545f7d4887bcd7cbf60843c1d03afef204446218f5bfbb9944d93f9a4e0fc72",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1056,
+              "test": "test_tanh_approx_expands_to_exp_fragment"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/tanh_approx_expands_to_exp_fragment.out",
+          "expected_outputs": "out[0] = ((exp((in[0] * 2)) - 1) / (exp((in[0] * 2)) + 1))\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/tanh_approx_expands_to_exp_fragment.s",
+      "native_sha256": "633e55082a131152d5bfb64dc668737b17046e6c30d2f26084ef46c9b7a47f89",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::tanh_approx_expands_to_exp_fragment"
+    },
+    {
+      "name": "tanh_approx_zero_vs_zero",
+      "expected": "tanh_zero_fragment",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/tanh_approx_zero_vs_zero.ptx",
+          "sha256": "ce3adac0b1abb00a950534a4a17c9cb41bb322f95df3b5ef5cb1b8e397559505",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1066,
+              "test": "test_tanh_approx_zero_vs_zero"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/tanh_approx_zero_vs_zero.out",
+          "expected_outputs": "out[0] = ((exp(0) - 1) / (exp(0) + 1))\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/tanh_approx_zero_vs_zero.s",
+      "native_sha256": "91197da343249b1dc4b1871f1da3c45839d4ec195caf5bb2bd02b642a8cbe634",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::tanh_approx_zero_vs_zero"
+    },
+    {
+      "name": "tanh_approx_zero_vs_zero_2",
+      "expected": "zero",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/tanh_approx_zero_vs_zero_2.ptx",
+          "sha256": "655e2f77447f48dc70295945d2333421c50f626d9d6db342a3daca61869db46a",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1066,
+              "test": "test_tanh_approx_zero_vs_zero"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/tanh_approx_zero_vs_zero_2.out",
+          "expected_outputs": "out[0] = 0\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/tanh_approx_zero_vs_zero_2.s",
+      "native_sha256": "bc7abca15f4959c6c9e3869e987a144f606181133c55216f23fc6455c2380c54",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::tanh_approx_zero_vs_zero_2"
+    },
+    {
+      "name": "cvta_to_global_accepted",
+      "expected": "copy",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/cvta_to_global_accepted.ptx",
+          "sha256": "a52477e0e92f6cd7bd65f6d5e003a63368549e5aee5fff15c6d1b73612d5ec6a",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1247,
+              "test": "test_cvta_to_global_accepted"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/cvta_to_global_accepted.out",
+          "expected_outputs": ""
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/cvta_to_global_accepted.s",
+      "native_sha256": "5a79ce21a6dfbfa48893e395dd86be38d4839c6e850f89c472048ca307c65ad3",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::cvta_to_global_accepted",
+      "mapping_limit": "Baseline positively accepts an identity pointer conversion with no output. Native counterpart strengthens ordinary pointer transport with a bounded input/output copy; exact PTX CVTA encoding is separately scoped."
+    },
+    {
+      "name": "mapa_rank_zero_is_the_identity",
+      "expected": "offsets",
+      "block": 4,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 4,
+      "lds": 16,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/mapa_rank_zero_is_the_identity.ptx",
+          "sha256": "dd0e89388a5fcaf237f40242c7885f12893f16960c9cd82ffcba963f609c027f",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1766,
+              "test": "test_mapa_rank_zero_is_the_identity"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/mapa_rank_zero_is_the_identity.out",
+          "expected_outputs": "out[0] = 0\nout[1] = 4\nout[2] = 8\nout[3] = 12\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/mapa_rank_zero_is_the_identity.s",
+      "native_sha256": "c7261624caaa21e11c0269263e5421f54392fc69c1bb631fc5b82839ded4f0c5",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::mapa_rank_zero_is_the_identity",
+      "mapping_limit": "Same-workgroup LDS byte offset identity, output0,4,8,12. Cross-CTA cluster routing is not claimed."
+    },
+    {
+      "name": "extern_only_shared_placement_and_bounds",
+      "expected": "fortytwo",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 16,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/extern_only_shared_placement_and_bounds.ptx",
+          "sha256": "bdbad9e73049ca3e97c8f59c879eadb29638612a7291dd1508a5b91db30e689c",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1692,
+              "test": "test_extern_only_shared_roundtrip"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/extern_only_shared_placement_and_bounds.out",
+          "expected_outputs": "out[0] = 42\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/extern_only_shared_placement_and_bounds.s",
+      "native_sha256": "5e9878efe96f14f31acfc9703040aac9e1c24e03a44be761bb25021509f689bb",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::extern_only_shared_placement_and_bounds"
+    },
+    {
+      "name": "extern_vs_static_shared_no_false_race",
+      "expected": "seven",
+      "block": 2,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 256,
+      "dynamic_shared": 16,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/extern_vs_static_shared_no_false_race.ptx",
+          "sha256": "915f8fe1cf1c2860fbc873391ff99cb7c226e1b828dc8a6a6490ca1c8e0e8c7a",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 98,
+              "test": "test_extern_vs_static_shared_no_false_race"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/extern_vs_static_shared_no_false_race.out",
+          "expected_outputs": "out[0] = 7\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/extern_vs_static_shared_no_false_race.s",
+      "native_sha256": "2db2f78b206f6f5da05e09674684b81da3e0bf93b3c41b019b130f85b8b7d495",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::extern_vs_static_shared_no_false_race"
+    },
+    {
+      "name": "byte_pair_round_trips_through_shared_memory_at_native_16_bit_width",
+      "expected": "bytepair",
+      "block": 1,
+      "input_width": 1,
+      "input_len": 2,
+      "output_width": 4,
+      "output_len": 2,
+      "lds": 0,
+      "dynamic_shared": 16,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.ptx",
+          "sha256": "904915bd3fcf5cbc221490fcbae91a0fbc2f4c28e048a752b952b918bd7ad549",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1610,
+              "test": "test_byte_pair_round_trips_through_shared_memory_at_native_16_bit_width"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.out",
+          "expected_outputs": "out[0] = x[0]\nout[1] = x[1]\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.s",
+      "native_sha256": "d3fa955e4f4581ff120063c9b1446072c9fec5b791f22f1c26c940ad3b152d8a",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::byte_pair_round_trips_through_shared_memory_at_native_16_bit_width"
+    },
+    {
+      "name": "upper_half_address_space_access_in_bounds",
+      "expected": "copy4",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 8,
+      "output_width": 4,
+      "output_len": 1,
+      "lds": 0,
+      "dynamic_shared": 0,
+      "input_base": 9223372036854775792,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/upper_half_address_space_access_in_bounds.ptx",
+          "sha256": "a2faa3788685e89f315b2b7e062974a9488d706ffd674269419575afe12c36df",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1239,
+              "test": "test_upper_half_address_space_access_in_bounds"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/upper_half_address_space_access_in_bounds.out",
+          "expected_outputs": "out[0] = in[4]\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/upper_half_address_space_access_in_bounds.s",
+      "native_sha256": "7710175d238d300e457ea7fbe254d2c20bae3f0492b53cdcd81522649a7b76a9",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::upper_half_address_space_access_in_bounds",
+      "mapping_limit": "Preserves exact baseline input base0x7ffffffffffffff0 and+16 access crossing signed i64 boundary without unsigned64 wrap."
+    },
+    {
+      "name": "region_edge_exact_fit_accesses_pass",
+      "expected": "regionedge",
+      "block": 1,
+      "input_width": 4,
+      "input_len": 4,
+      "output_width": 4,
+      "output_len": 2,
+      "lds": 112,
+      "dynamic_shared": 0,
+      "input_base": 65536,
+      "output_base": 131072,
+      "baseline": [
+        {
+          "path": "crates/volta_pipeline/tests/ptx/success/region_edge_exact_fit_accesses_pass.ptx",
+          "sha256": "77216b8268c4675fe72cdfa596a7ab04ec1e6a61eefcb77c478942e11adfcd1d",
+          "rust_tests": [
+            {
+              "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+              "line": 1228,
+              "test": "test_region_edge_exact_fit_accesses_pass"
+            }
+          ],
+          "expected_output_path": "crates/volta_pipeline/tests/ptx/success/region_edge_exact_fit_accesses_pass.out",
+          "expected_outputs": "out[0] = 7\nout[1] = 1\n"
+        }
+      ],
+      "native_source": "tests/gfx950/portable-scalar/region_edge_exact_fit_accesses_pass.s",
+      "native_sha256": "bfa2b620dc24c8795b3a5ed2ee1846a18c9e2eb65a2bcf877033eeddfc50c865",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::region_edge_exact_fit_accesses_pass"
+    }
+  ],
+  "additional_compiler_cases": [
+    {
+      "baseline": "crates/volta_pipeline/tests/ptx/success/array_overlapping_module_global_window_rejected.ptx",
+      "native_source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-module-globals.s",
+      "native_test": "module_global_window_half_open_boundary_is_disjoint_and_bindings_are_loaded",
+      "property": "Array ends exactly at synthetic module window base and remains disjoint; native also checks actual bound object values and readonly initialization.",
+      "native_sha256": "4685d039ca74ebfb46c64326de9302af19675f60dac01990a7da3a07316d7009"
+    },
+    {
+      "baseline": "crates/volta_pipeline/tests/ptx/success/cluster_special_registers_describe_a_single_cta_cluster.ptx",
+      "native_source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-grid-output.s",
+      "native_test": "launch_grid_and_group_dimensions_are_emitted_as_integer_outputs",
+      "property": "Only portable ordinary grid(2,3,4), groupID(0,0,0), block(4,3,2) outputs. Exact15-field NVIDIA cluster contract is separately scoped and not claimed as native output equality.",
+      "native_sha256": "4329c90b02b41cea7e7cbe81184b3b5552d00283a731fdbfd5a2496933e20000"
+    }
+  ],
+  "scope": "42 native hand-assembly contracts plus2 existing compiler ABI mappings; computation comparisons use the disclosed exact real-number model. This mapping is not a completion-status manifest."
+}

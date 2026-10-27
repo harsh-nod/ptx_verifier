@@ -1637,6 +1637,10 @@ impl<'a> Interpreter<'a> {
                 Some(lane),
                 "opaque PC relocation cannot be used as integer data",
             )),
+            Value::PartialBits { .. } => Err(wave.fail(
+                Some(lane),
+                "integer arithmetic observes undefined bits from ABI padding",
+            )),
             _ => Err(EvalError::Unsupported {
                 pc: wave.pc,
                 what: "typed floating/packed data cannot be reinterpreted as a symbolic integer"
@@ -1976,6 +1980,14 @@ impl<'a> Interpreter<'a> {
                 self.claim_byte_format(wave, bytes[byte], ByteFormat::OcpE4m3)?;
                 return Ok(bytes[byte]);
             }
+            Value::BytePair(lo, hi) => {
+                if byte < 2 {
+                    let value = if byte == 0 { lo } else { hi };
+                    self.claim_byte_format(wave, value, ByteFormat::OcpE4m3)?;
+                    return Ok(value);
+                }
+                return Ok(self.arena.int(0));
+            }
             Value::Byte(expr) => {
                 if byte == 0 {
                     self.claim_byte_format(wave, expr, ByteFormat::OcpE4m3)?;
@@ -2163,11 +2175,13 @@ impl<'a> Interpreter<'a> {
             | Value::PredicateWord { .. }
             | Value::RelocationWord { .. }
             | Value::SharedApertureHi
+            | Value::PartialBits { .. }
             | Value::NarrowInt { .. }
             | Value::WidePart { .. }
             | Value::Real(_)
             | Value::Byte(_)
-            | Value::Bytes(_) => Err(EvalError::Unsupported {
+            | Value::Bytes(_)
+            | Value::BytePair(..) => Err(EvalError::Unsupported {
                 pc: wave.pc,
                 what: "symbolic non-f16 bits reinterpreted as half".into(),
             }),
@@ -2266,6 +2280,7 @@ impl<'a> Interpreter<'a> {
                     | "s_mulk_i32"
                     | "s_addk_i32"
                     | "s_bitset1_b32"
+                    | "s_sext_i32_i16"
                     | "s_ff1_i32_b64"
                     | "s_cselect_b32"
                     | "s_cselect_b64"
@@ -2367,6 +2382,14 @@ impl<'a> Interpreter<'a> {
             return Ok(());
         }
         let dest = &o[0];
+        if name == "s_sext_i32_i16" {
+            // CDNA4 SOP1 observes only low16 and preserves SCC.
+            let value = wave
+                .value(&o[1], 0)?
+                .selected_bits(0, 16)
+                .map_err(|error| wave.fail(None, error))? as i16 as i32;
+            return wave.put_value(dest, 0, Value::SignedInteger(value));
+        }
         if name == "s_bitset1_b32" {
             let value = wave.bits(dest, 0)? | (1u32 << (wave.bits(&o[1], 0)? & 31));
             return wave.put_value(dest, 0, Value::Integer(value));
@@ -3282,10 +3305,16 @@ impl<'a> Interpreter<'a> {
                     let value = wave.value(&o[2], lane)?;
                     if shift == 0 {
                         value
-                    } else if shift % 8 == 0 && matches!(value, Value::Byte(_) | Value::Bytes(_)) {
+                    } else if shift % 8 == 0
+                        && matches!(
+                            value,
+                            Value::Byte(_) | Value::BytePair(..) | Value::Bytes(_)
+                        )
+                    {
                         let zero = self.arena.int(0);
                         let bytes = match value {
                             Value::Byte(expr) => [expr, zero, zero, zero],
+                            Value::BytePair(lo, hi) => [lo, hi, zero, zero],
                             Value::Bytes(bytes) => bytes,
                             _ => unreachable!(),
                         };
@@ -3439,16 +3468,34 @@ impl<'a> Interpreter<'a> {
                 }
                 "v_lshlrev_b64" | "v_lshrrev_b64" => {
                     let shift = wave.bits(&o[1], lane)? & 63;
-                    let bits = wave.wide(&o[2], lane)?;
-                    wave.put_wide(
-                        &o[0],
-                        lane,
-                        if name == "v_lshlrev_b64" {
+                    let destination = wave.destination(&o[0])?;
+                    if let Ok(bits) = wave.wide(&o[2], lane) {
+                        let result = if name == "v_lshlrev_b64" {
                             bits.wrapping_shl(shift)
                         } else {
                             bits >> shift
-                        },
-                    )?;
+                        };
+                        wave.put(destination, lane, 0, Value::Integer(result as u32))?;
+                        wave.put(destination, lane, 1, Value::Integer((result >> 32) as u32))?;
+                    } else if matches!(shift, 0 | 32) {
+                        let source = wave.destination(&o[2])?;
+                        let low = wave.reg(source, lane, 0)?;
+                        let high = wave.reg(source, lane, 1)?;
+                        let (low, high) = if shift == 0 {
+                            (low, high)
+                        } else if name == "v_lshlrev_b64" {
+                            (Value::Bits(0), low)
+                        } else {
+                            (high, Value::Bits(0))
+                        };
+                        wave.put(destination, lane, 0, low)?;
+                        wave.put(destination, lane, 1, high)?;
+                    } else {
+                        return Err(wave.fail(
+                            Some(lane),
+                            "non-word symbolic64-bit shift requires exact encoded data bits",
+                        ));
+                    }
                     continue;
                 }
                 "v_lshl_add_u64" => {
@@ -3496,6 +3543,19 @@ impl<'a> Interpreter<'a> {
                     };
                     Value::Real(result)
                 }
+                "v_cvt_f32_ubyte2" => {
+                    let value = wave.value(&o[1], lane)?;
+                    let expr = if let Value::Bytes(bytes) = value {
+                        self.claim_byte_format(wave, bytes[2], ByteFormat::UnsignedU8)?;
+                        bytes[2]
+                    } else {
+                        let byte = value
+                            .selected_bits(16, 8)
+                            .map_err(|error| wave.fail(Some(lane), error))?;
+                        self.arena.int(byte as i64)
+                    };
+                    Value::Real(expr)
+                }
                 "v_cvt_f32_u32" | "v_cvt_f32_i32" => {
                     if name == "v_cvt_f32_u32"
                         && matches!(
@@ -3520,6 +3580,37 @@ impl<'a> Interpreter<'a> {
                 }
                 _ => {
                     use super::scalar::{IntBinOp, IntType};
+                    if name == "v_or_b32" {
+                        let a = wave.value(&o[1], lane)?;
+                        let b = wave.value(&o[2], lane)?;
+                        let transport = |value: Value| {
+                            matches!(
+                                value,
+                                Value::Input(_)
+                                    | Value::Real(_)
+                                    | Value::IntExpr(_)
+                                    | Value::WidePart { .. }
+                                    | Value::Half(_)
+                                    | Value::Halves(..)
+                                    | Value::PartialHalves(..)
+                                    | Value::Byte(_)
+                                    | Value::BytePair(..)
+                                    | Value::Bytes(_)
+                                    | Value::NarrowInt { .. }
+                            )
+                        };
+                        let moved = if b.bits() == Ok(0) && transport(a) {
+                            Some(a)
+                        } else if a.bits() == Ok(0) && transport(b) {
+                            Some(b)
+                        } else {
+                            None
+                        };
+                        if let Some(value) = moved {
+                            wave.put_value(&o[0], lane, value)?;
+                            continue;
+                        }
+                    }
                     let operation = match name {
                         "v_add_u32" | "v_add_nc_u32" => Some((IntBinOp::Add, false)),
                         "v_sub_u32" | "v_sub_nc_u32" => Some((IntBinOp::Sub, false)),
@@ -3933,6 +4024,16 @@ impl<'a> Interpreter<'a> {
                 let kernarg = scalar && addr >= KERNARG_BASE && addr - KERNARG_BASE < kernarg_size;
                 let dispatch = scalar && addr >= DISPATCH_BASE && addr - DISPATCH_BASE < 64;
                 let abi = kernarg || dispatch;
+                if abi
+                    && width
+                        > if kernarg {
+                            kernarg_size - (addr - KERNARG_BASE)
+                        } else {
+                            64 - (addr - DISPATCH_BASE)
+                        }
+                {
+                    return Err(wave.fail(Some(lane), "load exceeds the declared ABI segment"));
+                }
                 if !abi {
                     self.validate_address(wave, lane, effective_lds, addr, width, store)?;
                 }
@@ -3982,21 +4083,30 @@ impl<'a> Interpreter<'a> {
                     } else {
                         &self.global
                     };
-                    let mut value = memory.read(addr, width).map_err(|e| {
-                        wave.fail(
-                            Some(lane),
-                            format!(
-                                "{} {addr:#x}: {e}",
-                                if effective_lds {
-                                    "LDS"
-                                } else if abi {
-                                    "kernarg"
-                                } else {
-                                    "global"
-                                }
-                            ),
-                        )
-                    })?;
+                    let mut value = memory
+                        .read(addr, width)
+                        .or_else(|error| {
+                            if kernarg {
+                                memory.read_partial_abi(addr, width)
+                            } else {
+                                Err(error)
+                            }
+                        })
+                        .map_err(|e| {
+                            wave.fail(
+                                Some(lane),
+                                format!(
+                                    "{} {addr:#x}: {e}",
+                                    if effective_lds {
+                                        "LDS"
+                                    } else if abi {
+                                        "kernarg"
+                                    } else {
+                                        "global"
+                                    }
+                                ),
+                            )
+                        })?;
                     if name.contains("sbyte") || name.ends_with("i8") {
                         value = match value {
                             Value::Byte(expr) => {
@@ -4048,13 +4158,16 @@ impl<'a> Interpreter<'a> {
                             Value::SignedInteger(value) => {
                                 StoredValue::Scalar(self.arena.int(value as i64))
                             }
-                            Value::Halves(lo, hi) => StoredValue::Pair(lo, hi),
+                            Value::Halves(lo, hi) | Value::BytePair(lo, hi) => {
+                                StoredValue::Pair(lo, hi)
+                            }
                             Value::Bytes(bytes) => StoredValue::Quad(bytes),
                             Value::PartialHalves(..)
                             | Value::WidePart { .. }
                             | Value::PredicateWord { .. }
                             | Value::RelocationWord { .. }
-                            | Value::SharedApertureHi => StoredValue::Opaque,
+                            | Value::SharedApertureHi
+                            | Value::PartialBits { .. } => StoredValue::Opaque,
                         }))
                     } else {
                         None
