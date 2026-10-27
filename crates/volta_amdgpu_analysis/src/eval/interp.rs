@@ -956,16 +956,15 @@ impl<'a> Interpreter<'a> {
                     .filter(|wave| !wave.exited)
                     .all(|wave| wave.at_barrier.is_some())
             {
-                if self.waves.iter().any(|wave| wave.exited) {
-                    return Err(EvalError::Unsupported {
-                        pc: 0,
-                        what: "barrier with a previously terminated wave".into(),
-                    });
-                }
-                let generation = self.waves[0].at_barrier.unwrap();
+                let generation = self
+                    .waves
+                    .iter()
+                    .find_map(|wave| if wave.exited { None } else { wave.at_barrier })
+                    .unwrap();
                 if self
                     .waves
                     .iter()
+                    .filter(|wave| !wave.exited)
                     .any(|wave| wave.at_barrier != Some(generation))
                 {
                     return Err(EvalError::Invalid {
@@ -975,7 +974,7 @@ impl<'a> Interpreter<'a> {
                         what: "barrier generation mismatch".into(),
                     });
                 }
-                for wave in &mut self.waves {
+                for wave in self.waves.iter_mut().filter(|wave| !wave.exited) {
                     self.builder.amd_event(
                         wave.id,
                         ProgramPoint(wave.pc as u32),
@@ -1363,6 +1362,17 @@ impl<'a> Interpreter<'a> {
             }
             Opcode::Control => match name {
                 "s_endpgm" => {
+                    // CDNA4 S_ENDPGM drains all memory counters before the wave
+                    // terminates and ceases participating in workgroup barriers.
+                    self.builder.amd_event(
+                        wave.id,
+                        ProgramPoint(wave.pc as u32),
+                        AmdEventKind::Wait {
+                            vmcnt: Some(0),
+                            lgkmcnt: Some(0),
+                            expcnt: Some(0),
+                        },
+                    );
                     for lane in 0..64 {
                         if wave.valid & (1u64 << lane) != 0 {
                             self.builder
@@ -1583,6 +1593,7 @@ impl<'a> Interpreter<'a> {
         when_true: &Operand,
         when_false: &Operand,
         lane: u8,
+        force_float: bool,
     ) -> Result<Value, EvalError> {
         use super::scalar::{FloatType, IntType, ScalarType, select};
         if let Some(condition) = self.arena.as_bool(condition) {
@@ -1603,7 +1614,7 @@ impl<'a> Interpreter<'a> {
                 _ => false,
             }
         };
-        if is_float(when_true) || is_float(when_false) {
+        if force_float || is_float(when_true) || is_float(when_false) {
             let a = self.real(wave, when_true, lane)?;
             let b = self.real(wave, when_false, lane)?;
             let a = self.decoded_float_argument(a);
@@ -2577,6 +2588,33 @@ impl<'a> Interpreter<'a> {
             "v_cvt_f32_f16" | "v_add_f16" | "v_sub_f16" | "v_mul_f16" | "v_max_f16" | "v_min_f16"
         );
         let integer_sdwa = matches!(name, "v_add_u32" | "v_mul_lo_u16" | "v_mul_u32_u24");
+        let clamp_f32 = matches!(
+            name,
+            "v_add_f32"
+                | "v_sub_f32"
+                | "v_subrev_f32"
+                | "v_mul_f32"
+                | "v_min_f32"
+                | "v_max_f32"
+                | "v_fma_f32"
+                | "v_fmac_f32"
+                | "v_rcp_f32"
+                | "v_sqrt_f32"
+                | "v_rsq_f32"
+                | "v_exp_f32"
+                | "v_log_f32"
+                | "v_mov_b32"
+                | "v_cndmask_b32"
+        );
+        let saturate = instruction
+            .modifiers
+            .iter()
+            .any(|modifier| modifier.name == "clamp");
+        if saturate
+            && (instruction.mnemonic.ends_with("_e32") || instruction.mnemonic.ends_with("_sdwa"))
+        {
+            return Err(self.unsupported(wave, instruction));
+        }
         let valid_modifiers = if packed || mix {
             instruction
                 .modifiers
@@ -2648,6 +2686,11 @@ impl<'a> Interpreter<'a> {
                         | ("dst_unused", Some("UNUSED_PAD"))
                 )
             })
+        } else if clamp_f32 {
+            instruction
+                .modifiers
+                .iter()
+                .all(|modifier| modifier.name == "clamp" && modifier.value.is_none())
         } else {
             instruction.modifiers.is_empty()
         };
@@ -3170,7 +3213,7 @@ impl<'a> Interpreter<'a> {
                 | "v_accvgpr_mov_b32" => self.modified_value(wave, &o[1], lane)?,
                 "v_cndmask_b32" => {
                     let condition = self.predicate_condition(wave, o.get(3), lane)?;
-                    self.select_word(wave, condition, &o[2], &o[1], lane)?
+                    self.select_word(wave, condition, &o[2], &o[1], lane, saturate)?
                 }
                 "v_lshlrev_b64" | "v_lshrrev_b64" => {
                     let shift = wave.bits(&o[1], lane)? & 63;
@@ -3377,6 +3420,16 @@ impl<'a> Interpreter<'a> {
                         Value::Integer(value)
                     }
                 }
+            };
+            let value = if saturate {
+                let decoded = self.real_value(wave, value, lane)?;
+                Value::Real(super::scalar::clamp(
+                    &mut self.arena,
+                    super::scalar::Clamp::Sat,
+                    decoded,
+                ))
+            } else {
+                value
             };
             wave.put_value(&o[0], lane, value)?;
         }

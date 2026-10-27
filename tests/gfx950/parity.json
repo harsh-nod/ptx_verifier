@@ -4438,32 +4438,36 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/bar_and_barrier_reject_a_missing_operation_bar.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Bare bar0 omits the mandatory PTX operation suffix; Rust requires UnsupportedInstruction named Bar with MissingModifier. It contains no memory access, barrier execution result, or arithmetic output. Native s_barrier has no analogous mandatory operation suffix."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/bar_and_barrier_reject_a_missing_operation_barrier.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Bare barrier0 omits the mandatory PTX operation suffix; Rust requires UnsupportedInstruction named Barrier with MissingModifier. No synchronization behavior is actually executed or checked by this row."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/bar_arrive_and_bar_sync_split_in_one_warp.ptx",
@@ -4573,62 +4577,70 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_multicast_try_cancel_is_rejected.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "The assertion is specifically refusal of clusterlaunchcontrol multicast::cluster::all, because it writes cancellation responses outside the single-CTA model. It does not assert a generic LDS publication result; the cancellation multicast protocol is not part of the selected gfx950 workgroup ABI."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_query_of_a_fabricated_response_is_rejected.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "The assertion accepts only the diagnostic that an arbitrary packed b128 value is not a declined try_cancel response. Cancellation-response provenance is an exact PTX protocol with no object in this AMD backend; no output or ordinary memory property is asserted."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_try_cancel_after_observed_decline_is_rejected.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Rust requires the typed ClcMisuse::RequestAfterObservedDecline{observer0} after querying a declined launch cancellation and requesting again. This is cancellation state-machine misuse, not a general asynchronous memory completion test."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_unguarded_get_first_ctaid_is_rejected.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Rust requires ClcMisuse::CtaidOfDeclinedResponse when get_first_ctaid decodes a declined cancellation. This exact undefined launch-cancellation response operation has no selected native counterpart; readiness of unrelated memory is not asserted here."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/config_rejects_misaligned_array_base.ptx",
@@ -4873,32 +4885,36 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mapa_generic_is_rejected.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "The source invokes generic mapa on a shared address and the assertion requires the model-specific generic addressing rejection. This is a cluster address-mapping form; no address is dereferenced or output. Ordinary global/LDS identity remains separately pending in cvta rows."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mapa_nonzero_rank_is_rejected.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "The row requires MapaRankOutsideCluster{rank1} for the explicitly one-CTA PTX cluster model. A rank in distributed cluster shared memory has no selected gfx950 workgroup ABI equivalent; no ordinary bounds/load/store behavior is checked."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_announcement_unordered_before_another_threads_arrival.ptx",
@@ -4948,17 +4964,19 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_inval_is_not_implemented.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Only the lowerer diagnostic mbarrier.inval/not implemented is asserted after initialization. NVIDIA memory-resident barrier-object invalidation has no native s_barrier object lifetime operation; no post-invalidation memory access is tested."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_pre_init_wait_unseparated_from_the_first_arrival.ptx",
@@ -4993,107 +5011,121 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_relaxed_semantics_rejected_arrive.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "The assertion rejects the exact .relaxed mbarrier.arrive qualifier before execution. No data publication or acquire/release outcome is asserted; native synchronization ordering needs its own valid AMD instructions and cannot be inferred from this test."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_relaxed_semantics_rejected_try_wait.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "The assertion rejects .relaxed mbarrier.try_wait at lowering. Although the source contains a polling branch, it never reaches a runtime completion check under the test; its tested contract is the unsupported PTX qualifier."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_arrive.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.arrive.shared::cluster is a legal PTX distributed-barrier form rejected for single-CTA analysis only. Rust checks that exact reason; it does not validate an AMD or portable multi-workgroup memory protocol."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_init.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.init has no .shared::cluster form and Rust requires that exact InvalidInstruction reason. This is a PTX scope/form grammar contract, with no initialized native barrier object or memory outcome."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_inval.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.inval has no .shared::cluster form and Rust requires that exact InvalidInstruction reason. No generic barrier lifetime behavior is exercised."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_test_wait.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.test_wait has no .shared::cluster form and Rust requires that exact invalid-instruction diagnostic; the apparent polling branch never executes in the test."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_try_wait.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.try_wait has no .shared::cluster form and Rust requires that exact invalid-instruction diagnostic; no completion or memory publication result is asserted."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_wait_never_satisfied_deadlocks.ptx",
@@ -5443,62 +5475,70 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_alloc_rejects_invalid_sizes_and_order_16.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "The assertion rejects tensor-memory allocation16columns because tcgen05 allocates in32-column units. Native gfx950 register/LDS allocation has different resources and no dynamic tensor-memory column allocator; the number16 rule is an exact PTX resource contract."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_alloc_rejects_invalid_sizes_and_order_32_then_64.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "The assertion requires Tcgen05IncreasingColumnCount{previous32,requested64} for dynamic tensor-memory allocation order. AMD VGPR/LDS resources do not expose that decreasing-allocation-count protocol; no buffer memory property is asserted."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_exclusive_alloc_and_dealloc_are_not_implemented_alloc.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "The lowerer must reject .exclusive tcgen05.alloc with a not implemented reason. This is an unsupported NVIDIA tensor-memory allocation mode; no native arithmetic, allocation result or synchronization behavior is checked."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_exclusive_alloc_and_dealloc_are_not_implemented_dealloc.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "The lowerer must reject .exclusive tcgen05.dealloc with a not implemented reason. No allocated-data lifetime/load/store outcome is part of this test."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_disable_output_lane_skips_the_write.ptx",
@@ -5518,47 +5558,53 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_a_desc_bit15.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Rust requires InvalidEncoding mentioning a-desc for reserved A descriptor bit15. The kernel has no output and the test does not attempt a valid matrix multiplication; native MFMA consumes register tuples rather than this PTX shared descriptor."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_b_desc_no_bit46.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Rust requires InvalidEncoding naming B descriptor fixed constant bit46. This exact descriptor tag is absent from register-tuple MFMA; it is not evidence of portable matrix arithmetic."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_b_swizzle128b_atom32.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Rust rejects the exact combination transposedB with128B swizzling/32B atomicity. It does not test a valid transpose computation or memory-swizzle result. Native matrix transpose/layout correctness remains an independent portable obligation in other rows."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_d_lane128.ptx",
@@ -5623,62 +5669,70 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_max_shift.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Rust requires InvalidEncoding naming the PTX idesc maximum-shift field. The raw F16 descriptor field is illegal/unmodeled at this stage; no shifted arithmetic output is asserted."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_reserved_bit23.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Rust requires InvalidEncoding for reserved idesc bit23. No numeric operation associated with this reserved field is validly executed or checked."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_reserved_bit6.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Rust requires InvalidEncoding for reserved idesc bit6. This bit-packing rule belongs to the PTX tensor instruction descriptor and has no native register-tuple descriptor analogue."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_saturate.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Rust requires InvalidEncoding for the saturate bit in this F16 idesc. This is rejection of an illegal descriptor combination, not validation of a supported saturation computation. Portable clamp/saturation arithmetic remains separately required elsewhere."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_fp8_n8.ptx",
@@ -5803,107 +5857,121 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_alloc_aligned.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "tcgen05.alloc is missing its mandatory .aligned qualifier; Rust requires InvalidInstruction naming mandatory.aligned. This static PTX syntax rule checks no allocation synchronization behavior."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_alloc_sync.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "tcgen05.alloc is missing mandatory.sync; the asserted failure is qualifier validation, not a missing executed barrier/readiness test."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_dealloc.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "tcgen05.dealloc is missing mandatory.aligned; Rust asserts syntax validation before the uninitialized operand could be evaluated."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_ld.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "tcgen05.ld is missing mandatory.sync/.aligned; Rust checks the specific mandatory.sync qualifier rejection, not tensor-memory load data or readiness."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_relinquish.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "tcgen05.relinquish_alloc_permit is missing mandatory.aligned; the asserted contract is its PTX grammar, not a portable resource-permit algorithm."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_st.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "tcgen05.st.sync lacks mandatory.aligned; no store value, address or race result is checked because validation must reject it."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_wait_ld.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "tcgen05.wait::ld lacks mandatory.sync; no pending operation exists and the test only asserts the qualifier diagnostic, so it is not a portable wait-completion test."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_st_rejects_wrong_quadrant_address.ptx",
@@ -6538,167 +6606,189 @@
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_arrive_extra_operand.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.arrive.expect_tx has a fourth trailing operand0xdeadbeef. The helper requires parser/lowerer rejection before execution; native s_barrier has no address/count/transaction object arity. General native arity validation remains a backend-wide gate, not an asserted data-flow result here."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_arrive_zero_count.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "A PTX mbarrier.arrive count of0 must fail before a verdict. Native s_barrier implicitly counts workgroup waves and has no decrement-count operand; the numerical zero-arrival contract cannot be transferred to an AMD barrier parameter."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_complete_tx_invalid_scope.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.complete_tx.relaxed.gpu.shared::cta uses a forbidden PTX scope combination and must fail static validation. No cross-agent memory publication is tested; native SC/cache scope semantics need their own tests."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_complete_tx_invalid_semantics.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.complete_tx.acquire is an invalid PTX semantics qualifier and must fail validation. This does not assert a successful acquire ordering relation; native cache/scope flags cannot substitute for it."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_expect_tx_invalid_scope.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.expect_tx.relaxed.gpu.shared::cta has invalid GPU scope for the shared CTA object and must fail validation. No ordinary memory conflict property is evaluated."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_expect_tx_invalid_semantics.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.expect_tx.acquire is an invalid PTX semantics form; the assertion concerns static legality, not publication of asynchronous memory data."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_init_count_out_of_range.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Initializing the memory-resident PTX barrier count with2^20 violates its20-bit object range. Native s_barrier has no init count or memory object; launch/workgroup resource limits are distinct native obligations."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_init_zero_count.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "Initializing a PTX mbarrier with0 violates its object count contract. Native s_barrier has no barrier-init instruction/count; this exact invalid object state is not an AMD execution form."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_test_wait_extra_operand.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.test_wait has an extra trailing operand5; helper requires validation rejection before the poll executes. PTX object/parity arity is exact syntax; there is no native equivalent operand to silently ignore."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_try_wait_extra_operand.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.try_wait has an operand after its optional suspend hint; helper requires static rejection. AMD wait encoding has a different immediate/counter ABI, already subject to separate native validation."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_try_wait_invalid_scope.ptx",
       "kind": "integration-fixture",
-      "status": "pending",
-      "applicability": "needs-review",
+      "status": "ptx-only",
+      "applicability": "exact-nvidia-contract",
       "amd_fixtures": [],
-      "property_or_computation": "",
+      "property_or_computation": "Exact PTX syntax/resource/cluster/barrier-object protocol assertion, with no asserted portable computation.",
       "configuration": {},
-      "expected_outcome": "",
+      "expected_outcome": "Original PTX contract retained and passing unchanged.",
       "assumptions": [],
       "required_instructions": [],
       "owner": "coordinator",
-      "evidence": [],
-      "reason": ""
+      "evidence": [
+        "tests/gfx950/evidence/exact-ptx-contract-audit.json"
+      ],
+      "reason": "mbarrier.try_wait.parity.acquire.sys.shared::cta has forbidden scope and must fail static validation. It asserts no successful system-scope ordering or memory data behavior."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_tx_count_out_of_range.ptx",
