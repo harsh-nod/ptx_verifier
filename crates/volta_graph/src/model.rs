@@ -522,6 +522,9 @@ pub enum Assumption {
     /// Base2 operations use the exact reciprocal of rounded f32 log2(e) as ln(2),
     /// matching the existing PTX mathematical abstraction.
     CompilerBase2Conversion,
+    /// The analyzed AMD execution has XNACK replay disabled, including generic
+    /// gfx950 code that can also be loaded on a replay-enabled system.
+    XnackReplayDisabled,
     /// Exactly one AMD workgroup is analyzed; no statement about other workgroups.
     SingleWorkgroupAnalyzed,
     /// Symbolic arithmetic uses mathematical reals, not bit-exact floating-point.
@@ -551,6 +554,9 @@ impl Assumption {
             }
             Assumption::CompilerBase2Conversion => {
                 "general base2 exp/log use the exact reciprocal of rounded f32 log2(e) for ln(2), matching the PTX mathematical abstraction"
+            }
+            Assumption::XnackReplayDisabled => {
+                "the analyzed AMD execution has XNACK memory replay disabled; replay-enabled executions are outside this result"
             }
             Assumption::SingleWorkgroupAnalyzed => {
                 "one AMD workgroup is analyzed; other workgroups are outside this result"

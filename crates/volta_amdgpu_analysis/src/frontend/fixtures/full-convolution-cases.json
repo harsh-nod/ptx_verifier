@@ -3150,7 +3150,22 @@
         "The first128 output spatial positions cross two full54-column rows and20 positions in a third. Three affine slices per channel retain the actual pitch and complete footprint.",
         "Volatile half stores preserve actual2-byte transfers, preventing widening across reference-slice boundaries.",
         "Case is the full original CTA0 tile; whole-grid padded/tail behavior is not certified by this case."
-      ]
+      ],
+      "baseline_output_tile": {
+        "spatial": 128,
+        "channels": 128,
+        "elements": 16384
+      },
+      "native_output_tile": {
+        "spatial": 128,
+        "channels": 128,
+        "elements": 16384
+      },
+      "baseline_tile_mapping": {
+        "kind": "same-output-tile",
+        "elements": 16384,
+        "channel_pitch_elements": 2916
+      }
     },
     {
       "kernel": "convolution_f8_full",
@@ -6284,10 +6299,10 @@
         "elements": 16384,
         "bytes": 32768
       },
-      "full_baseline_shape": true,
+      "full_baseline_shape": false,
       "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
       "preserved_patterns": [
-        "complete128spatial x128channel CTA tile",
+        "complete original64spatial x128channel CTA tile within a native128spatial x128channel tile",
         "all64x3x3=576 reduction terms",
         "original NCHW56x56 input and OIHW128x64x3x3 weights",
         "valid54x54 output and2916-element channel pitch",
@@ -6296,12 +6311,41 @@
         "cross-wave producers and repeated workgroup barriers"
       ],
       "notes": [
-        "Native block512 replaces original128 threads to distribute the full16384-element output tile across8wave64s; output/reduction shape is unchanged.",
+        "Original FP8 PTX block_m64 x block_n128 writes8192 output elements per CTA. Native block512 writes128spatial x128channels (16384 elements), retaining the complete original CTA0 tile at spatial positions0..63 and adding the neighboring64..127 tile at the same2916-element channel pitch.",
         "Both input dtypes are preserved externally. OCP E4M3 is decoded exactly into F16 before matrix consumption; no FNUZ substitution.",
         "The first128 output spatial positions cross two full54-column rows and20 positions in a third. Three affine slices per channel retain the actual pitch and complete footprint.",
         "Volatile half stores preserve actual2-byte transfers, preventing widening across reference-slice boundaries.",
-        "Case is the full original CTA0 tile; whole-grid padded/tail behavior is not certified by this case."
-      ]
+        "This is an explicit tile-superset mapping, not equal CTA/output footprints. Original CTA0 coverage comprises128 separate64-element channel slices (8192 outputs); the additional8192 outputs belong to the neighboring spatial tile. Whole-grid padded/tail behavior is not certified."
+      ],
+      "baseline_output_tile": {
+        "spatial": 64,
+        "channels": 128,
+        "elements": 8192
+      },
+      "native_output_tile": {
+        "spatial": 128,
+        "channels": 128,
+        "elements": 16384
+      },
+      "covers_full_baseline_shape": true,
+      "baseline_tile_mapping": {
+        "kind": "validated-tile-superset-candidate",
+        "original_tile": {
+          "channel_count": 128,
+          "spatial_begin": 0,
+          "spatial_end_exclusive": 64,
+          "elements": 8192,
+          "channel_pitch_elements": 2916
+        },
+        "additional_neighbor_tile": {
+          "channel_count": 128,
+          "spatial_begin": 64,
+          "spatial_end_exclusive": 128,
+          "elements": 8192,
+          "channel_pitch_elements": 2916
+        },
+        "validation": "Coordinator must validate graph, mathematical reference and physical hardware evidence separately; compilation alone does not validate this mapping."
+      }
     }
   ]
 }

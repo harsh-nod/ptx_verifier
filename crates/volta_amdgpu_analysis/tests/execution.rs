@@ -1147,6 +1147,226 @@ fn input_word_aliases_cannot_acquire_conflicting_numeric_interpretations() {
 }
 
 #[test]
+fn symbolic_native_comparison_masks_select_canonical_integer_words() {
+    let mut signed_results = Vec::new();
+    for (kind, literal, mask) in [
+        ("i32", "-1", "vcc"),
+        ("i32", "0xffffffff", "s[8:9]"),
+        ("u32", "0xffffffff", "vcc"),
+    ] {
+        let instructions=COPY.replace("s_waitcnt vmcnt(0)",&format!("s_waitcnt vmcnt(0)\nv_cmp_eq_{kind} {mask}, {literal}, v5\nv_mov_b32 v8, -1\nv_cndmask_b32 v5, 0, v8, {mask}"));
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let result = analyze(&module, None, config(64, 64)).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        for index in 0..64 {
+            let ExprNode::Select(condition, yes, no) =
+                outputs.arena.node(outputs.element("out", index).unwrap())
+            else {
+                panic!("not a symbolic selection")
+            };
+            assert_eq!(outputs.arena.as_int_const(*yes), Some(4294967295));
+            assert_eq!(outputs.arena.as_int_const(*no), Some(0));
+            let ExprNode::Eq(a, b) = outputs.arena.node(*condition) else {
+                panic!("not equality")
+            };
+            let expected = if kind == "i32" { -1 } else { 4294967295 };
+            assert!(
+                [a, b]
+                    .iter()
+                    .any(|expr| outputs.arena.as_int_const(**expr) == Some(expected))
+            );
+            assert!([a,b].iter().any(|expr|matches!(outputs.arena.node(**expr),ExprNode::InputElement{index:found,..} if *found==index)));
+        }
+        assert!(result.graph.validate().is_ok());
+        if kind == "i32" {
+            signed_results.push(result);
+        }
+    }
+    let a = signed_results[0].symbolic_outputs().unwrap();
+    let b = signed_results[1].symbolic_outputs().unwrap();
+    for index in 0..64 {
+        assert!(volta_expr::structurally_equal(
+            &a.arena,
+            a.element("out", index).unwrap(),
+            &b.arena,
+            b.element("out", index).unwrap()
+        ));
+    }
+}
+
+#[test]
+fn symbolic_predicate_word_moves_preserve_source_bit_positions() {
+    let instructions=COPY.replace("s_waitcnt vmcnt(0)","s_waitcnt vmcnt(0)\nv_cmp_eq_i32 vcc, -1, v5\ns_mov_b64 s[8:9], vcc\nv_cmp_lt_i32 s[10:11], 0, v5\ns_mov_b32 vcc_lo, s9\ns_mov_b32 vcc_hi, s10\nv_mov_b32 v8, -1\nv_cndmask_b32 v5, 0, v8, vcc");
+    let module = frontend::parse(&source(&instructions, 0)).unwrap();
+    let result = analyze(&module, None, config(64, 64)).unwrap();
+    let outputs = result.symbolic_outputs().unwrap();
+    for index in 0..64 {
+        let ExprNode::Select(condition, _, _) =
+            outputs.arena.node(outputs.element("out", index).unwrap())
+        else {
+            panic!("not select")
+        };
+        let (a, b) = match outputs.arena.node(*condition) {
+            ExprNode::Eq(a, b) if index < 32 => (*a, *b),
+            ExprNode::Lt(a, b) if index >= 32 => (*a, *b),
+            other => panic!("wrong predicate half for {index}: {other:?}"),
+        };
+        let expected = if index < 32 { index + 32 } else { index - 32 };
+        assert!([a,b].iter().any(|expr|matches!(outputs.arena.node(*expr),ExprNode::InputElement{index:found,..}if *found==expected)));
+    }
+    assert!(result.graph.validate().is_ok());
+}
+
+#[test]
+fn symbolic_float_selection_keeps_already_converted_numeric_constants() {
+    let instructions=COPY.replace("s_waitcnt vmcnt(0)","s_waitcnt vmcnt(0)\nv_cvt_f32_i32 v8, 3\nv_cmp_lt_f32 vcc, v5, v8\nv_cndmask_b32 v5, v5, v8, vcc");
+    let module = frontend::parse(&source(&instructions, 0)).unwrap();
+    let result = analyze(&module, None, config(64, 64)).unwrap();
+    let outputs = result.symbolic_outputs().unwrap();
+    for index in 0..64 {
+        let ExprNode::Select(condition, yes, no) =
+            outputs.arena.node(outputs.element("out", index).unwrap())
+        else {
+            panic!("not float select")
+        };
+        assert_eq!(outputs.arena.as_f64(*yes), Some(3.0));
+        assert!(
+            matches!(outputs.arena.node(*no),ExprNode::InputElement{index:found,..}if *found==index)
+        );
+        let ExprNode::Lt(_, bound) = outputs.arena.node(*condition) else {
+            panic!("not less-than")
+        };
+        assert_eq!(outputs.arena.as_f64(*bound), Some(3.0));
+    }
+}
+
+#[test]
+fn symbolic_masks_remain_opaque_to_control_carry_addresses_and_data_stores() {
+    for operation in [
+        "s_and_saveexec_b64 s[8:9], vcc",
+        "s_cbranch_vccnz .Ldone\n.Ldone:",
+        "v_addc_co_u32 v8, s[8:9], v0, 0, vcc",
+        "v_mov_b32 v8, vcc_lo\nglobal_load_dword v9, v8, s[4:5]",
+        "v_mov_b32 v5, vcc_lo",
+    ] {
+        let instructions = COPY.replace(
+            "s_waitcnt vmcnt(0)",
+            &format!("s_waitcnt vmcnt(0)\nv_cmp_eq_i32 vcc, -1, v5\n{operation}"),
+        );
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let result = analyze(&module, None, config(64, 64)).unwrap();
+        assert!(result.symbolic_outputs().is_err(), "{operation}");
+        assert!(result.graph.validate().is_ok());
+    }
+    let instructions = COPY.replace(
+        "s_waitcnt vmcnt(0)",
+        "s_waitcnt vmcnt(0)\nv_cmpx_eq_i32 vcc, -1, v5",
+    );
+    let module = frontend::parse(&source(&instructions, 0)).unwrap();
+    let result = analyze(&module, None, config(64, 64)).unwrap();
+    assert!(
+        result
+            .symbolic_outputs()
+            .unwrap_err()
+            .to_string()
+            .contains("cannot drive EXEC")
+    );
+}
+
+#[test]
+fn symbolic_predicate_consumers_preserve_input_interpretation_guards() {
+    for operations in [
+        "v_cmp_eq_f32 vcc, v5, 0\nv_cmp_eq_i32 s[8:9], -1, v5",
+        "v_cmp_eq_i32 vcc, -1, v5\nv_cmp_eq_f32 s[8:9], v5, 0",
+    ] {
+        let instructions = COPY.replace(
+            "s_waitcnt vmcnt(0)",
+            &format!("s_waitcnt vmcnt(0)\n{operations}"),
+        );
+        let module = frontend::parse(&source(&instructions, 0)).unwrap();
+        let result = analyze(&module, None, config(64, 64)).unwrap();
+        assert!(
+            result
+                .symbolic_outputs()
+                .unwrap_err()
+                .to_string()
+                .contains("conflicting word interpretations")
+        );
+    }
+}
+
+#[test]
+fn symbolic_masks_clear_inactive_lanes_and_fold_empty_exec_to_zero() {
+    let instructions=COPY.replace("s_waitcnt vmcnt(0)","s_waitcnt vmcnt(0)\nv_cmp_eq_i32 vcc, -1, v5\nv_mov_b32 v8, -1\nv_cndmask_b32 v5, 0, v8, vcc");
+    let module = frontend::parse(&source(&instructions, 0)).unwrap();
+    let result = analyze(&module, None, config(65, 65)).unwrap();
+    assert_eq!(result.symbolic_outputs().unwrap().outputs[0].1.len(), 65);
+    assert!(result.graph.validate().is_ok());
+
+    let instructions=COPY.replace("s_waitcnt vmcnt(0)","s_waitcnt vmcnt(0)\nv_mov_b32 v8, -1\ns_mov_b64 s[8:9], exec\ns_mov_b64 exec, 0\nv_cmp_eq_i32 vcc, -1, v5\ns_mov_b64 exec, s[8:9]\nv_cndmask_b32 v5, v5, v8, vcc");
+    let module = frontend::parse(&source(&instructions, 0)).unwrap();
+    let result = analyze(&module, None, config(64, 64)).unwrap();
+    let outputs = result.symbolic_outputs().unwrap();
+    for index in 0..64 {
+        assert!(
+            matches!(outputs.arena.node(outputs.element("out",index).unwrap()),ExprNode::InputElement{index:found,..}if *found==index)
+        );
+    }
+    assert!(result.graph.validate().is_ok());
+}
+
+#[test]
+fn vector_memory_requires_disabled_xnack_replay_scope() {
+    for instructions in [
+        COPY.to_string(),
+        COPY.replace(
+            "global_load_dword v5, v[6:7], off",
+            "flat_load_dword v5, v[6:7]",
+        )
+        .replace(
+            "global_store_dword v[6:7], v5, off",
+            "flat_store_dword v[6:7], v5",
+        ),
+    ] {
+        for target in ["gfx950", "gfx950:xnack-", "gfx950:xnack+"] {
+            let text = source(&instructions, 0).replace(
+                "amdgcn-amd-amdhsa--gfx950",
+                &format!("amdgcn-amd-amdhsa--{target}"),
+            );
+            let module = frontend::parse(&text).unwrap();
+            let result = analyze(&module, None, config(64, 64)).unwrap();
+            assert_eq!(result.graph.provenance().targets, vec![target.to_string()]);
+            if target.ends_with("xnack+") {
+                assert!(
+                    result
+                        .symbolic_outputs()
+                        .unwrap_err()
+                        .to_string()
+                        .contains("vector memory replay clauses")
+                );
+                assert!(
+                    !result
+                        .graph
+                        .provenance()
+                        .assumptions
+                        .contains(&volta_graph::Assumption::XnackReplayDisabled)
+                );
+            } else {
+                assert_eq!(result.symbolic_outputs().unwrap().outputs[0].1.len(), 64);
+                assert!(
+                    result
+                        .graph
+                        .provenance()
+                        .assumptions
+                        .contains(&volta_graph::Assumption::XnackReplayDisabled)
+                );
+            }
+            assert!(result.graph.validate().is_ok());
+        }
+    }
+}
+
+#[test]
 fn scalar_min_max_scc_uses_native_tie_rules() {
     // CDNA4 SOP2: MIN selects src0 only on <; MAX selects it on >=.
     for (opcode, a, b, selected_first) in [

@@ -43,6 +43,11 @@ first arithmetic consumer; an array cannot be treated as both integer and
 floating-point storage through different aliases. Recognizing the exact compiler multiply-by-rounded-log2(e)/exp2
 idiom adds a separate `CompilerExp2Idiom` assumption; nearby constants do not
 trigger that fold.
+Native comparisons can retain lane predicates in opaque VCC or SGPR mask words.
+`v_cndmask_b32` selects symbolic integer or typed f32 data; concrete b32 arms are
+canonicalized as unsigned32 words. Mask-word copies preserve their original bit
+positions, including separate VCC low/high writes. Symbolic masks cannot drive
+branches, EXEC, carry inputs, addresses, or raw data stores.
 Byte inputs acquire a numeric interpretation at their first decoder. OCP E4M3
 and signed/unsigned integer-byte interpretations of the same input array cannot
 be mixed. Signed loads and native signed-byte-to-F16 conversions preserve numeric
@@ -55,6 +60,15 @@ Memory is byte-addressed with explicit symbolic granules. Global allocations mus
 be disjoint and accesses must lie inside one declared allocation; LDS is bounded
 by static plus dynamic size. Wide transfers preserve each register-sized granule
 and its byte footprint. Only completely written output elements are extracted.
+Generic `gfx950` assembly and explicit `xnack-` targets model execution with
+XNACK replay disabled, matching the test devices; provenance records the
+`XnackReplayDisabled` assumption. Target feature suffixes remain in provenance.
+Explicit `xnack+` targets enforce conservative scalar-memory replay checks:
+contiguous SMEM clauses cannot overwrite their address-source SGPRs, except for
+the native isolated single-DWORD exception. Vector GLOBAL/FLAT memory execution
+with replay enabled remains unsupported until vector clause/source retention is
+modeled. Unaligned SMEM address component masking remains outside the supported
+scope.
 Missing stores remain missing for downstream equivalence to diagnose. Concrete
 integer ALU results retain integer provenance; ambiguous raw-bit output constants
 require a conversion instead of guessing their numeric type.
@@ -87,7 +101,7 @@ required, except explicitly supported FP8 format and unit-scale selectors.
 | Integer/address ALU | Concrete fixed-width arithmetic, carry masks, bitfields, address packing; symbolic32 add/sub/mullo, bit operations, native shifts, min/max | Symbolic integer division/control and general64-bit integer data remain unsupported; data expressions cannot become address bits |
 | Floating data | Mathematical f32/f64 arithmetic, selected conversions/transcendentals, packed f32/f16 operations, partial-half preservation, OCP E4M3 decoding | No IEEE rounding/NaN claim; ordered whole-value F64 storage only; symbolic BF16/E5M2 storage remains unsupported |
 | Global and LDS memory | Byte/short/dword and wide transfers, sign extension, narrow-store truncation, dual-offset LDS, static/dynamic LDS bounds | Equal-offset dual LDS operations, scratch, buffer addressing, direct-to-LDS, and atomics remain unsupported |
-| Control and synchronization | Scalar branches, concrete EXEC/VCC/SCC, save/restore EXEC, memory waits, workgroup barriers | One workgroup; symbolic comparisons/selectors remain unsupported; partial graph on abort; early-exit barrier patterns are conservative |
+| Control and synchronization | Scalar branches, concrete EXEC/VCC/SCC, symbolic lane comparison masks and cndmask data selection, save/restore EXEC, memory waits, workgroup barriers | One workgroup; symbolic control/EXEC/carry/address masks remain unsupported; partial graph on abort; early-exit barrier patterns are conservative |
 | Cross-lane | DS permute/bpermute with source snapshots and LGKM readiness | DPP and ordinary readlane/readfirstlane/writelane require further software hazard checks |
 | Accumulator registers | Disjoint physical allocation, MFMA accumulation, native AGPR read/write/move and direct stores | Aliasing VGPR/AGPR allocations are rejected |
 | F32 MFMA | 16×16×4 and 32×32×2 | Full active wave64 and default layouts |

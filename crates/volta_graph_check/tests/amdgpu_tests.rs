@@ -166,6 +166,62 @@ fn target_selects_amd_checks_and_empty_graph_cannot_verify() {
 }
 
 #[test]
+fn recognized_target_features_select_amd_checks_and_conflicts_remain_unknown() {
+    for (target, supported) in [
+        ("gfx950", true),
+        ("gfx950:xnack-", true),
+        ("gfx950:xnack+", true),
+        ("gfx950:sramecc+:xnack-", true),
+        ("gfx950:xnack+:sramecc-", true),
+        ("gfx950:xnack-:xnack+", false),
+        ("gfx950:xnack-:xnack-", false),
+        ("gfx950:sramecc+:sramecc-", false),
+        ("gfx950:wave32", false),
+        ("gfx950:", false),
+        ("gfx942:xnack-", false),
+    ] {
+        let mut builder = GraphBuilder::new(Provenance {
+            kernel: "target_features".into(),
+            block_dim: (64, 1, 1),
+            grid_dim: (1, 1, 1),
+            targets: vec![target.into()],
+            assumptions: vec![],
+            instructions: vec![InstructionInfo {
+                kind: "vector ALU",
+                span: None,
+            }],
+        });
+        builder.amd_event(
+            0,
+            ProgramPoint(0),
+            AmdEventKind::Instruction {
+                exec_mask: u64::MAX,
+                reads: vec![],
+                writes: vec![],
+                scalar_mask_reads: vec![],
+            },
+        );
+        for thread in 0..64 {
+            builder.exit(ThreadIx(thread), ProgramPoint(0));
+        }
+        let checks = check_graph(&builder.finish(Terminal::Completed));
+        assert_eq!(checks.applicable_properties(), &Property::AMD, "{target}");
+        if supported {
+            assert_eq!(
+                checks.conclusion(),
+                GraphConclusion::Verified,
+                "{target}: {checks:?}"
+            );
+        } else {
+            assert!(
+                matches!(checks.conclusion(), GraphConclusion::Unknown { .. }),
+                "{target}"
+            );
+        }
+    }
+}
+
+#[test]
 fn missing_wait_has_typed_read_hazard_and_zero_wait_repairs_it() {
     for correct in [false, true] {
         let mut t = Trace::new(64);

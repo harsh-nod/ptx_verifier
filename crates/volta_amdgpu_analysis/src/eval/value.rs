@@ -17,6 +17,12 @@ pub(super) enum Value {
     /// Untyped array data acquires its mathematical type at the consumer.
     Input(ExprId),
     IntExpr(ExprId),
+    /// Opaque 32 lane predicates, indexed by a comparison-pool entry and its
+    /// source half. Copying a high word into a low destination preserves bits.
+    PredicateWord {
+        mask: u32,
+        high: bool,
+    },
     NarrowInt {
         expr: ExprId,
         bits: u8,
@@ -44,6 +50,9 @@ impl Value {
         match self {
             Self::Bits(bits) | Self::Integer(bits) => Ok(bits),
             Self::SignedInteger(bits) => Ok(bits as u32),
+            Self::PredicateWord { .. } => {
+                Err("symbolic predicate mask used as concrete integer/address bits".into())
+            }
             _ => Err("symbolic mathematical data used as integer/address bits".into()),
         }
     }
@@ -61,6 +70,7 @@ impl Value {
             ),
             Self::Input(_)
             | Self::IntExpr(_)
+            | Self::PredicateWord { .. }
             | Self::NarrowInt { .. }
             | Self::WidePart { .. }
             | Self::Half(..)

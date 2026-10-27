@@ -92,6 +92,7 @@ struct Wave {
     exec: u64,
     vcc: u64,
     vcc_defined: u8,
+    vcc_predicates: [Option<Value>; 2],
     scc: bool,
     scc_defined: bool,
     m0: u32,
@@ -116,6 +117,7 @@ impl Wave {
             exec: valid,
             vcc: 0,
             vcc_defined: 0,
+            vcc_predicates: [None; 2],
             scc: false,
             scc_defined: false,
             m0: 0,
@@ -142,6 +144,12 @@ impl Wave {
     fn read_vcc(&self) -> Result<u64, EvalError> {
         if self.vcc_defined != 3 {
             return Err(self.fail(None, "uninitialized VCC flag (both halves must be defined)"));
+        }
+        if self.vcc_predicates.iter().any(Option::is_some) {
+            return Err(self.fail(
+                None,
+                "symbolic predicate mask used as concrete VCC/control bits",
+            ));
         }
         Ok(self.vcc)
     }
@@ -170,17 +178,26 @@ impl Wave {
                         if self.vcc_defined & (1 << component) == 0 {
                             return Err(self.fail(Some(lane), "uninitialized VCC flag component"));
                         }
+                        if let Some(value) = self.vcc_predicates[component as usize] {
+                            return Ok(value);
+                        }
                         self.vcc
                     }
                     Some(SpecialRegister::VccLo) => {
                         if self.vcc_defined & 1 == 0 {
                             return Err(self.fail(Some(lane), "uninitialized VCC_LO flag"));
                         }
+                        if let Some(value) = self.vcc_predicates[0] {
+                            return Ok(value);
+                        }
                         self.vcc as u32 as u64
                     }
                     Some(SpecialRegister::VccHi) => {
                         if self.vcc_defined & 2 == 0 {
                             return Err(self.fail(Some(lane), "uninitialized VCC_HI flag"));
+                        }
+                        if let Some(value) = self.vcc_predicates[1] {
+                            return Ok(value);
                         }
                         self.vcc >> 32
                     }
@@ -224,6 +241,22 @@ impl Wave {
                 self.accumulator.insert((index, lane), value);
             }
             RegisterClass::Special => {
+                let vcc_word = match reg.special {
+                    Some(SpecialRegister::Vcc) => Some(component as usize),
+                    Some(SpecialRegister::VccLo) => Some(0),
+                    Some(SpecialRegister::VccHi) => Some(1),
+                    _ => None,
+                };
+                if let Some(word) = vcc_word {
+                    if matches!(value, Value::PredicateWord { .. }) {
+                        self.vcc_predicates[word] = Some(value);
+                        self.vcc_defined |= 1 << word;
+                        return Ok(());
+                    }
+                    // Read/validate before clearing an existing predicate word.
+                    value.bits().map_err(|e| self.fail(Some(lane), e))?;
+                    self.vcc_predicates[word] = None;
+                }
                 let bits = value.bits().map_err(|e| self.fail(Some(lane), e))? as u64;
                 match reg.special {
                     Some(SpecialRegister::Exec) => {
@@ -314,6 +347,18 @@ impl Wave {
         }
         Ok(())
     }
+    fn move_wide(&mut self, destination: &Operand, source: &Operand) -> Result<(), EvalError> {
+        if let Operand::Register(source) = source {
+            if source.count == 2 {
+                let values = [self.reg(*source, 0, 0)?, self.reg(*source, 0, 1)?];
+                let destination = self.destination(destination)?;
+                self.put(destination, 0, 0, values[0])?;
+                return self.put(destination, 0, 1, values[1]);
+            }
+        }
+        let bits = self.wide(source, 0)?;
+        self.put_wide(destination, 0, bits)
+    }
 }
 
 pub(crate) struct Interpreter<'a> {
@@ -331,6 +376,8 @@ pub(crate) struct Interpreter<'a> {
     lds_size: u64,
     byte_formats: BTreeMap<volta_expr::StringId, ByteFormat>,
     word_formats: BTreeMap<volta_expr::StringId, WordFormat>,
+    predicate_masks: Vec<[ExprId; 64]>,
+    xnack_replay_enabled: bool,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ByteFormat {
@@ -351,6 +398,10 @@ impl<'a> Interpreter<'a> {
         provenance: Provenance,
     ) -> Result<Self, EvalError> {
         config.validate().map_err(EvalError::InvalidConfig)?;
+        let xnack_replay_enabled = provenance
+            .targets
+            .iter()
+            .any(|target| target.split(':').any(|feature| feature == "xnack+"));
         if !config.global_values.is_empty() {
             return Err(EvalError::InvalidConfig(
                 "AMD module global bindings are not yet implemented".into(),
@@ -505,6 +556,8 @@ impl<'a> Interpreter<'a> {
             lds_size,
             byte_formats: BTreeMap::new(),
             word_formats: BTreeMap::new(),
+            predicate_masks: Vec::new(),
+            xnack_replay_enabled,
         };
         result.initialize_memory()?;
         for id in 0..threads.div_ceil(64) {
@@ -1441,6 +1494,141 @@ impl<'a> Interpreter<'a> {
             None => Value::IntExpr(expr),
         }
     }
+    fn write_predicates(
+        &mut self,
+        wave: &mut Wave,
+        destination: Option<&Operand>,
+        predicates: [ExprId; 64],
+    ) -> Result<(), EvalError> {
+        let mask_id = u32::try_from(self.predicate_masks.len())
+            .map_err(|_| wave.fail(None, "predicate pool exhausted"))?;
+        let mut words = [Value::Bits(0); 2];
+        let mut symbolic = false;
+        for half in 0..2 {
+            let mut bits = 0u32;
+            let mut concrete = true;
+            for bit in 0..32 {
+                match self.arena.as_bool(predicates[half * 32 + bit]) {
+                    Some(true) => bits |= 1u32 << bit,
+                    Some(false) => {}
+                    None => concrete = false,
+                }
+            }
+            words[half] = if concrete {
+                Value::Bits(bits)
+            } else {
+                symbolic = true;
+                Value::PredicateWord {
+                    mask: mask_id,
+                    high: half != 0,
+                }
+            };
+        }
+        if symbolic {
+            self.predicate_masks.push(predicates);
+        }
+        let register = match destination {
+            Some(operand) => wave.destination(operand)?,
+            None => Register {
+                class: RegisterClass::Special,
+                index: 0,
+                count: 2,
+                special: Some(SpecialRegister::Vcc),
+            },
+        };
+        wave.put(register, 0, 0, words[0])?;
+        wave.put(register, 0, 1, words[1])
+    }
+    fn predicate_condition(
+        &mut self,
+        wave: &Wave,
+        operand: Option<&Operand>,
+        lane: u8,
+    ) -> Result<ExprId, EvalError> {
+        let register = match operand {
+            Some(operand) => wave.destination(operand)?,
+            None => Register {
+                class: RegisterClass::Special,
+                index: 0,
+                count: 2,
+                special: Some(SpecialRegister::Vcc),
+            },
+        };
+        let word = wave.reg(register, 0, (lane / 32) as u16)?;
+        match word {
+            Value::PredicateWord { mask, high } => self
+                .predicate_masks
+                .get(mask as usize)
+                .map(|predicates| predicates[(lane % 32) as usize + if high { 32 } else { 0 }])
+                .ok_or_else(|| wave.fail(Some(lane), "invalid predicate mask identity")),
+            value => {
+                let bits = value.bits().map_err(|e| wave.fail(Some(lane), e))?;
+                Ok(self.arena.bool_val(bits & (1u32 << (lane % 32)) != 0))
+            }
+        }
+    }
+    /// Float helper APIs accept raw IntConst bit patterns. Values here have
+    /// already been decoded, so keep integral mathematical floats as reals.
+    fn decoded_float_argument(&mut self, expression: ExprId) -> ExprId {
+        if let Some(value) = self.arena.as_int_const(expression) {
+            self.arena.real(volta_expr::Real::from_i64(value))
+        } else {
+            expression
+        }
+    }
+    fn select_word(
+        &mut self,
+        wave: &Wave,
+        condition: ExprId,
+        when_true: &Operand,
+        when_false: &Operand,
+        lane: u8,
+    ) -> Result<Value, EvalError> {
+        use super::scalar::{FloatType, IntType, ScalarType, select};
+        if let Some(condition) = self.arena.as_bool(condition) {
+            return self.modified_value(wave, if condition { when_true } else { when_false }, lane);
+        }
+        let is_float = |operand: &Operand| {
+            if matches!(operand, Operand::Float(_) | Operand::Modified { .. }) {
+                return true;
+            }
+            match wave.value(operand, lane) {
+                Ok(Value::Real(_)) => true,
+                Ok(Value::Input(expr)) => match self.arena.node(expr) {
+                    ExprNode::InputElement { array, .. } => {
+                        self.word_formats.get(array) == Some(&WordFormat::Float32)
+                    }
+                    _ => false,
+                },
+                _ => false,
+            }
+        };
+        if is_float(when_true) || is_float(when_false) {
+            let a = self.real(wave, when_true, lane)?;
+            let b = self.real(wave, when_false, lane)?;
+            let a = self.decoded_float_argument(a);
+            let b = self.decoded_float_argument(b);
+            let result = select(
+                &mut self.arena,
+                ScalarType::Float(FloatType::F32),
+                condition,
+                a,
+                b,
+            )
+            .map_err(|what| EvalError::Unsupported { pc: wave.pc, what })?;
+            Ok(Value::Real(result))
+        } else {
+            let ty = IntType {
+                bits: 32,
+                signed: false,
+            };
+            let a = self.integer_expression(wave, when_true, lane, ty)?;
+            let b = self.integer_expression(wave, when_false, lane, ty)?;
+            let result = select(&mut self.arena, ScalarType::Int(ty), condition, a, b)
+                .map_err(|what| EvalError::Unsupported { pc: wave.pc, what })?;
+            Ok(self.integer_result(result, false))
+        }
+    }
     fn real64(&mut self, wave: &Wave, operand: &Operand, lane: u8) -> Result<ExprId, EvalError> {
         use super::scalar::{FloatType, decode_float};
         if let Operand::Modified {
@@ -1814,6 +2002,7 @@ impl<'a> Interpreter<'a> {
             }
             Value::Input(_)
             | Value::IntExpr(_)
+            | Value::PredicateWord { .. }
             | Value::NarrowInt { .. }
             | Value::WidePart { .. }
             | Value::Real(_)
@@ -2045,8 +2234,7 @@ impl<'a> Interpreter<'a> {
             return wave.put_value(dest, 0, Value::Integer(old.wrapping_mul(multiplier)));
         }
         if name == "s_mov_b64" {
-            let bits = wave.wide(&o[1], 0)?;
-            return wave.put_wide(dest, 0, bits);
+            return wave.move_wide(dest, &o[1]);
         }
         if name == "s_mov_b32" {
             let value = wave.value(&o[1], 0)?;
@@ -2055,8 +2243,7 @@ impl<'a> Interpreter<'a> {
         if name == "s_cselect_b32" || name == "s_cselect_b64" {
             let source = if wave.read_scc()? { &o[1] } else { &o[2] };
             return if name.ends_with("64") {
-                let bits = wave.wide(source, 0)?;
-                wave.put_wide(dest, 0, bits)
+                wave.move_wide(dest, source)
             } else {
                 let value = wave.value(source, 0)?;
                 wave.put_value(dest, 0, value)
@@ -2597,6 +2784,7 @@ impl<'a> Interpreter<'a> {
             return wave.put_wide(&o[1], 0, mask);
         }
         if name.starts_with("v_cmp_") || name.starts_with("v_cmpx_") {
+            use super::scalar::{CmpOp, FloatType, IntType, ScalarType};
             let cmpx = name.starts_with("v_cmpx_");
             let prefix = if cmpx { "v_cmpx_" } else { "v_cmp_" };
             let (condition, kind) = name
@@ -2612,51 +2800,61 @@ impl<'a> Interpreter<'a> {
             } else {
                 0
             };
-            let mut mask = 0u64;
+            let operation = match condition {
+                "eq" => CmpOp::Eq,
+                "ne" | "neq" => CmpOp::Ne,
+                "lt" => CmpOp::Lt,
+                "le" => CmpOp::Le,
+                "gt" => CmpOp::Gt,
+                "ge" => CmpOp::Ge,
+                _ => return Err(self.unsupported(wave, instruction)),
+            };
+            let inactive = self.arena.bool_val(false);
+            let mut predicates = [inactive; 64];
+            let mut concrete_mask = Some(0u64);
             for lane in lanes {
-                let result = if kind == "f32" {
+                let (ty, a, b) = if kind == "f32" {
                     let a = self.real(wave, &o[start], lane)?;
                     let b = self.real(wave, &o[start + 1], lane)?;
-                    let expr = match condition {
-                        "eq" => self.arena.eq(a, b),
-                        "ne" | "neq" => self.arena.ne(a, b),
-                        "lt" => self.arena.lt(a, b),
-                        "le" => self.arena.le(a, b),
-                        "gt" => self.arena.gt(a, b),
-                        "ge" => self.arena.ge(a, b),
-                        _ => return Err(self.unsupported(wave, instruction)),
+                    (
+                        ScalarType::Float(FloatType::F32),
+                        self.decoded_float_argument(a),
+                        self.decoded_float_argument(b),
+                    )
+                } else {
+                    let ty = IntType {
+                        bits: 32,
+                        signed: kind == "i32",
                     };
-                    match self.arena.node(expr) {
-                        ExprNode::BoolConst(value) => *value,
-                        _ => {
-                            return Err(wave
-                                .fail(Some(lane), "symbolic VCC comparison is not yet supported"));
+                    let a = self.integer_expression(wave, &o[start], lane, ty)?;
+                    let b = self.integer_expression(wave, &o[start + 1], lane, ty)?;
+                    (ScalarType::Int(ty), a, b)
+                };
+                let predicate = super::scalar::compare(&mut self.arena, ty, operation, a, b)
+                    .map_err(|what| EvalError::Unsupported { pc: wave.pc, what })?;
+                predicates[lane as usize] = predicate;
+                match self.arena.as_bool(predicate) {
+                    Some(true) => {
+                        if let Some(mask) = &mut concrete_mask {
+                            *mask |= 1u64 << lane;
                         }
                     }
-                } else {
-                    let a = wave.bits(&o[start], lane)?;
-                    let b = wave.bits(&o[start + 1], lane)?;
-                    let signed = kind == "i32";
-                    compare(
-                        condition,
-                        if signed { a as i32 as i64 } else { a as i64 },
-                        if signed { b as i32 as i64 } else { b as i64 },
-                    )
-                    .ok_or_else(|| self.unsupported(wave, instruction))?
-                };
-                if result {
-                    mask |= 1u64 << lane;
+                    Some(false) => {}
+                    None => concrete_mask = None,
                 }
             }
-            if start == 1 {
-                wave.put_wide(&o[0], 0, mask)?;
-            } else {
-                wave.vcc = mask;
-                wave.vcc_defined = 3;
-            }
             if cmpx {
+                let mask = concrete_mask.ok_or_else(|| EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "symbolic comparison cannot drive EXEC or data-dependent control".into(),
+                })?;
                 wave.exec &= mask;
             }
+            self.write_predicates(
+                wave,
+                if start == 1 { Some(&o[0]) } else { None },
+                predicates,
+            )?;
             return Ok(());
         }
         if name == "v_readfirstlane_b32" {
@@ -2971,20 +3169,8 @@ impl<'a> Interpreter<'a> {
                 | "v_accvgpr_write_b32"
                 | "v_accvgpr_mov_b32" => self.modified_value(wave, &o[1], lane)?,
                 "v_cndmask_b32" => {
-                    let mask = if o.len() > 3 {
-                        wave.wide(&o[3], lane)?
-                    } else {
-                        wave.read_vcc()?
-                    };
-                    self.modified_value(
-                        wave,
-                        if mask & (1u64 << lane) == 0 {
-                            &o[1]
-                        } else {
-                            &o[2]
-                        },
-                        lane,
-                    )?
+                    let condition = self.predicate_condition(wave, o.get(3), lane)?;
+                    self.select_word(wave, condition, &o[2], &o[1], lane)?
                 }
                 "v_lshlrev_b64" | "v_lshrrev_b64" => {
                     let shift = wave.bits(&o[1], lane)? & 63;
@@ -3250,6 +3436,9 @@ impl<'a> Interpreter<'a> {
         if !scalar && wave.exec == 0 {
             return Ok(());
         }
+        if self.xnack_replay_enabled && instruction.opcode == Opcode::VectorMemory {
+            return Err(EvalError::Unsupported {pc:wave.pc,what:"XNACK-enabled vector memory replay clauses and source retention are not modeled".into()});
+        }
         let flat = name.starts_with("flat_load_") || name.starts_with("flat_store_");
         if !(name.starts_with("s_load_")
             || name.starts_with("global_load_")
@@ -3260,6 +3449,9 @@ impl<'a> Interpreter<'a> {
             || dual)
         {
             return Err(self.unsupported(wave, instruction));
+        }
+        if scalar && self.xnack_replay_enabled {
+            self.validate_smem_clause(wave)?;
         }
         let mut dual_offsets = [0u64; 2];
         let offset =
@@ -3572,9 +3764,9 @@ impl<'a> Interpreter<'a> {
                             }
                             Value::Halves(lo, hi) => StoredValue::Pair(lo, hi),
                             Value::Bytes(bytes) => StoredValue::Quad(bytes),
-                            Value::PartialHalves(..) | Value::WidePart { .. } => {
-                                StoredValue::Opaque
-                            }
+                            Value::PartialHalves(..)
+                            | Value::WidePart { .. }
+                            | Value::PredicateWord { .. } => StoredValue::Opaque,
                         }))
                     } else {
                         None
@@ -3601,6 +3793,53 @@ impl<'a> Interpreter<'a> {
                         },
                     );
                     self.builder.amd_memory_effect(issue, effect);
+                }
+            }
+        }
+        Ok(())
+    }
+    /// CDNA4 §8.2.1 forbids replay-enabled scalar-memory clauses from overwriting
+    /// an address-source SGPR, except one DWORD loaded by an isolated instruction.
+    /// Treat each maximal contiguous SMEM run as one clause conservatively.
+    fn validate_smem_clause(&self, wave: &Wave) -> Result<(), EvalError> {
+        let mut start = wave.pc;
+        while start > 0 && self.program.instructions[start - 1].opcode == Opcode::ScalarMemory {
+            start -= 1;
+        }
+        let mut end = wave.pc + 1;
+        while end < self.program.instructions.len()
+            && self.program.instructions[end].opcode == Opcode::ScalarMemory
+        {
+            end += 1;
+        }
+        let clause = &self.program.instructions[start..end];
+        if clause.len() == 1 && clause[0].mnemonic == "s_load_dword" {
+            return Ok(());
+        }
+        let mut sources = std::collections::BTreeSet::new();
+        for instruction in clause {
+            for operand in instruction.operands.iter().skip(1) {
+                if let Operand::Register(register) = operand {
+                    if register.class == RegisterClass::Scalar {
+                        sources.extend(register.index..register.index + register.count);
+                    }
+                }
+            }
+        }
+        for instruction in clause {
+            if let Some(Operand::Register(destination)) = instruction.operands.first() {
+                if destination.class == RegisterClass::Scalar {
+                    if let Some(overlap) = (destination.index
+                        ..destination.index + destination.count)
+                        .find(|index| sources.contains(index))
+                    {
+                        return Err(EvalError::Unsupported {
+                            pc: wave.pc,
+                            what: format!(
+                                "SMEM clause destination s{overlap} overlaps an address source; only an isolated single-DWORD load permits this alias"
+                            ),
+                        });
+                    }
                 }
             }
         }
