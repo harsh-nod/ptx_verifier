@@ -117,6 +117,11 @@ impl Session {
 
             // Arithmetic
             ExprNode::Add(a, b) => {
+                if matches!(arena.node(*a), ExprNode::Add(..))
+                    || matches!(arena.node(*b), ExprNode::Add(..))
+                {
+                    return self.canon_additive_spine(side, arena, *a, *b);
+                }
                 let ra = self.canon_value(side, arena, *a)?;
                 let rb = self.canon_value(side, arena, *b)?;
                 self.rat_add_v(ra, rb)
@@ -226,6 +231,57 @@ impl Session {
 
             ExprNode::Discarded | ExprNode::Undefined => Err(CanonError::Undefined),
         }
+    }
+
+    /// Flatten only unshared additions. Shared nodes keep the usual memoization
+    /// boundary, and every leaf still passes through the same canonicalizer
+    /// (including undefined-value and division-by-zero checks).
+    fn canon_additive_spine(
+        &mut self,
+        side: Side,
+        arena: &ExprArena,
+        a: ExprId,
+        b: ExprId,
+    ) -> Result<RatV, CanonError> {
+        let mut pending = vec![b, a];
+        let mut values = Vec::new();
+        while let Some(expression) = pending.pop() {
+            if !self.is_shared(side, expression)
+                && !self.expr_memo.contains_key(&(side, expression))
+            {
+                if let ExprNode::Add(a, b) = arena.node(expression) {
+                    pending.push(*b);
+                    pending.push(*a);
+                    continue;
+                }
+            }
+            values.push(self.canon_value(side, arena, expression)?);
+        }
+        if values.iter().all(|value| self.pv_is_one(&value.denom)) {
+            let polys = values
+                .into_iter()
+                .map(|value| self.pv_into(value.numer))
+                .collect();
+            let sum = self.poly_sum_vec(polys)?;
+            return Ok(self.ratv_one_denom(sum));
+        }
+        // Rational leaves require the existing denominator/domain handling.
+        // A balanced reduction avoids rebuilding every growing prefix.
+        while values.len() > 1 {
+            let mut next = Vec::with_capacity(values.len().div_ceil(2));
+            let mut pairs = values.into_iter();
+            while let Some(a) = pairs.next() {
+                next.push(if let Some(b) = pairs.next() {
+                    self.rat_add_v(a, b)?
+                } else {
+                    a
+                });
+            }
+            values = next;
+        }
+        Ok(values
+            .pop()
+            .expect("an additive spine has at least two leaves"))
     }
 
     /// `e^{p}` as a rational, undoing logs first: `e^{q + c*log(u)}` is
