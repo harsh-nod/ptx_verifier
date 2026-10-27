@@ -93,9 +93,23 @@ fn parses_native_convolution_with_original_reduction_and_layout() {
 }
 
 #[test]
+fn parses_full_convolution_tiles_with_original_output_pitches() {
+    let module = parse(include_str!("fixtures/native-full-convolution.s")).unwrap();
+    assert_eq!(module.kernels.len(), 2);
+    for kernel in &module.kernels {
+        assert_eq!(
+            kernel.descriptor.get("group_segment_fixed_size"),
+            Some(16384)
+        );
+        assert_eq!(kernel.descriptor.get("private_segment_fixed_size"), Some(0));
+        assert_eq!(kernel.descriptor.get("max_flat_workgroup_size"), Some(512));
+    }
+}
+
+#[test]
 fn parses_native_cdna4_f16_bf16_and_scaled_e4m3_matrix_forms() {
     let module = parse(include_str!("fixtures/clang22-cdna4-mfma-types.s")).unwrap();
-    assert_eq!(module.kernels.len(), 3);
+    assert_eq!(module.kernels.len(), 4);
     let instruction = module.kernels[2]
         .instructions
         .iter()
@@ -103,6 +117,94 @@ fn parses_native_cdna4_f16_bf16_and_scaled_e4m3_matrix_forms() {
         .unwrap();
     assert_eq!(instruction.mnemonic, "v_mfma_scale_f32_16x16x128_f8f6f4");
     assert_eq!(instruction.operands.len(), 6);
+}
+
+#[test]
+fn parses_full_shape_native_gemm_without_private_spills() {
+    let module = parse(include_str!("fixtures/native-full-gemm.s")).unwrap();
+    assert_eq!(module.kernels.len(), 4);
+    for kernel in &module.kernels {
+        assert_eq!(
+            kernel.descriptor.get("group_segment_fixed_size"),
+            Some(65536)
+        );
+        assert_eq!(kernel.descriptor.get("private_segment_fixed_size"), Some(0));
+        assert_eq!(kernel.descriptor.get("max_flat_workgroup_size"), Some(1024));
+        assert!(kernel.instructions.iter().any(|instruction| {
+            matches!(
+                instruction.mnemonic.as_str(),
+                "v_mfma_f32_16x16x32_f16" | "v_mfma_scale_f32_32x32x64_f8f6f4"
+            )
+        }));
+    }
+}
+
+#[test]
+fn parses_native_scalar_integer_and_binary64_types() {
+    let module = parse(include_str!("fixtures/clang22-scalar-types.s")).unwrap();
+    assert_eq!(module.kernels.len(), 3);
+    let kernel = module
+        .kernels
+        .iter()
+        .find(|kernel| kernel.name == "scalar_f64")
+        .unwrap();
+    for mnemonic in [
+        "v_add_f64",
+        "v_mul_f64",
+        "v_fmac_f64",
+        "v_rcp_f64",
+        "v_sqrt_f64",
+        "v_cvt_f64_f32",
+        "v_cvt_f32_f64",
+    ] {
+        assert!(
+            kernel
+                .instructions
+                .iter()
+                .any(|instruction| instruction.mnemonic.trim_end_matches("_e32") == mnemonic),
+            "{mnemonic}"
+        );
+    }
+}
+
+#[test]
+fn parses_full_shape_weighted_state_and_forgetting_attention() {
+    for (assembly, name, shared) in [
+        (
+            include_str!("fixtures/native-mamba2-state.s"),
+            "mamba2_chunk_state_full",
+            12288,
+        ),
+        (
+            include_str!("fixtures/native-forgetting-attention.s"),
+            "forgetting_attention_full",
+            9216,
+        ),
+        (
+            include_str!("fixtures/native-flash-sinkhorn.s"),
+            "flash_sinkhorn_full",
+            4096,
+        ),
+        (
+            include_str!("fixtures/native-sage-attention.s"),
+            "sage_attention_full",
+            9216,
+        ),
+    ] {
+        let module = parse(assembly).unwrap();
+        assert_eq!(module.kernels.len(), 1);
+        assert_eq!(module.kernels[0].name, name);
+        assert_eq!(
+            module.kernels[0].descriptor.get("group_segment_fixed_size"),
+            Some(shared)
+        );
+        assert_eq!(
+            module.kernels[0]
+                .descriptor
+                .get("private_segment_fixed_size"),
+            Some(0)
+        );
+    }
 }
 
 #[test]
@@ -290,6 +392,88 @@ fn control_immediates_have_explicit_encoded_ranges() {
 }
 
 #[test]
+fn binary64_immediates_preserve_the_actual_encoded_precision() {
+    for body in [
+        "v_add_f64 v[0:1], 1.0, v[2:3]",
+        "v_add_f64 v[0:1], 0x3ff00000, v[2:3]",
+        "v_add_f64 v[0:1], 0x3ff0000000000000, v[2:3]",
+        "v_fma_f64 v[0:1], -0.5, v[2:3], v[4:5]",
+        "v_rcp_f64_e32 v[0:1], 1.5",
+        "v_rcp_f64_e32 v[0:1], -0.5",
+        "v_rcp_f64_e32 v[0:1], 0x3ff80000",
+        "v_cvt_f32_f64_e32 v0, 0x3ff80000",
+        "v_fmac_f64_e32 v[0:1], 0x3ff80000, v[2:3]",
+    ] {
+        parse(&program(body)).expect(body);
+    }
+    let module = parse(&program(
+        "v_add_f64 v[0:1], 0x3ff0000000000000, v[2:3]\nv_rcp_f64_e32 v[0:1], 1.5",
+    ))
+    .unwrap();
+    assert_eq!(
+        module.kernels[0].instructions[0].operands[1],
+        Operand::Float(1.0)
+    );
+    assert_eq!(
+        module.kernels[0].instructions[1].operands[1],
+        Operand::Integer(0x3ff80000)
+    );
+    for body in [
+        "v_add_f64 v[0:1], 0.1, v[2:3]",
+        "v_add_f64 v[0:1], 1.5, v[2:3]",
+        "v_add_f64 v[0:1], 65, v[2:3]",
+        "v_add_f64 v[0:1], 0x3ff80000, v[2:3]",
+        "v_fma_f64 v[0:1], 0x3ff80000, v[2:3], v[4:5]",
+        "v_rcp_f64_e32 v[0:1], 0.1",
+        "v_rcp_f64_e32 v[0:1], 0.15915494309189535",
+        "v_rcp_f64_e32 v[0:1], 0x3ff8000000000000",
+        "v_rcp_f64_e32 v[0:1], -v[2:3]",
+        "v_fmac_f64_e32 v[0:1], v[2:3], 1.0",
+    ] {
+        parse(&program(body)).expect_err(body);
+    }
+}
+
+#[test]
+fn bitop3_has_its_own_truth_table_modifier_contract() {
+    parse(&program("v_bitop3_b32 v0, s0, v1, v2 bitop3:0xc8")).unwrap();
+    for body in [
+        "v_bitop3_b32 v0, v1, v2, v3",
+        "v_bitop3_b32 v0, v1, v2, v3 bitop3:256",
+        "v_bitop3_b32 v0, v1, v2, v3 bitop3:-1",
+        "v_bitop3_b32 v0, v1, v2, v3 bitop3:1 clamp",
+        "v_bitop3_b32 v0, -v1, v2, v3 bitop3:1",
+        "v_bitop3_b32 v0, v1, v2, v3 bitop3:0.5",
+        "v_add_f32 v0, v1, v2 bitop3:1",
+    ] {
+        parse(&program(body)).expect_err(body);
+    }
+}
+
+#[test]
+fn sdwa_integer_sign_extension_is_scoped_to_the_modeled_conversion() {
+    let module = parse(&program(
+        "v_cvt_f16_i16_sdwa v0, sext(v1) dst_sel:DWORD dst_unused:UNUSED_PAD src0_sel:BYTE_0",
+    ))
+    .unwrap();
+    assert!(
+        module.kernels[0].instructions[0]
+            .modifiers
+            .iter()
+            .any(|modifier| modifier.name == "src0_sext")
+    );
+    for body in [
+        "v_cvt_f16_i16_e32 v0, sext(v1)",
+        "v_cvt_f16_i16_sdwa v0, sext(1)",
+        "v_cvt_f16_i16_sdwa v0, sext(v[2:3])",
+        "v_cvt_f16_i16_sdwa v0, v1 src0_sext",
+        "v_add_u32_sdwa v0, sext(v1), v2",
+    ] {
+        parse(&program(body)).expect_err(body);
+    }
+}
+
+#[test]
 fn rejects_unknown_and_malformed_executable_syntax() {
     for body in [
         "v_imaginary_f32 v0, v1, v2",
@@ -307,6 +491,15 @@ fn rejects_unknown_and_malformed_executable_syntax() {
         "s_mov_b64 s[0:1], s2",
         "v_add_f32 v[2:3], v0, v1",
         "v_add_f32 v2, v[0:1], v1",
+        "v_add_f64 v0, v[2:3], v[4:5]",
+        "v_add_f64 v[0:1], v2, v[4:5]",
+        "v_fma_f64 v[0:1], v[2:3], v[4:5], v6",
+        "v_rcp_f64 v0, v[2:3]",
+        "v_sqrt_f64 v[0:1], v2",
+        "v_cvt_f64_f32 v0, v1",
+        "v_cvt_f64_f32 v[0:1], v[2:3]",
+        "v_cvt_f32_f64 v[0:1], v[2:3]",
+        "v_cvt_f32_f64 v0, v2",
         "ds_read_b64 v0, v1",
         "ds_write_b128 v0, v1",
         "v_cndmask_b32 v0, v1, v2, s0",

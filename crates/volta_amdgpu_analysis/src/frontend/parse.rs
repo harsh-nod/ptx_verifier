@@ -118,6 +118,7 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
                 }
             }
             instr::validate_control(instruction)?;
+            instr::normalize_f64_sources(instruction)?;
         }
     }
     if parser.module.kernels.is_empty() {
