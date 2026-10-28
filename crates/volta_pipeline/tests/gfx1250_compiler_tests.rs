@@ -779,11 +779,16 @@ fn real_gfx1250_assemble_valid_safety_mutants_fail_their_actual_native_obligatio
         );
     }
     {
+        // Without any padding this schedule may diagnose an uninitialized LDS
+        // read before the issuing wave finishes descriptor construction. These
+        // independent NOPs retain candidate values without adding a memory
+        // completion or a cross-wave happens-before edge.
+        let scheduling_padding = ["s_nop 0"; 64].join("\n\t");
         let mutant = mutate(
             TENSOR,
             "tensor_roundtrip",
             &[
-                ("s_barrier_signal -1", 0, "s_nop 0"),
+                ("s_barrier_signal -1", 0, scheduling_padding.as_str()),
                 ("s_barrier_wait -1", 0, "s_nop 0"),
             ],
         );

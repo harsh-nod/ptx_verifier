@@ -13,6 +13,7 @@ import tempfile
 
 
 # (name, source, kernel, [(instruction substring, occurrence, replacement)], property)
+SCHEDULING_PADDING = "\n\t".join(["s_nop 0"] * 64)
 CASES = [
     ("copy_missing_km_wait", "native-copy-add.s", "copy", [("s_wait_kmcnt 0x0", 0, "s_nop 0")], "Scalar kernarg destination readiness"),
     ("copy_missing_load_wait", "native-copy-add.s", "copy", [("s_wait_loadcnt 0x0", 0, "s_nop 0")], "Global-load destination readiness"),
@@ -24,7 +25,7 @@ CASES = [
     ("gemm_missing_matrix_ds_wait", "native-gemm-pipeline.s", "gemm_pipeline_f16", [("s_wait_dscnt 0x0", 2, "s_nop 0")], "Second WMMA operand destination readiness"),
     ("tensor_missing_load_completion", "native-tensor-roundtrip.s", "tensor_roundtrip", [("s_wait_tensorcnt 0x0", 0, "s_nop 0")], "Tensor global-to-LDS completion before consumers"),
     ("tensor_wrong_load_counter", "native-tensor-roundtrip.s", "tensor_roundtrip", [("s_wait_tensorcnt 0x0", 0, "s_wait_loadcnt 0")], "Ordinary global-load counter does not complete tensor DMA"),
-    ("tensor_missing_crosswave_publication", "native-tensor-roundtrip.s", "tensor_roundtrip", [("s_barrier_signal -1", 0, "s_nop 0"), ("s_barrier_wait -1", 0, "s_nop 0")], "Issuing wave tensor wait cannot publish to another wave without rendezvous"),
+    ("tensor_missing_crosswave_publication", "native-tensor-roundtrip.s", "tensor_roundtrip", [("s_barrier_signal -1", 0, SCHEDULING_PADDING), ("s_barrier_wait -1", 0, "s_nop 0")], "Independent NOPs let descriptor issue occur before a scheduled consumer; NOPs add no HB/completion and issuing-wave tensor wait cannot publish to another wave without rendezvous"),
     ("tensor_missing_store_producers", "native-tensor-roundtrip.s", "tensor_roundtrip", [("s_barrier_signal -1", 1, "s_nop 0"), ("s_barrier_wait -1", 1, "s_nop 0")], "All producer waves must publish LDS before tensor store borrows it"),
     ("tensor_missing_store_completion", "native-tensor-roundtrip.s", "tensor_roundtrip", [("s_wait_tensorcnt 0x0", 1, "s_nop 0")], "Borrowed LDS source cannot be overwritten by next-stage tensor load before store completion"),
     ("tensor_oversized_tile", "native-tensor-roundtrip.s", "tensor_roundtrip", [("s_mov_b32 s13, 0x400000", 0, "s_mov_b32 s13, 0x410000")], "65-float tensor footprint exceeds 256-byte LDS allocation"),

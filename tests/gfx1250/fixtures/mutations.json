@@ -24,9 +24,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/copy_missing_km_wait.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/copy_missing_km_wait.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/copy_missing_km_wait.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/copy_missing_km_wait.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -52,9 +52,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/copy_missing_load_wait.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/copy_missing_load_wait.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/copy_missing_load_wait.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/copy_missing_load_wait.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -85,9 +85,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/exchange_missing_publication.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/exchange_missing_publication.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/exchange_missing_publication.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/exchange_missing_publication.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -113,9 +113,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/exchange_wrong_ds_counter.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/exchange_wrong_ds_counter.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/exchange_wrong_ds_counter.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/exchange_wrong_ds_counter.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -141,9 +141,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/wmma_missing_operand_load_wait.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/wmma_missing_operand_load_wait.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/wmma_missing_operand_load_wait.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/wmma_missing_operand_load_wait.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -174,9 +174,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/gemm_missing_initial_publication.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/gemm_missing_initial_publication.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/gemm_missing_initial_publication.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/gemm_missing_initial_publication.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -207,9 +207,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/gemm_missing_next_tile_publication.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/gemm_missing_next_tile_publication.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/gemm_missing_next_tile_publication.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/gemm_missing_next_tile_publication.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -235,9 +235,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/gemm_missing_matrix_ds_wait.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/gemm_missing_matrix_ds_wait.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/gemm_missing_matrix_ds_wait.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/gemm_missing_matrix_ds_wait.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -263,9 +263,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/tensor_missing_load_completion.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/tensor_missing_load_completion.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/tensor_missing_load_completion.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/tensor_missing_load_completion.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -291,9 +291,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/tensor_wrong_load_counter.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/tensor_wrong_load_counter.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/tensor_wrong_load_counter.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/tensor_wrong_load_counter.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -309,7 +309,7 @@
         {
           "source_line": 39,
           "original": "s_barrier_signal -1",
-          "replacement": "s_nop 0"
+          "replacement": "s_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0"
         },
         {
           "source_line": 40,
@@ -317,20 +317,20 @@
           "replacement": "s_nop 0"
         }
       ],
-      "mutated_source_sha256": "5914b5ebe1de52f84f60c20eeb6a8f9f68de0b27f5d07ae16c17979bf6170705",
-      "object_sha256": "343bd74f842b816c16198698e11abbaa9640bc35d55ae07cd8bd2c789633c101",
+      "mutated_source_sha256": "8a94d57aca00e87d59011a4f96045816e5efa40c0349c06a5aac32445023e8c1",
+      "object_sha256": "d4215afe670fca6fa69b69c1156a13a81f96db4e3ef4321ae74150cd527a8e6c",
       "assemble_argv": [
         "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/tensor_missing_crosswave_publication.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/tensor_missing_crosswave_publication.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/tensor_missing_crosswave_publication.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/tensor_missing_crosswave_publication.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
-      "expected_property": "Issuing wave tensor wait cannot publish to another wave without rendezvous",
+      "expected_property": "Independent NOPs let descriptor issue occur before a scheduled consumer; NOPs add no HB/completion and issuing-wave tensor wait cannot publish to another wave without rendezvous",
       "semantic_validation": "pending; MC success is not semantic validation"
     },
     {
@@ -357,9 +357,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/tensor_missing_store_producers.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/tensor_missing_store_producers.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/tensor_missing_store_producers.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/tensor_missing_store_producers.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -385,9 +385,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/tensor_missing_store_completion.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/tensor_missing_store_completion.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/tensor_missing_store_completion.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/tensor_missing_store_completion.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -413,9 +413,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/tensor_oversized_tile.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/tensor_oversized_tile.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/tensor_oversized_tile.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/tensor_oversized_tile.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
@@ -441,9 +441,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/transpose_missing_ds_completion.s",
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/transpose_missing_ds_completion.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-mutations-5y7ivyjl/transpose_missing_ds_completion.o"
+        "/tmp/ptx-verifier-gfx1250-mutations-iurv7_lp/transpose_missing_ds_completion.o"
       ],
       "assembler_exit_code": 0,
       "stderr": "",
