@@ -19,7 +19,7 @@ python3 ai_compiler_kernels/check_races.py --backend amdgpu --mutate copy
 
 For a reproducible parallel replay, build the revision first and pass its binary
 to `replay_workloads.py`. The driver calls the existing workload harness, checks
-every output and full mathematical spec, retains commands and resource logs,
+complete output footprints and every configured mathematical spec, retains commands and resource logs,
 and keeps supplemental reduced cases explicitly labeled. It never builds or
 substitutes a binary. Large full-shape proofs require substantial host memory.
 

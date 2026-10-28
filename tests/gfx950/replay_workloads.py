@@ -91,6 +91,15 @@ def main():
             return stdout, stderr
 
         harness.run_volta = bounded_run
+        probe_start = time.monotonic()
+        probe = subprocess.run([str(binary), "--help"], text=True,
+                               capture_output=True, check=True, timeout=30)
+        capability = {"argv": [str(binary), "--help"], "exit_code": probe.returncode,
+                      "timeout_seconds": 30,
+                      "elapsed_seconds": round(time.monotonic() - probe_start, 3),
+                      "stdout_sha256": hashlib.sha256(probe.stdout.encode()).hexdigest()}
+        has_logging = "--log-level" in probe.stdout
+        harness.cli_has_logging = lambda *_: has_logging
         report = harness.check(variant, full=True, echo=None)
         accepted = report.outcome in {harness.Outcome.RACE_FREE,
                                       harness.Outcome.REDUCED_RACE_FREE}
@@ -104,7 +113,8 @@ def main():
                   "reduced_case": variant.reduced_case, "sampling": False,
                   "outcome": report.outcome.value, "detail": report.detail,
                   "elapsed_seconds": round(report.seconds, 3), "limits": limits,
-                  "stages": stages, "passed_expected_native_contract": accepted}
+                  "capability_probe": capability, "stages": stages,
+                  "passed_expected_native_contract": accepted}
         (case_dir / "result.json").write_text(json.dumps(result, indent=2) + "\n")
         print(json.dumps(result), flush=True)
         return 0 if accepted else 1
@@ -121,7 +131,7 @@ def main():
                    "--worker", variant.name]
         run = subprocess.run(command, text=True, capture_output=True)
         result_file = output / variant.folder / variant.stem / "result.json"
-        if result_file.is_file():
+        if run.returncode == 0 and result_file.is_file():
             result = json.loads(result_file.read_text())
         else:
             result = {"name": variant.name, "passed_expected_native_contract": False,
