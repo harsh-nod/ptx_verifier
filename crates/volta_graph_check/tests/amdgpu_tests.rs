@@ -410,7 +410,10 @@ fn recognized_target_features_select_amd_checks_and_conflicts_remain_unknown() {
         ("gfx950:sramecc+:sramecc-", false),
         ("gfx950:wave32", false),
         ("gfx950:", false),
-        ("gfx942:xnack-", false),
+        ("gfx942:xnack-", true),
+        ("gfx942:sramecc+:xnack-", true),
+        ("gfx942:xnack-:xnack+", false),
+        ("gfx941", false),
     ] {
         let mut builder = GraphBuilder::new(Provenance {
             kernel: "target_features".into(),
@@ -1935,4 +1938,167 @@ fn mfma_missing_implicit_exec_reads_is_incomplete_instrumentation() {
             .iter()
             .any(|u| u.reason.contains("implicit EXEC"))
     );
+}
+
+fn target_trace(threads: u32, target: &str) -> Trace {
+    let mut p = Trace::new(threads).b.graph_so_far().provenance().clone();
+    p.targets = vec![target.into()];
+    p.instructions[1].kind = "s_nop";
+    p.instructions[2].kind = "s_nop";
+    Trace {
+        b: GraphBuilder::new(p),
+        threads,
+    }
+}
+
+#[test]
+fn cdna3_and_cdna4_selected_matrix_read_and_waw_delays_are_target_specific() {
+    for (kind, cdna3, cdna4) in [
+        (AmdMatrixKind::F32_16x16x4, 10, 10),
+        (AmdMatrixKind::F32_32x32x2, 18, 18),
+        (AmdMatrixKind::F16_16x16x16, 7, 8),
+        (AmdMatrixKind::F16_32x32x8, 11, 12),
+        (AmdMatrixKind::Bf16_16x16x16, 7, 8),
+        (AmdMatrixKind::Bf16_32x32x8, 11, 12),
+    ] {
+        for (target, required) in [("gfx942", cdna3), ("gfx950", cdna4)] {
+            for independent in [required - 1, required] {
+                for write in [false, true] {
+                    let mut t = target_trace(64, target);
+                    matrix_form(&mut t, 0, kind, None);
+                    delay(&mut t, 1, independent.min(16));
+                    if independent > 16 {
+                        delay(&mut t, 2, independent - 16);
+                    }
+                    let registers = vec![v(32, u64::MAX)];
+                    t.ins(
+                        0,
+                        3,
+                        if write { vec![] } else { registers.clone() },
+                        if write { registers } else { vec![] },
+                    );
+                    let r = check_graph(&t.finish());
+                    assert_eq!(
+                        r.verdict(Property::AmdTrace),
+                        Verdict::Pass,
+                        "{target}/{kind:?}: {r:?}"
+                    );
+                    assert_eq!(
+                        r.verdict(Property::AmdWaitReadiness),
+                        if independent == required {
+                            Verdict::Pass
+                        } else {
+                            Verdict::Fail
+                        },
+                        "{target}/{kind:?}, independent={independent}, write={write}: {r:?}"
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn cdna3_partial_src_c_forwarding_has_its_own_delay_and_full_forwarding_still_works() {
+    for (target, required) in [("gfx942", 5), ("gfx950", 6)] {
+        for independent in [required - 1, required] {
+            let mut t = target_trace(64, target);
+            matrix_form(&mut t, 0, AmdMatrixKind::F16_16x16x16, None);
+            delay(&mut t, 1, independent);
+            matrix_form(&mut t, 3, AmdMatrixKind::F16_16x16x16, Some(34));
+            let r = check_graph(&t.finish());
+            assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+            assert_eq!(
+                r.verdict(Property::AmdWaitReadiness),
+                if independent == required {
+                    Verdict::Pass
+                } else {
+                    Verdict::Fail
+                },
+                "{target}: {r:?}"
+            );
+        }
+        let mut t = target_trace(64, target);
+        matrix_form(&mut t, 0, AmdMatrixKind::F16_16x16x16, None);
+        matrix_form(&mut t, 3, AmdMatrixKind::F16_16x16x16, Some(32));
+        assert_eq!(
+            check_graph(&t.finish()).conclusion(),
+            GraphConclusion::Verified
+        );
+    }
+}
+
+#[test]
+fn changing_target_cannot_make_cdna4_only_matrix_records_valid_cdna3() {
+    for kind in [
+        AmdMatrixKind::F16_16x16x32,
+        AmdMatrixKind::F16_32x32x16,
+        AmdMatrixKind::Bf16_16x16x32,
+        AmdMatrixKind::Bf16_32x32x16,
+        AmdMatrixKind::Fp8_16x16x128,
+        AmdMatrixKind::Fp8_32x32x64,
+        AmdMatrixKind::Fp8Scale_16x16x128,
+        AmdMatrixKind::Fp8Scale_32x32x64,
+    ] {
+        let mut t = target_trace(64, "gfx942:sramecc+:xnack-");
+        matrix_form(&mut t, 0, kind, None);
+        let report = check_graph(&t.finish());
+        assert_eq!(
+            report.verdict(Property::AmdTrace),
+            Verdict::Unknown,
+            "{kind:?}"
+        );
+        assert!(matches!(
+            report.conclusion(),
+            GraphConclusion::Unknown { .. }
+        ));
+    }
+    let mut t = target_trace(64, "gfx941");
+    t.ins(0, 0, vec![], vec![]);
+    let direct = volta_graph_check::amdgpu::check_amdgpu(&t.finish());
+    assert_eq!(direct.trace.verdict(), Verdict::Unknown);
+    assert_eq!(direct.wait_readiness.verdict(), Verdict::Unknown);
+}
+
+#[test]
+fn cdna3_waits_and_wave_barriers_preserve_native_completion_requirements() {
+    for target in ["gfx942:xnack-", "gfx950:xnack-"] {
+        for omitted in ["none", "producer_wait", "barrier", "consumer_wait"] {
+            let mut t = target_trace(65, target);
+            t.issue(0, 0, AmdMemoryClass::Lds, vec![], vec![], 0, true);
+            if omitted != "producer_wait" {
+                t.wait(0, 6, None, Some(0));
+            }
+            if omitted != "barrier" {
+                for wave in 0..2 {
+                    t.arrive(wave, 0);
+                }
+                for wave in 0..2 {
+                    t.release(wave, 0);
+                }
+            }
+            t.issue(1, 3, AmdMemoryClass::Lds, vec![v(5, 1)], vec![], 0, false);
+            if omitted != "consumer_wait" {
+                t.wait(1, 4, None, Some(0));
+            }
+            t.ins(1, 5, vec![v(5, 1)], vec![]);
+            let report = check_graph(&t.finish());
+            assert_eq!(
+                report.verdict(Property::AmdTrace),
+                Verdict::Pass,
+                "{target}/{omitted}: {report:?}"
+            );
+            if omitted == "none" {
+                assert_eq!(report.conclusion(), GraphConclusion::Verified);
+            } else if omitted == "consumer_wait" {
+                assert_eq!(report.verdict(Property::AmdWaitReadiness), Verdict::Fail);
+            } else {
+                assert_eq!(
+                    report.verdict(Property::AmdMemoryConflict),
+                    Verdict::Fail,
+                    "{target}/{omitted}: {report:?}"
+                );
+            }
+        }
+    }
 }

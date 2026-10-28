@@ -1,6 +1,7 @@
-//! gfx950 checks over the existing event graph, independent of PTX certificates.
+//! Target-selected gfx942/gfx950 checks over the existing event graph, independent of PTX certificates.
 //!
-//! Semantics: AMD CDNA4 ISA §4.3–4.4 (workgroups and counters), §8.3 (SMEM),
+//! Common semantics: AMD MI300/CDNA3 and MI350/CDNA4 ISA §4.3–4.4
+//! (workgroups and counters), §8.3 (SMEM),
 //! §10.2 (FLAT). VM loads/stores and homogeneous LDS instructions complete in order;
 //! mixed LGKM classes, SMEM and FLAT do not. Nonzero waits only certify a FIFO
 //! prefix for a homogeneous ordered counter. FLAT requires both counters to retire.
@@ -10,9 +11,9 @@
 use std::collections::{HashMap, HashSet};
 
 use volta_graph::{
-    AmdCounter, AmdEventKind, AmdMatrixKind, AmdMemoryClass, AmdMemoryScope, AmdRegister,
-    AmdRegisterFile, EventGraph, EventId, EventKind, Footprint, OrderingKind, Proxy, Space,
-    Terminal,
+    AmdArchitecture, AmdCounter, AmdEventKind, AmdMatrixKind, AmdMemoryClass, AmdMemoryScope,
+    AmdRegister, AmdRegisterFile, EventGraph, EventId, EventKind, Footprint, OrderingKind, Proxy,
+    Space, Terminal,
 };
 
 use crate::domain::{ByteLocation, ConflictKind, bytes, written_bytes};
@@ -133,7 +134,7 @@ fn unknown<E, V>(reason: &str) -> PropertyResult<E, V> {
     PropertyResult::Unknown(vec![Unresolved::global(reason)])
 }
 
-fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
+fn trace_contract(graph: &EventGraph, architecture: AmdArchitecture) -> AmdTraceResult {
     let mut unresolved = Vec::new();
     if let Err(defects) = graph.validate() {
         unresolved.extend(defects.into_iter().map(|d| {
@@ -300,7 +301,7 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                 if !valid {
                     unresolved.push(Unresolved::at(
                         record.event,
-                        "counter charges do not match the gfx950 instruction class",
+                        "counter charges do not match the native AMD instruction class",
                     ));
                 }
                 if matches!(
@@ -353,7 +354,7 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                 {
                     unresolved.push(Unresolved::at(
                         record.event,
-                        "wait threshold exceeds the gfx950 counter width",
+                        "wait threshold exceeds the native AMD counter width",
                     ));
                 }
             }
@@ -378,6 +379,15 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                 sources_ab,
                 accumulator,
             } => {
+                if !architecture.supports_matrix(*kind) {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        format!(
+                            "MFMA form {kind:?} is outside the {} graph contract",
+                            architecture.name()
+                        ),
+                    ));
+                }
                 for regs in [destinations, sources_ab, accumulator] {
                     check_regs(regs, &mut unresolved);
                 }
@@ -625,7 +635,7 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
             EventKind::Exit => {}
             _ => unresolved.push(Unresolved::at(
                 id,
-                "unrecognized or PTX-only event in gfx950 trace",
+                "unrecognized or PTX-only event in native AMD trace",
             )),
         }
     }
@@ -697,14 +707,31 @@ struct MatrixOperation {
     accumulator: Vec<AmdRegister>,
 }
 impl MatrixOperation {
-    fn ordinary_wait(&self) -> u64 {
-        self.kind.passes() + if self.kind.is_xdl() { 4 } else { 2 }
+    fn ordinary_wait(&self, architecture: AmdArchitecture) -> u64 {
+        // LLVM GCNHazardRecognizer.cpp (846473237377990d00b9c353f6a2c86116b52ea5),
+        // GFX940_XDL_N_PassWriteVgprVALUMemExpReadWaitStates and VALUWaw:
+        // CDNA3 XDL uses passes+3; CDNA4 adds a state for >2-pass forms.
+        // The modeled legacy SGEMM forms use passes+2 on both targets.
+        self.kind.passes()
+            + if self.kind.is_xdl() {
+                3 + u64::from(architecture == AmdArchitecture::Gfx950 && self.kind.passes() != 2)
+            } else {
+                2
+            }
     }
 }
 
-/// Explicitly selected by the suite for gfx950, never called as a PTX check.
+/// Select the native contract from provenance, including for direct callers.
 pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
-    let trace = trace_contract(graph);
+    let Some(architecture) = AmdArchitecture::from_targets(&graph.provenance().targets) else {
+        return AmdReport {
+            trace: unknown("AMD checks require one recognized gfx942/gfx950 target"),
+            wait_readiness: unknown("AMD target selection did not pass"),
+            barrier: unknown("AMD target selection did not pass"),
+            memory_conflict: unknown("AMD target selection did not pass"),
+        };
+    };
+    let trace = trace_contract(graph, architecture);
     if trace.verdict() != Verdict::Pass {
         return AmdReport {
             trace,
@@ -875,7 +902,8 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                 // CDNA4 §7.6 Table 38; LLVM GCNHazardRecognizer.cpp at
                 // 846473237377990d00b9c353f6a2c86116b52ea5, checkMAIHazards90A
                 // and checkMAIVALUHazards. Time excludes the issuing instruction.
-                matrices[wave].retain(|m| tick.saturating_sub(m.tick) <= m.ordinary_wait());
+                matrices[wave]
+                    .retain(|m| tick.saturating_sub(m.tick) <= m.ordinary_wait(architecture));
                 let next_matrix = matrix_at.get(&record.event);
                 for operation in &matrices[wave] {
                     let independent = tick.saturating_sub(operation.tick).saturating_sub(1);
@@ -885,7 +913,7 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                     {
                         let wait = if let Some((kind, _, ab, accumulator)) = next_matrix {
                             if ab.iter().any(|r| r.overlaps(register)) {
-                                operation.ordinary_wait()
+                                operation.ordinary_wait(architecture)
                             } else if accumulator.iter().any(|r| r.overlaps(register)) {
                                 if **accumulator == operation.destinations
                                     && kind.passes() == operation.kind.passes()
@@ -894,15 +922,20 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                                 } else if !operation.kind.is_xdl() && kind.is_xdl() {
                                     0
                                 } else if operation.kind.is_xdl() {
-                                    operation.kind.passes() + 2
+                                    // Partial/different-pass SrcC forwarding. LLVM's
+                                    // GFX940_XDL_N_PassWritesVGPROverlapped*SrcC
+                                    // tables distinguish CDNA3 from CDNA4.
+                                    operation.kind.passes()
+                                        + 1
+                                        + u64::from(architecture == AmdArchitecture::Gfx950)
                                 } else {
                                     operation.kind.passes()
                                 }
                             } else {
-                                operation.ordinary_wait()
+                                operation.ordinary_wait(architecture)
                             }
                         } else {
-                            operation.ordinary_wait()
+                            operation.ordinary_wait(architecture)
                         };
                         if independent < wait {
                             hazards.push(AmdRegisterHazard {
@@ -920,7 +953,7 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                         for &register in writes {
                             let kind =
                                 if operation.destinations.iter().any(|d| d.overlaps(register))
-                                    && independent < operation.ordinary_wait()
+                                    && independent < operation.ordinary_wait(architecture)
                                 {
                                     Some(AmdRegisterHazardKind::MatrixDestinationReuse)
                                 } else if operation.kind.is_xdl()
@@ -1329,7 +1362,9 @@ fn memory_conflicts(
         .iter()
         .map(|l| (l.effect, issue_index[&l.issue]))
         .collect();
-    // CDNA4 §9.1.10.2/Table49-50: SC0=1, SC1=0 is group scope.
+    // CDNA3/CDNA4 §9.1.10.2: SC0=1, SC1=0 is group scope.
+    // LLVM AMDGPUUsage.rst's global.load/store.b128 tables explicitly group
+    // gfx942 and gfx950 together with the same workgroup SC0 policy.
     // LLVM SIMemoryLegalizer.cpp at846473237377990d00b9c353f6a2c86116b52ea5
     // enableLoad/StoreCacheBypass selects SC0 for workgroup accesses;
     // insertAcquire needs no CU-cache invalidate when TG_SPLIT is disabled,
@@ -1373,7 +1408,7 @@ fn memory_conflicts(
                     later_scoped,
                 ) {
                     unresolved.push(Unresolved::between(earlier, event,
-                        "gfx950 cache visibility for an ordered cross-wave GLOBAL conflict requires workgroup-scoped endpoints and a single-CU workgroup premise"));
+                        "native AMD cache visibility for an ordered cross-wave GLOBAL conflict requires workgroup-scoped endpoints and a single-CU workgroup premise"));
                 }
             }
             ordered
