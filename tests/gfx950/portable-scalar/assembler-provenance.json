@@ -1,685 +1,685 @@
 {
   "host": "mi350-2",
-  "directory": "/tmp/ptx-verifier-portable-scalar-bsQGf7",
+  "directory": "/tmp/ptx-verifier-portable-scalar-tITsQA",
   "cases": [
     {
       "source": "b16_shift_amount_is_read_as_u32.s",
-      "source_sha256": "2dd3c56b9c321a3f5104b43e5bf43e0f5667448f4e98e00d1c32eb6199ba4c52",
+      "source_sha256": "410272ed7aaa9ee7910519f06eea751e73b02bd3b65b81f8261d3bf0c91853e7",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/b16_shift_amount_is_read_as_u32.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/b16_shift_amount_is_read_as_u32.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/b16_shift_amount_is_read_as_u32.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/b16_shift_amount_is_read_as_u32.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "93dc87579fe4f8717bc05c51057921d63cf9929b2d59e9284681a35c2abd4c3a"
+      "object_sha256": "7963ccb0cca6c3613ac757aaf725c857aa2b4cf8e15df9d8a401ce7ce77de4c6"
     },
     {
       "source": "b64_shift_by_u32_register.s",
-      "source_sha256": "40ba29433e3027365939e06a1bf8b51cf901f608fad0a097bdc43d50442dfb03",
+      "source_sha256": "6f3bb386720ff7665dd3bc1db16c5c9c4d80608dbcb2bd8983a586574a9bbc7a",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/b64_shift_by_u32_register.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/b64_shift_by_u32_register.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/b64_shift_by_u32_register.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/b64_shift_by_u32_register.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "7cc23f61eabdc72cdbcf29f59745b9e2a6652655a37544205eba30789b765afc"
+      "object_sha256": "8fb69ee4901313838d4632b3f79099ae763c11ef56aa021634c8d399f5299ef2"
     },
     {
       "source": "bfe_extract_and_sign_fill.s",
-      "source_sha256": "a2002498f20b82132476d2b2452fb83967eed00a127f34bc787f08327b79a9b9",
+      "source_sha256": "97bd084e4a31122f065329d47b50348c8e613ca62a0b67bf0e9344d26b007ec4",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/bfe_extract_and_sign_fill.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/bfe_extract_and_sign_fill.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/bfe_extract_and_sign_fill.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/bfe_extract_and_sign_fill.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "a1a093b98e81ba72a27b2a6d570b94c813338b8a8e754e2dd38d35a35b9a7c39"
+      "object_sha256": "d37170f065ffd888511e1383cd6fc66032cb82fbfe2099aea6cd8bf27b7ab2e7"
     },
     {
       "source": "bfi_clips_field_to_register_width.s",
-      "source_sha256": "dfbaabfedb8737ee8aeb97976273a1e5c6f24ad3d8f60c087e08f30fe5cd809d",
+      "source_sha256": "c747bd46e3e6e2cb470268468f8afbb6ef2de42b553dfea6a67eff601ebc0c74",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/bfi_clips_field_to_register_width.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/bfi_clips_field_to_register_width.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/bfi_clips_field_to_register_width.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/bfi_clips_field_to_register_width.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "cace5612b703ac25be1075a6e49154d285aca70f30500bdeb71857b36be55e25"
+      "object_sha256": "017eba9a5bdb6ed25138a21cd2e4481e3f439748300c2c3fdbea24cdc7aaab48"
     },
     {
       "source": "byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.s",
-      "source_sha256": "d3fa955e4f4581ff120063c9b1446072c9fec5b791f22f1c26c940ad3b152d8a",
+      "source_sha256": "2b88ca5bb38ba33beccd62665bfb9f6fdd075de7e77b1dad5a074195b5327e98",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "8799b9c69eb60c49258e67047dd6331a3554faf7e903aa420eef411e7caa8abc"
+      "object_sha256": "9ec67989f24142f8fab3cdc4008d342db84ded8feedcee0b000e781ff7932231"
     },
     {
       "source": "copysign_combines_the_sign_of_a_with_the_magnitude_of_b.s",
-      "source_sha256": "fb6771afe6552d7f91628bece5df49f38403f2f76da911f3aa20cd9db8ecfa8d",
+      "source_sha256": "bce55e6bcafd8d9d578228c974dbd73431236f4be09e84d5739c919ae259886b",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/copysign_combines_the_sign_of_a_with_the_magnitude_of_b.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/copysign_combines_the_sign_of_a_with_the_magnitude_of_b.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/copysign_combines_the_sign_of_a_with_the_magnitude_of_b.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/copysign_combines_the_sign_of_a_with_the_magnitude_of_b.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "33094e9599b44f4b8351462201a8e0ab7651b34f00cf7ecce117ecf5b414b355"
+      "object_sha256": "08c82731b6810b5970fc7879c5eddd5d2c02c883edb217cdd497733627d043fa"
     },
     {
       "source": "cvta_to_global_accepted.s",
-      "source_sha256": "5a79ce21a6dfbfa48893e395dd86be38d4839c6e850f89c472048ca307c65ad3",
+      "source_sha256": "5aa9c3c24a154314c6de34819ee6ff0c965c10e34f076643a64e551219e36a53",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/cvta_to_global_accepted.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/cvta_to_global_accepted.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/cvta_to_global_accepted.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/cvta_to_global_accepted.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "48b79ce83942fcd46f758d944ff282bd2253710e31162d22f2660d245c81a043"
+      "object_sha256": "01f71ee8287eea42301dfa042c5cbfee22b30f47651124af1d504c57e1ba128a"
     },
     {
       "source": "div_by_n_vs_mul_by_computed_reciprocal.s",
-      "source_sha256": "9feb78d0e3567d6b8a28f2d599981c779132903b3e9bbe3599a6bd14a9d17b62",
+      "source_sha256": "1f20e5cd699f7c6fc188b8ca06476d4c4498262edd9a9d65ab4c85bb7fd59106",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/div_by_n_vs_mul_by_computed_reciprocal.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/div_by_n_vs_mul_by_computed_reciprocal.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/div_by_n_vs_mul_by_computed_reciprocal.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/div_by_n_vs_mul_by_computed_reciprocal.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "63e2c806361997290a9e1e2f96296eeb8753c2646c8c7360d9ef2a84422633bb"
+      "object_sha256": "d2cce3a7c4ce413078e3549ef1b91947e32669ee230b084ac7931eec1f970246"
     },
     {
       "source": "div_by_n_vs_mul_by_computed_reciprocal_2.s",
-      "source_sha256": "dd8130dc3ad95ce17ca93e17ca5c82f9cab9e6aea93ca2277e0db23fb39aec0b",
+      "source_sha256": "f164b40e4a8a840eb64b93b41c0b3839e993731624cdf7e19ba3e21219b8c746",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/div_by_n_vs_mul_by_computed_reciprocal_2.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/div_by_n_vs_mul_by_computed_reciprocal_2.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/div_by_n_vs_mul_by_computed_reciprocal_2.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/div_by_n_vs_mul_by_computed_reciprocal_2.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "63e2c806361997290a9e1e2f96296eeb8753c2646c8c7360d9ef2a84422633bb"
+      "object_sha256": "d2cce3a7c4ce413078e3549ef1b91947e32669ee230b084ac7931eec1f970246"
     },
     {
       "source": "div_by_three_vs_rcp_of_three.s",
-      "source_sha256": "dc8b2b279694b8af5b3f29fc6e99f3d0618ab1af9f19debb68dd71dfe46bcdb0",
+      "source_sha256": "70af525949d193706c0d115885c9a9e286e7f0b1fc483a38af8e7e2ad2e40d4b",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/div_by_three_vs_rcp_of_three.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/div_by_three_vs_rcp_of_three.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/div_by_three_vs_rcp_of_three.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/div_by_three_vs_rcp_of_three.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "ccf0669fa6107f3899dd9e91f2e6e6aa40a82bd40ac92645702744dbd7960dde"
+      "object_sha256": "8e7a726c47880173a53ed5f950b926bde37a16d26a5dd3adc5b2319504c8f5e1"
     },
     {
       "source": "div_by_three_vs_rcp_of_three_2.s",
-      "source_sha256": "02d8652b2b07b97e06b3a388e50f1f41102c1a88a0c52810236957a42004b012",
+      "source_sha256": "82355e8debf57905a4b688f9f5598208778eb900aaed36edc0c3821d50700c68",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/div_by_three_vs_rcp_of_three_2.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/div_by_three_vs_rcp_of_three_2.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/div_by_three_vs_rcp_of_three_2.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/div_by_three_vs_rcp_of_three_2.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "ccf0669fa6107f3899dd9e91f2e6e6aa40a82bd40ac92645702744dbd7960dde"
+      "object_sha256": "8e7a726c47880173a53ed5f950b926bde37a16d26a5dd3adc5b2319504c8f5e1"
     },
     {
       "source": "elect_sync_elects_the_lowest_active_lane.s",
-      "source_sha256": "5c3143340ff6a2600e784c9cbccde4e785eb45def254d36a73ed23dd4eb31f6c",
+      "source_sha256": "3c9d41cec8ee2766da09baf4ed5ec581332160966dfc9417bb616920342615ed",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/elect_sync_elects_the_lowest_active_lane.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/elect_sync_elects_the_lowest_active_lane.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/elect_sync_elects_the_lowest_active_lane.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/elect_sync_elects_the_lowest_active_lane.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "d271fa452588bc6c0043e345a41158d7142fa69a0f7771cf5386081dbb1c3a8a"
+      "object_sha256": "f8807300ce152367d81d667b1f6829bf4f7dea6e1671bb1c4bfda9df393262ff"
     },
     {
       "source": "elect_sync_skips_an_already_exited_lane.s",
-      "source_sha256": "9797d2ae64061a7378d5675ad6a98c70e58bc2b25b3f069cb5d81979d035ccca",
+      "source_sha256": "a87f4751306867b9866aaf8d408c94528af7a4621acef049fef7cb685bb0dd14",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/elect_sync_skips_an_already_exited_lane.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/elect_sync_skips_an_already_exited_lane.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/elect_sync_skips_an_already_exited_lane.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/elect_sync_skips_an_already_exited_lane.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "d0173a346ea1c6db05aa62485fabf03d689e49116e6e1dd5a2562577f40c98ee"
+      "object_sha256": "43f66ab02e9d1315c8c5b6dbb9cc5135a80017f755d63bb419a80e945f06b740"
     },
     {
       "source": "extern_only_shared_placement_and_bounds.s",
-      "source_sha256": "5e9878efe96f14f31acfc9703040aac9e1c24e03a44be761bb25021509f689bb",
+      "source_sha256": "3fe64da46c0b4da77c5372857b5042735e84fd3c17b5d7aaec5643dacdd2d47c",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/extern_only_shared_placement_and_bounds.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/extern_only_shared_placement_and_bounds.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/extern_only_shared_placement_and_bounds.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/extern_only_shared_placement_and_bounds.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "b73d46d0aa91131a097557c001de28c8575c7efed7e636e502906e6a91c849c7"
+      "object_sha256": "7ebd5df978897c7da49f6c9e279363762e37cc8ea63afe4b20e30b0f75ff2415"
     },
     {
       "source": "extern_vs_static_shared_no_false_race.s",
-      "source_sha256": "2db2f78b206f6f5da05e09674684b81da3e0bf93b3c41b019b130f85b8b7d495",
+      "source_sha256": "e76f5ebc4ea97ce935884af5d5fa25efe132c5fc78bb7341c7d3f654e9d1143a",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/extern_vs_static_shared_no_false_race.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/extern_vs_static_shared_no_false_race.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/extern_vs_static_shared_no_false_race.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/extern_vs_static_shared_no_false_race.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "bd9a5fb5b3018130c10e4b02d5780c99ae804ebfc96e4b5d705a321ba8e8eb45"
+      "object_sha256": "66b793a9fc24b958fed1a471d09dc45bd84813b0c30fa76c1f7f9fad0c440881"
     },
     {
       "source": "f32x2_constant_bit_pattern_operand.s",
-      "source_sha256": "b749b3d36725b0a8a0704c58405d72dc7ecee877ef9e9277c09b842e830bca3c",
+      "source_sha256": "186f233e21c7472cb103f15fa6e3b8da6676b0a6cc1eb4ccbdaf50e840b445d0",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_constant_bit_pattern_operand.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_constant_bit_pattern_operand.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_constant_bit_pattern_operand.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_constant_bit_pattern_operand.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "f36b2febf059add4be6bc1630b69babe5d036102516d663c790cd1aff5c36326"
+      "object_sha256": "70cbbc5c2bd1734dc9d8922b779096f64b29215ed532a651cf0ee5b541e983ae"
     },
     {
       "source": "f32x2_fma_via_64bit_memory_access.s",
-      "source_sha256": "19394d3235399ead7aa1b4268864611f9608c6909a3f6ee399850966de7e3c00",
+      "source_sha256": "9c8972e3f6d889dcb9f5abf6c1168aba64eb803c71edcbefc8e1237fd11f826c",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_fma_via_64bit_memory_access.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_fma_via_64bit_memory_access.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_fma_via_64bit_memory_access.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_fma_via_64bit_memory_access.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "036735de9043101400c73bd9cf8be72ddb5cedfa2fec57adf7b0bcf84496b70f"
+      "object_sha256": "2535d44a28aac68a53152f766109d0c8173aca831d93bc29e3961605712eb5d9"
     },
     {
       "source": "f32x2_fma_via_register_pack.s",
-      "source_sha256": "c3ba0519c5082dc8e36a30da9eb50db339690ee1fc5825869aff603446d0a4e8",
+      "source_sha256": "447c024f08e57c1f46c47a8d552cca90e1a1f355e89f9a249a48ba834c12fd5f",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_fma_via_register_pack.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_fma_via_register_pack.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_fma_via_register_pack.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_fma_via_register_pack.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "5bf0e08bbe6b93af9fba48cff5e9de33104766997ba5925836eeab7ff56955cc"
+      "object_sha256": "6b3053ebfcc59dd0ce51df2218b3b7b31a40e70fd0556a983e8ae3051a587c24"
     },
     {
       "source": "f32x2_lane_extracted_with_shift.s",
-      "source_sha256": "ef6f370ec675f8f88d5a1548d3c94ee8063e3e393a5841d15e8c4b3c8148ab54",
+      "source_sha256": "d4239b231ac405089754fcb083cdfca1bee7bd103d218c8f3bd1a8288f9d5d96",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_lane_extracted_with_shift.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_lane_extracted_with_shift.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_lane_extracted_with_shift.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_lane_extracted_with_shift.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "f13108dec9aca1bf884b010d567732a6cfdacae6d5a5e2bcaac6ecee47292931"
+      "object_sha256": "6b2e94e110509d3ffcdaafa4b52ebd86cfe1c9253f4f1bad24dd3176f32605cc"
     },
     {
       "source": "f32x2_mul_add_via_register_pack.s",
-      "source_sha256": "014eb8b2d9485d002979a8aaded63c9ef5bcf99f7db7de520281cf3ad0167116",
+      "source_sha256": "2b55d9a458110efc0c53f5437605be42646a0f6a176f46a915c7f74123b1a769",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_mul_add_via_register_pack.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_mul_add_via_register_pack.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_mul_add_via_register_pack.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_mul_add_via_register_pack.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "10febe87c3437575b466440f80fd9dce673902573d7ab3d4a4d60701dd2e970e"
+      "object_sha256": "2cf56b176008040d61e6d23f8f8adec9a9601ae32cf49b31b69dcd656f85e67c"
     },
     {
       "source": "f32x2_operand_assembled_with_cvt_zero_extension.s",
-      "source_sha256": "04d4753c11b93c7fe8559203a287822bbc3f130a791511932973eb06604ad616",
+      "source_sha256": "188cff6c9b94f1ed445801fcebe840c4ffc9e327bb94ba5fa6307d170938d7b8",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_operand_assembled_with_cvt_zero_extension.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_operand_assembled_with_cvt_zero_extension.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_operand_assembled_with_cvt_zero_extension.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_operand_assembled_with_cvt_zero_extension.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "0e0cd4ebfa83265c456a02d569328f81f37c4a38a0338b68d315b3a26901b617"
+      "object_sha256": "2492ac053dfe325031af203aa576e34a6e54fca2ef8c7eadfdbd40d3a67fb8a8"
     },
     {
       "source": "f32x2_operand_assembled_with_shift_and_or.s",
-      "source_sha256": "b1edbdbc958ceb7d590d67f3707cb78d3e5f70b0c7b52dd92294ef4883e620d1",
+      "source_sha256": "11900be6bb9b9ccde7da8e2ff41d2546243d4d0d9b4114931f20678a4ef87286",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_operand_assembled_with_shift_and_or.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_operand_assembled_with_shift_and_or.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_operand_assembled_with_shift_and_or.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_operand_assembled_with_shift_and_or.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "0e0cd4ebfa83265c456a02d569328f81f37c4a38a0338b68d315b3a26901b617"
+      "object_sha256": "2492ac053dfe325031af203aa576e34a6e54fca2ef8c7eadfdbd40d3a67fb8a8"
     },
     {
       "source": "f32x2_scalar_reference.s",
-      "source_sha256": "835701c7638d25d379b2cfc3dd98e8d517a7d266007174a4e022283f1f5c69f3",
+      "source_sha256": "51087d1df84000d3fc20c4c9b7dce9cb55cc01410f632aa1deca505d665bdda1",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_scalar_reference.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_scalar_reference.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_scalar_reference.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_scalar_reference.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "feda677eab866ed5c6d0dfc8b095d709537182141998f64ebe55574a74fbc695"
+      "object_sha256": "f0a7d0cf1d927f3f728298a307fb686714dbfa11b749e408f739e603a15da74f"
     },
     {
       "source": "f32x2_wrong_lane_math.s",
-      "source_sha256": "0be07d4841c3cef13684f56505903161d3ec658907d5ba93cda7b365e1247668",
+      "source_sha256": "afa667ce015f44626847afe4c01f1d725fc6c8089630221ff5a315aada91e51a",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_wrong_lane_math.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_wrong_lane_math.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/f32x2_wrong_lane_math.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/f32x2_wrong_lane_math.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "30263d6c5cf3bedd1164c25423125a624d4ce5b39ddc306fe5e8633f01b6decd"
+      "object_sha256": "398d2bd59afdc00d05c2e0a125e46def53a8faabc5952611d0a856554a12135c"
     },
     {
       "source": "float_abs_decodes_raw_bits.s",
-      "source_sha256": "7a42507716f67db13ef6eebc53c472a41d3e2efe56732cca521a4aca8174aaa0",
+      "source_sha256": "4ab643b27dd56b0a57f04674e6c10d2f89f9c7a697e1aa61826da0434ed2f735",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/float_abs_decodes_raw_bits.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/float_abs_decodes_raw_bits.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/float_abs_decodes_raw_bits.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/float_abs_decodes_raw_bits.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "023661a98dc035aeaec91d17bf9a3a03e479fadc6db5ecaf1b240fe5ea9e180e"
+      "object_sha256": "6712caa47debd4b5052b1a4cda6ebcd6b6c8831b422da2def0d071f12467dd06"
     },
     {
       "source": "float_ops_decode_raw_bit_patterns.s",
-      "source_sha256": "3f77b509fb2cb7bb845879729e4beaa7600f16de47022b65d485ece43de2e663",
+      "source_sha256": "5f9b641fd995ad36d6c9a0f5d9067613b1e19a064212e551ec8dab620a27653a",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/float_ops_decode_raw_bit_patterns.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/float_ops_decode_raw_bit_patterns.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/float_ops_decode_raw_bit_patterns.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/float_ops_decode_raw_bit_patterns.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "c513e1496766af642db0c136a10560fbce070ba32fbc53dff05a5e87b860bd5f"
+      "object_sha256": "7766f3f74858d4b75bbe3a4155b03f8d462f4bf70d64c2362b14244a94da337c"
     },
     {
       "source": "int_abs_read_at_signed_width.s",
-      "source_sha256": "b9a8a562cf13263686c2dac2ae739b9ccecb76684e1600a4f2b8b62d75d17f2f",
+      "source_sha256": "578942b86649b675aca0d1debbe85ebd0cc42d4466f977fbaac139b86b8b5ecd",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/int_abs_read_at_signed_width.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/int_abs_read_at_signed_width.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/int_abs_read_at_signed_width.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/int_abs_read_at_signed_width.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "129f289eb16d7a9e8b3272f29713956df850011a7ab3145dc638965ebb3b6f64"
+      "object_sha256": "21e91136bb6ff8a9df8cba66c4114258e4cfdbb8bb4b0f222ed4aee2ad18bb72"
     },
     {
       "source": "mapa_rank_zero_is_the_identity.s",
-      "source_sha256": "c7261624caaa21e11c0269263e5421f54392fc69c1bb631fc5b82839ded4f0c5",
+      "source_sha256": "1a115908ae9a18ffea04c14fd5a91e989cd22b198989da1dfcad4ea2199e150b",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/mapa_rank_zero_is_the_identity.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/mapa_rank_zero_is_the_identity.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/mapa_rank_zero_is_the_identity.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/mapa_rank_zero_is_the_identity.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "5dc658c89faa38d6483d942cf824346daef042dd18a09146a0b0313e634bf669"
+      "object_sha256": "0289339ffa369c202dceff7a728b99be66568bcf28516030e0000cfbd5766b82"
     },
     {
       "source": "mixed_precision_fma_decodes_multiplicands_at_their_own_type.s",
-      "source_sha256": "2bbf9ddfd0fb27271f15b318586a4da1c496373c9b3cc10bc0366415bdb8b1ad",
+      "source_sha256": "12f6adf82601e45f6589dff2a68e6e883128b5e4002ddc2a02f839701b8979ec",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/mixed_precision_fma_decodes_multiplicands_at_their_own_type.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/mixed_precision_fma_decodes_multiplicands_at_their_own_type.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/mixed_precision_fma_decodes_multiplicands_at_their_own_type.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/mixed_precision_fma_decodes_multiplicands_at_their_own_type.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "113d7a42013b14e567b7c0922bf2cdc6ae3c29724db5c75d215e08588995d76f"
+      "object_sha256": "3012270b5b302565ae470dcf41c70ebb8252b04fe3e1c2d471e0862d129fa660"
     },
     {
       "source": "mul_hi_u32_negative_operand.s",
-      "source_sha256": "5271165c4a6eaa50fa81235585ac86a26ea85705d6157641a3953d81e3a972a5",
+      "source_sha256": "54a5090ceb05ea3a89b36ab2133b81247e2c4b71d759a83f55c4a3b57d5c73ad",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/mul_hi_u32_negative_operand.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/mul_hi_u32_negative_operand.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/mul_hi_u32_negative_operand.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/mul_hi_u32_negative_operand.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "b91fb3ddb18b9bd97a6296f77f01e81f671010fadb210301d69b41cc0fa7f27d"
+      "object_sha256": "f1f709d3f17ecf6a5a8ed1408c92b5956fc53847f918ba375031ad1c7e789d41"
     },
     {
       "source": "mul_wide_u16_magic_division.s",
-      "source_sha256": "51b58c575085a6d6ac5fc90086ae95ece26237c2960445303eaa2bf1f0c8c8e2",
+      "source_sha256": "fc6abda0eba7c346258935919a077cd7f6eb88c8caa688f2f4d23cbe38d22be7",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/mul_wide_u16_magic_division.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/mul_wide_u16_magic_division.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/mul_wide_u16_magic_division.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/mul_wide_u16_magic_division.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "5ce95cd37038c4228634f2e6c5c398a31ee9b2dfd0208241ce20a390fc520721"
+      "object_sha256": "1086c4f1b7d456da2f7da46ffc30eea802489f09c047dbe09059be3c70dea27f"
     },
     {
       "source": "neg_reads_operand_as_instruction_type.s",
-      "source_sha256": "f65f2ebaba85b440efa7fc8069603bb3e21062079908c52e6afe42d36bc378a1",
+      "source_sha256": "fd3934e3924c10f961aa6a86147904d8d59edc1d424a6695e90c130295f6139e",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/neg_reads_operand_as_instruction_type.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/neg_reads_operand_as_instruction_type.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/neg_reads_operand_as_instruction_type.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/neg_reads_operand_as_instruction_type.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "6275ef67c503a6bef1ecb122083c4d9168ee6281f274d740ec3ea5f8b5a97961"
+      "object_sha256": "0fb3e14a60da19700bd4c1579b44a8e18ff460ecb9451e83e5db21dc012a6304"
     },
     {
       "source": "region_edge_exact_fit_accesses_pass.s",
-      "source_sha256": "bfa2b620dc24c8795b3a5ed2ee1846a18c9e2eb65a2bcf877033eeddfc50c865",
+      "source_sha256": "4befaeaccbfe8229be542ef359e04b084a1cf6c29a1359db42f164710b7d9de4",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/region_edge_exact_fit_accesses_pass.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/region_edge_exact_fit_accesses_pass.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/region_edge_exact_fit_accesses_pass.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/region_edge_exact_fit_accesses_pass.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "4f42c9eb12d3e8819b0528ad3c5f31d65c1270c74fe1d3797024a17e34062e87"
+      "object_sha256": "aa3fcf88a0850ef190cf59b8ecc80d97baba1004324f8f7b50b8b647a700a2a3"
     },
     {
       "source": "shf_clamp_negative_shift_amount_saturates.s",
-      "source_sha256": "df37817c39353e0825abd84910aeefe4f716fe6fd94d0e4adb9653e935717e72",
+      "source_sha256": "0ca7875d6f57d60a905c4ff905e224648e51cf5cd01b2dfaddf5955fbc8f134f",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/shf_clamp_negative_shift_amount_saturates.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/shf_clamp_negative_shift_amount_saturates.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/shf_clamp_negative_shift_amount_saturates.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/shf_clamp_negative_shift_amount_saturates.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "4cee645433bb9660480dd81559e918045b139c3ccc727d6d09857c01d6c17d78"
+      "object_sha256": "814da61afd9129bbe6437797d5506cfb51571da9925e920613a945d6b34aea37"
     },
     {
       "source": "shfl_sync_idx_exchange.s",
-      "source_sha256": "2a7f9a248508fc7d8681e5f09bae7f17cdeba60e4b216aded8b87c2c75288628",
+      "source_sha256": "dd77b7000903b6f0cc5156ddd5c337feb96488f7ee07f6d76ac2c063c18ff28e",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/shfl_sync_idx_exchange.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/shfl_sync_idx_exchange.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/shfl_sync_idx_exchange.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/shfl_sync_idx_exchange.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "369d900475a5b6db25bb099569f827858659389df301428c986a66500b7739c2"
+      "object_sha256": "61130d1ae3e25870ce7e9ddc1d837d2a00200bd09335b0384537aa8c1fc12a04"
     },
     {
       "source": "symexpf_callseq.s",
-      "source_sha256": "a410a1d9bc5ee532a61e4876bdc4e56f6226aa109102bbe81f73819d0cc3bd10",
+      "source_sha256": "415b1665b9e7f037fe485c7f7706777df2e67660f5d4b7dfb9074dfb15a4ccb5",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/symexpf_callseq.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/symexpf_callseq.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/symexpf_callseq.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/symexpf_callseq.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "d6964e9c4464736d8f3a9887de1fb5246b5e4dc43136ff454ad341abea81b182"
+      "object_sha256": "610b10a6b864f5066f88de38dbef6df23e53db331b0498e5b256e55d5eec81c6"
     },
     {
       "source": "tail_exit_warp_shfl_reduction.s",
-      "source_sha256": "330f2f6cd0ba19fe06a29f3e0561814fba2b60e63933f89d7de54c4d2a9e3543",
+      "source_sha256": "c9890211d5f5c5afaf92ad94bdf9d0dc35eda0c16f2cb9a71944dfb761dc8fbf",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/tail_exit_warp_shfl_reduction.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/tail_exit_warp_shfl_reduction.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/tail_exit_warp_shfl_reduction.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/tail_exit_warp_shfl_reduction.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "c94e500e74d5199d2778e5ee3deb6c1a41dc8ebfdc4f0bf0d0363931794988f5"
+      "object_sha256": "d58d076eac08b2e91024368c2682e16e5fe5e458f2a5c6bc9eb352fb56490354"
     },
     {
       "source": "tail_exit_warp_shfl_reduction_reference.s",
-      "source_sha256": "5ef1b4fbf4386b6d8867c3bab7d37ef2dbbe1a29364261b1939d2d2c86d3a45b",
+      "source_sha256": "02de0ea55b742c43381b27a703a8cd26c17ee33125ec3a22ecb573134be645ee",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/tail_exit_warp_shfl_reduction_reference.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/tail_exit_warp_shfl_reduction_reference.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/tail_exit_warp_shfl_reduction_reference.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/tail_exit_warp_shfl_reduction_reference.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "b4bcb60a0a038eef5e49a56c7b67c86c3108bee6e3efeec2ce2e47c43ce93c8a"
+      "object_sha256": "4a311950be90896b0370c1e39f073fadd4779df83fb95fe9ec731fb1dbd7ff20"
     },
     {
       "source": "tanh_approx_expands_to_exp_fragment.s",
-      "source_sha256": "633e55082a131152d5bfb64dc668737b17046e6c30d2f26084ef46c9b7a47f89",
+      "source_sha256": "c1826d92e39b80f5f319329c162b72da566225b661dd685d4d8253a8573c0aa4",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/tanh_approx_expands_to_exp_fragment.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/tanh_approx_expands_to_exp_fragment.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/tanh_approx_expands_to_exp_fragment.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/tanh_approx_expands_to_exp_fragment.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "f1f80de3e444d96f3a48a4a475cde30cb71a8b108c2ed4bf5e7f1cf79f50c47e"
+      "object_sha256": "bc57ced0ba11cae5a929187fd5e8a697c2a488bbb1a4cea1180983d4d9208e0c"
     },
     {
       "source": "tanh_approx_zero_vs_zero.s",
-      "source_sha256": "91197da343249b1dc4b1871f1da3c45839d4ec195caf5bb2bd02b642a8cbe634",
+      "source_sha256": "4eb8944a9fe966b5822ebcfa67d48b981143fe774a3ad8d54e8a3610559627cf",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/tanh_approx_zero_vs_zero.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/tanh_approx_zero_vs_zero.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/tanh_approx_zero_vs_zero.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/tanh_approx_zero_vs_zero.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "f39e86ae09b6dba3e5db7ba1caf6e2ef5010d20a3be1279e6ce4bc029b6550d1"
+      "object_sha256": "4b91b597ef46bad423a723e9ff22bf746f12b9b61b3675a96cf6295760bded8c"
     },
     {
       "source": "tanh_approx_zero_vs_zero_2.s",
-      "source_sha256": "bc7abca15f4959c6c9e3869e987a144f606181133c55216f23fc6455c2380c54",
+      "source_sha256": "fc0cf1ee995621757f469256e753f71d1f13118f405bd031c915e1908873e83a",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/tanh_approx_zero_vs_zero_2.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/tanh_approx_zero_vs_zero_2.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/tanh_approx_zero_vs_zero_2.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/tanh_approx_zero_vs_zero_2.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "1b2b1234b1c244ea0887c8c6bd447b0c04639b2e62eeba5f25394207c1357fd0"
+      "object_sha256": "457dfa87a5c78e4c85ce25edc4a006fbc555cb7c57236ac20d88c84abe3aa1a4"
     },
     {
       "source": "upper_half_address_space_access_in_bounds.s",
-      "source_sha256": "7710175d238d300e457ea7fbe254d2c20bae3f0492b53cdcd81522649a7b76a9",
+      "source_sha256": "5716d5f8f2537d8ae83ba3c9512fbf52fbfa021ed4b0e1f32379c4c0a4559fa9",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/upper_half_address_space_access_in_bounds.s",
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/upper_half_address_space_access_in_bounds.s",
         "-o",
-        "/tmp/ptx-verifier-portable-scalar-bsQGf7/upper_half_address_space_access_in_bounds.o"
+        "/tmp/ptx-verifier-portable-scalar-tITsQA/upper_half_address_space_access_in_bounds.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "46d711941a33f05d32e75a6e8e7f26a5ef0fe3ae65699e42521cc93b7a493c0a"
+      "object_sha256": "883a93230ca4d990b438dafecbf221f68715022ca2b76289607e38a19c14dfbd"
     }
   ],
   "schema": 1,
   "assembler_binary": "/opt/rocm/llvm/bin/llvm-mc",
   "assembler_sha256": "e95688e5b40bb13fe0d74ba6a45d180ced24aac768c101c94760b8f7dfa52f70",
-  "assembler_version": "AMD LLVM version22.0.0git; Optimized build with assertions.",
   "compiler_source_commit": "9b0f9aa3067a907226b0ebb8bee1fe51d1f0fca5",
+  "assembler_version": "AMD LLVM version22.0.0git; Optimized build with assertions.",
   "architecture": "gfx950",
-  "note": "Exact checked-in hand assembly; no source-to-source translation. All42 output objects assembled successfully. Hardware execution is not claimed by this receipt."
+  "note": "Exact checked-in native hand assembly with256byte aligned kernel entries; all42sources assemble. Instructions unchanged. Assembler validation alone is not a hardware execution claim."
 }

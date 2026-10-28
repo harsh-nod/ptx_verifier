@@ -99,9 +99,9 @@ fn descriptor_publication_requires_completion_and_a_crosswave_rendezvous() {
             .memory_conflict
             .violations();
         assert!(
-            violations
-                .iter()
-                .any(|v| v.location.space == Space::Shared && v.kind == ConflictKind::WriteRead),
+            violations.iter().any(|v| v.location.space == Space::Shared
+                && v.location.addr < 32
+                && v.kind == ConflictKind::WriteRead),
             "{violations:?}"
         );
     }
@@ -157,9 +157,9 @@ fn copied_tile_requires_its_own_completion_and_publication() {
             .memory_conflict
             .violations();
         assert!(
-            violations
-                .iter()
-                .any(|v| v.location.space == Space::Shared && v.kind == ConflictKind::WriteRead),
+            violations.iter().any(|v| v.location.space == Space::Shared
+                && (32..64).contains(&v.location.addr)
+                && v.kind == ConflictKind::WriteRead),
             "{violations:?}"
         );
     }
@@ -226,9 +226,124 @@ fn descriptor_reuse_is_ordered_after_its_consumers_finish() {
         .memory_conflict
         .violations();
     assert!(
-        violations
-            .iter()
-            .any(|v| v.location.space == Space::Shared && v.kind == ConflictKind::ReadWrite),
+        violations.iter().any(|v| v.location.space == Space::Shared
+            && v.location.addr < 32
+            && v.kind == ConflictKind::ReadWrite),
         "{violations:?}"
     );
+}
+
+fn run_metadata(source: &str) -> gfx950_common::Checked {
+    let module = frontend::parse(source).unwrap();
+    let mut config = AnalysisConfig::new((128, 1, 1));
+    config.arrays = vec![ArrayDef {
+        name: "metadata".into(),
+        base: 0x10000,
+        elem_width: 4,
+        len: 32,
+        kind: ArrayKind::InputOutput,
+    }];
+    config.params = vec![
+        ParamValue::ArrayPtr("metadata".into()),
+        ParamValue::ArrayPtr("metadata".into()),
+    ];
+    gfx950_common::check(source, &module, Some("k"), config).unwrap()
+}
+
+#[test]
+fn copying_descriptor_bytes_races_both_the_source_and_destination_replacements() {
+    let source = include_str!("../../../tests/gfx950/portable-descriptor/copy-replace-races.s");
+    for ordered in [false, true] {
+        let source = if ordered {
+            source.replace("s_nop 0 // replace-to-copy join", "s_barrier")
+        } else {
+            source.into()
+        };
+        let checked = run_metadata(&source);
+        let outputs = checked.analysis.symbolic_outputs().unwrap();
+        assert_eq!(outputs.outputs[0].1.len(), 32);
+        for i in 0..32 {
+            assert!(
+                matches!(outputs.arena.node(outputs.element("metadata", i).unwrap()),
+                ExprNode::IntConst(value) if *value == if i == 0 {19} else {42})
+            );
+        }
+        if ordered {
+            assert_eq!(
+                checked.checks.conclusion(),
+                GraphConclusion::Verified,
+                "{:#?}",
+                checked.checks
+            );
+        } else {
+            assert!(matches!(
+                checked.checks.conclusion(),
+                GraphConclusion::Rejected { .. }
+            ));
+            let violations = checked
+                .checks
+                .amd
+                .as_ref()
+                .unwrap()
+                .memory_conflict
+                .violations();
+            assert!(
+                violations.iter().any(|v| v.location.space == Space::Shared
+                    && v.location.addr < 4
+                    && v.kind == ConflictKind::WriteRead),
+                "{violations:?}"
+            );
+            assert!(
+                violations.iter().any(|v| v.location.space == Space::Global
+                    && (0x10000..0x10004).contains(&v.location.addr)
+                    && v.kind == ConflictKind::WriteWrite),
+                "{violations:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn independent_descriptor_field_replacements_conflict_at_the_same_lds_word() {
+    let source = include_str!("../../../tests/gfx950/portable-descriptor/replace-write-write.s");
+    for ordered in [false, true] {
+        let source = if ordered {
+            source.replace("s_nop 0 // replace-to-replace join", "s_barrier")
+        } else {
+            source.into()
+        };
+        let checked = run_metadata(&source);
+        let outputs = checked.analysis.symbolic_outputs().unwrap();
+        assert_eq!(outputs.outputs[0].1.len(), 1);
+        assert!(matches!(
+            outputs.arena.node(outputs.element("metadata", 0).unwrap()),
+            ExprNode::IntConst(23)
+        ));
+        if ordered {
+            assert_eq!(
+                checked.checks.conclusion(),
+                GraphConclusion::Verified,
+                "{:#?}",
+                checked.checks
+            );
+        } else {
+            assert!(matches!(
+                checked.checks.conclusion(),
+                GraphConclusion::Rejected { .. }
+            ));
+            let violations = checked
+                .checks
+                .amd
+                .as_ref()
+                .unwrap()
+                .memory_conflict
+                .violations();
+            assert!(
+                violations.iter().any(|v| v.location.space == Space::Shared
+                    && v.location.addr < 4
+                    && v.kind == ConflictKind::WriteWrite),
+                "{violations:?}"
+            );
+        }
+    }
 }

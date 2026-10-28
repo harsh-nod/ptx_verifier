@@ -137,6 +137,22 @@
     "v_lshlrev_b32_e32": 2,
     "v_mfma_f32_16x16x4_f32": 1
   },
+  "clang22-mixed-byvalue.s": {
+    "global_store_dword": 1,
+    "s_and_saveexec_b64": 1,
+    "s_cbranch_execz": 1,
+    "s_endpgm": 1,
+    "s_load_dword": 2,
+    "s_load_dwordx2": 3,
+    "s_sext_i32_i16": 1,
+    "s_waitcnt": 2,
+    "v_add_f32_e32": 3,
+    "v_cmp_gt_u32_e32": 1,
+    "v_cvt_f32_f64_e32": 1,
+    "v_cvt_f32_i32_e32": 1,
+    "v_cvt_f32_ubyte2_e32": 1,
+    "v_lshlrev_b32_e32": 1
+  },
   "clang22-module-globals.s": {
     "global_load_dword": 1,
     "global_store_dword": 1,
