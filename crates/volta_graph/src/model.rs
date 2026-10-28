@@ -530,6 +530,8 @@ pub enum Assumption {
     /// Every wave of the analyzed AMD workgroup resides on the same CU:
     /// threadgroup splitting is disabled.
     SingleCuWorkgroup,
+    /// Workgroup clustering and cluster-dependent ABI fields are disabled.
+    UnclusteredWorkgroup,
     /// Native LDS object boundaries are supplied explicitly by configuration.
     ConfiguredSharedAllocationLayout,
     /// Symbolic arithmetic uses mathematical reals, not bit-exact floating-point.
@@ -571,6 +573,9 @@ impl Assumption {
             }
             Assumption::SingleCuWorkgroup => {
                 "all waves of the analyzed AMD workgroup share one CU; threadgroup splitting is disabled"
+            }
+            Assumption::UnclusteredWorkgroup => {
+                "workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result"
             }
             Assumption::MathematicalRealArithmetic => {
                 "arithmetic is modeled over mathematical reals, not bit-exact floating-point"

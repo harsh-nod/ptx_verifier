@@ -101,6 +101,14 @@ pub enum AmdCounter {
     Vm,
     Lgkm,
     Exp,
+    Load,
+    Store,
+    Ds,
+    Km,
+    /// Address translation/replay sources, independent of data completion.
+    X,
+    Async,
+    Tensor,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -113,6 +121,70 @@ pub enum AmdMemoryClass {
     FlatStoreWide,
     Message,
     CrossLane,
+    VectorLoad,
+    VectorStore,
+    ScalarLoad,
+    Ds,
+    AsyncLoadToLds,
+    AsyncStoreFromLds,
+    TensorLoadToLds,
+    TensorStoreFromLds,
+}
+
+/// Encoded S_DELAY_ALU dependency selectors. These refer to prior producer
+/// instructions, not a count of independent NOP cycles.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum AmdAluDependency {
+    None,
+    Valu(u8),
+    Trans(u8),
+    SaluCycles(u8),
+}
+
+impl AmdAluDependency {
+    pub fn from_encoding(value: u8) -> Option<Self> {
+        match value {
+            0 => Some(Self::None),
+            1..=4 => Some(Self::Valu(value)),
+            5..=7 => Some(Self::Trans(value - 4)),
+            9..=11 => Some(Self::SaluCycles(value - 8)),
+            _ => None,
+        }
+    }
+    pub fn encoding(self) -> Option<u8> {
+        match self {
+            Self::None => Some(0),
+            Self::Valu(value @ 1..=4) => Some(value),
+            Self::Trans(value @ 1..=3) => Some(value + 4),
+            Self::SaluCycles(value @ 1..=3) => Some(value + 8),
+            _ => None,
+        }
+    }
+}
+
+/// Selected gfx1250 wave32 WMMA forms. This is distinct from legacy MFMA.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[allow(non_camel_case_types)]
+pub enum AmdWmmaKind {
+    F32_16x16x4,
+    F16_16x16x32,
+    Bf16_16x16x32,
+    Fp8Fp8_16x16x64,
+    Fp8Bf8_16x16x64,
+    Bf8Fp8_16x16x64,
+    Bf8Bf8_16x16x64,
+}
+
+impl AmdWmmaKind {
+    pub const fn destination_registers(self) -> usize {
+        8
+    }
+    pub const fn input_registers(self) -> usize {
+        match self {
+            Self::F32_16x16x4 => 2,
+            _ => 8,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -120,6 +192,8 @@ pub enum AmdRegisterFile {
     Scalar,
     Vector,
     Accumulator,
+    /// Architected trap temporaries used by the gfx1250 workgroup ABI.
+    Temporary,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -196,15 +270,27 @@ pub struct AmdRegister {
 }
 
 impl AmdRegister {
+    pub fn is_uniform(self) -> bool {
+        matches!(
+            self.file,
+            AmdRegisterFile::Scalar | AmdRegisterFile::Temporary
+        )
+    }
     pub fn overlaps(self, other: Self) -> bool {
         self.file == other.file
             && self.index == other.index
-            && (self.file == AmdRegisterFile::Scalar || self.lanes & other.lanes != 0)
+            && (self.is_uniform() || self.lanes & other.lanes != 0)
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AmdEventKind {
+    WmmaIssue {
+        kind: AmdWmmaKind,
+        destinations: Vec<AmdRegister>,
+        sources_ab: Vec<AmdRegister>,
+        accumulator: Vec<AmdRegister>,
+    },
     /// A supported MFMA form, with operand roles retained for forwarding checks.
     MatrixIssue {
         kind: AmdMatrixKind,
@@ -215,6 +301,13 @@ pub enum AmdEventKind {
     /// S_NOP's encoded immediate plus one (1..16 independent wait states).
     Delay {
         cycles: u16,
+    },
+    /// `instid0` applies to the next instruction; `instid1`, if present,
+    /// applies after `instskip` intervening machine instructions (0..5).
+    DelayAlu {
+        instid0: AmdAluDependency,
+        instskip: u8,
+        instid1: Option<AmdAluDependency>,
     },
     /// Every executed instruction, including scalar instructions with EXEC=0.
     Instruction {
@@ -239,6 +332,26 @@ pub enum AmdEventKind {
         vmcnt: Option<u16>,
         lgkmcnt: Option<u16>,
         expcnt: Option<u16>,
+    },
+    /// GFX12.5 completion and replay thresholds. Counter identities are never
+    /// aliases for the legacy VM/LGKM fields. Empty/duplicate waits are invalid.
+    WaitCounters {
+        thresholds: Vec<(AmdCounter, u16)>,
+    },
+    /// Nonblocking signal of a specific GFX12 barrier object and phase.
+    SplitBarrierSignal {
+        barrier: i16,
+        generation: u32,
+        exec_mask: u64,
+    },
+    /// The wave is blocked until a matching SplitBarrierRelease is recorded.
+    SplitBarrierWait {
+        barrier: i16,
+        generation: u32,
+    },
+    SplitBarrierRelease {
+        barrier: i16,
+        generation: u32,
     },
     /// One arrival per live wave. The mask is recorded for diagnostics, not a requirement
     /// that EXEC be all ones: S_BARRIER is a scalar instruction.
@@ -290,6 +403,38 @@ pub fn amd_wave_thread_for(architecture: AmdArchitecture, wave: u32) -> ThreadIx
 #[cfg(test)]
 mod architecture_tests {
     use super::*;
+
+    #[test]
+    fn delay_alu_dependency_encoding_is_typed_and_rejects_reserved_selectors() {
+        for encoding in 0..=15 {
+            let dependency = AmdAluDependency::from_encoding(encoding);
+            assert_eq!(dependency.is_some(), matches!(encoding, 0..=7 | 9..=11));
+            if let Some(dependency) = dependency {
+                assert_eq!(dependency.encoding(), Some(encoding));
+            }
+        }
+        for dependency in [
+            AmdAluDependency::Valu(0),
+            AmdAluDependency::Valu(5),
+            AmdAluDependency::Trans(4),
+            AmdAluDependency::SaluCycles(4),
+        ] {
+            assert_eq!(dependency.encoding(), None);
+        }
+        let temporary = AmdRegister {
+            file: AmdRegisterFile::Temporary,
+            index: 9,
+            lanes: 0,
+        };
+        assert!(temporary.overlaps(AmdRegister {
+            lanes: u64::MAX,
+            ..temporary
+        }));
+        assert!(!temporary.overlaps(AmdRegister {
+            file: AmdRegisterFile::Scalar,
+            ..temporary
+        }));
+    }
 
     #[test]
     fn targets_retain_architecture_and_reject_conflicting_or_unknown_features() {

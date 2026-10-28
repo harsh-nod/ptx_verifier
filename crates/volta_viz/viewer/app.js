@@ -713,6 +713,8 @@
           m.terminal ? h("span", { class: "pill terminal " + m.terminal, text: "trace " + m.terminal }) : null,
         ),
         fact("kernel", m.kernel, true),
+        launch ? fact("target", (launch.targets || []).join(", "), true) : fact("declared target", doc.source_target, true),
+        launch ? fact("geometry", (launch.wave_kind || (doc.source_language === "amdgpu" ? "wave" : "warp")) + launch.wave_size) : fact("declared wave", doc.source_wave_size),
         launch ? fact("block", launch.block.join("×")) : null,
         launch && launch.grid.some((d) => d !== 1) ? fact("grid", launch.grid.join("×")) : null,
         m.events != null ? fact("events", fmt(m.events)) : null,
@@ -2292,7 +2294,9 @@
   function groupOf(laneIx) {
     const lane = state.doc.lanes[laneIx];
     const waveSize = state.doc && state.doc.launch && state.doc.launch.wave_size || 32;
-    return lane.kind === "object" ? "sync objects" : (waveSize === 64 ? "wave " : "warp ") + Math.floor(lane.thread / waveSize);
+    const native = (state.doc.source_language || state.doc.launch && state.doc.launch.source_language) === "amdgpu";
+    const waveKind = state.doc.launch && state.doc.launch.wave_kind || (native || waveSize === 64 ? "wave" : "warp");
+    return lane.kind === "object" ? "sync objects" : waveKind + " " + Math.floor(lane.thread / waveSize);
   }
 
   function startsGroup(c) {
