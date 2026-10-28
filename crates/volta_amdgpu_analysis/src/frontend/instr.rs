@@ -730,7 +730,7 @@ pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruct
     let fail = |message| ParseError { message, span };
     let (mnemonic, rest) = text.split_once(char::is_whitespace).unwrap_or((text, ""));
     let (opcode, minimum, maximum) = signature(mnemonic)
-        .ok_or_else(|| fail(format!("unsupported gfx950 instruction `{mnemonic}`")))?;
+        .ok_or_else(|| fail(format!("unsupported AMD instruction `{mnemonic}`")))?;
     let mut operands = Vec::new();
     let mut modifiers = Vec::new();
     for group in split_top_level(rest, ',').map_err(&fail)? {
@@ -1522,7 +1522,7 @@ fn validate_vop_literal_positions(
     for (index, operand) in operands.iter().enumerate().skip(1) {
         if literal(operand, f64_source, f16_source)? && (vop3 || index != 1) {
             return Err(
-                "gfx950 VOP3 has no literal word; materialize this source in a VGPR".into(),
+                "native AMD VOP3 has no literal word; materialize this source in a VGPR".into(),
             );
         }
     }

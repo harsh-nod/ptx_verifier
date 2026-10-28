@@ -1,5 +1,6 @@
 use volta_amdgpu_analysis::{
-    AnalysisConfig, AnalysisError, EvalError, analyze, frontend, target::Architecture,
+    AnalysisConfig, AnalysisError, ArrayDef, ArrayKind, EvalError, analyze, frontend,
+    target::Architecture,
 };
 
 fn source(target: &str, body: &str, lds: u64) -> String {
@@ -104,5 +105,51 @@ fn shared_cdna3_address_and_alu_forms_remain_available() {
     ] {
         frontend::parse(&source("gfx942", &format!("{instruction}\ns_endpgm"), 0))
             .unwrap_or_else(|e| panic!("{instruction}: {e}"));
+    }
+}
+
+#[test]
+fn register_names_and_unified_descriptor_allocation_have_distinct_bounds() {
+    for target in ["gfx942", "gfx950"] {
+        for instruction in [
+            "v_mov_b32 v256, v0",
+            "v_mov_b32 v511, v0",
+            "v_accvgpr_mov_b32 a256, a0",
+            "v_accvgpr_mov_b32 a511, a0",
+            "s_mov_b32 s102, 0",
+        ] {
+            assert!(
+                frontend::parse(&source(target, &format!("{instruction}\ns_endpgm"), 0)).is_err(),
+                "{target}: {instruction}"
+            );
+        }
+        let valid = source(target, "v_mov_b32 v4, 0x10000\nv_mov_b32 v5, 0\nv_accvgpr_write_b32 a255, 0\nglobal_store_dword v[4:5], a255, off\ns_endpgm", 0)
+            .replace(".end_amdhsa_kernel", ".amdhsa_accum_offset 256\n.amdhsa_next_free_vgpr 512\n.amdhsa_next_free_sgpr 0\n.end_amdhsa_kernel");
+        let module = frontend::parse(&valid).unwrap();
+        let mut config = AnalysisConfig::new((1, 1, 1));
+        config.arrays.push(ArrayDef {
+            name: "out".into(),
+            base: 0x10000,
+            elem_width: 4,
+            len: 1,
+            kind: ArrayKind::Output,
+        });
+        let result = analyze(&module, None, config).unwrap();
+        let outputs = result.symbolic_outputs().unwrap();
+        assert_eq!(outputs.outputs[0].1.len(), 1);
+        assert_eq!(
+            outputs.arena.as_f64(outputs.element("out", 0).unwrap()),
+            Some(0.0)
+        );
+        assert!(result.graph().validate().is_ok());
+        for invalid in [
+            valid.replace("next_free_vgpr 512", "next_free_vgpr 511"),
+            valid.replace("next_free_vgpr 512", "next_free_vgpr 513"),
+            valid.replace("next_free_sgpr 0", "next_free_sgpr 103"),
+            valid.replace("accum_offset 256", "accum_offset 260"),
+            valid.replace("accum_offset 256", "accum_offset 4"),
+        ] {
+            assert!(frontend::parse(&invalid).is_err(), "{target}: {invalid}");
+        }
     }
 }

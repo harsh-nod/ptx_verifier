@@ -30,6 +30,22 @@ def test_verified_graph_does_not_hide_incomplete_output_footprint():
     assert "1/65" in detail
 
 
+def test_native_unsupported_diagnostics_preserve_typed_outcome_across_targets():
+    for target in ("AMD", "gfx942", "gfx950"):
+        text = f"execution stopped: unsupported {target} instruction at pc 7: lane move"
+        report = RUNNER.parse_cli(f"  no outputs: {text}\nGRAPH VERIFICATION: UNKNOWN\n")
+        outcome, detail = RUNNER.classify(report, "", 65)
+        assert outcome is RUNNER.Outcome.UNSUPPORTED
+        assert "lane move" in detail
+        parse_error = f"error: test.s: 7:1: unsupported {target} instruction `v_unknown`"
+        outcome, _ = RUNNER.classify(RUNNER.parse_cli(""), parse_error, 65)
+        assert outcome is RUNNER.Outcome.UNSUPPORTED
+    report = RUNNER.parse_cli("  no outputs: execution stopped: invalid AMD configuration: bad ABI\nGRAPH VERIFICATION: UNKNOWN\n")
+    assert RUNNER.classify(report, "", 65)[0] is RUNNER.Outcome.ERROR
+    report = RUNNER.parse_cli("  AMD wait and register readiness (CDNA counters) FAIL\n  no outputs: execution stopped: unsupported AMD instruction at pc 7: lane move\nGRAPH VERIFICATION: REJECTED\n")
+    assert RUNNER.classify(report, "", 65)[0] is RUNNER.Outcome.RACE_CONDITION
+
+
 def test_native_mutations_stay_inside_selected_kernel_and_keep_locations():
     source = (ROOT / "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-copy-add.s").read_text()
     copy_sites = RUNNER.mutation_sites(source, "amdgpu", "copy")

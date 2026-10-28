@@ -148,8 +148,9 @@ LOWERING_FAILED = re.compile(r"\blowering failed: (.*)")
 # A directive or instruction form the frontend does not know (the parse report's last line).
 PARSE_FAILED = re.compile(r"\b(Invalid [a-z ]+: \S+)$")
 EXECUTION_UNSUPPORTED = re.compile(
-    r"^(?:the )?execution stopped: (unsupported (?:at .*|gfx950 instruction.*))"
+    r"^(?:the )?execution stopped: (unsupported (?:at .*|(?:AMD|gfx942|gfx950) instruction.*))"
 )
+NATIVE_PARSE_UNSUPPORTED = re.compile(r"\bunsupported (?:AMD|gfx942|gfx950) instruction `[^`]+`")
 CHECK_LINE = re.compile(r"^  (\S.*?) \([^)]*\)\s+(PASS|FAIL|UNKNOWN)$")
 VERDICT_LINE = re.compile(r"^GRAPH VERIFICATION: (VERIFIED|REJECTED|UNKNOWN)")
 WRITTEN_LINE = re.compile(r"^  output '[^']*': (\d+) element\(s\) written$")
@@ -254,6 +255,8 @@ def classify(report: CliReport, stderr: str, expected_outputs: int) -> tuple[Out
             return Outcome.UNSUPPORTED, m[1]
         if m := PARSE_FAILED.search(error):
             return Outcome.UNSUPPORTED, m[1]
+        if m := NATIVE_PARSE_UNSUPPORTED.search(error):
+            return Outcome.UNSUPPORTED, m[0]
         raise VoltaFailure(error)
     coverage = f"{report.written}/{expected_outputs} tile outputs written"
     findings = [f"{check}: {finding}" for check, verdict, finding in report.checks if verdict != "PASS"]
