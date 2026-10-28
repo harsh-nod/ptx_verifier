@@ -57,6 +57,48 @@ impl ArrayDef {
     }
 }
 
+/// Optional source-allocation boundaries supplied for native assembly whose
+/// descriptor exposes only aggregate workgroup LDS bytes. These are premises
+/// of the analysis, not names or boundaries inferred from instruction offsets.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SharedAllocation {
+    pub name: String,
+    pub offset: u64,
+    pub size: u64,
+}
+
+pub fn validate_shared_allocations(layout: &[SharedAllocation]) -> Result<(), String> {
+    for (index, region) in layout.iter().enumerate() {
+        if region.name.trim().is_empty() {
+            return Err("shared allocation name is empty".into());
+        }
+        if region.size == 0 {
+            return Err(format!("shared allocation '{}' has zero size", region.name));
+        }
+        let end = region
+            .offset
+            .checked_add(region.size)
+            .ok_or_else(|| format!("shared allocation '{}' range overflows", region.name))?;
+        for previous in &layout[..index] {
+            if previous.name == region.name {
+                return Err(format!(
+                    "duplicate shared allocation name '{}'",
+                    region.name
+                ));
+            }
+            // Earlier regions have already passed the checked-end validation.
+            let previous_end = previous.offset + previous.size;
+            if region.offset < previous_end && previous.offset < end {
+                return Err(format!(
+                    "shared allocations '{}' and '{}' overlap",
+                    previous.name, region.name
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Full configuration for analyzing one kernel.
 #[derive(Debug, Clone)]
 pub struct AnalysisConfig {
@@ -72,6 +114,9 @@ pub struct AnalysisConfig {
     pub global_values: Vec<(String, i64)>,
     /// Size of dynamic (extern) shared memory in bytes
     pub dynamic_shared_bytes: u64,
+    /// Optional native LDS object boundaries; empty means aggregate bounds only.
+    /// The PTX analyzer rejects this field because PTX declares its own objects.
+    pub shared_allocations: Vec<SharedAllocation>,
     /// Abort analysis after this many executed instructions
     pub max_instructions: u64,
 }
@@ -85,6 +130,7 @@ impl AnalysisConfig {
             arrays: Vec::new(),
             global_values: Vec::new(),
             dynamic_shared_bytes: 0,
+            shared_allocations: Vec::new(),
             max_instructions: 2_000_000_000,
         }
     }
@@ -101,6 +147,7 @@ impl AnalysisConfig {
     /// names or overlapping ranges would silently conflate distinct values.
     /// Overlap with the module-global window is checked in `Interpreter::new`.
     pub fn validate(&self) -> Result<(), String> {
+        validate_shared_allocations(&self.shared_allocations)?;
         // Per-array checks first, so the pairwise pass below may safely
         // form `base + size_bytes()` for every array.
         for a in &self.arrays {
@@ -194,6 +241,47 @@ impl AnalysisConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn shared_layout_preserves_separate_adjacent_objects_and_rejects_ambiguous_ranges() {
+        let a = SharedAllocation {
+            name: "A".into(),
+            offset: 0,
+            size: 40,
+        };
+        let b = SharedAllocation {
+            name: "B".into(),
+            offset: 40,
+            size: 64,
+        };
+        assert_eq!(validate_shared_allocations(&[]), Ok(()));
+        assert_eq!(validate_shared_allocations(&[a.clone(), b.clone()]), Ok(()));
+        for invalid in [
+            SharedAllocation {
+                name: "".into(),
+                ..a.clone()
+            },
+            SharedAllocation {
+                name: "A".into(),
+                ..b.clone()
+            },
+            SharedAllocation {
+                offset: 39,
+                ..b.clone()
+            },
+            SharedAllocation {
+                size: 0,
+                ..b.clone()
+            },
+            SharedAllocation {
+                offset: u64::MAX,
+                size: 1,
+                ..b.clone()
+            },
+        ] {
+            assert!(validate_shared_allocations(&[a.clone(), invalid]).is_err());
+        }
+    }
 
     fn array(name: &str, base: u64, len: u64) -> ArrayDef {
         ArrayDef {

@@ -287,6 +287,31 @@ fn parses_native_scalar_integer_and_binary64_types() {
 }
 
 #[test]
+fn parses_mixed_byvalue_abi_without_inventing_padding_arguments() {
+    let module = parse(include_str!("fixtures/clang22-mixed-byvalue.s")).unwrap();
+    let kernel = &module.kernels[0];
+    assert_eq!(kernel.args.len(), 6);
+    for body in [
+        "s_sext_i32_i16 s0, s1",
+        "v_cvt_f32_ubyte2_e32 v0, v1",
+        "v_cvt_f32_ubyte2_e64 v0, s1",
+    ] {
+        parse(&program(body)).unwrap_or_else(|error| panic!("{body}: {error}"));
+    }
+    for body in [
+        "s_sext_i32_i16 s[0:1], s2",
+        "s_sext_i32_i16 s0, s[2:3]",
+        "s_sext_i32_i16 s0, v1",
+        "s_sext_i32_i16 s0, s1, s2",
+        "v_cvt_f32_ubyte2 v[0:1], v2",
+        "v_cvt_f32_ubyte2 v0, v[2:3]",
+        "v_cvt_f32_ubyte2 v0, v1, v2",
+    ] {
+        parse(&program(body)).expect_err(body);
+    }
+}
+
+#[test]
 fn parses_full_shape_weighted_state_and_forgetting_attention() {
     for (assembly, name, shared) in [
         (
@@ -635,6 +660,147 @@ fn rejects_unknown_and_malformed_executable_syntax() {
     ] {
         let error = parse(&program(body)).expect_err(body);
         assert!(error.span.line >= 5, "{body}: {error}");
+    }
+}
+
+#[test]
+fn malformed_native_instructions_are_rejected_even_when_unreachable_or_exec_zero() {
+    for malformed in [
+        "v_add_f32 v0, v1",
+        "v_add_f32 v0, v1, v2 mystery:1",
+        "v_mfma_f32_16x16x4_f32 v0, v1, v2, 0",
+        "s_waitcnt v0",
+    ] {
+        for body in [
+            format!("s_branch .Ldone\n{malformed}\n.Ldone:\ns_endpgm"),
+            format!("s_mov_b64 exec, 0\n{malformed}\ns_endpgm"),
+        ] {
+            parse(&program(&body)).expect_err(&body);
+        }
+    }
+}
+
+#[test]
+fn mfma_operand_classes_match_the_pinned_gfx950_assembler() {
+    // This includes positive and negative A/B/C cases across F32, F16,
+    // BF16, F8F6F4, F64 and I8 forms. The assembly receipt records the
+    // actual encoding or diagnostic, rather than assuming zero is legal.
+    let receipt: serde_yaml::Value = serde_yaml::from_str(include_str!(
+        "../../../../tests/gfx950/portable-matrix/mfma-operand-assembler.json"
+    ))
+    .unwrap();
+    let cases = receipt["cases"].as_sequence().unwrap();
+    assert_eq!(cases.len(), 317);
+    for case in cases {
+        let instruction = case["source"].as_str().unwrap();
+        let source = format!(
+            "{}\n.amdhsa_kernel copy\n.amdhsa_next_free_sgpr 64\n.amdhsa_next_free_vgpr 128\n.amdhsa_accum_offset 64\n.end_amdhsa_kernel\n",
+            program(&format!("{instruction}\ns_endpgm"))
+        );
+        let parsed = parse(&source);
+        let legal = case["returncode"].as_i64().unwrap() == 0;
+        assert_eq!(
+            parsed.is_ok(),
+            legal,
+            "{instruction}: parser={parsed:?}; assembler={}",
+            case["stderr"].as_str().unwrap()
+        );
+    }
+}
+
+#[test]
+fn binary_vop_source_positions_match_the_pinned_gfx950_assembler() {
+    let receipt: serde_yaml::Value = serde_yaml::from_str(include_str!(
+        "../../tests/fixtures/vop-operand-assembler.json"
+    ))
+    .unwrap();
+    let cases = receipt["cases"].as_sequence().unwrap();
+    assert_eq!(cases.len(), 624);
+    let extra = receipt["extra_cases"].as_sequence().unwrap();
+    assert_eq!(extra.len(), 19);
+    for case in cases.iter().chain(extra) {
+        let instruction = case["source"].as_str().unwrap();
+        let parsed = parse(&program(&format!("{instruction}\ns_endpgm")));
+        assert_eq!(
+            parsed.is_ok(),
+            case["returncode"].as_i64().unwrap() == 0,
+            "{instruction}: parser={parsed:?}; assembler={}",
+            case["stderr"].as_str().unwrap()
+        );
+    }
+    for bad in [
+        "v_sub_u32 v26, v0, 128",
+        "v_add_f32_e32 v0, v1, 1.0",
+        "v_add_f32 v0, 128, v1 clamp",
+        "v_add_u32 v0, 0x100000000, v1",
+    ] {
+        for body in [
+            bad.to_owned(),
+            format!("s_branch .Ldone\n{bad}\n.Ldone:\ns_endpgm"),
+        ] {
+            parse(&program(&body)).expect_err(&body);
+        }
+    }
+}
+
+#[test]
+fn floating_vop_sources_require_actual_native_encodings() {
+    let receipt: serde_yaml::Value = serde_yaml::from_str(include_str!(
+        "../../tests/fixtures/vop-floating-assembler.json"
+    ))
+    .unwrap();
+    assert_eq!(receipt["cases"].as_sequence().unwrap().len(), 891);
+    for case in receipt["cases"].as_sequence().unwrap() {
+        let instruction = case["source"].as_str().unwrap();
+        let expected = case["expected_parse"].as_bool().unwrap();
+        let parsed = parse(&program(&format!("{instruction}\ns_endpgm")));
+        assert_eq!(parsed.is_ok(), expected, "{instruction}: {parsed:?}");
+    }
+    // Positive register/inline/valid SRC0 literal controls prevent rejection
+    // from being attributed to an unknown mnemonic. Invalid source positions
+    // remain malformed even behind a branch or with an empty active mask.
+    for invalid in [
+        "v_max_f32 v8, v4, 3.0",
+        "v_min_f32 v8, v4, 3.0",
+        "v_fma_f32 v8, v4, 3.0, v4",
+    ] {
+        for body in [
+            invalid.to_string(),
+            format!("s_branch .Ldone\n{invalid}\n.Ldone:\ns_endpgm"),
+            format!("s_mov_b64 exec, 0\n{invalid}\ns_endpgm"),
+        ] {
+            parse(&program(&body)).expect_err(&body);
+        }
+    }
+}
+
+#[test]
+fn fp8_sdwa_conversion_has_only_native_source_selection_fields() {
+    for conversion in ["v_cvt_f32_fp8_sdwa", "v_cvt_f32_bf8_sdwa"] {
+        parse(&program(&format!("{conversion} v0, v1 src0_sel:BYTE_1"))).unwrap();
+        for destination in ["dst_sel:DWORD", "dst_unused:UNUSED_PAD"] {
+            parse(&program(&format!(
+                "{conversion} v0, v1 src0_sel:BYTE_1 {destination}"
+            )))
+            .expect_err(destination);
+        }
+    }
+}
+
+#[test]
+fn trap_and_signed64_shift_profiles_match_pinned_native_controls() {
+    let controls: serde_yaml::Value = serde_yaml::from_str(include_str!(
+        "../../../../tests/gfx950/portable-parser/control-assembler.json"
+    ))
+    .unwrap();
+    for case in controls["cases"].as_sequence().unwrap() {
+        let body = case["source"].as_str().unwrap();
+        let expected = case["expected_parse"].as_bool().unwrap();
+        assert_eq!(
+            parse(&program(&format!("{body}\ns_endpgm"))).is_ok(),
+            expected,
+            "{body}"
+        );
     }
 }
 

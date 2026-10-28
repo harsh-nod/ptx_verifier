@@ -71,6 +71,7 @@ def assembly(name, body):
 .text
 .globl k
 .type k,@function
+.p2align 8
 k:
 s_load_dwordx4 s[4:7], s[0:1], 0
 s_waitcnt lgkmcnt(0)

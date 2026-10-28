@@ -1,0 +1,59 @@
+{
+  "revision": "cf04b975e6bd6cea9afb49d9e784646b348392a5",
+  "validated_by": "coordinator independent exact native MC/LLD/HIP module replay",
+  "host": "mi350",
+  "target": "gfx950",
+  "device": "AMD Instinct MI350X gfx950:sramecc+:xnack-",
+  "cases": [
+    "module_globals",
+    "dynamic_lds",
+    "grid_output",
+    "mixed_byvalue"
+  ],
+  "launches": 12,
+  "output_checks": 678,
+  "guard_checks": 768,
+  "tolerance": 0,
+  "file_sha256": {
+    "clang22-dynamic-lds.s": "2a48a0958061bbadaf75e21384071da2bb2fa7fb185de3deeab8db7231710e35",
+    "clang22-grid-output.s": "4329c90b02b41cea7e7cbe81184b3b5552d00283a731fdbfd5a2496933e20000",
+    "clang22-mixed-byvalue.s": "72a7cea82b970a8e181f000d9de99cab9b9479a75d87e15e48b082d5f01c9014",
+    "clang22-module-globals.s": "4685d039ca74ebfb46c64326de9302af19675f60dac01990a7da3a07316d7009",
+    "clang22-dynamic-lds.o": "4376482586f3671a74bdabf0eb124751b8567aeb7113202700f2ef6e367ffa24",
+    "clang22-grid-output.o": "c351b00013fc0aa2d29c740cd632184ac326d9e2c3acfbd7b5bcbe9e69400e4c",
+    "clang22-mixed-byvalue.o": "ff7fa5deb70957cb119b007b8fb5e8efb0e5707b3e804e15f06d16964e602aec",
+    "clang22-module-globals.o": "cd1caf870068838f676cc2695400ad26f1a3f6d96f6221c8899ae4fd48b9c9b2",
+    "clang22-dynamic-lds.hsaco": "040a03e4c465972ade352e99feb935983519b503f490c1a446610ee1997266ca",
+    "clang22-grid-output.hsaco": "9f228fda8ed129714e4f27bdc38131fd186d89de8da9454197882e06eab7d104",
+    "clang22-mixed-byvalue.hsaco": "38cf2e06a4f9747a8810037b4fb6c7d887236f6399650d21d6cee28f04fcf49b",
+    "clang22-module-globals.hsaco": "0d5256c8a6fb168a72622a32635a4b4681d219b8d01030f158637bd8870d4734",
+    "native_abi.cpp": "c85ec058a560965dd5cea78b6e14290edc4b06caad23b9d77fd1d538c3d618fa"
+  },
+  "stdout": "DEVICE AMD Instinct MI350X gfx950:sramecc+:xnack-\nPASS module_globals pattern=0 outputs=4 guards=64 exact=true\nPASS module_globals pattern=1 outputs=4 guards=64 exact=true\nPASS module_globals pattern=2 outputs=4 guards=64 exact=true\nPASS dynamic_lds pattern=0 outputs=2 guards=64 exact=true\nPASS dynamic_lds pattern=1 outputs=2 guards=64 exact=true\nPASS dynamic_lds pattern=2 outputs=2 guards=64 exact=true\nPASS grid_output pattern=0 outputs=216 guards=64 exact=true\nPASS grid_output pattern=1 outputs=216 guards=64 exact=true\nPASS grid_output pattern=2 outputs=216 guards=64 exact=true\nPASS mixed_byvalue pattern=0 outputs=4 guards=64 exact=true\nPASS mixed_byvalue pattern=1 outputs=4 guards=64 exact=true\nPASS mixed_byvalue pattern=2 outputs=4 guards=64 exact=true\nSUMMARY launches=12 outputs=678 guards=768 exact=true PASS\n",
+  "driver_path": "tests/gfx950/hardware/native_abi.cpp",
+  "scope": "Exact pinned native assembly loaded through HIP; three independently generated CPU patterns per case; grid driver checks all24 workgroups.",
+  "toolchain": {
+    "host": "mi350",
+    "tools": {
+      "/opt/rocm/llvm/bin/llvm-mc": {
+        "realpath": "/opt/rocm-7.2.1/lib/llvm/bin/llvm-mc",
+        "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+        "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+      },
+      "/opt/rocm/llvm/bin/ld.lld": {
+        "realpath": "/opt/rocm-7.2.1/lib/llvm/bin/lld",
+        "sha256": "3a4db0f90a45844be78a068b47f886b7ba6000a75a88876d9999cb0bb46fb5f3",
+        "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm f58b06dce1f9c15707c5f808fd002e18c2accf7e) (compatible with GNU linkers)\n"
+      },
+      "/opt/rocm/llvm/bin/clang++": {
+        "realpath": "/opt/rocm-7.2.1/lib/llvm/bin/clang-22",
+        "sha256": "872d83777e58dd203d6af2a45af532668e83f51830eb296e1fe504eee6d66c18",
+        "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.1 26084 f58b06dce1f9c15707c5f808fd002e18c2accf7e)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.1/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.1/lib/llvm/bin/clang++.cfg\n"
+      },
+      "/opt/rocm/lib/libamdhip64.so": {
+        "realpath": "/opt/rocm-7.2.1/lib/libamdhip64.so.7.2.70201",
+        "sha256": "0bfd6cb0b010626f333bd8d96a01df1b7e2cb825c961f5a7ecce7c28a5c717ab"
+      }
+    }
+  }
+}

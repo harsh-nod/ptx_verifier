@@ -43,6 +43,21 @@ fn rejects_undefined_and_nonexecutable_branch_destinations() {
 }
 
 #[test]
+fn unreachable_undefined_branches_and_relocations_are_statically_rejected() {
+    for body in [
+        "s_branch .Ldone\ns_branch undefined\n.Ldone:\ns_endpgm",
+        "s_mov_b64 exec, 0\ns_branch undefined\ns_endpgm",
+        "s_branch .Ldone\ns_getpc_b64 s[2:3]\ns_add_u32 s2, s2, undefined@rel32@lo+4\ns_addc_u32 s3, s3, undefined@rel32@hi+12\n.Ldone:\ns_endpgm",
+    ] {
+        let module = frontend::parse(&program(body)).unwrap();
+        assert!(
+            lower_kernel_in_module(&module, &module.kernels[0]).is_err(),
+            "{body}"
+        );
+    }
+}
+
+#[test]
 fn native_module_relocations_preserve_all_original_instructions() {
     let module = frontend::parse(include_str!(
         "../frontend/fixtures/clang22-module-globals.s"

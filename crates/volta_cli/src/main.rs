@@ -9,6 +9,7 @@ use std::process::ExitCode;
 use std::time::Instant;
 
 use clap::{Args, Parser, Subcommand};
+use volta_common::config::SharedAllocation;
 use volta_common::file_cache::FileCache;
 use volta_common::report::{Report, locate_path, report_error};
 use volta_common::run_log;
@@ -155,6 +156,11 @@ struct LaunchArgs {
     /// Dynamic (extern) shared memory size in bytes
     #[arg(long, default_value_t = 0)]
     dyn_shared: u64,
+
+    /// Native LDS source-allocation premise: "name:offset:size" in bytes.
+    /// Repeat for disjoint named regions. PTX rejects this option.
+    #[arg(long = "shared-allocation")]
+    shared_allocations: Vec<String>,
 }
 
 #[derive(Args)]
@@ -426,6 +432,7 @@ struct ConfigInput<'a> {
     params: &'a [String],
     globals: &'a [String],
     dyn_shared: u64,
+    shared_allocations: &'a [String],
 }
 
 impl<'a> ConfigInput<'a> {
@@ -440,6 +447,7 @@ impl<'a> ConfigInput<'a> {
             params: &launch.params,
             globals: &launch.globals,
             dyn_shared: launch.dyn_shared,
+            shared_allocations: &launch.shared_allocations,
         }
     }
 }
@@ -449,6 +457,22 @@ fn build_config(input: ConfigInput) -> Result<AnalysisConfig, String> {
     let mut config = AnalysisConfig::new(block_dim);
     config.grid_dim = parse_dims(input.grid).map_err(|e| format!("invalid --grid: {}", e))?;
     config.dynamic_shared_bytes = input.dyn_shared;
+    for value in input.shared_allocations {
+        let fields: Vec<_> = value.split(':').collect();
+        let [name, offset, size] = fields.as_slice() else {
+            return Err(format!(
+                "invalid --shared-allocation: expected name:offset:size, got {value:?}"
+            ));
+        };
+        config.shared_allocations.push(SharedAllocation {
+            name: (*name).into(),
+            offset: parse_u64_value(offset)
+                .map_err(|e| format!("invalid --shared-allocation offset: {e}"))?,
+            size: parse_u64_value(size)
+                .map_err(|e| format!("invalid --shared-allocation size: {e}"))?,
+        });
+    }
+    volta_common::config::validate_shared_allocations(&config.shared_allocations)?;
     for a in input.arrays {
         config
             .arrays

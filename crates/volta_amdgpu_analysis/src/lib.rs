@@ -7,5 +7,5 @@ pub mod ir;
 pub mod lower;
 
 pub use analysis::{AnalysisError, AnalysisParts, AnalysisResult, analyze, write_op_counts};
-pub use config::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue};
+pub use config::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue, SharedAllocation};
 pub use eval::{EvalError, OutputsUnavailable, Stats, ThreadId};
