@@ -708,8 +708,9 @@ struct MatrixOperation {
 }
 impl MatrixOperation {
     fn ordinary_wait(&self, architecture: AmdArchitecture) -> u64 {
-        // LLVM GCNHazardRecognizer.cpp (846473237377990d00b9c353f6a2c86116b52ea5),
-        // GFX940_XDL_N_PassWriteVgprVALUMemExpReadWaitStates and VALUWaw:
+        // LLVM 22.1.0 GCNHazardRecognizer.cpp at reachable release commit
+        // 4434dabb69916856b824f68a64b029c67175e532 (source SHA in
+        // docs/gfx942-graph-contract.md), GFX940_XDL_N_PassWriteVgprVALUMemExpReadWaitStates and VALUWaw:
         // CDNA3 XDL uses passes+3; CDNA4 adds a state for >2-pass forms.
         // The modeled legacy SGEMM forms use passes+2 on both targets.
         self.kind.passes()
