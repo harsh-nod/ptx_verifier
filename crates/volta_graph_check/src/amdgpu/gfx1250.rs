@@ -238,6 +238,32 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                     claim(graph, record, &mut instructions, "memory", &mut unresolved);
                 registers(destinations, physical_mask, record.event, &mut unresolved);
                 registers(held_sources, physical_mask, record.event, &mut unresolved);
+                let correct_destinations = match class {
+                    AmdMemoryClass::ScalarLoad => {
+                        !destinations.is_empty() && destinations.iter().all(|r| r.is_uniform())
+                    }
+                    AmdMemoryClass::VectorLoad | AmdMemoryClass::CrossLane => {
+                        !destinations.is_empty()
+                            && destinations
+                                .iter()
+                                .all(|r| r.file == AmdRegisterFile::Vector)
+                    }
+                    AmdMemoryClass::Ds => destinations
+                        .iter()
+                        .all(|r| r.file == AmdRegisterFile::Vector),
+                    AmdMemoryClass::VectorStore
+                    | AmdMemoryClass::AsyncLoadToLds
+                    | AmdMemoryClass::AsyncStoreFromLds
+                    | AmdMemoryClass::TensorLoadToLds
+                    | AmdMemoryClass::TensorStoreFromLds => destinations.is_empty(),
+                    _ => false,
+                };
+                if !correct_destinations {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "gfx1250 memory class has invalid destination register roles",
+                    ));
+                }
                 if let Some(instruction) = instruction {
                     let source_kind =
                         graph.provenance().instructions[instruction.pc.unwrap().0 as usize].kind;
