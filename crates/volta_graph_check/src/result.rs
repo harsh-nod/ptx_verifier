@@ -128,7 +128,7 @@ pub enum Property {
 }
 
 impl Property {
-    /// gfx950 obligations. `ALL` retains its original PTX meaning for compatibility;
+    /// Native AMD obligations. `ALL` retains its original PTX meaning for compatibility;
     /// consumers of a report should use `GraphReport::applicable_properties`.
     pub const AMD: [Property; 4] = [
         Self::AmdTrace,
@@ -194,9 +194,9 @@ impl Property {
     /// design, the rule each enforces.
     pub fn algorithm(self) -> &'static str {
         match self {
-            Property::AmdTrace => "gfx950 graph contract",
-            Property::AmdWaitReadiness => "CDNA4 counters and register dependencies",
-            Property::AmdBarrier => "CDNA4 S_BARRIER",
+            Property::AmdTrace => "native AMD graph contract",
+            Property::AmdWaitReadiness => "CDNA counters and register dependencies",
+            Property::AmdBarrier => "CDNA S_BARRIER",
             Property::AmdMemoryConflict => "AMD completed-effect happens-before",
             Property::NamedBarrierEpoch | Property::MbarrierEpoch => "Algorithm 1",
             Property::MbarrierOrdering => "Algorithm 2",

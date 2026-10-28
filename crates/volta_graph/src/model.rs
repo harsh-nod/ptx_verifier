@@ -32,7 +32,7 @@ pub struct Event {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EventKind {
-    /// A gfx950 wave event; indexes [`crate::EventGraph::amd_events`].
+    /// A native AMD wave event; indexes [`crate::EventGraph::amd_events`].
     Amd(u32),
     /// A memory effect: synchronous in a `Thread` context, an async op's in an `Async` one.
     Access(AccessId),
