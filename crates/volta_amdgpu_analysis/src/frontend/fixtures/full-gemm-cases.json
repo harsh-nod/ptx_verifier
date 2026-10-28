@@ -2106,7 +2106,7 @@
         "bytes": 131072
       },
       "full_baseline_shape": true,
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "original full 256x256 CTA output tile",
         "original full K4096 reduction",
@@ -2123,7 +2123,17 @@
         "Output slices preserve256-element rows at the original4096-element pitch. Flattening to a contiguous256x256 buffer would change the baseline memory footprint.",
         "FP8 packed prefetch live ranges are constrained with empty tied-register inline asm; it preserves bits and emits no executable instruction.",
         "Fused variant adds the decoded input addend to the FP32 dot product, applies SiLU using the exact binary32 log2(e) compiler idiom, then stores F16."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "matmul/gemm_f16_full",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     },
     {
       "kernel": "gemm_add_silu_f16_full",
@@ -4238,7 +4248,7 @@
         "bytes": 131072
       },
       "full_baseline_shape": true,
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "original full 256x256 CTA output tile",
         "original full K4096 reduction",
@@ -4255,7 +4265,17 @@
         "Output slices preserve256-element rows at the original4096-element pitch. Flattening to a contiguous256x256 buffer would change the baseline memory footprint.",
         "FP8 packed prefetch live ranges are constrained with empty tied-register inline asm; it preserves bits and emits no executable instruction.",
         "Fused variant adds the decoded input addend to the FP32 dot product, applies SiLU using the exact binary32 log2(e) compiler idiom, then stores F16."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "gemm_add_silu/gemm_add_silu_f16_full",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     },
     {
       "kernel": "gemm_f8_full",
@@ -6362,7 +6382,7 @@
         "bytes": 131072
       },
       "full_baseline_shape": true,
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "original full 256x256 CTA output tile",
         "original full K4096 reduction",
@@ -6379,7 +6399,17 @@
         "Output slices preserve256-element rows at the original4096-element pitch. Flattening to a contiguous256x256 buffer would change the baseline memory footprint.",
         "FP8 packed prefetch live ranges are constrained with empty tied-register inline asm; it preserves bits and emits no executable instruction.",
         "Fused variant adds the decoded input addend to the FP32 dot product, applies SiLU using the exact binary32 log2(e) compiler idiom, then stores F16."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "matmul/gemm_f8_full",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     },
     {
       "kernel": "gemm_add_silu_f8_full",
@@ -8494,7 +8524,7 @@
         "bytes": 131072
       },
       "full_baseline_shape": true,
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "original full 256x256 CTA output tile",
         "original full K4096 reduction",
@@ -8511,7 +8541,17 @@
         "Output slices preserve256-element rows at the original4096-element pitch. Flattening to a contiguous256x256 buffer would change the baseline memory footprint.",
         "FP8 packed prefetch live ranges are constrained with empty tied-register inline asm; it preserves bits and emits no executable instruction.",
         "Fused variant adds the decoded input addend to the FP32 dot product, applies SiLU using the exact binary32 log2(e) compiler idiom, then stores F16."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "gemm_add_silu/gemm_add_silu_f8_full",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     }
   ]
 }

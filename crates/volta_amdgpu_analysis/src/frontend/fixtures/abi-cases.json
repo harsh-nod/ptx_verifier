@@ -58,7 +58,17 @@
         "Both bindings override native initial bytes0and3. Read-only constant_table retains exact2,3,5,7 storage.",
         "Only compiler-proven contiguous getpc/rel32lo+4/rel32hi+12 constructs may resolve defined bounded objects; arbitrary PC arithmetic/GOT/undefined externs stay unsupported."
       ],
-      "status": "compiler_and_assembler_validated; integrated_symbolic_and_hardware_pending"
+      "status": "coordinator_validated_declared_native_scope",
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "module-global-bindings/module_globals",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-abi-complete-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     },
     {
       "kernel": "dynamic_lds",
@@ -114,7 +124,17 @@
         "Actual12-byte static array is followed by32-byte-aligned dynamic LDS; descriptor fixed size32 includes padding. Native accesses dynamic bytes32..39.",
         "Require8dynamic bytes; smaller capacity must fail bounds, and static/extern writes must retain distinct addresses."
       ],
-      "status": "compiler_and_assembler_validated; integrated_symbolic_and_hardware_pending"
+      "status": "coordinator_validated_declared_native_scope",
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "dynamic-lds-abi/dynamic_lds",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-abi-complete-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     },
     {
       "kernel": "grid_output",
@@ -182,7 +202,17 @@
         "One all-coordinate-zero workitem writes9fields per workgroup. Actual2/4/3-dword transfers retain3separate reference records.",
         "Analyzer selects group0. The independent native_abi.cpp physical check launches grid2x3x4/block4x3x2 and validates all216 fields across24 distinct workgroup rows; this does not extend the symbolic proof beyond group0."
       ],
-      "status": "compiler_and_assembler_validated; integrated_symbolic_and_hardware_pending"
+      "status": "coordinator_validated_declared_native_scope",
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "multidimensional-grid-abi/grid_output",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-abi-complete-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     }
   ]
 }

@@ -83,7 +83,7 @@
           "lse"
         ]
       },
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "nativeF16MFMA QK and PV",
         "online max/sum/accumulator rescaling",
@@ -98,7 +98,17 @@
         "Source reconstructed from actual baseline PTX and harness; no original CUDA source provenance claimed.",
         "Reduced entry has2keytiles/32queries. The full entry preserves originalT1024/Q128/D64; its independent complete symbolic and hardware receipts are separate from the reduced entry and do not establish whole-grid verification.",
         "IEEE rounding is abstracted, including half probabilities; native scalarcoefficients preserve encodedbinary32 values."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE*",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "flash_attention/flash_attention_reduced",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-attention-2026-10-27.json"
+        ],
+        "scope": "Supplemental reduced mechanism control; does not replace full baseline launch."
+      }
     },
     {
       "kernel": "flash_attention_full",
@@ -182,7 +192,7 @@
           "lse"
         ]
       },
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "nativeF16MFMA QK and PV",
         "online max/sum/accumulator rescaling",
@@ -197,7 +207,17 @@
         "Source reconstructed from actual baseline PTX and harness; no original CUDA source provenance claimed.",
         "Reduced entry has2keytiles/32queries. The full entry preserves originalT1024/Q128/D64; its independent complete symbolic and hardware receipts are separate from the reduced entry and do not establish whole-grid verification.",
         "IEEE rounding is abstracted, including half probabilities; native scalarcoefficients preserve encodedbinary32 values."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "flash_attention/flash_attention_full",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-attention-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     }
   ]
 }

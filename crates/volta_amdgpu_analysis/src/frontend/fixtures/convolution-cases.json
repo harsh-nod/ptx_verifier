@@ -172,12 +172,21 @@
         "bytes": 1024,
         "description": "16 disjoint32-element slices at original NCHW channel pitch2916"
       },
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [
         "CTA tile reduced from baseline128spatialx128channels to32spatialx16channels; full64x3x3 reduction unchanged.",
         "No flattening of original layout: output slices retain physical NCHW pitch2916.",
         "F8 inputs are OCP E4M3 decoded exactly tohalf before nativeF16MFMA; outputsF16."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE*",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "conv2d/convolution_f16",
+        "hardware": [],
+        "scope": "Supplemental reduced mechanism control; does not replace full baseline launch.",
+        "hardware_scope": "No direct hardware receipt for this reduced source; full-shape required family has independent hardware evidence. No physical execution of this exact reduced source is claimed."
+      }
     },
     {
       "kernel": "convolution_f8",
@@ -350,12 +359,21 @@
         "bytes": 1024,
         "description": "16 disjoint32-element slices at original NCHW channel pitch2916"
       },
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [
         "CTA tile reduced from baseline64spatialx128channels to32spatialx16channels; full64x3x3 reduction unchanged.",
         "No flattening of original layout: output slices retain physical NCHW pitch2916.",
         "F8 inputs are OCP E4M3 decoded exactly tohalf before nativeF16MFMA; outputsF16."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE*",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "conv2d/convolution_f8",
+        "hardware": [],
+        "scope": "Supplemental reduced mechanism control; does not replace full baseline launch.",
+        "hardware_scope": "No direct hardware receipt for this reduced source; full-shape required family has independent hardware evidence. No physical execution of this exact reduced source is claimed."
+      }
     }
   ]
 }
