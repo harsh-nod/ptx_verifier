@@ -1360,7 +1360,7 @@
     let last = 0;
     let opSeen = false;
     let declaration = false;
-    const amd = state.doc && state.doc.launch && state.doc.launch.source_language === "amdgpu";
+    const amd = state.doc && (state.doc.source_language || state.doc.launch && state.doc.launch.source_language) === "amdgpu";
     const tokens = amd ? AMD_TOKENS : PTX_TOKENS;
     const label = /^(\s*)([.A-Za-z_$][\w$\.]*):/.exec(line);
     if (label) {
@@ -1741,7 +1741,7 @@
           h("h3", { text: "Reading a graph" }),
           h("p", {
             text:
-              "Columns are lanes: one per thread, one per thread's async operations and one per synchronization object, grouped by warp. " +
+              "Columns are lanes: one per thread, one per thread's async operations and one per synchronization object, grouped by warp or wave. " +
               "Rows are steps: an event sits below its lane predecessor and below the source of every typed edge into it.",
           }),
           grammar(),
@@ -2367,6 +2367,13 @@
     ctx.fillStyle = colors["--muted"];
     ctx.fillText("STEP", GUTTER_W - 9, HEADER_H - 12);
     ctx.textAlign = "left";
+
+    // A valid filter can leave no visible lanes (and an offscreen view can
+    // leave no visible columns). There is then no group band to label.
+    if (c0 > c1) {
+      ctx.restore();
+      return;
+    }
 
     ctx.beginPath();
     ctx.rect(GUTTER_W, 0, W - GUTTER_W, HEADER_H);
