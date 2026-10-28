@@ -66,3 +66,5 @@ All arithmetic comparisons retain the repository's exact real-number model;
 IEEE intermediate rounding is not added. Direct finite FP8-to-F32 decoding
 preserves the baseline FP8-to-F16-to-F32 value because these finite FP8 values
 are exactly representable in F16.
+
+Every hand-written kernel entry uses `.p2align 8`, as required for AMDHSA hardware entry alignment. This packaging directive does not change the instruction sequence or mathematical reference. Source and assembler hashes include the alignment.

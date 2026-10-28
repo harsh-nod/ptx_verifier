@@ -1,0 +1,1152 @@
+{
+  "host": "mi350",
+  "target": "gfx950",
+  "validated_by": "coordinator independent all-native source assembly",
+  "llvm_mc_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n",
+  "passed": [
+    {
+      "source": "tests/gfx950/portable-data/concrete_integer_division.s",
+      "staged": "tests__gfx950__portable-data__concrete_integer_division.s",
+      "source_sha256": "91272d823378c564f98d249fc23826c09c838e253f32b1e1d39fad2d4732c9e7",
+      "exit_code": 0,
+      "object_sha256": "d76582cb4fd0dfa8e430dcb0f2899588307aed79952257a274af606e30858097"
+    },
+    {
+      "source": "tests/gfx950/portable-data/f32_nan_bits.s",
+      "staged": "tests__gfx950__portable-data__f32_nan_bits.s",
+      "source_sha256": "4cc116b1be20db2a7239d20a5807bfd78b70769b8921e629966d709d54adb604",
+      "exit_code": 0,
+      "object_sha256": "1f7753ab9d6031d09f6c2dfe0eca021a99b4052e070572a95fddb58fd2a06f33"
+    },
+    {
+      "source": "tests/gfx950/portable-data/f32_nan_literal.s",
+      "staged": "tests__gfx950__portable-data__f32_nan_literal.s",
+      "source_sha256": "cba8919e755037673ba940712261b3100bd1b6ffa80d9e8ea3403af6d506a493",
+      "exit_code": 0,
+      "object_sha256": "cddf089d1960dc54f37b91c96b09c8482f2c251e5a5aaa268e647a547c91ef7c"
+    },
+    {
+      "source": "tests/gfx950/portable-data/fp8_nan_pair.s",
+      "staged": "tests__gfx950__portable-data__fp8_nan_pair.s",
+      "source_sha256": "2d48d59fda29225f185c8785fb082c9dcd38f4c154580f9397cedc7356d25828",
+      "exit_code": 0,
+      "object_sha256": "c5934c1f4f13aa3a517a765c30de04444f46f5380d3b66cf87b2e441e9ccf516"
+    },
+    {
+      "source": "tests/gfx950/portable-data/fp8_scalar_byte.s",
+      "staged": "tests__gfx950__portable-data__fp8_scalar_byte.s",
+      "source_sha256": "afe29fb57a2243b502e8bad3fdbe985d1073995e2ce93123ce00ea4218202fc1",
+      "exit_code": 0,
+      "object_sha256": "3df113c3b6d4f363e4136fe7d5ed07b830b3293835f195eb10a09ecfd546ff6b"
+    },
+    {
+      "source": "tests/gfx950/portable-data/fp8_truncate_quad.s",
+      "staged": "tests__gfx950__portable-data__fp8_truncate_quad.s",
+      "source_sha256": "f865f3e5d0f28ea9cc7223a0c9a20f9109f4709d887cdb0a6343def58b01689e",
+      "exit_code": 0,
+      "object_sha256": "bf9badd520448db14cd2fbd9ad6361e275326a794990a49bb89eba4ab02d01cb"
+    },
+    {
+      "source": "tests/gfx950/portable-data/integer_floor_doubled.s",
+      "staged": "tests__gfx950__portable-data__integer_floor_doubled.s",
+      "source_sha256": "f39dc021d812de931710dd4766983a0563b53baac42022ce26e43dbd9c45c288",
+      "exit_code": 0,
+      "object_sha256": "ac66466296f28b094e12edec843eb480e5ff6709fbc6708781e35d702778d8e9"
+    },
+    {
+      "source": "tests/gfx950/portable-data/negative_log_f32.s",
+      "staged": "tests__gfx950__portable-data__negative_log_f32.s",
+      "source_sha256": "14edbd63df5db43a71c1d4eba7af51d06ee138e188c935ad246375c3198bbdf0",
+      "exit_code": 0,
+      "object_sha256": "f1414162313cdbdffbb8a6580dddc11507e163a0b6198b9ece2b9def9e1dfaa5"
+    },
+    {
+      "source": "tests/gfx950/portable-data/negative_rsqrt_f32.s",
+      "staged": "tests__gfx950__portable-data__negative_rsqrt_f32.s",
+      "source_sha256": "d84c1684cd1d609df78cd6673bf73a3f29ecb7039002ba0820663194e02fbe09",
+      "exit_code": 0,
+      "object_sha256": "305ac952f63d85e04811df159b055d79ca540c5cfce3c484a67129bb686528db"
+    },
+    {
+      "source": "tests/gfx950/portable-data/negative_sqrt_f32.s",
+      "staged": "tests__gfx950__portable-data__negative_sqrt_f32.s",
+      "source_sha256": "007ae2ff9f86b1f707433ac2c300c754e334e6cc5bb19018743fe7210b39cefe",
+      "exit_code": 0,
+      "object_sha256": "27cea7bc851805feb49ed1568f2b5b7ae443d6e03006200b294f74bb7be0689e"
+    },
+    {
+      "source": "tests/gfx950/portable-data/negative_sqrt_f64.s",
+      "staged": "tests__gfx950__portable-data__negative_sqrt_f64.s",
+      "source_sha256": "b2a2b72f3aea3e38e84c60c54ff12950d2cee68d445e907a8a329598541a2f89",
+      "exit_code": 0,
+      "object_sha256": "45fc98e59ad2b9887f14f5ed42ad6a9070791608a294734aa8f62befe7bd2d19"
+    },
+    {
+      "source": "tests/gfx950/portable-data/nonpositive_log_f32.s",
+      "staged": "tests__gfx950__portable-data__nonpositive_log_f32.s",
+      "source_sha256": "05ee25ce1be71c0dcc55fce26e4e09ad57f70438fe28abaa9f8b0e7d4438f194",
+      "exit_code": 0,
+      "object_sha256": "5ae55decd3d4b8c629db9a8d3de584b98ee002a2d7aef2a7bde11c8d86873105"
+    },
+    {
+      "source": "tests/gfx950/portable-data/nonzero_reciprocals.s",
+      "staged": "tests__gfx950__portable-data__nonzero_reciprocals.s",
+      "source_sha256": "2600148a2bf000dd7cf4f800149d3cfcb4392931c38aa084d38e64f89f0cda17",
+      "exit_code": 0,
+      "object_sha256": "110843216d7c4aa3ecdd884259b2817cbff2d9afd7012ad24e72c6db5734ce33"
+    },
+    {
+      "source": "tests/gfx950/portable-data/pack_halves_order.s",
+      "staged": "tests__gfx950__portable-data__pack_halves_order.s",
+      "source_sha256": "2c41392b04a83d03f5acee48bdc1f996ca7b743bca5e71b6a6f3f1ed4e137bd9",
+      "exit_code": 0,
+      "object_sha256": "0ba3e907784bc1e5ce10a63ce20ef69e587d38cf256aa64f438be3e9bdbaea8b"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_add_sat_f32_concrete_clamps.s",
+      "staged": "tests__gfx950__portable-data__payload_add_sat_f32_concrete_clamps.s",
+      "source_sha256": "b45810c086c4a6e88e2690ccbaf9d829242b6f81c3ece98283226bcbe436f7a5",
+      "exit_code": 0,
+      "object_sha256": "4efc871c346a578f07c25044e29d784dec2f3b6adf799419e00d5477d98a9c6a"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_aligned_u16_access_at_2_mod_4.s",
+      "staged": "tests__gfx950__portable-data__payload_aligned_u16_access_at_2_mod_4.s",
+      "source_sha256": "7515b901e47e2a57bf7c25dfbeb35c2550b5c78909e2cca1623952d50193dc80",
+      "exit_code": 0,
+      "object_sha256": "d6314e6e31f40ed2ac4baa68deb86c78ddfd17d86acc79e1f1961e7ea534944b"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_aligned_vector_load.s",
+      "staged": "tests__gfx950__portable-data__payload_aligned_vector_load.s",
+      "source_sha256": "a11efab9799eee66acd9cc615b73992624f18debfbf9d531fdda6ce1cdc00686",
+      "exit_code": 0,
+      "object_sha256": "913dd2b9e7cfdba80c28133091e7fc9497c76703641cd14ecc39113d92280c20"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_cvt_reinterprets_at_source_format.s",
+      "staged": "tests__gfx950__portable-data__payload_cvt_reinterprets_at_source_format.s",
+      "source_sha256": "4786f099f004a6b8bc19bb9d31ed1c77937ce93eae26a944e1813aa61765130c",
+      "exit_code": 0,
+      "object_sha256": "9a8c93e2cb44b28aaca12879eb17f9fe78c9cb288ca16772cb015f870063497f"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_load_s8_sign_extends.s",
+      "staged": "tests__gfx950__portable-data__payload_load_s8_sign_extends.s",
+      "source_sha256": "329dcc84f033581a20b8c613494b52a98d3c07861b27f3e57a963131f5bf009a",
+      "exit_code": 0,
+      "object_sha256": "bf3ceee81b7577bb38a4b51ba88e8db9514b67337a1c0e85c3b1579a4c125696"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_load_s8_sign_extends_2.s",
+      "staged": "tests__gfx950__portable-data__payload_load_s8_sign_extends_2.s",
+      "source_sha256": "848dd4558d368713702ba5231144e2308fcf6aee6a278fec964b3d8091835335",
+      "exit_code": 0,
+      "object_sha256": "eba6e22d1bc185707c97016fa295ff98fb38a9ad374a7532e1a46dbe3ce4550d"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_b64_integer_pack_recombines_as_scalar_direct.s",
+      "staged": "tests__gfx950__portable-data__payload_mov_b64_integer_pack_recombines_as_scalar_direct.s",
+      "source_sha256": "6babcbaa20b0d345ae82ee190be9145f148775bb82f6f4a1ca2ff673b956d458",
+      "exit_code": 0,
+      "object_sha256": "4785314f1d90f73a18146efe8b9a1562d29593f153a655b49ae0d533148fa111"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_b64_integer_pack_recombines_as_scalar_packed.s",
+      "staged": "tests__gfx950__portable-data__payload_mov_b64_integer_pack_recombines_as_scalar_packed.s",
+      "source_sha256": "9151f0d2a6014045e2c460371900aeddf2f08c7edd679bc82ad27c8ddd89c11e",
+      "exit_code": 0,
+      "object_sha256": "ef41c43c3fce07f6a77f2a35b5305b0794510f877aab41e6166485a4f618a04b"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_neg1_vs_not_zero.s",
+      "staged": "tests__gfx950__portable-data__payload_mov_neg1_vs_not_zero.s",
+      "source_sha256": "9eb2fcb33fa78e94513183d0684242d75c1b591c912cee90c666e8a64c242586",
+      "exit_code": 0,
+      "object_sha256": "eba6e22d1bc185707c97016fa295ff98fb38a9ad374a7532e1a46dbe3ce4550d"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_neg1_vs_not_zero_2.s",
+      "staged": "tests__gfx950__portable-data__payload_mov_neg1_vs_not_zero_2.s",
+      "source_sha256": "7cba87cea58f95e6f2e46cb17031576dfdb0ac13c34da43597970ea8a8546e96",
+      "exit_code": 0,
+      "object_sha256": "7dad3cd9602432b59979adef6aef639e75804f9961b398ec302b6f4e4293537a"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_pack_b32_always_builds_pair.s",
+      "staged": "tests__gfx950__portable-data__payload_mov_pack_b32_always_builds_pair.s",
+      "source_sha256": "07637b219f6c157ea69bbe708c90ee973ff329dc0b64304cd6dc011adb279de8",
+      "exit_code": 0,
+      "object_sha256": "7bd491833b52387779bbe51dbbd53b388c425661a517dc6a4b5413ddbb7ef457"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_pack_b64_integer_halves_recombine.s",
+      "staged": "tests__gfx950__portable-data__payload_mov_pack_b64_integer_halves_recombine.s",
+      "source_sha256": "ebea71a60133e5959c21bb751cd06229dc5b65b84baf8a367a8046c20fa9611c",
+      "exit_code": 0,
+      "object_sha256": "1106d654bd4e06a434aa0fa577268ec8859d9d58937881a9a9a7eef1d31d73ec"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_unpack_native_pair_source.s",
+      "staged": "tests__gfx950__portable-data__payload_mov_unpack_native_pair_source.s",
+      "source_sha256": "60bedfcb3f2e7743b7fad33351e4f5131fefd8ed49718312caa89e6339c8c470",
+      "exit_code": 0,
+      "object_sha256": "19d6c9134c1879fb7842222155bc42c53a79b97eb8c478ae05007bf3d04cd621"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_vector_destination_unpack_values.s",
+      "staged": "tests__gfx950__portable-data__payload_mov_vector_destination_unpack_values.s",
+      "source_sha256": "bfe1235e0e39b0602f6ff09e07124af7f2e43f0594aba083858bb5ba4ae34e41",
+      "exit_code": 0,
+      "object_sha256": "d7e38a56b5918eec7cbaec31a5e8620afc27b1013c2cb7bd325d26c88d9eb297"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_relu_epilogue_vs_explicit_max_explicit.s",
+      "staged": "tests__gfx950__portable-data__payload_relu_epilogue_vs_explicit_max_explicit.s",
+      "source_sha256": "b1b0fb44702077803dd8d86765c982c6dd30b908e8185289c39c31a7eaf7595a",
+      "exit_code": 0,
+      "object_sha256": "f76e5bc9aaa4f16e4995534795f138a37f2676dd5e1b1ebe75d6c961ae8d762a"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_relu_epilogue_vs_explicit_max_fused.s",
+      "staged": "tests__gfx950__portable-data__payload_relu_epilogue_vs_explicit_max_fused.s",
+      "source_sha256": "fd271244a4cd248adf243739435226e8b810093dd549efca5d0d8249c120f693",
+      "exit_code": 0,
+      "object_sha256": "ce37b70b1e63f0fe0810de2b01e51c69e1dd1669d53f2093b0e47a13e5b300d8"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_store_u8_truncates_to_low_bits.s",
+      "staged": "tests__gfx950__portable-data__payload_store_u8_truncates_to_low_bits.s",
+      "source_sha256": "85cbebafc9125cf8fd291e532da6c053c448fe1241583794eec67c8c6c829b1c",
+      "exit_code": 0,
+      "object_sha256": "f955dc55a7e866f34d595bd012c775fff326d6877046847597a41918bd87f4e3"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_unsigned_sub_register_load_passes_through.s",
+      "staged": "tests__gfx950__portable-data__payload_unsigned_sub_register_load_passes_through.s",
+      "source_sha256": "ee1fbb07f428e4e62293f7e775cb05c77245c5ed93397d3138ca3cda0db60874",
+      "exit_code": 0,
+      "object_sha256": "fa4547dc87705643b46d96a5702a9b830518d170fb8645c9a0da98b6bb8e3f83"
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_vector_store_with_immediate_source.s",
+      "staged": "tests__gfx950__portable-data__payload_vector_store_with_immediate_source.s",
+      "source_sha256": "436ef0c513239f944e24535c0e7546edc26f08392fdda1bfdbbeda07ddaca997",
+      "exit_code": 0,
+      "object_sha256": "0165feff216f803b5e814c13e1dba9352a6c1e306a98760acf4ed446b3cafe1b"
+    },
+    {
+      "source": "tests/gfx950/portable-data/predicate_permute_side_effect_race.s",
+      "staged": "tests__gfx950__portable-data__predicate_permute_side_effect_race.s",
+      "source_sha256": "4f76b0453286fdbc1ea6718fd6447d09e9c1e86de390a7c633336a775f01839a",
+      "exit_code": 0,
+      "object_sha256": "40bd30921db4ee4b9d105a55d5d39a8361d335c75a9041d35c8e0d0ff7c09d58"
+    },
+    {
+      "source": "tests/gfx950/portable-data/relu_half_identity.s",
+      "staged": "tests__gfx950__portable-data__relu_half_identity.s",
+      "source_sha256": "4efecc4a926abc3fa015956a3ca10ea124e0ea19cc2c563eafae8d987a0753bd",
+      "exit_code": 0,
+      "object_sha256": "8b580f4c76d599bb3943da1b046bcab6c6947122f331e6d78274c7d3614deeb0"
+    },
+    {
+      "source": "tests/gfx950/portable-data/ring_add_s32_neg1.s",
+      "staged": "tests__gfx950__portable-data__ring_add_s32_neg1.s",
+      "source_sha256": "d8eda2e5b9549df43baafe5bc7de1e857547da40d357b5fb2c074e0845dfa20a",
+      "exit_code": 0,
+      "object_sha256": "3654ee167ac262d32730bb65075524fd6c1561c4c4941ff29836412039bd9a29"
+    },
+    {
+      "source": "tests/gfx950/portable-data/ring_add_u32_neg1.s",
+      "staged": "tests__gfx950__portable-data__ring_add_u32_neg1.s",
+      "source_sha256": "d8eda2e5b9549df43baafe5bc7de1e857547da40d357b5fb2c074e0845dfa20a",
+      "exit_code": 0,
+      "object_sha256": "3654ee167ac262d32730bb65075524fd6c1561c4c4941ff29836412039bd9a29"
+    },
+    {
+      "source": "tests/gfx950/portable-data/ring_mul_lo_s32_neg3.s",
+      "staged": "tests__gfx950__portable-data__ring_mul_lo_s32_neg3.s",
+      "source_sha256": "163596976b17cd80b19aef96c43c3f055ce001713b7d740f1d73ca91a9e7ce2a",
+      "exit_code": 0,
+      "object_sha256": "ff88c9a63fc92de6d38bf024bc0eb9489f1137278e8023572eaffd2c265f9741"
+    },
+    {
+      "source": "tests/gfx950/portable-data/ring_mul_lo_u32_neg3.s",
+      "staged": "tests__gfx950__portable-data__ring_mul_lo_u32_neg3.s",
+      "source_sha256": "9fd4eb4cac09e39642fde365b8cc25f9ade24958f8f0e52c05047b7d7c4bab5d",
+      "exit_code": 0,
+      "object_sha256": "ff88c9a63fc92de6d38bf024bc0eb9489f1137278e8023572eaffd2c265f9741"
+    },
+    {
+      "source": "tests/gfx950/portable-data/ring_sub_s32_neg7.s",
+      "staged": "tests__gfx950__portable-data__ring_sub_s32_neg7.s",
+      "source_sha256": "95654b77637b8fba0a423366f2b03167365fcce3324dd26f0d9f56ae057f3628",
+      "exit_code": 0,
+      "object_sha256": "809e72a052bf657f0fca9d8b6ef4c906597ddeb66c45c7f0e9abe011c1727c46"
+    },
+    {
+      "source": "tests/gfx950/portable-data/ring_sub_u32_1.s",
+      "staged": "tests__gfx950__portable-data__ring_sub_u32_1.s",
+      "source_sha256": "3bb0927031aec055d3d2b292cbb283e9d4ac099e8ec8c97e5d92d2626a210953",
+      "exit_code": 0,
+      "object_sha256": "1ebb4a1f5904deaf65818ae729612cd54a368ce1d42e05b04d6fecb410971405"
+    },
+    {
+      "source": "tests/gfx950/portable-data/ring_sub_u32_neg7.s",
+      "staged": "tests__gfx950__portable-data__ring_sub_u32_neg7.s",
+      "source_sha256": "95654b77637b8fba0a423366f2b03167365fcce3324dd26f0d9f56ae057f3628",
+      "exit_code": 0,
+      "object_sha256": "809e72a052bf657f0fca9d8b6ef4c906597ddeb66c45c7f0e9abe011c1727c46"
+    },
+    {
+      "source": "tests/gfx950/portable-data/select_computed_complement.s",
+      "staged": "tests__gfx950__portable-data__select_computed_complement.s",
+      "source_sha256": "28f5591f59bb39e15f3f0bd8775d24ed307561bb4b82e616d7a442426d342abb",
+      "exit_code": 0,
+      "object_sha256": "e548c29310b3d2234278a12de69f7f4ac538fc181976b810f039fc7d4d8c5a86"
+    },
+    {
+      "source": "tests/gfx950/portable-data/select_signed_minus_one.s",
+      "staged": "tests__gfx950__portable-data__select_signed_minus_one.s",
+      "source_sha256": "a6b0455dff499bcbf7b00cdd612348697bbf66db67928b7c9724457d8accd9a8",
+      "exit_code": 0,
+      "object_sha256": "322e89460a6cdc5ea00012676c28ae33d9cb5b07118997b6247ba938fdc10d66"
+    },
+    {
+      "source": "tests/gfx950/portable-data/signed_byte_extension.s",
+      "staged": "tests__gfx950__portable-data__signed_byte_extension.s",
+      "source_sha256": "1b6e1d2313b7c663205997609b0cc34cf17a2577ea3c90e68d2cc6dcaef01461",
+      "exit_code": 0,
+      "object_sha256": "64fda90cea7950dc71160dec26d869adde1941010d063e9a97804a044361ec05"
+    },
+    {
+      "source": "tests/gfx950/portable-data/symbolic_branch.s",
+      "staged": "tests__gfx950__portable-data__symbolic_branch.s",
+      "source_sha256": "4ba82c6de6cefee7a8399c755d1fa322af0d27361fe3c61963d26337ffe3b346",
+      "exit_code": 0,
+      "object_sha256": "d73d0122602c3ba6da6f58d55a5fac5db151bd096fbd9e28aeaa254cdaefbb37"
+    },
+    {
+      "source": "tests/gfx950/portable-data/symbolic_narrow_store.s",
+      "staged": "tests__gfx950__portable-data__symbolic_narrow_store.s",
+      "source_sha256": "4a8b0affd9d5c4315d67ff4467af78b956aa2dcd2435d03144a50f223c53b681",
+      "exit_code": 0,
+      "object_sha256": "c70568282c0807abc97306b4f23308083a025e361c2b699df73ed40033a64c48"
+    },
+    {
+      "source": "tests/gfx950/portable-data/u64_shift_boundaries.s",
+      "staged": "tests__gfx950__portable-data__u64_shift_boundaries.s",
+      "source_sha256": "ea68eb40e61caa00deeff902f65e5adcf6aad0a900fdacf3dc43bcd83a08a703",
+      "exit_code": 0,
+      "object_sha256": "0bab8cb4334d5f574a8a6518cb0100c6768d9f39bb93b26f5dea81c130f9e3a2"
+    },
+    {
+      "source": "tests/gfx950/portable-data/valid_math_domains.s",
+      "staged": "tests__gfx950__portable-data__valid_math_domains.s",
+      "source_sha256": "9b1119fc0c4db8ad4a87da5cbd289accf9de501ebd5f64d456c9d8d007637f77",
+      "exit_code": 0,
+      "object_sha256": "751a0dcb094073d007dab516dd667088336131261a45f4e02966d2f97f138b02"
+    },
+    {
+      "source": "tests/gfx950/portable-data/zero_rcp_f32.s",
+      "staged": "tests__gfx950__portable-data__zero_rcp_f32.s",
+      "source_sha256": "bc83770fdaa26e3c3503549afb1c93ec12982fe39a94e4f961fc7d7a14aa84a8",
+      "exit_code": 0,
+      "object_sha256": "39c1fa46fc22741b1871606845070e7e1cf1e68c84053e1e6bae589ae8ea4114"
+    },
+    {
+      "source": "tests/gfx950/portable-data/zero_rcp_f64.s",
+      "staged": "tests__gfx950__portable-data__zero_rcp_f64.s",
+      "source_sha256": "768f6d2ff270a9958f76f5bf2d8c63de7b46358550bdd2fd02180babca78cf0f",
+      "exit_code": 0,
+      "object_sha256": "59a87c0ff35a094d1585e57d371a38992ae56ae04d330aae0ce918b7d4b7dbca"
+    },
+    {
+      "source": "tests/gfx950/portable-data/zero_rsqrt_f32.s",
+      "staged": "tests__gfx950__portable-data__zero_rsqrt_f32.s",
+      "source_sha256": "8ae40bcbf72105d89a5a4fbc8dd61f25d7e4231194845aaca22f976a3c556f20",
+      "exit_code": 0,
+      "object_sha256": "1430a1facf0f82e51135a2415d4aeeecc17e51152fb355b49007fae377783b1a"
+    },
+    {
+      "source": "tests/gfx950/portable-descriptor/copy-replace-races.s",
+      "staged": "tests__gfx950__portable-descriptor__copy-replace-races.s",
+      "source_sha256": "225ce966eafc9615d94b282bc0e2a7e61615851bfc51f491c1cd4bd243c217cc",
+      "exit_code": 0,
+      "object_sha256": "c2db331d5e38334861e3a2c48c03441572eee98b0370130a9accc4e87bfbe25b"
+    },
+    {
+      "source": "tests/gfx950/portable-descriptor/replace-write-write.s",
+      "staged": "tests__gfx950__portable-descriptor__replace-write-write.s",
+      "source_sha256": "43807784823a2bcfc5443a19d359b30cf4272ee2cbe66875e8c629fed52373ee",
+      "exit_code": 0,
+      "object_sha256": "f7d3a16f790717795e7f019ea63d4432df3574432a9e9cd6713f72fe4621f550"
+    },
+    {
+      "source": "tests/gfx950/portable-descriptor/tile-edge.s",
+      "staged": "tests__gfx950__portable-descriptor__tile-edge.s",
+      "source_sha256": "6f1d81fd44be09270e3df85b48dc952da13828be7721cc96a2ccb7f5bee32b3b",
+      "exit_code": 0,
+      "object_sha256": "c7bd2f37dae1a244fad379f8d41a38a2708e3cc1fccd5c0a9a26c126abbf3dc3"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/e4m3_concrete_pair.s",
+      "staged": "tests__gfx950__portable-matrix__e4m3_concrete_pair.s",
+      "source_sha256": "f5ed55a4c8b2128cafe86dd52c0bf1d30c73d54390e1a8255af7e9c17fb3e40a",
+      "exit_code": 0,
+      "object_sha256": "5701605860c23e4eaed7b02bbaeffd6f939929006c203b5fb0e86f9d9502e9f3"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/e4m3_concrete_pair_relu.s",
+      "staged": "tests__gfx950__portable-matrix__e4m3_concrete_pair_relu.s",
+      "source_sha256": "0ab9c5d1719f9c8c4aa390da1f9e0fb314eb1bb6e140d6bdb8a34c2ecd06b348",
+      "exit_code": 0,
+      "object_sha256": "e2028f20bdf7cfe8d442eef93ddf3491481ab75a6470f4c9dac6ce597bee1293"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/e4m3_selected_low_halves.s",
+      "staged": "tests__gfx950__portable-matrix__e4m3_selected_low_halves.s",
+      "source_sha256": "54686d6e45b7fb8c22e0eb9298eecf74cbbb101c117ec4099be1948cc04ecd2d",
+      "exit_code": 0,
+      "object_sha256": "23cbb0c8330dbca1af2c737810d8ed833592fc7e334a9a38749ea43dd2cdf43d"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/e4m3_vector_bytes.s",
+      "staged": "tests__gfx950__portable-matrix__e4m3_vector_bytes.s",
+      "source_sha256": "c6a4db7de09d6802b5be6bac2a02231ee3aae618fa4911857d2e9f61a461dc93",
+      "exit_code": 0,
+      "object_sha256": "6f17a7717bf67e990fa1b34f064bcf4d85b4db31e0177a851dc73e888a0782c1"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/e4m3_zero_extended_byte.s",
+      "staged": "tests__gfx950__portable-matrix__e4m3_zero_extended_byte.s",
+      "source_sha256": "644ede9a366b54bfe777bd7ebc96c2312c67c62f606e1f3c7ef35d9a252d6842",
+      "exit_code": 0,
+      "object_sha256": "28075dece9b65153b9bc945fa16969ecca48460dbef14d002a1157c80db68f4d"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/ldmatrix_four_fragment_pairs.s",
+      "staged": "tests__gfx950__portable-matrix__ldmatrix_four_fragment_pairs.s",
+      "source_sha256": "06dd86dbd2eeb82f14f4259a4c6e1c3e1805c935de014c0e30c044a90fde6229",
+      "exit_code": 0,
+      "object_sha256": "b2e2332e0033bfd95769bceb6a360b4ab7dc7cec11f45cb572f44085b514bb91"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/ldmatrix_transpose_8x8.s",
+      "staged": "tests__gfx950__portable-matrix__ldmatrix_transpose_8x8.s",
+      "source_sha256": "a0434ac191ae2f14f6a2712fd3a383310094c4a1702fa8e301a55ce76d1b03c6",
+      "exit_code": 0,
+      "object_sha256": "8280e8b7216b347995d007133905af4e8a947065091c3b62f0d0faf47cc57700"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/mma_immediate_accumulator_identity.s",
+      "staged": "tests__gfx950__portable-matrix__mma_immediate_accumulator_identity.s",
+      "source_sha256": "f828fc62f3f8877d1f983d4ed29879e01703322bb36c19eb95fb965878902079",
+      "exit_code": 0,
+      "object_sha256": "3db9678597ca234cbcd3cb6fdd6d79b065adaf83ded66a88cd1e4e3ac402b77c"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/mma_raw_accumulator_identity.s",
+      "staged": "tests__gfx950__portable-matrix__mma_raw_accumulator_identity.s",
+      "source_sha256": "72b0e958e03c436fb590b38f6bce5709ca99d6c37b71f2e0c0f63b98dbba81ab",
+      "exit_code": 0,
+      "object_sha256": "07cb9940b240d0392a4756321370e3926beb3afd246cd46bc24d3b085168b036"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/stmatrix_lane_word_placement.s",
+      "staged": "tests__gfx950__portable-matrix__stmatrix_lane_word_placement.s",
+      "source_sha256": "46cc2b36740f7f6e47e36738e6faa33b194066ce429d76a7f649a25b579b7567",
+      "exit_code": 0,
+      "object_sha256": "237750a9a29def6d8fdff94a7075016d5e4fd0f450c880c10ec1784a8b34683e"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/tcgen_mixed_fp8_numeric408.s",
+      "staged": "tests__gfx950__portable-matrix__tcgen_mixed_fp8_numeric408.s",
+      "source_sha256": "408a873c0fd9a8ad73a2d6e4e0c9bd169a120d816d36f9d9c0c16f5761b13289",
+      "exit_code": 0,
+      "object_sha256": "013b3ebf91be3217a3c85400800c3eab42c309c53bcb1aae66e1602d0a978ed4"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/tcgen_mixed_fp8_wrong_b_format.s",
+      "staged": "tests__gfx950__portable-matrix__tcgen_mixed_fp8_wrong_b_format.s",
+      "source_sha256": "4496d4230969581b136e56f5a9c17c261d176f6e52b9b8e460317e2feb5ca682",
+      "exit_code": 0,
+      "object_sha256": "54c7ce9c69f3390c70fe5ff5b0969a955a689ac55c04989575a747e10c01f5e1"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/tcgen_no_swizzle_128x8.s",
+      "staged": "tests__gfx950__portable-matrix__tcgen_no_swizzle_128x8.s",
+      "source_sha256": "201efd2ef257add9e662e12459cc29df991a7c46b7cdb2fbced3406d5fe0a317",
+      "exit_code": 0,
+      "object_sha256": "e54c9e049ba03b11ef52c1b5b46afe603053073247a222218044e0f96ae39dfd"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/tcgen_numeric136.s",
+      "staged": "tests__gfx950__portable-matrix__tcgen_numeric136.s",
+      "source_sha256": "5357f8ca74a89eebdccd1a0758c68a49410a555fae73d17c5a70a22005ba58c3",
+      "exit_code": 0,
+      "object_sha256": "d0bc3116fc9f3d8a522627eac05a0ec5868cb1a3c859de302432ee79622ec6ed"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/tcgen_raw_operands_accumulator17.s",
+      "staged": "tests__gfx950__portable-matrix__tcgen_raw_operands_accumulator17.s",
+      "source_sha256": "2bafd87f08be34f2ba0b8bb456d5220140ac4f49e5a58ce0ee35fe08452cefa7",
+      "exit_code": 0,
+      "object_sha256": "fb4ab83cdde0782c938d9188bdedb3ca57b9b62caab67891749c48347fc0dc38"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/tcgen_shape128x256_lds_bounds.s",
+      "staged": "tests__gfx950__portable-matrix__tcgen_shape128x256_lds_bounds.s",
+      "source_sha256": "8ad9703459759bf9b24904dad2fe3823ac26052767434edbac9a3e2fa3169825",
+      "exit_code": 0,
+      "object_sha256": "7d70d9d7b2a530c402575abd5621fdbf8f1582f023fcb2298c5ef795110d656c"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/wmma_fragment_contiguous.s",
+      "staged": "tests__gfx950__portable-matrix__wmma_fragment_contiguous.s",
+      "source_sha256": "4802c3bca21e577497b5a64928697a3c0f9b359917da61759c1a7e122fdd5bc1",
+      "exit_code": 0,
+      "object_sha256": "2f066d363b988ec2f2c8de7d83593c9f76f7d2e4fd92eb97b63386c082bc697c"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/wmma_fragment_stride48.s",
+      "staged": "tests__gfx950__portable-matrix__wmma_fragment_stride48.s",
+      "source_sha256": "f9df8e860782edcffa03c6059fbae16c79168afde807473b119e30e06f9fb325",
+      "exit_code": 0,
+      "object_sha256": "841140332a23598789249bc983093f7df432cfd1a50db2132044de1972f909d0"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/wmma_fragment_stride64.s",
+      "staged": "tests__gfx950__portable-matrix__wmma_fragment_stride64.s",
+      "source_sha256": "105de139eb17745bb91f8b6730af3a91bdb1dd5ddc5723a9816064ef694e66e5",
+      "exit_code": 0,
+      "object_sha256": "46701ab8e2015e7f9e0de7d5f75efc24c9d320426913fbe8c36a0283a71817bb"
+    },
+    {
+      "source": "tests/gfx950/portable-matrix/wmma_store_tile_ones.s",
+      "staged": "tests__gfx950__portable-matrix__wmma_store_tile_ones.s",
+      "source_sha256": "8487ea3b2c3a0803c157cea9f54e9f06695acbc032751dbdd854717129f0d457",
+      "exit_code": 0,
+      "object_sha256": "9015cc0ffb9437e313734a51fb8616061e8b9dabbc114ff439a477ef3d160138"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/balanced_tree_sum.s",
+      "staged": "tests__gfx950__portable-negative__balanced_tree_sum.s",
+      "source_sha256": "6b329cab9a5e0a4ebd54590cc9721040fd2a68397f991b592f6173b6e84ac5bd",
+      "exit_code": 0,
+      "object_sha256": "acc76d29edcd6380c2a37f9679cafe2c7ff900188e721dfb749ca6844ccbf998"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/balanced_tree_sum_doubled_leaf.s",
+      "staged": "tests__gfx950__portable-negative__balanced_tree_sum_doubled_leaf.s",
+      "source_sha256": "77db8ecc792b6ef1d0ec0daafc8fd096b0de040fd58748abe0c73bd5e592fdb3",
+      "exit_code": 0,
+      "object_sha256": "18a68f293cf5d5e6b891e6faea66443aa07bec1bdb11eaa21a911a1d70e2969d"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/constant_perturbation_mut.s",
+      "staged": "tests__gfx950__portable-negative__constant_perturbation_mut.s",
+      "source_sha256": "444cb06b8d6c17c48d63f8c2c62dc1b9c804fca2294a161499baa8c95a279415",
+      "exit_code": 0,
+      "object_sha256": "8cf7d4d73a0eb030236c440a5d8b65d935f0f55f085ab089adefa05ced9a7221"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/constant_perturbation_ref.s",
+      "staged": "tests__gfx950__portable-negative__constant_perturbation_ref.s",
+      "source_sha256": "09f6f0658d9a8c0a581d6550add7eed51b6c92b307cb10ee3a075c78c6bed3e1",
+      "exit_code": 0,
+      "object_sha256": "53d8339b2a05dabe808f89323fb0ce09b9a7b62fa1df8d258e3554ada06f7464"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/dropped_term_mut.s",
+      "staged": "tests__gfx950__portable-negative__dropped_term_mut.s",
+      "source_sha256": "6d1d142ae2bcd5f7e4db2e8730a67047cc03ef9d0ddd037c38bc53a4e77675cd",
+      "exit_code": 0,
+      "object_sha256": "49fac5b88b32aaab13821fd0ea21132a60e7eaf3262687c178b580431eb4da58"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/dropped_term_ref.s",
+      "staged": "tests__gfx950__portable-negative__dropped_term_ref.s",
+      "source_sha256": "67c2a80ca1f4fb7e188744d170667075efe3cdacfdf5e6dcf89be1fbffb6598a",
+      "exit_code": 0,
+      "object_sha256": "5bbd92bb02a97d72d9d60a519d18ab156ff4751b013d47516bd1ef1b1c782bb4"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/exp_of_product.s",
+      "staged": "tests__gfx950__portable-negative__exp_of_product.s",
+      "source_sha256": "2aae1f240d2da2298f94c20c6b2d83a71a49d322235f27ba2750f59560deddf6",
+      "exit_code": 0,
+      "object_sha256": "9115434bae43ff21cec86a7135738d174ba334113aa27d1c91234bcaebdb7a51"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/exp_of_sum.s",
+      "staged": "tests__gfx950__portable-negative__exp_of_sum.s",
+      "source_sha256": "d0566357ea4eba5129db7a3fc687db35d5e74c8b89b2adf9b9c17dc8af6a24fc",
+      "exit_code": 0,
+      "object_sha256": "69aed5954889f270d41efa05017ab6edcfcb38fed09727c62f8d3023a2bd7959"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/exp_product_of_exps.s",
+      "staged": "tests__gfx950__portable-negative__exp_product_of_exps.s",
+      "source_sha256": "00b9fc966f30b4b05c2765e5b1fdb92d3ee71ab91c84766a1c1cf6fd976f9556",
+      "exit_code": 0,
+      "object_sha256": "cb104088985ca706b58d6174c1838a78eb5290c242aceb8998ea0b53c5d17696"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/fma_different_addend_mut.s",
+      "staged": "tests__gfx950__portable-negative__fma_different_addend_mut.s",
+      "source_sha256": "58d3617d375b2157a38e387c6fc8b4cecb2aad8942643cf0d765588cbb6572e1",
+      "exit_code": 0,
+      "object_sha256": "30024aa853f35714675c165c963e9fde7220fb5b610eedbc7503f681c8702b0b"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/fma_different_addend_ref.s",
+      "staged": "tests__gfx950__portable-negative__fma_different_addend_ref.s",
+      "source_sha256": "fc13b6a4771b929e7b76b5fa6d469573454d6c8ee6b3d11764d28963cb69cf35",
+      "exit_code": 0,
+      "object_sha256": "bd3f029dc1a4e666d5b772268465156e2bcb1f3d929cb044bacfdefaa463898e"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/integer_sign_bit_xor_mut.s",
+      "staged": "tests__gfx950__portable-negative__integer_sign_bit_xor_mut.s",
+      "source_sha256": "54e7b0f7ac139082d8b3d94d89c14d11f0bc2d7848bc33ba9b1b6608c58f55b5",
+      "exit_code": 0,
+      "object_sha256": "beed425d77c648088818311134fe5e7ff37ed24eb8c13714e46a64a4aff65ef7"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/integer_sign_bit_xor_ref.s",
+      "staged": "tests__gfx950__portable-negative__integer_sign_bit_xor_ref.s",
+      "source_sha256": "b263532cea0f504985ecccf68ce5d40f5ba56affde8e3c85bbb6d08fc06ad177",
+      "exit_code": 0,
+      "object_sha256": "dd4dcfad3b3f4caa44010dc9024352072ab4c631181bc1c1bf8dbc32e04d5d65"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/linear_chain_sum.s",
+      "staged": "tests__gfx950__portable-negative__linear_chain_sum.s",
+      "source_sha256": "8b17a3512006e7349bcfe92d0d9e14ca6cd357ffa168cb1246a1b7d09767ce67",
+      "exit_code": 0,
+      "object_sha256": "5bbd92bb02a97d72d9d60a519d18ab156ff4751b013d47516bd1ef1b1c782bb4"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/max_vs_min_mut.s",
+      "staged": "tests__gfx950__portable-negative__max_vs_min_mut.s",
+      "source_sha256": "bad8b1142b870914f84f4f4ebbf0022fee0d82f1a8860781fe9c6fde99b54a7e",
+      "exit_code": 0,
+      "object_sha256": "9415ec3260cd6f1a0ac289e3565c1fec5330d7dcdca637b4708fa0426b1a1fc2"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/max_vs_min_ref.s",
+      "staged": "tests__gfx950__portable-negative__max_vs_min_ref.s",
+      "source_sha256": "52340d31ff53319a1044774686401ce45c52de52ad68c0c09b47727616342cca",
+      "exit_code": 0,
+      "object_sha256": "fad98dadc846520aa0d3042d7bc6b2f69673b5da8fe736e64f74f3114dd6af52"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/missing_relu_clamp_mut.s",
+      "staged": "tests__gfx950__portable-negative__missing_relu_clamp_mut.s",
+      "source_sha256": "2a3bb9a91f022c63dabf71a2b43749cdeed8cab2a656c465888a242ce1e26f6f",
+      "exit_code": 0,
+      "object_sha256": "df5d6ac3ea71fcc7550fedc7fdbd54d4d808a3879df6172b76d3999aaa2706fc"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/missing_relu_clamp_ref.s",
+      "staged": "tests__gfx950__portable-negative__missing_relu_clamp_ref.s",
+      "source_sha256": "2c491a177b13a38b55e71d21947d5f0181facca17c0f96a710d9ccbb6d6df958",
+      "exit_code": 0,
+      "object_sha256": "a57313fbdc523f73ad62025f503e351a87a6750b1b30c3a915088ddc16722d56"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/off_by_one_index_mut.s",
+      "staged": "tests__gfx950__portable-negative__off_by_one_index_mut.s",
+      "source_sha256": "a7824f30f74937ced839beb30a31276c0ea4a62891df6baf75e8b9855605203b",
+      "exit_code": 0,
+      "object_sha256": "25120d529d2f65bcda7fbd6eeeb950543a645234e7143b709b64683b49da66c8"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/off_by_one_index_ref.s",
+      "staged": "tests__gfx950__portable-negative__off_by_one_index_ref.s",
+      "source_sha256": "cf86256fa1e79c2470b595264ade991ea9a0fcafcf845011e56e08ff7f66601f",
+      "exit_code": 0,
+      "object_sha256": "b22910356fd46a564f5a75d66a6e1c460f3bc647b654e9a700634482ec1fd4b7"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/sentinel_off_by_one_mut.s",
+      "staged": "tests__gfx950__portable-negative__sentinel_off_by_one_mut.s",
+      "source_sha256": "8a5caced972046f054ec5822527317806d3253280ca5b8bcb9dab00f4c4249de",
+      "exit_code": 0,
+      "object_sha256": "871314aa3065a6ba4681c05af9c9e11dde563d72f3cc74df67d25029dc55120f"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/sentinel_off_by_one_ref.s",
+      "staged": "tests__gfx950__portable-negative__sentinel_off_by_one_ref.s",
+      "source_sha256": "14eba9a9034f9a91b89f0a3d90a39237e7c039db18b35d77ec167094d5ddfaa9",
+      "exit_code": 0,
+      "object_sha256": "4ac27f66dcafbf6f9c58753c839e76f35e393aa1040e481064760215f3a829dd"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/swapped_noncommutative_mut.s",
+      "staged": "tests__gfx950__portable-negative__swapped_noncommutative_mut.s",
+      "source_sha256": "bb21894ddde03cd156d36c04c05117f690151bd98174af97bbd87695e40e0097",
+      "exit_code": 0,
+      "object_sha256": "e0091e1a6fc1709e398c2ad659e38088b4149aead06a309ed52d53112f15ef2e"
+    },
+    {
+      "source": "tests/gfx950/portable-negative/swapped_noncommutative_ref.s",
+      "staged": "tests__gfx950__portable-negative__swapped_noncommutative_ref.s",
+      "source_sha256": "a7674b72f2912e086002275911f7902cc8009deba519194051e1f381bc0a67d6",
+      "exit_code": 0,
+      "object_sha256": "577edee94e9bce484ea3a0f7925d8a08f5f9d35d429658122a97ca21b752cf97"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/b16_shift_amount_is_read_as_u32.s",
+      "staged": "tests__gfx950__portable-scalar__b16_shift_amount_is_read_as_u32.s",
+      "source_sha256": "410272ed7aaa9ee7910519f06eea751e73b02bd3b65b81f8261d3bf0c91853e7",
+      "exit_code": 0,
+      "object_sha256": "7963ccb0cca6c3613ac757aaf725c857aa2b4cf8e15df9d8a401ce7ce77de4c6"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/b64_shift_by_u32_register.s",
+      "staged": "tests__gfx950__portable-scalar__b64_shift_by_u32_register.s",
+      "source_sha256": "6f3bb386720ff7665dd3bc1db16c5c9c4d80608dbcb2bd8983a586574a9bbc7a",
+      "exit_code": 0,
+      "object_sha256": "8fb69ee4901313838d4632b3f79099ae763c11ef56aa021634c8d399f5299ef2"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/bfe_extract_and_sign_fill.s",
+      "staged": "tests__gfx950__portable-scalar__bfe_extract_and_sign_fill.s",
+      "source_sha256": "97bd084e4a31122f065329d47b50348c8e613ca62a0b67bf0e9344d26b007ec4",
+      "exit_code": 0,
+      "object_sha256": "d37170f065ffd888511e1383cd6fc66032cb82fbfe2099aea6cd8bf27b7ab2e7"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/bfi_clips_field_to_register_width.s",
+      "staged": "tests__gfx950__portable-scalar__bfi_clips_field_to_register_width.s",
+      "source_sha256": "c747bd46e3e6e2cb470268468f8afbb6ef2de42b553dfea6a67eff601ebc0c74",
+      "exit_code": 0,
+      "object_sha256": "017eba9a5bdb6ed25138a21cd2e4481e3f439748300c2c3fdbea24cdc7aaab48"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.s",
+      "staged": "tests__gfx950__portable-scalar__byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.s",
+      "source_sha256": "2b88ca5bb38ba33beccd62665bfb9f6fdd075de7e77b1dad5a074195b5327e98",
+      "exit_code": 0,
+      "object_sha256": "9ec67989f24142f8fab3cdc4008d342db84ded8feedcee0b000e781ff7932231"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/copysign_combines_the_sign_of_a_with_the_magnitude_of_b.s",
+      "staged": "tests__gfx950__portable-scalar__copysign_combines_the_sign_of_a_with_the_magnitude_of_b.s",
+      "source_sha256": "bce55e6bcafd8d9d578228c974dbd73431236f4be09e84d5739c919ae259886b",
+      "exit_code": 0,
+      "object_sha256": "08c82731b6810b5970fc7879c5eddd5d2c02c883edb217cdd497733627d043fa"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/cvta_to_global_accepted.s",
+      "staged": "tests__gfx950__portable-scalar__cvta_to_global_accepted.s",
+      "source_sha256": "5aa9c3c24a154314c6de34819ee6ff0c965c10e34f076643a64e551219e36a53",
+      "exit_code": 0,
+      "object_sha256": "01f71ee8287eea42301dfa042c5cbfee22b30f47651124af1d504c57e1ba128a"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/div_by_n_vs_mul_by_computed_reciprocal.s",
+      "staged": "tests__gfx950__portable-scalar__div_by_n_vs_mul_by_computed_reciprocal.s",
+      "source_sha256": "1f20e5cd699f7c6fc188b8ca06476d4c4498262edd9a9d65ab4c85bb7fd59106",
+      "exit_code": 0,
+      "object_sha256": "d2cce3a7c4ce413078e3549ef1b91947e32669ee230b084ac7931eec1f970246"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/div_by_n_vs_mul_by_computed_reciprocal_2.s",
+      "staged": "tests__gfx950__portable-scalar__div_by_n_vs_mul_by_computed_reciprocal_2.s",
+      "source_sha256": "f164b40e4a8a840eb64b93b41c0b3839e993731624cdf7e19ba3e21219b8c746",
+      "exit_code": 0,
+      "object_sha256": "d2cce3a7c4ce413078e3549ef1b91947e32669ee230b084ac7931eec1f970246"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/div_by_three_vs_rcp_of_three.s",
+      "staged": "tests__gfx950__portable-scalar__div_by_three_vs_rcp_of_three.s",
+      "source_sha256": "70af525949d193706c0d115885c9a9e286e7f0b1fc483a38af8e7e2ad2e40d4b",
+      "exit_code": 0,
+      "object_sha256": "8e7a726c47880173a53ed5f950b926bde37a16d26a5dd3adc5b2319504c8f5e1"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/div_by_three_vs_rcp_of_three_2.s",
+      "staged": "tests__gfx950__portable-scalar__div_by_three_vs_rcp_of_three_2.s",
+      "source_sha256": "82355e8debf57905a4b688f9f5598208778eb900aaed36edc0c3821d50700c68",
+      "exit_code": 0,
+      "object_sha256": "8e7a726c47880173a53ed5f950b926bde37a16d26a5dd3adc5b2319504c8f5e1"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/elect_sync_elects_the_lowest_active_lane.s",
+      "staged": "tests__gfx950__portable-scalar__elect_sync_elects_the_lowest_active_lane.s",
+      "source_sha256": "3c9d41cec8ee2766da09baf4ed5ec581332160966dfc9417bb616920342615ed",
+      "exit_code": 0,
+      "object_sha256": "f8807300ce152367d81d667b1f6829bf4f7dea6e1671bb1c4bfda9df393262ff"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/elect_sync_skips_an_already_exited_lane.s",
+      "staged": "tests__gfx950__portable-scalar__elect_sync_skips_an_already_exited_lane.s",
+      "source_sha256": "a87f4751306867b9866aaf8d408c94528af7a4621acef049fef7cb685bb0dd14",
+      "exit_code": 0,
+      "object_sha256": "43f66ab02e9d1315c8c5b6dbb9cc5135a80017f755d63bb419a80e945f06b740"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/extern_only_shared_placement_and_bounds.s",
+      "staged": "tests__gfx950__portable-scalar__extern_only_shared_placement_and_bounds.s",
+      "source_sha256": "3fe64da46c0b4da77c5372857b5042735e84fd3c17b5d7aaec5643dacdd2d47c",
+      "exit_code": 0,
+      "object_sha256": "7ebd5df978897c7da49f6c9e279363762e37cc8ea63afe4b20e30b0f75ff2415"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/extern_vs_static_shared_no_false_race.s",
+      "staged": "tests__gfx950__portable-scalar__extern_vs_static_shared_no_false_race.s",
+      "source_sha256": "e76f5ebc4ea97ce935884af5d5fa25efe132c5fc78bb7341c7d3f654e9d1143a",
+      "exit_code": 0,
+      "object_sha256": "66b793a9fc24b958fed1a471d09dc45bd84813b0c30fa76c1f7f9fad0c440881"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/f32x2_constant_bit_pattern_operand.s",
+      "staged": "tests__gfx950__portable-scalar__f32x2_constant_bit_pattern_operand.s",
+      "source_sha256": "186f233e21c7472cb103f15fa6e3b8da6676b0a6cc1eb4ccbdaf50e840b445d0",
+      "exit_code": 0,
+      "object_sha256": "70cbbc5c2bd1734dc9d8922b779096f64b29215ed532a651cf0ee5b541e983ae"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/f32x2_fma_via_64bit_memory_access.s",
+      "staged": "tests__gfx950__portable-scalar__f32x2_fma_via_64bit_memory_access.s",
+      "source_sha256": "9c8972e3f6d889dcb9f5abf6c1168aba64eb803c71edcbefc8e1237fd11f826c",
+      "exit_code": 0,
+      "object_sha256": "2535d44a28aac68a53152f766109d0c8173aca831d93bc29e3961605712eb5d9"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/f32x2_fma_via_register_pack.s",
+      "staged": "tests__gfx950__portable-scalar__f32x2_fma_via_register_pack.s",
+      "source_sha256": "447c024f08e57c1f46c47a8d552cca90e1a1f355e89f9a249a48ba834c12fd5f",
+      "exit_code": 0,
+      "object_sha256": "6b3053ebfcc59dd0ce51df2218b3b7b31a40e70fd0556a983e8ae3051a587c24"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/f32x2_lane_extracted_with_shift.s",
+      "staged": "tests__gfx950__portable-scalar__f32x2_lane_extracted_with_shift.s",
+      "source_sha256": "d4239b231ac405089754fcb083cdfca1bee7bd103d218c8f3bd1a8288f9d5d96",
+      "exit_code": 0,
+      "object_sha256": "6b2e94e110509d3ffcdaafa4b52ebd86cfe1c9253f4f1bad24dd3176f32605cc"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/f32x2_mul_add_via_register_pack.s",
+      "staged": "tests__gfx950__portable-scalar__f32x2_mul_add_via_register_pack.s",
+      "source_sha256": "2b55d9a458110efc0c53f5437605be42646a0f6a176f46a915c7f74123b1a769",
+      "exit_code": 0,
+      "object_sha256": "2cf56b176008040d61e6d23f8f8adec9a9601ae32cf49b31b69dcd656f85e67c"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/f32x2_operand_assembled_with_cvt_zero_extension.s",
+      "staged": "tests__gfx950__portable-scalar__f32x2_operand_assembled_with_cvt_zero_extension.s",
+      "source_sha256": "188cff6c9b94f1ed445801fcebe840c4ffc9e327bb94ba5fa6307d170938d7b8",
+      "exit_code": 0,
+      "object_sha256": "2492ac053dfe325031af203aa576e34a6e54fca2ef8c7eadfdbd40d3a67fb8a8"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/f32x2_operand_assembled_with_shift_and_or.s",
+      "staged": "tests__gfx950__portable-scalar__f32x2_operand_assembled_with_shift_and_or.s",
+      "source_sha256": "11900be6bb9b9ccde7da8e2ff41d2546243d4d0d9b4114931f20678a4ef87286",
+      "exit_code": 0,
+      "object_sha256": "2492ac053dfe325031af203aa576e34a6e54fca2ef8c7eadfdbd40d3a67fb8a8"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/f32x2_scalar_reference.s",
+      "staged": "tests__gfx950__portable-scalar__f32x2_scalar_reference.s",
+      "source_sha256": "51087d1df84000d3fc20c4c9b7dce9cb55cc01410f632aa1deca505d665bdda1",
+      "exit_code": 0,
+      "object_sha256": "f0a7d0cf1d927f3f728298a307fb686714dbfa11b749e408f739e603a15da74f"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/f32x2_wrong_lane_math.s",
+      "staged": "tests__gfx950__portable-scalar__f32x2_wrong_lane_math.s",
+      "source_sha256": "afa667ce015f44626847afe4c01f1d725fc6c8089630221ff5a315aada91e51a",
+      "exit_code": 0,
+      "object_sha256": "398d2bd59afdc00d05c2e0a125e46def53a8faabc5952611d0a856554a12135c"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/float_abs_decodes_raw_bits.s",
+      "staged": "tests__gfx950__portable-scalar__float_abs_decodes_raw_bits.s",
+      "source_sha256": "4ab643b27dd56b0a57f04674e6c10d2f89f9c7a697e1aa61826da0434ed2f735",
+      "exit_code": 0,
+      "object_sha256": "6712caa47debd4b5052b1a4cda6ebcd6b6c8831b422da2def0d071f12467dd06"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/float_ops_decode_raw_bit_patterns.s",
+      "staged": "tests__gfx950__portable-scalar__float_ops_decode_raw_bit_patterns.s",
+      "source_sha256": "5f9b641fd995ad36d6c9a0f5d9067613b1e19a064212e551ec8dab620a27653a",
+      "exit_code": 0,
+      "object_sha256": "7766f3f74858d4b75bbe3a4155b03f8d462f4bf70d64c2362b14244a94da337c"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/int_abs_read_at_signed_width.s",
+      "staged": "tests__gfx950__portable-scalar__int_abs_read_at_signed_width.s",
+      "source_sha256": "578942b86649b675aca0d1debbe85ebd0cc42d4466f977fbaac139b86b8b5ecd",
+      "exit_code": 0,
+      "object_sha256": "21e91136bb6ff8a9df8cba66c4114258e4cfdbb8bb4b0f222ed4aee2ad18bb72"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/mapa_rank_zero_is_the_identity.s",
+      "staged": "tests__gfx950__portable-scalar__mapa_rank_zero_is_the_identity.s",
+      "source_sha256": "1a115908ae9a18ffea04c14fd5a91e989cd22b198989da1dfcad4ea2199e150b",
+      "exit_code": 0,
+      "object_sha256": "0289339ffa369c202dceff7a728b99be66568bcf28516030e0000cfbd5766b82"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/mixed_precision_fma_decodes_multiplicands_at_their_own_type.s",
+      "staged": "tests__gfx950__portable-scalar__mixed_precision_fma_decodes_multiplicands_at_their_own_type.s",
+      "source_sha256": "12f6adf82601e45f6589dff2a68e6e883128b5e4002ddc2a02f839701b8979ec",
+      "exit_code": 0,
+      "object_sha256": "3012270b5b302565ae470dcf41c70ebb8252b04fe3e1c2d471e0862d129fa660"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/mul_hi_u32_negative_operand.s",
+      "staged": "tests__gfx950__portable-scalar__mul_hi_u32_negative_operand.s",
+      "source_sha256": "54a5090ceb05ea3a89b36ab2133b81247e2c4b71d759a83f55c4a3b57d5c73ad",
+      "exit_code": 0,
+      "object_sha256": "f1f709d3f17ecf6a5a8ed1408c92b5956fc53847f918ba375031ad1c7e789d41"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/mul_wide_u16_magic_division.s",
+      "staged": "tests__gfx950__portable-scalar__mul_wide_u16_magic_division.s",
+      "source_sha256": "fc6abda0eba7c346258935919a077cd7f6eb88c8caa688f2f4d23cbe38d22be7",
+      "exit_code": 0,
+      "object_sha256": "1086c4f1b7d456da2f7da46ffc30eea802489f09c047dbe09059be3c70dea27f"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/neg_reads_operand_as_instruction_type.s",
+      "staged": "tests__gfx950__portable-scalar__neg_reads_operand_as_instruction_type.s",
+      "source_sha256": "fd3934e3924c10f961aa6a86147904d8d59edc1d424a6695e90c130295f6139e",
+      "exit_code": 0,
+      "object_sha256": "0fb3e14a60da19700bd4c1579b44a8e18ff460ecb9451e83e5db21dc012a6304"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/region_edge_exact_fit_accesses_pass.s",
+      "staged": "tests__gfx950__portable-scalar__region_edge_exact_fit_accesses_pass.s",
+      "source_sha256": "4befaeaccbfe8229be542ef359e04b084a1cf6c29a1359db42f164710b7d9de4",
+      "exit_code": 0,
+      "object_sha256": "aa3fcf88a0850ef190cf59b8ecc80d97baba1004324f8f7b50b8b647a700a2a3"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/shf_clamp_negative_shift_amount_saturates.s",
+      "staged": "tests__gfx950__portable-scalar__shf_clamp_negative_shift_amount_saturates.s",
+      "source_sha256": "0ca7875d6f57d60a905c4ff905e224648e51cf5cd01b2dfaddf5955fbc8f134f",
+      "exit_code": 0,
+      "object_sha256": "814da61afd9129bbe6437797d5506cfb51571da9925e920613a945d6b34aea37"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/shfl_sync_idx_exchange.s",
+      "staged": "tests__gfx950__portable-scalar__shfl_sync_idx_exchange.s",
+      "source_sha256": "dd77b7000903b6f0cc5156ddd5c337feb96488f7ee07f6d76ac2c063c18ff28e",
+      "exit_code": 0,
+      "object_sha256": "61130d1ae3e25870ce7e9ddc1d837d2a00200bd09335b0384537aa8c1fc12a04"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/symexpf_callseq.s",
+      "staged": "tests__gfx950__portable-scalar__symexpf_callseq.s",
+      "source_sha256": "415b1665b9e7f037fe485c7f7706777df2e67660f5d4b7dfb9074dfb15a4ccb5",
+      "exit_code": 0,
+      "object_sha256": "610b10a6b864f5066f88de38dbef6df23e53db331b0498e5b256e55d5eec81c6"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/tail_exit_warp_shfl_reduction.s",
+      "staged": "tests__gfx950__portable-scalar__tail_exit_warp_shfl_reduction.s",
+      "source_sha256": "c9890211d5f5c5afaf92ad94bdf9d0dc35eda0c16f2cb9a71944dfb761dc8fbf",
+      "exit_code": 0,
+      "object_sha256": "d58d076eac08b2e91024368c2682e16e5fe5e458f2a5c6bc9eb352fb56490354"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/tail_exit_warp_shfl_reduction_reference.s",
+      "staged": "tests__gfx950__portable-scalar__tail_exit_warp_shfl_reduction_reference.s",
+      "source_sha256": "02de0ea55b742c43381b27a703a8cd26c17ee33125ec3a22ecb573134be645ee",
+      "exit_code": 0,
+      "object_sha256": "4a311950be90896b0370c1e39f073fadd4779df83fb95fe9ec731fb1dbd7ff20"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/tanh_approx_expands_to_exp_fragment.s",
+      "staged": "tests__gfx950__portable-scalar__tanh_approx_expands_to_exp_fragment.s",
+      "source_sha256": "c1826d92e39b80f5f319329c162b72da566225b661dd685d4d8253a8573c0aa4",
+      "exit_code": 0,
+      "object_sha256": "bc57ced0ba11cae5a929187fd5e8a697c2a488bbb1a4cea1180983d4d9208e0c"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/tanh_approx_zero_vs_zero.s",
+      "staged": "tests__gfx950__portable-scalar__tanh_approx_zero_vs_zero.s",
+      "source_sha256": "4eb8944a9fe966b5822ebcfa67d48b981143fe774a3ad8d54e8a3610559627cf",
+      "exit_code": 0,
+      "object_sha256": "4b91b597ef46bad423a723e9ff22bf746f12b9b61b3675a96cf6295760bded8c"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/tanh_approx_zero_vs_zero_2.s",
+      "staged": "tests__gfx950__portable-scalar__tanh_approx_zero_vs_zero_2.s",
+      "source_sha256": "fc0cf1ee995621757f469256e753f71d1f13118f405bd031c915e1908873e83a",
+      "exit_code": 0,
+      "object_sha256": "457dfa87a5c78e4c85ce25edc4a006fbc555cb7c57236ac20d88c84abe3aa1a4"
+    },
+    {
+      "source": "tests/gfx950/portable-scalar/upper_half_address_space_access_in_bounds.s",
+      "staged": "tests__gfx950__portable-scalar__upper_half_address_space_access_in_bounds.s",
+      "source_sha256": "5716d5f8f2537d8ae83ba3c9512fbf52fbfa021ed4b0e1f32379c4c0a4559fa9",
+      "exit_code": 0,
+      "object_sha256": "883a93230ca4d990b438dafecbf221f68715022ca2b76289607e38a19c14dfbd"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__clang22-cdna4-mfma-types.s",
+      "source_sha256": "dc20ac85e4192e986556b373979c4757b6d7379b783eb564ad90ff124851f089",
+      "exit_code": 0,
+      "object_sha256": "6eaab41bb2026132bc201f9bf0a995a51ca331e375514779493a4de6077cfdd1"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-copy-add.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__clang22-copy-add.s",
+      "source_sha256": "efbdab3055e0fa697ca97a62275d7ab890d695aa1e46cb0a68280ddb442d9a1d",
+      "exit_code": 0,
+      "object_sha256": "d070ae367b965e5adb72e4383c3f6360dbe6af369a634cb21bde9ae30769b7ee"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__clang22-dynamic-lds.s",
+      "source_sha256": "2a48a0958061bbadaf75e21384071da2bb2fa7fb185de3deeab8db7231710e35",
+      "exit_code": 0,
+      "object_sha256": "4376482586f3671a74bdabf0eb124751b8567aeb7113202700f2ef6e367ffa24"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-exchange-reduce-relu.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__clang22-exchange-reduce-relu.s",
+      "source_sha256": "3a4c4fdc220a9c5597915f60fea77f32872c58b298b167ed3f4eee17903c3eb9",
+      "exit_code": 0,
+      "object_sha256": "c8bb9a777d93346fc78b3a179222e84ff83e38e1cef1a47eca449d775a4e4383"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-grid-output.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__clang22-grid-output.s",
+      "source_sha256": "4329c90b02b41cea7e7cbe81184b3b5552d00283a731fdbfd5a2496933e20000",
+      "exit_code": 0,
+      "object_sha256": "c351b00013fc0aa2d29c740cd632184ac326d9e2c3acfbd7b5bcbe9e69400e4c"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-ids-3d.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__clang22-ids-3d.s",
+      "source_sha256": "c7641849607d3a8af8a3e7f26cdcb547b6a42e67ff8fee5a7f9183bbf8263181",
+      "exit_code": 0,
+      "object_sha256": "08747cc87b59e14e3ccdcf01fcd81f3f1f02cd7f357794416409d11b9caca21c"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-mfma-f32.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__clang22-mfma-f32.s",
+      "source_sha256": "2f0e29c32184eea9fbae6a8c00e4a4a9297ad45e79acbc3642a5fd635b5a668a",
+      "exit_code": 0,
+      "object_sha256": "22eda82122b26145e2d572f4f8ee2abcf2e65a232fcc860d6faf13cd2c8424b9"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-mixed-byvalue.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__clang22-mixed-byvalue.s",
+      "source_sha256": "72a7cea82b970a8e181f000d9de99cab9b9479a75d87e15e48b082d5f01c9014",
+      "exit_code": 0,
+      "object_sha256": "ff7fa5deb70957cb119b007b8fb5e8efb0e5707b3e804e15f06d16964e602aec"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-module-globals.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__clang22-module-globals.s",
+      "source_sha256": "4685d039ca74ebfb46c64326de9302af19675f60dac01990a7da3a07316d7009",
+      "exit_code": 0,
+      "object_sha256": "cd1caf870068838f676cc2695400ad26f1a3f6d96f6221c8899ae4fd48b9c9b2"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f16.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__clang22-pipelined-mfma-f16.s",
+      "source_sha256": "11e6045bae8d22c26c5470cedd7bbffca23a5e085c07e281e7745845603e032c",
+      "exit_code": 0,
+      "object_sha256": "c670f413dc61bda21ce32f2e0da950469c7ceef62e8d07f6d576b0c9908024d7"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f32.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__clang22-pipelined-mfma-f32.s",
+      "source_sha256": "0628527f82fe09b6287eab2a0564b74a779850995172486911ea9a1563bddc15",
+      "exit_code": 0,
+      "object_sha256": "7489f9ad73f209b33b46e11e65a8bcef982b1f2f5507c6dcb7d6de40187fe1be"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-scalar-types.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__clang22-scalar-types.s",
+      "source_sha256": "1d0efa6b4d16ca036ae059748046b15a55667644f0f873319c87f7757c79f5ce",
+      "exit_code": 0,
+      "object_sha256": "1d6028b20647b8b564f241747b64e631208ebd60cbaa7b069c2c4b651f26db00"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-convolution.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__native-convolution.s",
+      "source_sha256": "bed0c5f8478b4edb1e9e47632285f60ba466e2d2d3c4141685c11e5ff6cda8bc",
+      "exit_code": 0,
+      "object_sha256": "4f37ca131edc419b5fabde6c4b72ca4e1495a4b1690110fce7a2d6b7f92c0b4a"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-attention.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__native-flash-attention.s",
+      "source_sha256": "ecf62822f322ba5b7f44b265246af39cacb08a421c01701829c681a86fe71c7c",
+      "exit_code": 0,
+      "object_sha256": "302c076396daa77fe5a82dc37edf47ec79f4e7d31afde48ff3b0506eb83b44a4"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-sinkhorn.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__native-flash-sinkhorn.s",
+      "source_sha256": "b4b40e5b150763553effe5c29d50d5e5e85a8260b4d060815a1cede8e58d73fe",
+      "exit_code": 0,
+      "object_sha256": "dfe79a26afa12c85438e09fd1f3b7d70523d0e458a6934c8a70f2b0585808175"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-forgetting-attention.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__native-forgetting-attention.s",
+      "source_sha256": "b33fc1f2ad927e3bf78ab151e3e70dc3e6dde73e42bd2ebf44f24c2dad5849b2",
+      "exit_code": 0,
+      "object_sha256": "aa6aacd598a24f297e145ce7ad837a445e4f2c5bd8273552f2f74a4aab7af4f7"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-convolution.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__native-full-convolution.s",
+      "source_sha256": "026e99ea336effca73c19ef67bc2dea2da604dc848f1c2dccc7d7d9aa9b1c4b7",
+      "exit_code": 0,
+      "object_sha256": "7fe450f6c0565cb0965f65782385f08ceb1d0e4f21505dc0b51d1bdb6fc5a22d"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__native-full-gemm.s",
+      "source_sha256": "f1065c060b8acbaf582e5a9a4931188e899143e6027e12fce5387c56d1846a4c",
+      "exit_code": 0,
+      "object_sha256": "91209fb939ca0a496c9340ad116247a8c3ae1796cf5c779d8fe687d71c5c0a33"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-state.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__native-mamba2-state.s",
+      "source_sha256": "3c91cc3a0d5fe94c714921fa9a3a79aee3fb616d9a04fb69ddd9ec5d170995cb",
+      "exit_code": 0,
+      "object_sha256": "392e6405e20787ea58a1d1161aca0475ec7632babb600a854c3b20075fb0ad6e"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-sage-attention.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__native-sage-attention.s",
+      "source_sha256": "3ab93445f6a88e85164d8cf2c9e5a1b3d626726db9491ef070e44e94f8045285",
+      "exit_code": 0,
+      "object_sha256": "bd42eb93b3a1aeaef089e55dcf5fc55f5083bb4ec03b93e3a9d45f47c2f90393"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__portable-f16.s",
+      "source_sha256": "122ca33f751b37c42460f1680194e4431310d4af2ada4f067e6638e2781f43c7",
+      "exit_code": 0,
+      "object_sha256": "e01cccbe610d01c574b05dcbcc62c116cee072e02ba936dc71397cd598ef3331"
+    },
+    {
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.s",
+      "staged": "crates__volta_amdgpu_analysis__src__frontend__fixtures__portable-f8.s",
+      "source_sha256": "50738f01ed840685557294b569e11a1b8bb85809031cc0628d78edd2d18e39d9",
+      "exit_code": 0,
+      "object_sha256": "ad09766355e58ee985d8e67dc486175a294a5c3804cbd2c7de95e920e5cfe0ca"
+    }
+  ],
+  "failed": [],
+  "source_checkpoint": "17ec41e: exact163 pinned compiler and hand-written native sources; SHA256 per source is authoritative"
+}
