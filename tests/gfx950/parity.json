@@ -97,7 +97,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-convolution-cases.json",
-        "manifest_sha256_at_review": "b40a4e90b20198f325a69c9e5b7a9c1f6364cff863be0a2bf7ac3e908061f553",
+        "manifest_sha256_at_review": "eefe6bc24f57ce986f8d6d0df2900caf265b7fb4ce619a1614f5ec08abd2b3c2",
         "case": "convolution_f16_full",
         "block": [
           512,
@@ -2897,7 +2897,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -2952,7 +2953,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-convolution-cases.json",
-        "manifest_sha256_at_review": "b40a4e90b20198f325a69c9e5b7a9c1f6364cff863be0a2bf7ac3e908061f553",
+        "manifest_sha256_at_review": "eefe6bc24f57ce986f8d6d0df2900caf265b7fb4ce619a1614f5ec08abd2b3c2",
         "case": "convolution_f8_full",
         "block": [
           512,
@@ -5753,7 +5754,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit. Native16384-output128spatialx128channels tile strictly covers original8192-output64spatialx128channels CTA0. Both retain C64/HW56/O128/K576/pitch2916; equal native/original footprints are not claimed.",
       "baseline_observation": {
@@ -5821,7 +5823,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/attention-cases.json",
-        "manifest_sha256_at_review": "db75c66deef4c4aff640e86acd31ffd95175b6e2d8908450637836f092b06415",
+        "manifest_sha256_at_review": "2afe84b669078310283027627a09a3a2f5d512f8e64a5ec03b5a10d12ea2394b",
         "case": "flash_attention_full",
         "block": [
           128,
@@ -5969,7 +5971,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-attention-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-attention-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -6019,7 +6022,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/advanced-cases.json",
-        "manifest_sha256_at_review": "0ef31cda8f1d351744909e7520accb34ceac1fed6685d447f933fb2e0975f9e0",
+        "manifest_sha256_at_review": "f6fb08c44a1181be32cee30cfc5e3c6c3b86b2b8ac61accacaf11e321705655f",
         "case": "flash_sinkhorn_full",
         "block": [
           128,
@@ -6146,7 +6149,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -6196,7 +6200,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/advanced-cases.json",
-        "manifest_sha256_at_review": "0ef31cda8f1d351744909e7520accb34ceac1fed6685d447f933fb2e0975f9e0",
+        "manifest_sha256_at_review": "f6fb08c44a1181be32cee30cfc5e3c6c3b86b2b8ac61accacaf11e321705655f",
         "case": "forgetting_attention_full",
         "block": [
           128,
@@ -6339,7 +6343,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -6390,7 +6395,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-gemm-cases.json",
-        "manifest_sha256_at_review": "e38d5aacc825b6260104d7d08f04a6f8c8fffe678573834c2de92fc3a3bd31f1",
+        "manifest_sha256_at_review": "38ca335678102bde0777a7bbf1eb1f05618fc7a44b7e1d104dabb796ea27c060",
         "case": "gemm_add_silu_f16_full",
         "block": [
           1024,
@@ -8294,7 +8299,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -8357,7 +8363,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-gemm-cases.json",
-        "manifest_sha256_at_review": "e38d5aacc825b6260104d7d08f04a6f8c8fffe678573834c2de92fc3a3bd31f1",
+        "manifest_sha256_at_review": "38ca335678102bde0777a7bbf1eb1f05618fc7a44b7e1d104dabb796ea27c060",
         "case": "gemm_add_silu_f8_full",
         "block": [
           1024,
@@ -10261,7 +10267,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -10328,7 +10335,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/scan-cases.json",
-        "manifest_sha256_at_review": "0620a139e3c452be144c6779f51c6c8daf96ed4f5d61806f61d1b921b7d773c8",
+        "manifest_sha256_at_review": "5a579cb21dffb46222fad544e46ec77e6fd35ce1b077beea5455536c1c9c6de5",
         "case": "mamba2_chunk_scan_full",
         "block": [
           128,
@@ -10894,7 +10901,8 @@
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
         "tests/gfx950/evidence/hardware-scan-coordinator-2026-10-27.json",
         "tests/gfx950/portable-workload/cases.json",
-        "tests/gfx950/portable-workload/assembler-provenance.json"
+        "tests/gfx950/portable-workload/assembler-provenance.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -10962,7 +10970,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/advanced-cases.json",
-        "manifest_sha256_at_review": "0ef31cda8f1d351744909e7520accb34ceac1fed6685d447f933fb2e0975f9e0",
+        "manifest_sha256_at_review": "f6fb08c44a1181be32cee30cfc5e3c6c3b86b2b8ac61accacaf11e321705655f",
         "case": "mamba2_chunk_state_full",
         "block": [
           128,
@@ -11081,7 +11089,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -11132,7 +11141,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-gemm-cases.json",
-        "manifest_sha256_at_review": "e38d5aacc825b6260104d7d08f04a6f8c8fffe678573834c2de92fc3a3bd31f1",
+        "manifest_sha256_at_review": "38ca335678102bde0777a7bbf1eb1f05618fc7a44b7e1d104dabb796ea27c060",
         "case": "gemm_f16_full",
         "block": [
           1024,
@@ -13035,7 +13044,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -13098,7 +13108,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-gemm-cases.json",
-        "manifest_sha256_at_review": "e38d5aacc825b6260104d7d08f04a6f8c8fffe678573834c2de92fc3a3bd31f1",
+        "manifest_sha256_at_review": "38ca335678102bde0777a7bbf1eb1f05618fc7a44b7e1d104dabb796ea27c060",
         "case": "gemm_f8_full",
         "block": [
           1024,
@@ -15001,7 +15011,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -15064,7 +15075,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16-cases.json",
-        "manifest_sha256_at_review": "495f72d7f8941e6b95c351fe8a34da2c1f7c5ebd77f62c0b271cb533d75681e3",
+        "manifest_sha256_at_review": "2d04f0fc5fddbf5ccb1bc936bd6af86784762f52ef9853a895a9854ef668ae60",
         "case": "matvec_f16",
         "block": [
           128,
@@ -15214,7 +15225,8 @@
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
         "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
         "tests/gfx950/portable-workload/cases.json",
-        "tests/gfx950/portable-workload/assembler-provenance.json"
+        "tests/gfx950/portable-workload/assembler-provenance.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -15280,7 +15292,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8-cases.json",
-        "manifest_sha256_at_review": "103f9552207f71589d64b257db96da18c3907844e0114a6b5aec6c6540ab811b",
+        "manifest_sha256_at_review": "843d54f48510156150893caf3b2436af8c5aab1ab5c8e01c1ed91e1447642aa3",
         "case": "matvec_f8",
         "block": [
           128,
@@ -15408,7 +15420,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -15457,7 +15470,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16-cases.json",
-        "manifest_sha256_at_review": "495f72d7f8941e6b95c351fe8a34da2c1f7c5ebd77f62c0b271cb533d75681e3",
+        "manifest_sha256_at_review": "2d04f0fc5fddbf5ccb1bc936bd6af86784762f52ef9853a895a9854ef668ae60",
         "case": "rmsnorm_f16",
         "block": [
           512,
@@ -15605,7 +15618,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -15654,7 +15668,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8-cases.json",
-        "manifest_sha256_at_review": "103f9552207f71589d64b257db96da18c3907844e0114a6b5aec6c6540ab811b",
+        "manifest_sha256_at_review": "843d54f48510156150893caf3b2436af8c5aab1ab5c8e01c1ed91e1447642aa3",
         "case": "rmsnorm_f8",
         "block": [
           512,
@@ -15781,7 +15795,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -15829,7 +15844,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16-cases.json",
-        "manifest_sha256_at_review": "495f72d7f8941e6b95c351fe8a34da2c1f7c5ebd77f62c0b271cb533d75681e3",
+        "manifest_sha256_at_review": "2d04f0fc5fddbf5ccb1bc936bd6af86784762f52ef9853a895a9854ef668ae60",
         "case": "relu_f16",
         "block": [
           128,
@@ -15976,7 +15991,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -16024,7 +16040,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8-cases.json",
-        "manifest_sha256_at_review": "103f9552207f71589d64b257db96da18c3907844e0114a6b5aec6c6540ab811b",
+        "manifest_sha256_at_review": "843d54f48510156150893caf3b2436af8c5aab1ab5c8e01c1ed91e1447642aa3",
         "case": "relu_f8",
         "block": [
           128,
@@ -16150,7 +16166,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -16263,7 +16280,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16-cases.json",
-        "manifest_sha256_at_review": "495f72d7f8941e6b95c351fe8a34da2c1f7c5ebd77f62c0b271cb533d75681e3",
+        "manifest_sha256_at_review": "2d04f0fc5fddbf5ccb1bc936bd6af86784762f52ef9853a895a9854ef668ae60",
         "case": "rope_f16",
         "block": [
           128,
@@ -16412,7 +16429,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -16461,7 +16479,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8-cases.json",
-        "manifest_sha256_at_review": "103f9552207f71589d64b257db96da18c3907844e0114a6b5aec6c6540ab811b",
+        "manifest_sha256_at_review": "843d54f48510156150893caf3b2436af8c5aab1ab5c8e01c1ed91e1447642aa3",
         "case": "rope_f8",
         "block": [
           128,
@@ -16589,7 +16607,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -16642,7 +16661,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/advanced-cases.json",
-        "manifest_sha256_at_review": "0ef31cda8f1d351744909e7520accb34ceac1fed6685d447f933fb2e0975f9e0",
+        "manifest_sha256_at_review": "f6fb08c44a1181be32cee30cfc5e3c6c3b86b2b8ac61accacaf11e321705655f",
         "case": "sage_attention_full",
         "block": [
           128,
@@ -16774,7 +16793,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -16822,7 +16842,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16-cases.json",
-        "manifest_sha256_at_review": "495f72d7f8941e6b95c351fe8a34da2c1f7c5ebd77f62c0b271cb533d75681e3",
+        "manifest_sha256_at_review": "2d04f0fc5fddbf5ccb1bc936bd6af86784762f52ef9853a895a9854ef668ae60",
         "case": "silu_f16",
         "block": [
           128,
@@ -16969,7 +16989,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -17017,7 +17038,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8-cases.json",
-        "manifest_sha256_at_review": "103f9552207f71589d64b257db96da18c3907844e0114a6b5aec6c6540ab811b",
+        "manifest_sha256_at_review": "843d54f48510156150893caf3b2436af8c5aab1ab5c8e01c1ed91e1447642aa3",
         "case": "silu_f8",
         "block": [
           256,
@@ -17144,7 +17165,8 @@
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
         "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
-        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -17192,7 +17214,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16-cases.json",
-        "manifest_sha256_at_review": "495f72d7f8941e6b95c351fe8a34da2c1f7c5ebd77f62c0b271cb533d75681e3",
+        "manifest_sha256_at_review": "2d04f0fc5fddbf5ccb1bc936bd6af86784762f52ef9853a895a9854ef668ae60",
         "case": "sigmoid_f16",
         "block": [
           256,
@@ -17339,7 +17361,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -17387,7 +17410,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8-cases.json",
-        "manifest_sha256_at_review": "103f9552207f71589d64b257db96da18c3907844e0114a6b5aec6c6540ab811b",
+        "manifest_sha256_at_review": "843d54f48510156150893caf3b2436af8c5aab1ab5c8e01c1ed91e1447642aa3",
         "case": "sigmoid_f8",
         "block": [
           128,
@@ -17513,7 +17536,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -17630,7 +17654,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16-cases.json",
-        "manifest_sha256_at_review": "495f72d7f8941e6b95c351fe8a34da2c1f7c5ebd77f62c0b271cb533d75681e3",
+        "manifest_sha256_at_review": "2d04f0fc5fddbf5ccb1bc936bd6af86784762f52ef9853a895a9854ef668ae60",
         "case": "swiglu_f16",
         "block": [
           128,
@@ -17778,7 +17802,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
@@ -17826,7 +17851,7 @@
       },
       "configuration": {
         "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8-cases.json",
-        "manifest_sha256_at_review": "103f9552207f71589d64b257db96da18c3907844e0114a6b5aec6c6540ab811b",
+        "manifest_sha256_at_review": "843d54f48510156150893caf3b2436af8c5aab1ab5c8e01c1ed91e1447642aa3",
         "case": "swiglu_f8",
         "block": [
           512,
@@ -17953,7 +17978,8 @@
         "tests/gfx950/evidence/6bc63a5.json",
         "tests/gfx950/evidence/native-assembly-final182.json",
         "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
+        "tests/gfx950/evidence/full-workloads-final-logging.json"
       ],
       "reason": "Coordinator verifies complete graph/spec outputs, exact current manifest-derived argv and native source/spec/binary hashes. Architectural mapping differences and inherited limitations remain explicit.",
       "baseline_observation": {
