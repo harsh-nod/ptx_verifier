@@ -148,6 +148,19 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
         }));
         return PropertyResult::Unknown(unresolved);
     }
+    let layout = graph.shared_allocation_layout();
+    if graph
+        .provenance()
+        .assumes(volta_graph::Assumption::ConfiguredSharedAllocationLayout)
+        != !layout.is_empty()
+    {
+        unresolved.push(Unresolved::global(
+            "configured LDS layout and its provenance premise disagree",
+        ));
+    }
+    if let Err(reason) = volta_graph::validate_shared_allocations(layout) {
+        return unknown(&reason);
+    }
     let waves = (graph.threads() as usize).div_ceil(64);
     let mut seen = vec![false; waves];
     let mut last_instruction = HashMap::<u32, InstructionRecord>::new();
@@ -481,6 +494,7 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
     let mut linked = HashSet::new();
     let mut linked_issues = HashSet::new();
     let mut effect_issues = HashMap::new();
+    let mut shared_footprints = HashMap::<(EventId, volta_graph::ThreadIx), (u64, u64)>::new();
     for link in graph.amd_memory_effects() {
         linked.insert(link.effect);
         linked_issues.insert(link.issue);
@@ -489,6 +503,19 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
             if let Some(event) = graph.events().get(link.effect) {
                 if let EventKind::Access(a) = event.kind {
                     let access = graph.access(a);
+                    if !layout.is_empty() && access.space == Space::Shared {
+                        if let Footprint::Bytes { addr, width } = access.footprint {
+                            if let Some(end) = addr.checked_add(u64::from(width)) {
+                                shared_footprints
+                                    .entry((link.issue, access.attributed))
+                                    .and_modify(|(lo, hi)| {
+                                        *lo = (*lo).min(addr);
+                                        *hi = (*hi).max(end);
+                                    })
+                                    .or_insert((addr, end));
+                            }
+                        }
+                    }
                     if access.attributed.0 / 64 != *wave {
                         unresolved.push(Unresolved::at(
                             link.effect,
@@ -531,6 +558,17 @@ fn trace_contract(graph: &EventGraph) -> AmdTraceResult {
                     }
                 }
             }
+        }
+    }
+    for ((issue, _), (start, end)) in shared_footprints {
+        if !layout
+            .iter()
+            .any(|region| start >= region.offset && end <= region.offset + region.size)
+        {
+            unresolved.push(Unresolved::at(
+                issue,
+                "whole LDS transfer straddles or escapes the configured shared allocation layout",
+            ));
         }
     }
     for (&event, (_, class)) in &issue_events {

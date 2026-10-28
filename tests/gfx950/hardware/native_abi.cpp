@@ -3,6 +3,7 @@
 // llvm-mc --triple=amdgcn-amd-amdhsa --mcpu=gfx950 -filetype=obj, then link
 // with ld.lld -shared. Build: hipcc -O2 -std=c++17 -Wall -Wextra native_abi.cpp
 // Run: a.out module-globals.hsaco dynamic-lds.hsaco grid-output.hsaco
+// [mixed-byvalue.hsaco]
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
@@ -92,7 +93,8 @@ static void launch(hipFunction_t fn, dim3 grid, dim3 block, unsigned shared,
 }
 int main(int argc, char **argv) {
   try {
-    if (argc != 4) throw std::runtime_error("expected three code objects");
+    if (argc != 4 && argc != 5)
+      throw std::runtime_error("expected three or four code objects");
     check(hipSetDevice(0), "select device");
     hipDeviceProp_t prop{};
     check(hipGetDeviceProperties(&prop, 0), "device properties");
@@ -153,7 +155,26 @@ int main(int argc, char **argv) {
         out.verify(expected, "grid_output", p);
       }
     }
-    std::puts("SUMMARY launches=9 outputs=666 guards=576 exact=true PASS");
+    if (argc == 5) {
+      Module module(argv[4]);
+      Output<float> out(4);
+      const float alphas[3] = {1.25f, -128.5f, 0};
+      const double betas[3] = {0.5, 2, -3};
+      const int16_t shorts[3] = {-3, 32767, -32768};
+      const uint8_t bytes[3] = {250, 0, 255};
+      for (unsigned p = 0; p < 3; ++p) {
+        float alpha = alphas[p]; double beta = betas[p];
+        int32_t n = 4; int16_t s = shorts[p]; uint8_t b = bytes[p];
+        out.reset();
+        void *args[] = {&out.pointer, &alpha, &beta, &n, &s, &b};
+        launch(module.function("mixed_byvalue"), dim3(1), dim3(4), 0, args);
+        float expected = alpha + float(beta) + float(s) + float(b);
+        out.verify(std::vector<float>(4, expected), "mixed_byvalue", p);
+      }
+    }
+    std::printf("SUMMARY launches=%u outputs=%u guards=%u exact=true PASS\n",
+                argc == 5 ? 12 : 9, argc == 5 ? 678 : 666,
+                argc == 5 ? 768 : 576);
     return 0;
   } catch (const std::exception &error) {
     std::fprintf(stderr, "FAIL %s\n", error.what());

@@ -2,14 +2,14 @@
   <img src="volta-logo.png" alt="Volta Blackwell logo" width="400">
 </p>
 
-Volta Blackwell checks NVIDIA PTX kernels for data races and deadlocks, and checks a kernel for equivalence to a reference kernel or a math spec (floats are modeled as reals). This is an experimental fork of [Volta](https://github.com/willtunnels/volta).
+Volta Blackwell checks NVIDIA PTX and native AMD gfx950 assembly for data races and deadlocks, and checks a kernel for equivalence to a reference kernel or a math spec (floats are modeled as reals). This is an experimental fork of [Volta](https://github.com/willtunnels/volta).
 
 > [!CAUTION]
 > **This project is not intended to be a sound verifier, and we do not claim that it is a formal verifier. It is a best-effort verifier for catching bugs in generated kernels; a successful check does not guarantee correctness.**
 >
 > **We are aware of similar efforts, that claims to be a formal verifier but suffers from soundness issues in its handling of the Blackwell ISA. We recommend treating the output with care and using independent testing and validation as it seems there are no trusted blackwell verifiers yet. The latest up to date formal verifier is [Volta](https://github.com/willtunnels/volta).**
 
-Kernels must have statically known sizes, and their addresses and branches must resolve from thread indices and concrete parameters, not from input values. Only CTA 0 is executed; it stands for every CTA of the grid.
+Kernels must have statically known sizes, and their addresses and branches must resolve from thread indices and concrete parameters, not from input values. The analyzers execute workgroup zero. An AMD result covers that workgroup under its recorded assumptions; it does not prove the whole grid.
 
 ## Build
 
@@ -19,6 +19,47 @@ just test               # Rust and Python tests
 ```
 
 `cargo run --release -p volta_cli -- <command> ...` builds and runs in one step.
+
+## Native AMD gfx950
+
+Select `--backend amdgpu --target gfx950` to analyze native LLVM AMDHSA `.s`
+files. PTX remains the default. CPU analysis requires no ROCm installation;
+hardware validation requires an actual gfx950 device.
+For example, the checked-in compiler copy kernel crosses a wave boundary:
+
+```bash
+gfx950_source=crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-copy-add.s
+volta analyze "$gfx950_source" --backend amdgpu --target gfx950 -k copy -b 65 \
+  --array x:0x10000:4:65:in --array out:0x20000:4:65:out \
+  --param ptr:x --param ptr:out --param int:65 \
+  --emit-exprs copy.vexpr --dump-graph copy.graph
+volta verify "$gfx950_source" \
+  'dim N; array x[N]; array out[N]; out[i] = x[i];' \
+  --backend amdgpu --target gfx950 -k copy -b 65 --dim N=65 \
+  --array x:0x10000:4:65:in --array out:0x20000:4:65:out \
+  --param ptr:x --param ptr:out --param int:65
+```
+
+The same backend selection supports `parse`, two-kernel `compare`, expression
+and VC exchange, numeric confirmation, profiling, logs, and the existing graph
+viewer. Python selects it with
+`volta.Config(block=(65, 1, 1), backend="amdgpu", target="gfx950")`.
+Launch arguments follow the selected kernel's descriptor and argument metadata.
+`--global NAME=value` overrides a writable defined module object;
+`--dyn-shared N` supplies dynamic LDS capacity.
+
+Native assembly usually omits source-level LDS object boundaries. Optional
+`--shared-allocation NAME:OFFSET:SIZE` entries, or Python
+`cfg.add_shared_allocation(name, offset, size)`, supply those boundaries as an
+explicit caller premise. Without them, LDS bounds refer to the complete static
+plus dynamic segment. The analyzer records supplied layouts in graph provenance.
+
+See the [AMD support table](crates/volta_amdgpu_analysis/README.md) for supported
+instruction forms, ABI/toolchain envelope and arithmetic assumptions, and the
+[parity inventory and evidence](tests/gfx950/README.md) for remaining work.
+`python3 scripts/gfx950_parity.py summary --require-complete` is the strict
+completion gate; it fails while any baseline row is pending. Unsupported,
+sampled, aborted and resource-limited analyses remain inconclusive.
 
 ## CLI
 

@@ -530,6 +530,8 @@ pub enum Assumption {
     /// Every wave of the analyzed AMD workgroup resides on the same CU:
     /// threadgroup splitting is disabled.
     SingleCuWorkgroup,
+    /// Native LDS object boundaries are supplied explicitly by configuration.
+    ConfiguredSharedAllocationLayout,
     /// Symbolic arithmetic uses mathematical reals, not bit-exact floating-point.
     MathematicalRealArithmetic,
     /// Addresses, branch conditions and synchronization parameters are concrete: the
@@ -552,6 +554,9 @@ pub enum Assumption {
 impl Assumption {
     pub fn describe(self) -> &'static str {
         match self {
+            Assumption::ConfiguredSharedAllocationLayout => {
+                "LDS object bounds use the explicitly configured named allocation layout; these source boundaries are caller-supplied premises"
+            }
             Assumption::CompilerExp2Idiom => {
                 "the compiler's exact rounded f32 log2(e) multiply/exp2 idiom is modeled as mathematical exp"
             }
