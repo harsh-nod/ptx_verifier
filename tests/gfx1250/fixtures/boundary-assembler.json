@@ -13,9 +13,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case0.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case0.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case0.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case0.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -29,9 +29,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case1.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case1.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case1.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case1.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -45,13 +45,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case2.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case2.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case2.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case2.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case2.s:4:11: error: register index is out of range\nv_mov_b32 v256, v0\n          ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case2.s:4:11: error: register index is out of range\nv_mov_b32 v256, v0\n          ^\n"
     },
     {
       "name": "vgpr511",
@@ -61,13 +61,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case3.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case3.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case3.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case3.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case3.s:4:11: error: register index is out of range\nv_mov_b32 v511, v0\n          ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case3.s:4:11: error: register index is out of range\nv_mov_b32 v511, v0\n          ^\n"
     },
     {
       "name": "vgpr512",
@@ -77,13 +77,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case4.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case4.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case4.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case4.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case4.s:4:11: error: register index is out of range\nv_mov_b32 v512, v0\n          ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case4.s:4:11: error: register index is out of range\nv_mov_b32 v512, v0\n          ^\n"
     },
     {
       "name": "vgpr1023",
@@ -93,13 +93,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case5.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case5.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case5.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case5.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case5.s:4:11: error: register index is out of range\nv_mov_b32 v1023, v0\n          ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case5.s:4:11: error: register index is out of range\nv_mov_b32 v1023, v0\n          ^\n"
     },
     {
       "name": "vgpr1024",
@@ -109,13 +109,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case6.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case6.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case6.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case6.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case6.s:4:11: error: register index is out of range\nv_mov_b32 v1024, v0\n          ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case6.s:4:11: error: register index is out of range\nv_mov_b32 v1024, v0\n          ^\n"
     },
     {
       "name": "vgpr0_e32",
@@ -125,9 +125,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case7.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case7.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case7.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case7.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -141,9 +141,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case8.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case8.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case8.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case8.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -157,13 +157,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case9.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case9.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case9.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case9.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case9.s:4:15: error: register index is out of range\nv_mov_b32_e32 v256, v0\n              ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case9.s:4:15: error: register index is out of range\nv_mov_b32_e32 v256, v0\n              ^\n"
     },
     {
       "name": "vgpr511_e32",
@@ -173,13 +173,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case10.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case10.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case10.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case10.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case10.s:4:15: error: register index is out of range\nv_mov_b32_e32 v511, v0\n              ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case10.s:4:15: error: register index is out of range\nv_mov_b32_e32 v511, v0\n              ^\n"
     },
     {
       "name": "vgpr512_e32",
@@ -189,13 +189,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case11.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case11.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case11.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case11.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case11.s:4:15: error: register index is out of range\nv_mov_b32_e32 v512, v0\n              ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case11.s:4:15: error: register index is out of range\nv_mov_b32_e32 v512, v0\n              ^\n"
     },
     {
       "name": "vgpr1023_e32",
@@ -205,13 +205,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case12.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case12.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case12.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case12.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case12.s:4:15: error: register index is out of range\nv_mov_b32_e32 v1023, v0\n              ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case12.s:4:15: error: register index is out of range\nv_mov_b32_e32 v1023, v0\n              ^\n"
     },
     {
       "name": "vgpr1024_e32",
@@ -221,13 +221,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case13.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case13.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case13.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case13.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case13.s:4:15: error: register index is out of range\nv_mov_b32_e32 v1024, v0\n              ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case13.s:4:15: error: register index is out of range\nv_mov_b32_e32 v1024, v0\n              ^\n"
     },
     {
       "name": "vgpr0_e64",
@@ -237,9 +237,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case14.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case14.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case14.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case14.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -253,9 +253,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case15.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case15.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case15.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case15.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -269,13 +269,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case16.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case16.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case16.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case16.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case16.s:4:15: error: register index is out of range\nv_mov_b32_e64 v256, v0\n              ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case16.s:4:15: error: register index is out of range\nv_mov_b32_e64 v256, v0\n              ^\n"
     },
     {
       "name": "vgpr511_e64",
@@ -285,13 +285,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case17.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case17.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case17.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case17.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case17.s:4:15: error: register index is out of range\nv_mov_b32_e64 v511, v0\n              ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case17.s:4:15: error: register index is out of range\nv_mov_b32_e64 v511, v0\n              ^\n"
     },
     {
       "name": "vgpr512_e64",
@@ -301,13 +301,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case18.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case18.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case18.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case18.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case18.s:4:15: error: register index is out of range\nv_mov_b32_e64 v512, v0\n              ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case18.s:4:15: error: register index is out of range\nv_mov_b32_e64 v512, v0\n              ^\n"
     },
     {
       "name": "vgpr1023_e64",
@@ -317,13 +317,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case19.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case19.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case19.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case19.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case19.s:4:15: error: register index is out of range\nv_mov_b32_e64 v1023, v0\n              ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case19.s:4:15: error: register index is out of range\nv_mov_b32_e64 v1023, v0\n              ^\n"
     },
     {
       "name": "vgpr1024_e64",
@@ -333,13 +333,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case20.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case20.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case20.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case20.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case20.s:4:15: error: register index is out of range\nv_mov_b32_e64 v1024, v0\n              ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case20.s:4:15: error: register index is out of range\nv_mov_b32_e64 v1024, v0\n              ^\n"
     },
     {
       "name": "vgpr0_e96",
@@ -349,13 +349,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case21.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case21.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case21.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case21.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case21.s:4:1: error: invalid instruction\nv_mov_b32_e96 v0, v0\n^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case21.s:4:1: error: invalid instruction\nv_mov_b32_e96 v0, v0\n^\n"
     },
     {
       "name": "vgpr255_e96",
@@ -365,13 +365,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case22.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case22.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case22.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case22.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case22.s:4:1: error: invalid instruction\nv_mov_b32_e96 v255, v0\n^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case22.s:4:1: error: invalid instruction\nv_mov_b32_e96 v255, v0\n^\n"
     },
     {
       "name": "vgpr256_e96",
@@ -381,13 +381,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case23.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case23.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case23.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case23.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case23.s:4:1: error: invalid instruction\nv_mov_b32_e96 v256, v0\n^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case23.s:4:1: error: invalid instruction\nv_mov_b32_e96 v256, v0\n^\n"
     },
     {
       "name": "vgpr511_e96",
@@ -397,13 +397,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case24.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case24.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case24.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case24.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case24.s:4:1: error: invalid instruction\nv_mov_b32_e96 v511, v0\n^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case24.s:4:1: error: invalid instruction\nv_mov_b32_e96 v511, v0\n^\n"
     },
     {
       "name": "vgpr512_e96",
@@ -413,13 +413,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case25.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case25.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case25.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case25.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case25.s:4:1: error: invalid instruction\nv_mov_b32_e96 v512, v0\n^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case25.s:4:1: error: invalid instruction\nv_mov_b32_e96 v512, v0\n^\n"
     },
     {
       "name": "vgpr1023_e96",
@@ -429,13 +429,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case26.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case26.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case26.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case26.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case26.s:4:1: error: invalid instruction\nv_mov_b32_e96 v1023, v0\n^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case26.s:4:1: error: invalid instruction\nv_mov_b32_e96 v1023, v0\n^\n"
     },
     {
       "name": "vgpr1024_e96",
@@ -445,13 +445,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case27.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case27.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case27.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case27.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case27.s:4:1: error: invalid instruction\nv_mov_b32_e96 v1024, v0\n^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case27.s:4:1: error: invalid instruction\nv_mov_b32_e96 v1024, v0\n^\n"
     },
     {
       "name": "sgpr0",
@@ -461,9 +461,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case28.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case28.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case28.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case28.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -477,9 +477,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case29.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case29.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case29.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case29.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -493,9 +493,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case30.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case30.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case30.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case30.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -509,9 +509,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case31.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case31.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case31.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case31.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -525,13 +525,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case32.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case32.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case32.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case32.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case32.s:4:11: error: register index is out of range\ns_mov_b32 s106, 0\n          ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case32.s:4:11: error: register index is out of range\ns_mov_b32 s106, 0\n          ^\n"
     },
     {
       "name": "sgpr127",
@@ -541,13 +541,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case33.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case33.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case33.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case33.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case33.s:4:11: error: register index is out of range\ns_mov_b32 s127, 0\n          ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case33.s:4:11: error: register index is out of range\ns_mov_b32 s127, 0\n          ^\n"
     },
     {
       "name": "v_accvgpr_write_b32 a0, v0",
@@ -557,13 +557,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case34.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case34.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case34.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case34.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case34.s:4:1: error: instruction not supported on this GPU\nv_accvgpr_write_b32 a0, v0\n^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case34.s:4:1: error: instruction not supported on this GPU\nv_accvgpr_write_b32 a0, v0\n^\n"
     },
     {
       "name": "v_mov_b32 a0, v0",
@@ -573,13 +573,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case35.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case35.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case35.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case35.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case35.s:4:11: error: invalid operand for instruction\nv_mov_b32 a0, v0\n          ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case35.s:4:11: error: invalid operand for instruction\nv_mov_b32 a0, v0\n          ^\n"
     },
     {
       "name": "s_mov_b32 exec_lo, -1",
@@ -589,9 +589,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case36.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case36.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case36.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case36.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -605,9 +605,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case37.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case37.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case37.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case37.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -621,9 +621,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case38.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case38.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case38.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case38.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -637,9 +637,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case39.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case39.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case39.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case39.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -653,9 +653,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case40.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case40.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case40.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case40.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -669,9 +669,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case41.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case41.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case41.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case41.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -685,9 +685,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case42.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case42.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case42.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case42.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -701,9 +701,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case43.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case43.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case43.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case43.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -717,9 +717,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case44.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case44.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case44.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case44.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -733,9 +733,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case45.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case45.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case45.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case45.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -749,9 +749,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case46.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case46.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case46.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case46.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -765,13 +765,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case47.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case47.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case47.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case47.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case47.s:8:24: error: value out of range\n.amdhsa_next_free_vgpr 1025\n                       ^~~~\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case47.s:8:24: error: value out of range\n.amdhsa_next_free_vgpr 1025\n                       ^~~~\n"
     },
     {
       "name": "allocation_lds0",
@@ -781,9 +781,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case48.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case48.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case48.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case48.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -797,9 +797,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case49.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case49.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case49.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case49.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -813,9 +813,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case50.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case50.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case50.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case50.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -829,9 +829,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case51.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case51.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case51.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case51.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -845,9 +845,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case52.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case52.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case52.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case52.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -861,9 +861,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case53.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case53.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case53.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case53.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -877,9 +877,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case54.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case54.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case54.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case54.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -893,13 +893,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case55.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case55.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case55.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case55.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case55.s:1:16: error: .amdgcn_target directive's target id amdgcn-amd-amdhsa--gfx1250:xnack+ does not match the specified target id amdgcn-amd-amdhsa--gfx1250\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:xnack+\"\n               ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case55.s:1:16: error: .amdgcn_target directive's target id amdgcn-amd-amdhsa--gfx1250:xnack+ does not match the specified target id amdgcn-amd-amdhsa--gfx1250\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:xnack+\"\n               ^\n"
     },
     {
       "name": "target:xnack-",
@@ -909,13 +909,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case56.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case56.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case56.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case56.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case56.s:1:16: error: .amdgcn_target directive's target id amdgcn-amd-amdhsa--gfx1250:xnack- does not match the specified target id amdgcn-amd-amdhsa--gfx1250\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:xnack-\"\n               ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case56.s:1:16: error: .amdgcn_target directive's target id amdgcn-amd-amdhsa--gfx1250:xnack- does not match the specified target id amdgcn-amd-amdhsa--gfx1250\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:xnack-\"\n               ^\n"
     },
     {
       "name": "target:sramecc+",
@@ -925,13 +925,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case57.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case57.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case57.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case57.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case57.s:1:16: error: .amdgcn_target directive's target id amdgcn-amd-amdhsa--gfx1250:sramecc+ does not match the specified target id amdgcn-amd-amdhsa--gfx1250\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:sramecc+\"\n               ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case57.s:1:16: error: .amdgcn_target directive's target id amdgcn-amd-amdhsa--gfx1250:sramecc+ does not match the specified target id amdgcn-amd-amdhsa--gfx1250\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:sramecc+\"\n               ^\n"
     },
     {
       "name": "target:sramecc-",
@@ -941,13 +941,13 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case58.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case58.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case58.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case58.o"
       ],
       "exit_code": 1,
       "stdout": "",
-      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case58.s:1:16: error: .amdgcn_target directive's target id amdgcn-amd-amdhsa--gfx1250:sramecc- does not match the specified target id amdgcn-amd-amdhsa--gfx1250\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:sramecc-\"\n               ^\n"
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case58.s:1:16: error: .amdgcn_target directive's target id amdgcn-amd-amdhsa--gfx1250:sramecc- does not match the specified target id amdgcn-amd-amdhsa--gfx1250\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:sramecc-\"\n               ^\n"
     },
     {
       "name": "s_wait_tensorcnt 0",
@@ -957,9 +957,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case59.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case59.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case59.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case59.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -973,9 +973,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case60.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case60.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case60.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case60.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -989,9 +989,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case61.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case61.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case61.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case61.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -1005,9 +1005,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case62.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case62.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case62.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case62.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -1021,9 +1021,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case63.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case63.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case63.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case63.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -1037,9 +1037,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case64.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case64.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case64.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case64.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -1053,9 +1053,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case65.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case65.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case65.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case65.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -1069,9 +1069,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case66.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case66.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case66.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case66.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -1085,9 +1085,9 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case67.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case67.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case67.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case67.o"
       ],
       "exit_code": 0,
       "stdout": "",
@@ -1101,9 +1101,153 @@
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case68.s",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case68.s",
         "-o",
-        "/tmp/ptx-verifier-gfx1250-boundary-7_etubsi/case68.o"
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case68.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "smem96_alignment0",
+      "assembly": ".text\n.globl k\nk:\ns_load_b96 s[0:2], s[12:13], 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case69.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case69.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "smem96_alignment1",
+      "assembly": ".text\n.globl k\nk:\ns_load_b96 s[1:3], s[12:13], 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case70.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case70.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case70.s:4:12: error: invalid register alignment\ns_load_b96 s[1:3], s[12:13], 0\n           ^\n"
+    },
+    {
+      "name": "smem96_alignment2",
+      "assembly": ".text\n.globl k\nk:\ns_load_b96 s[2:4], s[12:13], 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case71.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case71.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case71.s:4:12: error: invalid register alignment\ns_load_b96 s[2:4], s[12:13], 0\n           ^\n"
+    },
+    {
+      "name": "smem96_alignment3",
+      "assembly": ".text\n.globl k\nk:\ns_load_b96 s[3:5], s[12:13], 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case72.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case72.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case72.s:4:12: error: invalid register alignment\ns_load_b96 s[3:5], s[12:13], 0\n           ^\n"
+    },
+    {
+      "name": "smem96_alignment4",
+      "assembly": ".text\n.globl k\nk:\ns_load_b96 s[4:6], s[12:13], 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case73.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case73.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "smem96_alignment5",
+      "assembly": ".text\n.globl k\nk:\ns_load_b96 s[5:7], s[12:13], 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case74.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case74.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case74.s:4:12: error: invalid register alignment\ns_load_b96 s[5:7], s[12:13], 0\n           ^\n"
+    },
+    {
+      "name": "smem96_alignment6",
+      "assembly": ".text\n.globl k\nk:\ns_load_b96 s[6:8], s[12:13], 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case75.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case75.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case75.s:4:12: error: invalid register alignment\ns_load_b96 s[6:8], s[12:13], 0\n           ^\n"
+    },
+    {
+      "name": "smem96_alignment7",
+      "assembly": ".text\n.globl k\nk:\ns_load_b96 s[7:9], s[12:13], 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case76.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case76.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case76.s:4:12: error: invalid register alignment\ns_load_b96 s[7:9], s[12:13], 0\n           ^\n"
+    },
+    {
+      "name": "smem96_alignment8",
+      "assembly": ".text\n.globl k\nk:\ns_load_b96 s[8:10], s[12:13], 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case77.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-713k9gjd/case77.o"
       ],
       "exit_code": 0,
       "stdout": "",

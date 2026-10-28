@@ -34,6 +34,9 @@ def main():
         for value in values:
             instruction = f"s_wait_{counter}cnt {value}"
             cases.append((instruction, instruction, None))
+    for first in range(9):
+        instruction = f"s_load_b96 s[{first}:{first+2}], s[12:13], 0"
+        cases.append((f"smem96_alignment{first}", instruction, None))
     rows = []
     with tempfile.TemporaryDirectory(prefix="ptx-verifier-gfx1250-boundary-") as tmp:
         directory = Path(tmp)
