@@ -183,7 +183,7 @@ coordinates. Native compiler fixtures also exercise two-wave LDS/MFMA pipelines,
 module-global relocations and bindings, static LDS padding with genuine external
 dynamic LDS, multidimensional grid/group/block output,
 a convolution tile with the original 576-term reduction and physical pitches,
-and reduced online-softmax attention with QK/PV MFMA and LSE outputs. Reduced
+full-shape GEMM/convolution, attention-family and Mamba workloads, and supplemental reduced online-softmax/MFMA controls. Full/reduced scopes and revision-pinned receipts are listed in tests/gfx950/. Reduced
 fixtures do not establish full original-launch capacity or baseline parity.
 
 Workflow, safety mutation, serialization, and hardware tests live with pipeline

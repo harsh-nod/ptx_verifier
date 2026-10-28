@@ -96,7 +96,18 @@
         "Native block128 replaces original64-thread warp32 launch; full output/state reduction shape is unchanged.",
         "Native K16 partition replaces the original K64 staging partition, retaining the complete256-term weighted reduction."
       ],
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending"
+      "status": "coordinator_validated_declared_native_scope",
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "Mamba2ChunkStateForward/mamba2_chunk_state_full",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
+      }
     },
     {
       "kernel": "forgetting_attention_full",
@@ -202,7 +213,18 @@
         "Native key tiles16 replace original64-key staging tiles, retaining all1024 keys and online normalization.",
         "LSE retains actual rounded LN2_F32 and LOG2_E_F32 coefficients under the disclosed shared base-conversion abstraction."
       ],
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending"
+      "status": "coordinator_validated_declared_native_scope",
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "ForgettingAttentionICLR2025Forward/forgetting_attention_full",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
+      }
     },
     {
       "kernel": "flash_sinkhorn_full",
@@ -294,7 +316,7 @@
         "bytes": 128
       },
       "full_baseline_shape": true,
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "all32 fixed rows and1024 reduction rows,D64",
         "actual symmetric f/g pointer selection",
@@ -307,7 +329,18 @@
       "notes": [
         "Native block128 replaces original256 threads; CTA0 f-update scope and32 outputs are preserved.",
         "CTAs32..63 perform symmetric g update when corresponding x/y and log_a/g_out storage is supplied; the declared baseline case is CTA0 only."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "FlashSinkhornFusedSchurMatvec/flash_sinkhorn_full",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
+      }
     },
     {
       "kernel": "sage_attention_full",
@@ -400,7 +433,7 @@
         "bytes": 16384
       },
       "full_baseline_shape": true,
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "all128 queries and128 keys,D64",
         "external signed-I8 Q/K storage",
@@ -413,9 +446,20 @@
       ],
       "notes": [
         "Coordinator-authorized architecture choice: use exact signed-I8\u2192F16 conversion before F32-accumulating F16 MFMA. Every I8 value is exactly representable; D64 dot magnitude is bounded by2^20, so the integer dot is exact in F32. No native I8 MFMA support is claimed.",
-        "Native block128 replaces original256 threads. Native16-key online/PV partitions replace64-key partitions; IEEE rounding is abstracted in symbolic analysis, with independent physical numeric validation still required.",
+        "Native block128 replaces original256 threads. Native16-key online/PV partitions replace64-key partitions. IEEE rounding is abstracted in symbolic analysis; the separate independent physical numeric check is recorded in tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json.",
         "LLVM metadata contains no pointer element dtype. Signed-byte numeric decoding must follow actual signed loads/SDWA sext conversion and reject conflicting FP8 interpretation."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "SageAttentionICLR2025/sage_attention_full",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
+      }
     }
   ]
 }
