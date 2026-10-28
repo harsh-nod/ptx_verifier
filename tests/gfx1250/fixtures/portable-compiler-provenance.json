@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "compiler_commit": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+  "scope": "Twenty bounded family computations, genuine unchanged native compiler output; no semantic/hardware claim until separatelyvalidated",
+  "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
+  "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
+  "object_sha256": "bf3713b207497acae906a6294a1ef4bf73a0c6f1cbff435605a77ca0ee3ca079",
+  "code_object_sha256": "903520d5ec5226afb16ca3cffabd167cdcc36ed42943d06e6249499b7a6d7ca8",
+  "commands": [
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/home/harsh/ptx-verifier-gfx1250-api/tests/gfx1250/fixtures/native-portable-workloads.hip",
+        "-o",
+        "/home/harsh/ptx-verifier-gfx1250-api/tests/gfx1250/fixtures/native-portable-workloads.s"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-api/tests/gfx1250/fixtures/native-portable-workloads.s",
+        "-o",
+        "/tmp/ptx-gfx1250-portable.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-portable.o",
+        "-o",
+        "/tmp/ptx-gfx1250-portable.hsaco"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "hardware_validation": "not_performed_no_device"
+}
