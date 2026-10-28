@@ -70,7 +70,7 @@ struct Cli {
     #[arg(long, default_value = "ptx", global = true)]
     backend: String,
 
-    /// AMDGPU architecture: gfx942 or gfx950 (default).
+    /// AMDGPU architecture: gfx942, gfx950 (default), or gfx1250.
     #[arg(long, global = true)]
     target: Option<String>,
 

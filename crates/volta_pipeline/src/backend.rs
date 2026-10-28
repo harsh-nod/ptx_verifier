@@ -14,6 +14,8 @@ pub enum Backend {
     Amdgpu,
     /// Native AMD gfx942; selection is checked against the source target.
     AmdgpuGfx942,
+    /// Native AMD gfx1250; wave32 semantics are selected by the source target.
+    AmdgpuGfx1250,
 }
 
 impl Backend {
@@ -23,7 +25,8 @@ impl Backend {
             ("ptx", Some(_)) => Err("--target is only supported with the amdgpu backend; PTX declares its target in source".into()),
             ("amdgpu", None | Some("gfx950")) => Ok(Self::Amdgpu),
             ("amdgpu", Some("gfx942")) => Ok(Self::AmdgpuGfx942),
-            ("amdgpu", Some(target)) => Err(format!("unsupported AMD target '{target}'; expected gfx942 or gfx950")),
+            ("amdgpu", Some("gfx1250")) => Ok(Self::AmdgpuGfx1250),
+            ("amdgpu", Some(target)) => Err(format!("unsupported AMD target '{target}'; expected gfx942, gfx950 or gfx1250")),
             (name, _) => Err(format!("unknown backend '{name}'; expected ptx or amdgpu")),
         }
     }
@@ -31,7 +34,7 @@ impl Backend {
     pub fn name(self) -> &'static str {
         match self {
             Self::Ptx => "ptx",
-            Self::Amdgpu | Self::AmdgpuGfx942 => "amdgpu",
+            Self::Amdgpu | Self::AmdgpuGfx942 | Self::AmdgpuGfx1250 => "amdgpu",
         }
     }
 
@@ -40,6 +43,7 @@ impl Backend {
             Self::Ptx => None,
             Self::Amdgpu => Some("gfx950"),
             Self::AmdgpuGfx942 => Some("gfx942"),
+            Self::AmdgpuGfx1250 => Some("gfx1250"),
         }
     }
 
@@ -131,6 +135,30 @@ mod tests {
             Backend::select("amdgpu", Some("gfx942")),
             Ok(Backend::AmdgpuGfx942)
         );
+        assert_eq!(
+            Backend::select("amdgpu", Some("gfx1250")),
+            Ok(Backend::AmdgpuGfx1250)
+        );
+        assert_eq!(Backend::AmdgpuGfx1250.name(), "amdgpu");
+        assert_eq!(Backend::AmdgpuGfx1250.target(), Some("gfx1250"));
+        assert!(
+            Backend::AmdgpuGfx1250
+                .validate_amd_target(Some("gfx1250"))
+                .is_ok()
+        );
+        for other in [
+            None,
+            Some("gfx942"),
+            Some("gfx950"),
+            Some("gfx1251"),
+            Some("gfx1250-strict"),
+        ] {
+            assert!(Backend::AmdgpuGfx1250.validate_amd_target(other).is_err());
+        }
+        for target in ["gfx1251", "gfx1250-strict"] {
+            assert!(Backend::select("amdgpu", Some(target)).is_err());
+        }
+        assert!(Backend::select("ptx", Some("gfx1250")).is_err());
         assert!(Backend::select("amdgpu", Some("gfx940")).is_err());
         assert!(
             Backend::AmdgpuGfx942
