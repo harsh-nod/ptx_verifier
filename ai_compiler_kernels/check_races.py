@@ -850,14 +850,22 @@ def load_native_case_variants(manifest: Path, target: str) -> dict[str, list[Var
         raise ValueError(f"native case manifest must declare schema1 target {target}")
     families: dict[str, list[Variant]] = {}
     for row in data["cases"]:
+        if tuple(row.get("workgroup", [0, 0, 0])) != (0, 0, 0):
+            raise ValueError("native workload adapter analyzes workgroup zero only")
         arrays = {a["name"]: Array(a["name"], a["element_size"], a["length"],
                                   Kind(a["kind"]), a.get("base_address")) for a in row["arrays"]}
+        if len(arrays) != len(row["arrays"]):
+            raise ValueError("duplicate native array names")
         config = manifest.parent / row["launch_config"] if row.get("launch_config") else None
         if config is not None and not config.is_file():
             raise FileNotFoundError(config)
         params = []
         if config is None:
+            if "max_instructions" in row or row.get("shared_allocations"):
+                raise ValueError("instruction budgets and shared-allocation premises require a launch_config file")
             for param in row["params"]:
+                if not isinstance(param, str):
+                    raise ValueError("native by-value parameter objects require a launch_config file")
                 kind, value = param.split(":", 1)
                 if kind == "ptr":
                     params.append(arrays[value])
@@ -873,6 +881,9 @@ def load_native_case_variants(manifest: Path, target: str) -> dict[str, list[Var
             reference_spec=manifest.parent / row["spec"] if row.get("spec") else None,
             dimensions=tuple(row.get("dimensions", {}).items()), declared_arrays=tuple(arrays.values()),
             reduced_case=row.get("reduced_case", False), target=target, launch_config=config,
+            global_values=tuple((name, int(value)) for name, value in (
+                row.get("global_values", {}).items() if isinstance(row.get("global_values"), dict)
+                else row.get("global_values", []))),
             expected_by_array=tuple((a.name, a.len) for a in arrays.values()
                                     if a.kind in {Kind.OUTPUT, Kind.INPUT_OUTPUT}))
         if native_target_of(variant.path.read_text()) != target:

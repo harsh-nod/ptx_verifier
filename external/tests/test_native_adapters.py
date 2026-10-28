@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -41,6 +42,23 @@ class NativeAdapterTests(unittest.TestCase):
         v = RUNNER.load_amdgpu_variants("gfx1250")["copy"][0]
         with self.assertRaisesRegex(ValueError, "source target differs"):
             RUNNER.launch_args(v, '.amdgcn_target "amdgcn-amd-amdhsa--gfx950"\n')
+
+    def test_native_manifest_does_not_silently_drop_operational_launch_fields(self):
+        row = json.loads((ROOT / "tests/gfx1250/cases.json").read_text())["cases"][0]
+        row["assembly"] = str(ROOT / "tests/gfx1250" / row["assembly"])
+        row.pop("spec", None)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "cases.json"
+            for field, value in [("workgroup", [1, 0, 0]), ("max_instructions", 1),
+                                 ("shared_allocations", [{"offset": 0, "size": 16}]),
+                                 ("params", [{"bytes": [0] * 8}])]:
+                path.write_text(json.dumps({"schema_version": 1, "target": "gfx1250", "cases": [dict(row, **{field: value})]}))
+                with self.assertRaises(ValueError):
+                    RUNNER.load_native_case_variants(path, "gfx1250")
+            path.write_text(json.dumps({"schema_version": 1, "target": "gfx1250", "cases": [dict(row, global_values=[["gain", 7]])]}))
+            variant = RUNNER.load_native_case_variants(path, "gfx1250")["copy"][0]
+            args = RUNNER.launch_args(variant, variant.path.read_text())
+            self.assertIn("gain=7", args)
 
     def test_new_native_wait_and_split_barrier_sites_keep_original_spans(self):
         path = ROOT / "tests/gfx1250/fixtures/native-copy-add.s"
