@@ -413,7 +413,7 @@
       ],
       "notes": [
         "Coordinator-authorized architecture choice: use exact signed-I8\u2192F16 conversion before F32-accumulating F16 MFMA. Every I8 value is exactly representable; D64 dot magnitude is bounded by2^20, so the integer dot is exact in F32. No native I8 MFMA support is claimed.",
-        "Native block128 replaces original256 threads. Native16-key online/PV partitions replace64-key partitions; IEEE rounding is abstracted in symbolic analysis, with independent physical numeric validation still required.",
+        "Native block128 replaces original256 threads. Native16-key online/PV partitions replace64-key partitions. IEEE rounding is abstracted in symbolic analysis; the separate independent physical numeric check is recorded in tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json.",
         "LLVM metadata contains no pointer element dtype. Signed-byte numeric decoding must follow actual signed loads/SDWA sext conversion and reject conflicting FP8 interpretation."
       ]
     }

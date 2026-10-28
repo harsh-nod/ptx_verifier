@@ -1,0 +1,213 @@
+{
+  "validated_by": "coordinator exact-native redundant-barrier mutation replay",
+  "host": "mi350",
+  "target": "gfx950",
+  "mutation": "Remove only s_barrier at original pipelined_mfma_f16 source line70; keep real publicationL63, localLGKM0L69 and laterL73barrier/NOP.",
+  "commands": [
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "clang22-ids-3d.s",
+        "-o",
+        "clang22-ids-3d.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/ld.lld",
+        "-shared",
+        "clang22-ids-3d.o",
+        "-o",
+        "clang22-ids-3d.hsaco"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "clang22-pipelined-mfma-f16.s",
+        "-o",
+        "clang22-pipelined-mfma-f16.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/ld.lld",
+        "-shared",
+        "clang22-pipelined-mfma-f16.o",
+        "-o",
+        "clang22-pipelined-mfma-f16.hsaco"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "clang22-pipelined-mfma-f32.s",
+        "-o",
+        "clang22-pipelined-mfma-f32.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/ld.lld",
+        "-shared",
+        "clang22-pipelined-mfma-f32.o",
+        "-o",
+        "clang22-pipelined-mfma-f32.hsaco"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-O2",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-D__HIP_PLATFORM_AMD__",
+        "-I/opt/rocm/include",
+        "native_pipeline.cpp",
+        "-L/opt/rocm/lib",
+        "-Wl,-rpath,/opt/rocm/lib",
+        "-lamdhip64",
+        "-o",
+        "runner"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./runner",
+        "clang22-ids-3d.hsaco",
+        "clang22-pipelined-mfma-f32.hsaco",
+        "clang22-pipelined-mfma-f16.hsaco"
+      ],
+      "exit_code": 0,
+      "stdout": "PASS ids_3d block=4,3,2 output_checks=24 exact=true\nPASS pipelined_mfma_f32 M=32 N=16 K=8 patterns=17 output_checks=8704 exact_dyadic=true\nPASS pipelined_mfma_f16 M=32 N=16 K=32 patterns=17 output_checks=8704 exact_dyadic=true\nPASS exact-native IDs and pipelines device=AMD Instinct MI350X arch=gfx950:sramecc+:xnack-\n",
+      "stderr": ""
+    }
+  ],
+  "hashes": {
+    "clang22-pipelined-mfma-f16.hsaco": "d08865dbedd918ac692a56115fd5dcc98019f37e2d3be7ebaae24624c01137d4",
+    "clang22-ids-3d.o": "08747cc87b59e14e3ccdcf01fcd81f3f1f02cd7f357794416409d11b9caca21c",
+    "clang22-pipelined-mfma-f16.o": "4e082a2fb6352de97aa9111fd2e98870b3e3fae81d16080180c22271feb7a503",
+    "clang22-pipelined-mfma-f32.s": "0628527f82fe09b6287eab2a0564b74a779850995172486911ea9a1563bddc15",
+    "clang22-pipelined-mfma-f32.hsaco": "3f212ceca8c8c6876ea517259413acbc88ff3297c95277dcb5cf1b637e0b93b8",
+    "clang22-ids-3d.hsaco": "9b91dbbc93f7662cfa7265f62e4b2e3751c855cebe4c84f059d02069e581ccdd",
+    "run.py": "2188e62fe9dedcf1598feb95d5e698be9db7fb2a3f92a6fb1a5d8d2fc63f90ae",
+    "runner": "8d2f31436660661d6f59988ba0b2d58c7e91978a7d62c754ace04094b08c018c",
+    "native_pipeline.cpp": "febf2fc430c7c41812bdf61da3db1720ed0a7f0af1f5b3f07fd57cb1a3623ac8",
+    "clang22-pipelined-mfma-f16.s": "1c392a19486287e9ea3ba1cacf125207f5fdfc1ea64d5f9cdc9bcadc8553b54c",
+    "clang22-ids-3d.s": "c7641849607d3a8af8a3e7f26cdcb547b6a42e67ff8fee5a7f9183bbf8263181",
+    "clang22-pipelined-mfma-f32.o": "7489f9ad73f209b33b46e11e65a8bcef982b1f2f5507c6dcb7d6de40187fe1be"
+  },
+  "source_review": {
+    "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f16.s",
+    "source_sha256": "11e6045bae8d22c26c5470cedd7bbffca23a5e085c07e281e7745845603e032c",
+    "removed_exact_source_line": 70,
+    "removed_instruction": "s_barrier",
+    "mutation_sha256_preserving_newline": "749cec73a97991029ce004de934069dbb0dcd55db4e65812c5e604150939a772",
+    "proposal": "redundant synchronization survives; no production or status edits",
+    "conclusion": "Removing only L70 is semantically safe within this exact128-thread straight-line profile; no missing memory/readiness check identified.",
+    "proof": [
+      {
+        "lines": "60-63",
+        "obligation": "Second-tile GLOBALprefetch readiness then LDS publication",
+        "evidence": "vmcnt0 L60 precedes DSstore L61; LGKM0 L62 completes own LDS writes; barrierL63 joins bothwave publications before consumerreads."
+      },
+      {
+        "lines": "64-69",
+        "obligation": "Consumer LDSread readiness",
+        "evidence": "Five DSloadsL64-68 read the nowimmutable published secondtile. LGKM0L69 requires their VGPRdata returned; no mixed outstanding SMEM complicates this zero threshold."
+      },
+      {
+        "lines": "70-89",
+        "obligation": "No future crosswave overwrite requiring a read-completion barrier",
+        "evidence": "No LDSstores or LDSreads afterL68. Following operations are localVGPRpacking, remainingbarrierL73, NOP, wave-localMFMA, AGPRmoves/conversions, distinctGLOBALoutputstores, endpgm."
+      },
+      {
+        "lines": "71-75",
+        "obligation": "VALU\u2192MFMA software spacing",
+        "evidence": "Lastv_perm L72 has remaining S_BARRIERL73 and S_NOP0L74 as2independentstates beforeMFMA75. L70 precedes bothperms, so cannot be needed post-perm spacing. Exact SrcCaccumulator forwarding uses samea[0:3] and MFMAform."
+      },
+      {
+        "lines": "63,73",
+        "obligation": "Barrier generations/rendezvous remain uniform",
+        "evidence": "Bothwaves execute the same straight-line path with fullEXEC. RemovingL70 frombothwaves leaves coherent remainingbarriers; L73 still joins both waves afterpacking."
+      }
+    ],
+    "primary_sources": [
+      {
+        "path": "/tmp/gfx950-graph-cdna4.txt",
+        "sections": [
+          "4.3 Workgroups",
+          "4.4 Data Dependency Resolution",
+          "7.6 Table38 VOP3P-Matrix Opcodes Required NOPs"
+        ],
+        "url": "https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf"
+      }
+    ],
+    "limits": [
+      "This is only the exact L70-removal mutant, with L62/L63/L69/L73/L74 retained. It does not justify dropping another barrier or wait.",
+      "If a future loop/next tile adds LDSreuse after L70, a completion/rendezvous argument must be repeated; present kernel has exactlytwo unrolledtiles and no subsequentLDSwrites.",
+      "Hardware17-pattern replay supports physical realization but does not replace the source-based arbitrary-input ordering argument.",
+      "Preserve the13 harmful single-sync mutations as typednegative controls; a compiler-emitted barrier is not necessarily minimally required."
+    ],
+    "independent_actions": [
+      "Read complete HIPsource and exact assembly, traced all memoryaccesses and registeroperands",
+      "Read primaryCDNA4 wait/barrier/table38 contracts and current checker timing rule",
+      "No production files, harness, tests, metadata, statuses or commits modified"
+    ]
+  },
+  "toolchain": {
+    "host": "mi350",
+    "tools": {
+      "/opt/rocm/llvm/bin/llvm-mc": {
+        "realpath": "/opt/rocm-7.2.1/lib/llvm/bin/llvm-mc",
+        "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+        "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+      },
+      "/opt/rocm/llvm/bin/ld.lld": {
+        "realpath": "/opt/rocm-7.2.1/lib/llvm/bin/lld",
+        "sha256": "3a4db0f90a45844be78a068b47f886b7ba6000a75a88876d9999cb0bb46fb5f3",
+        "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm f58b06dce1f9c15707c5f808fd002e18c2accf7e) (compatible with GNU linkers)\n"
+      },
+      "/opt/rocm/llvm/bin/clang++": {
+        "realpath": "/opt/rocm-7.2.1/lib/llvm/bin/clang-22",
+        "sha256": "872d83777e58dd203d6af2a45af532668e83f51830eb296e1fe504eee6d66c18",
+        "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.1 26084 f58b06dce1f9c15707c5f808fd002e18c2accf7e)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.1/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.1/lib/llvm/bin/clang++.cfg\n"
+      },
+      "/opt/rocm/lib/libamdhip64.so": {
+        "realpath": "/opt/rocm-7.2.1/lib/libamdhip64.so.7.2.70201",
+        "sha256": "0bfd6cb0b010626f333bd8d96a01df1b7e2cb825c961f5a7ecce7c28a5c717ab"
+      }
+    }
+  }
+}

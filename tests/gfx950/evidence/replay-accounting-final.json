@@ -1,0 +1,259 @@
+{
+  "validated_by": "coordinator actual existing harness replay",
+  "driver_sha256": "1dc9130034acd232783ff592117d2860824f2885479cf2bc9dc1159f08d4b775",
+  "positive_then_stale_failure_and_known_boundary": [
+    {
+      "argv": [
+        "python3",
+        "/home/harsh/ptx_verifier/tests/gfx950/replay_workloads.py",
+        "--binary",
+        "/tmp/ptx-verifier-gfx950-final-6bc63a5-logging/volta",
+        "--output",
+        "/tmp/ptx-verifier-replay-accounting-coordinator/reuse",
+        "--revision",
+        "6bc63a5 + accounting-only driver correction",
+        "--kernel",
+        "copy/clang22-wave-boundary",
+        "--jobs",
+        "1"
+      ],
+      "exit_code": 0,
+      "summary": {
+        "revision": "6bc63a5 + accounting-only driver correction",
+        "binary_sha256": "278e8017b933cc0953c74442761bf6eef992520ab2de0a789a0567f994fd54ad",
+        "driver_sha256": "1dc9130034acd232783ff592117d2860824f2885479cf2bc9dc1159f08d4b775",
+        "parallel_jobs": 1,
+        "limits": {
+          "address_space_bytes": 274877906944,
+          "cpu_seconds_per_stage": 3600,
+          "wall_seconds_per_stage": 5400
+        },
+        "expected_cases": 1,
+        "completed_cases": 1,
+        "results": [
+          {
+            "name": "copy/clang22-wave-boundary",
+            "revision": "6bc63a5 + accounting-only driver correction",
+            "binary_sha256": "278e8017b933cc0953c74442761bf6eef992520ab2de0a789a0567f994fd54ad",
+            "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-copy-add.s",
+            "source_sha256": "efbdab3055e0fa697ca97a62275d7ab890d695aa1e46cb0a68280ddb442d9a1d",
+            "spec": null,
+            "spec_sha256": null,
+            "expected_outputs": 65,
+            "reduced_case": false,
+            "sampling": false,
+            "outcome": "RACE-FREE",
+            "detail": "65/65 tile outputs written",
+            "elapsed_seconds": 0.01,
+            "limits": {
+              "address_space_bytes": 274877906944,
+              "cpu_seconds_per_stage": 3600,
+              "wall_seconds_per_stage": 5400
+            },
+            "capability_probe": {
+              "argv": [
+                "/tmp/ptx-verifier-gfx950-final-6bc63a5-logging/volta",
+                "--help"
+              ],
+              "exit_code": 0,
+              "timeout_seconds": 30,
+              "elapsed_seconds": 0.004,
+              "stdout_sha256": "2810861f64d0a20edee8bff391277521cdf4bdff2bfe3e8e58f0ea409642b1d0"
+            },
+            "stages": [
+              {
+                "argv": [
+                  "/tmp/ptx-verifier-gfx950-final-6bc63a5-logging/volta",
+                  "--no-log-file",
+                  "--log-level",
+                  "error",
+                  "analyze",
+                  "/home/harsh/ptx_verifier/crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-copy-add.s",
+                  "--kernel",
+                  "copy",
+                  "--block",
+                  "65,1,1",
+                  "--grid",
+                  "1,1,1",
+                  "--dyn-shared",
+                  "0",
+                  "--array",
+                  "x:0x10000:4:65:in",
+                  "--param",
+                  "ptr:x",
+                  "--array",
+                  "out:0x20000:4:65:out",
+                  "--param",
+                  "ptr:out",
+                  "--param",
+                  "int:65",
+                  "--backend",
+                  "amdgpu",
+                  "--target",
+                  "gfx950",
+                  "--print-outputs",
+                  "0",
+                  "--no-profile"
+                ],
+                "exit_code": 0,
+                "timed_out": false,
+                "elapsed_seconds": 0.01,
+                "resources": "user=0.00 system=0.00 peak_rss_kib=5376 wall=0.00 exit=0\n"
+              }
+            ],
+            "passed_expected_native_contract": true,
+            "worker_exit": 0
+          }
+        ]
+      },
+      "stdout": "{\"completed\": 1, \"total\": 1, \"name\": \"copy/clang22-wave-boundary\", \"outcome\": \"RACE-FREE\", \"passed\": true}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "python3",
+        "/home/harsh/ptx_verifier/tests/gfx950/replay_workloads.py",
+        "--binary",
+        "/bin/false",
+        "--output",
+        "/tmp/ptx-verifier-replay-accounting-coordinator/reuse",
+        "--revision",
+        "6bc63a5 + accounting-only driver correction",
+        "--kernel",
+        "copy/clang22-wave-boundary",
+        "--jobs",
+        "1"
+      ],
+      "exit_code": 1,
+      "summary": {
+        "revision": "6bc63a5 + accounting-only driver correction",
+        "binary_sha256": "e51fc98d1215569a555c03c991835c234d6f05ded01a23ae99a33b8854270e86",
+        "driver_sha256": "1dc9130034acd232783ff592117d2860824f2885479cf2bc9dc1159f08d4b775",
+        "parallel_jobs": 1,
+        "limits": {
+          "address_space_bytes": 274877906944,
+          "cpu_seconds_per_stage": 3600,
+          "wall_seconds_per_stage": 5400
+        },
+        "expected_cases": 1,
+        "completed_cases": 1,
+        "results": [
+          {
+            "name": "copy/clang22-wave-boundary",
+            "passed_expected_native_contract": false,
+            "worker_exit": 1,
+            "stderr": "Traceback (most recent call last):\n  File \"/home/harsh/ptx_verifier/tests/gfx950/replay_workloads.py\", line 171, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"/home/harsh/ptx_verifier/tests/gfx950/replay_workloads.py\", line 98, in main\n    probe = subprocess.run([str(binary), \"--help\"], text=True,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['/usr/bin/false', '--help']' returned non-zero exit status 1.\n"
+          }
+        ]
+      },
+      "stdout": "{\"completed\": 1, \"total\": 1, \"name\": \"copy/clang22-wave-boundary\", \"outcome\": null, \"passed\": false}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "python3",
+        "/home/harsh/ptx_verifier/tests/gfx950/replay_workloads.py",
+        "--binary",
+        "/tmp/ptx-verifier-gfx950-final-6bc63a5-logging/volta",
+        "--output",
+        "/tmp/ptx-verifier-replay-accounting-coordinator/reduction",
+        "--revision",
+        "6bc63a5 + accounting-only driver correction",
+        "--kernel",
+        "reduction_sum/reduction_f16",
+        "--jobs",
+        "1"
+      ],
+      "exit_code": 1,
+      "summary": {
+        "revision": "6bc63a5 + accounting-only driver correction",
+        "binary_sha256": "278e8017b933cc0953c74442761bf6eef992520ab2de0a789a0567f994fd54ad",
+        "driver_sha256": "1dc9130034acd232783ff592117d2860824f2885479cf2bc9dc1159f08d4b775",
+        "parallel_jobs": 1,
+        "limits": {
+          "address_space_bytes": 274877906944,
+          "cpu_seconds_per_stage": 3600,
+          "wall_seconds_per_stage": 5400
+        },
+        "expected_cases": 1,
+        "completed_cases": 1,
+        "results": [
+          {
+            "name": "reduction_sum/reduction_f16",
+            "revision": "6bc63a5 + accounting-only driver correction",
+            "binary_sha256": "278e8017b933cc0953c74442761bf6eef992520ab2de0a789a0567f994fd54ad",
+            "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
+            "source_sha256": "122ca33f751b37c42460f1680194e4431310d4af2ada4f067e6638e2781f43c7",
+            "spec": "crates/volta_amdgpu_analysis/src/frontend/fixtures/specs/reduction.spec",
+            "spec_sha256": "4415a8cc1ac10f823cbfcb094725f81d8c8b4f5b92b6b75f559625fbd9a6f56b",
+            "expected_outputs": 1,
+            "reduced_case": false,
+            "sampling": false,
+            "outcome": "UNSUPPORTED",
+            "detail": "unsupported gfx950 instruction at pc 77: lane/accumulator register moves need Table 11 software dependency checks",
+            "elapsed_seconds": 0.021,
+            "limits": {
+              "address_space_bytes": 274877906944,
+              "cpu_seconds_per_stage": 3600,
+              "wall_seconds_per_stage": 5400
+            },
+            "capability_probe": {
+              "argv": [
+                "/tmp/ptx-verifier-gfx950-final-6bc63a5-logging/volta",
+                "--help"
+              ],
+              "exit_code": 0,
+              "timeout_seconds": 30,
+              "elapsed_seconds": 0.005,
+              "stdout_sha256": "2810861f64d0a20edee8bff391277521cdf4bdff2bfe3e8e58f0ea409642b1d0"
+            },
+            "stages": [
+              {
+                "argv": [
+                  "/tmp/ptx-verifier-gfx950-final-6bc63a5-logging/volta",
+                  "--no-log-file",
+                  "--log-level",
+                  "error",
+                  "analyze",
+                  "/home/harsh/ptx_verifier/crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
+                  "--kernel",
+                  "reduction_f16",
+                  "--block",
+                  "128,1,1",
+                  "--grid",
+                  "1,1,1",
+                  "--dyn-shared",
+                  "0",
+                  "--array",
+                  "x:0x10000:2:4096:in",
+                  "--array",
+                  "out:0x100000:4:1:inout",
+                  "--param",
+                  "ptr:x",
+                  "--param",
+                  "ptr:out",
+                  "--backend",
+                  "amdgpu",
+                  "--target",
+                  "gfx950",
+                  "--print-outputs",
+                  "0",
+                  "--no-profile"
+                ],
+                "exit_code": 2,
+                "timed_out": false,
+                "elapsed_seconds": 0.021,
+                "resources": "Command exited with non-zero status 2\nuser=0.00 system=0.00 peak_rss_kib=6144 wall=0.01 exit=2\n"
+              }
+            ],
+            "passed_expected_native_contract": false,
+            "worker_exit": 1
+          }
+        ]
+      },
+      "stdout": "{\"completed\": 1, \"total\": 1, \"name\": \"reduction_sum/reduction_f16\", \"outcome\": \"UNSUPPORTED\", \"passed\": false}\n",
+      "stderr": ""
+    }
+  ],
+  "independent_probes": "tests/gfx950/evidence/replay-accounting-independent.json"
+}
