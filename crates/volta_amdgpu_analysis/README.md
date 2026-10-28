@@ -80,6 +80,11 @@ Memory is byte-addressed with explicit symbolic granules. Global allocations mus
 be disjoint and accesses must lie inside one declared allocation; LDS is bounded
 by static plus dynamic size. Wide transfers preserve each register-sized granule
 and its byte footprint. Only completely written output elements are extracted.
+Optional named `shared_allocations` preserve configured LDS subobject bounds:
+the entire DS or shared-aperture FLAT transfer, including dual offsets, must fit
+one supplied region. Each region must fit aggregate LDS capacity. The exact
+layout is exported with `ConfiguredSharedAllocationLayout`; empty configuration
+keeps aggregate bounds. Source-level objects are not inferred from raw metadata.
 An exact native `s_mov_b64 ..., src_shared_base` produces an opaque shared-aperture
 high word and a zero low word. Copies preserve that token. A FLAT address pair
 with this high word and a concrete low offset accesses the same LDS bytes as DS
@@ -98,6 +103,9 @@ scope.
 Missing stores remain missing for downstream equivalence to diagnose. Concrete
 integer ALU results retain integer provenance; ambiguous raw-bit output constants
 require a conversion instead of guessing their numeric type.
+Concrete zero reciprocal and reciprocal-square-root operands stop execution
+before undefined real expressions can disappear through later multiplication.
+Nonzero reciprocals and unrelated encoded infinities retain the upstream model.
 
 ## Events and synchronization
 

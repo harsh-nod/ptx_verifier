@@ -1312,6 +1312,9 @@
       if (l.assumptions.length) {
         parts.push(section(titled("Assumptions", l.assumptions.length), h("ul", { class: "assumptions" }, l.assumptions.map((a) => h("li", { text: a })))));
       }
+      if (l.shared_allocations && l.shared_allocations.length) {
+        parts.push(section("Configured LDS allocation premise", h("ul", {}, l.shared_allocations.map((r) => h("li", { text: `${r.name}: bytes [${r.offset}, ${r.offset + r.size})` })))));
+      }
     }
     fill(byId("tab-checks"), ...parts);
   }

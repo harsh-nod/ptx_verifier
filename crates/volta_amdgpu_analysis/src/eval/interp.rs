@@ -554,6 +554,18 @@ impl<'a> Interpreter<'a> {
                 "requested LDS exceeds gfx950 capacity".into(),
             ));
         }
+        for allocation in &config.shared_allocations {
+            if allocation
+                .offset
+                .checked_add(allocation.size)
+                .is_none_or(|end| end > lds_size)
+            {
+                return Err(EvalError::InvalidConfig(format!(
+                    "shared allocation '{}' exceeds configured LDS capacity",
+                    allocation.name
+                )));
+            }
+        }
         if program.descriptor.flag("tg_split") {
             return Err(EvalError::InvalidConfig(
                 "tg_split workgroups require a different LDS/barrier execution model".into(),
@@ -650,6 +662,9 @@ impl<'a> Interpreter<'a> {
             xnack_replay_enabled,
             module_globals,
         };
+        result
+            .builder
+            .set_shared_allocation_layout(result.config.shared_allocations.clone());
         result.initialize_memory()?;
         for id in 0..threads.div_ceil(64) {
             let mut wave = Wave::new(id, (threads - id * 64).min(64));
@@ -2978,7 +2993,12 @@ impl<'a> Interpreter<'a> {
                         continue;
                     }
                     "v_cvt_f64_f32" => a,
-                    "v_rcp_f64" => float_unary(&mut self.arena, FloatUnOp::Rcp, a),
+                    "v_rcp_f64" => {
+                        if self.concrete_zero(a) {
+                            return Err(EvalError::Unsupported{pc:wave.pc,what:"concrete zero reciprocal is undefined under the real-arithmetic contract".into()});
+                        }
+                        float_unary(&mut self.arena, FloatUnOp::Rcp, a)
+                    }
                     "v_sqrt_f64" => float_unary(&mut self.arena, FloatUnOp::Sqrt, a),
                     _ => {
                         let b = self.real64(wave, &o[2], lane)?;
@@ -3347,6 +3367,16 @@ impl<'a> Interpreter<'a> {
                         })
                     }
                 }
+                "v_cvt_pk_f32_fp8" => {
+                    // Default encoding uses source bytes0/1. Both inputs are
+                    // snapshotted before either destination register changes.
+                    let low = self.fp8(wave, &o[1], lane, 0)?;
+                    let high = self.fp8(wave, &o[1], lane, 1)?;
+                    let destination = wave.destination(&o[0])?;
+                    wave.put(destination, lane, 0, Value::Real(low))?;
+                    wave.put(destination, lane, 1, Value::Real(high))?;
+                    continue;
+                }
                 "v_cvt_f32_fp8" => {
                     let byte = instruction
                         .modifiers
@@ -3527,6 +3557,9 @@ impl<'a> Interpreter<'a> {
                 }
                 "v_rcp_f32" | "v_sqrt_f32" | "v_rsq_f32" | "v_exp_f32" | "v_log_f32" => {
                     let a = self.real(wave, &o[1], lane)?;
+                    if matches!(name, "v_rcp_f32" | "v_rsq_f32") && self.concrete_zero(a) {
+                        return Err(EvalError::Unsupported{pc:wave.pc,what:"concrete zero reciprocal/rsqrt is undefined under the real-arithmetic contract".into()});
+                    }
                     let result = match name {
                         "v_rcp_f32" => self.arena.rcp(a),
                         "v_sqrt_f32" => self.arena.sqrt(a),
@@ -3748,6 +3781,13 @@ impl<'a> Interpreter<'a> {
         }
         Ok(())
     }
+    fn concrete_zero(&self, value: ExprId) -> bool {
+        match self.arena.node(value) {
+            ExprNode::IntConst(0) => true,
+            ExprNode::RealConst(value) => value.is_zero(),
+            _ => false,
+        }
+    }
     fn wait(&mut self, wave: &Wave, instruction: &Instruction) -> Result<(), EvalError> {
         let (mut vmcnt, mut lgkmcnt, mut expcnt) = (None, None, None);
         for operand in &instruction.operands {
@@ -3895,6 +3935,13 @@ impl<'a> Interpreter<'a> {
         } else {
             4
         };
+        if scalar && ((wave.wide(&o[1], 0)? | wave.wide(&o[2], 0)? | offset as u64) & 3) != 0 {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "unaligned SMEM address components require native low-bit masking semantics"
+                    .into(),
+            });
+        }
         let class = if flat && store && registers >= 3 {
             AmdMemoryClass::FlatStoreWide
         } else if !scalar && !lds && store && registers >= 3 {
@@ -4003,7 +4050,7 @@ impl<'a> Interpreter<'a> {
                 )
             };
             let register = wave.destination(data_operand)?;
-            for component in 0..registers {
+            let component_address = |component: u16| -> Result<u64, &str> {
                 let displacement = if dual {
                     let part = component / registers_per_part;
                     let unit = if name.ends_with("b64") { 8 } else { 4 };
@@ -4013,13 +4060,63 @@ impl<'a> Interpreter<'a> {
                 } else {
                     component as u64 * width
                 };
-                let addr = if lds {
-                    (address as u32).wrapping_add(displacement as u32) as u64
+                if lds {
+                    Ok((address as u32).wrapping_add(displacement as u32) as u64)
                 } else {
                     address
                         .checked_add(displacement)
-                        .ok_or_else(|| wave.fail(Some(lane), "memory address overflow"))?
+                        .ok_or("memory address overflow")
+                }
+            };
+            if !effective_lds || !self.config.shared_allocations.is_empty() {
+                let mut first = u64::MAX;
+                let mut end = 0;
+                for component in 0..registers {
+                    let addr = component_address(component)
+                        .map_err(|error| wave.fail(Some(lane), error))?;
+                    first = first.min(addr);
+                    end = end.max(addr.checked_add(width).ok_or_else(|| {
+                        wave.fail(Some(lane), "shared instruction footprint overflow")
+                    })?);
+                }
+                let kernarg_size = self.program.descriptor.value("kernarg_size", 0);
+                let abi_end =
+                    if scalar && address >= KERNARG_BASE && address - KERNARG_BASE < kernarg_size {
+                        Some(KERNARG_BASE + kernarg_size)
+                    } else if scalar && address >= DISPATCH_BASE && address - DISPATCH_BASE < 64 {
+                        Some(DISPATCH_BASE + 64)
+                    } else {
+                        None
+                    };
+                let fits = if effective_lds {
+                    self.config.shared_allocations.iter().any(|allocation| {
+                        allocation.offset <= first && end <= allocation.offset + allocation.size
+                    })
+                } else if let Some(limit) = abi_end {
+                    end <= limit
+                } else {
+                    self.config.arrays.iter().any(|allocation| {
+                        allocation.base <= first && end <= allocation.base + allocation.size_bytes()
+                    }) || self.module_globals.values().any(|allocation| {
+                        allocation.base <= first && end <= allocation.base + allocation.size
+                    })
                 };
+                if !fits {
+                    return Err(wave.fail(
+                        Some(lane),
+                        if effective_lds {
+                            "shared instruction footprint crosses configured allocation boundaries"
+                        } else if abi_end.is_some() {
+                            "load exceeds the declared ABI segment"
+                        } else {
+                            "out-of-bounds global instruction footprint crosses allocation boundaries"
+                        },
+                    ));
+                }
+            }
+            for component in 0..registers {
+                let addr =
+                    component_address(component).map_err(|error| wave.fail(Some(lane), error))?;
                 let kernarg_size = self.program.descriptor.value("kernarg_size", 0);
                 let kernarg = scalar && addr >= KERNARG_BASE && addr - KERNARG_BASE < kernarg_size;
                 let dispatch = scalar && addr >= DISPATCH_BASE && addr - DISPATCH_BASE < 64;

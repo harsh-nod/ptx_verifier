@@ -47,3 +47,4 @@ pub use ids::{
 };
 pub use model::*;
 pub use validate::GraphDefect;
+pub use volta_common::config::{SharedAllocation, validate_shared_allocations};

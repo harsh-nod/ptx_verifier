@@ -24,6 +24,7 @@ impl GraphBuilder {
             graph: EventGraph {
                 amd_events: Vec::new(),
                 amd_memory_effects: Vec::new(),
+                shared_allocation_layout: Vec::new(),
                 provenance,
                 events: IdVec::new(),
                 accesses: IdVec::new(),
@@ -56,6 +57,15 @@ impl GraphBuilder {
         if !self.graph.provenance.assumptions.contains(&assumption) {
             self.graph.provenance.assumptions.push(assumption);
         }
+    }
+
+    /// Preserve explicitly configured LDS object boundaries as provenance.
+    /// This records a caller premise; it does not infer source declarations.
+    pub fn set_shared_allocation_layout(&mut self, layout: Vec<crate::SharedAllocation>) {
+        if !layout.is_empty() {
+            self.assume(crate::Assumption::ConfiguredSharedAllocationLayout);
+        }
+        self.graph.shared_allocation_layout = layout;
     }
 
     /// Record a scalar-issued wave event in the program order of the wave's first lane.

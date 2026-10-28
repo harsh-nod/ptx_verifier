@@ -11,6 +11,7 @@ use crate::model::{
 pub struct EventGraph {
     pub(crate) amd_events: Vec<crate::AmdEvent>,
     pub(crate) amd_memory_effects: Vec<crate::AmdMemoryEffect>,
+    pub(crate) shared_allocation_layout: Vec<crate::SharedAllocation>,
     pub(crate) provenance: Provenance,
     pub(crate) events: IdVec<EventId, Event>,
     pub(crate) accesses: IdVec<AccessId, MemAccess>,
@@ -24,6 +25,10 @@ pub struct EventGraph {
 }
 
 impl EventGraph {
+    pub fn shared_allocation_layout(&self) -> &[crate::SharedAllocation] {
+        &self.shared_allocation_layout
+    }
+
     pub fn amd_events(&self) -> &[crate::AmdEvent] {
         &self.amd_events
     }
