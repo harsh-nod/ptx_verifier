@@ -43,6 +43,37 @@ fn code(output: &Output, expected: i32) -> String {
     stdout
 }
 
+#[test]
+fn portable_math_specs_cover_every_configured_output() {
+    let manifest: Value =
+        serde_json::from_str(&fs::read_to_string(root().join("portable-cases.json")).unwrap())
+            .unwrap();
+    for case in manifest["cases"].as_array().unwrap() {
+        let path = root().join(case["spec"].as_str().unwrap());
+        let parsed = volta_spec::parse_spec(&fs::read_to_string(&path).unwrap())
+            .unwrap_or_else(|e| panic!("{}: {e:?}", path.display()));
+        let dims = case["dimensions"]
+            .as_object()
+            .unwrap()
+            .iter()
+            .map(|(name, value)| (name.clone(), value.as_u64().unwrap()))
+            .collect::<std::collections::HashMap<_, _>>();
+        let (env, specs) = volta_spec::instantiate(&parsed, &dims).unwrap();
+        let outputs = volta_spec::unfold(&specs, &env, 0).unwrap();
+        let count = outputs
+            .outputs
+            .iter()
+            .map(|(_, elements)| elements.len() as u64)
+            .sum::<u64>();
+        assert_eq!(
+            count,
+            case["expected_outputs"].as_u64().unwrap(),
+            "{}",
+            path.display()
+        );
+    }
+}
+
 fn launch(case: &Value, destination: &Path) {
     let arrays = case["arrays"]
         .as_array()
@@ -91,9 +122,17 @@ fn launch(case: &Value, destination: &Path) {
 
 #[test]
 fn compiler_corpus_parses_analyzes_and_matches_full_specs_via_launch_json() {
-    let cases: Value =
+    let manifest: Value =
         serde_json::from_str(&fs::read_to_string(root().join("cases.json")).unwrap()).unwrap();
-    let cases = cases["cases"].as_array().unwrap();
+    let portable: Value =
+        serde_json::from_str(&fs::read_to_string(root().join("portable-cases.json")).unwrap())
+            .unwrap();
+    let cases = manifest["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .chain(portable["cases"].as_array().unwrap())
+        .collect::<Vec<_>>();
     assert!(!cases.is_empty(), "empty corpus cannot establish support");
     let directory = directory();
     for (index, case) in cases.iter().enumerate() {
@@ -121,6 +160,31 @@ fn compiler_corpus_parses_analyzes_and_matches_full_specs_via_launch_json() {
             analyzed.contains("GRAPH VERIFICATION: VERIFIED"),
             "{analyzed}"
         );
+        for array in case["arrays"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|a| matches!(a["kind"].as_str(), Some("out" | "inout")))
+        {
+            let footprint = format!(
+                "output '{}': {} element(s) written",
+                array["name"].as_str().unwrap(),
+                array["length"]
+            );
+            assert!(analyzed.contains(&footprint), "{footprint}\n{analyzed}");
+        }
+        if let Some(constants) = case.get("expected_constants") {
+            for (index, expected) in constants.as_array().unwrap().iter().enumerate() {
+                let prefix = format!("out[{index}] = ");
+                let actual = analyzed
+                    .lines()
+                    .find_map(|line| line.trim().strip_prefix(&prefix))
+                    .unwrap_or_else(|| panic!("missing {prefix} in {analyzed}"));
+                let bits = actual.parse::<i128>().expect("exact integer output") as u64;
+                assert_eq!(bits, expected.as_u64().unwrap(), "case {index}: {analyzed}");
+            }
+            continue;
+        }
         let mut args = vec![
             "verify".into(),
             source,

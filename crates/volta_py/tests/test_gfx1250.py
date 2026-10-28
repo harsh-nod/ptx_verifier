@@ -7,6 +7,7 @@ import volta
 
 FIXTURES = Path(__file__).resolve().parents[3] / "tests/gfx1250"
 CASES = json.loads((FIXTURES / "cases.json").read_text())["cases"]
+CASES += json.loads((FIXTURES / "portable-cases.json").read_text())["cases"]
 KINDS = {"in": volta.ArrayKind.Input, "out": volta.ArrayKind.Output,
          "inout": volta.ArrayKind.InputOutput, "index": volta.ArrayKind.IndexInput}
 
@@ -20,8 +21,12 @@ def configured(case, **overrides):
                                         array["element_size"], array["length"], KINDS[array["kind"]]))
     for parameter in case["params"]:
         if isinstance(parameter, dict):
-            assert set(parameter) == {"bytes"}
-            config.add_param(volta.Param.bytes(parameter["bytes"]))
+            if set(parameter) == {"bytes"}:
+                config.add_param(volta.Param.bytes(parameter["bytes"]))
+            elif set(parameter) == {"ptr"}:
+                config.add_param(volta.Param.array_ptr(parameter["ptr"]))
+            else:
+                raise AssertionError(f"unhandled parameter {parameter}")
         else:
             kind, value = parameter.split(":", 1)
             config.add_param(volta.Param.array_ptr(value) if kind == "ptr"
@@ -42,6 +47,10 @@ def test_native_gfx1250_corpus_has_complete_safety_and_math_results(case):
     outputs = {a["name"]: list(range(a["length"])) for a in case["arrays"]
                if a["kind"] in {"out", "inout"}}
     assert {name: [i for i, _ in values] for name, values in result.outputs} == outputs
+    if "expected_constants" in case:
+        actual = dict(result.outputs)["out"]
+        assert [int(value) & ((1 << 64) - 1) for _, value in actual] == case["expected_constants"]
+        return
     check = volta.verify(source, (FIXTURES / case["spec"]).read_text(), config,
                          kernel=case["kernel"], dims=case["dimensions"], verify_numeric=True)
     assert check.race_verified and check.equivalent
