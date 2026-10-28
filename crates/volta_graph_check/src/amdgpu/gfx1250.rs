@@ -165,9 +165,16 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
     let mut instructions = HashMap::<u32, InstructionRecord>::new();
     let mut issues = HashMap::new();
     let mut instruction_count = 0;
+    let mut ended = HashSet::new();
     for record in graph.amd_events() {
         let valid = (graph.threads() as usize - record.wave as usize * WAVE).min(WAVE);
         let physical_mask = (1u64 << valid) - 1;
+        if ended.contains(&record.wave) {
+            unresolved.push(Unresolved::at(
+                record.event,
+                "gfx1250 wave recorded an instruction after S_ENDPGM",
+            ));
+        }
         match &record.kind {
             AmdEventKind::Instruction {
                 exec_mask,
@@ -199,6 +206,9 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                 let pc = graph.event(record.event).pc;
                 let kind = pc.map(|p| graph.provenance().instructions[p.0 as usize].kind);
                 let required = kind.and_then(|k| expected(k, *exec_mask));
+                if kind == Some("s_endpgm") {
+                    ended.insert(record.wave);
+                }
                 if required.is_none() {
                     unresolved.push(Unresolved::at(
                         record.event,
@@ -423,6 +433,11 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
     for instruction in instructions.values() {
         check_missing_semantic(instruction, &mut unresolved);
     }
+    if matches!(graph.terminal(), Terminal::Completed) && ended.len() != waves {
+        unresolved.push(Unresolved::global(
+            "completed gfx1250 trace requires an S_ENDPGM instruction for every wave",
+        ));
+    }
     if waves == 0 || seen.iter().any(|seen| !seen) {
         unresolved.push(Unresolved::global(
             "every launched gfx1250 wave requires instruction/register records",
@@ -487,6 +502,8 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         | AmdMemoryClass::Ds
                         | AmdMemoryClass::AsyncLoadToLds
                         | AmdMemoryClass::AsyncStoreFromLds
+                        | AmdMemoryClass::TensorLoadToLds
+                        | AmdMemoryClass::TensorStoreFromLds
                 ) && mask & (1u64 << (access.attributed.0 % 32)) == 0
                 {
                     unresolved.push(Unresolved::at(
