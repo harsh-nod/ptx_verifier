@@ -28,7 +28,7 @@ CASES = [
     ("tensor_missing_crosswave_publication", "native-tensor-roundtrip.s", "tensor_roundtrip", [("s_barrier_signal -1", 0, SCHEDULING_PADDING), ("s_barrier_wait -1", 0, "s_nop 0")], "Independent NOPs let descriptor issue occur before a scheduled consumer; NOPs add no HB/completion and issuing-wave tensor wait cannot publish to another wave without rendezvous"),
     ("tensor_missing_store_producers", "native-tensor-roundtrip.s", "tensor_roundtrip", [("s_barrier_signal -1", 1, "s_nop 0"), ("s_barrier_wait -1", 1, "s_nop 0")], "All producer waves must publish LDS before tensor store borrows it"),
     ("tensor_missing_store_completion", "native-tensor-roundtrip.s", "tensor_roundtrip", [("s_wait_tensorcnt 0x0", 1, "s_nop 0")], "Borrowed LDS source cannot be overwritten by next-stage tensor load before store completion"),
-    ("tensor_oversized_tile", "native-tensor-roundtrip.s", "tensor_roundtrip", [("s_mov_b32 s13, 0x400000", 0, "s_mov_b32 s13, 0x410000")], "65-float tensor footprint exceeds 256-byte LDS allocation"),
+    ("tensor_lds_footprint_out_of_bounds", "native-tensor-roundtrip.s", "tensor_roundtrip", [("tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]", 0, "s_mov_b32 s5, 256\n\ttensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]")], "Canonical 64-float tensor shape at LDS base256 has footprint[256,512), exceeding the 256-byte LDS allocation"),
     ("transpose_missing_ds_completion", "native-transpose-high64.s", "transpose_8x8_b16", [("s_wait_dscnt 0x0", 1, "s_nop 0")], "Full packed16 transpose destination readiness"),
 ]
 

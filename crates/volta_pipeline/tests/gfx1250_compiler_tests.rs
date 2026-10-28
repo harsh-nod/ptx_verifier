@@ -862,12 +862,17 @@ fn real_gfx1250_assemble_valid_safety_mutants_fail_their_actual_native_obligatio
         let mutant = mutate(
             TENSOR,
             "tensor_roundtrip",
-            &[("s_mov_b32 s13, 0x400000", 0, "s_mov_b32 s13, 0x410000")],
+            &[(
+                "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]",
+                0,
+                "s_mov_b32 s5, 256\n\ttensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]",
+            )],
         );
         let checked = check(&mutant, "tensor_roundtrip", tensor_config());
+        let failure = format!("{:?}", checked.analysis.symbolic_outputs().unwrap_err());
         assert!(
-            checked.analysis.symbolic_outputs().is_err(),
-            "oversized tensor tile must report a typed bounds failure"
+            failure.contains("tensor footprint exceeds LDS capacity"),
+            "{failure}"
         );
         assert_ne!(checked.checks.conclusion(), GraphConclusion::Verified);
     }
