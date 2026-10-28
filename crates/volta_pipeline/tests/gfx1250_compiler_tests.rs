@@ -4,7 +4,7 @@ mod native_common;
 
 use volta_amdgpu_analysis::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue, frontend};
 use volta_equivalence::{EquivOutcome, check_output_equivalence};
-use volta_expr::{ExprArena, ExprId, SymbolicOutputs};
+use volta_expr::{ExprArena, ExprId, ExprNode, RealRepr, SymbolicOutputs};
 use volta_graph_check::GraphConclusion;
 
 const COPY: &str = include_str!("../../../tests/gfx1250/fixtures/native-copy-add.s");
@@ -84,6 +84,18 @@ fn expected(arena: ExprArena, elements: Vec<(u64, ExprId)>) -> SymbolicOutputs {
     SymbolicOutputs {
         arena,
         outputs: vec![("out".into(), elements)],
+    }
+}
+fn exact_u64(arena: &ExprArena, value: ExprId) -> Option<u64> {
+    // ExprArena::as_u64 deliberately permits rounded real coercion. Output
+    // bit-pattern oracles require an exact integer, including values >2^53.
+    match arena.node(value) {
+        ExprNode::IntConst(value) => Some(*value as u64),
+        ExprNode::RealConst(value) => match value.repr() {
+            RealRepr::Rational(value) if value.is_integer() => value.numer().to_u64(),
+            _ => None,
+        },
+        _ => None,
     }
 }
 
@@ -391,9 +403,7 @@ fn real_gfx1250_wide_product_and_mad_match_exact_unsigned_and_signed_128bit_orac
                     assert_eq!(actual.outputs[0].1.len(), 4);
                     for (i, wanted) in expected.into_iter().enumerate() {
                         assert_eq!(
-                            actual
-                                .arena
-                                .as_u64(actual.element("out", i as u64).unwrap()),
+                            exact_u64(&actual.arena, actual.element("out", i as u64).unwrap()),
                             Some(wanted),
                             "signed={signed} a={a:#x} b={b:#x} c={c:#x} i={i}"
                         );
