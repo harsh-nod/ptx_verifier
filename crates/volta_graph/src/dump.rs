@@ -37,6 +37,13 @@ impl EventGraph {
         for a in &p.assumptions {
             writeln!(out, "assume {:?}", a)?;
         }
+        for region in &self.shared_allocation_layout {
+            writeln!(
+                out,
+                "shared-allocation {:?} offset={:#x} size={}",
+                region.name, region.offset, region.size
+            )?;
+        }
         for (o, obj) in self.objects.iter() {
             write!(out, "object o{} ", o.0)?;
             match &obj.kind {

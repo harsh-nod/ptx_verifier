@@ -14,7 +14,7 @@ mod launch_file;
 mod lower;
 
 pub use analysis::{AnalysisError, AnalysisParts, AnalysisResult, analyze, write_op_counts};
-pub use config::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue};
+pub use config::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue, SharedAllocation};
 pub use eval::{ClcMisuse, EvalError, OutputsUnavailable, Stats, ThreadId};
 pub use launch_file::LaunchFile;
 pub use lower::LowerError;

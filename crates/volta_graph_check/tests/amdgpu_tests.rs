@@ -187,6 +187,84 @@ fn target_selects_amd_checks_and_empty_graph_cannot_verify() {
     assert!(matches!(r.conclusion(), GraphConclusion::Unknown { .. }));
 }
 
+#[test]
+fn configured_layout_bounds_the_whole_transfer_not_its_separate_dwords() {
+    for a_size in [40, 48] {
+        let mut t = Trace::new(64);
+        t.b.set_shared_allocation_layout(vec![
+            SharedAllocation {
+                name: "A".into(),
+                offset: 0,
+                size: a_size,
+            },
+            SharedAllocation {
+                name: "B".into(),
+                offset: a_size,
+                size: 64,
+            },
+        ]);
+        let issue = t.issue(
+            0,
+            0,
+            AmdMemoryClass::Lds,
+            vec![v(1, 1), v(2, 1), v(3, 1), v(4, 1)],
+            vec![],
+            32,
+            false,
+        );
+        for addr in [36, 40, 44] {
+            let effect = t.b.thread_access(
+                ThreadIx(0),
+                ProgramPoint(0),
+                MemAccess {
+                    space: Space::Shared,
+                    mode: AccessMode::Read,
+                    ordering: OrderingKind::Ordinary,
+                    proxy: Proxy::Generic,
+                    footprint: Footprint::Bytes { addr, width: 4 },
+                    role: OperandRole::Plain,
+                    attributed: ThreadIx(0),
+                    value: None,
+                },
+            );
+            t.b.amd_memory_effect(issue, effect);
+        }
+        t.wait(0, 1, None, Some(0));
+        t.ins(0, 2, vec![v(1, 1)], vec![]);
+        let report = check_graph(&t.finish());
+        assert_eq!(
+            report.verdict(Property::AmdTrace),
+            if a_size == 48 {
+                Verdict::Pass
+            } else {
+                Verdict::Unknown
+            }
+        );
+        if a_size == 40 {
+            assert!(
+                report
+                    .amd
+                    .unwrap()
+                    .trace
+                    .unresolved()
+                    .iter()
+                    .any(|u| u.reason.contains("whole LDS transfer"))
+            );
+        } else {
+            assert_eq!(report.conclusion(), GraphConclusion::Verified);
+        }
+    }
+    let mut missing = Trace::new(64);
+    missing
+        .b
+        .assume(Assumption::ConfiguredSharedAllocationLayout);
+    missing.ins(0, 0, vec![], vec![]);
+    assert_eq!(
+        check_graph(&missing.finish()).verdict(Property::AmdTrace),
+        Verdict::Unknown
+    );
+}
+
 fn terminated_producer_trace(
     threads: u32,
     labelled_end: bool,
@@ -480,6 +558,62 @@ fn flat_needs_both_counters() {
             check_graph(&t.finish()).verdict(Property::AmdWaitReadiness),
             if both { Verdict::Pass } else { Verdict::Fail }
         );
+    }
+}
+
+#[test]
+fn maximal_wait_fields_do_not_retire_an_overfull_logical_issue_history() {
+    for (class, count, maximum) in [
+        (AmdMemoryClass::VectorMemory, 65, 63),
+        (AmdMemoryClass::Lds, 17, 15),
+    ] {
+        for threshold in [maximum, maximum - 1, 0] {
+            let mut t = Trace::new(64);
+            for index in 0..count {
+                t.issue(
+                    0,
+                    index,
+                    class,
+                    vec![v(index as u16, 1)],
+                    vec![],
+                    u64::from(index) * 4,
+                    false,
+                );
+            }
+            t.wait(
+                0,
+                count,
+                (class == AmdMemoryClass::VectorMemory).then_some(threshold),
+                (class == AmdMemoryClass::Lds).then_some(threshold),
+            );
+            t.ins(0, count + 1, vec![v(0, 1)], vec![]);
+            let report = check_graph(&t.finish());
+            assert_eq!(report.verdict(Property::AmdTrace), Verdict::Pass);
+            assert_eq!(
+                report.verdict(Property::AmdWaitReadiness),
+                if threshold == maximum {
+                    Verdict::Fail
+                } else {
+                    Verdict::Pass
+                },
+                "{class:?}, threshold={threshold}: {report:?}"
+            );
+            if threshold == maximum {
+                assert!(
+                    report
+                        .amd
+                        .as_ref()
+                        .unwrap()
+                        .wait_readiness
+                        .violations()
+                        .iter()
+                        .any(|w| {
+                            w.kind == AmdRegisterHazardKind::ReadBeforeReady
+                                && w.register == v(0, 1)
+                        })
+                );
+            }
+        }
     }
 }
 

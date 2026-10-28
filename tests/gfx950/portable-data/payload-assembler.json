@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "host": "mi350",
+  "tool": "/opt/rocm/llvm/bin/llvm-mc",
+  "triple": "amdgcn-amd-amdhsa",
+  "target": "gfx950",
+  "entries": [
+    {
+      "source": "tests/gfx950/portable-data/payload_add_sat_f32_concrete_clamps.s",
+      "source_sha256": "b45810c086c4a6e88e2690ccbaf9d829242b6f81c3ece98283226bcbe436f7a5",
+      "object_sha256": "4efc871c346a578f07c25044e29d784dec2f3b6adf799419e00d5477d98a9c6a",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_aligned_u16_access_at_2_mod_4.s",
+      "source_sha256": "7515b901e47e2a57bf7c25dfbeb35c2550b5c78909e2cca1623952d50193dc80",
+      "object_sha256": "d6314e6e31f40ed2ac4baa68deb86c78ddfd17d86acc79e1f1961e7ea534944b",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_aligned_vector_load.s",
+      "source_sha256": "a11efab9799eee66acd9cc615b73992624f18debfbf9d531fdda6ce1cdc00686",
+      "object_sha256": "913dd2b9e7cfdba80c28133091e7fc9497c76703641cd14ecc39113d92280c20",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_cvt_reinterprets_at_source_format.s",
+      "source_sha256": "4786f099f004a6b8bc19bb9d31ed1c77937ce93eae26a944e1813aa61765130c",
+      "object_sha256": "9a8c93e2cb44b28aaca12879eb17f9fe78c9cb288ca16772cb015f870063497f",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_load_s8_sign_extends.s",
+      "source_sha256": "329dcc84f033581a20b8c613494b52a98d3c07861b27f3e57a963131f5bf009a",
+      "object_sha256": "bf3ceee81b7577bb38a4b51ba88e8db9514b67337a1c0e85c3b1579a4c125696",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_load_s8_sign_extends_2.s",
+      "source_sha256": "848dd4558d368713702ba5231144e2308fcf6aee6a278fec964b3d8091835335",
+      "object_sha256": "eba6e22d1bc185707c97016fa295ff98fb38a9ad374a7532e1a46dbe3ce4550d",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_b64_integer_pack_recombines_as_scalar_direct.s",
+      "source_sha256": "6babcbaa20b0d345ae82ee190be9145f148775bb82f6f4a1ca2ff673b956d458",
+      "object_sha256": "4785314f1d90f73a18146efe8b9a1562d29593f153a655b49ae0d533148fa111",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_b64_integer_pack_recombines_as_scalar_packed.s",
+      "source_sha256": "9151f0d2a6014045e2c460371900aeddf2f08c7edd679bc82ad27c8ddd89c11e",
+      "object_sha256": "ef41c43c3fce07f6a77f2a35b5305b0794510f877aab41e6166485a4f618a04b",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_neg1_vs_not_zero.s",
+      "source_sha256": "9eb2fcb33fa78e94513183d0684242d75c1b591c912cee90c666e8a64c242586",
+      "object_sha256": "eba6e22d1bc185707c97016fa295ff98fb38a9ad374a7532e1a46dbe3ce4550d",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_neg1_vs_not_zero_2.s",
+      "source_sha256": "7cba87cea58f95e6f2e46cb17031576dfdb0ac13c34da43597970ea8a8546e96",
+      "object_sha256": "7dad3cd9602432b59979adef6aef639e75804f9961b398ec302b6f4e4293537a",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_pack_b32_always_builds_pair.s",
+      "source_sha256": "07637b219f6c157ea69bbe708c90ee973ff329dc0b64304cd6dc011adb279de8",
+      "object_sha256": "7bd491833b52387779bbe51dbbd53b388c425661a517dc6a4b5413ddbb7ef457",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_pack_b64_integer_halves_recombine.s",
+      "source_sha256": "ebea71a60133e5959c21bb751cd06229dc5b65b84baf8a367a8046c20fa9611c",
+      "object_sha256": "1106d654bd4e06a434aa0fa577268ec8859d9d58937881a9a9a7eef1d31d73ec",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_unpack_native_pair_source.s",
+      "source_sha256": "60bedfcb3f2e7743b7fad33351e4f5131fefd8ed49718312caa89e6339c8c470",
+      "object_sha256": "19d6c9134c1879fb7842222155bc42c53a79b97eb8c478ae05007bf3d04cd621",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_mov_vector_destination_unpack_values.s",
+      "source_sha256": "bfe1235e0e39b0602f6ff09e07124af7f2e43f0594aba083858bb5ba4ae34e41",
+      "object_sha256": "d7e38a56b5918eec7cbaec31a5e8620afc27b1013c2cb7bd325d26c88d9eb297",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_relu_epilogue_vs_explicit_max_explicit.s",
+      "source_sha256": "b1b0fb44702077803dd8d86765c982c6dd30b908e8185289c39c31a7eaf7595a",
+      "object_sha256": "f76e5bc9aaa4f16e4995534795f138a37f2676dd5e1b1ebe75d6c961ae8d762a",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_relu_epilogue_vs_explicit_max_fused.s",
+      "source_sha256": "fd271244a4cd248adf243739435226e8b810093dd549efca5d0d8249c120f693",
+      "object_sha256": "ce37b70b1e63f0fe0810de2b01e51c69e1dd1669d53f2093b0e47a13e5b300d8",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_store_u8_truncates_to_low_bits.s",
+      "source_sha256": "85cbebafc9125cf8fd291e532da6c053c448fe1241583794eec67c8c6c829b1c",
+      "object_sha256": "f955dc55a7e866f34d595bd012c775fff326d6877046847597a41918bd87f4e3",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_unsigned_sub_register_load_passes_through.s",
+      "source_sha256": "ee1fbb07f428e4e62293f7e775cb05c77245c5ed93397d3138ca3cda0db60874",
+      "object_sha256": "fa4547dc87705643b46d96a5702a9b830518d170fb8645c9a0da98b6bb8e3f83",
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "source": "tests/gfx950/portable-data/payload_vector_store_with_immediate_source.s",
+      "source_sha256": "436ef0c513239f944e24535c0e7546edc26f08392fdda1bfdbbeda07ddaca997",
+      "object_sha256": "0165feff216f803b5e814c13e1dba9352a6c1e306a98760acf4ed446b3cafe1b",
+      "exit_code": 0,
+      "diagnostic": ""
+    }
+  ]
+}
