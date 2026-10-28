@@ -6,7 +6,14 @@
   "closed_after_positive_proofs": 26,
   "unsupported_original_workloads_retained": 6,
   "positive_default_replay": "tests/gfx950/evidence/full-workloads-final-default.json",
-  "logging_full_replay": "Independent additional gate still running; no logging batch completion claimed.",
+  "logging_full_replay": {
+    "evidence": "tests/gfx950/evidence/full-workloads-final-logging.json",
+    "positive_cases": 39,
+    "positive_math_specs": 37,
+    "positive_outputs": 363081,
+    "explicit_unsupported_boundary_cases": 1,
+    "unexpected_failures": 0
+  },
   "resolutions": [
     {
       "baseline_path": "ai_compiler_kernels/Convolution2DKernel/NVIDIA_B200_Float16_1.3590x.ptx",

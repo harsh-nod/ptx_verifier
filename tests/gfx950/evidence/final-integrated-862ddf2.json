@@ -124,7 +124,8 @@
   },
   "model_source_unchanged_since": "6bc63a5051e351f9a1882b5258c1b3d5d9dba415",
   "default_workload_evidence": "tests/gfx950/evidence/full-workloads-final-default.json",
-  "logging_workload_status": "Additional final batch still running; completion not claimed in this checkpoint.",
   "default_binary_matches_full_replayed_artifact": true,
-  "format_files_byte_identical_to_baseline": true
+  "format_files_byte_identical_to_baseline": true,
+  "logging_workload_status_at_cpu_checkpoint": "Additional final batch still running; completion not claimed in this checkpoint.",
+  "final_logging_workload_evidence": "tests/gfx950/evidence/full-workloads-final-logging.json"
 }

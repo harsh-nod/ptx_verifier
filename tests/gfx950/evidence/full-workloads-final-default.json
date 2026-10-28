@@ -11936,6 +11936,64 @@
       }
     ]
   },
+  "raw_replay_boundary_worker_receipt": {
+    "name": "reduction_sum/reduction_f16",
+    "revision": "b70027814e5d81bb07450549626c779c584dc94b",
+    "binary_sha256": "3d2d435e4b557e7ac8a37d80ab4727802fca5c779253dcd4b575df5c5657aee2",
+    "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
+    "source_sha256": "122ca33f751b37c42460f1680194e4431310d4af2ada4f067e6638e2781f43c7",
+    "spec": "crates/volta_amdgpu_analysis/src/frontend/fixtures/specs/reduction.spec",
+    "spec_sha256": "4415a8cc1ac10f823cbfcb094725f81d8c8b4f5b92b6b75f559625fbd9a6f56b",
+    "expected_outputs": 1,
+    "reduced_case": false,
+    "sampling": false,
+    "outcome": "ERROR",
+    "detail": "stage 0 exit=2 timeout=False: ",
+    "elapsed_seconds": 0.006,
+    "limits": {
+      "address_space_bytes": 274877906944,
+      "cpu_seconds_per_stage": 3600,
+      "wall_seconds_per_stage": 5400
+    },
+    "stages": [
+      {
+        "argv": [
+          "/tmp/ptx-verifier-gfx950-final-b700278/volta",
+          "--no-log-file",
+          "analyze",
+          "/tmp/ptx-verifier-gfx950-final-b700278/crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
+          "--kernel",
+          "reduction_f16",
+          "--block",
+          "128,1,1",
+          "--grid",
+          "1,1,1",
+          "--dyn-shared",
+          "0",
+          "--array",
+          "x:0x10000:2:4096:in",
+          "--array",
+          "out:0x100000:4:1:inout",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx950",
+          "--print-outputs",
+          "0",
+          "--no-profile"
+        ],
+        "exit_code": 2,
+        "timed_out": false,
+        "elapsed_seconds": 0.005,
+        "resources": "Command exited with non-zero status 2\nuser=0.00 system=0.00 peak_rss_kib=4096 wall=0.00 exit=2\n"
+      }
+    ],
+    "passed_expected_native_contract": false
+  },
   "raw_replay_corrections": {
     "reduction": "The earlier strict process wrapper turned semantic exit2 into ERROR. The unchanged exact source/binary is separately rerun through the corrected accounting-only driver; raw Unsupported and no-output prefix retained, never counted as a positive proof.",
     "softmax": "The earlier4x256 case was supplemental reduced scope despite its absent reduced marker. Current16x256=4096-output config is separately rerun and mathematically verified using the same exact binary/source/spec."
@@ -24431,5 +24489,18 @@
       "all_stage_commands_match_current_manifest": true
     }
   ],
-  "background_batch_exit_observation": "Persistent launch has no retained parent shell exit receipt. All40 individual worker exits and complete stage/resource receipts are retained. The batch has one nonzero boundary worker, so its main returns1 by construction; no all-positive batch exit is claimed."
+  "background_batch_exit_observation": "Persistent launch has no retained parent shell exit receipt. All40 individual worker exits and complete stage/resource receipts are retained. The batch has one nonzero boundary worker, so its main returns1 by construction; no all-positive batch exit is claimed.",
+  "current_manifest_pins_after_evidence_link_updates": {
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16-cases.json": "2d04f0fc5fddbf5ccb1bc936bd6af86784762f52ef9853a895a9854ef668ae60",
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8-cases.json": "843d54f48510156150893caf3b2436af8c5aab1ab5c8e01c1ed91e1447642aa3",
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-cases.json": "ab7f2c33b5e187abe1ff3ab4259ca711d78c92aab6849200b9b21da6217a081e",
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/convolution-cases.json": "ff78ad137daaa32aa80f9db42b6d7e83fbe8dc69e27e8fd42a89bba065a74320",
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/attention-cases.json": "2afe84b669078310283027627a09a3a2f5d512f8e64a5ec03b5a10d12ea2394b",
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-gemm-cases.json": "38ca335678102bde0777a7bbf1eb1f05618fc7a44b7e1d104dabb796ea27c060",
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-convolution-cases.json": "eefe6bc24f57ce986f8d6d0df2900caf265b7fb4ce619a1614f5ec08abd2b3c2",
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/advanced-cases.json": "f6fb08c44a1181be32cee30cfc5e3c6c3b86b2b8ac61accacaf11e321705655f",
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/abi-cases.json": "95f23dab66f431a68367b2df00ee154245e389be2da8541984c3fa6283803bb9",
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/scan-cases.json": "5a579cb21dffb46222fad544e46ec77e6fd35ce1b077beea5455536c1c9c6de5"
+  },
+  "metadata_scope": "Final case labels/evidence links change no launch argv/source/spec. Every stage argv is independently reconstructed from these current manifests."
 }
