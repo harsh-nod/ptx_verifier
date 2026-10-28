@@ -1316,16 +1316,18 @@
     {
       "baseline": "crates/volta_pipeline/tests/ptx/success/array_overlapping_module_global_window_rejected.ptx",
       "native_source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-module-globals.s",
-      "native_test": "module_global_window_half_open_boundary_is_disjoint_and_bindings_are_loaded",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::module_global_window_half_open_boundary_is_disjoint_and_bindings_are_loaded",
       "property": "Array ends exactly at synthetic module window base and remains disjoint; native also checks actual bound object values and readonly initialization.",
-      "native_sha256": "4685d039ca74ebfb46c64326de9302af19675f60dac01990a7da3a07316d7009"
+      "native_sha256": "4685d039ca74ebfb46c64326de9302af19675f60dac01990a7da3a07316d7009",
+      "baseline_sha256": "16a4f5e7bfb0b716d6173c932b8684857eec87f49fbc9c61bc2a760f337510d5"
     },
     {
       "baseline": "crates/volta_pipeline/tests/ptx/success/cluster_special_registers_describe_a_single_cta_cluster.ptx",
       "native_source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-grid-output.s",
-      "native_test": "launch_grid_and_group_dimensions_are_emitted_as_integer_outputs",
+      "native_test": "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::launch_grid_and_group_dimensions_are_emitted_as_integer_outputs",
       "property": "Only portable ordinary grid(2,3,4), groupID(0,0,0), block(4,3,2) outputs. Exact15-field NVIDIA cluster contract is separately scoped and not claimed as native output equality.",
-      "native_sha256": "4329c90b02b41cea7e7cbe81184b3b5552d00283a731fdbfd5a2496933e20000"
+      "native_sha256": "4329c90b02b41cea7e7cbe81184b3b5552d00283a731fdbfd5a2496933e20000",
+      "baseline_sha256": "0b3fff38f527e5a4601b0f5014b20fa824d2d126de850b3514cf9dfdf630815b"
     }
   ],
   "scope": "42 native hand-assembly contracts plus2 existing compiler ABI mappings; computation comparisons use the disclosed exact real-number model. This mapping is not a completion-status manifest."

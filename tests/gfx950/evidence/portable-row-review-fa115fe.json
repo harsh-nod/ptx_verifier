@@ -1,0 +1,2521 @@
+{
+  "validated_by": "coordinator after source/golden/reference audit and isolated integrated test run",
+  "revision": "fa115fe",
+  "rust_passed": 1426,
+  "python_passed": 41,
+  "inherited_ptx_failures": 1,
+  "policy": "Exact native payloads/footprints checked against independent references; target-only residuals cannot waive required portable arithmetic. No metadata match alone establishes a proof.",
+  "reviews": [
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/copysign_combines_the_sign_of_a_with_the_magnitude_of_b.ptx",
+      "baseline_sha256": "594a0c485525d2f44382bb162ce3857a764485c417fb07564b46dca5b3f2441f",
+      "native_source": "tests/gfx950/portable-scalar/copysign_combines_the_sign_of_a_with_the_magnitude_of_b.s",
+      "native_source_sha256": "bce55e6bcafd8d9d578228c974dbd73431236f4be09e84d5739c919ae259886b",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::copysign_combines_the_sign_of_a_with_the_magnitude_of_b"
+      ],
+      "property": "zero",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 0\n",
+        "native_reference": "zero",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/float_abs_decodes_raw_bits.ptx",
+      "baseline_sha256": "2b3009e9eba6ca80849b8956f7c697abf7364ddd0d092f72bb01ac52aa612295",
+      "native_source": "tests/gfx950/portable-scalar/float_abs_decodes_raw_bits.s",
+      "native_source_sha256": "4ab643b27dd56b0a57f04674e6c10d2f89f9c7a697e1aa61826da0434ed2f735",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::float_abs_decodes_raw_bits"
+      ],
+      "property": "abs_bits",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 3,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 5\nout[1] = inf\nout[2] = abs(in[0])\n",
+        "native_reference": "abs_bits",
+        "native_full_output_capacity": 3
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/float_ops_decode_raw_bit_patterns.ptx",
+      "baseline_sha256": "46181a42aa59f2805e5d545930bcc6d001600a281913c283ee32e6fab2b29591",
+      "native_source": "tests/gfx950/portable-scalar/float_ops_decode_raw_bit_patterns.s",
+      "native_source_sha256": "5f9b641fd995ad36d6c9a0f5d9067613b1e19a064212e551ec8dab620a27653a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::float_ops_decode_raw_bit_patterns"
+      ],
+      "property": "raw_math",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 6,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 2\nout[1] = 0.25\nout[2] = sqrt(4)\nout[3] = 1\nout[4] = -4\nout[5] = (-abs(in[0]))\n",
+        "native_reference": "raw_math",
+        "native_full_output_capacity": 6
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/neg_reads_operand_as_instruction_type.ptx",
+      "baseline_sha256": "358ad2b9d3069e2209ed2021ac899afe128d1cbb6370244d5b6b7a0020dc8778",
+      "native_source": "tests/gfx950/portable-scalar/neg_reads_operand_as_instruction_type.s",
+      "native_source_sha256": "fd3934e3924c10f961aa6a86147904d8d59edc1d424a6695e90c130295f6139e",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::neg_reads_operand_as_instruction_type"
+      ],
+      "property": "neg_bits",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 5,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 5\nout[1] = 2147483648\nout[2] = 5\nout[3] = inf\nout[4] = (-in[0])\n",
+        "native_reference": "neg_bits",
+        "native_full_output_capacity": 5
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mixed_precision_fma_decodes_multiplicands_at_their_own_type.ptx",
+      "baseline_sha256": "5aeb9d965fbcc4ad7114c89099a550e24b05741d1c650a9d674f5d7cd3f2a6e3",
+      "native_source": "tests/gfx950/portable-scalar/mixed_precision_fma_decodes_multiplicands_at_their_own_type.s",
+      "native_source_sha256": "12f6adf82601e45f6589dff2a68e6e883128b5e4002ddc2a02f839701b8979ec",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::mixed_precision_fma_decodes_multiplicands_at_their_own_type"
+      ],
+      "property": "three",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 3\n",
+        "native_reference": "three",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_constant_bit_pattern_operand.ptx",
+      "baseline_sha256": "79fff3937789d297ee2947cda1f86f741d6a3b53f50cde28a376af0d2d3c853b",
+      "native_source": "tests/gfx950/portable-scalar/f32x2_constant_bit_pattern_operand.s",
+      "native_source_sha256": "186f233e21c7472cb103f15fa6e3b8da6676b0a6cc1eb4ccbdaf50e840b445d0",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_constant_bit_pattern_operand"
+      ],
+      "property": "packed_fma",
+      "configuration": {
+        "block": 2,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = fma((fma(in[0], 1, in[0]) - in[0]), (fma(in[0], 1, in[0]) - in[0]), (fma(in[0], 1, in[0]) - in[0]))\nout[1] = fma((fma(in[1], 1, in[1]) - in[1]), (fma(in[1], 1, in[1]) - in[1]), (fma(in[1], 1, in[1]) - in[1]))\nout[2] = fma((fma(in[2], 1, in[2]) - in[2]), (fma(in[2], 1, in[2]) - in[2]), (fma(in[2], 1, in[2]) - in[2]))\nout[3] = fma((fma(in[3], 1, in[3]) - in[3]), (fma(in[3], 1, in[3]) - in[3]), (fma(in[3], 1, in[3]) - in[3]))\n",
+        "native_reference": "packed_fma",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_fma_via_64bit_memory_access.ptx",
+      "baseline_sha256": "4626eae4bb124e63beeded201b79ef0cd14467a48df99d37ca13638f525ae8f0",
+      "native_source": "tests/gfx950/portable-scalar/f32x2_fma_via_64bit_memory_access.s",
+      "native_source_sha256": "9c8972e3f6d889dcb9f5abf6c1168aba64eb803c71edcbefc8e1237fd11f826c",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_fma_via_64bit_memory_access"
+      ],
+      "property": "packed_fma",
+      "configuration": {
+        "block": 2,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = fma(in[0], in[0], in[0])\nout[1] = fma(in[1], in[1], in[1])\nout[2] = fma(in[2], in[2], in[2])\nout[3] = fma(in[3], in[3], in[3])\n",
+        "native_reference": "packed_fma",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_fma_via_register_pack.ptx",
+      "baseline_sha256": "7ddadae40b53e47e9775e12f7a4b4fabd57ff2131fe119e18b587daa56ea5400",
+      "native_source": "tests/gfx950/portable-scalar/f32x2_fma_via_register_pack.s",
+      "native_source_sha256": "447c024f08e57c1f46c47a8d552cca90e1a1f355e89f9a249a48ba834c12fd5f",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_fma_via_register_pack"
+      ],
+      "property": "packed_fma",
+      "configuration": {
+        "block": 2,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = fma(in[0], in[0], in[0])\nout[1] = fma(in[1], in[1], in[1])\nout[2] = fma(in[2], in[2], in[2])\nout[3] = fma(in[3], in[3], in[3])\n",
+        "native_reference": "packed_fma",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_lane_extracted_with_shift.ptx",
+      "baseline_sha256": "a52172caa34b88b514b32aca344a091a618b50da23e8f9d3abe92fbed14e73bc",
+      "native_source": "tests/gfx950/portable-scalar/f32x2_lane_extracted_with_shift.s",
+      "native_source_sha256": "d4239b231ac405089754fcb083cdfca1bee7bd103d218c8f3bd1a8288f9d5d96",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_lane_extracted_with_shift"
+      ],
+      "property": "packed_fma",
+      "configuration": {
+        "block": 2,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = fma(in[0], in[0], in[0])\nout[1] = fma(in[1], in[1], in[1])\nout[2] = fma(in[2], in[2], in[2])\nout[3] = fma(in[3], in[3], in[3])\n",
+        "native_reference": "packed_fma",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_mul_add_via_register_pack.ptx",
+      "baseline_sha256": "2eddbfcd768653c63a023b106b30b2139ce58b36a430f2c15f15b9cc636cc09c",
+      "native_source": "tests/gfx950/portable-scalar/f32x2_mul_add_via_register_pack.s",
+      "native_source_sha256": "2b55d9a458110efc0c53f5437605be42646a0f6a176f46a915c7f74123b1a769",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_mul_add_via_register_pack"
+      ],
+      "property": "packed_fma",
+      "configuration": {
+        "block": 2,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = ((in[0] * in[0]) + in[0])\nout[1] = ((in[1] * in[1]) + in[1])\nout[2] = ((in[2] * in[2]) + in[2])\nout[3] = ((in[3] * in[3]) + in[3])\n",
+        "native_reference": "packed_fma",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_operand_assembled_with_cvt_zero_extension.ptx",
+      "baseline_sha256": "5898b58979e01ed64456e0999751a2396aed2e3822b87614dd5ada4881e418b3",
+      "native_source": "tests/gfx950/portable-scalar/f32x2_operand_assembled_with_cvt_zero_extension.s",
+      "native_source_sha256": "188cff6c9b94f1ed445801fcebe840c4ffc9e327bb94ba5fa6307d170938d7b8",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_operand_assembled_with_cvt_zero_extension"
+      ],
+      "property": "packed_fma",
+      "configuration": {
+        "block": 2,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = fma(in[0], in[0], in[0])\nout[1] = fma(in[1], in[1], in[1])\nout[2] = fma(in[2], in[2], in[2])\nout[3] = fma(in[3], in[3], in[3])\n",
+        "native_reference": "packed_fma",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_operand_assembled_with_shift_and_or.ptx",
+      "baseline_sha256": "79a7c862db76ac826012039318db6c141dc89b4039a95e55d5f32320f9065c9a",
+      "native_source": "tests/gfx950/portable-scalar/f32x2_operand_assembled_with_shift_and_or.s",
+      "native_source_sha256": "11900be6bb9b9ccde7da8e2ff41d2546243d4d0d9b4114931f20678a4ef87286",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_operand_assembled_with_shift_and_or"
+      ],
+      "property": "packed_fma",
+      "configuration": {
+        "block": 2,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = fma(in[0], in[0], in[0])\nout[1] = fma(in[1], in[1], in[1])\nout[2] = fma(in[2], in[2], in[2])\nout[3] = fma(in[3], in[3], in[3])\n",
+        "native_reference": "packed_fma",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_scalar_reference.ptx",
+      "baseline_sha256": "bbdd760cadbab5214537ca62283b214b10acb6ecc5a6ff57317f2581f095cc38",
+      "native_source": "tests/gfx950/portable-scalar/f32x2_scalar_reference.s",
+      "native_source_sha256": "51087d1df84000d3fc20c4c9b7dce9cb55cc01410f632aa1deca505d665bdda1",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_scalar_reference"
+      ],
+      "property": "packed_fma",
+      "configuration": {
+        "block": 2,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = fma(in[0], in[0], in[0])\nout[1] = fma(in[1], in[1], in[1])\nout[2] = fma(in[2], in[2], in[2])\nout[3] = fma(in[3], in[3], in[3])\n",
+        "native_reference": "packed_fma",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_wrong_lane_math.ptx",
+      "baseline_sha256": "585619aeaa13884f7363931f7304754a295416eda531a55b12c6f5af87ff933c",
+      "native_source": "tests/gfx950/portable-scalar/f32x2_wrong_lane_math.s",
+      "native_source_sha256": "afa667ce015f44626847afe4c01f1d725fc6c8089630221ff5a315aada91e51a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::f32x2_wrong_lane_math"
+      ],
+      "property": "packed_square",
+      "configuration": {
+        "block": 2,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = (in[0] * in[0])\nout[1] = (in[1] * in[1])\nout[2] = (in[2] * in[2])\nout[3] = (in[3] * in[3])\n",
+        "native_reference": "packed_square",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/b16_shift_amount_is_read_as_u32.ptx",
+      "baseline_sha256": "2a282918853e155fbca68a550c46ad0ebe2d224942447aac6c7c1fd11e9e4906",
+      "native_source": "tests/gfx950/portable-scalar/b16_shift_amount_is_read_as_u32.s",
+      "native_source_sha256": "410272ed7aaa9ee7910519f06eea751e73b02bd3b65b81f8261d3bf0c91853e7",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::b16_shift_amount_is_read_as_u32"
+      ],
+      "property": "shift16",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 3,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 0\nout[1] = 0\nout[2] = 65535\n",
+        "native_reference": "shift16",
+        "native_full_output_capacity": 3
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/b64_shift_by_u32_register.ptx",
+      "baseline_sha256": "5c9562c6fdf0791c716c8cb0e9a5aaa5ec956e28a9f268e0df4b3f3e107ca47a",
+      "native_source": "tests/gfx950/portable-scalar/b64_shift_by_u32_register.s",
+      "native_source_sha256": "6f3bb386720ff7665dd3bc1db16c5c9c4d80608dbcb2bd8983a586574a9bbc7a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::b64_shift_by_u32_register"
+      ],
+      "property": "shift64",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 8,
+        "output_len": 2,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 3298534883328\nout[1] = 3\n",
+        "native_reference": "shift64",
+        "native_full_output_capacity": 2
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/bfe_extract_and_sign_fill.ptx",
+      "baseline_sha256": "a34673de4b4c32424f7fb41d6c8c38a09b93c3ffdfd57868de09f07864fd3307",
+      "native_source": "tests/gfx950/portable-scalar/bfe_extract_and_sign_fill.s",
+      "native_source_sha256": "97bd084e4a31122f065329d47b50348c8e613ca62a0b67bf0e9344d26b007ec4",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::bfe_extract_and_sign_fill"
+      ],
+      "property": "bfe",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 10\nout[1] = 4294967290\nout[2] = 4294967295\nout[3] = 0\n",
+        "native_reference": "bfe",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/bfi_clips_field_to_register_width.ptx",
+      "baseline_sha256": "052e354a26877e38706db2b2b9eb16a35f8692c89af71a34ddeb3f294376b708",
+      "native_source": "tests/gfx950/portable-scalar/bfi_clips_field_to_register_width.s",
+      "native_source_sha256": "c747bd46e3e6e2cb470268468f8afbb6ef2de42b553dfea6a67eff601ebc0c74",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::bfi_clips_field_to_register_width"
+      ],
+      "property": "bfi",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 48\nout[1] = 5\nout[2] = 5\nout[3] = 7\n",
+        "native_reference": "bfi",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/int_abs_read_at_signed_width.ptx",
+      "baseline_sha256": "828253e94afdaadc5a83fa587156dce44fb418be502f6200d179edc291689d48",
+      "native_source": "tests/gfx950/portable-scalar/int_abs_read_at_signed_width.s",
+      "native_source_sha256": "578942b86649b675aca0d1debbe85ebd0cc42d4466f977fbaac139b86b8b5ecd",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::int_abs_read_at_signed_width"
+      ],
+      "property": "intabs",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 2,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 5\nout[1] = 2147483648\n",
+        "native_reference": "intabs",
+        "native_full_output_capacity": 2
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mul_hi_u32_negative_operand.ptx",
+      "baseline_sha256": "aa5720bb29711cf82dfbf939706591fb57dcff5d22c879c476c456132587eb9c",
+      "native_source": "tests/gfx950/portable-scalar/mul_hi_u32_negative_operand.s",
+      "native_source_sha256": "54a5090ceb05ea3a89b36ab2133b81247e2c4b71d759a83f55c4a3b57d5c73ad",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::mul_hi_u32_negative_operand"
+      ],
+      "property": "one",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 1\n",
+        "native_reference": "one",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mul_wide_u16_magic_division.ptx",
+      "baseline_sha256": "3638ff20c6e5ec59091f18b2ceb37a4e3c1c41a27f2a04753b885a9693a6dfbf",
+      "native_source": "tests/gfx950/portable-scalar/mul_wide_u16_magic_division.s",
+      "native_source_sha256": "fc6abda0eba7c346258935919a077cd7f6eb88c8caa688f2f4d23cbe38d22be7",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::mul_wide_u16_magic_division"
+      ],
+      "property": "magicdiv",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 2,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 1\nout[1] = 3\n",
+        "native_reference": "magicdiv",
+        "native_full_output_capacity": 2
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/shf_clamp_negative_shift_amount_saturates.ptx",
+      "baseline_sha256": "c46d912b26f463796ea818755b1fd5e3c502e602bfe6e5c6e30f51a6ba6e06eb",
+      "native_source": "tests/gfx950/portable-scalar/shf_clamp_negative_shift_amount_saturates.s",
+      "native_source_sha256": "0ca7875d6f57d60a905c4ff905e224648e51cf5cd01b2dfaddf5955fbc8f134f",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::shf_clamp_negative_shift_amount_saturates"
+      ],
+      "property": "funnel",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 286331153\nout[1] = 572662306\nout[2] = 143165576\nout[3] = 1145324612\n",
+        "native_reference": "funnel",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/div_by_three_vs_rcp_of_three.ptx",
+      "baseline_sha256": "c8153405f2b46763af6604b95775cc7adbdfc0e1f17d870dc2b91107f02a1882",
+      "native_source": "tests/gfx950/portable-scalar/div_by_three_vs_rcp_of_three.s",
+      "native_source_sha256": "70af525949d193706c0d115885c9a9e286e7f0b1fc483a38af8e7e2ad2e40d4b",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::div_by_three_vs_rcp_of_three"
+      ],
+      "property": "div3",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = (in[0] * 1/3)\n",
+        "native_reference": "div3",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/div_by_three_vs_rcp_of_three_2.ptx",
+      "baseline_sha256": "f98f6de89892e865bd91439f6cd01cb6c86c993a0f39c994c74f8df00017e783",
+      "native_source": "tests/gfx950/portable-scalar/div_by_three_vs_rcp_of_three_2.s",
+      "native_source_sha256": "82355e8debf57905a4b688f9f5598208778eb900aaed36edc0c3821d50700c68",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::div_by_three_vs_rcp_of_three_2"
+      ],
+      "property": "div3",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = (in[0] * 1/3)\n",
+        "native_reference": "div3",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/div_by_n_vs_mul_by_computed_reciprocal.ptx",
+      "baseline_sha256": "4c2102846c50beaff577f1ea4746cf720b68b6ba4ef20937d5b1f19837542eaa",
+      "native_source": "tests/gfx950/portable-scalar/div_by_n_vs_mul_by_computed_reciprocal.s",
+      "native_source_sha256": "1f20e5cd699f7c6fc188b8ca06476d4c4498262edd9a9d65ab4c85bb7fd59106",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::div_by_n_vs_mul_by_computed_reciprocal"
+      ],
+      "property": "div768",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = (in[0] / 768)\n",
+        "native_reference": "div768",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/div_by_n_vs_mul_by_computed_reciprocal_2.ptx",
+      "baseline_sha256": "90dbe5f3d6eb2d37c6a376e9616c167954bdaf58475ad07e3a4f145aad4e215e",
+      "native_source": "tests/gfx950/portable-scalar/div_by_n_vs_mul_by_computed_reciprocal_2.s",
+      "native_source_sha256": "f164b40e4a8a840eb64b93b41c0b3839e993731624cdf7e19ba3e21219b8c746",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::div_by_n_vs_mul_by_computed_reciprocal_2"
+      ],
+      "property": "div768",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = (in[0] * 1/768)\n",
+        "native_reference": "div768",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/elect_sync_elects_the_lowest_active_lane.ptx",
+      "baseline_sha256": "7ffb3757693b5f74b2c56aad92a2b1f50c1d228436d7f3bbf7b6c9373e4d5c0c",
+      "native_source": "tests/gfx950/portable-scalar/elect_sync_elects_the_lowest_active_lane.s",
+      "native_source_sha256": "3c9d41cec8ee2766da09baf4ed5ec581332160966dfc9417bb616920342615ed",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::elect_sync_elects_the_lowest_active_lane"
+      ],
+      "property": "elect",
+      "configuration": {
+        "block": 32,
+        "input_width": 4,
+        "input_len": 32,
+        "output_width": 4,
+        "output_len": 32,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 1000\nout[1] = 0\nout[2] = 0\nout[3] = 0\nout[4] = 0\nout[5] = 0\nout[6] = 0\nout[7] = 0\nout[8] = 0\nout[9] = 0\nout[10] = 0\nout[11] = 0\nout[12] = 0\nout[13] = 0\nout[14] = 0\nout[15] = 0\nout[16] = 0\nout[17] = 0\nout[18] = 0\nout[19] = 0\nout[20] = 0\nout[21] = 0\nout[22] = 0\nout[23] = 0\nout[24] = 0\nout[25] = 0\nout[26] = 0\nout[27] = 0\nout[28] = 0\nout[29] = 0\nout[30] = 0\nout[31] = 0\n",
+        "native_reference": "elect",
+        "native_full_output_capacity": 32
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/elect_sync_skips_an_already_exited_lane.ptx",
+      "baseline_sha256": "09e0b13f8ab91e3f693d13aa1ffc2eb7024d4ba588e0adc37783f5655e97e102",
+      "native_source": "tests/gfx950/portable-scalar/elect_sync_skips_an_already_exited_lane.s",
+      "native_source_sha256": "a87f4751306867b9866aaf8d408c94528af7a4621acef049fef7cb685bb0dd14",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::elect_sync_skips_an_already_exited_lane"
+      ],
+      "property": "elect_skip",
+      "configuration": {
+        "block": 32,
+        "input_width": 4,
+        "input_len": 32,
+        "output_width": 4,
+        "output_len": 32,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[1] = 1001\nout[2] = 0\nout[3] = 0\nout[4] = 0\nout[5] = 0\nout[6] = 0\nout[7] = 0\nout[8] = 0\nout[9] = 0\nout[10] = 0\nout[11] = 0\nout[12] = 0\nout[13] = 0\nout[14] = 0\nout[15] = 0\nout[16] = 0\nout[17] = 0\nout[18] = 0\nout[19] = 0\nout[20] = 0\nout[21] = 0\nout[22] = 0\nout[23] = 0\nout[24] = 0\nout[25] = 0\nout[26] = 0\nout[27] = 0\nout[28] = 0\nout[29] = 0\nout[30] = 0\nout[31] = 0\n",
+        "native_reference": "elect_skip",
+        "native_full_output_capacity": 32
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/shfl_sync_idx_exchange.ptx",
+      "baseline_sha256": "202f110482a3ed232fb1ab7974bfe80c2db86d956bb8e3795c0588c7af7e3595",
+      "native_source": "tests/gfx950/portable-scalar/shfl_sync_idx_exchange.s",
+      "native_source_sha256": "dd77b7000903b6f0cc5156ddd5c337feb96488f7ee07f6d76ac2c063c18ff28e",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::shfl_sync_idx_exchange"
+      ],
+      "property": "exchange",
+      "configuration": {
+        "block": 2,
+        "input_width": 4,
+        "input_len": 2,
+        "output_width": 4,
+        "output_len": 2,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = in[1]\nout[1] = in[0]\n",
+        "native_reference": "exchange",
+        "native_full_output_capacity": 2
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tail_exit_warp_shfl_reduction.ptx",
+      "baseline_sha256": "5a70fc8646d58bfb8ae0d67e3e60ca7d55e841b54a04f348af4baf172d141be6",
+      "native_source": "tests/gfx950/portable-scalar/tail_exit_warp_shfl_reduction.s",
+      "native_source_sha256": "c9890211d5f5c5afaf92ad94bdf9d0dc35eda0c16f2cb9a71944dfb761dc8fbf",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::tail_exit_warp_shfl_reduction"
+      ],
+      "property": "sum16",
+      "configuration": {
+        "block": 32,
+        "input_width": 4,
+        "input_len": 16,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = ((((in[0] + in[8]) + (in[4] + in[12])) + ((in[2] + in[10]) + (in[6] + in[14]))) + (((in[1] + in[9]) + (in[5] + in[13])) + ((in[3] + in[11]) + (in[7] + in[15]))))\n",
+        "native_reference": "sum16",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tail_exit_warp_shfl_reduction_reference.ptx",
+      "baseline_sha256": "a2a34abed00f53617a06e7e05d25d9c8c24cee1075c1ad163b39447cb2813f51",
+      "native_source": "tests/gfx950/portable-scalar/tail_exit_warp_shfl_reduction_reference.s",
+      "native_source_sha256": "02de0ea55b742c43381b27a703a8cd26c17ee33125ec3a22ecb573134be645ee",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::tail_exit_warp_shfl_reduction_reference"
+      ],
+      "property": "sum16",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 16,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = (((((((((((((((in[0] + in[1]) + in[2]) + in[3]) + in[4]) + in[5]) + in[6]) + in[7]) + in[8]) + in[9]) + in[10]) + in[11]) + in[12]) + in[13]) + in[14]) + in[15])\n",
+        "native_reference": "sum16",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/symexpf_callseq.ptx",
+      "baseline_sha256": "bfde56b45ad3c356f1de1a59630420ec4aab06fb8992dd45cc84720c76cfc0f3",
+      "native_source": "tests/gfx950/portable-scalar/symexpf_callseq.s",
+      "native_source_sha256": "415b1665b9e7f037fe485c7f7706777df2e67660f5d4b7dfb9074dfb15a4ccb5",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::symexpf_callseq"
+      ],
+      "property": "exp",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = exp(in[0])\n",
+        "native_reference": "exp",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tanh_approx_expands_to_exp_fragment.ptx",
+      "baseline_sha256": "d545f7d4887bcd7cbf60843c1d03afef204446218f5bfbb9944d93f9a4e0fc72",
+      "native_source": "tests/gfx950/portable-scalar/tanh_approx_expands_to_exp_fragment.s",
+      "native_source_sha256": "c1826d92e39b80f5f319329c162b72da566225b661dd685d4d8253a8573c0aa4",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::tanh_approx_expands_to_exp_fragment"
+      ],
+      "property": "tanh",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = ((exp((in[0] * 2)) - 1) / (exp((in[0] * 2)) + 1))\n",
+        "native_reference": "tanh",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tanh_approx_zero_vs_zero.ptx",
+      "baseline_sha256": "ce3adac0b1abb00a950534a4a17c9cb41bb322f95df3b5ef5cb1b8e397559505",
+      "native_source": "tests/gfx950/portable-scalar/tanh_approx_zero_vs_zero.s",
+      "native_source_sha256": "4eb8944a9fe966b5822ebcfa67d48b981143fe774a3ad8d54e8a3610559627cf",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::tanh_approx_zero_vs_zero"
+      ],
+      "property": "tanh_zero_fragment",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = ((exp(0) - 1) / (exp(0) + 1))\n",
+        "native_reference": "tanh_zero_fragment",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tanh_approx_zero_vs_zero_2.ptx",
+      "baseline_sha256": "655e2f77447f48dc70295945d2333421c50f626d9d6db342a3daca61869db46a",
+      "native_source": "tests/gfx950/portable-scalar/tanh_approx_zero_vs_zero_2.s",
+      "native_source_sha256": "fc0cf1ee995621757f469256e753f71d1f13118f405bd031c915e1908873e83a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::tanh_approx_zero_vs_zero_2"
+      ],
+      "property": "zero",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 0\n",
+        "native_reference": "zero",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvta_to_global_accepted.ptx",
+      "baseline_sha256": "a52477e0e92f6cd7bd65f6d5e003a63368549e5aee5fff15c6d1b73612d5ec6a",
+      "native_source": "tests/gfx950/portable-scalar/cvta_to_global_accepted.s",
+      "native_source_sha256": "5aa9c3c24a154314c6de34819ee6ff0c965c10e34f076643a64e551219e36a53",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::cvta_to_global_accepted"
+      ],
+      "property": "copy",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "",
+        "native_reference": "copy",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": "Baseline positively accepts an identity pointer conversion with no output. Native counterpart strengthens ordinary pointer transport with a bounded input/output copy; exact PTX CVTA encoding is separately scoped."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mapa_rank_zero_is_the_identity.ptx",
+      "baseline_sha256": "dd0e89388a5fcaf237f40242c7885f12893f16960c9cd82ffcba963f609c027f",
+      "native_source": "tests/gfx950/portable-scalar/mapa_rank_zero_is_the_identity.s",
+      "native_source_sha256": "1a115908ae9a18ffea04c14fd5a91e989cd22b198989da1dfcad4ea2199e150b",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::mapa_rank_zero_is_the_identity"
+      ],
+      "property": "offsets",
+      "configuration": {
+        "block": 4,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 16,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 0\nout[1] = 4\nout[2] = 8\nout[3] = 12\n",
+        "native_reference": "offsets",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": "Same-workgroup LDS byte offset identity, output0,4,8,12. Cross-CTA cluster routing is not claimed."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/extern_only_shared_placement_and_bounds.ptx",
+      "baseline_sha256": "bdbad9e73049ca3e97c8f59c879eadb29638612a7291dd1508a5b91db30e689c",
+      "native_source": "tests/gfx950/portable-scalar/extern_only_shared_placement_and_bounds.s",
+      "native_source_sha256": "3fe64da46c0b4da77c5372857b5042735e84fd3c17b5d7aaec5643dacdd2d47c",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::extern_only_shared_placement_and_bounds"
+      ],
+      "property": "fortytwo",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 16,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 42\n",
+        "native_reference": "fortytwo",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/extern_vs_static_shared_no_false_race.ptx",
+      "baseline_sha256": "915f8fe1cf1c2860fbc873391ff99cb7c226e1b828dc8a6a6490ca1c8e0e8c7a",
+      "native_source": "tests/gfx950/portable-scalar/extern_vs_static_shared_no_false_race.s",
+      "native_source_sha256": "e76f5ebc4ea97ce935884af5d5fa25efe132c5fc78bb7341c7d3f654e9d1143a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::extern_vs_static_shared_no_false_race"
+      ],
+      "property": "seven",
+      "configuration": {
+        "block": 2,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 256,
+        "dynamic_shared": 16,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 7\n",
+        "native_reference": "seven",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.ptx",
+      "baseline_sha256": "904915bd3fcf5cbc221490fcbae91a0fbc2f4c28e048a752b952b918bd7ad549",
+      "native_source": "tests/gfx950/portable-scalar/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.s",
+      "native_source_sha256": "2b88ca5bb38ba33beccd62665bfb9f6fdd075de7e77b1dad5a074195b5327e98",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::byte_pair_round_trips_through_shared_memory_at_native_16_bit_width"
+      ],
+      "property": "bytepair",
+      "configuration": {
+        "block": 1,
+        "input_width": 1,
+        "input_len": 2,
+        "output_width": 4,
+        "output_len": 2,
+        "lds": 0,
+        "dynamic_shared": 16,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = x[0]\nout[1] = x[1]\n",
+        "native_reference": "bytepair",
+        "native_full_output_capacity": 2
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/upper_half_address_space_access_in_bounds.ptx",
+      "baseline_sha256": "a2faa3788685e89f315b2b7e062974a9488d706ffd674269419575afe12c36df",
+      "native_source": "tests/gfx950/portable-scalar/upper_half_address_space_access_in_bounds.s",
+      "native_source_sha256": "5716d5f8f2537d8ae83ba3c9512fbf52fbfa021ed4b0e1f32379c4c0a4559fa9",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::upper_half_address_space_access_in_bounds"
+      ],
+      "property": "copy4",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 8,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "dynamic_shared": 0,
+        "input_base": 9223372036854775792,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = in[4]\n",
+        "native_reference": "copy4",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": "Preserves exact baseline input base0x7ffffffffffffff0 and+16 access crossing signed i64 boundary without unsigned64 wrap."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/region_edge_exact_fit_accesses_pass.ptx",
+      "baseline_sha256": "77216b8268c4675fe72cdfa596a7ab04ec1e6a61eefcb77c478942e11adfcd1d",
+      "native_source": "tests/gfx950/portable-scalar/region_edge_exact_fit_accesses_pass.s",
+      "native_source_sha256": "4befaeaccbfe8229be542ef359e04b084a1cf6c29a1359db42f164710b7d9de4",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::region_edge_exact_fit_accesses_pass"
+      ],
+      "property": "regionedge",
+      "configuration": {
+        "block": 1,
+        "input_width": 4,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 2,
+        "lds": 112,
+        "dynamic_shared": 0,
+        "input_base": 65536,
+        "output_base": 131072
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 7\nout[1] = 1\n",
+        "native_reference": "regionedge",
+        "native_full_output_capacity": 2
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/array_overlapping_module_global_window_rejected.ptx",
+      "baseline_sha256": "16a4f5e7bfb0b716d6173c932b8684857eec87f49fbc9c61bc2a760f337510d5",
+      "native_source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-module-globals.s",
+      "native_source_sha256": "4685d039ca74ebfb46c64326de9302af19675f60dac01990a7da3a07316d7009",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::module_global_window_half_open_boundary_is_disjoint_and_bindings_are_loaded"
+      ],
+      "property": "Array ends exactly at synthetic module window base and remains disjoint; native also checks actual bound object values and readonly initialization.",
+      "configuration": {
+        "native_launch": "See genuine compiler fixture manifest and exact Rust test"
+      },
+      "expected": "Exact half-open module-global boundary plus bound scalar global values pass.",
+      "target_difference": "Array ends exactly at synthetic module window base and remains disjoint; native also checks actual bound object values and readonly initialization."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/cluster_special_registers_describe_a_single_cta_cluster.ptx",
+      "baseline_sha256": "0b3fff38f527e5a4601b0f5014b20fa824d2d126de850b3514cf9dfdf630815b",
+      "native_source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-grid-output.s",
+      "native_source_sha256": "4329c90b02b41cea7e7cbe81184b3b5552d00283a731fdbfd5a2496933e20000",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_portable_scalar_tests.rs::launch_grid_and_group_dimensions_are_emitted_as_integer_outputs"
+      ],
+      "property": "Only portable ordinary grid(2,3,4), groupID(0,0,0), block(4,3,2) outputs. Exact15-field NVIDIA cluster contract is separately scoped and not claimed as native output equality.",
+      "configuration": {
+        "native_launch": "See genuine compiler fixture manifest and exact Rust test"
+      },
+      "expected": "Native nine ordinary grid/group/block outputs pass; exact six NVIDIA cluster fields stay PTX-only.",
+      "target_difference": "Only portable ordinary grid(2,3,4), groupID(0,0,0), block(4,3,2) outputs. Exact15-field NVIDIA cluster contract is separately scoped and not claimed as native output equality."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ldmatrix_trans_mapping.ptx",
+      "baseline_sha256": "8da8846b0aad113f413557dd814e7f53ae8af2ef2adaa5b0650d56515eee42a9",
+      "native_source": "tests/gfx950/portable-matrix/ldmatrix_transpose_8x8.s",
+      "native_source_sha256": "a0434ac191ae2f14f6a2712fd3a383310094c4a1702fa8e301a55ce76d1b03c6",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::ldmatrix_transpose_8x8"
+      ],
+      "property": "transpose8",
+      "configuration": {
+        "block": 32,
+        "input_width": 2,
+        "input_len": 64,
+        "output_width": 2,
+        "output_len": 64,
+        "lds": 128,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = in[0]\nout[1] = in[8]\nout[2] = in[16]\nout[3] = in[24]\nout[4] = in[32]\nout[5] = in[40]\nout[6] = in[48]\nout[7] = in[56]\nout[8] = in[1]\nout[9] = in[9]\nout[10] = in[17]\nout[11] = in[25]\nout[12] = in[33]\nout[13] = in[41]\nout[14] = in[49]\nout[15] = in[57]\nout[16] = in[2]\nout[17] = in[10]\nout[18] = in[18]\nout[19] = in[26]\nout[20] = in[34]\nout[21] = in[42]\nout[22] = in[50]\nout[23] = in[58]\nout[24] = in[3]\nout[25] = in[11]\nout[26] = in[19]\nout[27] = in[27]\nout[28] = in[35]\nout[29] = in[43]\nout[30] = in[51]\nout[31] = in[59]\nout[32] = in[4]\nout[33] = in[12]\nout[34] = in[20]\nout[35] = in[28]\nout[36] = in[36]\nout[37] = in[44]\nout[38] = in[52]\nout[39] = in[60]\nout[40] = in[5]\nout[41] = in[13]\nout[42] = in[21]\nout[43] = in[29]\nout[44] = in[37]\nout[45] = in[45]\nout[46] = in[53]\nout[47] = in[61]\nout[48] = in[6]\nout[49] = in[14]\nout[50] = in[22]\nout[51] = in[30]\nout[52] = in[38]\nout[53] = in[46]\nout[54] = in[54]\nout[55] = in[62]\nout[56] = in[7]\nout[57] = in[15]\nout[58] = in[23]\nout[59] = in[31]\nout[60] = in[39]\nout[61] = in[47]\nout[62] = in[55]\nout[63] = in[63]\n",
+        "native_reference": "transpose8",
+        "native_full_output_capacity": 64
+      },
+      "target_difference": "Preserves complete 64 half output permutation; native naturally aligned 2 byte DS reads replace PTX collective 16 byte row fetch."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_ldmatrix.ptx",
+      "baseline_sha256": "065cc25fd125592a5310841ca86d8467ccc5fd06678c729dc7ef565cc40f9466",
+      "native_source": "tests/gfx950/portable-matrix/ldmatrix_four_fragment_pairs.s",
+      "native_source_sha256": "06dd86dbd2eeb82f14f4259a4c6e1c3e1805c935de014c0e30c044a90fde6229",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::ldmatrix_four_fragment_pairs"
+      ],
+      "property": "four_pairs",
+      "configuration": {
+        "block": 32,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 2,
+        "output_len": 256,
+        "lds": 1024,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "",
+        "native_reference": "four_pairs",
+        "native_full_output_capacity": 256
+      },
+      "target_difference": "Original has no output; native checks all 256 half fragment items from four 8x 8 tiles with the same 16 byte row boundaries."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/stmatrix_writes_the_expected_byte_per_lane.ptx",
+      "baseline_sha256": "782e8e2ad7f0a4c6a913821f040557b3c37cbbd0f0404baf62cba9dcee2dbd39",
+      "native_source": "tests/gfx950/portable-matrix/stmatrix_lane_word_placement.s",
+      "native_source_sha256": "46cc2b36740f7f6e47e36738e6faa33b194066ce429d76a7f649a25b579b7567",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::stmatrix_lane_word_placement"
+      ],
+      "property": "lane_words",
+      "configuration": {
+        "block": 32,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 33,
+        "lds": 128,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 1005\n",
+        "native_reference": "lane_words",
+        "native_full_output_capacity": 33
+      },
+      "target_difference": "out 0 preserves original lane 5=1005 assertion; out 1..32 check all 32 distinct 32 bit words covering exactly 128LDSbytes."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_wmma_load_and_store_load.ptx",
+      "baseline_sha256": "8cac73fc9d2d1637afc4c578841a14be342178234ce3a816d210393f87412053",
+      "native_source": "tests/gfx950/portable-matrix/wmma_fragment_contiguous.s",
+      "native_source_sha256": "4802c3bca21e577497b5a64928697a3c0f9b359917da61759c1a7e122fdd5bc1",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::wmma_fragment_contiguous"
+      ],
+      "property": "weighted16",
+      "configuration": {
+        "block": 64,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 256,
+        "lds": 2048,
+        "fragment": true
+      },
+      "expected": {
+        "baseline_golden": "",
+        "native_reference": "weighted16",
+        "native_full_output_capacity": 256
+      },
+      "target_difference": "Preserves native LDS row stride 32 bytes for 16x 16F16 tile; exports every gathered half and all 256 weighted MFMA outputs. Native DS b 64 natural alignment 8 differs from PTX WMMA32 byte base/16 byte row rules."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/wmma_skewed_stride_is_legal.ptx",
+      "baseline_sha256": "1b3b65d3f4f404978b723e55bd582585f166484a308d96dca0fedbb383f756e1",
+      "native_source": "tests/gfx950/portable-matrix/wmma_fragment_stride48.s",
+      "native_source_sha256": "f9df8e860782edcffa03c6059fbae16c79168afde807473b119e30e06f9fb325",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::wmma_fragment_stride48"
+      ],
+      "property": "weighted16",
+      "configuration": {
+        "block": 64,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 256,
+        "lds": 2048,
+        "fragment": true
+      },
+      "expected": {
+        "baseline_golden": "",
+        "native_reference": "weighted16",
+        "native_full_output_capacity": 256
+      },
+      "target_difference": "Preserves native LDS row stride 48 bytes for 16x 16F16 tile; exports every gathered half and all 256 weighted MFMA outputs. Native DS b 64 natural alignment 8 differs from PTX WMMA32 byte base/16 byte row rules."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/wmma_stride_above_default_is_legal.ptx",
+      "baseline_sha256": "fc919f4076ab62c70e50f392a2928532760a697466f282b4657a57672059a82e",
+      "native_source": "tests/gfx950/portable-matrix/wmma_fragment_stride64.s",
+      "native_source_sha256": "105de139eb17745bb91f8b6730af3a91bdb1dd5ddc5723a9816064ef694e66e5",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::wmma_fragment_stride64"
+      ],
+      "property": "weighted16",
+      "configuration": {
+        "block": 64,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 256,
+        "lds": 2048,
+        "fragment": true
+      },
+      "expected": {
+        "baseline_golden": "",
+        "native_reference": "weighted16",
+        "native_full_output_capacity": 256
+      },
+      "target_difference": "Preserves native LDS row stride 64 bytes for 16x 16F16 tile; exports every gathered half and all 256 weighted MFMA outputs. Native DS b 64 natural alignment 8 differs from PTX WMMA32 byte base/16 byte row rules."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_wmma_load_and_store_store.ptx",
+      "baseline_sha256": "cc95a9380f42908d85a6b1084f6dba3543c92198d5e3ab0cf99e9dc0988ef7d8",
+      "native_source": "tests/gfx950/portable-matrix/wmma_store_tile_ones.s",
+      "native_source_sha256": "8487ea3b2c3a0803c157cea9f54e9f06695acbc032751dbdd854717129f0d457",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::wmma_store_tile_ones"
+      ],
+      "property": "ones",
+      "configuration": {
+        "block": 64,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 256,
+        "lds": 4096,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "",
+        "native_reference": "ones",
+        "native_full_output_capacity": 256
+      },
+      "target_difference": "Original has no output; native exports all 256F32 values after row-major 64 byte LDS rows and native MFMA C-immediate 1 broadcast."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mma_accumulator_register_decodes_raw_bits.ptx",
+      "baseline_sha256": "e4594590e23bf1593480a7236a559af807b5a285deecbb19d56ebb02c1cf2d71",
+      "native_source": "tests/gfx950/portable-matrix/mma_raw_accumulator_identity.s",
+      "native_source_sha256": "72b0e958e03c436fb590b38f6bce5709ca99d6c37b71f2e0c0f63b98dbba81ab",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::mma_raw_accumulator_identity"
+      ],
+      "property": "identity_c",
+      "configuration": {
+        "block": 64,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 128,
+        "lds": 0,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 1\nout[1] = 0\nout[2] = 0\nout[3] = 0\nout[4] = 1\nout[5] = 0\nout[6] = 0\nout[7] = 0\nout[8] = 1\nout[9] = 0\nout[10] = 0\nout[11] = 0\nout[12] = 1\nout[13] = 0\nout[14] = 0\nout[15] = 0\nout[16] = 1\nout[17] = 0\nout[18] = 0\nout[19] = 0\nout[20] = 1\nout[21] = 0\nout[22] = 0\nout[23] = 0\nout[24] = 1\nout[25] = 0\nout[26] = 0\nout[27] = 0\nout[28] = 1\nout[29] = 0\nout[30] = 0\nout[31] = 0\nout[32] = 1\nout[33] = 0\nout[34] = 0\nout[35] = 0\nout[36] = 1\nout[37] = 0\nout[38] = 0\nout[39] = 0\nout[40] = 1\nout[41] = 0\nout[42] = 0\nout[43] = 0\nout[44] = 1\nout[45] = 0\nout[46] = 0\nout[47] = 0\nout[48] = 1\nout[49] = 0\nout[50] = 0\nout[51] = 0\nout[52] = 1\nout[53] = 0\nout[54] = 0\nout[55] = 0\nout[56] = 1\nout[57] = 0\nout[58] = 0\nout[59] = 0\nout[60] = 1\nout[61] = 0\nout[62] = 0\nout[63] = 0\nout[64] = 1\nout[65] = 0\nout[66] = 0\nout[67] = 0\nout[68] = 1\nout[69] = 0\nout[70] = 0\nout[71] = 0\nout[72] = 1\nout[73] = 0\nout[74] = 0\nout[75] = 0\nout[76] = 1\nout[77] = 0\nout[78] = 0\nout[79] = 0\nout[80] = 1\nout[81] = 0\nout[82] = 0\nout[83] = 0\nout[84] = 1\nout[85] = 0\nout[86] = 0\nout[87] = 0\nout[88] = 1\nout[89] = 0\nout[90] = 0\nout[91] = 0\nout[92] = 1\nout[93] = 0\nout[94] = 0\nout[95] = 0\nout[96] = 1\nout[97] = 0\nout[98] = 0\nout[99] = 0\nout[100] = 1\nout[101] = 0\nout[102] = 0\nout[103] = 0\nout[104] = 1\nout[105] = 0\nout[106] = 0\nout[107] = 0\nout[108] = 1\nout[109] = 0\nout[110] = 0\nout[111] = 0\nout[112] = 1\nout[113] = 0\nout[114] = 0\nout[115] = 0\nout[116] = 1\nout[117] = 0\nout[118] = 0\nout[119] = 0\nout[120] = 1\nout[121] = 0\nout[122] = 0\nout[123] = 0\nout[124] = 1\nout[125] = 0\nout[126] = 0\nout[127] = 0\n",
+        "native_reference": "identity_c",
+        "native_full_output_capacity": 128
+      },
+      "target_difference": "Raw 0x 3f 800000 C register must decode toF32 one. Full native wave executes; lower 32 lanes export exact original 128 fragment values."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mma_with_immediate_accumulator.ptx",
+      "baseline_sha256": "52eded8b3bec83a08bb7a4f37086c3daa6a6aafacb77130b101888b2767b085b",
+      "native_source": "tests/gfx950/portable-matrix/mma_immediate_accumulator_identity.s",
+      "native_source_sha256": "f828fc62f3f8877d1f983d4ed29879e01703322bb36c19eb95fb965878902079",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::mma_immediate_accumulator_identity"
+      ],
+      "property": "identity_c",
+      "configuration": {
+        "block": 64,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 128,
+        "lds": 0,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 1\nout[1] = 0\nout[2] = 0\nout[3] = 0\nout[4] = 1\nout[5] = 0\nout[6] = 0\nout[7] = 0\nout[8] = 1\nout[9] = 0\nout[10] = 0\nout[11] = 0\nout[12] = 1\nout[13] = 0\nout[14] = 0\nout[15] = 0\nout[16] = 1\nout[17] = 0\nout[18] = 0\nout[19] = 0\nout[20] = 1\nout[21] = 0\nout[22] = 0\nout[23] = 0\nout[24] = 1\nout[25] = 0\nout[26] = 0\nout[27] = 0\nout[28] = 1\nout[29] = 0\nout[30] = 0\nout[31] = 0\nout[32] = 1\nout[33] = 0\nout[34] = 0\nout[35] = 0\nout[36] = 1\nout[37] = 0\nout[38] = 0\nout[39] = 0\nout[40] = 1\nout[41] = 0\nout[42] = 0\nout[43] = 0\nout[44] = 1\nout[45] = 0\nout[46] = 0\nout[47] = 0\nout[48] = 1\nout[49] = 0\nout[50] = 0\nout[51] = 0\nout[52] = 1\nout[53] = 0\nout[54] = 0\nout[55] = 0\nout[56] = 1\nout[57] = 0\nout[58] = 0\nout[59] = 0\nout[60] = 1\nout[61] = 0\nout[62] = 0\nout[63] = 0\nout[64] = 1\nout[65] = 0\nout[66] = 0\nout[67] = 0\nout[68] = 1\nout[69] = 0\nout[70] = 0\nout[71] = 0\nout[72] = 1\nout[73] = 0\nout[74] = 0\nout[75] = 0\nout[76] = 1\nout[77] = 0\nout[78] = 0\nout[79] = 0\nout[80] = 1\nout[81] = 0\nout[82] = 0\nout[83] = 0\nout[84] = 1\nout[85] = 0\nout[86] = 0\nout[87] = 0\nout[88] = 1\nout[89] = 0\nout[90] = 0\nout[91] = 0\nout[92] = 1\nout[93] = 0\nout[94] = 0\nout[95] = 0\nout[96] = 1\nout[97] = 0\nout[98] = 0\nout[99] = 0\nout[100] = 1\nout[101] = 0\nout[102] = 0\nout[103] = 0\nout[104] = 1\nout[105] = 0\nout[106] = 0\nout[107] = 0\nout[108] = 1\nout[109] = 0\nout[110] = 0\nout[111] = 0\nout[112] = 1\nout[113] = 0\nout[114] = 0\nout[115] = 0\nout[116] = 1\nout[117] = 0\nout[118] = 0\nout[119] = 0\nout[120] = 1\nout[121] = 0\nout[122] = 0\nout[123] = 0\nout[124] = 1\nout[125] = 0\nout[126] = 0\nout[127] = 0\n",
+        "native_reference": "identity_c",
+        "native_full_output_capacity": 128
+      },
+      "target_difference": "Native MFMA requires full wave 64; lower 32 lanes export the exact original 128 fragment values [1,0,0,0]. Native scalar inline C broadcasts; two broadcasts and native register moves implement the original heterogeneous PTX immediate vector."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_numeric_correctness.ptx",
+      "baseline_sha256": "121fd9857349a657df31220ef6521b7d1c5beb6d71c068ac694eb4632a743518",
+      "native_source": "tests/gfx950/portable-matrix/tcgen_numeric136.s",
+      "native_source_sha256": "5357f8ca74a89eebdccd1a0758c68a49410a555fae73d17c5a70a22005ba58c3",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_numeric136"
+      ],
+      "property": "numeric136",
+      "configuration": {
+        "block": 512,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 1024,
+        "lds": 4608,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 136\n",
+        "native_reference": "numeric136",
+        "native_full_output_capacity": 1024
+      },
+      "target_difference": "Preserves logical M128,N8,K16 with 8 native full waves and internally paddedN16. Exports all 1024 original-shape coordinates; native LDS row-major addresses replace target-specific TCGEN descriptors/swizzle/allocation. Raw 17 also transports C seeds through actual LDS."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_without_an_explicit_disable_output_lane_mask.ptx",
+      "baseline_sha256": "83e6ef448e7f10130b310ee2f4165cb1f77daa19eb32c32ea84c7749fe4bb7cf",
+      "native_source": "tests/gfx950/portable-matrix/tcgen_numeric136.s",
+      "native_source_sha256": "5357f8ca74a89eebdccd1a0758c68a49410a555fae73d17c5a70a22005ba58c3",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_numeric136"
+      ],
+      "property": "numeric136",
+      "configuration": {
+        "block": 512,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 1024,
+        "lds": 4608,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 136\n",
+        "native_reference": "numeric136",
+        "native_full_output_capacity": 1024
+      },
+      "target_difference": "Preserves logical M128,N8,K16 with 8 native full waves and internally paddedN16. Exports all 1024 original-shape coordinates; native LDS row-major addresses replace target-specific TCGEN descriptors/swizzle/allocation. Raw 17 also transports C seeds through actual LDS."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_decodes_raw_operand_and_accumulator_bits.ptx",
+      "baseline_sha256": "fc6241d1ff003485fef1a4d9e6520ab36a1a7708ebe50988a1960ff3cff295f9",
+      "native_source": "tests/gfx950/portable-matrix/tcgen_raw_operands_accumulator17.s",
+      "native_source_sha256": "2bafd87f08be34f2ba0b8bb456d5220140ac4f49e5a58ce0ee35fe08452cefa7",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_raw_operands_accumulator17"
+      ],
+      "property": "raw17",
+      "configuration": {
+        "block": 512,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 1024,
+        "lds": 12800,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 17\n",
+        "native_reference": "raw17",
+        "native_full_output_capacity": 1024
+      },
+      "target_difference": "Preserves logical M128,N8,K16 with 8 native full waves and internally paddedN16. Exports all 1024 original-shape coordinates; native LDS row-major addresses replace target-specific TCGEN descriptors/swizzle/allocation. Raw 17 also transports C seeds through actual LDS."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_no_swizzle_mode_runs_to_completion.ptx",
+      "baseline_sha256": "c827ed27f5fbed0e813ad8c468762a606e7a6098ccc31256b95d6f1cc9882883",
+      "native_source": "tests/gfx950/portable-matrix/tcgen_no_swizzle_128x8.s",
+      "native_source_sha256": "201efd2ef257add9e662e12459cc29df991a7c46b7cdb2fbced3406d5fe0a317",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_no_swizzle_128x8"
+      ],
+      "property": "zero",
+      "configuration": {
+        "block": 512,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 1024,
+        "lds": 4608,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "",
+        "native_reference": "zero",
+        "native_full_output_capacity": 1024
+      },
+      "target_difference": "Preserves logical M128,N8,K16 with 8 native full waves and internally paddedN16. Exports all 1024 original-shape coordinates; native LDS row-major addresses replace target-specific TCGEN descriptors/swizzle/allocation. Raw 17 also transports C seeds through actual LDS."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_kind_f8f6f4_numeric_correctness.ptx",
+      "baseline_sha256": "4229646d0638698828979a4bad3fcb2dc91374fdaa98bf9767d54f7d6f9ed71e",
+      "native_source": "tests/gfx950/portable-matrix/tcgen_mixed_fp8_numeric408.s",
+      "native_source_sha256": "408a873c0fd9a8ad73a2d6e4e0c9bd169a120d816d36f9d9c0c16f5761b13289",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_mixed_fp8_numeric408"
+      ],
+      "property": "mixed408",
+      "configuration": {
+        "block": 512,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 1024,
+        "lds": 36864,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 408\n",
+        "native_reference": "mixed408",
+        "native_full_output_capacity": 1024
+      },
+      "target_difference": "Preserves logical M128,N8,K32; unit-scaled nativeK128 pads remainingK with zeros. Native selected E8M0 bytes 127. A E4M3, B E5M2(blgp 1), and the original 128 byte physical gap between first and second 16-K cores are explicit."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_decodes_a_concrete_scalar_bit_pattern.ptx",
+      "baseline_sha256": "d012832ec82eca8c92f48090edd5959c3514238f428278beeece89a1ffb7f1eb",
+      "native_source": "tests/gfx950/portable-matrix/e4m3_concrete_pair.s",
+      "native_source_sha256": "f5ed55a4c8b2128cafe86dd52c0bf1d30c73d54390e1a8255af7e9c17fb3e40a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::e4m3_concrete_pair"
+      ],
+      "property": "pair",
+      "configuration": {
+        "block": 1,
+        "input_width": 1,
+        "input_len": 1,
+        "output_width": 4,
+        "output_len": 2,
+        "lds": 0,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 1\nout[1] = -1\n",
+        "native_reference": "pair",
+        "native_full_output_capacity": 2
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_relu_clamps_a_negative_decoded_lane_to_zero.ptx",
+      "baseline_sha256": "3a391d0e2e65fe61cb45502d99f5ad303a18eb8e4028e8c670600bc683ae3d5c",
+      "native_source": "tests/gfx950/portable-matrix/e4m3_concrete_pair_relu.s",
+      "native_source_sha256": "0ab9c5d1719f9c8c4aa390da1f9e0fb314eb1bb6e140d6bdb8a34c2ecd06b348",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::e4m3_concrete_pair_relu"
+      ],
+      "property": "pair_relu",
+      "configuration": {
+        "block": 1,
+        "input_width": 1,
+        "input_len": 1,
+        "output_width": 4,
+        "output_len": 2,
+        "lds": 0,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = 1\nout[1] = 0\n",
+        "native_reference": "pair_relu",
+        "native_full_output_capacity": 2
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_vector_load_keeps_four_symbolic_bytes_independent.ptx",
+      "baseline_sha256": "1c31b2fa0d12e82ee27c31f91a64d5eedb4ac0b79698884c1c9fd4b93f38f8af",
+      "native_source": "tests/gfx950/portable-matrix/e4m3_vector_bytes.s",
+      "native_source_sha256": "c6a4db7de09d6802b5be6bac2a02231ee3aae618fa4911857d2e9f61a461dc93",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::e4m3_vector_bytes"
+      ],
+      "property": "bytes4",
+      "configuration": {
+        "block": 1,
+        "input_width": 1,
+        "input_len": 8,
+        "output_width": 4,
+        "output_len": 4,
+        "lds": 0,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = x[0]\nout[1] = x[1]\nout[2] = x[2]\nout[3] = x[3]\n",
+        "native_reference": "bytes4",
+        "native_full_output_capacity": 4
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_low_half_extracted_via_cvt_u16_u32_truncation_of_a_quad.ptx",
+      "baseline_sha256": "0762344ccdf0869a59e6825b08a1f42c98b635a62af5e4c7acf9f4ea4869d723",
+      "native_source": "tests/gfx950/portable-matrix/e4m3_selected_low_halves.s",
+      "native_source_sha256": "54686d6e45b7fb8c22e0eb9298eecf74cbbb101c117ec4099be1948cc04ecd2d",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::e4m3_selected_low_halves"
+      ],
+      "property": "bytes02",
+      "configuration": {
+        "block": 1,
+        "input_width": 1,
+        "input_len": 4,
+        "output_width": 4,
+        "output_len": 2,
+        "lds": 0,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = x[0]\nout[1] = x[2]\n",
+        "native_reference": "bytes02",
+        "native_full_output_capacity": 2
+      },
+      "target_difference": "Native byte selection directly preserves the two observed low bytes 0 and 2; PTX intermediate u 16 register truncation is not an AMD opcode contract."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_scalar_source_from_a_zero_extended_byte_load.ptx",
+      "baseline_sha256": "231351fdc0c0531a9d83408c00e6291d70e72553e4e594827af92434c48d67e1",
+      "native_source": "tests/gfx950/portable-matrix/e4m3_zero_extended_byte.s",
+      "native_source_sha256": "644ede9a366b54bfe777bd7ebc96c2312c67c62f606e1f3c7ef35d9a252d6842",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::e4m3_zero_extended_byte"
+      ],
+      "property": "byte0",
+      "configuration": {
+        "block": 1,
+        "input_width": 1,
+        "input_len": 1,
+        "output_width": 4,
+        "output_len": 1,
+        "lds": 0,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "out[0] = x[0]\n",
+        "native_reference": "byte0",
+        "native_full_output_capacity": 1
+      },
+      "target_difference": ""
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_real_kernel_descriptors_run_to_completion.ptx",
+      "baseline_sha256": "eb47b0288cd5cfd8d7e874918a936e2451076013f91a1fb3ef81df8345ac0959",
+      "native_source": "tests/gfx950/portable-matrix/tcgen_shape128x256_lds_bounds.s",
+      "native_source_sha256": "8ad9703459759bf9b24904dad2fe3823ac26052767434edbac9a3e2fa3169825",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_shape128x256_lds_bounds"
+      ],
+      "property": "zero",
+      "configuration": {
+        "block": 1024,
+        "input_width": 2,
+        "input_len": 256,
+        "output_width": 4,
+        "output_len": 32768,
+        "lds": 49168,
+        "fragment": false
+      },
+      "expected": {
+        "baseline_golden": "",
+        "native_reference": "zero",
+        "native_full_output_capacity": 32768
+      },
+      "target_difference": "Preserves full logical M128,N256,K16 and original 49168 byte total LDS budget. Native 1024 threads perform 12816x 16MFMA tiles; actual compact ordinary row-major A/B occupy 12288 bytes, with exact-fit finalB DS b 64 access. Exports all 32768 zero outputs; original checks completion only. Exact PTX descriptors/swizzle/control objects remain target-specific."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/e4m3x2_rejects_the_concrete_nan_byte_pattern.ptx",
+      "baseline_sha256": "facf94c374122d2649a80ec4ca722b75bae8fb81a3df90d62cb26b176e813521",
+      "native_source": "tests/gfx950/portable-data/fp8_nan_pair.s",
+      "native_source_sha256": "2d48d59fda29225f185c8785fb082c9dcd38f4c154580f9397cedc7356d25828",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::concrete_fp8_pairs_decode_low_high_and_relu_independently"
+      ],
+      "property": "fp8-half-packing-and-independent-elements",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Concrete0x7f byte is rejected by actual OCP E4M3 decoder.",
+      "target_difference": "Concrete0x7f byte is rejected by actual OCP E4M3 decoder."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/float_op_rejects_nan_bit_pattern.ptx",
+      "baseline_sha256": "2b0c07396e3210c6f73e16a8058686175c57df74e71b01222c6802c22f9b67b7",
+      "native_source": "tests/gfx950/portable-data/f32_nan_bits.s",
+      "native_source_sha256": "4cc116b1be20db2a7239d20a5807bfd78b70769b8921e629966d709d54adb604",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::nonreal_literals_raw_bits_parameters_and_zero_division_have_no_positive_result"
+      ],
+      "property": "non-real-arithmetic-rejection",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Runtime rejects raw NaN bits at actual floating arithmetic consumer.",
+      "target_difference": "Runtime rejects raw NaN bits at actual floating arithmetic consumer."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/nan_float_param_rejected.ptx",
+      "baseline_sha256": "8c7b07bb6156d52cf6d745c0da9370d64ee53a697226b091ba92c47e8ccaae14",
+      "native_source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-mixed-byvalue.s",
+      "native_source_sha256": "72a7cea82b970a8e181f000d9de99cab9b9479a75d87e15e48b082d5f01c9014",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::nonreal_literals_raw_bits_parameters_and_zero_division_have_no_positive_result"
+      ],
+      "property": "non-real-arithmetic-rejection",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Genuine six-argument ABI configured with NaN alpha rejects configuration before execution.",
+      "target_difference": "Genuine six-argument ABI configured with NaN alpha rejects configuration before execution."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/nan_literal_rejected_at_lowering.ptx",
+      "baseline_sha256": "1a9254977f3cb63a294a43282853b66c933385a905a1fc8ac4cd865a7c978b7d",
+      "native_source": "tests/gfx950/portable-data/f32_nan_literal.s",
+      "native_source_sha256": "cba8919e755037673ba940712261b3100bd1b6ffa80d9e8ea3403af6d506a493",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::nonreal_literals_raw_bits_parameters_and_zero_division_have_no_positive_result"
+      ],
+      "property": "non-real-arithmetic-rejection",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Native raw literal encoding is legal assembly; typed floating consumer rejects NaN. Target stage differs from PTX lowering.",
+      "target_difference": "Native raw literal encoding is legal assembly; typed floating consumer rejects NaN. Target stage differs from PTX lowering."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/symbolic_branch_rejected.ptx",
+      "baseline_sha256": "1c7c05d366ba42c1b3dc93cd86038c2fd0fdb832310f303b9a38841cb68b97e0",
+      "native_source": "tests/gfx950/portable-data/symbolic_branch.s",
+      "native_source_sha256": "4ba82c6de6cefee7a8399c755d1fa322af0d27361fe3c61963d26337ffe3b346",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_branches_and_observable_narrow_scalar_bitcasts_remain_closed"
+      ],
+      "property": "explicit-model-boundaries",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Symbolic comparison mask cannot select native scalar control flow.",
+      "target_difference": "Symbolic comparison mask cannot select native scalar control flow."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/symbolic_integer_div_is_unsupported.ptx",
+      "baseline_sha256": "f8ee9759dd03eff3241160a54eb4e16e739b8f36771840be149e13049f355ec3",
+      "native_source": "tests/gfx950/portable-data/integer_floor_doubled.s",
+      "native_source_sha256": "f39dc021d812de931710dd4766983a0563b53baac42022ce26e43dbd9c45c288",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_integer_floor_does_not_become_rational_division_or_roundtrip_identity"
+      ],
+      "property": "explicit-model-boundaries",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Native divide-by-two is exactly represented by masked integer shifts. Symbolic roundtrip is not proved identity; IndexInput values0..7 independently demonstrate truncation and counterexample1->0. This supports more native arithmetic than PTX symbolic div.",
+      "target_difference": "Native divide-by-two is exactly represented by masked integer shifts. Symbolic roundtrip is not proved identity; IndexInput values0..7 independently demonstrate truncation and counterexample1->0. This supports more native arithmetic than PTX symbolic div."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/symbolic_sub_register_load_rejected.ptx",
+      "baseline_sha256": "e4fb2c0658e3f9b916999957beb1c481102116016db2f2fd39762231e10bd912",
+      "native_source": "tests/gfx950/portable-data/signed_byte_extension.s",
+      "native_source_sha256": "1b6e1d2313b7c663205997609b0cc34cf17a2577ea3c90e68d2cc6dcaef01461",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_sign_extended_byte_load_is_numeric_and_cannot_be_reinterpreted_as_fp8"
+      ],
+      "property": "explicit-model-boundaries",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "AMD GLOBAL_LOAD_SBYTE explicitly sign-extends. Numeric I8 input identity is supported, and conflicting FP8 reinterpretation is rejected; differs from PTX unsupported narrow-load model.",
+      "target_difference": "AMD GLOBAL_LOAD_SBYTE explicitly sign-extends. Numeric I8 input identity is supported, and conflicting FP8 reinterpretation is rejected; differs from PTX unsupported narrow-load model."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/symbolic_sub_register_store_rejected.ptx",
+      "baseline_sha256": "791b66dbaf5485075d11bac5dad1bdd80b51dea45c2943fe8b3396968242cc73",
+      "native_source": "tests/gfx950/portable-data/symbolic_narrow_store.s",
+      "native_source_sha256": "4a8b0affd9d5c4315d67ff4467af78b956aa2dcd2435d03144a50f223c53b681",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_branches_and_observable_narrow_scalar_bitcasts_remain_closed"
+      ],
+      "property": "explicit-model-boundaries",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "An arbitrary symbolic32 word cannot silently truncate to a byte.",
+      "target_difference": "An arbitrary symbolic32 word cannot silently truncate to a byte."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/zero_over_zero_is_a_loud_equivalence_error.ptx",
+      "baseline_sha256": "72d6e14d863fc4865e25c0031bdf0377a74cd3646fcb9a88fb570d4f7999154d",
+      "native_source": "tests/gfx950/portable-data/zero_rcp_f32.s",
+      "native_source_sha256": "bc83770fdaa26e3c3503549afb1c93ec12982fe39a94e4f961fc7d7a14aa84a8",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::nonreal_literals_raw_bits_parameters_and_zero_division_have_no_positive_result"
+      ],
+      "property": "non-real-arithmetic-rejection",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Native divide counterpart0*rcp0 rejects at concrete reciprocal; it cannot simplify to zero. Stage differs from direct PTX division.",
+      "target_difference": "Native divide counterpart0*rcp0 rejects at concrete reciprocal; it cannot simplify to zero. Stage differs from direct PTX division."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/redux_predicate_side_effect_race.ptx",
+      "baseline_sha256": "b131a2f052b02faa73355ca8be06303649b54f1cc64566a0819b91d36adc2e42",
+      "native_source": "tests/gfx950/portable-data/predicate_permute_side_effect_race.s",
+      "native_source_sha256": "4f76b0453286fdbc1ea6718fd6447d09e9c1e86de390a7c633336a775f01839a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_predicate_permute_idiom_retains_the_same_value_shared_write_race"
+      ],
+      "property": "unsupported-idioms-cannot-drop-predicate-side-effects",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Supported native DS permutation plus predicate-controlled two-wave writes retain same-value LDS WriteWrite conflict. PTX redux opcode is not claimed; portable no-dropped-side-effects property is tested.",
+      "target_difference": "Supported native DS permutation plus predicate-controlled two-wave writes retain same-value LDS WriteWrite conflict. PTX redux opcode is not claimed; portable no-dropped-side-effects property is tested."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.ptx",
+      "baseline_sha256": "904915bd3fcf5cbc221490fcbae91a0fbc2f4c28e048a752b952b918bd7ad549",
+      "native_source": "tests/gfx950/portable-scalar/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.s",
+      "native_source_sha256": "2b88ca5bb38ba33beccd62665bfb9f6fdd075de7e77b1dad5a074195b5327e98",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_fp8_bytes_survive_vector_pair_and_native_low16_truncation"
+      ],
+      "property": "fp8-half-packing-and-independent-elements",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Reuses independently assembled native16-bit global/LDS byte-pair transport.",
+      "target_difference": "Reuses independently assembled native16-bit global/LDS byte-pair transport."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvt_pack_halves_values.ptx",
+      "baseline_sha256": "da22611303840aa029831ec3f8c3d68d5d5121d32c96388c2ead307cfb6f927e",
+      "native_source": "tests/gfx950/portable-data/pack_halves_order.s",
+      "native_source_sha256": "2c41392b04a83d03f5acee48bdc1f996ca7b743bca5e71b6a6f3f1ed4e137bd9",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_half_packing_order_and_relu_have_independent_typed_references"
+      ],
+      "property": "fp8-half-packing-and-independent-elements",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "AMD packed conversion stores SRC0 low and SRC1 high; source operands preserve baseline output order2.5,1.5.",
+      "target_difference": "AMD packed conversion stores SRC0 low and SRC1 high; source operands preserve baseline output order2.5,1.5."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvt_relu_symbolic_is_max.ptx",
+      "baseline_sha256": "a5e6dae51c93d336b25e2b055ad78509a1c867e9af7641c2f0e4d9fc1f72e37c",
+      "native_source": "tests/gfx950/portable-data/relu_half_identity.s",
+      "native_source_sha256": "4efecc4a926abc3fa015956a3ca10ea124e0ea19cc2c563eafae8d987a0753bd",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_half_packing_order_and_relu_have_independent_typed_references"
+      ],
+      "property": "fp8-half-packing-and-independent-elements",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Native max plus F16 conversion implements the same mathematical max(x,0), preserving symbolic identity.",
+      "target_difference": "Native max plus F16 conversion implements the same mathematical max(x,0), preserving symbolic identity."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_decodes_a_concrete_scalar_bit_pattern.ptx",
+      "baseline_sha256": "d012832ec82eca8c92f48090edd5959c3514238f428278beeece89a1ffb7f1eb",
+      "native_source": "tests/gfx950/portable-matrix/e4m3_concrete_pair.s",
+      "native_source_sha256": "f5ed55a4c8b2128cafe86dd52c0bf1d30c73d54390e1a8255af7e9c17fb3e40a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::concrete_fp8_pairs_decode_low_high_and_relu_independently"
+      ],
+      "property": "fp8-half-packing-and-independent-elements",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Reuses exact native packed FP8 decoder;0xb838 produces +1,-1.",
+      "target_difference": "Reuses exact native packed FP8 decoder;0xb838 produces +1,-1."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_low_half_extracted_via_cvt_u16_u32_truncation_of_a_quad.ptx",
+      "baseline_sha256": "0762344ccdf0869a59e6825b08a1f42c98b635a62af5e4c7acf9f4ea4869d723",
+      "native_source": "tests/gfx950/portable-data/fp8_truncate_quad.s",
+      "native_source_sha256": "f865f3e5d0f28ea9cc7223a0c9a20f9109f4709d887cdb0a6343def58b01689e",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_fp8_bytes_survive_vector_pair_and_native_low16_truncation"
+      ],
+      "property": "fp8-half-packing-and-independent-elements",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Native16-bit LDS stores retain bytes0/1, then bytes2/3; selecting each pair low byte yields x0,x2.",
+      "target_difference": "Native16-bit LDS stores retain bytes0/1, then bytes2/3; selecting each pair low byte yields x0,x2."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_relu_clamps_a_negative_decoded_lane_to_zero.ptx",
+      "baseline_sha256": "3a391d0e2e65fe61cb45502d99f5ad303a18eb8e4028e8c670600bc683ae3d5c",
+      "native_source": "tests/gfx950/portable-matrix/e4m3_concrete_pair_relu.s",
+      "native_source_sha256": "0ab9c5d1719f9c8c4aa390da1f9e0fb314eb1bb6e140d6bdb8a34c2ecd06b348",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::concrete_fp8_pairs_decode_low_high_and_relu_independently"
+      ],
+      "property": "fp8-half-packing-and-independent-elements",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Same actual packed decoder plus native maximum clamps only negative lane.",
+      "target_difference": "Same actual packed decoder plus native maximum clamps only negative lane."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_scalar_source_from_a_zero_extended_byte_load.ptx",
+      "baseline_sha256": "231351fdc0c0531a9d83408c00e6291d70e72553e4e594827af92434c48d67e1",
+      "native_source": "tests/gfx950/portable-data/fp8_scalar_byte.s",
+      "native_source_sha256": "afe29fb57a2243b502e8bad3fdbe985d1073995e2ce93123ce00ea4218202fc1",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_fp8_bytes_survive_vector_pair_and_native_low16_truncation"
+      ],
+      "property": "fp8-half-packing-and-independent-elements",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "GLOBAL_LOAD_UBYTE initializes all upper register bits to zero on AMD; only the real low element is compared.",
+      "target_difference": "GLOBAL_LOAD_UBYTE initializes all upper register bits to zero on AMD; only the real low element is compared."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_vector_load_keeps_four_symbolic_bytes_independent.ptx",
+      "baseline_sha256": "1c31b2fa0d12e82ee27c31f91a64d5eedb4ac0b79698884c1c9fd4b93f38f8af",
+      "native_source": "tests/gfx950/portable-matrix/e4m3_vector_bytes.s",
+      "native_source_sha256": "c6a4db7de09d6802b5be6bac2a02231ee3aae618fa4911857d2e9f61a461dc93",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_fp8_bytes_survive_vector_pair_and_native_low16_truncation"
+      ],
+      "property": "fp8-half-packing-and-independent-elements",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Reuses two real packed native FP8 conversions and shift16; all four independent symbolic identities are checked.",
+      "target_difference": "Reuses two real packed native FP8 conversions and shift16; all four independent symbolic identities are checked."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_add_s32_neg1.ptx",
+      "baseline_sha256": "a0c9c46ec386fb489ee68389bae02ebf5942ce0d22c87444d5dd415f3579f2a6",
+      "native_source": "tests/gfx950/portable-data/ring_add_s32_neg1.s",
+      "native_source_sha256": "d8eda2e5b9549df43baafe5bc7de1e857547da40d357b5fb2c074e0845dfa20a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates"
+      ],
+      "property": "symbolic-integer-data-ring-constants",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "target_difference": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_add_u32_neg1.ptx",
+      "baseline_sha256": "f30240414dc9cc0d765f0a4ce13d89e311da046ed5e1ec1e959f2a6c62db26e3",
+      "native_source": "tests/gfx950/portable-data/ring_add_u32_neg1.s",
+      "native_source_sha256": "d8eda2e5b9549df43baafe5bc7de1e857547da40d357b5fb2c074e0845dfa20a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates"
+      ],
+      "property": "symbolic-integer-data-ring-constants",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "target_difference": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_mul_lo_s32_neg3.ptx",
+      "baseline_sha256": "100f71b1103325a835a7491cda81fc3211c81ac4998b70043746ad77cd15b4a3",
+      "native_source": "tests/gfx950/portable-data/ring_mul_lo_s32_neg3.s",
+      "native_source_sha256": "163596976b17cd80b19aef96c43c3f055ce001713b7d740f1d73ca91a9e7ce2a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates"
+      ],
+      "property": "symbolic-integer-data-ring-constants",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "target_difference": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_mul_lo_u32_neg3.ptx",
+      "baseline_sha256": "55ad0dadbc15471add500f03d8d8fe2401cee69af7f80f0221844f4cad4735ce",
+      "native_source": "tests/gfx950/portable-data/ring_mul_lo_u32_neg3.s",
+      "native_source_sha256": "9fd4eb4cac09e39642fde365b8cc25f9ade24958f8f0e52c05047b7d7c4bab5d",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates"
+      ],
+      "property": "symbolic-integer-data-ring-constants",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "target_difference": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_sub_s32_neg7.ptx",
+      "baseline_sha256": "17982d3b9761572c1be2a2bf927a19b794e1b58e85fc50a76b5db05f3cce0197",
+      "native_source": "tests/gfx950/portable-data/ring_sub_s32_neg7.s",
+      "native_source_sha256": "95654b77637b8fba0a423366f2b03167365fcce3324dd26f0d9f56ae057f3628",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates"
+      ],
+      "property": "symbolic-integer-data-ring-constants",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "target_difference": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_sub_u32_1.ptx",
+      "baseline_sha256": "c0e0aab083fc6b3e1a450f4c457aad800ebb776bd11c8fc2f38ab81d7cacca56",
+      "native_source": "tests/gfx950/portable-data/ring_sub_u32_1.s",
+      "native_source_sha256": "3bb0927031aec055d3d2b292cbb283e9d4ac099e8ec8c97e5d92d2626a210953",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates"
+      ],
+      "property": "symbolic-integer-data-ring-constants",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "target_difference": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_sub_u32_neg7.ptx",
+      "baseline_sha256": "f60371450a8fed7415dc5fb799fab026c0311930c4561a006d625a31941f1d93",
+      "native_source": "tests/gfx950/portable-data/ring_sub_u32_neg7.s",
+      "native_source_sha256": "95654b77637b8fba0a423366f2b03167365fcce3324dd26f0d9f56ae057f3628",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates"
+      ],
+      "property": "symbolic-integer-data-ring-constants",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "target_difference": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/setp_selp_canonicalize_operands.ptx",
+      "baseline_sha256": "7921b4d2c4bc1f1553faf23ce15a3f0bda4386338c8ca826d049837f3bac101a",
+      "native_source": "tests/gfx950/portable-data/select_signed_minus_one.s",
+      "native_source_sha256": "a6b0455dff499bcbf7b00cdd612348697bbf66db67928b7c9724457d8accd9a8",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::both_symbolic_setp_selp_rows_canonicalize_signed_minus_one_and_complement"
+      ],
+      "property": "symbolic-select-canonicalization",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Signed comparison of symbolic integer to-1 and unsigned32 full-bit select arm.",
+      "target_difference": "Signed comparison of symbolic integer to-1 and unsigned32 full-bit select arm."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/setp_selp_canonicalize_operands_2.ptx",
+      "baseline_sha256": "29eda948b5dd997bce867751565f7100ed94122cffd9a76ab0a8e90cd09c27f1",
+      "native_source": "tests/gfx950/portable-data/select_computed_complement.s",
+      "native_source_sha256": "28f5591f59bb39e15f3f0bd8775d24ed307561bb4b82e616d7a442426d342abb",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::both_symbolic_setp_selp_rows_canonicalize_signed_minus_one_and_complement"
+      ],
+      "property": "symbolic-select-canonicalization",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Computed complement0xffffffff has same signed comparison and unsigned select-arm interpretation.",
+      "target_difference": "Computed complement0xffffffff has same signed comparison and unsigned select-arm interpretation."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/symbolic_integer_div_is_unsupported_concrete.ptx",
+      "baseline_sha256": "857d666a6de3457620f75387c111596ce1b5c334d409c0b2580ab897d6275654",
+      "native_source": "tests/gfx950/portable-data/concrete_integer_division.s",
+      "native_source_sha256": "91272d823378c564f98d249fc23826c09c838e253f32b1e1d39fad2d4732c9e7",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_integer_floor_does_not_become_rational_division_or_roundtrip_identity"
+      ],
+      "property": "explicit-model-boundaries",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "Native exact constant shift implements unsigned7/2=3; no blanket unsupported disposition.",
+      "target_difference": "Native exact constant shift implements unsigned7/2=3; no blanket unsupported disposition."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/add_sat_f32_concrete_clamps.ptx",
+      "baseline_sha256": "b5b751d9cb49deaa49be4ec2b6a41e0ba0fe04684d1e9909d72366618edf567a",
+      "native_source": "tests/gfx950/portable-data/payload_add_sat_f32_concrete_clamps.s",
+      "native_source_sha256": "b45810c086c4a6e88e2690ccbaf9d829242b6f81c3ece98283226bcbe436f7a5",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::f32_saturation_matches_both_concrete_endpoint_assertions"
+      ],
+      "property": "add_sat_f32_concrete_clamps.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = 1\nout[1] = 0\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_u16_access_at_2_mod_4.ptx",
+      "baseline_sha256": "f70d0df08010719a715e58bec712e142f602ff648f283421feacd4b1c39289e1",
+      "native_source": "tests/gfx950/portable-data/payload_aligned_u16_access_at_2_mod_4.s",
+      "native_source_sha256": "7515b901e47e2a57bf7c25dfbeb35c2550b5c78909e2cca1623952d50193dc80",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::native_halfword_at_two_mod_four_preserves_the_only_written_index"
+      ],
+      "property": "aligned_u16_access_at_2_mod_4.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[1] = in[1]\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_vector_load.ptx",
+      "baseline_sha256": "ceccb6f94d5d601bb0c20d20225a8c9925e74c0a90cc2129c00e21d2921f89a0",
+      "native_source": "tests/gfx950/portable-data/payload_aligned_vector_load.s",
+      "native_source_sha256": "a11efab9799eee66acd9cc615b73992624f18debfbf9d531fdda6ce1cdc00686",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::four_component_load_retains_the_fourth_independent_input"
+      ],
+      "property": "aligned_vector_load.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = in[3]\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvt_reinterprets_at_source_format.ptx",
+      "baseline_sha256": "fd60c282e0e331fe2627da0f742dee42fc4d82cece70ce321340a892abae0b8b",
+      "native_source": "tests/gfx950/portable-data/payload_cvt_reinterprets_at_source_format.s",
+      "native_source_sha256": "4786f099f004a6b8bc19bb9d31ed1c77937ce93eae26a944e1813aa61765130c",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::source_signedness_selects_minus_eight_or_unsigned_4294967288_at_64_bits"
+      ],
+      "property": "cvt_reinterprets_at_source_format.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = -8\nout[1] = 4294967288\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/load_s8_sign_extends.ptx",
+      "baseline_sha256": "dbc3aa7408197acb8391640fff92c077128066bdbbb94aba4f64991fe3b76e74",
+      "native_source": "tests/gfx950/portable-data/payload_load_s8_sign_extends.s",
+      "native_source_sha256": "329dcc84f033581a20b8c613494b52a98d3c07861b27f3e57a963131f5bf009a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::signed_byte_and_minus_one_complement_rows_canonicalize_the_u32_output"
+      ],
+      "property": "load_s8_sign_extends.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = 4294967295\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/load_s8_sign_extends_2.ptx",
+      "baseline_sha256": "b78adcd8287d5bea5baa60f731ab6b68fab35f616fd7779b46c7b86e84925958",
+      "native_source": "tests/gfx950/portable-data/payload_load_s8_sign_extends_2.s",
+      "native_source_sha256": "848dd4558d368713702ba5231144e2308fcf6aee6a278fec964b3d8091835335",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::signed_byte_and_minus_one_complement_rows_canonicalize_the_u32_output"
+      ],
+      "property": "load_s8_sign_extends_2.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = 4294967295\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_b64_integer_pack_recombines_as_scalar_direct.ptx",
+      "baseline_sha256": "192f3021f61dfbf275300ccdcf07afcece4e2f9967ec23ca1bd6343b223a9d27",
+      "native_source": "tests/gfx950/portable-data/payload_mov_b64_integer_pack_recombines_as_scalar_direct.s",
+      "native_source_sha256": "6babcbaa20b0d345ae82ee190be9145f148775bb82f6f4a1ca2ff673b956d458",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::direct_and_assembled_integer_pointers_write_only_output_index_two"
+      ],
+      "property": "mov_b64_integer_pack_recombines_as_scalar_direct.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[2] = in[0]\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_b64_integer_pack_recombines_as_scalar_packed.ptx",
+      "baseline_sha256": "c5e8fd342d1912e83574de05dcdc552621554bfe53dc48c5c1226116eb6066d2",
+      "native_source": "tests/gfx950/portable-data/payload_mov_b64_integer_pack_recombines_as_scalar_packed.s",
+      "native_source_sha256": "9151f0d2a6014045e2c460371900aeddf2f08c7edd679bc82ad27c8ddd89c11e",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::direct_and_assembled_integer_pointers_write_only_output_index_two"
+      ],
+      "property": "mov_b64_integer_pack_recombines_as_scalar_packed.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[2] = in[0]\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_neg1_vs_not_zero.ptx",
+      "baseline_sha256": "54f6629136cf5b8b951873ac6184acea3ad70ef8b664c6e82854a25982f644fc",
+      "native_source": "tests/gfx950/portable-data/payload_mov_neg1_vs_not_zero.s",
+      "native_source_sha256": "9eb2fcb33fa78e94513183d0684242d75c1b591c912cee90c666e8a64c242586",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::signed_byte_and_minus_one_complement_rows_canonicalize_the_u32_output"
+      ],
+      "property": "mov_neg1_vs_not_zero.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = 4294967295\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_neg1_vs_not_zero_2.ptx",
+      "baseline_sha256": "fd8864d6305c3ffde990d9b1dac5c56efe841c36542f031af4daeaed57cfeed2",
+      "native_source": "tests/gfx950/portable-data/payload_mov_neg1_vs_not_zero_2.s",
+      "native_source_sha256": "7cba87cea58f95e6f2e46cb17031576dfdb0ac13c34da43597970ea8a8546e96",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::signed_byte_and_minus_one_complement_rows_canonicalize_the_u32_output"
+      ],
+      "property": "mov_neg1_vs_not_zero_2.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = 4294967295\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_pack_b32_always_builds_pair.ptx",
+      "baseline_sha256": "c6cd22068fc06462bdecd415c740c0cef3fe2711284e22eea2a01dd25f27b8c4",
+      "native_source": "tests/gfx950/portable-data/payload_mov_pack_b32_always_builds_pair.s",
+      "native_source_sha256": "07637b219f6c157ea69bbe708c90ee973ff329dc0b64304cd6dc011adb279de8",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::native_half_pair_pack_and_unpack_retain_both_symbolic_elements"
+      ],
+      "property": "mov_pack_b32_always_builds_pair.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = in[0]\nout[1] = in[1]\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_pack_b64_integer_halves_recombine.ptx",
+      "baseline_sha256": "6e314b83a598166a1553b6d6eba2549f6632eaffcc2f6d9a87baa4946726aa84",
+      "native_source": "tests/gfx950/portable-data/payload_mov_pack_b64_integer_halves_recombine.s",
+      "native_source_sha256": "ebea71a60133e5959c21bb751cd06229dc5b65b84baf8a367a8046c20fa9611c",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::integer_pair_packing_and_raw_halfword_unpacking_preserve_exact_bits"
+      ],
+      "property": "mov_pack_b64_integer_halves_recombine.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = 12884901893\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_unpack_native_pair_source.ptx",
+      "baseline_sha256": "8a2e9b9386de7568e659671cbd1e8328fbb111a2bdadb5a3318111fcad78138e",
+      "native_source": "tests/gfx950/portable-data/payload_mov_unpack_native_pair_source.s",
+      "native_source_sha256": "60bedfcb3f2e7743b7fad33351e4f5131fefd8ed49718312caa89e6339c8c470",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::native_half_pair_pack_and_unpack_retain_both_symbolic_elements"
+      ],
+      "property": "mov_unpack_native_pair_source.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = in[0]\nout[1] = in[1]\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_vector_destination_unpack_values.ptx",
+      "baseline_sha256": "3438b596828bcc8f0fca597997b70ff5560238517d9aef9f8f30e5478b54f1ab",
+      "native_source": "tests/gfx950/portable-data/payload_mov_vector_destination_unpack_values.s",
+      "native_source_sha256": "bfe1235e0e39b0602f6ff09e07124af7f2e43f0594aba083858bb5ba4ae34e41",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::integer_pair_packing_and_raw_halfword_unpacking_preserve_exact_bits"
+      ],
+      "property": "mov_vector_destination_unpack_values.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = 43981\nout[1] = 4660\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/relu_epilogue_vs_explicit_max_explicit.ptx",
+      "baseline_sha256": "bd3b2e4bd3cfe7f4aadb908ad7e6ea328051b344e4659e1f07ece988861a5f2d",
+      "native_source": "tests/gfx950/portable-data/payload_relu_epilogue_vs_explicit_max_explicit.s",
+      "native_source_sha256": "b1b0fb44702077803dd8d86765c982c6dd30b908e8185289c39c31a7eaf7595a",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::both_native_relu_half_epilogues_match_two_independent_maxima"
+      ],
+      "property": "relu_epilogue_vs_explicit_max_explicit.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = max(0, in[0])\nout[1] = max(0, in[1])\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/relu_epilogue_vs_explicit_max_fused.ptx",
+      "baseline_sha256": "db8662831d3d717ee8f7636d3db88d828d754ecc5098d8213800962f5ee9c71a",
+      "native_source": "tests/gfx950/portable-data/payload_relu_epilogue_vs_explicit_max_fused.s",
+      "native_source_sha256": "fd271244a4cd248adf243739435226e8b810093dd549efca5d0d8249c120f693",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::both_native_relu_half_epilogues_match_two_independent_maxima"
+      ],
+      "property": "relu_epilogue_vs_explicit_max_fused.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = max(in[0], 0)\nout[1] = max(in[1], 0)\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/store_u8_truncates_to_low_bits.ptx",
+      "baseline_sha256": "50d8e006e79eabab8f7ae4b5077b2081751523554e4622620512f0793a67ecfe",
+      "native_source": "tests/gfx950/portable-data/payload_store_u8_truncates_to_low_bits.s",
+      "native_source_sha256": "85cbebafc9125cf8fd291e532da6c053c448fe1241583794eec67c8c6c829b1c",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::byte_store_truncates_300_and_unsigned_byte_load_remains_its_numeric_input"
+      ],
+      "property": "store_u8_truncates_to_low_bits.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = 44\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/unsigned_sub_register_load_passes_through.ptx",
+      "baseline_sha256": "07538920dab0e1a6b054a1ed5ecda0feaeaa44c824651a535e5df49cc5b592f9",
+      "native_source": "tests/gfx950/portable-data/payload_unsigned_sub_register_load_passes_through.s",
+      "native_source_sha256": "ee1fbb07f428e4e62293f7e775cb05c77245c5ed93397d3138ca3cda0db60874",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::byte_store_truncates_300_and_unsigned_byte_load_remains_its_numeric_input"
+      ],
+      "property": "unsigned_sub_register_load_passes_through.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = scratch[0]\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/vector_store_with_immediate_source.ptx",
+      "baseline_sha256": "b6d050db1c99c1beedbee66491d60feb930986fcfc9cd89c9e8c568316fd03e1",
+      "native_source": "tests/gfx950/portable-data/payload_vector_store_with_immediate_source.s",
+      "native_source_sha256": "436ef0c513239f944e24535c0e7546edc26f08392fdda1bfdbbeda07ddaca997",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::native_vector_store_preserves_both_input_and_immediate_lanes"
+      ],
+      "property": "vector_store_with_immediate_source.ptx",
+      "configuration": {
+        "native_configuration": "Exact typed width, dimensions and sparse footprint in named Rust test"
+      },
+      "expected": "out[0] = in[0]\nout[1] = 0\nout[2] = in[1]\nout[3] = 1\n",
+      "target_difference": "Same exact baseline sparse output values and footprint under native encoding; no IEEE rounding claim."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/brkpt_extra_operand.ptx",
+      "baseline_sha256": "c1dd299484354adc0101dc015207f14ddd5cc374c1d1738b741139152784c6ff",
+      "native_source": null,
+      "native_source_sha256": null,
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::native_trap_ids_are_recognized_but_never_assume_a_returning_handler",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_traps_are_rejected_even_when_unreachable_or_exec_is_zero"
+      ],
+      "property": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "configuration": {
+        "static_controls": "Direct, unreachable and emptyEXEC malformed forms; canonical legal native controls"
+      },
+      "expected": "Malformed native control/directive rejected statically; legal termination/waits complete, legal trap remains explicitly Unsupported/Unknown.",
+      "target_difference": "PTX BRKPT is a no-op in its existing backend. NativeS_TRAP enters a handler and is recognized butUnsupported; no semantic equivalence to a no-op is claimed."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/brkpt_invalid_modifier.ptx",
+      "baseline_sha256": "ee880a58e1eae58f3bae1090b89745d5ee3688aca64086187b1b4742b31623a8",
+      "native_source": null,
+      "native_source_sha256": null,
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::native_trap_ids_are_recognized_but_never_assume_a_returning_handler",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_traps_are_rejected_even_when_unreachable_or_exec_is_zero"
+      ],
+      "property": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "configuration": {
+        "static_controls": "Direct, unreachable and emptyEXEC malformed forms; canonical legal native controls"
+      },
+      "expected": "Malformed native control/directive rejected statically; legal termination/waits complete, legal trap remains explicitly Unsupported/Unknown.",
+      "target_difference": "PTX BRKPT is a no-op in its existing backend. NativeS_TRAP enters a handler and is recognized butUnsupported; no semantic equivalence to a no-op is claimed."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/exit_extra_operand.ptx",
+      "baseline_sha256": "5f5ff1ffef3009871239cad915a974ca2b31f04343d0b49672eb26061422c65b",
+      "native_source": null,
+      "native_source_sha256": null,
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::canonical_native_endpgm_and_optional_encoded_immediate_complete",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_termination_is_rejected_before_control_flow_or_exec_can_hide_it"
+      ],
+      "property": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "configuration": {
+        "static_controls": "Direct, unreachable and emptyEXEC malformed forms; canonical legal native controls"
+      },
+      "expected": "Malformed native control/directive rejected statically; legal termination/waits complete, legal trap remains explicitly Unsupported/Unknown.",
+      "target_difference": null
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/exit_invalid_modifier.ptx",
+      "baseline_sha256": "b29d0d6cba934e11db715f294b0138168bc8d84be2697a09847c94260c5e199f",
+      "native_source": null,
+      "native_source_sha256": null,
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::canonical_native_endpgm_and_optional_encoded_immediate_complete",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_termination_is_rejected_before_control_flow_or_exec_can_hide_it"
+      ],
+      "property": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "configuration": {
+        "static_controls": "Direct, unreachable and emptyEXEC malformed forms; canonical legal native controls"
+      },
+      "expected": "Malformed native control/directive rejected statically; legal termination/waits complete, legal trap remains explicitly Unsupported/Unknown.",
+      "target_difference": null
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/ret_extra_operand.ptx",
+      "baseline_sha256": "a14e0663db9e27e7ba9db9da731706bbcba0ab8dbe10370df4cb92375d141600",
+      "native_source": null,
+      "native_source_sha256": null,
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::canonical_native_endpgm_and_optional_encoded_immediate_complete",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_termination_is_rejected_before_control_flow_or_exec_can_hide_it"
+      ],
+      "property": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "configuration": {
+        "static_controls": "Direct, unreachable and emptyEXEC malformed forms; canonical legal native controls"
+      },
+      "expected": "Malformed native control/directive rejected statically; legal termination/waits complete, legal trap remains explicitly Unsupported/Unknown.",
+      "target_difference": null
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/trap_extra_operand.ptx",
+      "baseline_sha256": "c09fa28a6c5a835d33f4291ff60215ae5271094fc24ae0f88da7a595ac9612a9",
+      "native_source": null,
+      "native_source_sha256": null,
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::native_trap_ids_are_recognized_but_never_assume_a_returning_handler",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_traps_are_rejected_even_when_unreachable_or_exec_is_zero"
+      ],
+      "property": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "configuration": {
+        "static_controls": "Direct, unreachable and emptyEXEC malformed forms; canonical legal native controls"
+      },
+      "expected": "Malformed native control/directive rejected statically; legal termination/waits complete, legal trap remains explicitly Unsupported/Unknown.",
+      "target_difference": null
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/trap_invalid_modifier.ptx",
+      "baseline_sha256": "32ec9ec05a97a09d3acf8e7e4db9b06dc0381d4839a65ac29f440e50003ac707",
+      "native_source": null,
+      "native_source_sha256": null,
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::native_trap_ids_are_recognized_but_never_assume_a_returning_handler",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_traps_are_rejected_even_when_unreachable_or_exec_is_zero"
+      ],
+      "property": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "configuration": {
+        "static_controls": "Direct, unreachable and emptyEXEC malformed forms; canonical legal native controls"
+      },
+      "expected": "Malformed native control/directive rejected statically; legal termination/waits complete, legal trap remains explicitly Unsupported/Unknown.",
+      "target_difference": null
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/unknown_directive.ptx",
+      "baseline_sha256": "42f73dca8a1f21980cf9e115c678db8cf9744d7b0528bb3e17804faf097abc91",
+      "native_source": null,
+      "native_source_sha256": null,
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::valid_text_directive_is_a_control_for_unknown_directive_rejection"
+      ],
+      "property": "Ordinary native.text control is accepted, unknown executable directives reject.",
+      "configuration": {
+        "static_controls": "Direct, unreachable and emptyEXEC malformed forms; canonical legal native controls"
+      },
+      "expected": "Malformed native control/directive rejected statically; legal termination/waits complete, legal trap remains explicitly Unsupported/Unknown.",
+      "target_difference": null
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/membar_levels_none.ptx",
+      "baseline_sha256": "874bfac541e9cee53106ecea30c393dd092711f44f083dc722dfec67d46e70ed",
+      "native_source": null,
+      "native_source_sha256": null,
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::native_wait_requires_its_own_counter_operand_grammar"
+      ],
+      "property": "Native s_waitcnt requires an explicit counter/immediate operand. Canonical native waits complete; missing operands reject statically, including unreachable/emptyEXEC. This is a grammar-completeness counterpart, not PTX membar semantics.",
+      "configuration": {
+        "static_controls": "Direct, unreachable and emptyEXEC malformed forms; canonical legal native controls"
+      },
+      "expected": "Malformed native control/directive rejected statically; legal termination/waits complete, legal trap remains explicitly Unsupported/Unknown.",
+      "target_difference": "Native s_waitcnt requires an explicit counter/immediate operand. Canonical native waits complete; missing operands reject statically, including unreachable/emptyEXEC. This is a grammar-completeness counterpart, not PTX membar semantics."
+    }
+  ]
+}

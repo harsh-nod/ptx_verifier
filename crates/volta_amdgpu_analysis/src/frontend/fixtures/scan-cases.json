@@ -1,0 +1,624 @@
+{
+  "schema": 1,
+  "assumptions": [
+    "selected workgroupzero",
+    "XNACKdisabled",
+    "mathematical real arithmetic ignores half rounding; hardware CPU reference applies actualhalf conversions"
+  ],
+  "cases": [
+    {
+      "kernel": "mamba2_chunk_scan_full",
+      "family": "Mamba2ChunkScanForward",
+      "source": "native-mamba2-scan.hip",
+      "assembly": "native-mamba2-scan.s",
+      "spec": "specs/mamba2_chunk_scan.spec",
+      "baseline_path": "ai_compiler_kernels/Mamba2ChunkScanForward/NVIDIA_B200_Unknown_1.0740x.ptx",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "R": 32,
+        "N": 128,
+        "S": 32,
+        "T": 128,
+        "XPITCH": 1024,
+        "CPITCH": 64
+      },
+      "arrays": [
+        {
+          "name": "cb",
+          "element_size": 4,
+          "length": 4096,
+          "base_address": 16777216,
+          "kind": "in"
+        },
+        {
+          "name": "x",
+          "element_size": 2,
+          "length": 131072,
+          "base_address": 33554432,
+          "kind": "in"
+        },
+        {
+          "name": "C",
+          "element_size": 2,
+          "length": 2048,
+          "base_address": 50331648,
+          "kind": "in"
+        },
+        {
+          "name": "prev",
+          "element_size": 4,
+          "length": 4096,
+          "base_address": 67108864,
+          "kind": "in"
+        },
+        {
+          "name": "dt",
+          "element_size": 4,
+          "length": 128,
+          "base_address": 83886080,
+          "kind": "in"
+        },
+        {
+          "name": "da",
+          "element_size": 4,
+          "length": 128,
+          "base_address": 100663296,
+          "kind": "in"
+        },
+        {
+          "name": "out00",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117440512,
+          "kind": "out"
+        },
+        {
+          "name": "out01",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117442560,
+          "kind": "out"
+        },
+        {
+          "name": "out02",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117444608,
+          "kind": "out"
+        },
+        {
+          "name": "out03",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117446656,
+          "kind": "out"
+        },
+        {
+          "name": "out04",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117448704,
+          "kind": "out"
+        },
+        {
+          "name": "out05",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117450752,
+          "kind": "out"
+        },
+        {
+          "name": "out06",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117452800,
+          "kind": "out"
+        },
+        {
+          "name": "out07",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117454848,
+          "kind": "out"
+        },
+        {
+          "name": "out08",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117456896,
+          "kind": "out"
+        },
+        {
+          "name": "out09",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117458944,
+          "kind": "out"
+        },
+        {
+          "name": "out10",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117460992,
+          "kind": "out"
+        },
+        {
+          "name": "out11",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117463040,
+          "kind": "out"
+        },
+        {
+          "name": "out12",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117465088,
+          "kind": "out"
+        },
+        {
+          "name": "out13",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117467136,
+          "kind": "out"
+        },
+        {
+          "name": "out14",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117469184,
+          "kind": "out"
+        },
+        {
+          "name": "out15",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117471232,
+          "kind": "out"
+        },
+        {
+          "name": "out16",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117473280,
+          "kind": "out"
+        },
+        {
+          "name": "out17",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117475328,
+          "kind": "out"
+        },
+        {
+          "name": "out18",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117477376,
+          "kind": "out"
+        },
+        {
+          "name": "out19",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117479424,
+          "kind": "out"
+        },
+        {
+          "name": "out20",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117481472,
+          "kind": "out"
+        },
+        {
+          "name": "out21",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117483520,
+          "kind": "out"
+        },
+        {
+          "name": "out22",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117485568,
+          "kind": "out"
+        },
+        {
+          "name": "out23",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117487616,
+          "kind": "out"
+        },
+        {
+          "name": "out24",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117489664,
+          "kind": "out"
+        },
+        {
+          "name": "out25",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117491712,
+          "kind": "out"
+        },
+        {
+          "name": "out26",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117493760,
+          "kind": "out"
+        },
+        {
+          "name": "out27",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117495808,
+          "kind": "out"
+        },
+        {
+          "name": "out28",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117497856,
+          "kind": "out"
+        },
+        {
+          "name": "out29",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117499904,
+          "kind": "out"
+        },
+        {
+          "name": "out30",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117501952,
+          "kind": "out"
+        },
+        {
+          "name": "out31",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 117504000,
+          "kind": "out"
+        },
+        {
+          "name": "out_x00",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134217728,
+          "kind": "out"
+        },
+        {
+          "name": "out_x01",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134219776,
+          "kind": "out"
+        },
+        {
+          "name": "out_x02",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134221824,
+          "kind": "out"
+        },
+        {
+          "name": "out_x03",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134223872,
+          "kind": "out"
+        },
+        {
+          "name": "out_x04",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134225920,
+          "kind": "out"
+        },
+        {
+          "name": "out_x05",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134227968,
+          "kind": "out"
+        },
+        {
+          "name": "out_x06",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134230016,
+          "kind": "out"
+        },
+        {
+          "name": "out_x07",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134232064,
+          "kind": "out"
+        },
+        {
+          "name": "out_x08",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134234112,
+          "kind": "out"
+        },
+        {
+          "name": "out_x09",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134236160,
+          "kind": "out"
+        },
+        {
+          "name": "out_x10",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134238208,
+          "kind": "out"
+        },
+        {
+          "name": "out_x11",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134240256,
+          "kind": "out"
+        },
+        {
+          "name": "out_x12",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134242304,
+          "kind": "out"
+        },
+        {
+          "name": "out_x13",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134244352,
+          "kind": "out"
+        },
+        {
+          "name": "out_x14",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134246400,
+          "kind": "out"
+        },
+        {
+          "name": "out_x15",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134248448,
+          "kind": "out"
+        },
+        {
+          "name": "out_x16",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134250496,
+          "kind": "out"
+        },
+        {
+          "name": "out_x17",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134252544,
+          "kind": "out"
+        },
+        {
+          "name": "out_x18",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134254592,
+          "kind": "out"
+        },
+        {
+          "name": "out_x19",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134256640,
+          "kind": "out"
+        },
+        {
+          "name": "out_x20",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134258688,
+          "kind": "out"
+        },
+        {
+          "name": "out_x21",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134260736,
+          "kind": "out"
+        },
+        {
+          "name": "out_x22",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134262784,
+          "kind": "out"
+        },
+        {
+          "name": "out_x23",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134264832,
+          "kind": "out"
+        },
+        {
+          "name": "out_x24",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134266880,
+          "kind": "out"
+        },
+        {
+          "name": "out_x25",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134268928,
+          "kind": "out"
+        },
+        {
+          "name": "out_x26",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134270976,
+          "kind": "out"
+        },
+        {
+          "name": "out_x27",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134273024,
+          "kind": "out"
+        },
+        {
+          "name": "out_x28",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134275072,
+          "kind": "out"
+        },
+        {
+          "name": "out_x29",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134277120,
+          "kind": "out"
+        },
+        {
+          "name": "out_x30",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134279168,
+          "kind": "out"
+        },
+        {
+          "name": "out_x31",
+          "element_size": 2,
+          "length": 128,
+          "base_address": 134281216,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:cb",
+        "ptr:x",
+        "ptr:C",
+        "ptr:prev",
+        "ptr:dt",
+        "ptr:da",
+        "ptr:out00",
+        "ptr:out_x00"
+      ],
+      "expected_output_footprint": {
+        "elements": 8192,
+        "bytes": 16384,
+        "arrays": [
+          "out00",
+          "out01",
+          "out02",
+          "out03",
+          "out04",
+          "out05",
+          "out06",
+          "out07",
+          "out08",
+          "out09",
+          "out10",
+          "out11",
+          "out12",
+          "out13",
+          "out14",
+          "out15",
+          "out16",
+          "out17",
+          "out18",
+          "out19",
+          "out20",
+          "out21",
+          "out22",
+          "out23",
+          "out24",
+          "out25",
+          "out26",
+          "out27",
+          "out28",
+          "out29",
+          "out30",
+          "out31",
+          "out_x00",
+          "out_x01",
+          "out_x02",
+          "out_x03",
+          "out_x04",
+          "out_x05",
+          "out_x06",
+          "out_x07",
+          "out_x08",
+          "out_x09",
+          "out_x10",
+          "out_x11",
+          "out_x12",
+          "out_x13",
+          "out_x14",
+          "out_x15",
+          "out_x16",
+          "out_x17",
+          "out_x18",
+          "out_x19",
+          "out_x20",
+          "out_x21",
+          "out_x22",
+          "out_x23",
+          "out_x24",
+          "out_x25",
+          "out_x26",
+          "out_x27",
+          "out_x28",
+          "out_x29",
+          "out_x30",
+          "out_x31"
+        ],
+        "description": "32 disjoint128-element rows at original1024-element outputpitch, separately for out and exactzero out_x"
+      },
+      "full_baseline_shape": true,
+      "reduced_case": false,
+      "status": "compiler_and_assembler_validated; subagent_all8192_symbolic_equivalence_and_3pattern_hardware_passed; coordinator_independent_validation_pending",
+      "notes": [
+        "Native block128/two wave64 replaces originalblock64/two warp32; full32x128 result and stateK32/scanK128 reductions retained.",
+        "Previous states and weighted CB are convertedtohalf before nativeF16MFMA, matching actualsource ordering.",
+        "PTX missingProxyAsync Read/Write property is source-specific; actual native publication-barrier mutation is a separate target-native safety check.",
+        "z/seq_idx/D/unused dummy arguments omitted, matching source nondereference behavior; numerical and symbolic selectedworkgroupzero evidence mustremainseparate."
+      ],
+      "baseline_sha256": "785ebe3c604e3e1793f98cf3a34a8d30a19a7f61b5f6ba23dbb57b53130074c5"
+    }
+  ]
+}

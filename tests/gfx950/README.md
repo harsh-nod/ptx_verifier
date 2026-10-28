@@ -17,6 +17,18 @@ python3 ai_compiler_kernels/check_races.py --backend amdgpu
 python3 ai_compiler_kernels/check_races.py --backend amdgpu --mutate copy
 ```
 
+For a reproducible parallel replay, build the revision first and pass its binary
+to `replay_workloads.py`. The driver calls the existing workload harness, checks
+every output and full mathematical spec, retains commands and resource logs,
+and keeps supplemental reduced cases explicitly labeled. It never builds or
+substitutes a binary. Large full-shape proofs require substantial host memory.
+
+```sh
+cargo build --release -p volta_cli --features logging
+python3 tests/gfx950/replay_workloads.py --binary target/release/volta \
+  --output /tmp/gfx950-replay --revision "$(git rev-parse HEAD)" --jobs 3
+```
+
 The strict completeness check intentionally fails while work remains. The
 native workload manifest includes copy/add, portable FP16/FP8, full-size GEMM,
 convolution and attention-family cases, alongside matrix/ID and ABI controls.
