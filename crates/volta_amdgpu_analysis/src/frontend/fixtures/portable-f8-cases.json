@@ -416,7 +416,7 @@
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
       "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
       "notes": [
-        "Arithmetic+LDS reference only; native matrix-pipelining property remains open."
+        "Preserves all64 output rows, OCP E4M3 external inputs and the fullK4096 reduction with an ordinary wave-ALU/LDS implementation. Native FP8 MFMA pipeline mechanics are exercised separately; this kernel does not use MFMA or claim equal PTX instruction scheduling."
       ],
       "expected_output_footprint": {
         "array": "out",

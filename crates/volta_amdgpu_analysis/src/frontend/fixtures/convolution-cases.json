@@ -174,7 +174,7 @@
       },
       "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
       "notes": [
-        "CTA tile reduced from baseline128x128 to32spatialx16channels; full64x3x3 reduction unchanged.",
+        "CTA tile reduced from baseline128spatialx128channels to32spatialx16channels; full64x3x3 reduction unchanged.",
         "No flattening of original layout: output slices retain physical NCHW pitch2916.",
         "F8 inputs are OCP E4M3 decoded exactly tohalf before nativeF16MFMA; outputsF16."
       ]
@@ -352,7 +352,7 @@
       },
       "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
       "notes": [
-        "CTA tile reduced from baseline128x128 to32spatialx16channels; full64x3x3 reduction unchanged.",
+        "CTA tile reduced from baseline64spatialx128channels to32spatialx16channels; full64x3x3 reduction unchanged.",
         "No flattening of original layout: output slices retain physical NCHW pitch2916.",
         "F8 inputs are OCP E4M3 decoded exactly tohalf before nativeF16MFMA; outputsF16."
       ]

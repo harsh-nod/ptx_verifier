@@ -25,12 +25,12 @@
       ],
       "asserted_property": {
         "output_capacity": 256,
-        "written_indices": [
+        "written_elements": 32,
+        "reference": "out[i]=i for0<=i<32; no writes at32..255",
+        "written_index_range_inclusive": [
           0,
           31
-        ],
-        "written_elements": 32,
-        "reference": "out[i]=i for0<=i<32; no writes at32..255"
+        ]
       }
     },
     {
@@ -50,12 +50,12 @@
       ],
       "asserted_property": {
         "output_capacity": 64,
-        "written_indices": [
+        "written_elements": 64,
+        "reference": "out[i]=floor(i/32)",
+        "written_index_range_inclusive": [
           0,
           63
-        ],
-        "written_elements": 64,
-        "reference": "out[i]=floor(i/32)"
+        ]
       }
     },
     {
@@ -94,12 +94,12 @@
       ],
       "asserted_property": {
         "output_capacity": 64,
-        "written_indices": [
+        "written_elements": 64,
+        "reference": "out[i]=2*in[i] for0<=i<64; exactly one64store pass",
+        "written_index_range_inclusive": [
           0,
           63
-        ],
-        "written_elements": 64,
-        "reference": "out[i]=2*in[i] for0<=i<64; exactly one64store pass"
+        ]
       }
     },
     {
@@ -119,12 +119,12 @@
       ],
       "asserted_property": {
         "output_capacity": 1,
-        "written_indices": [
+        "written_elements": 1,
+        "reference": "out[0]=1; actual LDS writer logical lane1 and reader lane2",
+        "written_index_range_inclusive": [
           0,
           0
-        ],
-        "written_elements": 1,
-        "reference": "out[0]=1; actual LDS writer logical lane1 and reader lane2"
+        ]
       }
     },
     {
@@ -143,12 +143,12 @@
       "asserted_property": {
         "lds_capacity": 6,
         "output_capacity": 3,
-        "written_indices": [
+        "written_elements": 3,
+        "reference": "out=[1,2,1]; third half written at byte4 after a DWORD read of the first two; writing at byte6 must reject aggregate bounds",
+        "written_index_range_inclusive": [
           0,
           2
-        ],
-        "written_elements": 3,
-        "reference": "out=[1,2,1]; third half written at byte4 after a DWORD read of the first two; writing at byte6 must reject aggregate bounds"
+        ]
       }
     },
     {
@@ -181,12 +181,12 @@
       "asserted_property": {
         "input_capacity": 1,
         "output_capacity": 1,
-        "written_indices": [
+        "written_elements": 1,
+        "reference": "out[0]=in[0]; producer0 LDS write, consumer64 LDS read; removing S_BARRIER preserves value/footprint but yields typed Shared WriteRead",
+        "written_index_range_inclusive": [
           0,
           0
-        ],
-        "written_elements": 1,
-        "reference": "out[0]=in[0]; producer0 LDS write, consumer64 LDS read; removing S_BARRIER preserves value/footprint but yields typed Shared WriteRead"
+        ]
       }
     },
     {

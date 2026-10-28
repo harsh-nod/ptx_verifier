@@ -96,7 +96,7 @@
       ],
       "notes": [
         "Source reconstructed from actual baseline PTX and harness; no original CUDA source provenance claimed.",
-        "Reduced entry has2keytiles/32queries; full entry preserves originalT1024/Q128/D64 and must receive separate capacity evidence.",
+        "Reduced entry has2keytiles/32queries. The full entry preserves originalT1024/Q128/D64; its independent complete symbolic and hardware receipts are separate from the reduced entry and do not establish whole-grid verification.",
         "IEEE rounding is abstracted, including half probabilities; native scalarcoefficients preserve encodedbinary32 values."
       ]
     },
@@ -195,7 +195,7 @@
       ],
       "notes": [
         "Source reconstructed from actual baseline PTX and harness; no original CUDA source provenance claimed.",
-        "Reduced entry has2keytiles/32queries; full entry preserves originalT1024/Q128/D64 and must receive separate capacity evidence.",
+        "Reduced entry has2keytiles/32queries. The full entry preserves originalT1024/Q128/D64; its independent complete symbolic and hardware receipts are separate from the reduced entry and do not establish whole-grid verification.",
         "IEEE rounding is abstracted, including half probabilities; native scalarcoefficients preserve encodedbinary32 values."
       ]
     }

@@ -34,6 +34,12 @@ native workload manifest includes copy/add, portable FP16/FP8, full-size GEMM,
 convolution and attention-family cases, alongside matrix/ID and ABI controls.
 Reduced cases are explicitly labeled and do not replace full baseline shapes.
 Complete baseline coverage requires reviewed dispositions in `parity.json`.
+The all-case replay includes `reduction_f16`, an explicit unsupported boundary
+case retained from an unsupported original workload. It stops at unmodeled
+`v_readfirstlane` software dependencies before its unsupported atomic. That case
+has no symbolic proof, and the replay returns nonzero. Positive proofs, reduced
+controls and this boundary result must be reported separately. See
+`evidence/reduction-native-boundary-6bc63a5.json`.
 Compiler fixtures,
 sources, provenance, emitted-instruction inventory, and portable-workload specs
 live under `crates/volta_amdgpu_analysis/src/frontend/fixtures/`.
@@ -88,8 +94,7 @@ The portable FP8 runner independently decodes OCP E4M3 inputs and compares the
 native results to CPU formulas. Matrix checks cover individual A/B basis inputs
 and asymmetric dense patterns; pipeline references use ordinary row-major
 matrix multiplication. Output buffers start from a sentinel before execution.
-`evidence/hardware-2026-10-27-initial-corpus.json` records the exact source and
-code-object hashes, toolchain, patterns, tolerances, and observed results.
+`evidence/hardware-2026-10-27-initial-corpus.json` records the initial source/code-object hashes, tools and observed results. Its FP16 matvec block256 launch is superseded by `evidence/hardware-portable-f16-corrected-2026-10-27.json`, which uses the required block128.
 
 `evidence/baseline-workloads.json` records all 32 original PTX workload outcomes
 under an 8 GiB per-process address-space cap. The four original full-K4096 GEMM

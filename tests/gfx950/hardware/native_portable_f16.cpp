@@ -96,10 +96,11 @@ int main(int argc,char **argv) {
     launch(module,"reduction_f16",128,args);out.download();compare("reduction_f16",out.host,{expected},0,0);
   }
   {
-    Buffer<_Float16> x(1024),out(1024);std::vector<double> expected(1024);
-    for(unsigned i=0;i<1024;++i)x.host[i]=(_Float16)((int(i%33)-16)*.125f);
-    for(unsigned row=0;row<4;++row){double total=0;for(unsigned j=0;j<256;++j)total+=std::exp((double)x.host[row*256+j]);for(unsigned j=0;j<256;++j)expected[row*256+j]=std::exp((double)x.host[row*256+j])/total;}
-    unsigned input_stride=256,output_stride=256,n_rows=4,n_cols=256;
+    constexpr unsigned rows=16,cols=256,elements=rows*cols;
+    Buffer<_Float16> x(elements),out(elements);std::vector<double> expected(elements);
+    for(unsigned i=0;i<elements;++i)x.host[i]=(_Float16)((int(i%33)-16)*.125f);
+    for(unsigned row=0;row<rows;++row){double total=0;for(unsigned j=0;j<cols;++j)total+=std::exp((double)x.host[row*cols+j]);for(unsigned j=0;j<cols;++j)expected[row*cols+j]=std::exp((double)x.host[row*cols+j])/total;}
+    unsigned input_stride=cols,output_stride=cols,n_rows=rows,n_cols=cols;
     x.upload();void *args[]={&out.device,&x.device,&input_stride,&output_stride,&n_rows,&n_cols};
     launch(module,"softmax_f16",128,args);out.download();compare("softmax_f16",out.host,expected,0.000002,0.002);
   }

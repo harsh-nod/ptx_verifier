@@ -180,7 +180,7 @@
       },
       "notes": [
         "One all-coordinate-zero workitem writes9fields per workgroup. Actual2/4/3-dword transfers retain3separate reference records.",
-        "Analyzer selects group0; physical full-grid validation may allocate216uints for24workgroups and compare each unique9-field row."
+        "Analyzer selects group0. The independent native_abi.cpp physical check launches grid2x3x4/block4x3x2 and validates all216 fields across24 distinct workgroup rows; this does not extend the symbolic proof beyond group0."
       ],
       "status": "compiler_and_assembler_validated; integrated_symbolic_and_hardware_pending"
     }
