@@ -709,6 +709,54 @@ fn mfma_operand_classes_match_the_pinned_gfx950_assembler() {
 }
 
 #[test]
+fn binary_vop_source_positions_match_the_pinned_gfx950_assembler() {
+    let receipt: serde_yaml::Value = serde_yaml::from_str(include_str!(
+        "../../tests/fixtures/vop-operand-assembler.json"
+    ))
+    .unwrap();
+    let cases = receipt["cases"].as_sequence().unwrap();
+    assert_eq!(cases.len(), 624);
+    let extra = receipt["extra_cases"].as_sequence().unwrap();
+    assert_eq!(extra.len(), 19);
+    for case in cases.iter().chain(extra) {
+        let instruction = case["source"].as_str().unwrap();
+        let parsed = parse(&program(&format!("{instruction}\ns_endpgm")));
+        assert_eq!(
+            parsed.is_ok(),
+            case["returncode"].as_i64().unwrap() == 0,
+            "{instruction}: parser={parsed:?}; assembler={}",
+            case["stderr"].as_str().unwrap()
+        );
+    }
+    for bad in [
+        "v_sub_u32 v26, v0, 128",
+        "v_add_f32_e32 v0, v1, 1.0",
+        "v_add_f32 v0, 128, v1 clamp",
+        "v_add_u32 v0, 0x100000000, v1",
+    ] {
+        for body in [
+            bad.to_owned(),
+            format!("s_branch .Ldone\n{bad}\n.Ldone:\ns_endpgm"),
+        ] {
+            parse(&program(&body)).expect_err(&body);
+        }
+    }
+}
+
+#[test]
+fn fp8_sdwa_conversion_has_only_native_source_selection_fields() {
+    for conversion in ["v_cvt_f32_fp8_sdwa", "v_cvt_f32_bf8_sdwa"] {
+        parse(&program(&format!("{conversion} v0, v1 src0_sel:BYTE_1"))).unwrap();
+        for destination in ["dst_sel:DWORD", "dst_unused:UNUSED_PAD"] {
+            parse(&program(&format!(
+                "{conversion} v0, v1 src0_sel:BYTE_1 {destination}"
+            )))
+            .expect_err(destination);
+        }
+    }
+}
+
+#[test]
 fn rejects_other_targets_and_bad_descriptors() {
     assert!(parse(&program("s_endpgm").replace("gfx950", "gfx942")).is_err());
     for field in [

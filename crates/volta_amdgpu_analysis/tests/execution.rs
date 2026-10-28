@@ -1008,7 +1008,7 @@ fn fp8_byte_lds_packing_preserves_low_high_and_shifted_positions() {
 fn signed_global_offsets_preserve_the_original_address() {
     let instructions = COPY.replace(
         "global_load_dword v5, v[6:7], off",
-        "v_add_u32 v6, v6, 4096\nglobal_load_dword v5, v[6:7], off offset:-4096",
+        "v_add_u32 v6, 4096, v6\nglobal_load_dword v5, v[6:7], off offset:-4096",
     );
     let module = frontend::parse(&source(&instructions, 0)).unwrap();
     let result = analyze(&module, None, config(64, 64)).unwrap();

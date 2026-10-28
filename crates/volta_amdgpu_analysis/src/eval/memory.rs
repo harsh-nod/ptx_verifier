@@ -59,6 +59,12 @@ impl Memory {
                 }
             }
             if let Some((&start, cell)) = self.cells.range(..=addr).next_back() {
+                if let Value::Bytes(bytes) = cell.value {
+                    if cell.width == 4 && (addr == start || addr == start + 2) {
+                        let index = (addr - start) as usize;
+                        return Ok(Value::BytePair(bytes[index], bytes[index + 1]));
+                    }
+                }
                 if let Value::Halves(lo, hi) = cell.value {
                     if cell.width == 4 && (addr == start || addr == start + 2) {
                         return Ok(Value::Half(if addr == start { lo } else { hi }));
@@ -166,6 +172,7 @@ impl Memory {
     pub fn write(&mut self, addr: u64, width: u64, value: Value) -> Result<Value, String> {
         let value = match (width, value) {
             (1, Value::BytePair(lo, _)) => Value::Byte(lo),
+            (2, Value::Bytes(bytes)) => Value::BytePair(bytes[0], bytes[1]),
             (1 | 2, value @ Value::PartialBits { .. }) => {
                 Value::Bits(value.selected_bits(0, (8 * width) as u32)?)
             }
@@ -189,7 +196,7 @@ impl Memory {
             }
             (2, Value::Halves(lo, _)) => Value::Half(lo),
             (2, Value::PartialHalves(Some(lo), _)) => Value::Half(lo),
-            (2, Value::PartialHalves(None, _) | Value::Byte(_) | Value::Bytes(_)) => {
+            (2, Value::PartialHalves(None, _) | Value::Byte(_)) => {
                 return Err("unsupported packed-byte/unknown-half reinterpretation".into());
             }
             (

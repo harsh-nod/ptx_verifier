@@ -5,32 +5,33 @@
   "mcpu": "gfx950",
   "cases": [
     {
-      "path": "tests/gfx950/portable-data/zero_rcp_f32.s",
-      "source_sha256": "493e8a34de4b3d5bd19cd090156f5eabe3ed960c17c6fad446d4a81233d42cfa",
+      "path": "tests/gfx950/portable-data/nonzero_reciprocals.s",
+      "source_sha256": "2600148a2bf000dd7cf4f800149d3cfcb4392931c38aa084d38e64f89f0cda17",
       "returncode": 0,
-      "object_sha256": "567b5772f8e26708e5457e5fe4ee26412197cef559794e8ba1efcf1ec33f2dae",
+      "object_sha256": "110843216d7c4aa3ecdd884259b2817cbff2d9afd7012ad24e72c6db5734ce33",
       "stderr": ""
     },
     {
-      "path": "tests/gfx950/portable-data/zero_rsqrt_f32.s",
-      "source_sha256": "6439546e7bc0350d84573e8e40d3334dabcb858f1c8f060f978d940be0af7007",
+      "path": "tests/gfx950/portable-data/zero_rcp_f32.s",
+      "source_sha256": "bc83770fdaa26e3c3503549afb1c93ec12982fe39a94e4f961fc7d7a14aa84a8",
       "returncode": 0,
-      "object_sha256": "17c5b1b962d7460ecaf0b679baffd5cfd7e23314df0e6e57ee03d383078e4434",
+      "object_sha256": "39c1fa46fc22741b1871606845070e7e1cf1e68c84053e1e6bae589ae8ea4114",
       "stderr": ""
     },
     {
       "path": "tests/gfx950/portable-data/zero_rcp_f64.s",
-      "source_sha256": "4525c17be3fced1dd419770013617a7f8497a40eae5980421abb109d3e6de3c9",
+      "source_sha256": "768f6d2ff270a9958f76f5bf2d8c63de7b46358550bdd2fd02180babca78cf0f",
       "returncode": 0,
-      "object_sha256": "202a7a989ecccf6a9c3871750339aaf2a3aa3f5bd2d7a14784e2579c99653982",
+      "object_sha256": "59a87c0ff35a094d1585e57d371a38992ae56ae04d330aae0ce918b7d4b7dbca",
       "stderr": ""
     },
     {
-      "path": "tests/gfx950/portable-data/nonzero_reciprocals.s",
-      "source_sha256": "4bcc7675807a8778fd066f1f8939936df07974d19954d45ad80e4c4d6960ca9a",
+      "path": "tests/gfx950/portable-data/zero_rsqrt_f32.s",
+      "source_sha256": "8ae40bcbf72105d89a5a4fbc8dd61f25d7e4231194845aaca22f976a3c556f20",
       "returncode": 0,
-      "object_sha256": "1a50de549d6b208a3df65d1a2609f52f2550d65bfaea71496a691d0d83aef2bb",
+      "object_sha256": "1430a1facf0f82e51135a2415d4aeeecc17e51152fb355b49007fae377783b1a",
       "stderr": ""
     }
-  ]
+  ],
+  "packaging": "kernel entry .p2align8; exact arithmetic instructions unchanged"
 }
