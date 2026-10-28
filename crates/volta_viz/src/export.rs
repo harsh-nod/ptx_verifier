@@ -161,10 +161,23 @@ pub fn summary(run: &Run) -> Json {
 
 /// The run's full document.
 pub fn document(run: &Run) -> Json {
+    let amd_source = match &run.outcome {
+        Outcome::Executed { graph, .. } => native_amd_graph(graph),
+        // Before execution there is no graph/launch provenance. Retain only
+        // the source's syntax family; do not invent an analyzed target/launch.
+        Outcome::NotStarted { .. } => run
+            .source
+            .lines()
+            .any(|line| line.split_whitespace().next() == Some(".amdgcn_target")),
+    };
     let mut fields = vec![
         ("format", Json::str("volta-viz 1")),
         ("meta", summary(run)),
         ("source", Json::str(run.source)),
+        (
+            "source_language",
+            Json::str(if amd_source { "amdgpu" } else { "ptx" }),
+        ),
     ];
     match &run.outcome {
         Outcome::NotStarted { error, .. } => fields.push(("error", Json::str(error.clone()))),
@@ -175,6 +188,11 @@ pub fn document(run: &Run) -> Json {
         } => fields.extend(graph_fields(graph, arena, *report, run.source)),
     }
     Json::Obj(fields)
+}
+
+fn native_amd_graph(graph: &EventGraph) -> bool {
+    volta_graph::AmdArchitecture::from_targets(&graph.provenance().targets).is_some()
+        || !graph.amd_events().is_empty()
 }
 
 /// Each distinct string and `(key, value)` detail pair of a document, stored once.
@@ -266,7 +284,7 @@ fn graph_fields(
             let mut launch = vec![
                 (
                     "wave_size",
-                    Json::uint(if !graph.amd_events().is_empty() {
+                    Json::uint(if native_amd_graph(graph) {
                         64u32
                     } else {
                         32u32
@@ -274,7 +292,7 @@ fn graph_fields(
                 ),
                 (
                     "source_language",
-                    Json::str(if !graph.amd_events().is_empty() {
+                    Json::str(if native_amd_graph(graph) {
                         "amdgpu"
                     } else {
                         "ptx"
@@ -427,7 +445,7 @@ impl Lanes {
             lanes.thread.insert(t, lanes.lanes.len());
             lanes.lanes.push(Lane {
                 kind: LaneKind::Thread,
-                label: if !graph.amd_events().is_empty() {
+                label: if native_amd_graph(graph) {
                     format!("w{}:l{}", t.0 / 64, t.0 % 64)
                 } else {
                     format!("t{}", t.0)
