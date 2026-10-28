@@ -5,7 +5,7 @@ build-backend = "maturin"
 [project]
 name = "volta"
 version = "0.1.0"
-description = "Python bindings for the Volta PTX analysis engine"
+description = "Python bindings for the Volta PTX and native AMD analysis engines"
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Rust",

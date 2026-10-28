@@ -2,7 +2,7 @@
 name = "volta_py"
 version.workspace = true
 edition.workspace = true
-description = "Python bindings for the Volta PTX analysis engine"
+description = "Python bindings for the Volta PTX and native AMD analysis engines"
 
 [lib]
 name = "volta"

@@ -1,5 +1,5 @@
 //! PTX parser: a Pratt parser for constant expressions (after
-//! https://matklad.github.io/2020/04/13/simple-but-powerful-pratt-parsing.html),
+//! <https://matklad.github.io/2020/04/13/simple-but-powerful-pratt-parsing.html>),
 //! extended to full modules.
 
 use crate::frontend::ascii::{AsciiChar, AsciiSliceExt, AsciiString, ascii};

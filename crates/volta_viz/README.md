@@ -1,14 +1,18 @@
 # volta_viz
 
-The existing run store also accepts gfx950 graphs. AMD runs show wave64/lane labels,
-64-bit EXEC and register masks, counter charges and wait thresholds, MFMA operands
-and independent NOP states, LDS footprints and barrier generations. Typed AMD findings
+The run store accepts PTX, gfx942/gfx950 wave64 and gfx1250 wave32 graphs.
+Native runs show AMD wave/lane labels, target-width EXEC and register masks,
+counter charges and wait thresholds, MFMA or WMMA operands, delay states,
+LDS/tensor footprints and barrier generations. Typed AMD findings
 link the issuing and consuming events back to their source lines. AMD barrier deadlocks
 name missing waves directly.
 
 The wire format remains `volta-viz 1`: `launch.wave_size` and
-`launch.source_language` are additive fields. Old stores without them retain warp32
-grouping. Source filenames still occupy the legacy `ptx` metadata key, including `.s`
+`launch.source_language` and `launch.wave_kind` are additive fields. Legacy
+stores without geometry/language metadata use the warp32 fallback; stored AMD
+wave64 width still identifies wave grouping. Source-only unsupported outcomes
+retain declared target/geometry separately, without inventing a launch. Source
+filenames still occupy the legacy `ptx` metadata key, including `.s`
 files, so stored-run readers remain compatible. Candidate barrier/issue edges are
 visualized as recorded associations; check findings establish their validity.
 
@@ -19,11 +23,15 @@ The event-graph viewer. It records kernel runs into a directory (a **run
 store**) and turns that store into **one self-contained HTML page** showing
 each run's event graph as a space-time diagram. The diagram has a lane per
 thread, per issuing thread's async ops and per sync object; the typed edges;
-the graph checks' findings; and the PTX source behind every event.
+the graph checks' findings; and the PTX or native AMD source behind every event.
 
 ```sh
-just viz   # VOLTA_VIZ_DIR=<dir> cargo test -p volta_pipeline, then volta viz <dir> -o target/volta-viz/volta-graphs.html
+just viz   # records the complete pipeline suite, including thousands of numeric variations
 ```
+
+For a smaller store, use the [focused gfx1250 recipe](../../tests/gfx1250/README.md#software-acceptance-and-reproduction).
+Set `VOLTA_VIZ_DIR` to an absolute path: Cargo runs each test from its crate
+folder, so a relative store path may differ from the subsequent CLI invocation.
 
 ## High-level logic
 
@@ -42,7 +50,8 @@ one HTML page: viewer/{page.html, style.css, app.js} inlined
 - `store.rs`: the store layout. The page's index is built from the
   `.meta.json` summaries alone, so no document is parsed up front.
 - `export.rs`: one run to its JSON document, and its **status**: race-free,
-  race-condition (a memory-conflict, proxy-order or tensor-order failure),
+  race-condition (a native AMD memory/readiness failure, or a PTX memory-conflict,
+  proxy-order or tensor-order failure),
   check-failed, deadlock, unsupported, unknown, error or unchecked.
 - `json.rs`: a minimal JSON value and compact writer (the crate's only wire
   format; no serde).
@@ -74,7 +83,7 @@ one HTML page: viewer/{page.html, style.css, app.js} inlined
 4. **Findings**: every check's witnesses and unresolved obligations, and a
    stuck trace's blocked threads, resolved to event ids so the page can ring
    them.
-5. **Source**: the PTX text and a pc -> line map from the graph's
+5. **Source**: the PTX or native AMD text and a pc -> line map from the graph's
    `Provenance`.
 
 ### In the browser (`viewer/app.js`)

@@ -5,9 +5,13 @@ candidate execution with target-selected wave geometry, then the existing symbol
 artifacts. It does not depend on the pipeline, equivalence checker, or graph
 checker. Backend dispatch and verification remain in the existing pipeline.
 
-The targets are LLVM AMDHSA assembly for gfx942 and gfx950, tested with code-object version 6
-and metadata 1.2. Compiler fixtures retain source and toolchain provenance under
-`src/frontend/fixtures`. CPU-only tests require no ROCm installation or GPU.
+The targets are LLVM AMDHSA assembly for gfx942, gfx950 and gfx1250, tested with
+code-object version 6 and metadata 1.2. The frontend recognizes code-object 4–6
+and metadata 1.0–1.2; those broader version ranges are not independently validated
+gfx1250 toolchain profiles. Legacy compiler fixtures retain source and provenance
+under `src/frontend/fixtures`; gfx1250 fixtures live under
+[`tests/gfx1250`](../../tests/gfx1250). CPU analysis of checked-in assembly
+requires no ROCm installation or GPU.
 
 Select gfx942 explicitly with CLI `--backend amdgpu --target gfx942` or Python
 `Config(..., backend="amdgpu", target="gfx942")`. The source target must match
@@ -26,8 +30,9 @@ in graph provenance and survive serialization.
 
 This is a selected instruction model. Unimplemented CDNA3 FP8 MFMA, atomics,
 replay-enabled vector clauses, and other existing unsupported instruction families
-remain unsupported. BF16 matrix arithmetic currently requires concrete encoded
-BF16 operands; arbitrary symbolic BF16 reinterpretation remains unsupported.
+remain unsupported. On gfx942/gfx950, BF16 MFMA arithmetic currently requires
+concrete encoded BF16 operands; gfx1250 WMMA has a separate original-16-bit-input
+profile described below. Arbitrary symbolic BF16 reinterpretation is unsupported.
 Native gfx942 compiler sources, hardware drivers and receipts live under
 [`tests/gfx942`](../../tests/gfx942). The architecture gate is applied both during
 parsing and lowering of caller-built modules, so changing a target string cannot
@@ -36,7 +41,7 @@ make a CDNA4-only instruction execute as CDNA3.
 Architecture references: [AMD CDNA3 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-mi300-cdna3-instruction-set-architecture.pdf),
 [LLVM AMDGPU ABI and processor tables](https://llvm.org/docs/AMDGPUUsage.html),
 and [LLVM processor features](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AMDGPU/AMDGPU.td).
-The new `core-assembler-profiles.json` receipt compares the same 725 observed
+The [`core-assembler-profiles.json`](../../tests/gfx942/evidence/core-assembler-profiles.json) receipt compares the same 725 observed
 instruction profiles with LLVM's gfx942 and gfx950 assemblers; assembly
 acceptance is separate from the mathematical and graph checks.
 

@@ -1,6 +1,6 @@
 # Implemented gfx1250 contract
 
-This is the selected software model for issue13. Hardware validation is pending;
+This is the selected software model for issue #13. Hardware validation is pending;
 no target device was available. CPU analysis is usable without ROCm once built.
 Compiler encodings, independent semantic checks and device execution are separate
 evidence classes.
@@ -8,22 +8,23 @@ evidence classes.
 | Boundary | Implemented envelope |
 | --- | --- |
 | Target | Bare `gfx1250`; no strict/neighbor alias or feature-suffix fallback |
-| Compiler | ROCm7.2 AMD LLVM22, revision `7b800a19466229b8479a78de19143dc33c3ab9b5` |
-| Object/metadata | Tested AMDHSA code-object6, metadata1.2 |
+| Compiler | ROCm 7.2 AMD LLVM 22, revision `7b800a19466229b8479a78de19143dc33c3ab9b5` |
+| Object/metadata | Tested AMDHSA code-object 6, metadata 1.2 |
 | Launch | One unclustered workgroup `(0,0,0)`, grid `(1,1,1)`, 1..1024 workitems |
-| Geometry | Wave32; only low32 bits of stored EXEC/VCC masks are physical lanes |
-| Registers | s0..s105, logical VGPR allocation1024, encoded operands v0..v255, TTMP0..15; no AGPR namespace |
-| LDS | Aggregate static plus dynamic capacity up to327,680 bytes; explicit subobjects optional |
+| Geometry | Wave32; only low 32 bits of stored EXEC/VCC masks are physical lanes |
+| Registers | s0..s105, logical VGPR allocation 1024, encoded operands v0..v255, TTMP0..15; no AGPR namespace |
+| LDS | Aggregate static plus dynamic capacity up to 327,680 bytes; explicit subobjects optional |
 | Inputs | Concrete addresses/control, symbolic mathematical data, exact by-value metadata bytes |
 | Replay | Hardwired XNACK; independent X-count address-source leases and data completion |
-| Completion | Load/store/DS/KM/X/async/tensor classes; tensor threshold0 only |
+| Completion | Load/store/DS/KM/X/async/tensor classes; tensor threshold 0 only |
 | Barriers | Unnamed shader split signal/wait/release with objects/phases and completed-effect publication |
 | Matrices | WMMA F32 16x16x4, F16/BF16 16x16x32; F32 accumulation, complete wave32 |
 | Tensor | Plain bounded 2D global/LDS transfers in both directions; staged buffer reuse |
-| Arithmetic | Existing mathematical reals; exact concrete signed/unsigned64 products and mad |
+| Arithmetic | Existing mathematical reals; exact concrete signed/unsigned 64-bit products and mad |
 
 Register bounds are assembler/ABI probes rather than blanket access guarantees.
-Higher banked VGPR encodings are explicitly unsupported; their logical allocation limit is not confused with the supported operand spelling.
+Higher banked VGPR encodings are explicitly unsupported. The logical allocation
+limit is separate from the supported operand spelling.
 Initial ABI state includes only defined architected TTMP fields, descriptor
 user-SGPR inputs, packed local IDs and recognized hidden launch values. Runtime
 facilities and padding remain undefined unless metadata/configuration defines

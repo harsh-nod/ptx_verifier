@@ -1,6 +1,7 @@
-//! The checks over one graph, in [`Property::ALL`]'s order, each receiving exactly the
+//! Target-selected checks over one graph. PTX uses [`Property::ALL`]'s order, receiving the
 //! certificates of its prerequisites ([`Property::prerequisites`]); the suite adds no reasoning
-//! of its own beyond reading the trace generator's terminal state.
+//! of its own beyond reading the trace generator's terminal state. Native AMD graphs
+//! use the four applicable properties supplied by [`crate::amdgpu`].
 //!
 //! The trace generator, not a check, reports a deadlock (`¬Terminal(S) ∧ Enabled(S) = ∅`) or
 //! an abort on invalid or unsupported behavior (§1.2): a stuck trace is a diagnostic, an

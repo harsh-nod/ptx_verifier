@@ -1,4 +1,4 @@
-//! Graph checks over a `volta_graph::EventGraph`: the seven checks of the Volta v2 design's
+//! PTX graph checks over a `volta_graph::EventGraph`: the seven checks of the Volta v2 design's
 //! data-race freedom check (§1.3), then three beyond the design, one module each, each callable
 //! on a graph in isolation with explicitly passed certificates and with its contract in its
 //! module docs. Checks never run symbolic analysis or equivalence checking.
@@ -18,7 +18,10 @@
 //!
 //! Shared by them: the typed edge projections `G0`, `G_HB` and `D` ([`relation`]), the
 //! pipeline relation `E_pipeline` ([`pipeline`]) and the memory domains `M` and `A`
-//! ([`domain`]). [`suite`] runs the ten in order; a kernel's conclusion is theirs alone.
+//! ([`domain`]). [`suite`] runs these ten for PTX. For native gfx942/gfx950/gfx1250,
+//! [`amdgpu`] supplies four target-selected properties: trace completeness, readiness,
+//! barrier generations and memory conflicts. Use [`GraphReport::applicable_properties`]
+//! to enumerate the active set; inapplicable PTX fields do not certify an AMD graph.
 
 pub mod allocation_order;
 pub mod allocation_permit;

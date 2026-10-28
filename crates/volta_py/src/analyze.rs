@@ -39,7 +39,7 @@ fn parse_ptx_module(source: &str) -> PyResult<Module> {
         .map_err(|e| parse_error_to_py(source, &e))
 }
 
-/// Parse PTX source and raise `VoltaError` on a syntax error.
+/// Parse source for the selected PTX or native AMD backend; raise `VoltaError` on a syntax error.
 #[pyfunction]
 #[pyo3(signature = (source, *, backend="ptx", target=None))]
 pub fn parse(source: &str, backend: &str, target: Option<&str>) -> PyResult<()> {

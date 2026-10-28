@@ -162,7 +162,7 @@ pub enum EvalError {
     InstructionLimit { limit: u64 },
     /// Configuration problem detected before/while setting up execution.
     Config { message: String },
-    /// `tcgen05.alloc`'s `nCols` violated the ISA's power-of-2-in-[32,512] rule.
+    /// `tcgen05.alloc`'s `nCols` violated the ISA's power-of-2 rule in `32..=512`.
     Tcgen05InvalidColumnCount {
         thread: ThreadId,
         pc: InstrId,
