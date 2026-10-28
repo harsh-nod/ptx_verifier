@@ -70,7 +70,18 @@ fn register_graph_with_layout(
     terminal: Terminal,
     layout: Vec<SharedAllocation>,
 ) -> EventGraph {
-    let mut b = GraphBuilder::new(provenance(64));
+    register_graph_for_target(wait, terminal, layout, "gfx950")
+}
+fn register_graph_for_target(
+    wait: bool,
+    terminal: Terminal,
+    layout: Vec<SharedAllocation>,
+    target: &str,
+) -> EventGraph {
+    let mut p = provenance(64);
+    p.targets = vec![target.into()];
+    p.kernel = format!("{}_view", target.split(':').next().unwrap());
+    let mut b = GraphBuilder::new(p);
     b.set_shared_allocation_layout(layout);
     instruction(&mut b, 0, 0, vec![v(0), v(1)], vec![v(2)]);
     b.amd_event(
@@ -301,4 +312,82 @@ fn amd_deadlock_mentions_wave_barrier_without_ptx_object() {
     let text = exported("deadlock", &b.finish(Terminal::Stuck { blocked }));
     assert!(text.contains("\"status\":\"deadlock\""));
     assert!(text.contains("AMD barrier #0 for waves [1]"));
+}
+
+#[test]
+fn gfx942_and_gfx950_provenance_select_wave64_even_before_the_first_event() {
+    for target in ["gfx942:sramecc+:xnack-", "gfx950:xnack-"] {
+        let mut p = provenance(64);
+        p.targets = vec![target.into()];
+        p.kernel = format!("{}_view", target.split(':').next().unwrap());
+        let graph = GraphBuilder::new(p).finish(Terminal::Aborted {
+            thread: None,
+            pc: None,
+            cause: AbortCause::Unsupported,
+            reason: "unsupported native instruction before first event".into(),
+        });
+        let text = exported(&format!("eventless_{target}"), &graph);
+        for expected in [
+            "\"wave_size\":64",
+            "\"source_language\":\"amdgpu\"",
+            "w0:l63",
+            target,
+            "\"status\":\"unsupported\"",
+        ] {
+            assert!(text.contains(expected), "{target}: missing{expected}");
+        }
+        assert!(!text.contains("gfx950 graph contract"));
+        assert!(!text.contains("CDNA4 counters"));
+    }
+}
+
+#[test]
+fn cdna3_success_and_failure_keep_their_actual_target_and_check_names() {
+    for wait in [true, false] {
+        let graph = register_graph_for_target(wait, Terminal::Completed, vec![], "gfx942:xnack-");
+        let text = exported(
+            if wait {
+                "gfx942_success"
+            } else {
+                "gfx942_wait_hazard"
+            },
+            &graph,
+        );
+        assert!(text.contains("gfx942:xnack-"));
+        assert!(!text.contains("gfx950 graph contract"));
+        assert!(text.contains(if wait {
+            "\"status\":\"race-free\""
+        } else {
+            "ReadBeforeReady"
+        }));
+    }
+}
+
+#[test]
+fn never_started_native_source_retains_syntax_family_without_fabricating_launch() {
+    for (ordinal, separator) in [" ", "\t", "   \t"].into_iter().enumerate() {
+        let id = RunId {
+            suite: "native".into(),
+            test: "parse_error".into(),
+            ordinal: NonZeroU32::new(ordinal as u32 + 1).unwrap(),
+        };
+        let source =
+            format!("  .amdgcn_target{separator}\"amdgcn-amd-amdhsa--gfx942\"\ns_waitcnt\n");
+        let run = Run {
+            id: &id,
+            ptx_file: Some("invalid-native.s"),
+            source: &source,
+            outcome: Outcome::NotStarted {
+                cause: AbortCause::Error,
+                error: "missing wait operand".into(),
+            },
+        };
+        let dir =
+            std::env::temp_dir().join(format!("native-not-started-viz-{}", std::process::id()));
+        write_run(&dir, &run).unwrap();
+        let text = std::fs::read_to_string(dir.join(format!("{}.json", id.key()))).unwrap();
+        assert!(text.contains("\"source_language\":\"amdgpu\""));
+        assert!(!text.contains("\"launch\""));
+        assert!(!text.contains("\"wave_size\""));
+    }
 }
