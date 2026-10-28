@@ -24,6 +24,12 @@ Initial user/system register assignments come from kernel descriptor enable bits
 Explicit argument bytes come from AMDHSA argument offsets and sizes. Recognized
 hidden launch fields are initialized from configuration. Unknown hidden runtime
 facilities remain uninitialized and their consumption stops analysis.
+Concrete partial kernarg words retain a bit-definedness mask when native loads
+include padding. Exact low16 sign extension and byte2-to-f32 conversion can
+consume their defined portions; copying a word preserves unknown bits. Whole-word
+arithmetic, floating decoding, and stores that observe padding stop analysis.
+Padding is never initialized to a numeric value, and ordinary global/LDS reads
+retain their existing uninitialized-memory checks.
 Descriptor/user-SGPR disagreement and argument-count disagreement are errors.
 Kernarg preloading remains unsupported. Launch checks
 enforce descriptor workgroup limits and required dimensions. Split workgroups
@@ -61,6 +67,15 @@ Byte inputs acquire a numeric interpretation at their first decoder. OCP E4M3
 and signed/unsigned integer-byte interpretations of the same input array cannot
 be mixed. Signed loads and native signed-byte-to-F16 conversions preserve numeric
 input identities while packing keeps the original byte positions.
+Two-byte encoded byte pairs retain both identities through native 16-bit memory
+transfers. Exact 32-bit word transport via b64 shifts by zero or 32 and OR with a
+concrete zero preserves symbolic data tags; other symbolic b64 shifts require
+encoded bits. Concrete `v_ashrrev_i64` retains signed whole-value integer
+provenance; its count uses the low six bits. Symbolic signed64 arithmetic remains unsupported.
+An integer consumer of a symbolic UBYTE input records its unsigned-byte numeric
+interpretation, which cannot be combined with FP8 decoding of the same array.
+Concrete logical b64 shifts retain unsigned integer provenance for numeric
+64-bit output extraction while remaining usable as native address bits.
 General base2 exponentials/logarithms use the exact reciprocal of rounded f32
 log2(e), matching the existing PTX mathematical contract; executing that path
 records `CompilerBase2Conversion`. Actual instruction coefficients remain exact.
@@ -69,6 +84,11 @@ Memory is byte-addressed with explicit symbolic granules. Global allocations mus
 be disjoint and accesses must lie inside one declared allocation; LDS is bounded
 by static plus dynamic size. Wide transfers preserve each register-sized granule
 and its byte footprint. Only completely written output elements are extracted.
+Optional named `shared_allocations` preserve configured LDS subobject bounds:
+the entire DS or shared-aperture FLAT transfer, including dual offsets, must fit
+one supplied region. Each region must fit aggregate LDS capacity. The exact
+layout is exported with `ConfiguredSharedAllocationLayout`; empty configuration
+keeps aggregate bounds. Source-level objects are not inferred from raw metadata.
 An exact native `s_mov_b64 ..., src_shared_base` produces an opaque shared-aperture
 high word and a zero low word. Copies preserve that token. A FLAT address pair
 with this high word and a concrete low offset accesses the same LDS bytes as DS
@@ -87,6 +107,10 @@ scope.
 Missing stores remain missing for downstream equivalence to diagnose. Concrete
 integer ALU results retain integer provenance; ambiguous raw-bit output constants
 require a conversion instead of guessing their numeric type.
+Known zero reciprocal, nonpositive reciprocal-square-root/logarithm, and negative
+square-root operands stop execution before undefined real expressions can
+disappear through later multiplication. Nonzero reciprocals and unrelated encoded
+infinities retain the upstream model.
 
 ## Events and synchronization
 

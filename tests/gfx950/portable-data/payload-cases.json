@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "scope": "Nineteen actual remaining positive baseline payload assertions, including exact sparse output indices. Mathematical arithmetic contract; native instructions are retained and independently assembled.",
+  "entries": [
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/add_sat_f32_concrete_clamps.ptx",
+      "baseline_sha256": "b5b751d9cb49deaa49be4ec2b6a41e0ba0fe04684d1e9909d72366618edf567a",
+      "native_source": "tests/gfx950/portable-data/payload_add_sat_f32_concrete_clamps.s",
+      "native_source_sha256": "b45810c086c4a6e88e2690ccbaf9d829242b6f81c3ece98283226bcbe436f7a5",
+      "golden": "out[0] = 1\nout[1] = 0\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::f32_saturation_matches_both_concrete_endpoint_assertions"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_u16_access_at_2_mod_4.ptx",
+      "baseline_sha256": "f70d0df08010719a715e58bec712e142f602ff648f283421feacd4b1c39289e1",
+      "native_source": "tests/gfx950/portable-data/payload_aligned_u16_access_at_2_mod_4.s",
+      "native_source_sha256": "7515b901e47e2a57bf7c25dfbeb35c2550b5c78909e2cca1623952d50193dc80",
+      "golden": "out[1] = in[1]\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::native_halfword_at_two_mod_four_preserves_the_only_written_index"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_vector_load.ptx",
+      "baseline_sha256": "ceccb6f94d5d601bb0c20d20225a8c9925e74c0a90cc2129c00e21d2921f89a0",
+      "native_source": "tests/gfx950/portable-data/payload_aligned_vector_load.s",
+      "native_source_sha256": "a11efab9799eee66acd9cc615b73992624f18debfbf9d531fdda6ce1cdc00686",
+      "golden": "out[0] = in[3]\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::four_component_load_retains_the_fourth_independent_input"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvt_reinterprets_at_source_format.ptx",
+      "baseline_sha256": "fd60c282e0e331fe2627da0f742dee42fc4d82cece70ce321340a892abae0b8b",
+      "native_source": "tests/gfx950/portable-data/payload_cvt_reinterprets_at_source_format.s",
+      "native_source_sha256": "4786f099f004a6b8bc19bb9d31ed1c77937ce93eae26a944e1813aa61765130c",
+      "golden": "out[0] = -8\nout[1] = 4294967288\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::source_signedness_selects_minus_eight_or_unsigned_4294967288_at_64_bits"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/load_s8_sign_extends.ptx",
+      "baseline_sha256": "dbc3aa7408197acb8391640fff92c077128066bdbbb94aba4f64991fe3b76e74",
+      "native_source": "tests/gfx950/portable-data/payload_load_s8_sign_extends.s",
+      "native_source_sha256": "329dcc84f033581a20b8c613494b52a98d3c07861b27f3e57a963131f5bf009a",
+      "golden": "out[0] = 4294967295\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::signed_byte_and_minus_one_complement_rows_canonicalize_the_u32_output"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/load_s8_sign_extends_2.ptx",
+      "baseline_sha256": "b78adcd8287d5bea5baa60f731ab6b68fab35f616fd7779b46c7b86e84925958",
+      "native_source": "tests/gfx950/portable-data/payload_load_s8_sign_extends_2.s",
+      "native_source_sha256": "848dd4558d368713702ba5231144e2308fcf6aee6a278fec964b3d8091835335",
+      "golden": "out[0] = 4294967295\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::signed_byte_and_minus_one_complement_rows_canonicalize_the_u32_output"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_b64_integer_pack_recombines_as_scalar_direct.ptx",
+      "baseline_sha256": "192f3021f61dfbf275300ccdcf07afcece4e2f9967ec23ca1bd6343b223a9d27",
+      "native_source": "tests/gfx950/portable-data/payload_mov_b64_integer_pack_recombines_as_scalar_direct.s",
+      "native_source_sha256": "6babcbaa20b0d345ae82ee190be9145f148775bb82f6f4a1ca2ff673b956d458",
+      "golden": "out[2] = in[0]\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::direct_and_assembled_integer_pointers_write_only_output_index_two"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_b64_integer_pack_recombines_as_scalar_packed.ptx",
+      "baseline_sha256": "c5e8fd342d1912e83574de05dcdc552621554bfe53dc48c5c1226116eb6066d2",
+      "native_source": "tests/gfx950/portable-data/payload_mov_b64_integer_pack_recombines_as_scalar_packed.s",
+      "native_source_sha256": "9151f0d2a6014045e2c460371900aeddf2f08c7edd679bc82ad27c8ddd89c11e",
+      "golden": "out[2] = in[0]\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::direct_and_assembled_integer_pointers_write_only_output_index_two"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_neg1_vs_not_zero.ptx",
+      "baseline_sha256": "54f6629136cf5b8b951873ac6184acea3ad70ef8b664c6e82854a25982f644fc",
+      "native_source": "tests/gfx950/portable-data/payload_mov_neg1_vs_not_zero.s",
+      "native_source_sha256": "9eb2fcb33fa78e94513183d0684242d75c1b591c912cee90c666e8a64c242586",
+      "golden": "out[0] = 4294967295\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::signed_byte_and_minus_one_complement_rows_canonicalize_the_u32_output"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_neg1_vs_not_zero_2.ptx",
+      "baseline_sha256": "fd8864d6305c3ffde990d9b1dac5c56efe841c36542f031af4daeaed57cfeed2",
+      "native_source": "tests/gfx950/portable-data/payload_mov_neg1_vs_not_zero_2.s",
+      "native_source_sha256": "7cba87cea58f95e6f2e46cb17031576dfdb0ac13c34da43597970ea8a8546e96",
+      "golden": "out[0] = 4294967295\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::signed_byte_and_minus_one_complement_rows_canonicalize_the_u32_output"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_pack_b32_always_builds_pair.ptx",
+      "baseline_sha256": "c6cd22068fc06462bdecd415c740c0cef3fe2711284e22eea2a01dd25f27b8c4",
+      "native_source": "tests/gfx950/portable-data/payload_mov_pack_b32_always_builds_pair.s",
+      "native_source_sha256": "07637b219f6c157ea69bbe708c90ee973ff329dc0b64304cd6dc011adb279de8",
+      "golden": "out[0] = in[0]\nout[1] = in[1]\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::native_half_pair_pack_and_unpack_retain_both_symbolic_elements"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_pack_b64_integer_halves_recombine.ptx",
+      "baseline_sha256": "6e314b83a598166a1553b6d6eba2549f6632eaffcc2f6d9a87baa4946726aa84",
+      "native_source": "tests/gfx950/portable-data/payload_mov_pack_b64_integer_halves_recombine.s",
+      "native_source_sha256": "ebea71a60133e5959c21bb751cd06229dc5b65b84baf8a367a8046c20fa9611c",
+      "golden": "out[0] = 12884901893\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::integer_pair_packing_and_raw_halfword_unpacking_preserve_exact_bits"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_unpack_native_pair_source.ptx",
+      "baseline_sha256": "8a2e9b9386de7568e659671cbd1e8328fbb111a2bdadb5a3318111fcad78138e",
+      "native_source": "tests/gfx950/portable-data/payload_mov_unpack_native_pair_source.s",
+      "native_source_sha256": "60bedfcb3f2e7743b7fad33351e4f5131fefd8ed49718312caa89e6339c8c470",
+      "golden": "out[0] = in[0]\nout[1] = in[1]\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::native_half_pair_pack_and_unpack_retain_both_symbolic_elements"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_vector_destination_unpack_values.ptx",
+      "baseline_sha256": "3438b596828bcc8f0fca597997b70ff5560238517d9aef9f8f30e5478b54f1ab",
+      "native_source": "tests/gfx950/portable-data/payload_mov_vector_destination_unpack_values.s",
+      "native_source_sha256": "bfe1235e0e39b0602f6ff09e07124af7f2e43f0594aba083858bb5ba4ae34e41",
+      "golden": "out[0] = 43981\nout[1] = 4660\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::integer_pair_packing_and_raw_halfword_unpacking_preserve_exact_bits"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/relu_epilogue_vs_explicit_max_explicit.ptx",
+      "baseline_sha256": "bd3b2e4bd3cfe7f4aadb908ad7e6ea328051b344e4659e1f07ece988861a5f2d",
+      "native_source": "tests/gfx950/portable-data/payload_relu_epilogue_vs_explicit_max_explicit.s",
+      "native_source_sha256": "b1b0fb44702077803dd8d86765c982c6dd30b908e8185289c39c31a7eaf7595a",
+      "golden": "out[0] = max(0, in[0])\nout[1] = max(0, in[1])\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::both_native_relu_half_epilogues_match_two_independent_maxima"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/relu_epilogue_vs_explicit_max_fused.ptx",
+      "baseline_sha256": "db8662831d3d717ee8f7636d3db88d828d754ecc5098d8213800962f5ee9c71a",
+      "native_source": "tests/gfx950/portable-data/payload_relu_epilogue_vs_explicit_max_fused.s",
+      "native_source_sha256": "fd271244a4cd248adf243739435226e8b810093dd549efca5d0d8249c120f693",
+      "golden": "out[0] = max(in[0], 0)\nout[1] = max(in[1], 0)\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::both_native_relu_half_epilogues_match_two_independent_maxima"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/store_u8_truncates_to_low_bits.ptx",
+      "baseline_sha256": "50d8e006e79eabab8f7ae4b5077b2081751523554e4622620512f0793a67ecfe",
+      "native_source": "tests/gfx950/portable-data/payload_store_u8_truncates_to_low_bits.s",
+      "native_source_sha256": "85cbebafc9125cf8fd291e532da6c053c448fe1241583794eec67c8c6c829b1c",
+      "golden": "out[0] = 44\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::byte_store_truncates_300_and_unsigned_byte_load_remains_its_numeric_input"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/unsigned_sub_register_load_passes_through.ptx",
+      "baseline_sha256": "07538920dab0e1a6b054a1ed5ecda0feaeaa44c824651a535e5df49cc5b592f9",
+      "native_source": "tests/gfx950/portable-data/payload_unsigned_sub_register_load_passes_through.s",
+      "native_source_sha256": "ee1fbb07f428e4e62293f7e775cb05c77245c5ed93397d3138ca3cda0db60874",
+      "golden": "out[0] = scratch[0]\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::byte_store_truncates_300_and_unsigned_byte_load_remains_its_numeric_input"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/vector_store_with_immediate_source.ptx",
+      "baseline_sha256": "b6d050db1c99c1beedbee66491d60feb930986fcfc9cd89c9e8c568316fd03e1",
+      "native_source": "tests/gfx950/portable-data/payload_vector_store_with_immediate_source.s",
+      "native_source_sha256": "436ef0c513239f944e24535c0e7546edc26f08392fdda1bfdbbeda07ddaca997",
+      "golden": "out[0] = in[0]\nout[1] = 0\nout[2] = in[1]\nout[3] = 1\n",
+      "validation": "Candidate native semantic counterpart; only coordinator may report independent parity completion.",
+      "native_test": "crates/volta_pipeline/tests/gfx950_payload_parity_tests.rs::native_vector_store_preserves_both_input_and_immediate_lanes"
+    }
+  ]
+}

@@ -262,9 +262,8 @@ fn graph_fields(
     let lines = LineIndex::new(source);
     let p = graph.provenance();
     vec![
-        (
-            "launch",
-            Json::Obj(vec![
+        ("launch", {
+            let mut launch = vec![
                 (
                     "wave_size",
                     Json::uint(if !graph.amd_events().is_empty() {
@@ -296,8 +295,27 @@ fn graph_fields(
                             .collect(),
                     ),
                 ),
-            ]),
-        ),
+            ];
+            if !graph.shared_allocation_layout().is_empty() {
+                launch.push((
+                    "shared_allocations",
+                    Json::Arr(
+                        graph
+                            .shared_allocation_layout()
+                            .iter()
+                            .map(|region| {
+                                Json::Obj(vec![
+                                    ("name", Json::str(region.name.clone())),
+                                    ("offset", Json::uint(region.offset)),
+                                    ("size", Json::uint(region.size)),
+                                ])
+                            })
+                            .collect(),
+                    ),
+                ));
+            }
+            Json::Obj(launch)
+        }),
         (
             "instructions",
             Json::Arr(

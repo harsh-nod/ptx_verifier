@@ -18,11 +18,17 @@ python3 ai_compiler_kernels/check_races.py --backend amdgpu --mutate copy
 ```
 
 The strict completeness check intentionally fails while work remains. The
-native workload manifest includes infrastructure copy/add, portable FP16/FP8,
-and matrix/ID mechanism cases. This is not coverage of all 20 baseline workload
-families. Compiler fixtures,
+native workload manifest includes copy/add, portable FP16/FP8, full-size GEMM,
+convolution and attention-family cases, alongside matrix/ID and ABI controls.
+Reduced cases are explicitly labeled and do not replace full baseline shapes.
+Complete baseline coverage requires reviewed dispositions in `parity.json`.
+Compiler fixtures,
 sources, provenance, emitted-instruction inventory, and portable-workload specs
 live under `crates/volta_amdgpu_analysis/src/frontend/fixtures/`.
+The [instruction coverage table](instruction-coverage.md) separates parsing,
+lowering, value semantics, events and checks, with positive/negative controls
+and explicit limits. Regenerate or check it with
+`python3 tests/gfx950/generate_instruction_coverage.py --check`.
 
 `baseline.json` records 1059 passing Rust tests, one existing Rust false-positive
 regression (`test_aligned_bar_sync_reached_on_different_iterations`), and 15

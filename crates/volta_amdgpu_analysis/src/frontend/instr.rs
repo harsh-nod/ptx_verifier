@@ -349,7 +349,7 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
     );
     let result = match stem {
         "s_endpgm" => (Control, 0, 1),
-        "s_nop" | "s_sleep" | "s_sendmsg" | "s_setprio" => (Control, 1, 1),
+        "s_nop" | "s_sleep" | "s_sendmsg" | "s_setprio" | "s_trap" => (Control, 1, 1),
         "s_barrier" => (Barrier, 0, 0),
         "s_waitcnt" => (Wait, 1, 3),
         "s_waitcnt_vscnt" => (Wait, 2, 2),
@@ -360,7 +360,7 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "s_cmpk_eq_i32" | "s_cmpk_lg_i32" | "s_mulk_i32" | "s_movk_i32" | "s_mov_b32"
         | "s_mov_b64" | "s_not_b32" | "s_not_b64" | "s_brev_b32" | "s_brev_b64"
         | "s_ff0_i32_b64" | "s_ff1_i32_b64" | "s_ff0_i32_b32" | "s_ff1_i32_b32"
-        | "s_flbit_i32_b32" | "s_abs_i32" | "s_bitset1_b32" => (ScalarAlu, 2, 2),
+        | "s_flbit_i32_b32" | "s_abs_i32" | "s_bitset1_b32" | "s_sext_i32_i16" => (ScalarAlu, 2, 2),
         "s_add_u32" | "s_add_i32" | "s_addc_u32" | "s_sub_u32" | "s_sub_i32" | "s_subb_u32"
         | "s_mul_i32" | "s_mul_hi_u32" | "s_mul_hi_i32" | "s_and_b32" | "s_and_b64"
         | "s_or_b32" | "s_or_b64" | "s_xor_b32" | "s_xor_b64" | "s_andn2_b32" | "s_andn2_b64"
@@ -475,6 +475,7 @@ fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_cos_f32"
         | "v_cvt_f32_u32"
         | "v_cvt_f32_i32"
+        | "v_cvt_f32_ubyte2"
         | "v_cvt_u32_f32"
         | "v_cvt_i32_f32"
         | "v_cvt_f16_f32"
@@ -830,7 +831,20 @@ pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruct
             "s_waitcnt requires counters or one 16-bit immediate".into(),
         ));
     }
-    validate_registers(mnemonic, opcode, &operands).map_err(&fail)?;
+    validate_registers(mnemonic, opcode, &operands, &modifiers).map_err(&fail)?;
+    validate_vop_literal_positions(mnemonic, &operands, &modifiers).map_err(&fail)?;
+    if mnemonic == "v_ashrrev_i64_e32" {
+        return Err(fail("v_ashrrev_i64 has only a VOP3 encoding".into()));
+    }
+    if ["v_cvt_f32_fp8_sdwa", "v_cvt_f32_bf8_sdwa"].contains(&mnemonic)
+        && modifiers
+            .iter()
+            .any(|modifier| matches!(modifier.name.as_str(), "dst_sel" | "dst_unused"))
+    {
+        return Err(fail(
+            "FP8/BF8-to-F32 SDWA conversion has no destination selector fields".into(),
+        ));
+    }
     if mnemonic == "v_bitop3_b32"
         && (modifiers.len() != 1
             || modifiers[0].name != "bitop3"
@@ -896,6 +910,10 @@ pub(super) fn validate_control(instruction: &Instruction) -> Result<(), ParseErr
         "s_nop" => 15,
         "s_sleep" => 127,
         "s_setprio" => 3,
+        // CDNA4 SOPP S_TRAP uses SIMM16[7:0]. LLVM also accepts truncating
+        // aliases; our recognized syntax preserves only the actual8bit ID.
+        // Entering a trap handler remains explicitly unsupported by execution.
+        "s_trap" => 255,
         // The gfx950 assembler accepts an optional unsigned SIMM16 on ENDPGM;
         // omitting it is the ordinary compiler-generated spelling.
         "s_endpgm" | "s_sendmsg" => 0xffff,
@@ -1019,7 +1037,12 @@ pub(super) fn normalize_f64_sources(instruction: &mut Instruction) -> Result<(),
     Ok(())
 }
 
-fn validate_registers(mnemonic: &str, opcode: Opcode, operands: &[Operand]) -> Result<(), String> {
+fn validate_registers(
+    mnemonic: &str,
+    opcode: Opcode,
+    operands: &[Operand],
+    modifiers: &[Modifier],
+) -> Result<(), String> {
     use RegisterClass::*;
     let stem = mnemonic
         .strip_suffix("_e32")
@@ -1193,6 +1216,14 @@ fn validate_registers(mnemonic: &str, opcode: Opcode, operands: &[Operand]) -> R
             }
         }
         Opcode::Matrix => {
+            if operands
+                .iter()
+                .any(|operand| matches!(operand, Operand::Modified { .. }))
+            {
+                return Err(
+                    "MFMA operands require unmodified native registers or C literals".into(),
+                );
+            }
             let width = if stem.contains("32x32") {
                 16
             } else if stem.contains("f64") {
@@ -1201,18 +1232,53 @@ fn validate_registers(mnemonic: &str, opcode: Opcode, operands: &[Operand]) -> R
                 4
             };
             require(0, &[Vector, Accumulator], width)?;
-            source_width(3, width)?;
-            if stem.ends_with("_f32") || stem.ends_with("x4f32") || stem.ends_with("x2f32") {
-                source_width(1, 1)?;
-                source_width(2, 1)?;
-            } else if stem.contains("f16") || stem.contains("bf16") {
-                let input_width = if stem.contains("16x16x32") || stem.contains("32x32x16") {
+            for index in [1, 2] {
+                let input_width = if stem.contains("f8f6f4") {
+                    let selector = if index == 1 { "cbsz" } else { "blgp" };
+                    let format = modifiers
+                        .iter()
+                        .find(|modifier| modifier.name == selector)
+                        .and_then(|modifier| modifier.value.as_deref())
+                        .and_then(integer)
+                        .unwrap_or(0);
+                    match format {
+                        0 | 1 => 8,
+                        2 | 3 => 6,
+                        4 => 4,
+                        _ => return Err("invalid native MFMA F8F6F4 operand format".into()),
+                    }
+                } else if stem.ends_with("_f32")
+                    || stem.ends_with("x4f32")
+                    || stem.ends_with("x2f32")
+                {
+                    1
+                } else if (stem.contains("f16") || stem.contains("bf16"))
+                    && (stem.contains("16x16x32") || stem.contains("32x32x16"))
+                {
                     4
                 } else {
                     2
                 };
-                source_width(1, input_width)?;
-                source_width(2, input_width)?;
+                // CDNA4 MFMA A/B selectors address vector register files;
+                // scalar and inline sources are not encodable, even for zero.
+                require(index, &[Vector, Accumulator], input_width)?;
+            }
+            match operands.get(3) {
+                Some(Operand::Register(accumulator)) => {
+                    let destination = register_at(0).expect("validated destination");
+                    require(3, &[destination.class], width)?;
+                    debug_assert_eq!(accumulator.class, destination.class);
+                }
+                Some(Operand::Integer(value))
+                    if if stem.contains("f64") {
+                        (-16..=64).contains(value)
+                    } else {
+                        (i32::MIN as i64..=u32::MAX as i64).contains(value)
+                    } => {}
+                Some(Operand::Float(value))
+                    if !stem.contains("f64")
+                        || [0.0, 0.5, 1.0, 2.0, 4.0].contains(&value.abs()) => {}
+                _ => return Err("invalid native MFMA C source".into()),
             }
         }
         Opcode::VectorAlu => {
@@ -1269,6 +1335,20 @@ fn validate_registers(mnemonic: &str, opcode: Opcode, operands: &[Operand]) -> R
                 require(0, &[Vector], 2)?;
                 source_width(1, 1)?;
                 source_width(2, 2)?;
+                if stem == "v_ashrrev_i64" {
+                    // The supported signed64 profile transports an actual
+                    // ordered data register pair. VOP3 has no literal word;
+                    // reject float/source modifiers and immediate data aliases
+                    // rather than inventing their64bit source interpretation.
+                    if !modifiers.is_empty()
+                        || !matches!(operands[0], Operand::Register(_))
+                        || !matches!(operands[1], Operand::Register(register) if matches!(register.class, Scalar | Vector) && register.count == 1)
+                            && !matches!(operands[1], Operand::Integer(value) if (-16..=64).contains(&value))
+                        || !matches!(operands[2], Operand::Register(register) if matches!(register.class, Scalar | Vector) && register.count == 2)
+                    {
+                        return Err("v_ashrrev_i64 requires an unmodified32bit register/inline shift and64bit data register pair".into());
+                    }
+                }
             } else {
                 let width = if stem == "v_mov_b64"
                     || stem.ends_with("f64")
@@ -1298,6 +1378,153 @@ fn validate_registers(mnemonic: &str, opcode: Opcode, operands: &[Operand]) -> R
             }
         }
         _ => {}
+    }
+    Ok(())
+}
+
+/// Pinned gfx950 arithmetic forms: VOP2 can encode one literal in SRC0; VOP3
+/// has inline constants but no literal word. Bare aliases select VOP3 when
+/// their second source or modifiers require it. Other instruction families
+/// retain their separate encoding profiles rather than inheriting this rule.
+fn validate_vop_literal_positions(
+    mnemonic: &str,
+    operands: &[Operand],
+    modifiers: &[Modifier],
+) -> Result<(), String> {
+    let explicit32 = mnemonic.ends_with("_e32");
+    let explicit64 = mnemonic.ends_with("_e64");
+    let stem = mnemonic
+        .strip_suffix("_e32")
+        .or_else(|| mnemonic.strip_suffix("_e64"))
+        .unwrap_or(mnemonic);
+    if ![
+        "v_add_u32",
+        "v_sub_u32",
+        "v_subrev_u32",
+        "v_add_f32",
+        "v_sub_f32",
+        "v_subrev_f32",
+        "v_mul_f32",
+        "v_min_f32",
+        "v_max_f32",
+        "v_fmac_f32",
+        "v_min_f16",
+        "v_max_f16",
+        "v_add_f64",
+        "v_mul_f64",
+        "v_min_f64",
+        "v_max_f64",
+        "v_fmac_f64",
+        "v_fma_f32",
+        "v_fma_f16",
+        "v_fma_f64",
+        "v_and_b32",
+        "v_or_b32",
+        "v_xor_b32",
+        "v_lshlrev_b32",
+        "v_lshrrev_b32",
+        "v_ashrrev_i32",
+        "v_mul_lo_u32",
+    ]
+    .contains(&stem)
+    {
+        return Ok(());
+    }
+    fn inline(bits: u32) -> bool {
+        bits <= 64
+            || bits >= (-16_i32) as u32
+            || [
+                0x3f00_0000,
+                0xbf00_0000,
+                0x3f80_0000,
+                0xbf80_0000,
+                0x4000_0000,
+                0xc000_0000,
+                0x4080_0000,
+                0xc080_0000,
+                0x3e22_f983,
+            ]
+            .contains(&bits)
+    }
+    fn inline_f64(value: f64) -> bool {
+        value == 0.0 && !value.is_sign_negative() || [0.5_f64, 1.0, 2.0, 4.0].contains(&value.abs())
+    }
+    fn literal(operand: &Operand, f64_source: bool, f16_source: bool) -> Result<bool, String> {
+        match operand {
+            Operand::Integer(value) => {
+                if f16_source && !(i16::MIN as i64..=u16::MAX as i64).contains(value) {
+                    return Err("native F16 literal is outside its encoded16bit range".into());
+                }
+                if f64_source {
+                    let bits = *value as u64;
+                    let decoded = f64::from_bits(if bits <= u32::MAX as u64 {
+                        bits << 32
+                    } else {
+                        bits
+                    });
+                    if (-16..=64).contains(value) || inline_f64(decoded) {
+                        return Ok(false);
+                    }
+                }
+                if !(i32::MIN as i64..=u32::MAX as i64).contains(value) {
+                    return Err("native 32-bit literal is outside its encoded range".into());
+                }
+                if f16_source {
+                    return Ok(!((-16..=64).contains(value)
+                        || (65520..=65535).contains(value)
+                        || [
+                            0x3800, 0xb800, 0x3c00, 0xbc00, 0x4000, 0xc000, 0x4400, 0xc400, 0x3118,
+                        ]
+                        .contains(value)));
+                }
+                Ok(f64_source || !inline(*value as u32))
+            }
+            Operand::Float(value) => Ok(if f64_source {
+                !inline_f64(*value)
+            } else {
+                !inline((*value as f32).to_bits())
+            }),
+            Operand::Modified { value, .. } => literal(value, f64_source, f16_source),
+            _ => Ok(false),
+        }
+    }
+    let f64_source = stem.ends_with("_f64");
+    let f16_source = stem.ends_with("_f16");
+    let vop3_only = matches!(
+        stem,
+        "v_mul_lo_u32"
+            | "v_fma_f32"
+            | "v_fma_f16"
+            | "v_fma_f64"
+            | "v_add_f64"
+            | "v_mul_f64"
+            | "v_min_f64"
+            | "v_max_f64"
+    );
+    let src1_vgpr = matches!(
+        operands.get(2),
+        Some(Operand::Register(Register {
+            class: RegisterClass::Vector,
+            count,
+            ..
+        })) if *count == if f64_source { 2 } else { 1 }
+    );
+    if explicit32 && (vop3_only || !src1_vgpr) {
+        return Err("native e32 form requires an encoded VOP2 and VGPR SRC1".into());
+    }
+    let vop3 = explicit64
+        || vop3_only
+        || !src1_vgpr
+        || !modifiers.is_empty()
+        || operands
+            .iter()
+            .any(|operand| matches!(operand, Operand::Modified { .. }));
+    for (index, operand) in operands.iter().enumerate().skip(1) {
+        if literal(operand, f64_source, f16_source)? && (vop3 || index != 1) {
+            return Err(
+                "gfx950 VOP3 has no literal word; materialize this source in a VGPR".into(),
+            );
+        }
     }
     Ok(())
 }
