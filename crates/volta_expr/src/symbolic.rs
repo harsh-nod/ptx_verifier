@@ -270,13 +270,18 @@ impl Real {
 }
 
 impl fmt::Display for Real {
-    /// Prints the denoted number: values that round-trip through f64 (every source constant) print
-    /// as f64s do ("42", "0.1", "-2.5"); others, reachable only via exact folds, print as "p/q".
+    /// Prints the denoted number: integers print exactly; other values that round-trip through f64
+    /// print as f64s do ("0.1", "-2.5"); remaining values print as "p/q".
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.repr() {
             RealRepr::NegInf => write!(f, "-inf"),
             RealRepr::PosInf => write!(f, "inf"),
             RealRepr::Rational(q) => {
+                // Decimal f64 formatting can round integer digits even when
+                // the binary value is exact (for example, 2^63).
+                if q.is_integer() {
+                    return write!(f, "{}", q.numer());
+                }
                 let d = q.to_f64();
                 if d.is_finite() && Real::from_f64(d).as_ref() == Ok(self) {
                     write!(f, "{}", d)
@@ -1910,6 +1915,19 @@ mod tests {
         let step1 = arena.lshr(a, b);
         let e = arena.shl(step1, c);
         assert_eq!(arena.as_i64(e), Some(256));
+    }
+
+    #[test]
+    fn real_display_keeps_all_integer_digits() {
+        for value in [0_u64, 1_u64 << 53, (1_u64 << 53) + 1, 1_u64 << 63, u64::MAX] {
+            let real = Real::from_rational(rug::Rational::from(value));
+            assert_eq!(real.to_string(), value.to_string());
+        }
+        assert_eq!(Real::from_f64(0.1).unwrap().to_string(), "0.1");
+        assert_eq!(
+            Real::from_rational(rug::Rational::from((1, 3))).to_string(),
+            "1/3"
+        );
     }
 
     #[test]

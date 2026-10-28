@@ -316,7 +316,9 @@ fn compare_expression_vc_and_graph_artifacts_preserve_native_wave32_results() {
     ] {
         let mut args = replay;
         args.extend(["--check-array".into(), "out".into()]);
-        assert!(code(&run("gfx1250", &args), 0).contains("VERDICT: ACCEPT"));
+        let replay = code(&run("gfx1250", &args), 0);
+        assert!(replay.contains("EQUIVALENT"), "{replay}");
+        assert!(replay.contains("no graph property was checked"), "{replay}");
     }
     fs::remove_dir_all(directory).unwrap();
 }
