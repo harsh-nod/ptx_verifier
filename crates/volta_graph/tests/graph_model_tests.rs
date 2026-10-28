@@ -46,6 +46,43 @@ fn shared(thread: u32, mode: AccessMode, addr: u64, b: &mut GraphBuilder) -> Mem
 
 const PC: ProgramPoint = ProgramPoint(0);
 
+#[test]
+fn native_wave_leaders_follow_target_geometry_including_partial_waves() {
+    use volta_graph::{AmdArchitecture, AmdEventKind};
+    for architecture in [
+        AmdArchitecture::Gfx942,
+        AmdArchitecture::Gfx950,
+        AmdArchitecture::Gfx1250,
+    ] {
+        let size = architecture.wave_size();
+        for threads in [1, 31, 32, 33, 63, 64, 65, 128] {
+            let mut p = provenance(threads, 1);
+            p.targets = vec![architecture.name().into()];
+            let mut b = GraphBuilder::new(p);
+            for wave in 0..threads.div_ceil(size) {
+                b.amd_event(wave, PC, AmdEventKind::Delay { cycles: 1 });
+            }
+            let graph = b.finish(Terminal::Aborted {
+                thread: None,
+                pc: None,
+                cause: AbortCause::Unsupported,
+                reason: "geometry-only trace".into(),
+            });
+            assert_eq!(
+                graph.validate(),
+                Ok(()),
+                "{} block {threads}",
+                architecture.name()
+            );
+            for record in graph.amd_events() {
+                let leader = ThreadIx(record.wave * size);
+                assert_eq!(graph.event(record.event).ctx, ExecContext::Thread(leader));
+                assert_eq!(graph.program_order(leader), &[record.event]);
+            }
+        }
+    }
+}
+
 /// Two threads exchange through shared memory around one full-CTA barrier.
 fn barrier_exchange() -> volta_graph::EventGraph {
     let mut b = GraphBuilder::new(provenance(2, 1));

@@ -10,6 +10,7 @@ use crate::{EventId, ThreadIx};
 pub enum AmdArchitecture {
     Gfx942,
     Gfx950,
+    Gfx1250,
 }
 
 impl AmdArchitecture {
@@ -18,10 +19,16 @@ impl AmdArchitecture {
         let architecture = match fields.next()? {
             "gfx942" => Self::Gfx942,
             "gfx950" => Self::Gfx950,
+            "gfx1250" => Self::Gfx1250,
             _ => return None,
         };
         let (mut xnack, mut sramecc) = (false, false);
         for feature in fields {
+            // gfx1250 XNACK is hardwired on, rather than a selectable mode.
+            // Only the bare target is in the implemented feature envelope.
+            if architecture == Self::Gfx1250 {
+                return None;
+            }
             let seen = match feature {
                 "xnack+" | "xnack-" => &mut xnack,
                 "sramecc+" | "sramecc-" => &mut sramecc,
@@ -46,13 +53,28 @@ impl AmdArchitecture {
         match self {
             Self::Gfx942 => "gfx942",
             Self::Gfx950 => "gfx950",
+            Self::Gfx1250 => "gfx1250",
         }
+    }
+
+    pub const fn wave_size(self) -> u32 {
+        match self {
+            Self::Gfx942 | Self::Gfx950 => 64,
+            Self::Gfx1250 => 32,
+        }
+    }
+
+    pub const fn full_exec_mask(self) -> u64 {
+        u64::MAX >> (64 - self.wave_size())
     }
 
     pub const fn lds_capacity(self) -> u64 {
         match self {
             Self::Gfx942 => 65_536,
             Self::Gfx950 => 163_840,
+            // LLVM AMDGPU.td FeatureISAVersion12_50 at the public reference
+            // 5fd50ec8e07abb94e203933017e8d6e40fb51824 selects 320 KiB LDS.
+            Self::Gfx1250 => 327_680,
         }
     }
 
@@ -61,15 +83,16 @@ impl AmdArchitecture {
     /// instructions merely by changing a graph's target string.
     pub fn supports_matrix(self, kind: AmdMatrixKind) -> bool {
         self == Self::Gfx950
-            || matches!(
-                kind,
-                AmdMatrixKind::F32_16x16x4
-                    | AmdMatrixKind::F32_32x32x2
-                    | AmdMatrixKind::F16_16x16x16
-                    | AmdMatrixKind::F16_32x32x8
-                    | AmdMatrixKind::Bf16_16x16x16
-                    | AmdMatrixKind::Bf16_32x32x8
-            )
+            || self == Self::Gfx942
+                && matches!(
+                    kind,
+                    AmdMatrixKind::F32_16x16x4
+                        | AmdMatrixKind::F32_32x32x2
+                        | AmdMatrixKind::F16_16x16x16
+                        | AmdMatrixKind::F16_32x32x8
+                        | AmdMatrixKind::Bf16_16x16x16
+                        | AmdMatrixKind::Bf16_32x32x8
+                )
     }
 }
 
@@ -258,6 +281,12 @@ pub fn amd_wave_thread(wave: u32) -> ThreadIx {
     ThreadIx(wave * 64)
 }
 
+/// First physical thread of a wave for an explicitly selected native target.
+/// The original `amd_wave_thread` retains its wave64 meaning for old callers.
+pub fn amd_wave_thread_for(architecture: AmdArchitecture, wave: u32) -> ThreadIx {
+    ThreadIx(wave.saturating_mul(architecture.wave_size()))
+}
+
 #[cfg(test)]
 mod architecture_tests {
     use super::*;
@@ -268,6 +297,11 @@ mod architecture_tests {
             ("gfx942", Some(AmdArchitecture::Gfx942)),
             ("gfx942:sramecc+:xnack-", Some(AmdArchitecture::Gfx942)),
             ("gfx950:xnack+:sramecc-", Some(AmdArchitecture::Gfx950)),
+            ("gfx1250", Some(AmdArchitecture::Gfx1250)),
+            ("gfx1250:xnack-", None),
+            ("gfx1250:xnack+", None),
+            ("gfx1250-strict", None),
+            ("gfx1251", None),
             ("gfx942:xnack+:xnack-", None),
             ("gfx942:sramecc+:sramecc+", None),
             ("gfx942:wave32", None),
@@ -284,6 +318,25 @@ mod architecture_tests {
         );
         assert_eq!(AmdArchitecture::Gfx942.lds_capacity(), 65_536);
         assert_eq!(AmdArchitecture::Gfx950.lds_capacity(), 163_840);
+        assert_eq!(AmdArchitecture::Gfx1250.lds_capacity(), 327_680);
+        for architecture in [
+            AmdArchitecture::Gfx942,
+            AmdArchitecture::Gfx950,
+            AmdArchitecture::Gfx1250,
+        ] {
+            let size = architecture.wave_size();
+            assert_eq!(
+                size,
+                if architecture == AmdArchitecture::Gfx1250 {
+                    32
+                } else {
+                    64
+                }
+            );
+            assert_eq!(amd_wave_thread_for(architecture, 3), ThreadIx(3 * size));
+            assert_eq!(architecture.full_exec_mask().count_ones(), size);
+            assert!(!AmdArchitecture::Gfx1250.supports_matrix(AmdMatrixKind::F32_16x16x4));
+        }
         assert!(AmdArchitecture::Gfx942.supports_matrix(AmdMatrixKind::F16_16x16x16));
         for kind in [
             AmdMatrixKind::F16_16x16x32,

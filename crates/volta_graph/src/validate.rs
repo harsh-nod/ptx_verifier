@@ -65,25 +65,26 @@ impl EventGraph {
             d.global(reason);
         }
         if !self.shared_allocation_layout.is_empty()
-            && !self
-                .provenance
-                .targets
-                .iter()
-                .any(|target| target.split(':').next() == Some("gfx950"))
+            && crate::AmdArchitecture::from_targets(&self.provenance.targets).is_none()
         {
             d.global(
-                "configured shared allocation layout requires the native gfx950 target".into(),
+                "configured shared allocation layout requires a recognized native AMD target"
+                    .into(),
             );
         }
+        let architecture = crate::AmdArchitecture::from_targets(&self.provenance.targets);
+        let wave_size = architecture.map_or(64, crate::AmdArchitecture::wave_size);
         for (index, record) in self.amd_events.iter().enumerate() {
             match self.events.get(record.event) {
                 Some(event)
                     if event.kind == EventKind::Amd(index as u32)
                         && event.ctx
-                            == ExecContext::Thread(crate::amd_wave_thread(record.wave)) => {}
+                            == ExecContext::Thread(crate::ThreadIx(
+                                record.wave.saturating_mul(wave_size),
+                            )) => {}
                 _ => d.at(record.event, "AMD record has no matching wave event".into()),
             }
-            if record.wave.saturating_mul(64) >= self.threads() {
+            if record.wave.saturating_mul(wave_size) >= self.threads() {
                 d.at(record.event, "AMD wave is outside the workgroup".into());
             }
         }
