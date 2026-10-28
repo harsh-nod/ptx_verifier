@@ -1888,6 +1888,17 @@ impl<'a> Interpreter<'a> {
         }
         Ok(())
     }
+    fn claim_half_format(&mut self,wave:&Wave,expr:ExprId,format:WordFormat)->Result<(),EvalError> {
+        // Only the original configured 16-bit input fixes a raw format.
+        // A mathematical F32 value rounded/transported through F16 retains
+        // its expression identity in this abstraction, not its input encoding.
+        if let ExprNode::InputElement{array,..}=self.arena.node(expr) {
+            let name=self.arena.string(*array);
+            if self.config.arrays.iter().any(|a|a.name==name&&a.elem_width==2) {self.claim_word_format(wave,expr,format)?;}
+            else if format==WordFormat::Bfloat16 {return Err(EvalError::Unsupported{pc:wave.pc,what:"symbolic BF16 requires original16-bit input storage, not a produced F16 encoding".into()});}
+        }
+        Ok(())
+    }
     fn integer_expression(
         &mut self,
         wave: &Wave,
@@ -2435,7 +2446,7 @@ impl<'a> Interpreter<'a> {
         match wave.value(operand, lane)? {
             Value::Halves(lo, hi) => {
                 let expr = if high { hi } else { lo };
-                self.claim_word_format(wave, expr, WordFormat::Float16)?;
+                self.claim_half_format(wave,expr,WordFormat::Float16)?;
                 Ok(expr)
             }
             Value::PartialHalves(lo, hi) => {
@@ -2448,7 +2459,7 @@ impl<'a> Interpreter<'a> {
                 if high {
                     Ok(self.arena.int(0))
                 } else {
-                    self.claim_word_format(wave, expr, WordFormat::Float16)?;
+                    self.claim_half_format(wave,expr,WordFormat::Float16)?;
                     Ok(expr)
                 }
             }
@@ -3040,7 +3051,7 @@ impl<'a> Interpreter<'a> {
                             what: "produced F16 cannot be reinterpreted as symbolic BF16".into(),
                         });
                     }
-                    self.claim_word_format(wave, expr, WordFormat::Bfloat16)?;
+                    self.claim_half_format(wave,expr,WordFormat::Bfloat16)?;
                     return Ok(expr);
                 }
                 let bits = wave.bits(&selected, lane)? >> (16 * (item % 2));
