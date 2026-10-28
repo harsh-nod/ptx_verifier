@@ -397,6 +397,112 @@
       }
     },
     {
+      "source": "native-wmma-basis.hip",
+      "assembly": "native-wmma-basis.s",
+      "source_sha256": "8cb11de9fe6dc7e48649317da620a7d915400920b84545ad6843d6f2b35d5d06",
+      "assembly_sha256": "1b0d2e54609184a601586a29e84e18514b0ebac7817d66f574c3f338d0d1e4f6",
+      "object_sha256": "373499eb00096359b4a1fb24200bd11d5a1d60680b1236214e8b3c91a24ac843",
+      "code_object_sha256": "5989066f84f7ef5b148c1919e090ebbfbfc448be9befaddcadc5b91b3d7b68a4",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma-basis.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma-basis.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma-basis.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma-basis.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma-basis.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma-basis.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-wmma-values.hip",
+      "assembly": "native-wmma-values.s",
+      "source_sha256": "c6fabd996882485503cf5c3a66572050fcdbc84eceabf2e290a6926e984c6dc7",
+      "assembly_sha256": "c8562521a86f360768d14d1354f708d76189718badb78d6bf7f5a86e66660c05",
+      "object_sha256": "95c4a8abec577001497f449cde95412c157c3347ccaa5df0c24581da2322b090",
+      "code_object_sha256": "6f1978480c13d65afa47a507a1420f817e8ff06d2cb3f27dbc5c69aca7f221fb",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma-values.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma-values.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma-values.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma-values.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma-values.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma-values.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
       "source": "native-wmma.hip",
       "assembly": "native-wmma.s",
       "source_sha256": "9cbe1c2d95c364be11106cc9c398d83bbcffe3f8b282bf3de322e09454726b8d",

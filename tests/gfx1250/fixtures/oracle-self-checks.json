@@ -1,9 +1,11 @@
 {
   "wmma_basis_cases": 1088,
   "wmma_outputs_per_case": 256,
-  "integer_boundary_cases": 343,
+  "integer_boundary_cases_per_signedness": 343,
+  "integer_signednesses": 2,
+  "encoded_wmma_dense_cases": 9,
   "tdm_complete_stages": 2,
   "attention_complete_outputs": 512,
   "scope": "Independent CPU oracle self-checks only; no native execution or graph validation claim",
-  "oracle_sha256": "d249d833cafa409fb686ea15cbceba1fbb3f0ec26417a6fe71b0aba27170e111"
+  "oracle_sha256": "f7dfd0dee10a696e093fc0c48aacacd5d2e76902ce882d9c39cfaf9f9751fdca"
 }

@@ -46,12 +46,25 @@ Python arbitrary-precision integers. Exact u64 output constants use raw by-value
 launch bytes and direct four-element integer comparison instead of `.spec`
 literals outside that language's signed64 domain.
 
+`wmma-validation-protocols.json` separately pins actual-interpreter controls:
+2,176 A/B input-basis launches across all three types, plus three finite
+by-value encoding controls. The BF16 input `0x3f80` must decode as 1, while
+the F16 input uses `0x3c00`; all 256 results are checked for every launch.
+These strict native tests remain pending until the new execution and checker
+contracts pass. `wmma-oracle-vectors.json` contains nine independent asymmetric
+finite CPU vectors and their complete outputs; those vectors alone do not
+certify the interpreter. Use `--vectors-output` with `oracles.py` to regenerate them.
+The native wide-product test parses once and checks all four exact outputs for
+343 unsigned and 343 signed argument combinations.
+
 Tensor roundtrip uses an explicitly bounded F32 64-by-1 descriptor, stride64,
 256-byte LDS storage, both copy directions, and two stages that reuse the buffer.
 Padding, multicast, iteration and atomic-barrier descriptor features are outside
 this fixture's profile. The attention case retains all 32 keys in normalization
 and all 512 outputs; native exp/reciprocal use the disclosed real-number model,
 which does not prove physical finite-precision error bounds.
+`descriptor-oracle.json` enumerates every global/LDS element address for all
+four tensor transfers, including both uses of the same bounded LDS allocation.
 
 The compiler's tensor builtin takes D0/D1/D2/D3 plus cache policy. The newer
 LLVM reference adds a reserved D4 argument. The source uses the actual

@@ -107,6 +107,54 @@ def limb_mul_mad(a, b, c):
     return [high & wide_mask, low, (high + (added >> 64)) & wide_mask, added & wide_mask]
 
 
+def signed_limb_mul_mad(a_bits, b_bits, c_bits):
+    mask = (1 << 64) - 1
+    high, low, _, _ = limb_mul_mad(a_bits, b_bits, 0)
+    high = (high - (b_bits if a_bits >> 63 else 0) - (a_bits if b_bits >> 63 else 0)) & mask
+    added = low + c_bits
+    added_high = (high - (1 if c_bits >> 63 else 0) + (added >> 64)) & mask
+    return [high, low, added_high, added & mask]
+
+
+def encoded_value(value, dtype):
+    if dtype == "f32":
+        return struct.unpack("<I", struct.pack("<f", value))[0]
+    if dtype == "f16":
+        return struct.unpack("<H", struct.pack("<e", value))[0]
+    bits = struct.unpack("<I", struct.pack("<f", value))[0]
+    return ((bits + 0x7fff + ((bits >> 16) & 1)) >> 16) & 0xffff
+
+
+def decoded_value(bits, dtype):
+    if dtype == "f32":
+        return struct.unpack("<f", struct.pack("<I", bits))[0]
+    if dtype == "f16":
+        return struct.unpack("<e", struct.pack("<H", bits))[0]
+    return struct.unpack("<f", struct.pack("<I", bits << 16))[0]
+
+
+def encoded_wmma_vectors():
+    cases = []
+    for dtype, depth in [("f32", 4), ("f16", 32), ("bf16", 32)]:
+        for salt in range(3):
+            a = [[((row * 3 + k * 7 + salt * 2) % 11 - 5) / 4 for k in range(depth)] for row in range(16)]
+            b = [[((col * 5 + k * 2 + salt * 3) % 13 - 6) / 4 for k in range(depth)] for col in range(16)]
+            a_bits = [encoded_value(x, dtype) for x in pack_source(a, dtype)]
+            b_bits = [encoded_value(x, dtype) for x in pack_source(b, dtype)]
+            # All values/products/sums are small dyadics exactly representable in
+            # F32, so these finite controls do not need a rounding tolerance.
+            native_expected = wmma_from_raw([decoded_value(x, dtype) for x in a_bits],
+                                            [decoded_value(x, dtype) for x in b_bits], dtype)
+            assert native_expected == pack_output(dense_gemm(a, b))
+            cases.append({"kernel": "wmma_" + dtype, "pattern": salt, "input_dtype": dtype,
+                          "input_word_bits": 32 if dtype == "f32" else 16,
+                          "a_bits": a_bits, "b_bits": b_bits,
+                          "expected_lane_major_outputs": native_expected,
+                          "expected_complete_outputs": 256, "absolute_tolerance": 0})
+    return {"schema_version": 1, "target": "gfx1250", "cases": cases,
+            "scope": "Independent finite CPU lane ABI and dtype oracle vectors; no gfx1250 execution claim"}
+
+
 def self_check():
     basis_cases = 0
     for dtype, ksize in [("f32", 4), ("f16", 32), ("bf16", 32)]:
@@ -138,13 +186,18 @@ def self_check():
                 p, added = a * b, a * b + c
                 mask = (1 << 64) - 1
                 assert limb_mul_mad(a, b, c) == [(p >> 64) & mask, p & mask, (added >> 64) & mask, added & mask]
+                signed = lambda x: x if x < 1 << 63 else x - (1 << 64)
+                p = signed(a) * signed(b)
+                added = p + signed(c)
+                assert signed_limb_mul_mad(a, b, c) == [(p >> 64) & mask, p & mask, (added >> 64) & mask, added & mask]
                 integer_cases += 1
     q = [[((r * 3 + d * 7) % 11 - 5) / 32 for d in range(32)] for r in range(16)]
     k = [[((t * 5 + d * 2) % 13 - 6) / 32 for d in range(32)] for t in range(32)]
     v = [[((t * 7 + d * 3) % 17 - 8) / 8 for d in range(32)] for t in range(32)]
     assert len(attention(q, k, v)) == 512
     return {"wmma_basis_cases": basis_cases, "wmma_outputs_per_case": 256,
-            "integer_boundary_cases": integer_cases, "tdm_complete_stages": 2,
+            "integer_boundary_cases_per_signedness": integer_cases, "integer_signednesses": 2,
+            "encoded_wmma_dense_cases": len(encoded_wmma_vectors()["cases"]), "tdm_complete_stages": 2,
             "attention_complete_outputs": 512,
             "scope": "Independent CPU oracle self-checks only; no native execution or graph validation claim"}
 
@@ -152,11 +205,16 @@ def self_check():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--vectors-output", type=Path)
     args = parser.parse_args()
     result = self_check()
     result["oracle_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     if args.output:
         args.output.write_text(json.dumps(result, indent=2) + "\n")
+    if args.vectors_output:
+        vectors = encoded_wmma_vectors()
+        vectors["oracle_sha256"] = result["oracle_sha256"]
+        args.vectors_output.write_text(json.dumps(vectors, indent=2) + "\n")
     print(json.dumps(result))
 
 
