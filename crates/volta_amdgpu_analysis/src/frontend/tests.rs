@@ -744,6 +744,37 @@ fn binary_vop_source_positions_match_the_pinned_gfx950_assembler() {
 }
 
 #[test]
+fn floating_vop_sources_require_actual_native_encodings() {
+    let receipt: serde_yaml::Value = serde_yaml::from_str(include_str!(
+        "../../tests/fixtures/vop-floating-assembler.json"
+    ))
+    .unwrap();
+    assert_eq!(receipt["cases"].as_sequence().unwrap().len(), 891);
+    for case in receipt["cases"].as_sequence().unwrap() {
+        let instruction = case["source"].as_str().unwrap();
+        let expected = case["expected_parse"].as_bool().unwrap();
+        let parsed = parse(&program(&format!("{instruction}\ns_endpgm")));
+        assert_eq!(parsed.is_ok(), expected, "{instruction}: {parsed:?}");
+    }
+    // Positive register/inline/valid SRC0 literal controls prevent rejection
+    // from being attributed to an unknown mnemonic. Invalid source positions
+    // remain malformed even behind a branch or with an empty active mask.
+    for invalid in [
+        "v_max_f32 v8, v4, 3.0",
+        "v_min_f32 v8, v4, 3.0",
+        "v_fma_f32 v8, v4, 3.0, v4",
+    ] {
+        for body in [
+            invalid.to_string(),
+            format!("s_branch .Ldone\n{invalid}\n.Ldone:\ns_endpgm"),
+            format!("s_mov_b64 exec, 0\n{invalid}\ns_endpgm"),
+        ] {
+            parse(&program(&body)).expect_err(&body);
+        }
+    }
+}
+
+#[test]
 fn fp8_sdwa_conversion_has_only_native_source_selection_fields() {
     for conversion in ["v_cvt_f32_fp8_sdwa", "v_cvt_f32_bf8_sdwa"] {
         parse(&program(&format!("{conversion} v0, v1 src0_sel:BYTE_1"))).unwrap();
@@ -753,6 +784,23 @@ fn fp8_sdwa_conversion_has_only_native_source_selection_fields() {
             )))
             .expect_err(destination);
         }
+    }
+}
+
+#[test]
+fn trap_and_signed64_shift_profiles_match_pinned_native_controls() {
+    let controls: serde_yaml::Value = serde_yaml::from_str(include_str!(
+        "../../../../tests/gfx950/portable-parser/control-assembler.json"
+    ))
+    .unwrap();
+    for case in controls["cases"].as_sequence().unwrap() {
+        let body = case["source"].as_str().unwrap();
+        let expected = case["expected_parse"].as_bool().unwrap();
+        assert_eq!(
+            parse(&program(&format!("{body}\ns_endpgm"))).is_ok(),
+            expected,
+            "{body}"
+        );
     }
 }
 

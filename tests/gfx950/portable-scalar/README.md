@@ -72,3 +72,5 @@ The mixed-by-value compiler test is an additional ABI contract beyond these
 identity, signed narrowing, and the unknown padding byte after the U8 value.
 Only explicitly selected defined bytes may be consumed; padding is not
 zero-filled or exposed as an invented argument.
+
+Every hand-written kernel entry uses `.p2align 8`, as required for AMDHSA hardware entry alignment. This packaging directive does not change the instruction sequence or mathematical reference. Source and assembler hashes include the alignment.
