@@ -1,0 +1,51 @@
+{
+  "source_commit": "08d44dd6514813d20024158b1eb3cae8a5fe2f98",
+  "binary_sha256": "4e166b9d0e4f489912cd03a073c8f752c948abd34e48c2e5086eb14580f323a3",
+  "feature": "logging",
+  "cases": [
+    {
+      "name": "copy",
+      "command": [
+        "/home/harsh/ptx-verifier-gfx1250-integration/target/release/volta",
+        "--no-log-file",
+        "--log-level",
+        "info",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx1250",
+        "analyze",
+        "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/fixtures/native-copy-add.s",
+        "--config",
+        "/tmp/ptx-gfx1250-coordinator-viewer-launches/copy.json",
+        "--print-outputs",
+        "0"
+      ],
+      "exit_code": 0,
+      "stdout": "  time: 0.001s  instructions: 75  block syncs: 0  warp syncs: 0\n  output 'out': 65 element(s) written\n    ... (65 more)\ninstruction profile:\n  scalar ALU               30  ( 40.0%)\n  control                  12  ( 16.0%)\n  scalar memory             9  ( 12.0%)\n  wait                      9  ( 12.0%)\n  vector ALU                6  (  8.0%)\n  vector memory             6  (  8.0%)\n  branch                    3  (  4.0%)\nkernel: graph verification\n  AMD trace completeness (native AMD graph contract)      PASS\n  AMD wait and register readiness (target-selected counters and register dependencies) PASS\n  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS\n  AMD memory-conflict freedom (AMD completed-effect happens-before) PASS\nGRAPH VERIFICATION: VERIFIED (no equivalence check requested)\n",
+      "stderr": "[INFO ] [equivalence] skipped: analyze has no second kernel or spec (compare and verify run it)\n"
+    },
+    {
+      "name": "missing_load_wait",
+      "command": [
+        "/home/harsh/ptx-verifier-gfx1250-integration/target/release/volta",
+        "--no-log-file",
+        "--log-level",
+        "info",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx1250",
+        "analyze",
+        "/tmp/ptx-gfx1250-reviewed-missing-wait.s",
+        "--config",
+        "/tmp/ptx-gfx1250-coordinator-viewer-launches/copy.json",
+        "--print-outputs",
+        "0"
+      ],
+      "exit_code": 1,
+      "stdout": "  time: 0.001s  instructions: 75  block syncs: 0  warp syncs: 0\n  output 'out': 65 element(s) written\n    ... (65 more)\ninstruction profile:\n  scalar ALU               30  ( 40.0%)\n  control                  15  ( 20.0%)\n  scalar memory             9  ( 12.0%)\n  vector ALU                6  (  8.0%)\n  vector memory             6  (  8.0%)\n  wait                      6  (  8.0%)\n  branch                    3  (  4.0%)\nkernel: graph verification\n  AMD trace completeness (native AMD graph contract)      PASS\n  AMD wait and register readiness (target-selected counters and register dependencies) FAIL\n      AmdRegisterHazard { issue: EventId(103), use_event: EventId(179), wave: 0, register: AmdRegister { file: Vector, index: 1, lanes: 4294967295 }, kind: ReadBeforeReady }\n      AmdRegisterHazard { issue: EventId(137), use_event: EventId(213), wave: 1, register: AmdRegister { file: Vector, index: 1, lanes: 4294967295 }, kind: ReadBeforeReady }\n      AmdRegisterHazard { issue: EventId(171), use_event: EventId(247), wave: 2, register: AmdRegister { file: Vector, index: 1, lanes: 1 }, kind: ReadBeforeReady }\n  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS\n  AMD memory-conflict freedom (AMD completed-effect happens-before) PASS\nGRAPH VERIFICATION: REJECTED (no equivalence check requested)\n  AMD wait and register readiness failed\n",
+      "stderr": "[INFO ] [equivalence] skipped: analyze has no second kernel or spec (compare and verify run it)\n"
+    }
+  ]
+}

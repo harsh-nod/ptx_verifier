@@ -1,0 +1,65 @@
+warning: variant `Rem` is never constructed
+  --> crates/volta_amdgpu_analysis/src/eval/scalar.rs:42:5
+   |
+37 | pub(crate) enum IntBinOp {
+   |                 -------- variant in this enum
+...
+42 |     Rem,
+   |     ^^^
+   |
+   = note: `IntBinOp` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variants `Sub` and `Div` are never constructed
+  --> crates/volta_amdgpu_analysis/src/eval/scalar.rs:66:5
+   |
+64 | pub(crate) enum FloatBinOp {
+   |                 ---------- variants in this enum
+65 |     Add,
+66 |     Sub,
+   |     ^^^
+67 |     Mul,
+68 |     Div,
+   |     ^^^
+   |
+   = note: `FloatBinOp` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `Neg`, `Abs`, `Exp`, and `Log` are never constructed
+  --> crates/volta_amdgpu_analysis/src/eval/scalar.rs:75:5
+   |
+74 | pub(crate) enum FloatUnOp {
+   |                 --------- variants in this enum
+75 |     Neg,
+   |     ^^^
+76 |     Abs,
+   |     ^^^
+...
+79 |     Exp,
+   |     ^^^
+80 |     Log,
+   |     ^^^
+   |
+   = note: `FloatUnOp` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `copysign` is never used
+   --> crates/volta_amdgpu_analysis/src/eval/scalar.rs:382:15
+    |
+382 | pub(crate) fn copysign(arena: &mut ExprArena, sign: ExprId, magnitude: ExprId) -> ExprId {
+    |               ^^^^^^^^
+
+warning: `volta_amdgpu_analysis` (lib) generated 4 warnings
+   Compiling volta_pipeline v0.1.0 (/home/harsh/ptx-verifier-gfx1250-integration/crates/volta_pipeline)
+   Compiling volta_cli v0.1.0 (/home/harsh/ptx-verifier-gfx1250-integration/crates/volta_cli)
+    Finished `release` profile [optimized] target(s) in 5.38s
+     Running tests/gfx1250_tests.rs (target/release/deps/gfx1250_tests-4d8e3ed7d247d56d)
+
+running 6 tests
+test missing_wait_is_rejected_and_sampling_remains_inconclusive ... ok
+test portable_math_specs_cover_every_configured_output ... ok
+test wave32_profiles_and_run_logs_preserve_success_and_typed_failure ... ok
+test compare_expression_vc_and_graph_artifacts_preserve_native_wave32_results ... ok
+test wave32_tails_cover_every_output_and_target_selection_rejects_neighbors ... ok
+test compiler_corpus_parses_analyzes_and_matches_full_specs_via_launch_json ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.56s
+
