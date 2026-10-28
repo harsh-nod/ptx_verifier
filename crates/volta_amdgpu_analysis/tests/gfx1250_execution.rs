@@ -289,3 +289,91 @@ fn compiler_staged_tensor_gemm_attention_and_transpose_produce_complete_outputs(
         result.graph().validate().unwrap();
     }
 }
+
+fn tiny_native(body: &str) -> String {
+    format!(
+        r#"
+.amdgcn_target "amdgcn-amd-amdhsa--gfx1250"
+.text
+.globl k
+.type k,@function
+k:
+s_load_b64 s[4:5], s[0:1], 0
+s_wait_kmcnt 0
+{body}
+s_endpgm
+.amdhsa_kernel k
+.amdhsa_wavefront_size32 1
+.amdhsa_user_sgpr_kernarg_segment_ptr 1
+.amdhsa_kernarg_size 8
+.end_amdhsa_kernel
+.amdgpu_metadata
+---
+amdhsa.version: [1, 2]
+amdhsa.kernels:
+  - .name: k
+    .args:
+      - .name: out
+        .offset: 0
+        .size: 8
+        .value_kind: global_buffer
+...
+.end_amdgpu_metadata
+"#
+    )
+}
+#[test]
+fn undefined_scalar_bits_are_eliminated_only_by_proven_bit_masks() {
+    let source = tiny_native(
+        "s_and_not1_b32 s6, s6, -1\nv_mov_b32 v1, s6\nglobal_store_b32 v0, v1, s[4:5] scale_offset",
+    );
+    let config = simple_config(1, &[("out", 1, 4, false)]);
+    let module = frontend::parse(&source).unwrap();
+    let result = analyze(&module, None, config.clone()).unwrap();
+    let output = result.symbolic_outputs().unwrap();
+    assert_eq!(
+        output.arena.as_int_const(output.element("out", 0).unwrap()),
+        Some(0)
+    );
+    for body in [
+        "s_and_not1_b32 s6, s6, 1\nv_mov_b32 v1, s6\nglobal_store_b32 v0, v1, s[4:5] scale_offset",
+        "s_and_not1_b32 s6, s6, 1\ns_cbranch_scc1 done\ns_nop 0\ndone:",
+        "v_mov_b32 v1, 0x1234\nv_sub_nc_u16 v1, v1, 1\nglobal_store_b32 v0, v1, s[4:5] scale_offset",
+    ] {
+        let module = frontend::parse(&tiny_native(body)).unwrap();
+        let result = analyze(&module, None, config.clone()).unwrap();
+        assert!(result.symbolic_outputs().is_err(), "{body}");
+    }
+}
+#[test]
+fn native_register_banks_and_literal_encodings_have_explicit_boundaries() {
+    for body in [
+        "v_add_f32_e32 v1, v1, 0x3e000000",
+        "v_max_num_f32_e32 v1, v1, 0x3e000000",
+        "v_fma_f32 v1, 0x3e000000, v1, 0x3dcccccd",
+        "v_mov_b32 v256, 0",
+    ] {
+        assert!(frontend::parse(&tiny_native(body)).is_err(), "{body}");
+    }
+    let source = tiny_native("v_fma_f32 v1, 0x3e000000, v1, v1");
+    frontend::parse(&source).unwrap();
+}
+
+#[test]
+fn vopd_both_sources_observe_the_preissue_register_snapshot() {
+    let source = tiny_native(
+        "v_mov_b32 v1, 2.0\nv_mov_b32 v2, 3.0\nv_dual_add_f32 v1, v1, v2 :: v_dual_mul_f32 v2, v1, v2\nglobal_store_b32 v0, v1, s[4:5]\nglobal_store_b32 v0, v2, s[4:5] offset:4",
+    );
+    let module = frontend::parse(&source).unwrap();
+    let result = analyze(&module, None, simple_config(1, &[("out", 2, 4, false)])).unwrap();
+    let output = result.symbolic_outputs().unwrap();
+    assert_eq!(output.outputs[0].1.len(), 2);
+    assert_eq!(
+        output.arena.as_f64(output.element("out", 0).unwrap()),
+        Some(5.0)
+    );
+    assert_eq!(
+        output.arena.as_f64(output.element("out", 1).unwrap()),
+        Some(6.0)
+    );
+}

@@ -146,7 +146,8 @@ pub fn analyze(
                         .mnemonic
                         .trim_end_matches("_e32")
                         .trim_end_matches("_e64"),
-                    "v_exp_f32"
+                    "v_s_exp_f32"
+                        | "v_exp_f32"
                         | "v_log_f32"
                         | "v_rcp_f32"
                         | "v_rsq_f32"

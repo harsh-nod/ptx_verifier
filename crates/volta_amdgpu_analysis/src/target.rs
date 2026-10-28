@@ -13,7 +13,7 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
     let target = module.target.as_deref().unwrap_or("gfx950");
     let architecture = Architecture::from_target(target).ok_or_else(|| ParseError {
         message: format!(
-            "unsupported or conflicting AMD target `{target}`; expected gfx942 or gfx950"
+            "unsupported or conflicting AMD target `{target}`; expected gfx942, gfx950 or gfx1250"
         ),
         span: SourceSpan::default(),
     })?;
@@ -44,6 +44,39 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
     if architecture == Architecture::Gfx1250 {
         for kernel in &module.kernels {
             for instruction in &kernel.instructions {
+                fn registers(
+                    operand: &crate::frontend::Operand,
+                    out: &mut Vec<crate::frontend::Register>,
+                ) {
+                    use crate::frontend::Operand;
+                    match operand {
+                        Operand::Register(r) => out.push(*r),
+                        Operand::Modified { value, .. } => registers(value, out),
+                        Operand::Dual(x, y) => {
+                            for op in x.operands.iter().chain(&y.operands) {
+                                registers(op, out)
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                let mut used = Vec::new();
+                for operand in &instruction.operands {
+                    registers(operand, &mut used);
+                }
+                for register in used {
+                    if register.class == crate::frontend::RegisterClass::Accumulator {
+                        return Err(ParseError {
+                            message: "gfx1250 has no AGPR register namespace".into(),
+                            span: instruction.span,
+                        });
+                    }
+                    if register.class == crate::frontend::RegisterClass::Vector
+                        && register.index as u32 + register.count as u32 > 256
+                    {
+                        return Err(ParseError{message:"higher gfx1250 VGPR allocation requires a banked encoding profile which is not implemented; this is not a logical allocation limit".into(),span:instruction.span});
+                    }
+                }
                 if instruction.mnemonic.starts_with("v_mfma")
                     || instruction.mnemonic.starts_with("v_accvgpr")
                     || instruction.mnemonic == "s_waitcnt"

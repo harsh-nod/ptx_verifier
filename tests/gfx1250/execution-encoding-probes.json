@@ -1,0 +1,104 @@
+{
+  "target": "gfx1250",
+  "assembler": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+  "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "scope": "Selected syntax only; does not establish execution safety or hardware correctness. Named v256 requires an encoding profile outside this installed toolchain; descriptor1024 is a separate allocation bound.",
+  "results": [
+    {
+      "source": "v_fma_f32 v0, 0x3e000000, v1, v2",
+      "assembles": true,
+      "source_sha256": "b3f01939c12ebfdf6b13a2aad1025fc70819f91d6d6995b467c944c2e92a7221",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_fma_f32 v0, 0x3e000000, v1, 0x3dcccccd",
+      "assembles": false,
+      "source_sha256": "752552ad9b2c58bd7a688b42816795001a9761b83f53de471f3d83e13a26069c",
+      "diagnostic": "<stdin>:5:31: error: only one unique literal operand is allowed\nv_fma_f32 v0, 0x3e000000, v1, 0x3dcccccd\n                              ^"
+    },
+    {
+      "source": "v_add_f32_e32 v0, v1, 0x3e000000",
+      "assembles": false,
+      "source_sha256": "d475960cf00c33ab6272199868e1aec47470564eff30c36966ca74a42fc1e51c",
+      "diagnostic": "<stdin>:5:23: error: invalid operand for instruction\nv_add_f32_e32 v0, v1, 0x3e000000\n                      ^"
+    },
+    {
+      "source": "v_max_num_f32_e32 v0, v1, 0x3e000000",
+      "assembles": false,
+      "source_sha256": "9ad1def929f320bcdf4ef2c26ab1495b57dc3bf793a0bebf975ead38c24ddaba",
+      "diagnostic": "<stdin>:5:27: error: invalid operand for instruction\nv_max_num_f32_e32 v0, v1, 0x3e000000\n                          ^"
+    },
+    {
+      "source": "s_load_b96 s[4:6], s[0:1], 0",
+      "assembles": true,
+      "source_sha256": "e470a9b9a94ec0a70c51a74f576953801654676ed480c91e3c1c78c29fb97318",
+      "diagnostic": ""
+    },
+    {
+      "source": "s_load_b96 s[3:5], s[0:1], 0",
+      "assembles": false,
+      "source_sha256": "48f2df3f5f5a526e7fd86e011b4aafaee13b04edb6ea7d7545b7723a0130bbc1",
+      "diagnostic": "<stdin>:5:12: error: invalid register alignment\ns_load_b96 s[3:5], s[0:1], 0\n           ^"
+    },
+    {
+      "source": "v_s_exp_f32 s5, s5",
+      "assembles": true,
+      "source_sha256": "3f9cc71846eb68516d135c432ba106dd2402b11ecb7289b6786e260ac50a66a3",
+      "diagnostic": ""
+    },
+    {
+      "source": "s_min_num_f32 s4, s5, 0",
+      "assembles": true,
+      "source_sha256": "0a14c6899d536543e10e7301c53e4a6207644329d71c5ff28215d5650671a757",
+      "diagnostic": ""
+    },
+    {
+      "source": "s_mul_f32 s4, s5, 0x3fb8aa3b",
+      "assembles": true,
+      "source_sha256": "e99858f971c7bed781e8a40175caa2566bab5914172e56178848b87f111ef5cd",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_sub_nc_u16 v1, v0, v1",
+      "assembles": true,
+      "source_sha256": "77f8abaca2900c4e4bf1695938c523041d114b93691a38403c53e87f6341b341",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_lshlrev_b16 v10, 1, v10",
+      "assembles": true,
+      "source_sha256": "93374ce07442793054ed8adcc8c690f28bc3e0d592b3c0f8e16ed2dd0464cfa3",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_bitop3_b16 v10, v11, 3, v10 bitop3:0xc8",
+      "assembles": true,
+      "source_sha256": "577469e12dbf5b1ca82dad643786d26b3318ec3ca54e615e14681146c2999cf7",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_cmp_ne_u16_e32 vcc_lo, 0, v10",
+      "assembles": true,
+      "source_sha256": "fae5e1f615f7ad37c74e8faf6ed78b62be89d0213c8df28689fa62b89cb0df89",
+      "diagnostic": ""
+    },
+    {
+      "source": "s_load_b32 s2, s[10:11], s4 offset:0 scale_offset",
+      "assembles": true,
+      "source_sha256": "817b9303bf3a5f721001611e97b422227d023284be2a3736d13a9b5f545fde6c",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_mov_b32 v255, 0",
+      "assembles": true,
+      "source_sha256": "aea835ebaa8052968faa5210aee8682bd00a20a71006300d4589b506755d868b",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_mov_b32 v256, 0",
+      "assembles": false,
+      "source_sha256": "e347d11104ff07877ed7f93e9c1d41d6ef1680a1e79312f352e39b64ed8d8f80",
+      "diagnostic": "<stdin>:5:11: error: register index is out of range\nv_mov_b32 v256, 0\n          ^"
+    }
+  ]
+}

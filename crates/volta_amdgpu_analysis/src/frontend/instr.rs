@@ -674,8 +674,8 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
         "gds" => opcode == Opcode::Lds,
         "clamp" | "mul" | "div" | "op_sel" | "op_sel_hi" | "neg_lo" | "neg_hi" => alu,
         "cbsz" | "abid" | "blgp" => opcode == Opcode::Matrix,
-        "bitop3" => matches!(mnemonic, "v_bitop3_b32" | "v_bitop2_b32"),
-        "scale_offset" => opcode == Opcode::VectorMemory,
+        "bitop3" => matches!(mnemonic, "v_bitop3_b32" | "v_bitop2_b32" | "v_bitop3_b16"),
+        "scale_offset" => matches!(opcode, Opcode::ScalarMemory | Opcode::VectorMemory),
         "dst_sel" | "dst_unused" | "src0_sel" | "src1_sel" => mnemonic.ends_with("_sdwa"),
         _ => false,
     };
@@ -885,7 +885,22 @@ pub(super) fn parse_instruction(
         ));
     }
     validate_registers(mnemonic, opcode, &operands, &modifiers, architecture).map_err(&fail)?;
-    validate_vop_literal_positions(mnemonic, &operands, &modifiers).map_err(&fail)?;
+    if modifiers.iter().any(|m| {
+        if architecture == crate::target::Architecture::Gfx1250 {
+            matches!(
+                m.name.as_str(),
+                "glc" | "slc" | "dlc" | "sc0" | "sc1" | "nt"
+            )
+        } else {
+            m.name == "scale_offset"
+        }
+    }) {
+        return Err(fail(
+            "memory cache/scale modifier is outside this target's native instruction profile"
+                .into(),
+        ));
+    }
+    validate_vop_literal_positions(mnemonic, &operands, &modifiers, architecture).map_err(&fail)?;
     if mnemonic == "v_ashrrev_i64_e32" {
         return Err(fail("v_ashrrev_i64 has only a VOP3 encoding".into()));
     }
@@ -898,7 +913,7 @@ pub(super) fn parse_instruction(
             "FP8/BF8-to-F32 SDWA conversion has no destination selector fields".into(),
         ));
     }
-    if mnemonic == "v_bitop3_b32"
+    if matches!(mnemonic, "v_bitop3_b32" | "v_bitop3_b16")
         && (modifiers.len() != 1
             || modifiers[0].name != "bitop3"
             || operands
@@ -1362,8 +1377,9 @@ fn validate_registers(
                 || stem.starts_with("v_subb_co_")
                 || stem.starts_with("v_subrev_co_")
                 || stem.starts_with("v_subbrev_co_");
-            let scalar_destination =
-                stem.starts_with("v_readlane_") || stem.starts_with("v_readfirstlane_");
+            let scalar_destination = stem == "v_s_exp_f32"
+                || stem.starts_with("v_readlane_")
+                || stem.starts_with("v_readfirstlane_");
             if comparison {
                 let implicit = architecture == crate::target::Architecture::Gfx1250
                     && stem.starts_with("v_cmpx_");
@@ -1502,6 +1518,7 @@ fn validate_vop_literal_positions(
     mnemonic: &str,
     operands: &[Operand],
     modifiers: &[Modifier],
+    architecture: crate::target::Architecture,
 ) -> Result<(), String> {
     let explicit32 = mnemonic.ends_with("_e32");
     let explicit64 = mnemonic.ends_with("_e64");
@@ -1519,6 +1536,8 @@ fn validate_vop_literal_positions(
         "v_mul_f32",
         "v_min_f32",
         "v_max_f32",
+        "v_min_num_f32",
+        "v_max_num_f32",
         "v_fmac_f32",
         "v_min_f16",
         "v_max_f16",
@@ -1599,6 +1618,31 @@ fn validate_vop_literal_positions(
             Operand::Modified { value, .. } => literal(value, f64_source, f16_source),
             _ => Ok(false),
         }
+    }
+    if architecture == crate::target::Architecture::Gfx1250
+        && !explicit32
+        && !stem.ends_with("_f64")
+    {
+        let mut values = std::collections::BTreeSet::new();
+        fn bits(op: &Operand) -> Option<u32> {
+            match op {
+                Operand::Integer(n) => Some(*n as u32),
+                Operand::Float(n) => Some((*n as f32).to_bits()),
+                Operand::Modified { value, .. } => bits(value),
+                _ => None,
+            }
+        }
+        for op in operands.iter().skip(1) {
+            if literal(op, false, stem.ends_with("_f16"))? {
+                values.insert(bits(op).unwrap());
+            }
+        }
+        if values.len() > 1 {
+            return Err(
+                "native gfx1250 instruction has more than one distinct literal word".into(),
+            );
+        }
+        return Ok(());
     }
     let f64_source = stem.ends_with("_f64");
     let f16_source = stem.ends_with("_f16");

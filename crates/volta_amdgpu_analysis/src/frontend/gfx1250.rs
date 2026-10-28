@@ -34,6 +34,11 @@ pub(super) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
             "s_and_saveexec_b32" | "s_andn2_saveexec_b32" | "s_or_saveexec_b32" => {
                 (ScalarAlu, 2, 2)
             }
+            "s_sub_f32" | "s_mul_f32" | "s_min_num_f32" => (ScalarAlu, 3, 3),
+            "v_s_exp_f32" => (VectorAlu, 2, 2),
+            "v_cmp_ne_u16" | "v_cmp_u_f32" | "v_min_num_f32" | "v_max_num_f32"
+            | "v_lshlrev_b16" | "v_sub_nc_u16" => (VectorAlu, 3, 3),
+            "v_bitop3_b16" | "v_max3_num_f32" | "v_fmaak_f32" => (VectorAlu, 4, 4),
             "v_mad_u32" => (VectorAlu, 4, 4),
             "v_add_co_ci_u32" => (VectorAlu, 5, 5),
             "v_add_nc_u64" | "v_add_nc_u32" | "v_sub_nc_u32" | "v_bitop2_b32" => (VectorAlu, 3, 3),
