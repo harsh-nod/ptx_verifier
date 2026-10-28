@@ -3134,7 +3134,7 @@
         "bytes": 32768
       },
       "full_baseline_shape": true,
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "complete128spatial x128channel CTA tile",
         "all64x3x3=576 reduction terms",
@@ -3165,6 +3165,17 @@
         "kind": "same-output-tile",
         "elements": 16384,
         "channel_pitch_elements": 2916
+      },
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "conv2d/convolution_f16_full",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -6300,7 +6311,7 @@
         "bytes": 32768
       },
       "full_baseline_shape": false,
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "complete original64spatial x128channel CTA tile within a native128spatial x128channel tile",
         "all64x3x3=576 reduction terms",
@@ -6329,7 +6340,7 @@
       },
       "covers_full_baseline_shape": true,
       "baseline_tile_mapping": {
-        "kind": "validated-tile-superset-candidate",
+        "kind": "validated-tile-superset",
         "original_tile": {
           "channel_count": 128,
           "spatial_begin": 0,
@@ -6344,7 +6355,18 @@
           "elements": 8192,
           "channel_pitch_elements": 2916
         },
-        "validation": "Coordinator must validate graph, mathematical reference and physical hardware evidence separately; compilation alone does not validate this mapping."
+        "validation": "Coordinator graph/mathematical validation is recorded in tests/gfx950/evidence/full-workloads-a57cdf5.json and physical numerical validation in tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json; current full40 replay remains a separate revision-pinned gate. Compilation alone does not validate the mapping."
+      },
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "conv2d/convolution_f8_full",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     }
   ]

@@ -1,0 +1,204 @@
+{
+  "reviewed_revision": "8819de34fd286c0afe903bdd42f790a5486c0cb5",
+  "mode": "read_only independent review; root-owned helper/case files are uncommitted snapshots",
+  "helper_path": "crates/volta_amdgpu_analysis/examples/artifact_stats.rs",
+  "helper_sha256": "02e4dd35597854430e86598ba3b50c59cb143968da142d6a9193e4a28bedcc29",
+  "scale_cases_sha256": "da4f563963a5384b45ebdb55514d31b5cceb59f813c138433aec486d229d45bf",
+  "conclusion": "No material type/configuration mismatch in the revised helper for the four selected measurements. Previously noted optional-config parsing gaps are corrected. No verification claim is made.",
+  "selected_cases": [
+    {
+      "kernel": "relu_f16",
+      "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16-cases.json",
+      "manifest_sha256": "9db57adda8a35accb1995ac11943e1222026635a49b1f91390f2b3e80a2a2197",
+      "assembly": "/home/harsh/ptx_verifier/crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
+      "assembly_sha256": "122ca33f751b37c42460f1680194e4431310d4af2ada4f067e6638e2781f43c7",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dynamic_shared": 0,
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "declared_arrays": 2,
+      "input_elements": 1024,
+      "output_elements": 1024,
+      "unhandled_config_fields_present": []
+    },
+    {
+      "kernel": "reduce",
+      "manifest": "tests/gfx950/scale-cases.json",
+      "manifest_sha256": "da4f563963a5384b45ebdb55514d31b5cceb59f813c138433aec486d229d45bf",
+      "assembly": "/home/harsh/ptx_verifier/crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-exchange-reduce-relu.s",
+      "assembly_sha256": "3a4c4fdc220a9c5597915f60fea77f32872c58b298b167ed3f4eee17903c3eb9",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dynamic_shared": 0,
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "declared_arrays": 2,
+      "input_elements": 128,
+      "output_elements": 2,
+      "unhandled_config_fields_present": []
+    },
+    {
+      "kernel": "gemm_f16_full",
+      "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-gemm-cases.json",
+      "manifest_sha256": "8e5e2787033b19f13ef50ea531fb86cd8a0036421e5f06e8c5967545dca46fb7",
+      "assembly": "/home/harsh/ptx_verifier/crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.s",
+      "assembly_sha256": "f1065c060b8acbaf582e5a9a4931188e899143e6027e12fce5387c56d1846a4c",
+      "block": [
+        1024,
+        1,
+        1
+      ],
+      "grid": [
+        16,
+        16,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dynamic_shared": 0,
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out000"
+      ],
+      "declared_arrays": 258,
+      "input_elements": 17825792,
+      "output_elements": 65536,
+      "unhandled_config_fields_present": []
+    },
+    {
+      "kernel": "flash_attention_full",
+      "manifest": "crates/volta_amdgpu_analysis/src/frontend/fixtures/attention-cases.json",
+      "manifest_sha256": "c89fb9a9aaa934354cac475c482975205b10bb3c4fdf243c5dc6525c4ccf84cd",
+      "assembly": "/home/harsh/ptx_verifier/crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-attention.s",
+      "assembly_sha256": "ecf62822f322ba5b7f44b265246af39cacb08a421c01701829c681a86fe71c7c",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dynamic_shared": 0,
+      "params": [
+        "ptr:q",
+        "ptr:k",
+        "ptr:v",
+        "ptr:out",
+        "ptr:lse"
+      ],
+      "declared_arrays": 5,
+      "input_elements": 139264,
+      "output_elements": 8320,
+      "unhandled_config_fields_present": []
+    }
+  ],
+  "metric_meanings": {
+    "parse_seconds": "Time parsing already-read assembly; excludes source file I/O.",
+    "analysis_seconds": "Public analyze call time, includes lowering and candidate execution/artifact construction; excludes independent graph/equivalence checks.",
+    "instructions": "Public Stats.instructions instruction count.",
+    "graph_events": "Public EventGraph.events().len() raw event records.",
+    "memory_accesses": "Public EventGraph.accesses().len() MemAccess record count, not a hardware transaction or unique-address count.",
+    "expression_nodes": "Entire ExprArena.node_count(), including allocated intermediate/dead nodes; not output-reachable or equivalence-canonicalized DAG size.",
+    "written_outputs": "Sum of extracted output-element records; count agreement alone is not mathematical or graph verification.",
+    "verification_performed": false
+  },
+  "nonblocking_generic_manifest_limits": [
+    {
+      "field": "shared_allocations",
+      "suggestion": "Reject a present field or parse it before claiming generic manifest compatibility.",
+      "initial_behavior": "Silently ignored if present. None of these4 selected rows contains it.",
+      "resolution": "Corrected by coordinator in reviewed final helper snapshot: present non-null fields are parsed with exact typed validation instead of being silently ignored/defaulted.",
+      "status": "resolved"
+    },
+    {
+      "field": "max_instructions",
+      "suggestion": "Reject/parse if supporting a broader case schema.",
+      "initial_behavior": "Default AnalysisConfig budget used, any row override ignored. None of these4 selected rows contains it.",
+      "resolution": "Corrected by coordinator in reviewed final helper snapshot: present non-null fields are parsed with exact typed validation instead of being silently ignored/defaulted.",
+      "status": "resolved"
+    },
+    {
+      "field": "dynamic_shared",
+      "suggestion": "Only absent/null should default; reject any other non-u64 value.",
+      "initial_behavior": "Present malformed/negative value is converted to0 by as_u64().unwrap_or(0).",
+      "resolution": "Corrected by coordinator in reviewed final helper snapshot: present non-null fields are parsed with exact typed validation instead of being silently ignored/defaulted.",
+      "status": "resolved"
+    },
+    {
+      "field": "global_values",
+      "suggestion": "Differentiate absent/null from malformed data.",
+      "initial_behavior": "Present non-sequence is silently ignored.",
+      "resolution": "Corrected by coordinator in reviewed final helper snapshot: present non-null fields are parsed with exact typed validation instead of being silently ignored/defaulted.",
+      "status": "resolved"
+    },
+    {
+      "field": "output footprints",
+      "behavior": "Checks total count only, not individual per-array index sets.",
+      "suggestion": "Adequate as a metric-only guard for these independently verified pinned cases; do not cite it as complete footprint proof.",
+      "status": "metric scope limitation; disclosed separately"
+    },
+    {
+      "field": "dimension/spec/dtype/validation notes",
+      "behavior": "Not copied into AnalysisConfig; these affect spec validation/provenance text, not candidate execution of these four native cases.",
+      "suggestion": "Keep explicit that helper is artifact-only.",
+      "status": "metric scope limitation; disclosed separately"
+    }
+  ],
+  "existing_test_match": "scale-cases reduce row matches compiler_wave64_reduction_has_each_input_exactly_once:128F32 inputs,2wave outputs, each wave0..63 or64..127 sum.",
+  "boundaries": [
+    "No production, helper, tests, manifests, statuses or issue edits by reviewer.",
+    "No duplicate long GEMM/attention measurement runs; coordinator owns them.",
+    "Metric output must not be relabeled graph-verified/math-ACCEPT or whole-grid/IEEE proof."
+  ],
+  "initial_helper_sha256": "b490fb01dfe1c3d87dc614d694eaca55883a144277c3370385d01f3b60020849",
+  "reviewed_helper_corrections": [
+    "max_instructions parses exact u64 when present, preserves publicAPIdefault when absent/null",
+    "shared_allocations parses publicSharedAllocation{name:String,offset:u64,size:u64}; Interpreter initialization enforces actual layout bounds/uniqueness",
+    "dynamic_shared rejects malformed/negative present values via number(as_u64.expect), absent/null retains default0",
+    "global_values requires actual sequence when present and signedI64 bound values; malformed present binding container no longer silently ignored"
+  ],
+  "coordinator_measurement_note": "Coordinator is rerunning all4 measurements against this final helper. Any measurement receipt must pin helper_sha256=02e4dd35597854430e86598ba3b50c59cb143968da142d6a9193e4a28bedcc29; previous b490fb... helper measurements remain an earlier snapshot."
+}

@@ -1,4 +1,4 @@
-// Native counterpart: crates/volta_pipeline/tests/ptx/success/b64_shift_by_u32_register.ptx
+// Native data control: fp8_nan_pair; see cases.json for its exact baseline mapping and target differences.
 // Actual AMDHSA x/out ABI; exact real-number arithmetic contract.
 .amdgcn_target "amdgcn-amd-amdhsa--gfx950"
 .amdhsa_code_object_version 6

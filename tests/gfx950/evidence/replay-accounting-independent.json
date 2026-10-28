@@ -1,0 +1,371 @@
+{
+  "scope": "Independent driver accounting fault probes; synthetic stdout scenarios are not workload proofs. One real tiny native reduction confirms the known unsupported boundary only.",
+  "revision": "6bc63a5051e351f9a1882b5258c1b3d5d9dba415 + coordinator replay accounting edits",
+  "driver_sha256": "1dc9130034acd232783ff592117d2860824f2885479cf2bc9dc1159f08d4b775",
+  "harness_sha256": "dea49933c39c3f470a30cde09ac29d5522065d4f6ca4f5ad2691735a8ba7c9dd",
+  "mock_binary_sha256": "f07116ec178f4d8e6511c25709f28c53d4f2c3ec0a61aed2a9372576ae7d2d9a",
+  "scratch": "/tmp/gfx950-replay-accounting-probes-wons8z2c",
+  "synthetic_probes": [
+    {
+      "mode": "accept",
+      "driver_exit": 0,
+      "outcome": "RACE-FREE",
+      "passed": true,
+      "worker_exit": 0,
+      "stage_exits": [
+        0,
+        0
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "detail": "1024/1024 tile outputs written; math spec ACCEPT",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "spec-reject",
+      "driver_exit": 1,
+      "outcome": "CHECK-FAILED",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        0,
+        1
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "detail": "1024/1024 tile outputs written; math spec REJECT: VERDICT: REJECT",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "spec-unknown",
+      "driver_exit": 1,
+      "outcome": "UNKNOWN",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        0,
+        2
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "detail": "1024/1024 tile outputs written; math spec UNKNOWN: VERDICT: UNKNOWN",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "unsupported",
+      "driver_exit": 1,
+      "outcome": "UNSUPPORTED",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        2
+      ],
+      "timed_out": [
+        false
+      ],
+      "detail": "unsupported gfx950 instruction at pc 1: synthetic review capability boundary",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "graph-rejected",
+      "driver_exit": 1,
+      "outcome": "RACE-CONDITION",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        1
+      ],
+      "timed_out": [
+        false
+      ],
+      "detail": "AMD memory-conflict freedom: Shared WriteRead at byte0",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "stage-error",
+      "driver_exit": 1,
+      "outcome": "ERROR",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        9
+      ],
+      "timed_out": [
+        false
+      ],
+      "detail": "stage 0 exit=9 timeout=False: ",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "signal",
+      "driver_exit": 1,
+      "outcome": "ERROR",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        137
+      ],
+      "timed_out": [
+        false
+      ],
+      "detail": "stage 0 exit=137 timeout=False: ",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "incomplete",
+      "driver_exit": 1,
+      "outcome": "CHECK-FAILED",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        0
+      ],
+      "timed_out": [
+        false
+      ],
+      "detail": "incomplete output footprint: 1023/1024 tile outputs written",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "no-verdict-zero",
+      "driver_exit": 1,
+      "outcome": "ERROR",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        0
+      ],
+      "timed_out": [
+        false
+      ],
+      "detail": "volta produced no verdict",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "no-verdict-two",
+      "driver_exit": 1,
+      "outcome": "ERROR",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        2
+      ],
+      "timed_out": [
+        false
+      ],
+      "detail": "volta produced no verdict",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "analyze-verified-nonzero-1",
+      "driver_exit": 1,
+      "outcome": "RACE-FREE",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        1,
+        0
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "detail": "1024/1024 tile outputs written; math spec ACCEPT",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "analyze-verified-nonzero-2",
+      "driver_exit": 1,
+      "outcome": "RACE-FREE",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        2,
+        0
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "detail": "1024/1024 tile outputs written; math spec ACCEPT",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "verify-accept-nonzero-1",
+      "driver_exit": 1,
+      "outcome": "RACE-FREE",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        0,
+        1
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "detail": "1024/1024 tile outputs written; math spec ACCEPT",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "verify-accept-nonzero-2",
+      "driver_exit": 1,
+      "outcome": "RACE-FREE",
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [
+        0,
+        2
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "detail": "1024/1024 tile outputs written; math spec ACCEPT",
+      "resource_records_retained": true
+    },
+    {
+      "mode": "probe-error",
+      "driver_exit": 1,
+      "outcome": null,
+      "passed": false,
+      "worker_exit": 1,
+      "stage_exits": [],
+      "timed_out": [],
+      "detail": null,
+      "resource_records_retained": true
+    }
+  ],
+  "stale_success_probe": {
+    "old_passed": true,
+    "new_passed": false,
+    "new_worker_exit": 1,
+    "stale_result_removed": true
+  },
+  "timeout_probe": {
+    "scope": "in-memory worker copy only; wall5400\u21920.05, no other changes",
+    "driver_exit": 1,
+    "outcome": "ERROR",
+    "passed": false,
+    "stage": {
+      "argv": [
+        "/tmp/gfx950-replay-accounting-probes-wons8z2c/mock-volta",
+        "--no-log-file",
+        "--log-level",
+        "error",
+        "analyze",
+        "/home/harsh/ptx_verifier/crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
+        "--kernel",
+        "relu_f16",
+        "--block",
+        "128,1,1",
+        "--grid",
+        "1,1,1",
+        "--dyn-shared",
+        "0",
+        "--array",
+        "x:0x10000:2:1024:in",
+        "--array",
+        "out:0x100000:2:1024:out",
+        "--param",
+        "ptr:x",
+        "--param",
+        "ptr:out",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx950",
+        "--print-outputs",
+        "0",
+        "--no-profile"
+      ],
+      "exit_code": -9,
+      "timed_out": true,
+      "elapsed_seconds": 0.055,
+      "resources": ""
+    }
+  },
+  "actual_tiny_reduction": {
+    "binary": "/tmp/ptx-verifier-gfx950-final-6bc63a5-logging/volta",
+    "binary_sha256": "278e8017b933cc0953c74442761bf6eef992520ab2de0a789a0567f994fd54ad",
+    "driver_exit": 1,
+    "result": {
+      "name": "reduction_sum/reduction_f16",
+      "revision": "6bc63a5-readonly-reduction-diagnostic",
+      "binary_sha256": "278e8017b933cc0953c74442761bf6eef992520ab2de0a789a0567f994fd54ad",
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
+      "source_sha256": "122ca33f751b37c42460f1680194e4431310d4af2ada4f067e6638e2781f43c7",
+      "spec": "crates/volta_amdgpu_analysis/src/frontend/fixtures/specs/reduction.spec",
+      "spec_sha256": "4415a8cc1ac10f823cbfcb094725f81d8c8b4f5b92b6b75f559625fbd9a6f56b",
+      "expected_outputs": 1,
+      "reduced_case": false,
+      "sampling": false,
+      "outcome": "UNSUPPORTED",
+      "detail": "unsupported gfx950 instruction at pc 77: lane/accumulator register moves need Table 11 software dependency checks",
+      "elapsed_seconds": 0.015,
+      "limits": {
+        "address_space_bytes": 274877906944,
+        "cpu_seconds_per_stage": 3600,
+        "wall_seconds_per_stage": 5400
+      },
+      "capability_probe": {
+        "argv": [
+          "/tmp/ptx-verifier-gfx950-final-6bc63a5-logging/volta",
+          "--help"
+        ],
+        "exit_code": 0,
+        "timeout_seconds": 30,
+        "elapsed_seconds": 0.004,
+        "stdout_sha256": "2810861f64d0a20edee8bff391277521cdf4bdff2bfe3e8e58f0ea409642b1d0"
+      },
+      "stages": [
+        {
+          "argv": [
+            "/tmp/ptx-verifier-gfx950-final-6bc63a5-logging/volta",
+            "--no-log-file",
+            "--log-level",
+            "error",
+            "analyze",
+            "/home/harsh/ptx_verifier/crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
+            "--kernel",
+            "reduction_f16",
+            "--block",
+            "128,1,1",
+            "--grid",
+            "1,1,1",
+            "--dyn-shared",
+            "0",
+            "--array",
+            "x:0x10000:2:4096:in",
+            "--array",
+            "out:0x100000:4:1:inout",
+            "--param",
+            "ptr:x",
+            "--param",
+            "ptr:out",
+            "--backend",
+            "amdgpu",
+            "--target",
+            "gfx950",
+            "--print-outputs",
+            "0",
+            "--no-profile"
+          ],
+          "exit_code": 2,
+          "timed_out": false,
+          "elapsed_seconds": 0.015,
+          "resources": "Command exited with non-zero status 2\nuser=0.00 system=0.00 peak_rss_kib=6400 wall=0.00 exit=2\n"
+        }
+      ],
+      "passed_expected_native_contract": false,
+      "worker_exit": 1
+    }
+  },
+  "conclusion": "All assertions pass. Every failed expectedpositive remainsfalse; raw UNSUPPORTED/REJECT/UNKNOWN preserved; stale success removed; anomalous nonzero VERIFIED/ACCEPT fails; process/signal/timeout failures remainerrors; per-stage diagnostics/resources retained."
+}

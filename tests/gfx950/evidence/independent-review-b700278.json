@@ -1,0 +1,1213 @@
+{
+  "reviewed_revision": "b70027814e5d81bb07450549626c779c584dc94b",
+  "mode": "read_only_independent_review; no repository modifications by reviewer",
+  "scope": [
+    "complete scan/matvec symbolic safety tests",
+    "CLI verify full output footprint and spec gates",
+    "replay_workloads.py resource/failure/provenance handling",
+    "all11 hardware driver launch dimensions and selected groups",
+    "scan/full/advanced CPU references",
+    "user-facing native backend scope and current metadata",
+    "23 compiler HIP and assembly hash pairs; 170 checkpoint inventory source hashes"
+  ],
+  "material_findings": [
+    {
+      "id": "HW-MATVEC-F16-BLOCK",
+      "file": "tests/gfx950/hardware/native_portable_f16.cpp",
+      "line": 119,
+      "problem": "Driver launches256 threads, but source partitioning and current manifest require128. k+=128 LDS publication overlaps and row+=2 output rows duplicate at256; arithmetic can still match despite races.",
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.hip",
+      "required_block": [
+        128,
+        1,
+        1
+      ],
+      "status": "reported to coordinator; coordinator correcting driver and independently replaying actual unchanged assembly"
+    }
+  ],
+  "nonblocking_findings": [
+    {
+      "file": "tests/gfx950/README.md",
+      "line": 22,
+      "problem": "Full mathematical spec replay is asserted generally, but38/40 variants have specs; copy/add2 have graph+count in replay and independent CLI/spec tests elsewhere.",
+      "status": "coordinator correcting claim"
+    },
+    {
+      "file": "tests/gfx950/replay_workloads.py",
+      "line": 132,
+      "problem": "Reusing an output directory after a worker crashes can load stale result.json and print passed:true, although worker_exit!=0 correctly prevents final process success. Fresh coordinator replay directories avoid this ambiguity.",
+      "severity": "evidence presentation only; no false successful final exit"
+    },
+    {
+      "file": "crates/volta_pipeline/tests/gfx950_workload_safety_tests.rs",
+      "line": 168,
+      "problem": "Scan mutant test name claims preserved computation but directly checks complete footprint plus race witness; positive scan independently proves complete formula, and mutant only removes barrier.",
+      "severity": "local assertion/name precision"
+    },
+    {
+      "file": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16-cases.json",
+      "problem": "Legacy status fields still say symbolic/hardware pending after receipts. Authoritative parity and current receipts are separate."
+    },
+    {
+      "file": "crates/volta_amdgpu_analysis/src/frontend/fixtures/scan-cases.json",
+      "problem": "Status still says coordinator validation pending despite independent coordinator hardware receipt."
+    },
+    {
+      "file": "crates/volta_cli/src/main.rs",
+      "line": 64,
+      "problem": "CLI about text calls tool PTX analysis engine though backend now supports amdgpu."
+    }
+  ],
+  "launch_audit": [
+    {
+      "driver": "native_portable_f16.cpp",
+      "result": "8 of9 match manifest, matvec256 mismatch above; expected128"
+    },
+    {
+      "driver": "native_portable_f8.cpp",
+      "result": "All7 match; matvec128 correct for k+=128,row+=2"
+    },
+    {
+      "driver": "native_full_workloads.cpp",
+      "result": "All4 GEMM1024 threads and2 convolution512 threads match fixed partition; physical grid1 selects original group0, no gridDim consumer; all original K/pitches and complete256x256 /128x128 tiles"
+    },
+    {
+      "driver": "native_attention.cpp",
+      "result": "Reduced/full128 threads; physical group0 equals manifest selected group0; full grid16 is not consumed as gridDim"
+    },
+    {
+      "driver": "native_advanced_workloads.cpp",
+      "result": "All4 kernels128 threads, selected group0, match source __launch_bounds__ and fixed2-wave partition; original grid retained in manifest, no gridDim consumer"
+    },
+    {
+      "driver": "native_scan_workloads.cpp",
+      "result": "128 threads group0 matches source/manifest; independent32x128 main+companion zero loops preserve K32/K128 and X/out1024,C64 pitches"
+    },
+    {
+      "driver": "native_abi.cpp",
+      "result": "Globals/mixed4 threads; dynamic2 threads+8dynamic bytes; grid-output full grid2x3x4/block4x3x2 checks all216 fields"
+    },
+    {
+      "driver": "native_pipeline.cpp",
+      "result": "Both matrices128 threads, IDs4x3x2; exact manifests"
+    },
+    {
+      "driver": "native_copy_add.cpp",
+      "result": "Native copy/add cover1,63,64,65,128,256 blocks and n1,65,257 with full physical grid; source supports dynamic blockDim; rawMFMA64"
+    },
+    {
+      "driver": "native_mfma_types.cpp",
+      "result": "All4 raw matrix forms64 threads; exactly one physical wave and matching full fragment sizes"
+    },
+    {
+      "driver": "native_portable_matrix.cpp",
+      "result": "All20 block values programmatically match portable-matrix/cases.json"
+    }
+  ],
+  "spec_config_review": {
+    "replay_cases": 40,
+    "math_spec_cases": 38,
+    "no_spec_cases": [
+      "copy/clang22-wave-boundary",
+      "add/clang22-masked-tail"
+    ],
+    "every_spec_equation_output_name_matches_all_declared_output_arrays": true,
+    "spec_before_sampling_requires_complete_index_sets": true,
+    "nonzero_timeout_unknown_rejected_failures_cannot_produce_successful_final_replay_exit": true,
+    "sampling_disabled_by_replay": true,
+    "real_number_and_half_rounding_limits_explicitly_disclosed": true,
+    "scratch_private_buffer_unsupported_scope_explicit": true
+  },
+  "compiler_pin_checks": [
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-copy-add.hip",
+      "sha256": "a642a13803f6b824100b4a4a8f0193f99ba7fea2ffb35da211a106f17b6135fd",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-copy-add.s",
+      "sha256": "efbdab3055e0fa697ca97a62275d7ab890d695aa1e46cb0a68280ddb442d9a1d",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-exchange-reduce-relu.hip",
+      "sha256": "789fa06b18ddad6132b8d48e283fe02e73148ed48eca840c6f3d0dc56a0003f2",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-exchange-reduce-relu.s",
+      "sha256": "3a4c4fdc220a9c5597915f60fea77f32872c58b298b167ed3f4eee17903c3eb9",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-ids-3d.hip",
+      "sha256": "c0b6e15a24ee2a194588f579645c06da30522b39fc31f2659a3c672b6db331cd",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-ids-3d.s",
+      "sha256": "c7641849607d3a8af8a3e7f26cdcb547b6a42e67ff8fee5a7f9183bbf8263181",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-mfma-f32.hip",
+      "sha256": "53b1578de94d3de9a000e4e96ec087a701e72c325ae9bd6fb3eab1378cdb4fb1",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-mfma-f32.s",
+      "sha256": "2f0e29c32184eea9fbae6a8c00e4a4a9297ad45e79acbc3642a5fd635b5a668a",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f16.hip",
+      "sha256": "a3eeb872a7b8e9dcf3cd8cbe778cd234b17541ba0abcb11cfe1a384979187e3a",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f16.s",
+      "sha256": "11e6045bae8d22c26c5470cedd7bbffca23a5e085c07e281e7745845603e032c",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f32.hip",
+      "sha256": "952b66a1ed7cc4969407889ca7636b93179f9d2874a786804711513392c21688",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f32.s",
+      "sha256": "0628527f82fe09b6287eab2a0564b74a779850995172486911ea9a1563bddc15",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.hip",
+      "sha256": "1703a0d225ab1c9654b254d2060ee4744b2b6e6c52d7d636c338ff132038965d",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
+      "sha256": "122ca33f751b37c42460f1680194e4431310d4af2ada4f067e6638e2781f43c7",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.hip",
+      "sha256": "d4ab3c860baca4d4552a7ac1b37c39e0e2eb9777e93c0b1d145f9239f41eec44",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.s",
+      "sha256": "50738f01ed840685557294b569e11a1b8bb85809031cc0628d78edd2d18e39d9",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-convolution.hip",
+      "sha256": "57fc39773249d90992294d7a08a32a45136891afd7a09d4c403f7ab06edb25f6",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-convolution.s",
+      "sha256": "bed0c5f8478b4edb1e9e47632285f60ba466e2d2d3c4141685c11e5ff6cda8bc",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.hip",
+      "sha256": "700d88a388f95b418adc89870401cc0554ed8a929abc2dba1e503ca3374743a4",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s",
+      "sha256": "dc20ac85e4192e986556b373979c4757b6d7379b783eb564ad90ff124851f089",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-attention.hip",
+      "sha256": "8c2e58209c9669a22fb231829e9650ea7c14716020b96c058e5a12dd63e993a3",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-attention.s",
+      "sha256": "ecf62822f322ba5b7f44b265246af39cacb08a421c01701829c681a86fe71c7c",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.hip",
+      "sha256": "483bed07c9a946de4c20940bc117c8ecbb2da271826e80f59508e7239119c44f",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.s",
+      "sha256": "f1065c060b8acbaf582e5a9a4931188e899143e6027e12fce5387c56d1846a4c",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-scalar-types.hip",
+      "sha256": "06bcc09c9e6e8a29de8df519f3acc0c78146e36a54e293209cb92171b48d6770",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-scalar-types.s",
+      "sha256": "1d0efa6b4d16ca036ae059748046b15a55667644f0f873319c87f7757c79f5ce",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-state.hip",
+      "sha256": "825e1a582db3abba6a4beb84872477ebc84c77dc36d771e27da73ac44f55519f",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-state.s",
+      "sha256": "3c91cc3a0d5fe94c714921fa9a3a79aee3fb616d9a04fb69ddd9ec5d170995cb",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-forgetting-attention.hip",
+      "sha256": "9158916b72761622896be95e718e724ca6c23fd2ae0b8a8ef26458cd082e2a93",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-forgetting-attention.s",
+      "sha256": "b33fc1f2ad927e3bf78ab151e3e70dc3e6dde73e42bd2ebf44f24c2dad5849b2",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-sinkhorn.hip",
+      "sha256": "2a25b52d18f14731fa00c1653a4e23fe4b237b381a67afa8fe670a068b42e469",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-sinkhorn.s",
+      "sha256": "b4b40e5b150763553effe5c29d50d5e5e85a8260b4d060815a1cede8e58d73fe",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-sage-attention.hip",
+      "sha256": "9e4d00c500c82335024526df0913aa4223804e01ba96826b496dc21d4656df2a",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-sage-attention.s",
+      "sha256": "3ab93445f6a88e85164d8cf2c9e5a1b3d626726db9491ef070e44e94f8045285",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-convolution.hip",
+      "sha256": "4a038945d08ec3ee67aba416459313f31ec35954dee54b066765da27fc7fa521",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-convolution.s",
+      "sha256": "026e99ea336effca73c19ef67bc2dea2da604dc848f1c2dccc7d7d9aa9b1c4b7",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-module-globals.hip",
+      "sha256": "e481bf767cab8c8f273cd00c59784da0262bfe7ff551fe8d110de73daa5ab9a6",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-module-globals.s",
+      "sha256": "4685d039ca74ebfb46c64326de9302af19675f60dac01990a7da3a07316d7009",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.hip",
+      "sha256": "aa3b41d97d479c995e2644d72be3092b7f264063510863fd0480a8df490bb9fe",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.s",
+      "sha256": "2a48a0958061bbadaf75e21384071da2bb2fa7fb185de3deeab8db7231710e35",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-grid-output.hip",
+      "sha256": "f19cfe99a544ae33dd3e124a0f549b8258f18fa517baa534c3776b3fd4f6f003",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-grid-output.s",
+      "sha256": "4329c90b02b41cea7e7cbe81184b3b5552d00283a731fdbfd5a2496933e20000",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-mixed-byvalue.hip",
+      "sha256": "2d5d4cd7363b67230e041ad48f38d8502508ecf8736aac4aa9252210d2f72d3a",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-mixed-byvalue.s",
+      "sha256": "72a7cea82b970a8e181f000d9de99cab9b9479a75d87e15e48b082d5f01c9014",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-scan.hip",
+      "sha256": "57688795a4f995ad36bfcca827477ccab2847db54eb5baa098457ca441b9f466",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-scan.s",
+      "sha256": "e73a3aad07ed349160d945487fc6e63e08db2f9c2b864902cfea7a44453408af",
+      "matches": true
+    }
+  ],
+  "inventory_checkpoint_pin_checks": [
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s",
+      "sha256": "dc20ac85e4192e986556b373979c4757b6d7379b783eb564ad90ff124851f089",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-copy-add.s",
+      "sha256": "efbdab3055e0fa697ca97a62275d7ab890d695aa1e46cb0a68280ddb442d9a1d",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.s",
+      "sha256": "2a48a0958061bbadaf75e21384071da2bb2fa7fb185de3deeab8db7231710e35",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-exchange-reduce-relu.s",
+      "sha256": "3a4c4fdc220a9c5597915f60fea77f32872c58b298b167ed3f4eee17903c3eb9",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-grid-output.s",
+      "sha256": "4329c90b02b41cea7e7cbe81184b3b5552d00283a731fdbfd5a2496933e20000",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-ids-3d.s",
+      "sha256": "c7641849607d3a8af8a3e7f26cdcb547b6a42e67ff8fee5a7f9183bbf8263181",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-mfma-f32.s",
+      "sha256": "2f0e29c32184eea9fbae6a8c00e4a4a9297ad45e79acbc3642a5fd635b5a668a",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-mixed-byvalue.s",
+      "sha256": "72a7cea82b970a8e181f000d9de99cab9b9479a75d87e15e48b082d5f01c9014",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-module-globals.s",
+      "sha256": "4685d039ca74ebfb46c64326de9302af19675f60dac01990a7da3a07316d7009",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f16.s",
+      "sha256": "11e6045bae8d22c26c5470cedd7bbffca23a5e085c07e281e7745845603e032c",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f32.s",
+      "sha256": "0628527f82fe09b6287eab2a0564b74a779850995172486911ea9a1563bddc15",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-scalar-types.s",
+      "sha256": "1d0efa6b4d16ca036ae059748046b15a55667644f0f873319c87f7757c79f5ce",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-convolution.s",
+      "sha256": "bed0c5f8478b4edb1e9e47632285f60ba466e2d2d3c4141685c11e5ff6cda8bc",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-attention.s",
+      "sha256": "ecf62822f322ba5b7f44b265246af39cacb08a421c01701829c681a86fe71c7c",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-sinkhorn.s",
+      "sha256": "b4b40e5b150763553effe5c29d50d5e5e85a8260b4d060815a1cede8e58d73fe",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-forgetting-attention.s",
+      "sha256": "b33fc1f2ad927e3bf78ab151e3e70dc3e6dde73e42bd2ebf44f24c2dad5849b2",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-convolution.s",
+      "sha256": "026e99ea336effca73c19ef67bc2dea2da604dc848f1c2dccc7d7d9aa9b1c4b7",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.s",
+      "sha256": "f1065c060b8acbaf582e5a9a4931188e899143e6027e12fce5387c56d1846a4c",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-scan.s",
+      "sha256": "e73a3aad07ed349160d945487fc6e63e08db2f9c2b864902cfea7a44453408af",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-state.s",
+      "sha256": "3c91cc3a0d5fe94c714921fa9a3a79aee3fb616d9a04fb69ddd9ec5d170995cb",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-sage-attention.s",
+      "sha256": "3ab93445f6a88e85164d8cf2c9e5a1b3d626726db9491ef070e44e94f8045285",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
+      "sha256": "122ca33f751b37c42460f1680194e4431310d4af2ada4f067e6638e2781f43c7",
+      "matches": true
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.s",
+      "sha256": "50738f01ed840685557294b569e11a1b8bb85809031cc0628d78edd2d18e39d9",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/concrete_integer_division.s",
+      "sha256": "32bcf529e0951c437cc4d2900afbf09b6807866a9282f7bd82871e9874f62d45",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/f32_nan_bits.s",
+      "sha256": "b063a5098689febebe255e69dcc7051b811c4ff09a4347327a774a6485e9d57d",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/f32_nan_literal.s",
+      "sha256": "beca392724d0fdbdfdf99e9d47ce8779e227f65a1fd4376e1c96c41ee6708ec8",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/fp8_nan_pair.s",
+      "sha256": "9efeabefa30b2831b928747e47794f0ef2257221d9dfd4e4e08f5c3b1d6b699f",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/fp8_scalar_byte.s",
+      "sha256": "a6f395952342b872f2f7fae164cf93738e12ca6191bc237033e7060e8c48bcee",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/fp8_truncate_quad.s",
+      "sha256": "14321ffe04e2646057eccfa1bed417ef2da55774e2bda2a8a0fb512ce68074ca",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/integer_floor_doubled.s",
+      "sha256": "cc0ddf5d4d4a492afc38a1fe94b1795c2ce484373ce7765dd7657d0a2a84cb47",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/negative_log_f32.s",
+      "sha256": "14edbd63df5db43a71c1d4eba7af51d06ee138e188c935ad246375c3198bbdf0",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/negative_rsqrt_f32.s",
+      "sha256": "d84c1684cd1d609df78cd6673bf73a3f29ecb7039002ba0820663194e02fbe09",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/negative_sqrt_f32.s",
+      "sha256": "007ae2ff9f86b1f707433ac2c300c754e334e6cc5bb19018743fe7210b39cefe",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/negative_sqrt_f64.s",
+      "sha256": "b2a2b72f3aea3e38e84c60c54ff12950d2cee68d445e907a8a329598541a2f89",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/nonpositive_log_f32.s",
+      "sha256": "05ee25ce1be71c0dcc55fce26e4e09ad57f70438fe28abaa9f8b0e7d4438f194",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/nonzero_reciprocals.s",
+      "sha256": "2600148a2bf000dd7cf4f800149d3cfcb4392931c38aa084d38e64f89f0cda17",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/pack_halves_order.s",
+      "sha256": "213ffa12f4e92522c46a7544a3cd8ed731efd930afdc8a15dd2a993463bf407e",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_add_sat_f32_concrete_clamps.s",
+      "sha256": "b45810c086c4a6e88e2690ccbaf9d829242b6f81c3ece98283226bcbe436f7a5",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_aligned_u16_access_at_2_mod_4.s",
+      "sha256": "7515b901e47e2a57bf7c25dfbeb35c2550b5c78909e2cca1623952d50193dc80",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_aligned_vector_load.s",
+      "sha256": "a11efab9799eee66acd9cc615b73992624f18debfbf9d531fdda6ce1cdc00686",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_cvt_reinterprets_at_source_format.s",
+      "sha256": "4786f099f004a6b8bc19bb9d31ed1c77937ce93eae26a944e1813aa61765130c",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_load_s8_sign_extends.s",
+      "sha256": "329dcc84f033581a20b8c613494b52a98d3c07861b27f3e57a963131f5bf009a",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_load_s8_sign_extends_2.s",
+      "sha256": "848dd4558d368713702ba5231144e2308fcf6aee6a278fec964b3d8091835335",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_mov_b64_integer_pack_recombines_as_scalar_direct.s",
+      "sha256": "6babcbaa20b0d345ae82ee190be9145f148775bb82f6f4a1ca2ff673b956d458",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_mov_b64_integer_pack_recombines_as_scalar_packed.s",
+      "sha256": "9151f0d2a6014045e2c460371900aeddf2f08c7edd679bc82ad27c8ddd89c11e",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_mov_neg1_vs_not_zero.s",
+      "sha256": "9eb2fcb33fa78e94513183d0684242d75c1b591c912cee90c666e8a64c242586",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_mov_neg1_vs_not_zero_2.s",
+      "sha256": "7cba87cea58f95e6f2e46cb17031576dfdb0ac13c34da43597970ea8a8546e96",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_mov_pack_b32_always_builds_pair.s",
+      "sha256": "07637b219f6c157ea69bbe708c90ee973ff329dc0b64304cd6dc011adb279de8",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_mov_pack_b64_integer_halves_recombine.s",
+      "sha256": "ebea71a60133e5959c21bb751cd06229dc5b65b84baf8a367a8046c20fa9611c",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_mov_unpack_native_pair_source.s",
+      "sha256": "60bedfcb3f2e7743b7fad33351e4f5131fefd8ed49718312caa89e6339c8c470",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_mov_vector_destination_unpack_values.s",
+      "sha256": "bfe1235e0e39b0602f6ff09e07124af7f2e43f0594aba083858bb5ba4ae34e41",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_relu_epilogue_vs_explicit_max_explicit.s",
+      "sha256": "b1b0fb44702077803dd8d86765c982c6dd30b908e8185289c39c31a7eaf7595a",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_relu_epilogue_vs_explicit_max_fused.s",
+      "sha256": "fd271244a4cd248adf243739435226e8b810093dd549efca5d0d8249c120f693",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_store_u8_truncates_to_low_bits.s",
+      "sha256": "85cbebafc9125cf8fd291e532da6c053c448fe1241583794eec67c8c6c829b1c",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_unsigned_sub_register_load_passes_through.s",
+      "sha256": "ee1fbb07f428e4e62293f7e775cb05c77245c5ed93397d3138ca3cda0db60874",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/payload_vector_store_with_immediate_source.s",
+      "sha256": "436ef0c513239f944e24535c0e7546edc26f08392fdda1bfdbbeda07ddaca997",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/predicate_permute_side_effect_race.s",
+      "sha256": "a81af8899a2eb36b12984b9429bef0bf1074afc3742b327ef3ed57ea2ee47728",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/relu_half_identity.s",
+      "sha256": "1859fdec2961e80fa7dbed7e183e1bf163d1906c74e90a62036cf1fec75a41f3",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/ring_add_s32_neg1.s",
+      "sha256": "010950743187c4111c88d2dc409fa41816f70e55f933a49dc335f31ca5c8f3df",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/ring_add_u32_neg1.s",
+      "sha256": "60b35899c762a48eae3579d2d83846e424f5d69187bf251eaed45fd4fda8ad75",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/ring_mul_lo_s32_neg3.s",
+      "sha256": "836294bd43c9198a4a0aeffdf13a5d9a1e8d2170ba12c294ea5de8a965b4a4d1",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/ring_mul_lo_u32_neg3.s",
+      "sha256": "52edfda462df7b582fe7e9ed2aa3925fdace03b16b498b8fd5d474470e8e5ef0",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/ring_sub_s32_neg7.s",
+      "sha256": "4a228c2dbe079f2642f581c71ee0bb49e16370cf79ced1d669983ac66ceeba2f",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/ring_sub_u32_1.s",
+      "sha256": "17910ac78e190e1944dfdb81872ea4c8321bfa6dd49a9848ef5f64a5caf1d347",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/ring_sub_u32_neg7.s",
+      "sha256": "26d8a2d679271dfe984c1e9359baec4c01c1f1bf1b79de8e9a36d3a6af85bffa",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/select_computed_complement.s",
+      "sha256": "39cf595d98c4b47f75aa799266be81d1d055be1055b817f47832f10b934b2473",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/select_signed_minus_one.s",
+      "sha256": "f20c6b7da31f853c60f18c9be3177d22a5d499afc149f82a048bc185260896fe",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/signed_byte_extension.s",
+      "sha256": "8fce9058ce2369f52ce333cf3442a9c5adb57f67f25416516216ae207f87f9ad",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/symbolic_branch.s",
+      "sha256": "224bd57b91df0fe42530a8c53e26ec442d5408b2b984df25ab3ab1ae510d16de",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/symbolic_narrow_store.s",
+      "sha256": "132d73fbb4b8a65424ac5e3d2c3e1b2586e389ce67a16f52494d5e04d76523e6",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/u64_shift_boundaries.s",
+      "sha256": "ea68eb40e61caa00deeff902f65e5adcf6aad0a900fdacf3dc43bcd83a08a703",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/valid_math_domains.s",
+      "sha256": "9b1119fc0c4db8ad4a87da5cbd289accf9de501ebd5f64d456c9d8d007637f77",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/zero_rcp_f32.s",
+      "sha256": "c569b74dd4e4ec294c6b4a8fe426b8d387659655b3b77ca671dc2c0159a11ffc",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/zero_rcp_f64.s",
+      "sha256": "768f6d2ff270a9958f76f5bf2d8c63de7b46358550bdd2fd02180babca78cf0f",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-data/zero_rsqrt_f32.s",
+      "sha256": "8ae40bcbf72105d89a5a4fbc8dd61f25d7e4231194845aaca22f976a3c556f20",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-descriptor/copy-replace-races.s",
+      "sha256": "225ce966eafc9615d94b282bc0e2a7e61615851bfc51f491c1cd4bd243c217cc",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-descriptor/replace-write-write.s",
+      "sha256": "43807784823a2bcfc5443a19d359b30cf4272ee2cbe66875e8c629fed52373ee",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-descriptor/tile-edge.s",
+      "sha256": "6f1d81fd44be09270e3df85b48dc952da13828be7721cc96a2ccb7f5bee32b3b",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/e4m3_concrete_pair.s",
+      "sha256": "f5ed55a4c8b2128cafe86dd52c0bf1d30c73d54390e1a8255af7e9c17fb3e40a",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/e4m3_concrete_pair_relu.s",
+      "sha256": "0ab9c5d1719f9c8c4aa390da1f9e0fb314eb1bb6e140d6bdb8a34c2ecd06b348",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/e4m3_selected_low_halves.s",
+      "sha256": "54686d6e45b7fb8c22e0eb9298eecf74cbbb101c117ec4099be1948cc04ecd2d",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/e4m3_vector_bytes.s",
+      "sha256": "c6a4db7de09d6802b5be6bac2a02231ee3aae618fa4911857d2e9f61a461dc93",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/e4m3_zero_extended_byte.s",
+      "sha256": "644ede9a366b54bfe777bd7ebc96c2312c67c62f606e1f3c7ef35d9a252d6842",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/ldmatrix_four_fragment_pairs.s",
+      "sha256": "06dd86dbd2eeb82f14f4259a4c6e1c3e1805c935de014c0e30c044a90fde6229",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/ldmatrix_transpose_8x8.s",
+      "sha256": "a0434ac191ae2f14f6a2712fd3a383310094c4a1702fa8e301a55ce76d1b03c6",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/mma_immediate_accumulator_identity.s",
+      "sha256": "f828fc62f3f8877d1f983d4ed29879e01703322bb36c19eb95fb965878902079",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/mma_raw_accumulator_identity.s",
+      "sha256": "72b0e958e03c436fb590b38f6bce5709ca99d6c37b71f2e0c0f63b98dbba81ab",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/stmatrix_lane_word_placement.s",
+      "sha256": "46cc2b36740f7f6e47e36738e6faa33b194066ce429d76a7f649a25b579b7567",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/tcgen_mixed_fp8_numeric408.s",
+      "sha256": "408a873c0fd9a8ad73a2d6e4e0c9bd169a120d816d36f9d9c0c16f5761b13289",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/tcgen_mixed_fp8_wrong_b_format.s",
+      "sha256": "4496d4230969581b136e56f5a9c17c261d176f6e52b9b8e460317e2feb5ca682",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/tcgen_no_swizzle_128x8.s",
+      "sha256": "201efd2ef257add9e662e12459cc29df991a7c46b7cdb2fbced3406d5fe0a317",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/tcgen_numeric136.s",
+      "sha256": "5357f8ca74a89eebdccd1a0758c68a49410a555fae73d17c5a70a22005ba58c3",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/tcgen_raw_operands_accumulator17.s",
+      "sha256": "2bafd87f08be34f2ba0b8bb456d5220140ac4f49e5a58ce0ee35fe08452cefa7",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/tcgen_shape128x256_lds_bounds.s",
+      "sha256": "8ad9703459759bf9b24904dad2fe3823ac26052767434edbac9a3e2fa3169825",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/wmma_fragment_contiguous.s",
+      "sha256": "4802c3bca21e577497b5a64928697a3c0f9b359917da61759c1a7e122fdd5bc1",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/wmma_fragment_stride48.s",
+      "sha256": "f9df8e860782edcffa03c6059fbae16c79168afde807473b119e30e06f9fb325",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/wmma_fragment_stride64.s",
+      "sha256": "105de139eb17745bb91f8b6730af3a91bdb1dd5ddc5723a9816064ef694e66e5",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-matrix/wmma_store_tile_ones.s",
+      "sha256": "8487ea3b2c3a0803c157cea9f54e9f06695acbc032751dbdd854717129f0d457",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
+      "sha256": "eeddf5e145a3c2f90ee1a9ecd6ddace4b8c2da9fc9de8cfa866feb8867e2054d",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
+      "sha256": "1b7b01390f87ab4b2d8109ab3916634be4159b0f0036dd51c4cb02d94db65133",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-memory/logical_lane_ids.s",
+      "sha256": "177b274a865a1e42a29b02eb33edbf43e9dec62586d8f452a766f833dd65bf95",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-memory/logical_partitions.s",
+      "sha256": "e839e1d5efe58efe5ab1fc138a5b79e9594a000318716dc88070288ac81c02e4",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
+      "sha256": "4cd456f9bd13d3893580bdc88bba15f53269d0899966db1f308766d1912c6881",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
+      "sha256": "5b574029cd39909520ea09b051907353a519d37e7781b1ef8b4c79b12c9ca9de",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/balanced_tree_sum.s",
+      "sha256": "6b329cab9a5e0a4ebd54590cc9721040fd2a68397f991b592f6173b6e84ac5bd",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/balanced_tree_sum_doubled_leaf.s",
+      "sha256": "77db8ecc792b6ef1d0ec0daafc8fd096b0de040fd58748abe0c73bd5e592fdb3",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/constant_perturbation_mut.s",
+      "sha256": "444cb06b8d6c17c48d63f8c2c62dc1b9c804fca2294a161499baa8c95a279415",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/constant_perturbation_ref.s",
+      "sha256": "09f6f0658d9a8c0a581d6550add7eed51b6c92b307cb10ee3a075c78c6bed3e1",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/dropped_term_mut.s",
+      "sha256": "6d1d142ae2bcd5f7e4db2e8730a67047cc03ef9d0ddd037c38bc53a4e77675cd",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/dropped_term_ref.s",
+      "sha256": "67c2a80ca1f4fb7e188744d170667075efe3cdacfdf5e6dcf89be1fbffb6598a",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/exp_of_product.s",
+      "sha256": "2aae1f240d2da2298f94c20c6b2d83a71a49d322235f27ba2750f59560deddf6",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/exp_of_sum.s",
+      "sha256": "d0566357ea4eba5129db7a3fc687db35d5e74c8b89b2adf9b9c17dc8af6a24fc",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/exp_product_of_exps.s",
+      "sha256": "00b9fc966f30b4b05c2765e5b1fdb92d3ee71ab91c84766a1c1cf6fd976f9556",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/fma_different_addend_mut.s",
+      "sha256": "58d3617d375b2157a38e387c6fc8b4cecb2aad8942643cf0d765588cbb6572e1",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/fma_different_addend_ref.s",
+      "sha256": "fc13b6a4771b929e7b76b5fa6d469573454d6c8ee6b3d11764d28963cb69cf35",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/integer_sign_bit_xor_mut.s",
+      "sha256": "54e7b0f7ac139082d8b3d94d89c14d11f0bc2d7848bc33ba9b1b6608c58f55b5",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/integer_sign_bit_xor_ref.s",
+      "sha256": "b263532cea0f504985ecccf68ce5d40f5ba56affde8e3c85bbb6d08fc06ad177",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/linear_chain_sum.s",
+      "sha256": "8b17a3512006e7349bcfe92d0d9e14ca6cd357ffa168cb1246a1b7d09767ce67",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/max_vs_min_mut.s",
+      "sha256": "bad8b1142b870914f84f4f4ebbf0022fee0d82f1a8860781fe9c6fde99b54a7e",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/max_vs_min_ref.s",
+      "sha256": "52340d31ff53319a1044774686401ce45c52de52ad68c0c09b47727616342cca",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/missing_relu_clamp_mut.s",
+      "sha256": "2a3bb9a91f022c63dabf71a2b43749cdeed8cab2a656c465888a242ce1e26f6f",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/missing_relu_clamp_ref.s",
+      "sha256": "2c491a177b13a38b55e71d21947d5f0181facca17c0f96a710d9ccbb6d6df958",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/off_by_one_index_mut.s",
+      "sha256": "a7824f30f74937ced839beb30a31276c0ea4a62891df6baf75e8b9855605203b",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/off_by_one_index_ref.s",
+      "sha256": "cf86256fa1e79c2470b595264ade991ea9a0fcafcf845011e56e08ff7f66601f",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/sentinel_off_by_one_mut.s",
+      "sha256": "8a5caced972046f054ec5822527317806d3253280ca5b8bcb9dab00f4c4249de",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/sentinel_off_by_one_ref.s",
+      "sha256": "14eba9a9034f9a91b89f0a3d90a39237e7c039db18b35d77ec167094d5ddfaa9",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/swapped_noncommutative_mut.s",
+      "sha256": "bb21894ddde03cd156d36c04c05117f690151bd98174af97bbd87695e40e0097",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-negative/swapped_noncommutative_ref.s",
+      "sha256": "a7674b72f2912e086002275911f7902cc8009deba519194051e1f381bc0a67d6",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/b16_shift_amount_is_read_as_u32.s",
+      "sha256": "410272ed7aaa9ee7910519f06eea751e73b02bd3b65b81f8261d3bf0c91853e7",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/b64_shift_by_u32_register.s",
+      "sha256": "6f3bb386720ff7665dd3bc1db16c5c9c4d80608dbcb2bd8983a586574a9bbc7a",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/bfe_extract_and_sign_fill.s",
+      "sha256": "97bd084e4a31122f065329d47b50348c8e613ca62a0b67bf0e9344d26b007ec4",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/bfi_clips_field_to_register_width.s",
+      "sha256": "c747bd46e3e6e2cb470268468f8afbb6ef2de42b553dfea6a67eff601ebc0c74",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.s",
+      "sha256": "2b88ca5bb38ba33beccd62665bfb9f6fdd075de7e77b1dad5a074195b5327e98",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/copysign_combines_the_sign_of_a_with_the_magnitude_of_b.s",
+      "sha256": "bce55e6bcafd8d9d578228c974dbd73431236f4be09e84d5739c919ae259886b",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/cvta_to_global_accepted.s",
+      "sha256": "5aa9c3c24a154314c6de34819ee6ff0c965c10e34f076643a64e551219e36a53",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/div_by_n_vs_mul_by_computed_reciprocal.s",
+      "sha256": "1f20e5cd699f7c6fc188b8ca06476d4c4498262edd9a9d65ab4c85bb7fd59106",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/div_by_n_vs_mul_by_computed_reciprocal_2.s",
+      "sha256": "f164b40e4a8a840eb64b93b41c0b3839e993731624cdf7e19ba3e21219b8c746",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/div_by_three_vs_rcp_of_three.s",
+      "sha256": "70af525949d193706c0d115885c9a9e286e7f0b1fc483a38af8e7e2ad2e40d4b",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/div_by_three_vs_rcp_of_three_2.s",
+      "sha256": "82355e8debf57905a4b688f9f5598208778eb900aaed36edc0c3821d50700c68",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/elect_sync_elects_the_lowest_active_lane.s",
+      "sha256": "3c9d41cec8ee2766da09baf4ed5ec581332160966dfc9417bb616920342615ed",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/elect_sync_skips_an_already_exited_lane.s",
+      "sha256": "a87f4751306867b9866aaf8d408c94528af7a4621acef049fef7cb685bb0dd14",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/extern_only_shared_placement_and_bounds.s",
+      "sha256": "3fe64da46c0b4da77c5372857b5042735e84fd3c17b5d7aaec5643dacdd2d47c",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/extern_vs_static_shared_no_false_race.s",
+      "sha256": "e76f5ebc4ea97ce935884af5d5fa25efe132c5fc78bb7341c7d3f654e9d1143a",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/f32x2_constant_bit_pattern_operand.s",
+      "sha256": "186f233e21c7472cb103f15fa6e3b8da6676b0a6cc1eb4ccbdaf50e840b445d0",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/f32x2_fma_via_64bit_memory_access.s",
+      "sha256": "9c8972e3f6d889dcb9f5abf6c1168aba64eb803c71edcbefc8e1237fd11f826c",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/f32x2_fma_via_register_pack.s",
+      "sha256": "447c024f08e57c1f46c47a8d552cca90e1a1f355e89f9a249a48ba834c12fd5f",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/f32x2_lane_extracted_with_shift.s",
+      "sha256": "d4239b231ac405089754fcb083cdfca1bee7bd103d218c8f3bd1a8288f9d5d96",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/f32x2_mul_add_via_register_pack.s",
+      "sha256": "2b55d9a458110efc0c53f5437605be42646a0f6a176f46a915c7f74123b1a769",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/f32x2_operand_assembled_with_cvt_zero_extension.s",
+      "sha256": "188cff6c9b94f1ed445801fcebe840c4ffc9e327bb94ba5fa6307d170938d7b8",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/f32x2_operand_assembled_with_shift_and_or.s",
+      "sha256": "11900be6bb9b9ccde7da8e2ff41d2546243d4d0d9b4114931f20678a4ef87286",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/f32x2_scalar_reference.s",
+      "sha256": "51087d1df84000d3fc20c4c9b7dce9cb55cc01410f632aa1deca505d665bdda1",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/f32x2_wrong_lane_math.s",
+      "sha256": "afa667ce015f44626847afe4c01f1d725fc6c8089630221ff5a315aada91e51a",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/float_abs_decodes_raw_bits.s",
+      "sha256": "4ab643b27dd56b0a57f04674e6c10d2f89f9c7a697e1aa61826da0434ed2f735",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/float_ops_decode_raw_bit_patterns.s",
+      "sha256": "5f9b641fd995ad36d6c9a0f5d9067613b1e19a064212e551ec8dab620a27653a",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/int_abs_read_at_signed_width.s",
+      "sha256": "578942b86649b675aca0d1debbe85ebd0cc42d4466f977fbaac139b86b8b5ecd",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/mapa_rank_zero_is_the_identity.s",
+      "sha256": "1a115908ae9a18ffea04c14fd5a91e989cd22b198989da1dfcad4ea2199e150b",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/mixed_precision_fma_decodes_multiplicands_at_their_own_type.s",
+      "sha256": "12f6adf82601e45f6589dff2a68e6e883128b5e4002ddc2a02f839701b8979ec",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/mul_hi_u32_negative_operand.s",
+      "sha256": "54a5090ceb05ea3a89b36ab2133b81247e2c4b71d759a83f55c4a3b57d5c73ad",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/mul_wide_u16_magic_division.s",
+      "sha256": "fc6abda0eba7c346258935919a077cd7f6eb88c8caa688f2f4d23cbe38d22be7",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/neg_reads_operand_as_instruction_type.s",
+      "sha256": "fd3934e3924c10f961aa6a86147904d8d59edc1d424a6695e90c130295f6139e",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/region_edge_exact_fit_accesses_pass.s",
+      "sha256": "4befaeaccbfe8229be542ef359e04b084a1cf6c29a1359db42f164710b7d9de4",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/shf_clamp_negative_shift_amount_saturates.s",
+      "sha256": "0ca7875d6f57d60a905c4ff905e224648e51cf5cd01b2dfaddf5955fbc8f134f",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/shfl_sync_idx_exchange.s",
+      "sha256": "dd77b7000903b6f0cc5156ddd5c337feb96488f7ee07f6d76ac2c063c18ff28e",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/symexpf_callseq.s",
+      "sha256": "415b1665b9e7f037fe485c7f7706777df2e67660f5d4b7dfb9074dfb15a4ccb5",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/tail_exit_warp_shfl_reduction.s",
+      "sha256": "c9890211d5f5c5afaf92ad94bdf9d0dc35eda0c16f2cb9a71944dfb761dc8fbf",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/tail_exit_warp_shfl_reduction_reference.s",
+      "sha256": "02de0ea55b742c43381b27a703a8cd26c17ee33125ec3a22ecb573134be645ee",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/tanh_approx_expands_to_exp_fragment.s",
+      "sha256": "c1826d92e39b80f5f319329c162b72da566225b661dd685d4d8253a8573c0aa4",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/tanh_approx_zero_vs_zero.s",
+      "sha256": "4eb8944a9fe966b5822ebcfa67d48b981143fe774a3ad8d54e8a3610559627cf",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/tanh_approx_zero_vs_zero_2.s",
+      "sha256": "fc0cf1ee995621757f469256e753f71d1f13118f405bd031c915e1908873e83a",
+      "matches": true
+    },
+    {
+      "path": "tests/gfx950/portable-scalar/upper_half_address_space_access_in_bounds.s",
+      "sha256": "5716d5f8f2537d8ae83ba3c9512fbf52fbfa021ed4b0e1f32379c4c0a4559fa9",
+      "matches": true
+    }
+  ],
+  "inventory_checkpoint_totals": {
+    "sources": 170,
+    "compiler_sources": 23,
+    "instructions": 14562,
+    "exact_mnemonics": 238,
+    "observed_profiles": 721
+  },
+  "validation": "Read source and current pinned evidence; recomputed all source hashes and manifest/spec-output set agreement. Did not duplicate long root-owned full regression/replay runs. Concurrent coordinator/graph edits after b700278 not part of this review."
+}

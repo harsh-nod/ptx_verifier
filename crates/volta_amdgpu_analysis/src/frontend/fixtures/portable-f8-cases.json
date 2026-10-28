@@ -53,12 +53,23 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [],
       "expected_output_footprint": {
         "array": "out",
         "elements": 2048,
         "bytes": 4096
+      },
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "relu/relu_f8",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -106,12 +117,23 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [],
       "expected_output_footprint": {
         "array": "out",
         "elements": 1024,
         "bytes": 2048
+      },
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "silu/silu_f8",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -159,12 +181,23 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [],
       "expected_output_footprint": {
         "array": "out",
         "elements": 1024,
         "bytes": 2048
+      },
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "sigmoid/sigmoid_f8",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -220,12 +253,23 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [],
       "expected_output_footprint": {
         "array": "out",
         "elements": 2048,
         "bytes": 4096
+      },
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "swiglu/swiglu_f8",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -290,12 +334,23 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [],
       "expected_output_footprint": {
         "array": "out",
         "elements": 128,
         "bytes": 256
+      },
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "rope/rope_f8",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -352,12 +407,23 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [],
       "expected_output_footprint": {
         "array": "out",
         "elements": 4096,
         "bytes": 8192
+      },
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "rmsnorm/rmsnorm_f8",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -414,14 +480,25 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [
-        "Arithmetic+LDS reference only; native matrix-pipelining property remains open."
+        "Preserves all64 output rows, OCP E4M3 external inputs and the fullK4096 reduction with an ordinary wave-ALU/LDS implementation. Native FP8 MFMA pipeline mechanics are exercised separately; this kernel does not use MFMA or claim equal PTX instruction scheduling."
       ],
       "expected_output_footprint": {
         "array": "out",
         "elements": 64,
         "bytes": 128
+      },
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "matvec/matvec_f8",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     }
   ]

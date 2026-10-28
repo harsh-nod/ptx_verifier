@@ -9,6 +9,29 @@ are in [issue 1](https://github.com/harsh-nod/ptx_verifier/issues/1).
 successful parser tests, and inconclusive safety results do not close a row.
 Only the coordinator records validated completion after integration testing.
 
+The final corpus has **416 validated entries, 104 explained PTX-only contracts,
+seven inherited baseline limitations, and zero pending entries**. The workload
+receipts prove all 24 supported original computations plus native computations
+and safety negatives for the two original proxy-race workloads. Six originally
+unsupported workload artifacts remain explicit baseline limitations; the seventh
+limitation is the original unsupported half-copysign integration fixture.
+
+`evidence/full-workloads-final-default.json` and
+`evidence/full-workloads-final-logging.json` retain exact commands, binaries,
+source/spec hashes, stdout, resources and the coordinator's current-configuration
+audit for 39 positive native cases per build: 37 math/spec proofs and two copy/add graph
+and footprint cases. Six of these are explicitly reduced mechanism controls.
+One further configured reduction case remains Unsupported and is never counted
+as a positive proof. Native full16-row softmax has a separate complete replay
+and hardware receipt. All claims remain scoped to the selected workgroup and
+the real-number model.
+
+`evidence/m6-final-coordinator-review.json` is the final completion ledger.
+Earlier revision-named receipts retain their historical checkpoint outcomes and
+then-open gaps. The final ledger and `parity.json` identify their resolutions.
+The final isolated rebuild reproduces the exact default and logging executable
+hashes used by both workload replays.
+
 ```sh
 python3 scripts/gfx950_parity.py check
 python3 scripts/gfx950_parity.py summary --require-complete
@@ -17,11 +40,29 @@ python3 ai_compiler_kernels/check_races.py --backend amdgpu
 python3 ai_compiler_kernels/check_races.py --backend amdgpu --mutate copy
 ```
 
-The strict completeness check intentionally fails while work remains. The
+For a reproducible parallel replay, build the revision first and pass its binary
+to `replay_workloads.py`. The driver calls the existing workload harness, checks
+complete output footprints and every configured mathematical spec, retains commands and resource logs,
+and keeps supplemental reduced cases explicitly labeled. It never builds or
+substitutes a binary. Large full-shape proofs require substantial host memory.
+
+```sh
+cargo build --release -p volta_cli --features logging
+python3 tests/gfx950/replay_workloads.py --binary target/release/volta \
+  --output /tmp/gfx950-replay --revision "$(git rev-parse HEAD)" --jobs 3
+```
+
+The strict completeness check requires zero pending entries. The
 native workload manifest includes copy/add, portable FP16/FP8, full-size GEMM,
 convolution and attention-family cases, alongside matrix/ID and ABI controls.
 Reduced cases are explicitly labeled and do not replace full baseline shapes.
 Complete baseline coverage requires reviewed dispositions in `parity.json`.
+The all-case replay includes `reduction_f16`, an explicit unsupported boundary
+case retained from an unsupported original workload. It stops at unmodeled
+`v_readfirstlane` software dependencies before its unsupported atomic. That case
+has no symbolic proof, and the replay returns nonzero. Positive proofs, reduced
+controls and this boundary result must be reported separately. See
+`evidence/reduction-native-boundary-6bc63a5.json`.
 Compiler fixtures,
 sources, provenance, emitted-instruction inventory, and portable-workload specs
 live under `crates/volta_amdgpu_analysis/src/frontend/fixtures/`.
@@ -76,8 +117,7 @@ The portable FP8 runner independently decodes OCP E4M3 inputs and compares the
 native results to CPU formulas. Matrix checks cover individual A/B basis inputs
 and asymmetric dense patterns; pipeline references use ordinary row-major
 matrix multiplication. Output buffers start from a sentinel before execution.
-`evidence/hardware-2026-10-27-initial-corpus.json` records the exact source and
-code-object hashes, toolchain, patterns, tolerances, and observed results.
+`evidence/hardware-2026-10-27-initial-corpus.json` records the initial source/code-object hashes, tools and observed results. Its FP16 matvec block256 launch is superseded by `evidence/hardware-portable-f16-corrected-2026-10-27.json`, which uses the required block128.
 
 `evidence/baseline-workloads.json` records all 32 original PTX workload outcomes
 under an 8 GiB per-process address-space cap. The four original full-K4096 GEMM
@@ -85,3 +125,26 @@ cases pass when rerun with a larger memory envelope, as recorded separately in
 `evidence/baseline-workloads-large-memory.json`. These are required positive
 parity cases. Their earlier resource failures are not an unsupported-feature
 exception.
+
+## Artifact scale measurements
+
+The public native-analysis example reports candidate graph events, memory
+accesses, expression nodes, output counts, and separate parse/analysis times:
+
+```sh
+cargo build --release -p volta_amdgpu_analysis --example artifact_stats
+/usr/bin/time -v target/release/examples/artifact_stats \
+  crates/volta_amdgpu_analysis/src/frontend/fixtures/full-gemm-cases.json \
+  gemm_f16_full
+```
+
+It consumes an existing case manifest and calls the same analysis API. It does
+not perform graph checks or equivalence, and reports `verification_performed:
+false`. Workload proof receipts separately retain graph/spec time, process
+limits and peak resident memory. `scale-cases.json` supplies the existing
+128-input, two-wave compiler reduction configuration for a small reduction
+measurement; it adds no original workload or parity disposition.
+`evidence/artifact-scale-final.json` records measurements for elementwise,
+reduction, full GEMM and full attention. Expression-node counts include the
+whole allocated arena, including nodes unreachable from outputs; memory-access
+counts are graph records, not bytes or distinct addresses.
