@@ -513,3 +513,23 @@ fn scalar_float_sources_preserve_one_exact_native_literal_word() {
         frontend::parse(&tiny_native(body)).unwrap();
     }
 }
+
+#[test]
+fn typed_dual_operands_require_their_enclosing_vector_instruction() {
+    let original = frontend::parse(&tiny_native(
+        "v_dual_add_f32 v1, v1, v2 :: v_dual_mul_f32 v2, v1, v2",
+    ))
+    .unwrap();
+    for (opcode, name) in [
+        (frontend::Opcode::Control, "s_endpgm"),
+        (frontend::Opcode::ScalarAlu, "v_dual_add_f32"),
+        (frontend::Opcode::VectorAlu, "v_add_f32"),
+    ] {
+        let mut module = original.clone();
+        let instruction = &mut module.kernels[0].instructions[2];
+        instruction.opcode = opcode;
+        instruction.mnemonic = name.into();
+        let error = volta_amdgpu_analysis::target::validate(&module).unwrap_err();
+        assert!(error.message.contains("dual operands"), "{error:?}");
+    }
+}

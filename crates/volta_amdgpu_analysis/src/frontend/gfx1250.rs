@@ -41,6 +41,9 @@ pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
 /// Apply the same selected instruction contract to caller-built typed modules.
 pub(crate) fn validate_typed_profile(instruction: &Instruction) -> Result<(), String> {
     if let [Operand::Dual(x, y)] = instruction.operands.as_slice() {
+        if instruction.opcode != Opcode::VectorAlu || !instruction.mnemonic.starts_with("v_dual_") {
+            return Err("typed dual operands require a native VOPD vector instruction".into());
+        }
         validate_typed_profile(x)?;
         validate_typed_profile(y)?;
         return Ok(());
