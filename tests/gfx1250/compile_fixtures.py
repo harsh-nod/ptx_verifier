@@ -8,6 +8,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 import socket
 import subprocess
 
@@ -30,13 +31,16 @@ def main():
     parser.add_argument("--llvm", type=Path, default=Path("/opt/rocm-7.2.0/lib/llvm/bin"))
     args = parser.parse_args()
     directory = args.directory.resolve()
+    sources = sorted(directory.glob("*.hip"))
+    if not sources:
+        parser.error(f"no HIP fixture sources in {directory}")
     tools = {}
     for name in ("clang++", "llvm-mc", "ld.lld"):
         path = args.llvm / name
         tools[name] = {"path": str(path), "realpath": str(path.resolve()), "sha256": sha(path),
                        "version": run([path, "--version"])["stdout"]}
     fixtures = []
-    for source in sorted(directory.glob("*.hip")):
+    for source in sources:
         assembly = source.with_suffix(".s")
         obj = source.with_suffix(".o")
         compile_result = run([args.llvm / "clang++", "-x", "hip",
@@ -60,6 +64,17 @@ def main():
               "tools": tools, "fixtures": fixtures}
     output = directory / "compiler-provenance.json"
     output.write_text(json.dumps(result, indent=2) + "\n")
+    inventory = {}
+    for fixture in fixtures:
+        assembly = directory / fixture["assembly"]
+        instructions = []
+        for line, raw in enumerate(assembly.read_text().splitlines(), 1):
+            text = raw.split(";", 1)[0].strip()
+            if re.match(r"(?:s_|v_|global_|flat_|ds_|tensor_|buffer_|scratch_)", text):
+                instructions.append({"line": line, "text": text,
+                                     "components": text.split(" :: ")})
+        inventory[assembly.name] = {"sha256": sha(assembly), "instructions": instructions}
+    (directory / "emitted-instructions.json").write_text(json.dumps(inventory, indent=2) + "\n")
     print(json.dumps({"fixtures": len(fixtures), "output": str(output),
                       "sha256": sha(output)}))
 

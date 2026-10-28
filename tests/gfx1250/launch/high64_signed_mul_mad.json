@@ -1,0 +1,57 @@
+{
+  "description": "Exact by-value 64-bit ABI and full four u64 outputs",
+  "kernel": "high64_signed_mul_mad",
+  "block": 1,
+  "arrays": [
+    {
+      "name": "out",
+      "kind": "out",
+      "dtype": "u64",
+      "shape": [
+        4
+      ],
+      "base": "0x10000"
+    }
+  ],
+  "params": [
+    {
+      "bytes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        128
+      ]
+    },
+    {
+      "bytes": [
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "bytes": [
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "ptr": "out"
+    }
+  ]
+}

@@ -29,6 +29,11 @@ def main():
     cases.append(("wave64_descriptor", "s_endpgm", descriptor.format(vgpr=8,sgpr=8,wave=0,lds=0)))
     for feature in ("", ":xnack+", ":xnack-", ":sramecc+", ":sramecc-"):
         cases.append(("target"+feature, "s_endpgm", f'.amdgcn_target "amdgcn-amd-amdhsa--gfx1250{feature}"\n'))
+    for counter, values in (("tensor", (0, 1, 31, 63, 64, 255, 65535)),
+                            ("async", (31, 63, 64))):
+        for value in values:
+            instruction = f"s_wait_{counter}cnt {value}"
+            cases.append((instruction, instruction, None))
     rows = []
     with tempfile.TemporaryDirectory(prefix="ptx-verifier-gfx1250-boundary-") as tmp:
         directory = Path(tmp)

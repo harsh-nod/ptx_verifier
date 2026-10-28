@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "scope": "Initial genuine compiler cases; broader WMMA/tensor/workload acceptance corpus is required and remains unfinished.",
+  "scope": "Genuine gfx1250 native required mechanism corpus; software validation remains pending until complete graph/value/control assertions run. No hardware exists.",
   "cases": [
     {
       "kernel": "copy",
@@ -263,6 +263,649 @@
       "source_sha256": "139885bae4ac30332eacdbe9e39a68da60b2a350815028eece67fd3ab7dde535",
       "assembly_sha256": "845841d12d12f785a0e0bdd70ca8afdf7a21d31687d2d0593f4d4c7fe001f176",
       "spec_sha256": "13e6b33467f4ddf2888e7797dbdd93aacb67be0e16ed8ea991dba559b3457b88"
+    },
+    {
+      "kernel": "wmma_f32",
+      "source": "fixtures/native-wmma.hip",
+      "assembly": "fixtures/native-wmma.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "GROUPS": 2,
+        "M": 16,
+        "N": 16,
+        "ITEMS": 2,
+        "G": 2,
+        "C": 8
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 64,
+          "kind": "in"
+        },
+        {
+          "name": "b",
+          "base_address": 131072,
+          "element_size": 4,
+          "length": 64,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 196608,
+          "element_size": 4,
+          "length": 256,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "spec": "specs/wmma-f32.spec",
+      "expected_outputs": 256,
+      "required": true,
+      "software_validation": "pending; actual native positive and harmful mutation gates must pass",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "input_dtype": "f32",
+      "layout_reference": "Public FlyDSL f37f7a2 MmaAtom.cpp AB and CD layouts; independent oracles.py",
+      "complete_logical_shape": [
+        16,
+        16,
+        4
+      ],
+      "source_sha256": "9cbe1c2d95c364be11106cc9c398d83bbcffe3f8b282bf3de322e09454726b8d",
+      "assembly_sha256": "23ea3d5e8dd774580758675a46511c04c3b32380866cdf3a0e5d270f1c819bcc",
+      "spec_sha256": "944c88f7b08f335657d33d52ce30e7eec2db8eec33a3e84113287f53d8151bef"
+    },
+    {
+      "kernel": "wmma_f16",
+      "source": "fixtures/native-wmma.hip",
+      "assembly": "fixtures/native-wmma.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "GROUPS": 2,
+        "M": 16,
+        "N": 16,
+        "ITEMS": 8,
+        "G": 2,
+        "C": 8,
+        "BLOCKS": 2
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "base_address": 65536,
+          "element_size": 2,
+          "length": 512,
+          "kind": "in"
+        },
+        {
+          "name": "b",
+          "base_address": 131072,
+          "element_size": 2,
+          "length": 512,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 196608,
+          "element_size": 4,
+          "length": 256,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "spec": "specs/wmma-b16.spec",
+      "expected_outputs": 256,
+      "required": true,
+      "software_validation": "pending; actual native positive and harmful mutation gates must pass",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "input_dtype": "f16",
+      "layout_reference": "Public FlyDSL f37f7a2 MmaAtom.cpp AB and CD layouts; independent oracles.py",
+      "complete_logical_shape": [
+        16,
+        16,
+        32
+      ],
+      "source_sha256": "9cbe1c2d95c364be11106cc9c398d83bbcffe3f8b282bf3de322e09454726b8d",
+      "assembly_sha256": "23ea3d5e8dd774580758675a46511c04c3b32380866cdf3a0e5d270f1c819bcc",
+      "spec_sha256": "7a3bdd683ead1627187a90d213537357cab13263f9d93e6d9cf54c411d514ce6"
+    },
+    {
+      "kernel": "wmma_bf16",
+      "source": "fixtures/native-wmma.hip",
+      "assembly": "fixtures/native-wmma.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "GROUPS": 2,
+        "M": 16,
+        "N": 16,
+        "ITEMS": 8,
+        "G": 2,
+        "C": 8,
+        "BLOCKS": 2
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "base_address": 65536,
+          "element_size": 2,
+          "length": 512,
+          "kind": "in"
+        },
+        {
+          "name": "b",
+          "base_address": 131072,
+          "element_size": 2,
+          "length": 512,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 196608,
+          "element_size": 4,
+          "length": 256,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "spec": "specs/wmma-b16.spec",
+      "expected_outputs": 256,
+      "required": true,
+      "software_validation": "pending; actual native positive and harmful mutation gates must pass",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "input_dtype": "bf16",
+      "layout_reference": "Public FlyDSL f37f7a2 MmaAtom.cpp AB and CD layouts; independent oracles.py",
+      "complete_logical_shape": [
+        16,
+        16,
+        32
+      ],
+      "source_sha256": "9cbe1c2d95c364be11106cc9c398d83bbcffe3f8b282bf3de322e09454726b8d",
+      "assembly_sha256": "23ea3d5e8dd774580758675a46511c04c3b32380866cdf3a0e5d270f1c819bcc",
+      "spec_sha256": "7a3bdd683ead1627187a90d213537357cab13263f9d93e6d9cf54c411d514ce6"
+    },
+    {
+      "kernel": "gemm_pipeline_f16",
+      "source": "fixtures/native-gemm-pipeline.hip",
+      "assembly": "fixtures/native-gemm-pipeline.s",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "M": 32,
+        "N": 16,
+        "K": 64
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "base_address": 65536,
+          "element_size": 2,
+          "length": 2048,
+          "kind": "in"
+        },
+        {
+          "name": "b",
+          "base_address": 131072,
+          "element_size": 2,
+          "length": 1024,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 196608,
+          "element_size": 4,
+          "length": 512,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "spec": "specs/gemm-pipeline.spec",
+      "expected_outputs": 512,
+      "required": true,
+      "software_validation": "pending; actual native positive and harmful mutation gates must pass",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "input_dtype": "f16",
+      "complete_logical_shape": [
+        32,
+        16,
+        64
+      ],
+      "staging": "two wave32, two K32 WMMA stages, distinct LDS buffers",
+      "source_sha256": "786376dcc0ea9e542094ee6b75523304b4e8905f1a6855f1241a342f57b5b772",
+      "assembly_sha256": "74e2d29d5e3b83ad8f312c73eea2c18c925c70e4707070f1553f3af0468fb00e",
+      "spec_sha256": "937f9b0a0457249146a743bb9684eab9c487c9d99aafd9cc1883e45807ea01fb"
+    },
+    {
+      "kernel": "tensor_roundtrip",
+      "source": "fixtures/native-tensor-roundtrip.hip",
+      "assembly": "fixtures/native-tensor-roundtrip.s",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 128
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 128,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 131072,
+          "element_size": 4,
+          "length": 128,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "spec": "specs/tensor-roundtrip.spec",
+      "expected_outputs": 128,
+      "required": true,
+      "software_validation": "pending; actual native positive and harmful mutation gates must pass",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "descriptor_profile": "F32 2D64x1 stride64 no pad/iterate/atomic/multicast; LDS256B reused2stages; full128output",
+      "source_sha256": "845a99a7f59f8db92d0bed7b0feccd3ce30f8183814fa6c5927d14482d65e4b5",
+      "assembly_sha256": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
+      "spec_sha256": "cfaf65668261f61839723af06815b3b3b80379b76d1a556c65196a99e7934e21"
+    },
+    {
+      "kernel": "attention_small",
+      "source": "fixtures/native-attention-small.hip",
+      "assembly": "fixtures/native-attention-small.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "Q": 16,
+        "T": 32,
+        "D": 32
+      },
+      "arrays": [
+        {
+          "name": "q",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 512,
+          "kind": "in"
+        },
+        {
+          "name": "k",
+          "base_address": 131072,
+          "element_size": 4,
+          "length": 1024,
+          "kind": "in"
+        },
+        {
+          "name": "v",
+          "base_address": 196608,
+          "element_size": 4,
+          "length": 1024,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 262144,
+          "element_size": 4,
+          "length": 512,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:q",
+        "ptr:k",
+        "ptr:v",
+        "ptr:out"
+      ],
+      "spec": "specs/attention-small.spec",
+      "expected_outputs": 512,
+      "required": true,
+      "software_validation": "pending; actual native positive and harmful mutation gates must pass",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "complete_logical_shape": [
+        16,
+        32,
+        32
+      ],
+      "numerical_scope": "Real-number abstraction for native exp LOG2_E_F32 idiom and native reciprocal; finite-precision error not proved; full softmax denominator retained",
+      "source_sha256": "0353849fabca74ba9cf46b5a7da6185921cf0556c02a37985b656ea841765829",
+      "assembly_sha256": "23540c5749eefcf6c9d796e27dda5b131dda8bd77ae6ce566c59c6e2c2599bb0",
+      "spec_sha256": "d17f012e42f42518605fc7334e3d14074a3fa6b2a43f21369699d79b9b37d109"
+    },
+    {
+      "kernel": "transpose_8x8_b16",
+      "source": "fixtures/native-transpose-high64.hip",
+      "assembly": "fixtures/native-transpose-high64.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "R": 8,
+        "C": 8
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 2,
+          "length": 64,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 131072,
+          "element_size": 2,
+          "length": 64,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "spec": "specs/transpose.spec",
+      "expected_outputs": 64,
+      "required": true,
+      "software_validation": "pending; actual native positive and harmful mutation gates must pass",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "transport_scope": "All64 16-bit elements = all32 packedwords, exactbits transported through LDS, native lane layout differs NVIDIA movmatrix",
+      "source_sha256": "e6ce43b03bd3c7532960ff8065625cf4191b2fb6047d8b5acd2a7f68ac17e059",
+      "assembly_sha256": "34e66779492f5474dd3e412a44d4d81e82ebf51909943c8c87255672ea9adaa3",
+      "spec_sha256": "af019eec1a730be84f011cdc780f523ac8391fd923b1e41c5648fee5a7f4acab"
+    },
+    {
+      "kernel": "high64_mul_mad",
+      "source": "fixtures/native-transpose-high64.hip",
+      "assembly": "fixtures/native-transpose-high64.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 4
+      },
+      "arrays": [
+        {
+          "name": "out",
+          "base_address": 65536,
+          "element_size": 8,
+          "length": 4,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        {
+          "bytes": [
+            255,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "bytes": [
+            255,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "bytes": [
+            255,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "ptr": "out"
+        }
+      ],
+      "expected_outputs": 4,
+      "required": true,
+      "software_validation": "pending; actual native positive and harmful mutation gates must pass",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "launch_config": "launch/high64_mul_mad.json",
+      "expected_constants": [
+        18446744073709551614,
+        1,
+        18446744073709551615,
+        0
+      ],
+      "integer_semantics": "Exact unsigned128 product plus unsigned64 addend",
+      "source_sha256": "e6ce43b03bd3c7532960ff8065625cf4191b2fb6047d8b5acd2a7f68ac17e059",
+      "assembly_sha256": "34e66779492f5474dd3e412a44d4d81e82ebf51909943c8c87255672ea9adaa3",
+      "launch_config_sha256": "1464c20ad426414ea26066ffe49520f472873c3b3419996b8ef276637f7cba99",
+      "oracle": "oracles.py::limb_mul_mad plus independent Python full-width integer product; signed variant uses signed128 product and signed64 addend",
+      "spec_omission": "Four exact u64 constants include values outside .spec signed64 literal domain; compare complete output integer bit patterns directly"
+    },
+    {
+      "kernel": "high64_signed_mul_mad",
+      "source": "fixtures/native-transpose-high64.hip",
+      "assembly": "fixtures/native-transpose-high64.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 4
+      },
+      "arrays": [
+        {
+          "name": "out",
+          "base_address": 65536,
+          "element_size": 8,
+          "length": 4,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        {
+          "bytes": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128
+          ]
+        },
+        {
+          "bytes": [
+            255,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "bytes": [
+            255,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "ptr": "out"
+        }
+      ],
+      "expected_outputs": 4,
+      "required": true,
+      "software_validation": "pending; actual native positive and harmful mutation gates must pass",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "launch_config": "launch/high64_signed_mul_mad.json",
+      "expected_constants": [
+        0,
+        9223372036854775808,
+        0,
+        9223372036854775807
+      ],
+      "integer_semantics": "Exact signed128 product plus signed64 addend",
+      "source_sha256": "e6ce43b03bd3c7532960ff8065625cf4191b2fb6047d8b5acd2a7f68ac17e059",
+      "assembly_sha256": "34e66779492f5474dd3e412a44d4d81e82ebf51909943c8c87255672ea9adaa3",
+      "launch_config_sha256": "0e42c1d6b4516847511c9c3312dcbb95e6252162f9d849d16a35b5cf975f4bbf",
+      "oracle": "oracles.py::limb_mul_mad plus independent Python full-width integer product; signed variant uses signed128 product and signed64 addend",
+      "spec_omission": "Four exact u64 constants include values outside .spec signed64 literal domain; compare complete output integer bit patterns directly"
     }
   ]
 }

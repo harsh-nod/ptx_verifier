@@ -38,5 +38,104 @@
       "sha256": "70f361ae30a0a4472c96593ba1be53a4ecb73b4c195c92150525211497353065"
     }
   ],
-  "caution": "Actual compiler and public/latest source snapshots differ; record and test emitted forms, do not assume identical builtin signatures or high-register availability."
+  "caution": "Actual compiler and public/latest source snapshots differ; record and test emitted forms, do not assume identical builtin signatures or high-register availability.",
+  "primary_references": [
+    {
+      "repository": "https://github.com/ROCm/llvm-project",
+      "commit": "5fd50ec8e07abb94e203933017e8d6e40fb51824",
+      "source_path": "clang/include/clang/Basic/BuiltinsAMDGPU.td",
+      "url": "https://raw.githubusercontent.com/ROCm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/clang/include/clang/Basic/BuiltinsAMDGPU.td",
+      "sha256": "49652e408e57f83a47f5d471272fdba67be3691aee005abf9d5d76fb4d3696c9",
+      "role": "public primary semantic reference; compiler revision differs"
+    },
+    {
+      "repository": "https://github.com/ROCm/llvm-project",
+      "commit": "5fd50ec8e07abb94e203933017e8d6e40fb51824",
+      "source_path": "clang/include/clang/Basic/BuiltinsAMDGPUDocs.td",
+      "url": "https://raw.githubusercontent.com/ROCm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/clang/include/clang/Basic/BuiltinsAMDGPUDocs.td",
+      "sha256": "02143e3fa12cb2d9dbb52795eec187f1ff352f93b27b30a0d37b613b29b0ae35",
+      "role": "public primary semantic reference; compiler revision differs"
+    },
+    {
+      "repository": "https://github.com/ROCm/llvm-project",
+      "commit": "5fd50ec8e07abb94e203933017e8d6e40fb51824",
+      "source_path": "llvm/docs/AMDGPUUsage.md",
+      "url": "https://raw.githubusercontent.com/ROCm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md",
+      "sha256": "07cad70563d2f020fa9571690b9823a0e57f040acaa4a4ce737ed725b94ec859",
+      "role": "public primary semantic reference; compiler revision differs"
+    },
+    {
+      "repository": "https://github.com/ROCm/llvm-project",
+      "commit": "5fd50ec8e07abb94e203933017e8d6e40fb51824",
+      "source_path": "llvm/docs/AMDGPUDMAOperations.md",
+      "url": "https://raw.githubusercontent.com/ROCm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUDMAOperations.md",
+      "sha256": "082952c288987b947665e0e9feba0538b7989fc1356d397d423aaa5b8b9a1ab2",
+      "role": "public primary semantic reference; compiler revision differs"
+    },
+    {
+      "repository": "https://github.com/ROCm/llvm-project",
+      "commit": "5fd50ec8e07abb94e203933017e8d6e40fb51824",
+      "source_path": "llvm/docs/AMDGPUAsyncOperations.md",
+      "url": "https://raw.githubusercontent.com/ROCm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUAsyncOperations.md",
+      "sha256": "753e3f721c6fc343ac1502123763bd946c00ad4663add2b955faba9bcca43829",
+      "role": "public primary semantic reference; compiler revision differs"
+    },
+    {
+      "repository": "https://github.com/ROCm/llvm-project",
+      "commit": "5fd50ec8e07abb94e203933017e8d6e40fb51824",
+      "source_path": "llvm/lib/Target/AMDGPU/SIISelLowering.cpp",
+      "url": "https://raw.githubusercontent.com/ROCm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIISelLowering.cpp",
+      "sha256": "fa590967fa3a5af5954631c9e1a8118d131206cc6d90600a57b6d09b276773e2",
+      "role": "public primary semantic reference; compiler revision differs"
+    },
+    {
+      "repository": "https://github.com/ROCm/llvm-project",
+      "commit": "5fd50ec8e07abb94e203933017e8d6e40fb51824",
+      "source_path": "mlir/lib/Conversion/AMDGPUToROCDL/AMDGPUToROCDL.cpp",
+      "url": "https://raw.githubusercontent.com/ROCm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/mlir/lib/Conversion/AMDGPUToROCDL/AMDGPUToROCDL.cpp",
+      "sha256": "148da42d45783085a7fc66210a147f9c4145e5cb88fe12e63293e8a28e554b75",
+      "role": "public primary semantic reference; compiler revision differs"
+    },
+    {
+      "repository": "https://github.com/ROCm/llvm-project",
+      "commit": "5fd50ec8e07abb94e203933017e8d6e40fb51824",
+      "source_path": "llvm/docs/AMDGPUExecutionSynchronization.md",
+      "url": "https://raw.githubusercontent.com/ROCm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md",
+      "sha256": "314e8fc411687dc2d5ebbb99afe0efdd8496eb469af4b401a24e4b40703456a9",
+      "role": "public primary semantic reference; compiler revision differs"
+    },
+    {
+      "repository": "https://github.com/ROCm/FlyDSL",
+      "commit": "f37f7a2b98f295902240f9f96612222003578b40",
+      "source_path": "lib/Dialect/FlyROCDL/GFX1250/MmaAtom.cpp",
+      "url": "https://github.com/ROCm/FlyDSL/blob/f37f7a2b98f295902240f9f96612222003578b40/lib/Dialect/FlyROCDL/GFX1250/MmaAtom.cpp",
+      "sha256": "2706575b4624c0986291554185c67a6e9eb1f39dbf3563e70a751751a48eff62",
+      "role": "independent public WMMA lane mapping and TDM descriptor recipe crosscheck; no library dependency/runtime"
+    },
+    {
+      "repository": "https://github.com/ROCm/FlyDSL",
+      "commit": "f37f7a2b98f295902240f9f96612222003578b40",
+      "source_path": "lib/Dialect/FlyROCDL/GFX1250/WmmaLayout.h",
+      "url": "https://github.com/ROCm/FlyDSL/blob/f37f7a2b98f295902240f9f96612222003578b40/lib/Dialect/FlyROCDL/GFX1250/WmmaLayout.h",
+      "sha256": "b12c0e8d99af3ce11248ce1f1cefb752db370036d8e288d84b8e14d5293f1955",
+      "role": "independent public WMMA lane mapping and TDM descriptor recipe crosscheck; no library dependency/runtime"
+    },
+    {
+      "repository": "https://github.com/ROCm/FlyDSL",
+      "commit": "f37f7a2b98f295902240f9f96612222003578b40",
+      "source_path": "lib/Dialect/FlyROCDL/GFX1250/CopyAtom.cpp",
+      "url": "https://github.com/ROCm/FlyDSL/blob/f37f7a2b98f295902240f9f96612222003578b40/lib/Dialect/FlyROCDL/GFX1250/CopyAtom.cpp",
+      "sha256": "7aa225eb0ecf2f04c2bd5d66696ebdb76911d8ab905e3d2c21b10d8e12201898",
+      "role": "independent public WMMA lane mapping and TDM descriptor recipe crosscheck; no library dependency/runtime"
+    },
+    {
+      "repository": "https://github.com/ROCm/FlyDSL",
+      "commit": "f37f7a2b98f295902240f9f96612222003578b40",
+      "source_path": "python/flydsl/expr/rocdl/tdm_ops.py",
+      "url": "https://github.com/ROCm/FlyDSL/blob/f37f7a2b98f295902240f9f96612222003578b40/python/flydsl/expr/rocdl/tdm_ops.py",
+      "sha256": "c57ba893b4440ef67bec7aa221ef849de97e80cad98c09e698a84146a3ab3e8c",
+      "role": "independent public WMMA lane mapping and TDM descriptor recipe crosscheck; no library dependency/runtime"
+    }
+  ],
+  "local_sources_role": "Secondary local comparison only; snapshot commit is not a public semantic contract"
 }
