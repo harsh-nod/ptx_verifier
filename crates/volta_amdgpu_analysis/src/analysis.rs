@@ -105,7 +105,10 @@ pub fn analyze(
     } else if !replay_enabled {
         assumptions.push(Assumption::XnackReplayDisabled);
     }
-    if !program.descriptor.flag("tg_split") {
+    if crate::target::Architecture::from_target(&target)
+        != Some(crate::target::Architecture::Gfx1250)
+        && !program.descriptor.flag("tg_split")
+    {
         assumptions.push(Assumption::SingleCuWorkgroup);
     }
     let provenance = Provenance {

@@ -3414,6 +3414,30 @@ impl<'a> Interpreter<'a> {
         }
         let o = &instruction.operands;
         if name == "v_s_exp_f32" {
+            fn scalar_source(operand: &Operand) -> bool {
+                match operand {
+                    Operand::Register(r) => {
+                        r.count == 1
+                            && matches!(
+                                r.class,
+                                RegisterClass::Scalar
+                                    | RegisterClass::Temporary
+                                    | RegisterClass::Special
+                            )
+                    }
+                    Operand::Modified { value, .. } => scalar_source(value),
+                    Operand::Integer(_) | Operand::Float(_) => true,
+                    _ => false,
+                }
+            }
+            if !scalar_source(&o[1]) {
+                return Err(EvalError::Unsupported {
+                    pc: wave.pc,
+                    what:
+                        "v_s_exp_f32 requires a scalar source; vector-lane broadcast is not modeled"
+                            .into(),
+                });
+            }
             if !instruction.modifiers.is_empty() || wave.exec == 0 {
                 return Err(self.unsupported(wave, instruction));
             }

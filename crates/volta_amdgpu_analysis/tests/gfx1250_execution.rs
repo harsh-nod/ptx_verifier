@@ -377,3 +377,139 @@ fn vopd_both_sources_observe_the_preissue_register_snapshot() {
         Some(6.0)
     );
 }
+
+#[test]
+fn pseudo_scalar_exp_never_broadcasts_a_vector_lane() {
+    for operand in ["v1", "-v1", "abs(v1)", "v[0:1]"] {
+        let source = tiny_native(&format!("v_s_exp_f32 s5, {operand}"));
+        assert!(frontend::parse(&source).is_err(), "{source}");
+    }
+    for operand in ["s6", "1.0", "0x3fb8aa3b"] {
+        frontend::parse(&tiny_native(&format!("v_s_exp_f32 s5, {operand}"))).unwrap();
+    }
+}
+
+#[test]
+fn vopd_condition_spelling_preserves_vopd3_encoding_choice() {
+    for body in [
+        "v_dual_cndmask_b32 v2, v4, v1 :: v_dual_fma_f32 v7, v1, v2, v3",
+        "v_dual_fma_f32 v7, v1, v2, v3 :: v_dual_cndmask_b32 v2, v4, v1",
+    ] {
+        assert!(frontend::parse(&tiny_native(body)).is_err(), "{body}");
+    }
+    frontend::parse(&tiny_native(
+        "v_dual_cndmask_b32 v2, v4, v1, vcc_lo :: v_dual_fma_f32 v7, v1, v2, v3",
+    ))
+    .unwrap();
+}
+
+#[test]
+fn typed_modules_cannot_retarget_native_scalar_and_vopd_semantics_to_cdna() {
+    for body in [
+        "s_sub_f32 s5, s6, s7",
+        "s_mul_f32 s5, s6, s7",
+        "s_min_num_f32 s5, s6, s7",
+        "v_s_exp_f32 s5, s6",
+        "v_max3_num_f32 v1, v2, v3, v4",
+        "v_sub_nc_u16 v1, v2, v3",
+        "s_load_b32 s5, s[0:1], s6 scale_offset",
+        "v_dual_add_f32 v1, v1, v2 :: v_dual_mul_f32 v2, v1, v2",
+    ] {
+        let original = frontend::parse(&tiny_native(body)).unwrap();
+        for target in ["gfx942", "gfx950"] {
+            let mut module = original.clone();
+            module.target = Some(target.into());
+            let kernel = &mut module.kernels[0];
+            kernel
+                .descriptor
+                .fields
+                .insert("wavefront_size32".into(), 0);
+            kernel.instructions = vec![
+                kernel.instructions[2].clone(),
+                kernel.instructions.last().unwrap().clone(),
+            ];
+            let error = volta_amdgpu_analysis::target::validate(&module).unwrap_err();
+            assert!(
+                error.message.contains("gfx1250"),
+                "{target}: {body}: {error:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations() {
+    for body in [
+        "v_lshlrev_b16_e32 v1, 1, v2",
+        "v_sub_nc_u16_e32 v1, v1, 1",
+        "v_s_exp_f32_e32 s5, s5",
+        "s_mul_f32_e32 s5, s5, 1",
+        "s_mul_f32_e64 s5, s5, 1",
+        "v_mad_u32_e32 v1, v1, v2, v3",
+    ] {
+        assert!(frontend::parse(&tiny_native(body)).is_err(), "{body}");
+    }
+    for body in [
+        "v_lshlrev_b16_e64 v1, 1, v2",
+        "v_sub_nc_u16_e64 v1, v1, 1",
+        "v_s_exp_f32_e64 s5, s5",
+    ] {
+        frontend::parse(&tiny_native(body)).unwrap();
+    }
+    let module = frontend::parse(COPY).unwrap();
+    let result = analyze(&module, Some("copy"), config(1, 1, false)).unwrap();
+    let assumptions = &result.graph().provenance().assumptions;
+    assert!(assumptions.contains(&volta_graph::Assumption::UnclusteredWorkgroup));
+    assert!(!assumptions.contains(&volta_graph::Assumption::SingleCuWorkgroup));
+}
+#[test]
+fn malformed_typed_scalar_exp_cannot_read_a_vector_lane() {
+    let mut module = frontend::parse(&tiny_native("v_s_exp_f32 s5, s6")).unwrap();
+    module.kernels[0].instructions[2].operands[1] =
+        frontend::Operand::Register(frontend::Register {
+            class: frontend::RegisterClass::Vector,
+            index: 0,
+            count: 1,
+            special: None,
+        });
+    let error = analyze(&module, None, simple_config(1, &[("out", 1, 4, false)]))
+        .err()
+        .expect("typed invalid source rejected before execution");
+    assert!(format!("{error:?}").contains("scalar"));
+}
+
+#[test]
+fn scalar_memory_has_one_immediate_or_a_pinned_sgpr_offset_profile() {
+    for body in [
+        "s_load_b32 s2, s[0:1], 4 offset:4 scale_offset",
+        "s_load_b32 s2, s[0:1], 4 offset:4",
+        "s_load_b32 s2, s[0:1], 4 scale_offset",
+    ] {
+        assert!(frontend::parse(&tiny_native(body)).is_err(), "{body}");
+    }
+    for body in [
+        "s_load_b32 s2, s[0:1], s4 offset:4 scale_offset",
+        "s_load_b32 s2, s[0:1], s4 offset:4",
+        "s_load_b32 s2, s[0:1], 4",
+    ] {
+        frontend::parse(&tiny_native(body)).unwrap();
+    }
+}
+
+#[test]
+fn scalar_float_sources_preserve_one_exact_native_literal_word() {
+    for body in [
+        "s_sub_f32 s5, 0x3e000000, 0x3dcccccd",
+        "s_mul_f32 s5, s5, 0x100000000",
+        "s_min_num_f32 s5, 0x3e000000, 0x3dcccccd",
+    ] {
+        assert!(frontend::parse(&tiny_native(body)).is_err(), "{body}");
+    }
+    for body in [
+        "s_sub_f32 s5, s6, 0x3e000000",
+        "s_mul_f32 s5, 0x3e000000, s6",
+        "s_min_num_f32 s5, 0x3e000000, 0x3e000000",
+    ] {
+        frontend::parse(&tiny_native(body)).unwrap();
+    }
+}

@@ -355,7 +355,7 @@ fn operand(text: &str, architecture: crate::target::Architecture) -> Result<Oper
 
 /// Explicit allowlist, not prefix dispatch. Recognition is not an execution claim:
 /// the evaluator must still reject recognized instructions it cannot model.
-fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
+pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
     use Opcode::*;
     let sdwa = mnemonic.ends_with("_sdwa");
     let (stem, encoding) = mnemonic.strip_suffix("_e32").map_or_else(
@@ -763,6 +763,9 @@ pub(super) fn parse_instruction(
     }
     let fail = |message| ParseError { message, span };
     let (mnemonic, rest) = text.split_once(char::is_whitespace).unwrap_or((text, ""));
+    if architecture == crate::target::Architecture::Gfx1250 {
+        super::gfx1250::validate_encoding(mnemonic).map_err(&fail)?;
+    }
     let (opcode, mut minimum, mut maximum) = signature(mnemonic)
         .or_else(|| {
             super::gfx1250::signature(mnemonic)
@@ -1108,7 +1111,7 @@ pub(super) fn normalize_f64_sources(instruction: &mut Instruction) -> Result<(),
     Ok(())
 }
 
-fn validate_registers(
+pub(super) fn validate_registers(
     mnemonic: &str,
     opcode: Opcode,
     operands: &[Operand],
@@ -1216,6 +1219,14 @@ fn validate_registers(
             }
         }
         Opcode::ScalarMemory => {
+            if architecture == crate::target::Architecture::Gfx1250
+                && modifiers
+                    .iter()
+                    .any(|m| matches!(m.name.as_str(), "offset" | "scale_offset"))
+                && !matches!(operands.get(2),Some(Operand::Register(r)) if r.class==Scalar&&r.count==1)
+            {
+                return Err("gfx1250 optional/scaled SMEM offset requires a numbered SGPR source; immediate-only scaling is outside the supported profile".into());
+            }
             require(0, &[Scalar], memory_width(stem))?;
             require(
                 1,
@@ -1370,6 +1381,19 @@ fn validate_registers(
             }
         }
         Opcode::VectorAlu => {
+            if stem == "v_s_exp_f32" {
+                // LLVM VOP_Pseudo_Scalar_F32 uses SSrc_f32, not VSrc_f32:
+                // reading an arbitrary VGPR lane would change its semantics.
+                require(0, &[Scalar], 1)?;
+                source_width(1, 1)?;
+                if register_at(1).is_some_and(|r| !matches!(r.class, Scalar | Temporary | Special))
+                {
+                    return Err(
+                        "v_s_exp_f32 source must be scalar or an encodable immediate".into(),
+                    );
+                }
+                return Ok(());
+            }
             let comparison = stem.starts_with("v_cmp");
             let carry = stem.starts_with("v_add_co_")
                 || stem.starts_with("v_addc_co_")
@@ -1514,7 +1538,7 @@ fn validate_registers(
 /// has inline constants but no literal word. Bare aliases select VOP3 when
 /// their second source or modifiers require it. Other instruction families
 /// retain their separate encoding profiles rather than inheriting this rule.
-fn validate_vop_literal_positions(
+pub(super) fn validate_vop_literal_positions(
     mnemonic: &str,
     operands: &[Operand],
     modifiers: &[Modifier],
@@ -1527,6 +1551,9 @@ fn validate_vop_literal_positions(
         .or_else(|| mnemonic.strip_suffix("_e64"))
         .unwrap_or(mnemonic);
     if ![
+        "s_sub_f32",
+        "s_mul_f32",
+        "s_min_num_f32",
         "v_add_u32",
         "v_sub_u32",
         "v_subrev_u32",

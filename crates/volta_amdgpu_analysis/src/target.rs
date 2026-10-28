@@ -17,6 +17,38 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
         ),
         span: SourceSpan::default(),
     })?;
+    // Caller-built typed modules receive the same generation profile as text
+    // input. Changing their target/descriptor cannot bypass syntax dispatch.
+    if architecture != Architecture::Gfx1250 {
+        fn native_operand(operand: &crate::frontend::Operand) -> bool {
+            use crate::frontend::{Operand, RegisterClass};
+            match operand {
+                Operand::HardwareRegister { .. } | Operand::Dual(..) => true,
+                Operand::Register(r) => r.class == RegisterClass::Temporary,
+                Operand::Modified { value, .. } => native_operand(value),
+                _ => false,
+            }
+        }
+        for kernel in &module.kernels {
+            for instruction in &kernel.instructions {
+                if crate::frontend::gfx1250::signature(&instruction.mnemonic).is_some()
+                    || instruction.operands.iter().any(native_operand)
+                    || instruction
+                        .modifiers
+                        .iter()
+                        .any(|m| m.name == "scale_offset")
+                {
+                    return Err(ParseError {
+                        message: format!(
+                            "{} requires the gfx1250 instruction profile",
+                            instruction.mnemonic
+                        ),
+                        span: instruction.span,
+                    });
+                }
+            }
+        }
+    }
     for kernel in &module.kernels {
         let wave32 = architecture == Architecture::Gfx1250;
         if kernel.descriptor.flag("wavefront_size32") != wave32 {
@@ -44,6 +76,12 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
     if architecture == Architecture::Gfx1250 {
         for kernel in &module.kernels {
             for instruction in &kernel.instructions {
+                crate::frontend::gfx1250::validate_typed_profile(instruction).map_err(
+                    |message| ParseError {
+                        message,
+                        span: instruction.span,
+                    },
+                )?;
                 fn registers(
                     operand: &crate::frontend::Operand,
                     out: &mut Vec<crate::frontend::Register>,
