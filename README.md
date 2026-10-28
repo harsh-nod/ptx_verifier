@@ -1,7 +1,7 @@
 <h1 align="center">GPU Kernel Verifier</h1>
 
 <p align="center">
-  <img src="gpu-kernel-verifier.png" alt="GPU Kernel Verifier: NVIDIA PTX and AMD gfx950" width="560">
+  <img src="gpu-kernel-verifier.png" alt="GPU Kernel Verifier: NVIDIA PTX and AMD GCN ISA" width="560">
 </p>
 
 GPU Kernel Verifier checks NVIDIA PTX and native AMD gfx942/gfx950 assembly for data races and deadlocks, and checks a kernel for equivalence to a reference kernel or a math spec (floats are modeled as reals). This is an experimental fork of [Volta](https://github.com/willtunnels/volta). The CLI and Python package retain the `volta` name for compatibility.
