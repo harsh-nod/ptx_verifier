@@ -71,11 +71,10 @@ impl GraphBuilder {
     /// Record a scalar-issued wave event in the program order of the wave's first lane.
     pub fn amd_event(&mut self, wave: u32, pc: ProgramPoint, kind: crate::AmdEventKind) -> EventId {
         let index = self.graph.amd_events.len() as u32;
-        let event = self.push(
-            ExecContext::Thread(crate::amd_wave_thread(wave)),
-            EventKind::Amd(index),
-            Some(pc),
-        );
+        let thread = crate::AmdArchitecture::from_targets(&self.graph.provenance.targets)
+            .map(|architecture| crate::amd_wave_thread_for(architecture, wave))
+            .unwrap_or_else(|| crate::amd_wave_thread(wave));
+        let event = self.push(ExecContext::Thread(thread), EventKind::Amd(index), Some(pc));
         self.graph
             .amd_events
             .push(crate::AmdEvent { event, wave, kind });

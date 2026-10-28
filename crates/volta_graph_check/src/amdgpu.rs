@@ -732,6 +732,16 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
             memory_conflict: unknown("AMD target selection did not pass"),
         };
     };
+    // Geometry recognition is additive; the legacy CDNA counter/barrier rules
+    // must never accept a wave32 trace while its target contract is unavailable.
+    if architecture == AmdArchitecture::Gfx1250 {
+        return AmdReport {
+            trace: unknown("gfx1250 graph completion/barrier contract is not yet implemented"),
+            wait_readiness: unknown("gfx1250 target contract did not pass"),
+            barrier: unknown("gfx1250 target contract did not pass"),
+            memory_conflict: unknown("gfx1250 target contract did not pass"),
+        };
+    }
     let trace = trace_contract(graph, architecture);
     if trace.verdict() != Verdict::Pass {
         return AmdReport {
