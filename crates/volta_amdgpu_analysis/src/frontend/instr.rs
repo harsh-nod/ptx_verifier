@@ -253,7 +253,7 @@ fn register(
     }
     if end != index {
         let alignment = if class == RegisterClass::Scalar {
-            (end - index + 1).min(4)
+            if end - index + 1 >= 3 { 4 } else { 2 }
         } else {
             2
         };

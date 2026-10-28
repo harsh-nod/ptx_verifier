@@ -2800,6 +2800,11 @@ impl<'a> Interpreter<'a> {
             } else {
                 value != 0
             });
+            if self.architecture == AmdArchitecture::Gfx1250 && !name.contains("saveexec") {
+                let dest = wave.destination(dest)?;
+                wave.put(dest, 0, 0, Value::Integer(value as u32))?;
+                return wave.put(dest, 0, 1, Value::Integer((value >> 32) as u32));
+            }
             return wave.put_wide(dest, 0, value);
         }
         if matches!(
@@ -4542,7 +4547,10 @@ impl<'a> Interpreter<'a> {
                 },
                 counters: vec![(AmdCounter::Tensor, 1)],
                 destinations: vec![],
-                held_sources: reads,
+                held_sources: reads
+                    .into_iter()
+                    .filter(|r| r.file != AmdRegisterFile::Scalar || r.index != 126)
+                    .collect(),
             },
         );
         let lane = wave.exec.trailing_zeros() as u8;
