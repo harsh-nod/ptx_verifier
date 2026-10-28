@@ -87,9 +87,10 @@ pub(crate) struct RunArtifacts {
     pub op_counts: BTreeMap<&'static str, u64>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Wave {
     id: u32,
+    width: u32,
     pc: usize,
     valid: u64,
     exec: u64,
@@ -100,6 +101,7 @@ struct Wave {
     scc_defined: bool,
     m0: u32,
     scalar: Vec<Option<Value>>,
+    temporary: [Option<Value>; 16],
     vector: BTreeMap<(u16, u8), Value>,
     accumulator: BTreeMap<(u16, u8), Value>,
     at_barrier: Option<u32>,
@@ -107,7 +109,7 @@ struct Wave {
     exited: bool,
 }
 impl Wave {
-    fn new(id: u32, lanes: u32) -> Self {
+    fn new(id: u32, lanes: u32, width: u32) -> Self {
         let valid = if lanes == 64 {
             u64::MAX
         } else {
@@ -115,6 +117,7 @@ impl Wave {
         };
         Self {
             id,
+            width,
             pc: 0,
             valid,
             exec: valid,
@@ -125,6 +128,7 @@ impl Wave {
             scc_defined: false,
             m0: 0,
             scalar: vec![None; 128],
+            temporary: [None; 16],
             vector: BTreeMap::new(),
             accumulator: BTreeMap::new(),
             at_barrier: None,
@@ -142,10 +146,10 @@ impl Wave {
     }
     fn active(&self) -> impl Iterator<Item = u8> {
         let mask = self.exec;
-        (0..64).filter(move |lane| mask & (1u64 << lane) != 0)
+        (0..self.width as u8).filter(move |lane| mask & (1u64 << lane) != 0)
     }
     fn read_vcc(&self) -> Result<u64, EvalError> {
-        if self.vcc_defined != 3 {
+        if self.vcc_defined & ((1 << (self.width / 32)) - 1) != ((1 << (self.width / 32)) - 1) {
             return Err(self.fail(None, "uninitialized VCC flag (both halves must be defined)"));
         }
         if self.vcc_predicates.iter().any(Option::is_some) {
@@ -170,6 +174,7 @@ impl Wave {
         let index = reg.index + component;
         let value = match reg.class {
             RegisterClass::Scalar => self.scalar.get(index as usize).copied().flatten(),
+            RegisterClass::Temporary => self.temporary.get(index as usize).copied().flatten(),
             RegisterClass::Vector => self.vector.get(&(index, lane)).copied(),
             RegisterClass::Accumulator => self.accumulator.get(&(index, lane)).copied(),
             RegisterClass::Special => {
@@ -246,6 +251,9 @@ impl Wave {
     ) -> Result<(), EvalError> {
         let index = reg.index + component;
         match reg.class {
+            RegisterClass::Temporary => {
+                return Err(self.fail(Some(lane), "architected system inputs are read-only"));
+            }
             RegisterClass::Scalar => {
                 let error = self.fail(Some(lane), "scalar register index out of range");
                 *self.scalar.get_mut(index as usize).ok_or(error)? = Some(value);
@@ -390,6 +398,7 @@ pub(crate) struct Interpreter<'a> {
     stats: Stats,
     op_counts: BTreeMap<&'static str, u64>,
     lds_size: u64,
+    architecture: AmdArchitecture,
     byte_formats: BTreeMap<volta_expr::StringId, ByteFormat>,
     word_formats: BTreeMap<volta_expr::StringId, WordFormat>,
     predicate_masks: Vec<[ExprId; 64]>,
@@ -636,10 +645,12 @@ impl<'a> Interpreter<'a> {
                 )));
             }
         }
-        if program.descriptor.flag("wavefront_size32") {
-            return Err(EvalError::InvalidConfig(
-                "native AMD requires wave64".into(),
-            ));
+        if program.descriptor.flag("wavefront_size32") != (architecture.wave_size() == 32) {
+            return Err(EvalError::InvalidConfig(format!(
+                "{} requires wave{}",
+                architecture.name(),
+                architecture.wave_size()
+            )));
         }
         if program
             .descriptor
@@ -663,6 +674,7 @@ impl<'a> Interpreter<'a> {
             stats: Stats::default(),
             op_counts: BTreeMap::new(),
             lds_size,
+            architecture,
             byte_formats: BTreeMap::new(),
             word_formats: BTreeMap::new(),
             predicate_masks: Vec::new(),
@@ -673,8 +685,12 @@ impl<'a> Interpreter<'a> {
             .builder
             .set_shared_allocation_layout(result.config.shared_allocations.clone());
         result.initialize_memory()?;
-        for id in 0..threads.div_ceil(64) {
-            let mut wave = Wave::new(id, (threads - id * 64).min(64));
+        for id in 0..threads.div_ceil(architecture.wave_size()) {
+            let mut wave = Wave::new(
+                id,
+                (threads - id * architecture.wave_size()).min(architecture.wave_size()),
+                architecture.wave_size(),
+            );
             wave.m0 = lds_size as u32;
             result.initialize_wave(&mut wave)?;
             result.waves.push(wave);
@@ -966,6 +982,19 @@ impl<'a> Interpreter<'a> {
         Ok(Some((value, None)))
     }
     fn initialize_wave(&self, wave: &mut Wave) -> Result<(), EvalError> {
+        if self.architecture == AmdArchitecture::Gfx1250 {
+            // Single unclustered workgroup0, LLVM architected-SGPR ABI.
+            wave.temporary[6] = Some(Value::PartialBits {
+                bits: 0,
+                defined: 0x0fff_ffff,
+            });
+            wave.temporary[7] = Some(Value::Integer(0));
+            wave.temporary[9] = Some(Value::Integer(0));
+            wave.temporary[8] = Some(Value::PartialBits {
+                bits: wave.id << 25,
+                defined: 0x3e00_0000,
+            });
+        }
         let mut sgpr = 0usize;
         let descriptor = &self.program.descriptor;
         for (field, count, value) in [
@@ -1004,7 +1033,7 @@ impl<'a> Interpreter<'a> {
             "system_sgpr_workgroup_id_y",
             "system_sgpr_workgroup_id_z",
         ] {
-            if descriptor.flag(field) {
+            if descriptor.flag(field) && self.architecture != AmdArchitecture::Gfx1250 {
                 wave.scalar[sgpr] = Some(Value::Integer(0));
                 sgpr += 1;
             }
@@ -1015,11 +1044,11 @@ impl<'a> Interpreter<'a> {
             ));
         }
         let dimensions = descriptor.value("system_vgpr_workitem_id", 0);
-        for lane in 0..64 {
+        for lane in 0..wave.width as u8 {
             if wave.valid & (1u64 << lane) == 0 {
                 continue;
             }
-            let linear = wave.id * 64 + lane as u32;
+            let linear = wave.id * wave.width + lane as u32;
             let x = linear % self.config.block_dim.0;
             let y = (linear / self.config.block_dim.0) % self.config.block_dim.1;
             let z = linear / (self.config.block_dim.0 * self.config.block_dim.1);
@@ -1046,9 +1075,10 @@ impl<'a> Interpreter<'a> {
                     AbortCause::Error
                 };
                 let (thread, pc) = match &error {
-                    EvalError::Invalid { wave, pc, .. } => {
-                        (Some(ThreadIx(wave * 64)), Some(ProgramPoint(*pc as u32)))
-                    }
+                    EvalError::Invalid { wave, pc, .. } => (
+                        Some(ThreadIx(wave * self.architecture.wave_size())),
+                        Some(ProgramPoint(*pc as u32)),
+                    ),
                     EvalError::Unsupported { pc, .. } => (None, Some(ProgramPoint(*pc as u32))),
                     _ => (None, None),
                 };
@@ -1120,8 +1150,10 @@ impl<'a> Interpreter<'a> {
                         limit: self.config.max_instructions,
                     });
                 }
-                let mut wave =
-                    std::mem::replace(&mut self.waves[index], Wave::new(index as u32, 1));
+                let mut wave = std::mem::replace(
+                    &mut self.waves[index],
+                    Wave::new(index as u32, 1, self.architecture.wave_size()),
+                );
                 let step = self.step(&mut wave);
                 self.waves[index] = wave;
                 step?;
@@ -1186,6 +1218,9 @@ impl<'a> Interpreter<'a> {
                         RegisterClass::Scalar => {
                             (AmdRegisterFile::Scalar, register.index, register.count)
                         }
+                        RegisterClass::Temporary => {
+                            (AmdRegisterFile::Temporary, register.index, register.count)
+                        }
                         RegisterClass::Vector => {
                             (AmdRegisterFile::Vector, register.index, register.count)
                         }
@@ -1202,14 +1237,19 @@ impl<'a> Interpreter<'a> {
                             _ => return,
                         },
                     };
-                    if mask == 0 && file != AmdRegisterFile::Scalar {
+                    if mask == 0
+                        && !matches!(file, AmdRegisterFile::Scalar | AmdRegisterFile::Temporary)
+                    {
                         return;
                     }
                     for component in 0..count {
                         result.push(AmdRegister {
                             file,
                             index: base + component,
-                            lanes: if file == AmdRegisterFile::Scalar {
+                            lanes: if matches!(
+                                file,
+                                AmdRegisterFile::Scalar | AmdRegisterFile::Temporary
+                            ) {
                                 u64::MAX
                             } else {
                                 mask
@@ -1221,18 +1261,29 @@ impl<'a> Interpreter<'a> {
                 _ => {}
             }
         }
+        if let [Operand::Dual(x, y)] = instruction.operands.as_slice() {
+            let (mut reads, mut writes) = self.instruction_registers(x, wave);
+            let (r, w) = self.instruction_registers(y, wave);
+            reads.extend(r);
+            writes.extend(w);
+            return (reads, writes);
+        }
         let mut reads = Vec::new();
         let mut writes = Vec::new();
-        let mnemonic = instruction
-            .mnemonic
-            .trim_end_matches("_e32")
-            .trim_end_matches("_e64");
+        let mnemonic = canonical_alu(
+            instruction
+                .mnemonic
+                .trim_end_matches("_e32")
+                .trim_end_matches("_e64"),
+        );
         if mnemonic.starts_with("v_cmpx_") {
-            writes.extend([126, 127].map(|index| AmdRegister {
-                file: AmdRegisterFile::Scalar,
-                index,
-                lanes: u64::MAX,
-            }));
+            writes.extend(
+                (126..126 + (wave.width / 32) as u16).map(|index| AmdRegister {
+                    file: AmdRegisterFile::Scalar,
+                    index,
+                    lanes: u64::MAX,
+                }),
+            );
         }
         if wave.exec == 0
             && matches!(
@@ -1260,7 +1311,9 @@ impl<'a> Interpreter<'a> {
                 } else {
                     None
                 };
-            if let Some(operand) = mask_destination {
+            if let Some(operand) =
+                mask_destination.filter(|_| !(wave.width == 32 && mnemonic.starts_with("v_cmpx_")))
+            {
                 add(operand, u64::MAX, &mut writes);
             }
             return (reads, writes);
@@ -1310,9 +1363,9 @@ impl<'a> Interpreter<'a> {
         }
         if mnemonic == "v_readfirstlane_b32" || mnemonic == "v_readlane_b32" {
             let lane = if mnemonic == "v_readfirstlane_b32" {
-                wave.exec.trailing_zeros().min(63)
+                wave.exec.trailing_zeros().min(wave.width - 1)
             } else {
-                wave.bits(&instruction.operands[2], 0).unwrap_or(0) & 63
+                wave.bits(&instruction.operands[2], 0).unwrap_or(0) & (wave.width - 1)
             };
             add(&instruction.operands[0], u64::MAX, &mut writes);
             add(&instruction.operands[1], 1u64 << lane, &mut reads);
@@ -1322,7 +1375,7 @@ impl<'a> Interpreter<'a> {
             return (reads, writes);
         }
         if mnemonic == "v_writelane_b32" {
-            let lane = wave.bits(&instruction.operands[2], 0).unwrap_or(0) & 63;
+            let lane = wave.bits(&instruction.operands[2], 0).unwrap_or(0) & (wave.width - 1);
             add(&instruction.operands[0], 1u64 << lane, &mut writes);
             add(&instruction.operands[1], u64::MAX, &mut reads);
             add(&instruction.operands[2], u64::MAX, &mut reads);
@@ -1330,10 +1383,12 @@ impl<'a> Interpreter<'a> {
         }
         let store =
             instruction.mnemonic.contains("store") || instruction.mnemonic.starts_with("ds_write");
-        let no_destination = matches!(
-            instruction.opcode,
-            Opcode::Branch | Opcode::Wait | Opcode::Barrier | Opcode::Control
-        ) || instruction.mnemonic.starts_with("s_cmp")
+        let no_destination = (wave.width == 32 && mnemonic.starts_with("v_cmpx_"))
+            || matches!(
+                instruction.opcode,
+                Opcode::Branch | Opcode::Wait | Opcode::Barrier | Opcode::Control
+            )
+            || instruction.mnemonic.starts_with("s_cmp")
             || instruction.mnemonic.starts_with("s_bitcmp");
         for (index, operand) in instruction.operands.iter().enumerate() {
             if (index == 0
@@ -1365,16 +1420,28 @@ impl<'a> Interpreter<'a> {
         ) {
             add(&instruction.operands[0], wave.exec, &mut reads);
         }
+        if self.architecture == AmdArchitecture::Gfx1250
+            && instruction.opcode == Opcode::VectorMemory
+            && wave.exec != 0
+        {
+            reads.push(AmdRegister {
+                file: AmdRegisterFile::Scalar,
+                index: 126,
+                lanes: u64::MAX,
+            });
+        }
         (reads, writes)
     }
     fn scalar_mask_reads(&self, instruction: &Instruction, wave: &Wave) -> Vec<AmdRegister> {
         if wave.exec == 0 || instruction.opcode != Opcode::VectorAlu {
             return Vec::new();
         }
-        let name = instruction
-            .mnemonic
-            .trim_end_matches("_e32")
-            .trim_end_matches("_e64");
+        let name = canonical_alu(
+            instruction
+                .mnemonic
+                .trim_end_matches("_e32")
+                .trim_end_matches("_e64"),
+        );
         let role = if name == "v_cndmask_b32" {
             Some(3)
         } else if matches!(name, "v_addc_co_u32" | "v_subb_co_u32" | "v_subbrev_co_u32") {
@@ -1429,11 +1496,13 @@ impl<'a> Interpreter<'a> {
         let instruction = instruction.clone();
         let (mut reads, writes) = self.instruction_registers(&instruction, wave);
         if instruction.opcode == Opcode::Matrix {
-            reads.extend([126, 127].map(|index| AmdRegister {
-                file: AmdRegisterFile::Scalar,
-                index,
-                lanes: u64::MAX,
-            }));
+            reads.extend(
+                (126..126 + (wave.width / 32) as u16).map(|index| AmdRegister {
+                    file: AmdRegisterFile::Scalar,
+                    index,
+                    lanes: u64::MAX,
+                }),
+            );
         }
         self.builder.amd_event(
             wave.id,
@@ -1450,11 +1519,13 @@ impl<'a> Interpreter<'a> {
             .op_counts
             .entry(super::interp_kind(instruction.opcode))
             .or_default() += 1;
-        let name = instruction
-            .mnemonic
-            .trim_end_matches("_e32")
-            .trim_end_matches("_e64")
-            .trim_end_matches("_sdwa");
+        let name = canonical_alu(
+            instruction
+                .mnemonic
+                .trim_end_matches("_e32")
+                .trim_end_matches("_e64")
+                .trim_end_matches("_sdwa"),
+        );
         // Mask flags used as ordinary vector data have additional software
         // dependency/alias requirements. Carry and cndmask selector roles are
         // separately supported; treating all such reads as scalar data would
@@ -1542,22 +1613,59 @@ impl<'a> Interpreter<'a> {
                 "s_endpgm" => {
                     // CDNA4 S_ENDPGM drains all memory counters before the wave
                     // terminates and ceases participating in workgroup barriers.
-                    self.builder.amd_event(
-                        wave.id,
-                        ProgramPoint(wave.pc as u32),
-                        AmdEventKind::Wait {
-                            vmcnt: Some(0),
-                            lgkmcnt: Some(0),
-                            expcnt: Some(0),
-                        },
-                    );
-                    for lane in 0..64 {
+                    if self.architecture != AmdArchitecture::Gfx1250 {
+                        self.builder.amd_event(
+                            wave.id,
+                            ProgramPoint(wave.pc as u32),
+                            AmdEventKind::Wait {
+                                vmcnt: Some(0),
+                                lgkmcnt: Some(0),
+                                expcnt: Some(0),
+                            },
+                        );
+                    }
+                    for lane in 0..wave.width {
                         if wave.valid & (1u64 << lane) != 0 {
-                            self.builder
-                                .exit(ThreadIx(wave.id * 64 + lane), ProgramPoint(wave.pc as u32));
+                            self.builder.exit(
+                                ThreadIx(wave.id * wave.width + lane),
+                                ProgramPoint(wave.pc as u32),
+                            );
                         }
                     }
                     wave.exited = true;
+                }
+                "s_clause" => {
+                    // An encoding clause marker; per-operation X replay sources remain recorded.
+                    if self.architecture != AmdArchitecture::Gfx1250
+                        || !matches!(instruction.operands.as_slice(), [Operand::Integer(0..=63)])
+                    {
+                        return Err(self.unsupported(wave, &instruction));
+                    }
+                }
+                "s_delay_alu" => {
+                    let Some(Operand::Integer(encoded)) = instruction.operands.first() else {
+                        return Err(self.unsupported(wave, &instruction));
+                    };
+                    let instid0 = AmdAluDependency::from_encoding((encoded & 15) as u8)
+                        .ok_or_else(|| self.unsupported(wave, &instruction))?;
+                    let raw1 = ((encoded >> 7) & 15) as u8;
+                    let instid1 = if raw1 == 0 {
+                        None
+                    } else {
+                        Some(
+                            AmdAluDependency::from_encoding(raw1)
+                                .ok_or_else(|| self.unsupported(wave, &instruction))?,
+                        )
+                    };
+                    self.builder.amd_event(
+                        wave.id,
+                        ProgramPoint(wave.pc as u32),
+                        AmdEventKind::DelayAlu {
+                            instid0,
+                            instskip: ((encoded >> 4) & 7) as u8,
+                            instid1,
+                        },
+                    );
                 }
                 "s_nop" => {
                     let Some(Operand::Integer(count)) = instruction.operands.first() else {
@@ -1577,7 +1685,30 @@ impl<'a> Interpreter<'a> {
                 _ => return Err(self.unsupported(wave, &instruction)),
             },
             Opcode::ScalarAlu => self.scalar(wave, &instruction, name)?,
-            Opcode::VectorAlu => self.vector(wave, &instruction, name)?,
+            Opcode::VectorAlu => {
+                if let [Operand::Dual(x, y)] = instruction.operands.as_slice() {
+                    let original = wave.clone();
+                    let mut wx = original.clone();
+                    let mut wy = original;
+                    self.vector(&mut wx, x, canonical_alu(&x.mnemonic))?;
+                    self.vector(&mut wy, y, canonical_alu(&y.mnemonic))?;
+                    for (op, computed) in [(&**x, &wx), (&**y, &wy)] {
+                        let register = wave.destination(&op.operands[0])?;
+                        for lane in wave.active().collect::<Vec<_>>() {
+                            for component in 0..register.count {
+                                wave.put(
+                                    register,
+                                    lane,
+                                    component,
+                                    computed.reg(register, lane, component)?,
+                                )?;
+                            }
+                        }
+                    }
+                } else {
+                    self.vector(wave, &instruction, name)?;
+                }
+            }
             Opcode::Matrix => self.matrix(wave, &instruction)?,
         }
         if wave.exec & !wave.valid != 0 {
@@ -1738,12 +1869,16 @@ impl<'a> Interpreter<'a> {
             None => Register {
                 class: RegisterClass::Special,
                 index: 0,
-                count: 2,
+                count: (wave.width / 32) as u16,
                 special: Some(SpecialRegister::Vcc),
             },
         };
         wave.put(register, 0, 0, words[0])?;
-        wave.put(register, 0, 1, words[1])
+        if register.count > 1 {
+            wave.put(register, 0, 1, words[1])
+        } else {
+            Ok(())
+        }
     }
     fn predicate_condition(
         &mut self,
@@ -1756,7 +1891,7 @@ impl<'a> Interpreter<'a> {
             None => Register {
                 class: RegisterClass::Special,
                 index: 0,
-                count: 2,
+                count: (wave.width / 32) as u16,
                 special: Some(SpecialRegister::Vcc),
             },
         };
@@ -2311,6 +2446,14 @@ impl<'a> Interpreter<'a> {
         instruction: &Instruction,
         name: &str,
     ) -> Result<(), EvalError> {
+        if name == "s_getreg_b32" {
+            if self.architecture != AmdArchitecture::Gfx1250
+                || !matches!(&instruction.operands[1],Operand::HardwareRegister{name,offset:6,width:4} if name=="HW_REG_IB_STS2")
+            {
+                return Err(self.unsupported(wave, instruction));
+            }
+            return wave.put_value(&instruction.operands[0], 0, Value::Integer(0));
+        }
         if self.module_address_scalar(wave, instruction)? {
             return Ok(());
         }
@@ -2518,6 +2661,44 @@ impl<'a> Interpreter<'a> {
             });
             return wave.put_wide(dest, 0, value);
         }
+        if matches!(
+            name,
+            "s_and_saveexec_b32" | "s_andn2_saveexec_b32" | "s_or_saveexec_b32"
+        ) {
+            let source = wave.bits(&o[1], 0)? as u64;
+            let old = wave.exec;
+            wave.exec = match name {
+                "s_and_saveexec_b32" => old & source,
+                "s_andn2_saveexec_b32" => old & !source,
+                _ => old | source,
+            };
+            wave.set_scc(wave.exec != 0);
+            return wave.put_value(dest, 0, Value::Bits(old as u32));
+        }
+        if name == "s_and_b32" {
+            if let Value::PartialBits { bits, defined } = wave.value(&o[1], 0)? {
+                let mask = wave.bits(&o[2], 0)?;
+                if mask & !defined != 0 {
+                    return Err(wave.fail(None, "and observes undefined architected system bits"));
+                }
+                let result = bits & mask;
+                wave.set_scc(result != 0);
+                return wave.put_value(dest, 0, Value::Integer(result));
+            }
+        }
+        if name == "s_bfe_u32" {
+            let control = wave.bits(&o[2], 0)?;
+            let offset = control & 31;
+            let width = (control >> 16) & 127;
+            if let Value::PartialBits { .. } = wave.value(&o[1], 0)? {
+                let value = wave
+                    .value(&o[1], 0)?
+                    .selected_bits(offset, width)
+                    .map_err(|e| wave.fail(None, e))?;
+                wave.set_scc(value != 0);
+                return wave.put_value(dest, 0, Value::Integer(value));
+            }
+        }
         let a = wave.bits(&o[1], 0)?;
         let b = if o.len() > 2 { wave.bits(&o[2], 0)? } else { 0 };
         let (value, scc) = match name {
@@ -2547,6 +2728,8 @@ impl<'a> Interpreter<'a> {
                 let (v, d) = v.overflowing_sub(wave.read_scc()? as u32);
                 (v, c || d)
             }
+            "s_add_nc_u32" => (a.wrapping_add(b), wave.scc),
+            "s_sub_nc_u32" => (a.wrapping_sub(b), wave.scc),
             "s_mul_i32" => (a.wrapping_mul(b), wave.scc),
             "s_mul_hi_u32" => (((a as u64 * b as u64) >> 32) as u32, wave.scc),
             "s_and_b32" => (a & b, a & b != 0),
@@ -2581,7 +2764,10 @@ impl<'a> Interpreter<'a> {
             }
             _ => return Err(self.unsupported(wave, instruction)),
         };
-        if !matches!(name, "s_mul_i32" | "s_mul_hi_u32") {
+        if !matches!(
+            name,
+            "s_mul_i32" | "s_mul_hi_u32" | "s_add_nc_u32" | "s_sub_nc_u32"
+        ) {
             wave.set_scc(scc);
         }
         wave.put_value(
@@ -3137,7 +3323,9 @@ impl<'a> Interpreter<'a> {
             if !matches!(kind, "f32" | "i32" | "u32") {
                 return Err(self.unsupported(wave, instruction));
             }
-            let start = if matches!(o.first(),Some(Operand::Register(reg)) if reg.class==RegisterClass::Special || reg.class==RegisterClass::Scalar)
+            let start = if cmpx && wave.width == 32 {
+                0
+            } else if matches!(o.first(),Some(Operand::Register(reg)) if reg.class==RegisterClass::Special || reg.class==RegisterClass::Scalar)
             {
                 1
             } else {
@@ -3193,6 +3381,9 @@ impl<'a> Interpreter<'a> {
                 })?;
                 wave.exec &= mask;
             }
+            if cmpx && wave.width == 32 {
+                return Ok(());
+            }
             self.write_predicates(
                 wave,
                 if start == 1 { Some(&o[0]) } else { None },
@@ -3202,7 +3393,7 @@ impl<'a> Interpreter<'a> {
         }
         if name == "v_readfirstlane_b32" {
             let lane = wave.exec.trailing_zeros();
-            if lane >= 64 {
+            if lane >= wave.width {
                 return Err(wave.fail(None, "readfirstlane with empty EXEC"));
             }
             let value = wave.value(&o[1], lane as u8)?;
@@ -3210,7 +3401,7 @@ impl<'a> Interpreter<'a> {
         }
         if name == "v_readlane_b32" {
             let lane = wave.bits(&o[2], 0)?;
-            if lane >= 64 {
+            if lane >= wave.width {
                 return Err(wave.fail(None, "readlane index out of range"));
             }
             let value = wave.value(&o[1], lane as u8)?;
@@ -3218,7 +3409,7 @@ impl<'a> Interpreter<'a> {
         }
         if name == "v_writelane_b32" {
             let lane = wave.bits(&o[2], 0)?;
-            if lane >= 64 {
+            if lane >= wave.width {
                 return Err(wave.fail(None, "writelane index out of range"));
             }
             let value = wave.value(&o[1], 0)?;
@@ -3785,6 +3976,7 @@ impl<'a> Interpreter<'a> {
                         "v_max_u32" => a.max(b),
                         "v_min_i32" => (a as i32).min(b as i32) as u32,
                         "v_max_i32" => (a as i32).max(b as i32) as u32,
+                        "v_mad_u32" => a.wrapping_mul(b).wrapping_add(wave.bits(&o[3], lane)?),
                         "v_mad_u32_u24" => (a & 0xffffff)
                             .wrapping_mul(b & 0xffffff)
                             .wrapping_add(wave.bits(&o[3], lane)?),
@@ -3875,6 +4067,30 @@ impl<'a> Interpreter<'a> {
         }
     }
     fn wait(&mut self, wave: &Wave, instruction: &Instruction) -> Result<(), EvalError> {
+        if self.architecture == AmdArchitecture::Gfx1250 {
+            let counter = match instruction.mnemonic.as_str() {
+                "s_wait_loadcnt" => AmdCounter::Load,
+                "s_wait_storecnt" => AmdCounter::Store,
+                "s_wait_dscnt" => AmdCounter::Ds,
+                "s_wait_kmcnt" => AmdCounter::Km,
+                "s_wait_xcnt" => AmdCounter::X,
+                "s_wait_asynccnt" => AmdCounter::Async,
+                "s_wait_tensorcnt" => AmdCounter::Tensor,
+                _ => return Err(self.unsupported(wave, instruction)),
+            };
+            let [Operand::Integer(value)] = instruction.operands.as_slice() else {
+                return Err(self.unsupported(wave, instruction));
+            };
+            let value = u16::try_from(*value).map_err(|_| self.unsupported(wave, instruction))?;
+            self.builder.amd_event(
+                wave.id,
+                ProgramPoint(wave.pc as u32),
+                AmdEventKind::WaitCounters {
+                    thresholds: vec![(counter, value)],
+                },
+            );
+            return Ok(());
+        }
         let (mut vmcnt, mut lgkmcnt, mut expcnt) = (None, None, None);
         for operand in &instruction.operands {
             match operand {
@@ -3938,6 +4154,8 @@ impl<'a> Interpreter<'a> {
             || flat
             || name.starts_with("ds_read_")
             || name.starts_with("ds_write_")
+            || name.starts_with("ds_load_")
+            || name.starts_with("ds_store_")
             || dual)
         {
             return Err(self.unsupported(wave, instruction));
@@ -3956,7 +4174,7 @@ impl<'a> Interpreter<'a> {
                         .as_ref()
                         .and_then(|value| parse_i64(value))
                         .ok_or_else(|| self.unsupported(wave, instruction)),
-                    "glc" | "slc" | "dlc" | "sc0" | "sc1" => Ok(offset),
+                    "glc" | "slc" | "dlc" | "sc0" | "sc1" | "scale_offset" => Ok(offset),
                     "offset0" | "offset1" if dual => {
                         let index = if modifier.name == "offset0" { 0 } else { 1 };
                         dual_offsets[index] = modifier
@@ -3983,9 +4201,9 @@ impl<'a> Interpreter<'a> {
                 what: "memory offset is outside its native encoded range".into(),
             });
         }
-        let registers = if name.contains("dwordx16") {
+        let registers = if name.contains("dwordx16") || name.ends_with("b512") {
             16
-        } else if name.contains("dwordx8") {
+        } else if name.contains("dwordx8") || name.ends_with("b256") {
             8
         } else if name.contains("dwordx4") || name.ends_with("b128") {
             4
@@ -4028,7 +4246,20 @@ impl<'a> Interpreter<'a> {
                     .into(),
             });
         }
-        let class = if flat && store && registers >= 3 {
+        let class = if self.architecture == AmdArchitecture::Gfx1250 {
+            if flat {
+                return Err(self.unsupported(wave, instruction));
+            }
+            if scalar {
+                AmdMemoryClass::ScalarLoad
+            } else if lds {
+                AmdMemoryClass::Ds
+            } else if store {
+                AmdMemoryClass::VectorStore
+            } else {
+                AmdMemoryClass::VectorLoad
+            }
+        } else if flat && store && registers >= 3 {
             AmdMemoryClass::FlatStoreWide
         } else if !scalar && !lds && store && registers >= 3 {
             AmdMemoryClass::VectorStoreWide
@@ -4041,7 +4272,17 @@ impl<'a> Interpreter<'a> {
         } else {
             AmdMemoryClass::VectorMemory
         };
-        let counters = if flat {
+        let counters = if self.architecture == AmdArchitecture::Gfx1250 {
+            if scalar {
+                vec![(AmdCounter::Km, 1), (AmdCounter::X, 1)]
+            } else if lds {
+                vec![(AmdCounter::Ds, 1)]
+            } else if store {
+                vec![(AmdCounter::Store, 1), (AmdCounter::X, 1)]
+            } else {
+                vec![(AmdCounter::Load, 1), (AmdCounter::X, 1)]
+            }
+        } else if flat {
             vec![(AmdCounter::Vm, 1), (AmdCounter::Lgkm, 1)]
         } else if scalar {
             vec![(AmdCounter::Lgkm, if registers > 1 { 2 } else { 1 })]
@@ -4051,7 +4292,9 @@ impl<'a> Interpreter<'a> {
             vec![(AmdCounter::Vm, 1)]
         };
         let (reads, writes) = self.instruction_registers(instruction, wave);
-        let held_sources = if store && !lds && registers >= 3 {
+        let held_sources = if self.architecture == AmdArchitecture::Gfx1250 && !lds {
+            reads.clone()
+        } else if store && !lds && registers >= 3 {
             let data_register = wave.destination(&o[1])?;
             reads
                 .iter()
@@ -4115,6 +4358,17 @@ impl<'a> Interpreter<'a> {
             } else if store {
                 (
                     wave.wide(&o[0], lane)?
+                        .wrapping_mul(
+                            if instruction
+                                .modifiers
+                                .iter()
+                                .any(|m| m.name == "scale_offset")
+                            {
+                                width * registers as u64
+                            } else {
+                                1
+                            },
+                        )
                         .wrapping_add(if o.len() > 2 {
                             wave.wide(&o[2], lane)?
                         } else {
@@ -4126,6 +4380,17 @@ impl<'a> Interpreter<'a> {
             } else {
                 (
                     wave.wide(&o[1], lane)?
+                        .wrapping_mul(
+                            if instruction
+                                .modifiers
+                                .iter()
+                                .any(|m| m.name == "scale_offset")
+                            {
+                                width * registers as u64
+                            } else {
+                                1
+                            },
+                        )
                         .wrapping_add(if o.len() > 2 {
                             wave.wide(&o[2], lane)?
                         } else {
@@ -4356,7 +4621,7 @@ impl<'a> Interpreter<'a> {
                         None
                     };
                     let effect = self.builder.thread_access(
-                        ThreadIx(wave.id * 64 + lane as u32),
+                        ThreadIx(wave.id * wave.width + lane as u32),
                         ProgramPoint(wave.pc as u32),
                         MemAccess {
                             space: if effective_lds {
@@ -4376,7 +4641,7 @@ impl<'a> Interpreter<'a> {
                                 width: width as u32,
                             },
                             role: OperandRole::Plain,
-                            attributed: ThreadIx(wave.id * 64 + lane as u32),
+                            attributed: ThreadIx(wave.id * wave.width + lane as u32),
                             value: stored,
                         },
                     );
@@ -4485,7 +4750,14 @@ impl<'a> Interpreter<'a> {
             ProgramPoint(wave.pc as u32),
             AmdEventKind::MemoryIssue {
                 class: AmdMemoryClass::CrossLane,
-                counters: vec![(AmdCounter::Lgkm, 1)],
+                counters: vec![(
+                    if self.architecture == AmdArchitecture::Gfx1250 {
+                        AmdCounter::Ds
+                    } else {
+                        AmdCounter::Lgkm
+                    },
+                    1,
+                )],
                 destinations: writes,
                 held_sources: Vec::new(),
             },
@@ -4495,7 +4767,7 @@ impl<'a> Interpreter<'a> {
         let lanes: Vec<_> = wave.active().collect();
         for &lane in &lanes {
             data[lane as usize] = wave.value(&o[2], lane)?;
-            addresses[lane as usize] = ((wave.bits(&o[1], lane)? >> 2) & 63) as usize;
+            addresses[lane as usize] = ((wave.bits(&o[1], lane)? >> 2) & (wave.width - 1)) as usize;
         }
         if instruction.mnemonic == "ds_bpermute_b32" {
             for lane in lanes {
@@ -4609,5 +4881,15 @@ fn selectors(
                 .collect();
             values.filter(|values| values.len() == count)
         }
+    }
+}
+
+fn canonical_alu(name: &str) -> &str {
+    match name {
+        "s_add_co_i32" => "s_add_i32",
+        "v_add_nc_u32" => "v_add_u32",
+        "v_sub_nc_u32" => "v_sub_u32",
+        "v_add_co_ci_u32" => "v_addc_co_u32",
+        _ => name,
     }
 }

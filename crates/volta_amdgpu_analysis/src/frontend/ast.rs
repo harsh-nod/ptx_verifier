@@ -16,6 +16,8 @@ pub enum RegisterClass {
     Scalar,
     Vector,
     Accumulator,
+    /// Architected system-register inputs on gfx1250; not ordinary SGPRs.
+    Temporary,
     Special,
 }
 
@@ -67,6 +69,13 @@ pub enum Operand {
     },
     /// Only present after lowering.
     BranchTarget(usize),
+    HardwareRegister {
+        name: String,
+        offset: u8,
+        width: u8,
+    },
+    /// Two vector operations issued together; both read the pre-issue state.
+    Dual(Box<Instruction>, Box<Instruction>),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -5,6 +5,7 @@
 //! metadata 1.0–1.2. Unknown semantic directives and opcodes are errors.
 
 pub mod ast;
+mod gfx1250;
 mod instr;
 mod metadata;
 mod parse;

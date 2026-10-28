@@ -165,7 +165,10 @@ fn whitespace_tokens(text: &str) -> Result<Vec<&str>, String> {
     Ok(result)
 }
 
-fn register(text: &str) -> Result<Option<Register>, String> {
+fn register(
+    text: &str,
+    architecture: crate::target::Architecture,
+) -> Result<Option<Register>, String> {
     let special = match text {
         "exec" => Some((SpecialRegister::Exec, 2)),
         "exec_lo" => Some((SpecialRegister::ExecLo, 1)),
@@ -190,14 +193,35 @@ fn register(text: &str) -> Result<Option<Register>, String> {
             special: Some(special),
         }));
     }
-    let (class, suffix, limit) = if let Some(suffix) = text.strip_prefix("acc") {
+    let (class, suffix, limit) = if let Some(suffix) = text.strip_prefix("ttmp") {
+        if architecture != crate::target::Architecture::Gfx1250 {
+            return Err("architected temporary registers require gfx1250".into());
+        }
+        (RegisterClass::Temporary, suffix, 15)
+    } else if let Some(suffix) = text.strip_prefix("acc") {
         (RegisterClass::Accumulator, suffix, 255)
     } else if let Some(suffix) = text.strip_prefix('a') {
         (RegisterClass::Accumulator, suffix, 255)
     } else if let Some(suffix) = text.strip_prefix('v') {
-        (RegisterClass::Vector, suffix, 255)
+        (
+            RegisterClass::Vector,
+            suffix,
+            if architecture == crate::target::Architecture::Gfx1250 {
+                1023
+            } else {
+                255
+            },
+        )
     } else if let Some(suffix) = text.strip_prefix('s') {
-        (RegisterClass::Scalar, suffix, 101)
+        (
+            RegisterClass::Scalar,
+            suffix,
+            if architecture == crate::target::Architecture::Gfx1250 {
+                105
+            } else {
+                101
+            },
+        )
     } else {
         return Ok(None);
     };
@@ -245,11 +269,11 @@ fn register(text: &str) -> Result<Option<Register>, String> {
     }))
 }
 
-fn operand(text: &str) -> Result<Operand, String> {
+fn operand(text: &str, architecture: crate::target::Architecture) -> Result<Operand, String> {
     if let Some(value) = integer(text) {
         return Ok(Operand::Integer(value));
     }
-    if let Some(register) = register(text)? {
+    if let Some(register) = register(text, architecture)? {
         return Ok(Operand::Register(register));
     }
     if let Some((symbol, suffix)) = text.split_once("@rel32@") {
@@ -297,7 +321,7 @@ fn operand(text: &str) -> Result<Operand, String> {
         if inner == text || inner.is_empty() {
             return Err(format!("malformed operand `{text}`"));
         }
-        let value = operand(inner)?;
+        let value = operand(inner, architecture)?;
         if !matches!(
             value,
             Operand::Register(_) | Operand::Float(_) | Operand::Integer(_)
@@ -650,7 +674,8 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
         "gds" => opcode == Opcode::Lds,
         "clamp" | "mul" | "div" | "op_sel" | "op_sel_hi" | "neg_lo" | "neg_hi" => alu,
         "cbsz" | "abid" | "blgp" => opcode == Opcode::Matrix,
-        "bitop3" => mnemonic == "v_bitop3_b32",
+        "bitop3" => matches!(mnemonic, "v_bitop3_b32" | "v_bitop2_b32"),
+        "scale_offset" => opcode == Opcode::VectorMemory,
         "dst_sel" | "dst_unused" | "src0_sel" | "src1_sel" => mnemonic.ends_with("_sdwa"),
         _ => false,
     };
@@ -726,11 +751,28 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
     })
 }
 
-pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruction, ParseError> {
+pub(super) fn parse_instruction(
+    text: &str,
+    span: SourceSpan,
+    architecture: crate::target::Architecture,
+) -> Result<Instruction, ParseError> {
+    if architecture == crate::target::Architecture::Gfx1250 {
+        if let Some(result) = super::gfx1250::parse_special(text, span)? {
+            return Ok(result);
+        }
+    }
     let fail = |message| ParseError { message, span };
     let (mnemonic, rest) = text.split_once(char::is_whitespace).unwrap_or((text, ""));
-    let (opcode, minimum, maximum) = signature(mnemonic)
+    let (opcode, mut minimum, mut maximum) = signature(mnemonic)
+        .or_else(|| {
+            super::gfx1250::signature(mnemonic)
+                .filter(|_| architecture == crate::target::Architecture::Gfx1250)
+        })
         .ok_or_else(|| fail(format!("unsupported AMD instruction `{mnemonic}`")))?;
+    if architecture == crate::target::Architecture::Gfx1250 && mnemonic.starts_with("v_cmpx_") {
+        minimum = 2;
+        maximum = 2;
+    }
     let mut operands = Vec::new();
     let mut modifiers = Vec::new();
     for group in split_top_level(rest, ',').map_err(&fail)? {
@@ -743,7 +785,7 @@ pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruct
                 {
                     return Err(fail("unsupported source sign-extension form".into()));
                 }
-                let value = operand(inner).map_err(&fail)?;
+                let value = operand(inner, architecture).map_err(&fail)?;
                 if !matches!(&value, Operand::Register(register) if register.class == RegisterClass::Vector && register.count == 1)
                 {
                     return Err(fail("SDWA sign extension requires one VGPR".into()));
@@ -784,8 +826,19 @@ pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruct
                         .chars()
                         .all(|character| character.is_ascii_alphanumeric() || character == '_')
             }) || [
-                "offen", "idxen", "addr64", "lds", "glc", "slc", "dlc", "sc0", "sc1", "nt", "gds",
+                "offen",
+                "idxen",
+                "addr64",
+                "lds",
+                "glc",
+                "slc",
+                "dlc",
+                "sc0",
+                "sc1",
+                "nt",
+                "gds",
                 "clamp",
+                "scale_offset",
             ]
             .contains(&token)
             {
@@ -801,7 +854,7 @@ pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruct
                 if !modifiers.is_empty() {
                     return Err(fail("operand after instruction modifier".into()));
                 }
-                operands.push(operand(token).map_err(&fail)?);
+                operands.push(operand(token, architecture).map_err(&fail)?);
             }
         }
     }
@@ -831,7 +884,7 @@ pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruct
             "s_waitcnt requires counters or one 16-bit immediate".into(),
         ));
     }
-    validate_registers(mnemonic, opcode, &operands, &modifiers).map_err(&fail)?;
+    validate_registers(mnemonic, opcode, &operands, &modifiers, architecture).map_err(&fail)?;
     validate_vop_literal_positions(mnemonic, &operands, &modifiers).map_err(&fail)?;
     if mnemonic == "v_ashrrev_i64_e32" {
         return Err(fail("v_ashrrev_i64 has only a VOP3 encoding".into()));
@@ -908,6 +961,8 @@ pub(super) fn validate_control(instruction: &Instruction) -> Result<(), ParseErr
     }
     let maximum = match instruction.mnemonic.as_str() {
         "s_nop" => 15,
+        "s_clause" => 63,
+        "s_delay_alu" => 0x7ff,
         "s_sleep" => 127,
         "s_setprio" => 3,
         // CDNA4 SOPP S_TRAP uses SIMM16[7:0]. LLVM also accepts truncating
@@ -1042,6 +1097,7 @@ fn validate_registers(
     opcode: Opcode,
     operands: &[Operand],
     modifiers: &[Modifier],
+    architecture: crate::target::Architecture,
 ) -> Result<(), String> {
     use RegisterClass::*;
     let stem = mnemonic
@@ -1200,10 +1256,10 @@ fn validate_registers(
                 1
             };
             let pair = stem.starts_with("ds_read2") || stem.starts_with("ds_write2");
-            if stem.starts_with("ds_read") {
+            if stem.starts_with("ds_read") || stem.starts_with("ds_load") {
                 require(0, &[Vector], element_width * if pair { 2 } else { 1 })?;
                 require(1, &[Vector], 1)?;
-            } else if stem.starts_with("ds_write") {
+            } else if stem.starts_with("ds_write") || stem.starts_with("ds_store") {
                 require(0, &[Vector], 1)?;
                 require(1, &[Vector], element_width)?;
                 if pair {
@@ -1216,6 +1272,16 @@ fn validate_registers(
             }
         }
         Opcode::Matrix => {
+            if architecture == crate::target::Architecture::Gfx1250 && stem.starts_with("v_wmma_") {
+                require(0, &[Vector], 8)?;
+                let width = if stem.ends_with("_f32") { 2 } else { 8 };
+                require(1, &[Vector], width)?;
+                require(2, &[Vector], width)?;
+                if !matches!(operands.get(3), Some(Operand::Integer(0))) {
+                    require(3, &[Vector], 8)?;
+                }
+                return Ok(());
+            }
             if operands
                 .iter()
                 .any(|operand| matches!(operand, Operand::Modified { .. }))
@@ -1292,24 +1358,55 @@ fn validate_registers(
             let scalar_destination =
                 stem.starts_with("v_readlane_") || stem.starts_with("v_readfirstlane_");
             if comparison {
-                require(0, &[Scalar, Special], 2)?;
+                let implicit = architecture == crate::target::Architecture::Gfx1250
+                    && stem.starts_with("v_cmpx_");
+                if !implicit {
+                    require(
+                        0,
+                        &[Scalar, Special],
+                        if architecture.wave_size() == 32 { 1 } else { 2 },
+                    )?;
+                }
+                let start = usize::from(!implicit);
                 let width = if stem.ends_with("64") { 2 } else { 1 };
-                source_width(1, width)?;
-                source_width(2, width)?;
+                source_width(start, width)?;
+                source_width(start + 1, width)?;
             } else if carry {
                 require(0, &[Vector], 1)?;
-                require(1, &[Scalar, Special], 2)?;
+                require(
+                    1,
+                    &[Scalar, Special],
+                    if architecture.wave_size() == 32 { 1 } else { 2 },
+                )?;
                 source_width(2, 1)?;
                 source_width(3, 1)?;
                 if operands.len() == 5 {
-                    source_width(4, 2)?;
+                    source_width(
+                        4,
+                        if architecture.wave_size() == 32 && carry {
+                            1
+                        } else {
+                            2
+                        },
+                    )?;
                 }
             } else if stem == "v_mad_u64_u32" {
                 require(0, &[Vector], 2)?;
-                require(1, &[Scalar, Special], 2)?;
+                require(
+                    1,
+                    &[Scalar, Special],
+                    if architecture.wave_size() == 32 { 1 } else { 2 },
+                )?;
                 source_width(2, 1)?;
                 source_width(3, 1)?;
-                source_width(4, 2)?;
+                source_width(
+                    4,
+                    if architecture.wave_size() == 32 && carry {
+                        1
+                    } else {
+                        2
+                    },
+                )?;
             } else if ["v_cvt_pk_f32_fp8", "v_cvt_pk_f32_bf8"].contains(&stem) {
                 require(0, &[Vector], 2)?;
                 source_width(1, 1)?;
@@ -1324,7 +1421,11 @@ fn validate_registers(
                 source_width(1, 1)?;
                 source_width(2, 1)?;
                 if operands.len() == 4 {
-                    require(3, &[Scalar, Special], 2)?;
+                    require(
+                        3,
+                        &[Scalar, Special],
+                        if architecture.wave_size() == 32 { 1 } else { 2 },
+                    )?;
                 }
             } else if stem == "v_lshl_add_u64" {
                 require(0, &[Vector], 2)?;
@@ -1530,15 +1631,15 @@ fn validate_vop_literal_positions(
 }
 
 fn memory_width(mnemonic: &str) -> u16 {
-    if mnemonic.ends_with("dwordx16") {
+    if mnemonic.ends_with("dwordx16") || mnemonic.ends_with("b512") {
         16
-    } else if mnemonic.ends_with("dwordx8") {
+    } else if mnemonic.ends_with("dwordx8") || mnemonic.ends_with("b256") {
         8
-    } else if mnemonic.ends_with("dwordx4") {
+    } else if mnemonic.ends_with("dwordx4") || mnemonic.ends_with("b128") {
         4
-    } else if mnemonic.ends_with("dwordx3") {
+    } else if mnemonic.ends_with("dwordx3") || mnemonic.ends_with("b96") {
         3
-    } else if mnemonic.ends_with("dwordx2") {
+    } else if mnemonic.ends_with("dwordx2") || mnemonic.ends_with("b64") {
         2
     } else {
         1
