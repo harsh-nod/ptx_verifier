@@ -18,7 +18,6 @@ import csv
 import json
 import math
 import os
-import re
 import subprocess
 import sys
 import time
@@ -76,7 +75,7 @@ def check(launch: Path, root: Path, timeout: float, binary: Path | None = None) 
         outcome, detail = check_races.classify(report, done.stderr, expected_outputs)
     except check_races.VoltaFailure as failure:
         outcome, detail = Outcome.ERROR, str(failure)
-        if native and (match := re.search(r"\bunsupported gfx950 instruction `[^`]+`", done.stderr)):
+        if native and (match := check_races.NATIVE_PARSE_UNSUPPORTED.search(done.stderr)):
             outcome, detail = Outcome.UNSUPPORTED, match[0]
     if done.returncode != 0 and outcome in {Outcome.RACE_FREE, Outcome.REDUCED_RACE_FREE}:
         outcome, detail = Outcome.ERROR, f"successful graph report with nonzero exit status {done.returncode}"

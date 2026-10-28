@@ -14521,5 +14521,14 @@
       "v_mfma_scale_f32_16x16x128_f8f6f4",
       "v_mfma_scale_f32_32x32x64_f8f6f4"
     ]
-  }
+  },
+  "input_inventory_sha256": "57096564bf38b598e133f2214a5a811e45608bb4ec26b2ef42604c779734ffd6",
+  "generator": "tests/gfx942/probe_instruction_profiles.py",
+  "assembler_arguments": [
+    "--triple=amdgcn-amd-amdhsa",
+    "--mcpu={target}",
+    "-filetype=obj",
+    "-o",
+    "/dev/null"
+  ]
 }

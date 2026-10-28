@@ -28,7 +28,7 @@ impl fmt::Display for ParseError {
 
 impl Error for ParseError {}
 
-/// Parse native gfx950 assembly without executing it. Unsupported syntax remains
+/// Parse native gfx942/gfx950 assembly without executing it. Unsupported syntax remains
 /// an error even if it occurs on a path the configured launch would not take.
 pub fn parse(source: &str) -> Result<Module, ParseError> {
     parse_module(source)
@@ -829,7 +829,7 @@ fn validate_descriptor(kernel: &Kernel) -> Result<(), ParseError> {
             return Err(fail(format!("descriptor `{key}` must be zero or one")));
         }
         if key == "wavefront_size32" && *value != 0 {
-            return Err(fail("gfx950 backend requires wave64".into()));
+            return Err(fail("native AMD backend requires wave64".into()));
         }
         if key == "system_vgpr_workitem_id" && *value > 2 {
             return Err(fail("system_vgpr_workitem_id must be 0, 1 or 2".into()));
@@ -839,11 +839,17 @@ fn validate_descriptor(kernel: &Kernel) -> Result<(), ParseError> {
         {
             return Err(fail(format!("descriptor `{key}` must fit in two bits")));
         }
-        if key == "next_free_vgpr" && *value > 256 {
-            return Err(fail("next_free_vgpr exceeds gfx950 register range".into()));
+        // Operand namespaces stop at255, but this descriptor counts the
+        // unified VGPR+AGPR physical allocation on both CDNA3 and CDNA4.
+        if key == "next_free_vgpr" && *value > 512 {
+            return Err(fail(
+                "next_free_vgpr exceeds the unified native AMD allocation limit".into(),
+            ));
         }
         if key == "next_free_sgpr" && *value > 102 {
-            return Err(fail("next_free_sgpr exceeds gfx950 register range".into()));
+            return Err(fail(
+                "next_free_sgpr exceeds the native AMD register range".into(),
+            ));
         }
     }
     fn register(operand: &super::Operand) -> Option<super::Register> {

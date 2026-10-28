@@ -598,7 +598,7 @@ impl<'a> Interpreter<'a> {
                     "AGPR use requires explicit accum_offset descriptor".into(),
                 )
             })?;
-            if offset < 4 || offset % 4 != 0 || offset > 512 {
+            if offset < 4 || offset % 4 != 0 || offset > 256 {
                 return Err(EvalError::InvalidConfig(
                     "invalid accumulator register offset".into(),
                 ));
