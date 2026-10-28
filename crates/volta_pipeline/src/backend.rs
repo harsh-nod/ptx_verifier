@@ -10,7 +10,10 @@ use volta_ptx_analysis::{AnalysisConfig, Stats};
 pub enum Backend {
     #[default]
     Ptx,
+    /// Native AMD gfx950 (the original AMD backend selection).
     Amdgpu,
+    /// Native AMD gfx942; selection is checked against the source target.
+    AmdgpuGfx942,
 }
 
 impl Backend {
@@ -19,7 +22,8 @@ impl Backend {
             ("ptx", None) => Ok(Self::Ptx),
             ("ptx", Some(_)) => Err("--target is only supported with the amdgpu backend; PTX declares its target in source".into()),
             ("amdgpu", None | Some("gfx950")) => Ok(Self::Amdgpu),
-            ("amdgpu", Some(target)) => Err(format!("unsupported AMD target '{target}'; this backend requires gfx950")),
+            ("amdgpu", Some("gfx942")) => Ok(Self::AmdgpuGfx942),
+            ("amdgpu", Some(target)) => Err(format!("unsupported AMD target '{target}'; expected gfx942 or gfx950")),
             (name, _) => Err(format!("unknown backend '{name}'; expected ptx or amdgpu")),
         }
     }
@@ -27,8 +31,31 @@ impl Backend {
     pub fn name(self) -> &'static str {
         match self {
             Self::Ptx => "ptx",
-            Self::Amdgpu => "amdgpu",
+            Self::Amdgpu | Self::AmdgpuGfx942 => "amdgpu",
         }
+    }
+
+    pub fn target(self) -> Option<&'static str> {
+        match self {
+            Self::Ptx => None,
+            Self::Amdgpu => Some("gfx950"),
+            Self::AmdgpuGfx942 => Some("gfx942"),
+        }
+    }
+
+    /// Keep explicit API/CLI selection and source architecture consistent. A
+    /// missing source directive retains the original gfx950 default.
+    pub fn validate_amd_target(self, source_target: Option<&str>) -> Result<(), String> {
+        let selected = self
+            .target()
+            .ok_or("PTX selection cannot load AMD assembly")?;
+        let declared = source_target.unwrap_or("gfx950").split(':').next().unwrap();
+        if selected != declared {
+            return Err(format!(
+                "selected target {selected} conflicts with source target {declared}"
+            ));
+        }
+        Ok(())
     }
 }
 
@@ -100,7 +127,22 @@ mod tests {
         );
         assert_eq!(Backend::select("amdgpu", None), Ok(Backend::Amdgpu));
         assert!(Backend::select("ptx", Some("gfx950")).is_err());
-        assert!(Backend::select("amdgpu", Some("gfx942")).is_err());
+        assert_eq!(
+            Backend::select("amdgpu", Some("gfx942")),
+            Ok(Backend::AmdgpuGfx942)
+        );
+        assert!(Backend::select("amdgpu", Some("gfx940")).is_err());
+        assert!(
+            Backend::AmdgpuGfx942
+                .validate_amd_target(Some("gfx942:sramecc+:xnack-"))
+                .is_ok()
+        );
+        assert!(
+            Backend::AmdgpuGfx942
+                .validate_amd_target(Some("gfx950"))
+                .is_err()
+        );
+        assert!(Backend::Amdgpu.validate_amd_target(Some("gfx942")).is_err());
         assert!(Backend::select("other", None).is_err());
     }
 }

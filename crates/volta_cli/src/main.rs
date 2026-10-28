@@ -70,7 +70,7 @@ struct Cli {
     #[arg(long, default_value = "ptx", global = true)]
     backend: String,
 
-    /// AMDGPU target; the AMD backend currently supports gfx950.
+    /// AMDGPU architecture: gfx942 or gfx950 (default).
     #[arg(long, global = true)]
     target: Option<String>,
 
@@ -1305,12 +1305,21 @@ fn load_module(file: &Path, backend: Backend) -> Result<KernelModule, ExitCode> 
         eprintln!("error: failed to read {}: {error}", file.display());
         ExitCode::FAILURE
     })?;
-    volta_amdgpu_analysis::frontend::parse(&source)
+    let module = volta_amdgpu_analysis::frontend::parse(&source)
         .map(KernelModule::Amdgpu)
         .map_err(|error| {
             eprintln!("error: {}: {error}", file.display());
             ExitCode::FAILURE
-        })
+        })?;
+    if let KernelModule::Amdgpu(module) = &module {
+        backend
+            .validate_amd_target(module.target.as_deref())
+            .map_err(|error| {
+                eprintln!("error: {}: {error}", file.display());
+                ExitCode::FAILURE
+            })?;
+    }
+    Ok(module)
 }
 
 fn load_ptx_module(file: &Path) -> Result<Module, ExitCode> {
@@ -1374,10 +1383,14 @@ fn cmd_viz(args: &VizArgs) -> ExitCode {
 
 /// Parse a PTX file and report any errors
 fn cmd_parse(file: &Path, backend: Backend) -> ExitCode {
-    if backend == Backend::Amdgpu {
+    if backend != Backend::Ptx {
         return match load_module(file, backend) {
             Ok(KernelModule::Amdgpu(module)) => {
-                println!("Parsed successfully: {} (gfx950)", file.display());
+                println!(
+                    "Parsed successfully: {} ({})",
+                    file.display(),
+                    module.target.as_deref().unwrap_or("gfx950")
+                );
                 println!("  Entries (kernels): {}", module.kernels.len());
                 ExitCode::SUCCESS
             }

@@ -17,9 +17,14 @@ use crate::error::{VoltaError, graph_failure_to_py, parse_error_to_py};
 pub(crate) fn parse_module(source: &str, backend: Backend) -> PyResult<KernelModule> {
     match backend {
         Backend::Ptx => parse_ptx_module(source).map(KernelModule::Ptx),
-        Backend::Amdgpu => volta_amdgpu_analysis::frontend::parse(source)
-            .map(KernelModule::Amdgpu)
-            .map_err(|error| VoltaError::new_err(error.to_string())),
+        Backend::Amdgpu | Backend::AmdgpuGfx942 => {
+            let module = volta_amdgpu_analysis::frontend::parse(source)
+                .map_err(|error| VoltaError::new_err(error.to_string()))?;
+            backend
+                .validate_amd_target(module.target.as_deref())
+                .map_err(VoltaError::new_err)?;
+            Ok(KernelModule::Amdgpu(module))
+        }
     }
 }
 

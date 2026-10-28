@@ -122,6 +122,7 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
     for (buffer, span) in std::mem::take(&mut parser.metadata_blocks) {
         metadata::apply_metadata(&mut parser.module, &buffer, span)?;
     }
+    crate::target::validate(&parser.module)?;
     for kernel in &mut parser.module.kernels {
         for instruction in &mut kernel.instructions {
             if instruction.opcode == super::Opcode::Branch {
@@ -704,9 +705,9 @@ pub(super) fn set_target(
 ) -> Result<(), ParseError> {
     let base = target.strip_prefix("amdgcn-amd-amdhsa--").unwrap_or(target);
     let gpu = base.split(':').next().unwrap_or(base);
-    if gpu != "gfx950" {
+    if !["gfx942", "gfx950"].contains(&gpu) {
         return Err(ParseError {
-            message: format!("unsupported AMD target `{target}`; expected gfx950"),
+            message: format!("unsupported AMD target `{target}`; expected gfx942 or gfx950"),
             span,
         });
     }
