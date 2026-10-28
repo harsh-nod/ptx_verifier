@@ -582,3 +582,201 @@ fn malformed_thresholds_and_unknown_tensor_width_do_not_establish_acceptance() {
         assert_eq!(r.verdict(Property::AmdWaitReadiness), Verdict::Unknown);
     }
 }
+
+fn tuple(start: u16, count: usize) -> Vec<AmdRegister> {
+    (0..count)
+        .map(|i| v(start + i as u16, u32::MAX as u64))
+        .collect()
+}
+impl Trace {
+    fn wmma(&mut self, wave: u32, kind: AmdWmmaKind, dst: u16, ab: u16, acc: Option<u16>) {
+        let destinations = tuple(dst, kind.destination_registers());
+        let sources_ab = tuple(ab, 2 * kind.input_registers());
+        let accumulator = acc
+            .map(|a| tuple(a, kind.destination_registers()))
+            .unwrap_or_default();
+        let reads = sources_ab
+            .iter()
+            .chain(&accumulator)
+            .copied()
+            .chain([s(126)])
+            .collect();
+        self.ins(wave, 8, reads, destinations.clone());
+        self.b.amd_event(
+            wave,
+            ProgramPoint(8),
+            AmdEventKind::WmmaIssue {
+                kind,
+                destinations,
+                sources_ab,
+                accumulator,
+            },
+        );
+    }
+}
+#[test]
+fn wmma_coexecution_counts_intervening_valu_instructions_with_target_specific_windows() {
+    for (kind, window) in [
+        (AmdWmmaKind::F16_16x16x32, 4),
+        (AmdWmmaKind::Bf16_16x16x32, 4),
+        (AmdWmmaKind::Fp8Fp8_16x16x64, 1),
+        (AmdWmmaKind::Fp8Bf8_16x16x64, 1),
+        (AmdWmmaKind::Bf8Fp8_16x16x64, 1),
+        (AmdWmmaKind::Bf8Bf8_16x16x64, 1),
+    ] {
+        for independent in [window - 1, window] {
+            for (read, write) in [
+                (Some(64), None),
+                (None, Some(64)),
+                (None, Some(0)),
+                (None, Some(32)),
+            ] {
+                let mut t = Trace::new(32);
+                t.wmma(0, kind, 64, 0, Some(32));
+                for _ in 0..independent {
+                    t.ins(0, 0, vec![], vec![]);
+                }
+                t.ins(
+                    0,
+                    0,
+                    read.map(|r| vec![v(r, 1)]).unwrap_or_default(),
+                    write.map(|r| vec![v(r, 1)]).unwrap_or_default(),
+                );
+                let r = check_graph(&t.finish());
+                assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass, "{r:?}");
+                assert_eq!(
+                    r.verdict(Property::AmdWaitReadiness),
+                    if independent == window {
+                        Verdict::Pass
+                    } else {
+                        Verdict::Fail
+                    },
+                    "{kind:?} {independent} {read:?} {write:?}"
+                );
+            }
+        }
+    }
+}
+#[test]
+fn scalar_nop_data_wait_and_delay_alu_do_not_replace_wmma_valu_spacing() {
+    for pc in [11, 12, 4] {
+        let mut t = Trace::new(32);
+        t.wmma(0, AmdWmmaKind::F16_16x16x32, 64, 0, None);
+        for _ in 0..8 {
+            t.ins(0, pc, vec![], vec![]);
+            t.b.amd_event(
+                0,
+                ProgramPoint(pc),
+                match pc {
+                    11 => AmdEventKind::Delay { cycles: 16 },
+                    12 => AmdEventKind::DelayAlu {
+                        instid0: AmdAluDependency::Valu(4),
+                        instskip: 0,
+                        instid1: None,
+                    },
+                    _ => AmdEventKind::WaitCounters {
+                        thresholds: vec![(AmdCounter::Load, 0)],
+                    },
+                },
+            );
+        }
+        t.ins(0, 0, vec![v(64, 1)], vec![]);
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdWaitReadiness),
+            Verdict::Fail
+        );
+    }
+}
+#[test]
+fn wmma_ab_hazards_and_accumulator_forwarding_use_different_rules() {
+    for (kind, window) in [
+        (AmdWmmaKind::F32_16x16x4, 1),
+        (AmdWmmaKind::F16_16x16x32, 5),
+        (AmdWmmaKind::Fp8Fp8_16x16x64, 2),
+    ] {
+        for independent in [window - 1, window] {
+            let mut t = Trace::new(32);
+            t.wmma(0, kind, 64, 0, None);
+            for _ in 0..independent {
+                t.ins(0, 0, vec![], vec![]);
+            }
+            t.wmma(0, kind, 128, 64, None);
+            assert_eq!(
+                check_graph(&t.finish()).verdict(Property::AmdWaitReadiness),
+                if independent == window {
+                    Verdict::Pass
+                } else {
+                    Verdict::Fail
+                },
+                "{kind:?} {independent}"
+            );
+        }
+        let mut t = Trace::new(32);
+        t.wmma(0, kind, 64, 0, None);
+        t.wmma(0, kind, 96, 0, Some(64));
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdWaitReadiness),
+            Verdict::Pass,
+            "{kind:?}"
+        );
+    }
+}
+#[test]
+fn wmma_results_can_feed_vector_stores_without_importing_old_mfma_wait_states() {
+    for kind in [
+        AmdWmmaKind::F32_16x16x4,
+        AmdWmmaKind::F16_16x16x32,
+        AmdWmmaKind::Fp8Fp8_16x16x64,
+    ] {
+        let mut t = Trace::new(32);
+        t.wmma(0, kind, 64, 0, None);
+        t.issue(
+            0,
+            AmdMemoryClass::VectorStore,
+            vec![],
+            vec![v(64, u32::MAX as u64)],
+            4096,
+        );
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdWaitReadiness),
+            Verdict::Pass,
+            "{kind:?}"
+        );
+    }
+}
+#[test]
+fn malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown() {
+    for bad in 0..5 {
+        let mut t = Trace::new(if bad == 0 { 31 } else { 32 });
+        let kind = AmdWmmaKind::F16_16x16x32;
+        let mut destinations = tuple(64, 8);
+        let sources_ab = tuple(0, 16);
+        if bad == 1 {
+            destinations[1] = destinations[0];
+        }
+        if bad == 2 {
+            destinations[0].lanes = 1;
+        }
+        let reads = sources_ab
+            .iter()
+            .copied()
+            .chain(if bad == 3 { None } else { Some(s(126)) })
+            .collect();
+        t.ins(0, 8, reads, destinations.clone());
+        t.b.amd_event(
+            0,
+            ProgramPoint(8),
+            AmdEventKind::WmmaIssue {
+                kind,
+                destinations,
+                sources_ab,
+                accumulator: if bad == 4 { tuple(32, 4) } else { vec![] },
+            },
+        );
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdTrace),
+            Verdict::Unknown,
+            "bad {bad}"
+        );
+    }
+}

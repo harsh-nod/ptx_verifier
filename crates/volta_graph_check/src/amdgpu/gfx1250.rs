@@ -8,7 +8,7 @@
 //! completed effects. Neither trace order nor a signal fabricates a data wait.
 
 use super::*;
-use volta_graph::{AccessMode, Assumption, ThreadIx};
+use volta_graph::{AccessMode, AmdWmmaKind, Assumption, ThreadIx};
 
 const WAVE: usize = 32;
 
@@ -106,6 +106,17 @@ fn claim<'a>(
         return None;
     }
     claim_instruction(graph, record, instructions, kind, unresolved)
+}
+
+fn vector_tuple(registers: &[AmdRegister], count: usize) -> bool {
+    registers.len() == count
+        && registers.first().is_some_and(|first| {
+            registers.iter().enumerate().all(|(offset, register)| {
+                register.file == AmdRegisterFile::Vector
+                    && register.index as usize == first.index as usize + offset
+                    && register.lanes == u32::MAX as u64
+            })
+        })
 }
 
 fn contract(graph: &EventGraph) -> AmdTraceResult {
@@ -369,16 +380,19 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                 for regs in [destinations, sources_ab, accumulator] {
                     registers(regs, physical_mask, record.event, &mut unresolved);
                 }
+                let inputs = kind.input_registers();
                 if physical_mask != u32::MAX as u64
                     || instruction.is_none_or(|i| i.exec_mask != u32::MAX as u64)
-                    || destinations.len() != kind.destination_registers()
-                    || sources_ab.len() != 2 * kind.input_registers()
+                    || !vector_tuple(destinations, kind.destination_registers())
+                    || sources_ab.len() != 2 * inputs
+                    || !vector_tuple(&sources_ab[..sources_ab.len().min(inputs)], inputs)
+                    || !vector_tuple(&sources_ab[sources_ab.len().min(inputs)..], inputs)
                     || (!accumulator.is_empty()
-                        && accumulator.len() != kind.destination_registers())
+                        && !vector_tuple(accumulator, kind.destination_registers()))
                 {
                     unresolved.push(Unresolved::at(
                         record.event,
-                        "WMMA requires a full physical wave32 and exact operand tuple widths",
+                        "WMMA requires a full physical wave32 and exact contiguous operand tuples",
                     ));
                 }
                 if instruction.is_some_and(|i| {
@@ -387,11 +401,17 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                             .iter()
                             .chain(accumulator)
                             .all(|r| i.reads.contains(r))
+                        || !i
+                            .reads
+                            .iter()
+                            .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 126)
+                        || i.reads.iter().any(|r| {
+                            !sources_ab.contains(r)
+                                && !accumulator.contains(r)
+                                && !(r.file == AmdRegisterFile::Scalar && r.index == 126)
+                        })
                 }) {
-                    unresolved.push(Unresolved::at(
-                        record.event,
-                        "WMMA operand roles do not match instruction register signatures",
-                    ));
+                    unresolved.push(Unresolved::at(record.event, "WMMA operand roles or implicit EXEC do not match instruction register signatures"));
                 }
             }
             _ => unresolved.push(Unresolved::at(
@@ -679,6 +699,27 @@ fn wait(counter: AmdCounter, threshold: u16, pending: &[usize], operations: &mut
     }
 }
 
+#[derive(Clone)]
+struct WmmaOperation {
+    event: EventId,
+    ordinal: u64,
+    kind: AmdWmmaKind,
+    destinations: Vec<AmdRegister>,
+    sources: Vec<AmdRegister>,
+}
+impl WmmaOperation {
+    fn is_xdl(&self) -> bool {
+        self.kind != AmdWmmaKind::F32_16x16x4
+    }
+    fn valu_wait(&self) -> u64 {
+        match self.kind {
+            AmdWmmaKind::F16_16x16x32 | AmdWmmaKind::Bf16_16x16x32 => 4,
+            AmdWmmaKind::F32_16x16x4 => 0,
+            _ => 1,
+        }
+    }
+}
+
 pub(super) fn check(graph: &EventGraph) -> AmdReport {
     let trace = contract(graph);
     if trace.verdict() != Verdict::Pass {
@@ -707,6 +748,9 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     let mut next_generation = vec![0; waves];
     let mut groups = HashMap::new();
     let mut instruction_at = HashMap::new();
+    let mut wmma_at = HashMap::new();
+    let mut valu_ordinal = vec![0u64; waves];
+    let mut matrices = vec![Vec::<WmmaOperation>::new(); waves];
     for record in graph.amd_events() {
         match record.kind {
             AmdEventKind::Instruction { .. } => {
@@ -716,6 +760,13 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                 if let Some(group) = replay_group(class) {
                     groups.insert(instruction_at[&record.wave], group);
                 }
+            }
+            AmdEventKind::WmmaIssue {
+                ref sources_ab,
+                kind,
+                ..
+            } => {
+                wmma_at.insert(instruction_at[&record.wave], (kind, sources_ab));
             }
             _ => {}
         }
@@ -740,6 +791,75 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                     .pc
                     .map(|pc| graph.provenance().instructions[pc.0 as usize].kind)
                     .unwrap();
+                let is_valu = matches!(kind, "vector ALU" | "trans ALU" | "shifted ALU" | "WMMA");
+                let next_wmma = wmma_at.get(&record.event);
+                if is_valu {
+                    let ordinal = valu_ordinal[wave];
+                    matrices[wave].retain(|m| ordinal.saturating_sub(m.ordinal + 1) < 5);
+                    for operation in &matrices[wave] {
+                        let independent = ordinal.saturating_sub(operation.ordinal + 1);
+                        if let Some((next_kind, ab)) = next_wmma {
+                            // GFX12 SrcC forwarding is interlocked, including
+                            // overlapping tuples. A/B consumes need explicit
+                            // intervening VALU instructions. F32 is non-XDL.
+                            let required =
+                                if operation.is_xdl() && *next_kind != AmdWmmaKind::F32_16x16x4 {
+                                    operation.valu_wait() + 1
+                                } else {
+                                    1
+                                };
+                            if independent < required {
+                                for &register in ab.iter().filter(|r| {
+                                    operation.destinations.iter().any(|d| d.overlaps(**r))
+                                }) {
+                                    hazards.push(AmdRegisterHazard {
+                                        issue: operation.event,
+                                        use_event: record.event,
+                                        wave: record.wave,
+                                        register,
+                                        kind: AmdRegisterHazardKind::MatrixReadBeforeReady,
+                                    });
+                                }
+                            }
+                        } else if operation.is_xdl() && independent < operation.valu_wait() {
+                            for &register in reads
+                                .iter()
+                                .filter(|r| operation.destinations.iter().any(|d| d.overlaps(**r)))
+                            {
+                                hazards.push(AmdRegisterHazard {
+                                    issue: operation.event,
+                                    use_event: record.event,
+                                    wave: record.wave,
+                                    register,
+                                    kind: AmdRegisterHazardKind::MatrixReadBeforeReady,
+                                });
+                            }
+                            for &register in writes {
+                                let hazard = if operation
+                                    .destinations
+                                    .iter()
+                                    .any(|d| d.overlaps(register))
+                                {
+                                    Some(AmdRegisterHazardKind::MatrixDestinationReuse)
+                                } else if operation.sources.iter().any(|r| r.overlaps(register)) {
+                                    Some(AmdRegisterHazardKind::MatrixSourceReuse)
+                                } else {
+                                    None
+                                };
+                                if let Some(kind) = hazard {
+                                    hazards.push(AmdRegisterHazard {
+                                        issue: operation.event,
+                                        use_event: record.event,
+                                        wave: record.wave,
+                                        register,
+                                        kind,
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    valu_ordinal[wave] += 1;
+                }
                 if matches!(
                     kind,
                     "branch" | "s_endpgm" | "xcnt drain" | "barrier signal" | "barrier wait"
@@ -930,10 +1050,20 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                     next_generation[wave] += 1;
                 }
             }
-            AmdEventKind::WmmaIssue { .. } => unresolved.push(Unresolved::at(
-                record.event,
-                "gfx1250 WMMA coexecution hazard contract is not yet implemented",
-            )),
+            AmdEventKind::WmmaIssue {
+                kind,
+                destinations,
+                sources_ab,
+                accumulator,
+            } => {
+                matrices[wave].push(WmmaOperation {
+                    event: record.event,
+                    ordinal: valu_ordinal[wave] - 1,
+                    kind: *kind,
+                    destinations: destinations.clone(),
+                    sources: sources_ab.iter().chain(accumulator).copied().collect(),
+                });
+            }
             // Default scheduling interlocks ordinary ALU dependencies. LLVM's
             // AMDGPUInsertDelayAlu pass inserts S_DELAY_ALU to avoid stalls, not
             // to turn outstanding memory into completed data. Expert mode is
