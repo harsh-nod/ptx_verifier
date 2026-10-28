@@ -121,14 +121,21 @@ def validate_launch(launch: dict, info: dict) -> None:
 
 
 def main() -> None:
-    import pybind11
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("kernels", nargs="*", help="softmax, rotary, gemm_bf16, vector_copy (default: all)")
     parser.add_argument("--compiler", default=shutil.which("clang++", path="/opt/rocm/llvm/bin") or "clang++")
     parser.add_argument("--assembler", default="/opt/rocm/llvm/bin/llvm-mc")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--write-launches", action="store_true", help="explicitly regenerate existing launch files")
+    parser.add_argument("--target", choices=("gfx942", "gfx950", "gfx1250"), default="gfx950",
+                        help="native target; this pinned CDNA4 library recipe supports gfx950")
     options = parser.parse_args()
+    if options.target != "gfx950":
+        parser.error(f"UNSUPPORTED: pinned HipKittens {PINNED_REVISION} has no configured native {options.target} extraction profile. "
+                     "The CDNA4 macros and wave64 launch contracts must not be silently retargeted. "
+                     "For generic gfx1250 LLVM extraction use: python3 tests/gfx1250/compile_fixtures.py tests/gfx1250/fixtures. "
+                     "That corpus does not establish HipKittens or hardware support.")
+    import pybind11
     selected = options.kernels or list(SOURCES)
     if unknown := sorted(set(selected) - SOURCES.keys()):
         parser.error(f"unknown kernels: {', '.join(unknown)}")

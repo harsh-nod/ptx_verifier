@@ -702,6 +702,7 @@ dependencies = [
  "clap",
  "env_logger",
  "log",
+ "serde_json",
  "volta_amdgpu_analysis",
  "volta_common",
  "volta_equivalence",

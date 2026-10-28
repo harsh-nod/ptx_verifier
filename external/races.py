@@ -45,19 +45,33 @@ class Run:
     detail: str
 
 
-def check(launch: Path, root: Path, timeout: float, binary: Path | None = None) -> Run:
+def check(launch: Path, root: Path, timeout: float, binary: Path | None = None,
+          target: str | None = None) -> Run:
     name = str(launch.relative_to(root)).removesuffix(".launch.json")
-    native = root.name == "hipkittens"
+    native = root.name == "hipkittens" or target is not None
     source = launch.with_name(launch.name.removesuffix(".launch.json").rsplit(".", 1)[0] + (".s" if native else ".ptx"))
     try:
         config = json.loads(launch.read_text())
-        expected_outputs = sum(math.prod(a["shape"]) if "shape" in a else a["len"]
-                               for a in config.get("arrays", []) if a["kind"] in {"out", "inout"})
+        expected_by_array = {}
+        for array in config.get("arrays", []):
+            if array["kind"] not in {"out", "inout"}:
+                continue
+            dimensions = array["shape"] if "shape" in array else [array["len"]]
+            if not dimensions or any(type(d) is not int or d < 0 for d in dimensions):
+                raise ValueError("output dimensions must be nonnegative integers")
+            if array["name"] in expected_by_array:
+                raise ValueError(f"duplicate output array {array['name']!r}")
+            expected_by_array[array["name"]] = math.prod(dimensions)
+        expected_outputs = sum(expected_by_array.values())
+        if not source.is_file():
+            raise ValueError(f"missing kernel source: {source}")
+        if native and check_races.native_target_of(source.read_text()) != (target or "gfx950"):
+            raise ValueError(f"source target differs from requested {target or 'gfx950'}")
     except (OSError, ValueError, KeyError, TypeError) as error:
         return Run(name, Outcome.ERROR, 0, f"invalid launch file: {error}")
     command = [
         str(binary or check_races.VOLTA), "--no-log-file",
-        *(["--backend", "amdgpu", "--target", "gfx950"] if native else []),
+        *(["--backend", "amdgpu", "--target", target or "gfx950"] if native else []),
         "analyze", str(source), "--config", str(launch),
         "--print-outputs", "0", "--no-profile",
     ]
@@ -79,25 +93,29 @@ def check(launch: Path, root: Path, timeout: float, binary: Path | None = None) 
             outcome, detail = Outcome.UNSUPPORTED, match[0]
     if done.returncode != 0 and outcome in {Outcome.RACE_FREE, Outcome.REDUCED_RACE_FREE}:
         outcome, detail = Outcome.ERROR, f"successful graph report with nonzero exit status {done.returncode}"
+    if outcome in {Outcome.RACE_FREE, Outcome.REDUCED_RACE_FREE}:
+        if error := check_races.array_coverage_error(done.stdout, expected_by_array):
+            outcome, detail = Outcome.CHECK_FAILED, error
     return Run(name, outcome, time.perf_counter() - start, detail)
 
 
 def check_framework(framework: str, match: str, timeout: float, style: Style,
-                    binary: Path | None = None, strict: bool = False) -> bool:
+                    binary: Path | None = None, strict: bool = False,
+                    target: str | None = None, root_override: Path | None = None) -> bool:
     """Run every matching launch file of `framework` in order; whether any run failed."""
-    root = EXTERNAL_ROOT / framework
+    root = root_override or EXTERNAL_ROOT / framework
     launches = [p for p in sorted(root.rglob("*.launch.json")) if match in str(p.relative_to(root))]
     print(style.paint(f"== {framework}: {len(launches)} launches", BOLD), flush=True)
     width = max((len(str(p.relative_to(root))) for p in launches), default=0) - len(".launch.json")
     runs = []
     for launch in launches:
-        run = check(launch, root, timeout, binary)
+        run = check(launch, root, timeout, binary, target)
         runs.append(run)
         painted = style.paint(f"{run.outcome.value:<{OUTCOME_WIDTH}}", *OUTCOME_CODES[run.outcome])
         print(f"{run.name:<{width}}  {painted}  {run.seconds:6.1f}s  {run.detail}", flush=True)
 
     OUTPUT_DIR.mkdir(exist_ok=True)
-    csv_path = OUTPUT_DIR / f"{framework}.csv"
+    csv_path = OUTPUT_DIR / f"{framework}{'.' + target if target else ''}.csv"
     with csv_path.open("w", newline="") as out:
         writer = csv.writer(out)
         writer.writerow(["launch", "outcome", "seconds", "detail"])
@@ -111,22 +129,31 @@ def check_framework(framework: str, match: str, timeout: float, style: Style,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--framework", choices=FRAMEWORKS, help="check only this framework (default: all, in order)")
+    parser.add_argument("--framework", choices=(*FRAMEWORKS, "native"), help="check one framework; native requires an explicit --root and --target")
     parser.add_argument("-k", dest="match", default="", help="only launches whose name contains this")
     parser.add_argument("--timeout", type=float, default=60, help="seconds per run (default 60)")
     parser.add_argument("--binary", type=Path, help="use an existing CLI without rebuilding")
+    parser.add_argument("--target", choices=check_races.NATIVE_TARGETS, help="explicit native AMD target; existing HipKittens default remains gfx950")
+    parser.add_argument("--root", type=Path, help="prepared launch/source directory; requires --framework")
     parser.add_argument("--strict", action="store_true", help="also fail for unsupported/unknown results and empty selections")
     args = parser.parse_args()
 
     style = Style(sys.stdout.isatty() and not os.environ.get("NO_COLOR"))
-    if args.timeout <= 0:
+    if args.timeout <= 0 or not math.isfinite(args.timeout):
         parser.error("--timeout must be positive")
+    if args.root and not args.framework:
+        parser.error("--root requires --framework")
+    if args.target and not args.framework:
+        parser.error("--target requires --framework")
+    if args.framework == "native" and (not args.root or not args.target):
+        parser.error("--framework native requires --root and --target")
     if args.binary:
         args.binary = args.binary.resolve()
     else:
         check_races.build_volta()
     frameworks = (args.framework,) if args.framework else FRAMEWORKS
-    failed = [check_framework(f, args.match, args.timeout, style, args.binary, args.strict) for f in frameworks]
+    failed = [check_framework(f, args.match, args.timeout, style, args.binary, args.strict,
+                              args.target, args.root) for f in frameworks]
     return 1 if any(failed) else 0
 
 

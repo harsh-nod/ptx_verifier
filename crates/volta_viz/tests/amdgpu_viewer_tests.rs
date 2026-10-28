@@ -466,3 +466,80 @@ fn never_started_native_source_retains_syntax_family_without_fabricating_launch(
         assert!(!text.contains("\"wave_size\""));
     }
 }
+
+#[test]
+fn eventless_gfx1250_declares_wave32_and_conflicting_source_targets_remain_unresolved() {
+    for (name, source, declared) in [
+        (
+            "gfx1250_unsupported",
+            ".amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\ns_barrier_init 1\n",
+            true,
+        ),
+        (
+            "conflicting_targets",
+            ".amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+            false,
+        ),
+    ] {
+        let id = RunId {
+            suite: "native".into(),
+            test: name.into(),
+            ordinal: NonZeroU32::new(1).unwrap(),
+        };
+        let dir = std::env::temp_dir().join(format!(
+            "gfx1250-declared-viz-{}-{name}",
+            std::process::id()
+        ));
+        write_run(
+            &dir,
+            &Run {
+                id: &id,
+                ptx_file: Some("unsupported-native.s"),
+                source,
+                outcome: Outcome::NotStarted {
+                    cause: AbortCause::Unsupported,
+                    error: "unimplemented barrier object".into(),
+                },
+            },
+        )
+        .unwrap();
+        let text = std::fs::read_to_string(dir.join(format!("{}.json", id.key()))).unwrap();
+        assert!(text.contains("\"source_language\":\"amdgpu\""));
+        assert!(text.contains("\"status\":\"unsupported\""));
+        assert_eq!(text.contains("\"source_target\":\"gfx1250\""), declared);
+        assert_eq!(text.contains("\"source_wave_size\":32"), declared);
+        assert_eq!(text.contains("\"source_wave_kind\":\"wave\""), declared);
+        assert!(!text.contains("\"launch\""));
+        assert!(!text.contains("\"events\":["));
+    }
+}
+
+#[test]
+fn gfx1250_exec_masks_use_eight_hex_digits_and_native_check_labels() {
+    let mut p = provenance(32);
+    p.targets = vec!["gfx1250".into()];
+    p.assumptions.push(Assumption::UnclusteredWorkgroup);
+    p.instructions[3].kind = "s_endpgm";
+    let mut b = GraphBuilder::new(p);
+    for pc in [2, 3] {
+        b.amd_event(
+            0,
+            ProgramPoint(pc),
+            AmdEventKind::Instruction {
+                exec_mask: u32::MAX as u64,
+                reads: vec![],
+                writes: vec![],
+                scalar_mask_reads: vec![],
+            },
+        );
+    }
+    for thread in 0..32 {
+        b.exit(ThreadIx(thread), ProgramPoint(3));
+    }
+    let text = exported("gfx1250_mask_format", &b.finish(Terminal::Completed));
+    assert!(text.contains("0xffffffff"));
+    assert!(!text.contains("0x00000000ffffffff"));
+    assert!(!text.contains("CDNA counters"));
+    assert!(!text.contains("CDNA S_BARRIER"));
+    assert!(text.contains("\"status\":\"race-free\""));
+}

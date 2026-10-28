@@ -74,7 +74,7 @@ fn requested_and_declared_architectures_cannot_conflict() {
     );
     let output = run("gfx940", &["parse".into(), fixture().display().to_string()]);
     code(&output, 1);
-    assert!(String::from_utf8_lossy(&output.stderr).contains("expected gfx942 or gfx950"));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("expected gfx942, gfx950 or gfx1250"));
 }
 
 #[test]

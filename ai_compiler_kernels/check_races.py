@@ -54,6 +54,7 @@ ARRAY_ALIGN = 0x10000
 DUMMY_PARAMS = 2  # dummy_ptr1, dummy_ptr2: declared, never dereferenced
 # The JSON files give no shared size: grant each target's opt-in maximum.
 MAX_DYNAMIC_SHARED = {"sm_89": 99 * 1024, "sm_90a": 227 * 1024, "sm_100a": 227 * 1024}
+NATIVE_TARGETS = ("gfx942", "gfx950", "gfx1250")
 F32 = 4
 U32 = 4
 F16 = 2
@@ -116,6 +117,9 @@ class Variant:
     declared_arrays: tuple[Array, ...] = ()
     reduced_case: bool = False
     global_values: tuple[tuple[str, int], ...] = ()
+    target: str = "gfx950"
+    launch_config: Path | None = None
+    expected_by_array: tuple[tuple[str, int], ...] = ()
 
     @property
     def name(self) -> str:
@@ -148,9 +152,9 @@ LOWERING_FAILED = re.compile(r"\blowering failed: (.*)")
 # A directive or instruction form the frontend does not know (the parse report's last line).
 PARSE_FAILED = re.compile(r"\b(Invalid [a-z ]+: \S+)$")
 EXECUTION_UNSUPPORTED = re.compile(
-    r"^(?:the )?execution stopped: (unsupported (?:at .*|(?:AMD|gfx942|gfx950) instruction.*))"
+    r"^(?:the )?execution stopped: (unsupported (?:at .*|(?:AMD|gfx942|gfx950|gfx1250) instruction.*))"
 )
-NATIVE_PARSE_UNSUPPORTED = re.compile(r"\bunsupported (?:AMD|gfx942|gfx950) instruction `[^`]+`")
+NATIVE_PARSE_UNSUPPORTED = re.compile(r"\bunsupported (?:AMD|gfx942|gfx950|gfx1250) instruction `[^`]+`")
 CHECK_LINE = re.compile(r"^  (\S.*?) \([^)]*\)\s+(PASS|FAIL|UNKNOWN)$")
 VERDICT_LINE = re.compile(r"^GRAPH VERIFICATION: (VERIFIED|REJECTED|UNKNOWN)")
 WRITTEN_LINE = re.compile(r"^  output '[^']*': (\d+) element\(s\) written$")
@@ -241,6 +245,18 @@ def parse_cli(stdout: str) -> CliReport:
         elif DEADLOCK_LINE.match(line):
             deadlock = True
     return CliReport(verdict, tuple(checks), written, no_outputs, deadlock, tuple(reasons))
+
+
+def array_coverage_error(stdout: str, expected: dict[str, int]) -> str | None:
+    """A total count cannot substitute one output array for another."""
+    written = {}
+    for name, count in re.findall(r"^  output '([^']+)': (\d+) element\(s\) written$", stdout, re.MULTILINE):
+        if name in written:
+            return f"duplicate output report for {name!r}"
+        written[name] = int(count)
+    if written != expected:
+        return f"per-array output footprint differs: expected {expected}, observed {written}"
+    return None
 
 
 class VoltaFailure(Exception):
@@ -817,8 +833,73 @@ FAMILIES = {
 
 
 
-def load_amdgpu_variants() -> dict[str, list[Variant]]:
+def native_target_of(source: str) -> str:
+    """Read native source markers; never silently relabel another target's assembly."""
+    code = re.sub(r";[^\n]*", "", source)
+    targets = set(re.findall(
+        r'(?:\.amdgcn_target\s+"|amdhsa\.target:\s*)amdgcn-amd-amdhsa--(gfx[0-9a-f]+)', code))
+    if len(targets) != 1:
+        raise ValueError("native assembly must declare one consistent AMDHSA target")
+    return targets.pop()
+
+
+def load_native_case_variants(manifest: Path, target: str) -> dict[str, list[Variant]]:
+    """Reuse the genuine compiler case schema for explicit native targets."""
+    data = json.loads(manifest.read_text())
+    if data.get("schema_version") != 1 or data.get("target") != target:
+        raise ValueError(f"native case manifest must declare schema1 target {target}")
+    families: dict[str, list[Variant]] = {}
+    for row in data["cases"]:
+        if tuple(row.get("workgroup", [0, 0, 0])) != (0, 0, 0):
+            raise ValueError("native workload adapter analyzes workgroup zero only")
+        arrays = {a["name"]: Array(a["name"], a["element_size"], a["length"],
+                                  Kind(a["kind"]), a.get("base_address")) for a in row["arrays"]}
+        if len(arrays) != len(row["arrays"]):
+            raise ValueError("duplicate native array names")
+        config = manifest.parent / row["launch_config"] if row.get("launch_config") else None
+        if config is not None and not config.is_file():
+            raise FileNotFoundError(config)
+        params = []
+        if config is None:
+            if "max_instructions" in row or row.get("shared_allocations"):
+                raise ValueError("instruction budgets and shared-allocation premises require a launch_config file")
+            for param in row["params"]:
+                if not isinstance(param, str):
+                    raise ValueError("native by-value parameter objects require a launch_config file")
+                kind, value = param.split(":", 1)
+                if kind == "ptr":
+                    params.append(arrays[value])
+                elif kind == "int":
+                    params.append(Int(int(value)))
+                else:
+                    raise ValueError(f"unsupported native manifest parameter: {param}")
+        family = row.get("family", row["kernel"])
+        variant = Variant(family, row.get("name", row["kernel"]), tuple(row["block"]), tuple(params),
+            row["expected_outputs"], grid=tuple(row.get("grid", [1, 1, 1])),
+            backend="amdgpu", entry=row["kernel"], source_path=manifest.parent / row["assembly"],
+            dynamic_shared=row.get("dynamic_shared_bytes", row.get("dynamic_shared", 0)), dummy_params=0,
+            reference_spec=manifest.parent / row["spec"] if row.get("spec") else None,
+            dimensions=tuple(row.get("dimensions", {}).items()), declared_arrays=tuple(arrays.values()),
+            reduced_case=row.get("reduced_case", False), target=target, launch_config=config,
+            global_values=tuple((name, int(value)) for name, value in (
+                row.get("global_values", {}).items() if isinstance(row.get("global_values"), dict)
+                else row.get("global_values", []))),
+            expected_by_array=tuple((a.name, a.len) for a in arrays.values()
+                                    if a.kind in {Kind.OUTPUT, Kind.INPUT_OUTPUT}))
+        if native_target_of(variant.path.read_text()) != target:
+            raise ValueError(f"native case source target differs from requested {target}: {variant.path}")
+        families.setdefault(family, []).append(variant)
+    if not families:
+        raise ValueError("native case manifest contains no cases")
+    return families
+
+
+def load_amdgpu_variants(target: str = "gfx950", manifest: Path | None = None) -> dict[str, list[Variant]]:
     """Native launch data is explicit; PTX pointer padding/warp counts do not transfer."""
+    if target not in NATIVE_TARGETS:
+        raise ValueError(f"unsupported native target: {target}")
+    if manifest is not None or target != "gfx950":
+        return load_native_case_variants(manifest or REPO_ROOT / f"tests/{target}/cases.json", target)
     manifest = REPO_ROOT / "tests/gfx950/workloads.json"
     data = json.loads(manifest.read_text())
     if data.get("target") != "gfx950" or data.get("schema_version") != 1:
@@ -879,6 +960,10 @@ def target_of(source: str) -> str:
 
 
 def launch_args(variant: Variant, source: str) -> list[str]:
+    if variant.backend == "amdgpu" and source.strip() and native_target_of(source) != variant.target:
+        raise ValueError(f"source target differs from requested {variant.target}")
+    if variant.launch_config is not None:
+        return ["--config", str(variant.launch_config), "--backend", "amdgpu", "--target", variant.target]
     args = [
         "--block", ",".join(map(str, variant.block)),
         "--grid", ",".join(map(str, variant.grid)),
@@ -906,7 +991,7 @@ def launch_args(variant: Variant, source: str) -> list[str]:
     for name, value in variant.global_values:
         args += ["--global", f"{name}={value}"]
     if variant.backend == "amdgpu":
-        args += ["--backend", "amdgpu", "--target", "gfx950"]
+        args += ["--backend", "amdgpu", "--target", variant.target]
     return args
 
 
@@ -966,7 +1051,7 @@ def statements(source: str, backend: str = "ptx", entry: str | None = None) -> l
             end = re.search(rf"(?m)^\s*\.size\s+{re.escape(entry)}\b|^\s*\.globl\s+", code[low:])
             if end is not None:
                 high = low + end.start()
-        pattern = re.compile(r"(?m)^\s*(?:[.$\w]+:[ \t]*)?(?P<body>(?P<instr>s_waitcnt|s_barrier)\b[^\n;]*)")
+        pattern = re.compile(r"(?m)^\s*(?:[.$\w]+:[ \t]*)?(?P<body>(?P<instr>s_wait(?:cnt|_loadcnt|_storecnt|_dscnt|_kmcnt|_xcnt|_asynccnt|_tensorcnt)|s_barrier(?:_signal|_wait)?)\b[^\n;]*)")
         return [(Mutation(code.count("\n", 0, match.start("body")) + 1, 1, match["instr"]),
                  match.start("body"), match.end("body")) for match in pattern.finditer(code)
                 if low <= match.start("body") < high]
@@ -1042,7 +1127,13 @@ def run_volta(command: list[str], echo: Callable[[str], None] | None) -> tuple[s
             if echo is not None:
                 echo(line.rstrip("\n"))
         reader.join()
-    return "".join(stdout), "".join(stderr)
+    output, errors = "".join(stdout), "".join(stderr)
+    if run.returncode not in {0, 1, 2}:
+        raise VoltaFailure(f"volta exited with status {run.returncode}: {errors.strip()}")
+    if run.returncode != 0 and (("analyze" in command and parse_cli(output).verdict == "VERIFIED")
+                              or ("verify" in command and re.search(r"^VERDICT: ACCEPT$", output, re.MULTILINE))):
+        raise VoltaFailure(f"successful report with nonzero exit status {run.returncode}")
+    return output, errors
 
 
 @cache
@@ -1065,6 +1156,9 @@ def analyze(variant: Variant, ptx: Path, echo: Callable[[str], None] | None) -> 
     ]
     stdout, stderr = run_volta(command, echo)
     outcome, detail = classify(parse_cli(stdout), stderr, variant.expected_outputs)
+    if outcome is Outcome.RACE_FREE and variant.expected_by_array:
+        if error := array_coverage_error(stdout, dict(variant.expected_by_array)):
+            return Outcome.CHECK_FAILED, error
     if outcome is Outcome.RACE_FREE and variant.reference_spec is not None:
         verify = [str(VOLTA), "--no-log-file", "verify", str(ptx), str(variant.reference_spec),
                   "--kernel", variant.entry, *launch_args(variant, ptx.read_text()),
@@ -1185,7 +1279,8 @@ def run_mutations(
             )
 
     caught = sum(fates.count(fate) for fate in (Fate.RACE, Fate.CHECK, Fate.DEADLOCK))
-    failed = fates.count(Fate.SURVIVED) + fates.count(Fate.NOT_RUN)
+    failed = (fates.count(Fate.SURVIVED) + fates.count(Fate.NOT_RUN)
+              + fates.count(Fate.STOPPED) + len(skipped) + (not fates))
     codes = (BOLD, GREEN) if failed == 0 else (BOLD, RED)
     summary = style.paint(f"{caught}/{len(fates)} mutants caught", *codes)
     seen = [
@@ -1225,9 +1320,13 @@ def kernel_name(arg: str) -> str:
 
 
 def main() -> int:
+    global VOLTA
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("families", nargs="*", help="default: all families for the selected backend")
     parser.add_argument("--backend", choices=("ptx", "amdgpu"), default="ptx")
+    parser.add_argument("--target", choices=NATIVE_TARGETS, help="explicit AMD target (default gfx950 with --backend amdgpu)")
+    parser.add_argument("--manifest", type=Path, help="native case manifest; requires --backend amdgpu")
+    parser.add_argument("--binary", type=Path, help="use an existing CLI without rebuilding")
     parser.add_argument(
         "--kernel",
         action="append",
@@ -1268,12 +1367,16 @@ def main() -> int:
     args = parser.parse_args()
     if args.site and not args.mutate:
         parser.error("--site needs --mutate")
+    if (args.target or args.manifest) and args.backend != "amdgpu":
+        parser.error("--target/--manifest require --backend amdgpu")
 
     try:
-        every_family = (load_amdgpu_variants() if args.backend == "amdgpu" else
+        every_family = (load_amdgpu_variants(args.target or "gfx950", args.manifest) if args.backend == "amdgpu" else
                         {family: variants() for family, variants in FAMILIES.items()})
     except FileNotFoundError as missing:
         parser.error(f"a configured kernel's file is missing: {missing.filename}")
+    except (ValueError, KeyError, TypeError) as error:
+        parser.error(f"invalid native workload configuration: {error}")
     on_disk = {
         ptx.relative_to(KERNEL_ROOT).with_suffix("").as_posix()
         for ptx in KERNEL_ROOT.glob("*/*.ptx")
@@ -1323,7 +1426,12 @@ def main() -> int:
         or (args.color == "auto" and sys.stdout.isatty() and not os.environ.get("NO_COLOR"))
     )
     echo = (lambda line: print(f"    {style.log_line(line)}", flush=True)) if args.debug else None
-    build_volta()
+    if args.binary:
+        VOLTA = args.binary.resolve()
+        if not VOLTA.is_file():
+            parser.error(f"CLI binary is missing: {VOLTA}")
+    else:
+        build_volta()
     if args.mutate:
         return run_mutations(selected, args.full, echo, style, args.site)
     width = max(len(v.name) for _, v in selected)

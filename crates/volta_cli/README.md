@@ -50,3 +50,14 @@ cargo run --release -p volta_cli -- analyze relu.ptx --config relu.json
 ```
 
 See the top-level `README.md` for the full flag reference.
+
+## Native gfx1250
+
+Use `--backend amdgpu --target gfx1250` with `parse`, `analyze`, `verify` and
+`compare`. The same launch JSON, output footprints, numeric confirmation,
+expression/VC replay, profiles, logs and graph viewer apply. Source targets
+must match explicit selection; omitted AMD targets remain gfx950. Native graph
+failures exit1, inconclusive checks exit2, and success exits0. Expression-only
+replay reports equivalence without claiming any graph checks. See the
+[gfx1250 compiler corpus](../../tests/gfx1250/README.md) for the wave32/ABI subset
+and hardware-pending status.

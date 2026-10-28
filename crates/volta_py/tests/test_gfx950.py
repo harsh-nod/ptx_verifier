@@ -40,7 +40,7 @@ def test_missing_wait_has_typed_python_exception():
 
 
 def test_backend_and_target_are_validated():
-    with pytest.raises(ValueError, match="expected gfx942 or gfx950"):
+    with pytest.raises(ValueError, match="expected gfx942, gfx950 or gfx1250"):
         volta.Config(block=(64, 1, 1), backend="amdgpu", target="gfx940")
     with pytest.raises(volta.VoltaError):
         volta.parse(SOURCE.replace("--gfx950", "--gfx942"), backend="amdgpu", target="gfx950")

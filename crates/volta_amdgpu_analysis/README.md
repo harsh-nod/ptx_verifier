@@ -1,7 +1,7 @@
-# Native gfx942 and gfx950 analysis
+# Native gfx942, gfx950 and gfx1250 analysis
 
 This crate mirrors `volta_ptx_analysis`: typed assembly frontend, lowering, one
-candidate wave64 execution, then the existing symbolic-output and event-graph
+candidate execution with target-selected wave geometry, then the existing symbolic-output and event-graph
 artifacts. It does not depend on the pipeline, equivalence checker, or graph
 checker. Backend dispatch and verification remain in the existing pipeline.
 
@@ -40,7 +40,7 @@ The new `core-assembler-profiles.json` receipt compares the same 725 observed
 instruction profiles with LLVM's gfx942 and gfx950 assemblers; assembly
 acceptance is separate from the mathematical and graph checks.
 
-## Execution model
+## gfx942/gfx950 execution model
 
 The analyzer executes workgroup `(0,0,0)` only. Each wave has one PC, SGPR file,
 64-bit `EXEC` and `VCC`, `SCC`, and lane-indexed vector/accumulator storage. It
@@ -147,7 +147,7 @@ square-root operands stop execution before undefined real expressions can
 disappear through later multiplication. Nonzero reciprocals and unrelated encoded
 infinities retain the upstream model.
 
-## Events and synchronization
+## gfx942/gfx950 events and synchronization
 
 Every issued instruction records its register reads and writes with 64-bit lane
 masks. Memory issues separately identify counter class, destinations, held
@@ -232,3 +232,41 @@ Primary references:
 - LLVM GCNHazardRecognizer.cpp and SIInstrInfo.cpp provide independent instruction
   classification and software dependency checks; gfx950-specific timing remains
   pinned by matrix form in the graph checker.
+
+## gfx1250 wave32 profile
+
+`gfx1250` is a separate target, not a gfx950 alias. Direct Rust analysis selects
+its declared target; CLI/Python require explicit matching target selection.
+The validated toolchain emits code-object 6 and metadata 1.2. Target features
+are deliberately limited to bare `gfx1250`; `gfx1250-strict`, `gfx1251` and
+feature suffixes are rejected. The default AMD API target remains gfx950.
+
+The profile uses wave32, low32 EXEC/VCC masks, s0..s105, architected TTMP
+registers, and 327,680-byte aggregate LDS capacity. Logical VGPR allocation
+reaches 1024; supported named operands are v0..v255, with higher banked
+encodings explicitly unsupported. No AGPR namespace is available.
+A register spelling being encodable does not mean every instruction can access
+all banks: allocation, tuple and instruction constraints are checked separately.
+Packed local IDs and the architected workgroup-zero ABI replace the older
+system-SGPR workgroup-ID path. Only defined ABI bits are initialized.
+
+The graph checker requires one unclustered workgroup, full native trace evidence
+and an end instruction for every participating wave. Hardwired XNACK is not
+treated as replay-disabled: X-count replay-source leases are tracked separately
+from load/store/DS/KM/async/tensor completion. Signals publish only completed
+effects; issue order and execution synchronization do not invent data waits.
+Legacy CDNA cache-scope annotations cannot certify gfx1250 publication.
+
+Selected WMMA forms cover F32 16x16x4 and F16/BF16 16x16x32 with F32
+accumulators, full-wave legality, separately derived lane layouts and dependency
+rules. TDM covers bounded plain 2D global-to-LDS and LDS-to-global transfers,
+both directions, two-stage reuse and unnamed shader split barriers. Named,
+cluster, multicast, padding, gather and atomic-barrier tensor modes are outside
+this profile; nonzero tensor wait thresholds remain inconclusive.
+
+The existing mathematical-real abstraction applies, including disclosed native
+base2 conversion coefficients. It does not establish IEEE rounding, NaNs or
+denormal behavior. Raw finite F16/BF16 controls test decoding separately from
+symbolic mathematical input identities. See the [detailed contract](../../tests/gfx1250/CONTRACT.md)
+and [reproducible corpus](../../tests/gfx1250/README.md).
+**No gfx1250 hardware execution has been performed.**

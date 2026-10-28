@@ -711,7 +711,9 @@ pub(super) fn set_target(
     let gpu = base.split(':').next().unwrap_or(base);
     if !["gfx942", "gfx950", "gfx1250"].contains(&gpu) {
         return Err(ParseError {
-            message: format!("unsupported AMD target `{target}`; expected gfx942 or gfx950"),
+            message: format!(
+                "unsupported AMD target `{target}`; expected gfx942, gfx950 or gfx1250"
+            ),
             span,
         });
     }

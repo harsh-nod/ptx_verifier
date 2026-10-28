@@ -1,0 +1,311 @@
+{
+  "target": "gfx1250",
+  "assembler": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+  "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "scope": "Selected syntax only; does not establish execution safety or hardware correctness. Named v256 requires an encoding profile outside this installed toolchain; descriptor1024 is a separate allocation bound.",
+  "results": [
+    {
+      "source": "v_fma_f32 v0, 0x3e000000, v1, v2",
+      "assembles": true,
+      "source_sha256": "b3f01939c12ebfdf6b13a2aad1025fc70819f91d6d6995b467c944c2e92a7221",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_fma_f32 v0, 0x3e000000, v1, 0x3dcccccd",
+      "assembles": false,
+      "source_sha256": "752552ad9b2c58bd7a688b42816795001a9761b83f53de471f3d83e13a26069c",
+      "diagnostic": "<stdin>:5:31: error: only one unique literal operand is allowed\nv_fma_f32 v0, 0x3e000000, v1, 0x3dcccccd\n                              ^"
+    },
+    {
+      "source": "v_add_f32_e32 v0, v1, 0x3e000000",
+      "assembles": false,
+      "source_sha256": "d475960cf00c33ab6272199868e1aec47470564eff30c36966ca74a42fc1e51c",
+      "diagnostic": "<stdin>:5:23: error: invalid operand for instruction\nv_add_f32_e32 v0, v1, 0x3e000000\n                      ^"
+    },
+    {
+      "source": "v_max_num_f32_e32 v0, v1, 0x3e000000",
+      "assembles": false,
+      "source_sha256": "9ad1def929f320bcdf4ef2c26ab1495b57dc3bf793a0bebf975ead38c24ddaba",
+      "diagnostic": "<stdin>:5:27: error: invalid operand for instruction\nv_max_num_f32_e32 v0, v1, 0x3e000000\n                          ^"
+    },
+    {
+      "source": "s_load_b96 s[4:6], s[0:1], 0",
+      "assembles": true,
+      "source_sha256": "e470a9b9a94ec0a70c51a74f576953801654676ed480c91e3c1c78c29fb97318",
+      "diagnostic": ""
+    },
+    {
+      "source": "s_load_b96 s[3:5], s[0:1], 0",
+      "assembles": false,
+      "source_sha256": "48f2df3f5f5a526e7fd86e011b4aafaee13b04edb6ea7d7545b7723a0130bbc1",
+      "diagnostic": "<stdin>:5:12: error: invalid register alignment\ns_load_b96 s[3:5], s[0:1], 0\n           ^"
+    },
+    {
+      "source": "v_s_exp_f32 s5, s5",
+      "assembles": true,
+      "source_sha256": "3f9cc71846eb68516d135c432ba106dd2402b11ecb7289b6786e260ac50a66a3",
+      "diagnostic": ""
+    },
+    {
+      "source": "s_min_num_f32 s4, s5, 0",
+      "assembles": true,
+      "source_sha256": "0a14c6899d536543e10e7301c53e4a6207644329d71c5ff28215d5650671a757",
+      "diagnostic": ""
+    },
+    {
+      "source": "s_mul_f32 s4, s5, 0x3fb8aa3b",
+      "assembles": true,
+      "source_sha256": "e99858f971c7bed781e8a40175caa2566bab5914172e56178848b87f111ef5cd",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_sub_nc_u16 v1, v0, v1",
+      "assembles": true,
+      "source_sha256": "77f8abaca2900c4e4bf1695938c523041d114b93691a38403c53e87f6341b341",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_lshlrev_b16 v10, 1, v10",
+      "assembles": true,
+      "source_sha256": "93374ce07442793054ed8adcc8c690f28bc3e0d592b3c0f8e16ed2dd0464cfa3",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_bitop3_b16 v10, v11, 3, v10 bitop3:0xc8",
+      "assembles": true,
+      "source_sha256": "577469e12dbf5b1ca82dad643786d26b3318ec3ca54e615e14681146c2999cf7",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_cmp_ne_u16_e32 vcc_lo, 0, v10",
+      "assembles": true,
+      "source_sha256": "fae5e1f615f7ad37c74e8faf6ed78b62be89d0213c8df28689fa62b89cb0df89",
+      "diagnostic": ""
+    },
+    {
+      "source": "s_load_b32 s2, s[10:11], s4 offset:0 scale_offset",
+      "assembles": true,
+      "source_sha256": "817b9303bf3a5f721001611e97b422227d023284be2a3736d13a9b5f545fde6c",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_mov_b32 v255, 0",
+      "assembles": true,
+      "source_sha256": "aea835ebaa8052968faa5210aee8682bd00a20a71006300d4589b506755d868b",
+      "diagnostic": ""
+    },
+    {
+      "source": "v_mov_b32 v256, 0",
+      "assembles": false,
+      "source_sha256": "e347d11104ff07877ed7f93e9c1d41d6ef1680a1e79312f352e39b64ed8d8f80",
+      "diagnostic": "<stdin>:5:11: error: register index is out of range\nv_mov_b32 v256, 0\n          ^"
+    },
+    {
+      "source": "v_s_exp_f32 s5, v1",
+      "assembles": true,
+      "source_sha256": "b6bb761b06d6cccb6efe31f86ac206a7f47e7d25f29c216f29ada8b41f2823a1",
+      "diagnostic": "",
+      "verifier_supported_source_profile": false,
+      "scope_note": "Installed LLVM-MC accepts this vector selector, but pinned public LLVM SSrc_f32 profile is scalar. The verifier rejects it rather than inventing lane0 broadcast semantics."
+    },
+    {
+      "source": "v_s_exp_f32 s5, -v1",
+      "assembles": true,
+      "source_sha256": "ef0a57929b3dc09133a0658a1cc6283519b71cc8e8d5c3819e73c439fe8e67af",
+      "diagnostic": "",
+      "verifier_supported_source_profile": false,
+      "scope_note": "Installed LLVM-MC accepts this vector selector, but pinned public LLVM SSrc_f32 profile is scalar. The verifier rejects it rather than inventing lane0 broadcast semantics."
+    },
+    {
+      "source": "v_s_exp_f32 s5, 1.0",
+      "assembles": true,
+      "source_sha256": "1f34df855d5e9cd886f3990ea00e27e0ab4987597f4e7df27f66fa9d0ad2414f",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    },
+    {
+      "source": "v_s_exp_f32 s5, 0x3fb8aa3b",
+      "assembles": true,
+      "source_sha256": "9fbd72b659d2f847a9b271dacbde5af80366514f4fcadedb29b1a4994f6a06a5",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    },
+    {
+      "source": "v_s_exp_f32 s5, s6",
+      "assembles": true,
+      "source_sha256": "784bfe9095fdff279da667018eaace8db171fa534ad553ccdbcdbcc7d3203bd7",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    },
+    {
+      "source": "v_dual_cndmask_b32 v2, v4, v1 :: v_dual_fma_f32 v7, v1, v2, v3",
+      "assembles": false,
+      "source_sha256": "53615e72196b42af4ae452cf29d02d289bbfbd796634d60e7837a3c28a8a8d66",
+      "diagnostic": "<stdin>:5:34: error: invalid VOPDY instruction\nv_dual_cndmask_b32 v2, v4, v1 :: v_dual_fma_f32 v7, v1, v2, v3\n                                 ^",
+      "verifier_supported_source_profile": false
+    },
+    {
+      "source": "v_dual_fma_f32 v7, v1, v2, v3 :: v_dual_cndmask_b32 v2, v4, v1",
+      "assembles": false,
+      "source_sha256": "ea945d27d4d49829e0089cc01db67a13262fa90ea1012e2b86ff1f266c4c5900",
+      "diagnostic": "<stdin>:5:1: error: too few operands for instruction\nv_dual_fma_f32 v7, v1, v2, v3 :: v_dual_cndmask_b32 v2, v4, v1\n^",
+      "verifier_supported_source_profile": false
+    },
+    {
+      "source": "v_dual_cndmask_b32 v2, v4, v1, vcc_lo :: v_dual_fma_f32 v7, v1, v2, v3",
+      "assembles": true,
+      "source_sha256": "2c7f2054926542455600131893a6e594360b10552aa96e87d0848ad741b7adac",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    },
+    {
+      "source": "v_lshlrev_b16_e32 v1,1,v2",
+      "assembles": false,
+      "source_sha256": "cd539069fd4ea095d86d1c440bb840cb1621f97d632fd4d905406b8e17bb0afa",
+      "diagnostic": "<stdin>:5:1: error: e32 variant of this instruction is not supported\nv_lshlrev_b16_e32 v1,1,v2\n^",
+      "verifier_supported_source_profile": false
+    },
+    {
+      "source": "v_lshlrev_b16_e64 v1,1,v2",
+      "assembles": true,
+      "source_sha256": "2c4b0af76891056bc379b0a975c1e64c6a2df0a404ee6bb2808c4b15bf3b0c02",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    },
+    {
+      "source": "v_sub_nc_u16_e32 v1,v1,1",
+      "assembles": false,
+      "source_sha256": "df1420e6e9767f4eec1b607fb96914bb72a9d5d996e1461bc342593e4a464a51",
+      "diagnostic": "<stdin>:5:1: error: e32 variant of this instruction is not supported\nv_sub_nc_u16_e32 v1,v1,1\n^",
+      "verifier_supported_source_profile": false
+    },
+    {
+      "source": "v_sub_nc_u16_e64 v1,v1,1",
+      "assembles": true,
+      "source_sha256": "091a8ff7a9670d9d9ffa14a7c12bcbac4d259ce6a55ce555f771679a737bda61",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    },
+    {
+      "source": "v_s_exp_f32_e32 s5,s5",
+      "assembles": false,
+      "source_sha256": "2eabc5ce705a77fded674dbbe6dc161ce870d50c406dc94fc025519391207eaf",
+      "diagnostic": "<stdin>:5:1: error: e32 variant of this instruction is not supported\nv_s_exp_f32_e32 s5,s5\n^",
+      "verifier_supported_source_profile": false
+    },
+    {
+      "source": "v_s_exp_f32_e64 s5,s5",
+      "assembles": true,
+      "source_sha256": "55f39014430e845142966ed6be0ec7eb4aebc996223badc13e6f2b49c282e10a",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    },
+    {
+      "source": "s_mul_f32_e32 s5,s5,1",
+      "assembles": true,
+      "source_sha256": "52ed2b4821219fc79c899f16e12e618ad24bcfd8e04fbe29a5fbbe58a488c73f",
+      "diagnostic": "",
+      "verifier_supported_source_profile": false,
+      "scope_note": "Installed LLVM-MC accepts this spelling; verifier supports canonical SOP spelling and target-specific VOP encoding suffixes only."
+    },
+    {
+      "source": "s_mul_f32_e64 s5,s5,1",
+      "assembles": false,
+      "source_sha256": "fdb048c82470b8e8f4c75a640d07030dd604360779f51240ea9240bbcce34711",
+      "diagnostic": "<stdin>:5:1: error: e64 variant of this instruction is not supported\ns_mul_f32_e64 s5,s5,1\n^",
+      "verifier_supported_source_profile": false
+    },
+    {
+      "source": "v_mad_u32_e32 v1,v1,v2,v3",
+      "assembles": false,
+      "source_sha256": "ef7197a33c22741a3ae4791a66156936da2eb8b6ced35ba7f150240dee060997",
+      "diagnostic": "<stdin>:5:1: error: e32 variant of this instruction is not supported\nv_mad_u32_e32 v1,v1,v2,v3\n^",
+      "verifier_supported_source_profile": false
+    },
+    {
+      "source": "v_mad_u32_e64 v1,v1,v2,v3",
+      "assembles": true,
+      "source_sha256": "e6e3ef1ea72dffaa0c6be5ab9287e6de726b886bb62148c9e0709e4fcfa874fd",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    },
+    {
+      "source": "s_load_b32 s2, s[0:1], 4 offset:4 scale_offset",
+      "assembles": false,
+      "source_sha256": "bfe133c2f3aea838f2bb24a79390bf907491ea5f4d75eb2979c2d8fddaae4ec8",
+      "diagnostic": "<stdin>:5:26: error: invalid operand for instruction\ns_load_b32 s2, s[0:1], 4 offset:4 scale_offset\n                         ^",
+      "verifier_supported_source_profile": false
+    },
+    {
+      "source": "s_load_b32 s2, s[0:1], 4 offset:4",
+      "assembles": false,
+      "source_sha256": "dbcc9418a62e36e017b427f1f9e23577a96510f0868064c159787cf749982500",
+      "diagnostic": "<stdin>:5:26: error: invalid operand for instruction\ns_load_b32 s2, s[0:1], 4 offset:4\n                         ^",
+      "verifier_supported_source_profile": false
+    },
+    {
+      "source": "s_load_b32 s2, s[0:1], 4 scale_offset",
+      "assembles": true,
+      "source_sha256": "efd63dd9b234ac5381846b27f573ac05a7e86c0229655a4d71539fcb4ffc1c2c",
+      "diagnostic": "",
+      "verifier_supported_source_profile": false,
+      "scope_note": "Assembler accepts immediate scale_offset, but precise immediate scaling is not derived in this model; only the native compiler SGPR-offset scaling profile is supported."
+    },
+    {
+      "source": "s_load_b32 s2, s[0:1], s4 offset:4 scale_offset",
+      "assembles": true,
+      "source_sha256": "2b84f9e5c1b32f27a0626185e873997721ccac9108ec5af8b7dc3bf2cfd8daa6",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    },
+    {
+      "source": "s_load_b32 s2, s[0:1], s4 offset:4",
+      "assembles": true,
+      "source_sha256": "45947a8627a7cb6f120102a4c34b49f2c5f60f8cc64bc3a56aac697776ca55eb",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    },
+    {
+      "source": "s_sub_f32 s5, 0x3e000000, 0x3dcccccd",
+      "assembles": false,
+      "source_sha256": "d84b08d1ee3b021f2279907f51334fea801841c323b4e3f88dc573ae7a71a290",
+      "diagnostic": "<stdin>:5:27: error: only one unique literal operand is allowed\ns_sub_f32 s5, 0x3e000000, 0x3dcccccd\n                          ^",
+      "verifier_supported_source_profile": false
+    },
+    {
+      "source": "s_mul_f32 s5, s5, 0x100000000",
+      "assembles": false,
+      "source_sha256": "faadcdc95687c7c28fa6e992b53c08991e46c23ecb595e761db6dbdd69f4e07b",
+      "diagnostic": "<stdin>:5:19: error: invalid operand for instruction\ns_mul_f32 s5, s5, 0x100000000\n                  ^",
+      "verifier_supported_source_profile": false
+    },
+    {
+      "source": "s_min_num_f32 s5, 0x3e000000, 0x3dcccccd",
+      "assembles": false,
+      "source_sha256": "ffb30250e85e4a3d0497e1eba81b7f704970c3fbf42a42578f473c5c2103767c",
+      "diagnostic": "<stdin>:5:31: error: only one unique literal operand is allowed\ns_min_num_f32 s5, 0x3e000000, 0x3dcccccd\n                              ^",
+      "verifier_supported_source_profile": false
+    },
+    {
+      "source": "s_sub_f32 s5, s6, 0x3e000000",
+      "assembles": true,
+      "source_sha256": "19e5aec5f45fe5c98d0820c733786c16a3e104e586f0a514ece095c21011aa91",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    },
+    {
+      "source": "s_mul_f32 s5, 0x3e000000, s6",
+      "assembles": true,
+      "source_sha256": "5f35a42b908e0bbbd749d323b65311d051bd2624d564cec8b3078215aaa8e471",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    },
+    {
+      "source": "s_min_num_f32 s5, 0x3e000000, 0x3e000000",
+      "assembles": true,
+      "source_sha256": "3b850da39f1cd57bf719fa1f43528eb2ed2f4b7c148334454439bf06373bad4e",
+      "diagnostic": "",
+      "verifier_supported_source_profile": true
+    }
+  ]
+}

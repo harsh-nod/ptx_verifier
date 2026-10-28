@@ -91,3 +91,11 @@ kind, and keyboard navigation (`?` lists the keys).
 `volta_graph` (the graph), `volta_graph_check` (findings, pipeline edges) and
 `volta_expr` (rendering stored values). `tests/viewer_tests.rs` covers export
 and page assembly.
+
+## Native gfx1250 records
+
+The viewer labels native gfx1250 lanes as AMD wave32, including source-only
+unsupported outcomes. It displays target-specific wait counters, WMMA/tensor
+issues, split signal/wait/release events and typed findings with source links.
+The mixed-target Chromium harness covers PTX, gfx942, gfx950 and gfx1250;
+rendering a run is separate from successful proof or hardware validation.

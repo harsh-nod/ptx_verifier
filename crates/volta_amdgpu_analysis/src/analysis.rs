@@ -105,7 +105,10 @@ pub fn analyze(
     } else if !replay_enabled {
         assumptions.push(Assumption::XnackReplayDisabled);
     }
-    if !program.descriptor.flag("tg_split") {
+    if crate::target::Architecture::from_target(&target)
+        != Some(crate::target::Architecture::Gfx1250)
+        && !program.descriptor.flag("tg_split")
+    {
         assumptions.push(Assumption::SingleCuWorkgroup);
     }
     let provenance = Provenance {
@@ -146,7 +149,8 @@ pub fn analyze(
                         .mnemonic
                         .trim_end_matches("_e32")
                         .trim_end_matches("_e64"),
-                    "v_exp_f32"
+                    "v_s_exp_f32"
+                        | "v_exp_f32"
                         | "v_log_f32"
                         | "v_rcp_f32"
                         | "v_rsq_f32"

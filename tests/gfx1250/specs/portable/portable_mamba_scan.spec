@@ -1,0 +1,1 @@
+dim R; dim N; dim S; dim T; array cb[R,T]; array x[T,N]; array c[R,S]; array prev[N,S]; array dt[T]; array da[T]; array out[R,N]; array out_x[R,N]; out[r,i]=exp(da[r])*sum(j in 0..S,c[r,j]*prev[i,j])+sum(t in 0..T,cb[r,t]*exp(min(da[r]-da[t],0))*dt[t]*x[t,i]); out_x[r,i]=0;

@@ -714,7 +714,7 @@
         ),
         fact("kernel", m.kernel, true),
         launch ? fact("target", (launch.targets || []).join(", "), true) : fact("declared target", doc.source_target, true),
-        launch ? fact("geometry", (launch.wave_kind || (doc.source_language === "amdgpu" ? "wave" : "warp")) + launch.wave_size) : fact("declared wave", doc.source_wave_size),
+        launch ? fact("geometry", (launch.wave_kind || ((doc.source_language || launch.source_language) === "amdgpu" || launch.wave_size === 64 ? "wave" : "warp")) + launch.wave_size) : fact("declared geometry", doc.source_wave_size ? (doc.source_wave_kind || "wave") + doc.source_wave_size : null),
         launch ? fact("block", launch.block.join("×")) : null,
         launch && launch.grid.some((d) => d !== 1) ? fact("grid", launch.grid.join("×")) : null,
         m.events != null ? fact("events", fmt(m.events)) : null,

@@ -2,7 +2,88 @@
 use super::*;
 use crate::target::Architecture;
 
-pub(super) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
+pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
+    let encoded32 = name.ends_with("_e32");
+    let encoded64 = name.ends_with("_e64");
+    if !encoded32 && !encoded64 {
+        return Ok(());
+    }
+    let stem = name.trim_end_matches("_e32").trim_end_matches("_e64");
+    if name.starts_with("s_")
+        || name.starts_with("ds_")
+        || name.starts_with("global_")
+        || name.starts_with("tensor_")
+    {
+        return Err(format!(
+            "{stem} has no explicit VOP encoding suffix in the supported native profile"
+        ));
+    }
+    if encoded32
+        && (stem.starts_with("v_wmma_")
+            || matches!(
+                stem,
+                "v_lshlrev_b16"
+                    | "v_sub_nc_u16"
+                    | "v_s_exp_f32"
+                    | "v_bitop3_b16"
+                    | "v_max3_num_f32"
+                    | "v_mad_u32"
+                    | "v_bitop2_b32"
+            ))
+    {
+        return Err(format!(
+            "{stem} requires VOP3 encoding; _e32 is not supported"
+        ));
+    }
+    Ok(())
+}
+
+/// Apply the same selected instruction contract to caller-built typed modules.
+pub(crate) fn validate_typed_profile(instruction: &Instruction) -> Result<(), String> {
+    if let [Operand::Dual(x, y)] = instruction.operands.as_slice() {
+        if instruction.opcode != Opcode::VectorAlu || !instruction.mnemonic.starts_with("v_dual_") {
+            return Err("typed dual operands require a native VOPD vector instruction".into());
+        }
+        validate_typed_profile(x)?;
+        validate_typed_profile(y)?;
+        return Ok(());
+    }
+    validate_encoding(&instruction.mnemonic)?;
+    super::instr::validate_control(instruction).map_err(|e| e.message)?;
+    let (opcode, mut min, mut max) = match instruction.mnemonic.as_str() {
+        "s_getreg_b32" => (Opcode::ScalarAlu, 2, 2),
+        "s_delay_alu" => (Opcode::Control, 1, 1),
+        name => super::instr::signature(name)
+            .or_else(|| signature(name))
+            .ok_or_else(|| format!("unsupported gfx1250 typed instruction {name}"))?,
+    };
+    if instruction.mnemonic.starts_with("v_cmpx_") {
+        min = 2;
+        max = 2;
+    }
+    if instruction.opcode != opcode || !(min..=max).contains(&instruction.operands.len()) {
+        return Err(format!(
+            "typed gfx1250 instruction {} has an invalid opcode/operand count",
+            instruction.mnemonic
+        ));
+    }
+    super::instr::validate_registers(
+        &instruction.mnemonic,
+        instruction.opcode,
+        &instruction.operands,
+        &instruction.modifiers,
+        Architecture::Gfx1250,
+    )?;
+    super::instr::validate_vop_literal_positions(
+        &instruction.mnemonic,
+        &instruction.operands,
+        &instruction.modifiers,
+        Architecture::Gfx1250,
+    )?;
+    Ok(())
+}
+
+pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
     use Opcode::*;
     Some(
         match name.trim_end_matches("_e32").trim_end_matches("_e64") {
@@ -34,6 +115,11 @@ pub(super) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
             "s_and_saveexec_b32" | "s_andn2_saveexec_b32" | "s_or_saveexec_b32" => {
                 (ScalarAlu, 2, 2)
             }
+            "s_sub_f32" | "s_mul_f32" | "s_min_num_f32" => (ScalarAlu, 3, 3),
+            "v_s_exp_f32" => (VectorAlu, 2, 2),
+            "v_cmp_ne_u16" | "v_cmp_u_f32" | "v_min_num_f32" | "v_max_num_f32"
+            | "v_lshlrev_b16" | "v_sub_nc_u16" => (VectorAlu, 3, 3),
+            "v_bitop3_b16" | "v_max3_num_f32" | "v_fmaak_f32" => (VectorAlu, 4, 4),
             "v_mad_u32" => (VectorAlu, 4, 4),
             "v_add_co_ci_u32" => (VectorAlu, 5, 5),
             "v_add_nc_u64" | "v_add_nc_u32" | "v_sub_nc_u32" | "v_bitop2_b32" => (VectorAlu, 3, 3),
@@ -56,6 +142,21 @@ pub(super) fn parse_special(
     if let Some((x, y)) = text.split_once("::") {
         if y.contains("::") {
             return Err(fail("VOPD requires exactly two operations"));
+        }
+        // An omitted CNDMASK src2 selects VOPD; explicit src2 selects
+        // VOPD3. Preserve that encoding choice before normalization.
+        let implicit_condition = |part: &str| {
+            part.trim()
+                .strip_prefix("v_dual_cndmask_b32 ")
+                .is_some_and(|rest| rest.split(',').count() == 3)
+        };
+        let requires_three_source = |part: &str| part.trim().starts_with("v_dual_fma_f32 ");
+        if (implicit_condition(x) && requires_three_source(y))
+            || (implicit_condition(y) && requires_three_source(x))
+        {
+            return Err(fail(
+                "implicit CNDMASK selects VOPD and cannot pair with a VOPD3 FMA; provide the explicit condition operand",
+            ));
         }
         fn half(text: &str, span: SourceSpan) -> Result<Instruction, ParseError> {
             let (name, rest) = text

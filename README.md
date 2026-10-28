@@ -4,7 +4,7 @@
   <img src="gpu-kernel-verifier.png" alt="GPU Kernel Verifier: NVIDIA PTX and AMD GCN ISA" width="560">
 </p>
 
-GPU Kernel Verifier checks NVIDIA PTX and native AMD gfx942/gfx950 assembly for data races and deadlocks, and checks a kernel for equivalence to a reference kernel or a math spec (floats are modeled as reals). This is an experimental fork of [Volta](https://github.com/willtunnels/volta). The CLI and Python package retain the `volta` name for compatibility.
+GPU Kernel Verifier checks NVIDIA PTX and native AMD gfx942/gfx950/gfx1250 assembly for data races and deadlocks, and checks a kernel for equivalence to a reference kernel or a math spec (floats are modeled as reals). This is an experimental fork of [Volta](https://github.com/willtunnels/volta). The CLI and Python package retain the `volta` name for compatibility.
 
 > [!CAUTION]
 > **This project is not intended to be a sound verifier, and we do not claim that it is a formal verifier. It is a best-effort verifier for catching bugs in generated kernels; a successful check does not guarantee correctness.**
@@ -22,7 +22,7 @@ just test               # Rust and Python tests
 
 `cargo run --release -p volta_cli -- <command> ...` builds and runs in one step.
 
-## Native AMD gfx942 and gfx950
+## Native AMD gfx942, gfx950 and gfx1250
 
 Select `--backend amdgpu --target gfx942` (MI300/CDNA3) or `--target gfx950`
 (MI350/CDNA4) to analyze native LLVM AMDHSA `.s`
@@ -63,6 +63,28 @@ It uses its own LDS capacity and MFMA hazard timings. CDNA4-only instructions
 and gfx942 FP8/BF8 number formats remain unsupported. See the
 [gfx942 scope, compiler fixtures and MI300X validation](tests/gfx942/README.md).
 The existing gfx950 parity inventory does not assert complete gfx942 parity.
+
+gfx1250 uses a separate **wave32** model with WMMA, split workgroup barriers,
+replay-source dependencies and bounded tensor transfers. Select it explicitly
+with `--backend amdgpu --target gfx1250` or Python
+`volta.Config(..., backend="amdgpu", target="gfx1250")`.
+**Software validated; hardware validation pending.** No gfx1250 device was
+available. The tested envelope is a single unclustered workgroup, code-object 6,
+metadata 1.2, and the selected compiler instruction subset. Strict/neighbor
+targets, named/cluster barriers and advanced tensor modes remain unsupported.
+
+```bash
+volta verify tests/gfx1250/fixtures/native-copy-add.s tests/gfx1250/specs/copy.spec \
+  --backend amdgpu --target gfx1250 -k copy -b 65 --dim N=65 \
+  --array x:0x10000:4:65:in --array out:0x30000:4:65:out \
+  --param ptr:x --param ptr:out --param int:65
+```
+
+See the [gfx1250 contract and validation corpus](tests/gfx1250/README.md) for
+complete configured matrix/tensor checks, bounded ports of twenty workload
+families, independent mutation/oracle evidence and the remaining hardware gate.
+These ports preserve each documented mathematical computation at bounded sizes;
+they do not claim all original PTX shapes, dtypes or device execution behavior.
 
 Launch arguments follow the selected kernel's descriptor and argument metadata.
 `--global NAME=value` overrides a writable defined module object;

@@ -299,3 +299,11 @@ returns `Ok`; it returns every `GraphDefect` it found.
 above: header and assumptions, then objects, generations (with contributions
 and releases), async ops, events, and the terminal state, each in id order.
 Equal graphs dump to identical bytes, so diffs of dumps show trace changes.
+
+## Native wave geometry
+
+AMD target geometry is explicit: gfx942/gfx950 are wave64; gfx1250 is wave32.
+The shared u64 mask storage uses only its low32 bits for gfx1250. Native
+records add load/store/DS/KM/X/async/tensor counters, WMMA and split barrier
+objects/phases without changing old PTX or wave64 meanings. Target provenance
+and execution premises survive dumps and viewer exports.
