@@ -1,0 +1,69 @@
+warning: variant `Rem` is never constructed
+  --> crates/volta_amdgpu_analysis/src/eval/scalar.rs:42:5
+   |
+37 | pub(crate) enum IntBinOp {
+   |                 -------- variant in this enum
+...
+42 |     Rem,
+   |     ^^^
+   |
+   = note: `IntBinOp` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variants `Sub` and `Div` are never constructed
+  --> crates/volta_amdgpu_analysis/src/eval/scalar.rs:66:5
+   |
+64 | pub(crate) enum FloatBinOp {
+   |                 ---------- variants in this enum
+65 |     Add,
+66 |     Sub,
+   |     ^^^
+67 |     Mul,
+68 |     Div,
+   |     ^^^
+   |
+   = note: `FloatBinOp` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `Neg`, `Abs`, `Exp`, and `Log` are never constructed
+  --> crates/volta_amdgpu_analysis/src/eval/scalar.rs:75:5
+   |
+74 | pub(crate) enum FloatUnOp {
+   |                 --------- variants in this enum
+75 |     Neg,
+   |     ^^^
+76 |     Abs,
+   |     ^^^
+...
+79 |     Exp,
+   |     ^^^
+80 |     Log,
+   |     ^^^
+   |
+   = note: `FloatUnOp` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `copysign` is never used
+   --> crates/volta_amdgpu_analysis/src/eval/scalar.rs:382:15
+    |
+382 | pub(crate) fn copysign(arena: &mut ExprArena, sign: ExprId, magnitude: ExprId) -> ExprId {
+    |               ^^^^^^^^
+
+warning: `volta_amdgpu_analysis` (lib) generated 4 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/gfx1250_compiler_tests.rs (target/debug/deps/gfx1250_compiler_tests-0e3d169720274675)
+
+running 12 tests
+test real_gfx1250_assemble_valid_safety_mutants_fail_their_actual_native_obligations ... ok
+test real_gfx1250_attention_retains_all_keys_normalization_and_512_outputs ... ok
+test real_gfx1250_both_tensor_directions_and_buffer_reuse_preserve_all_128_outputs ... ok
+test real_gfx1250_copy_and_add_preserve_every_tail_and_wave_boundary_element ... ok
+test real_gfx1250_crosswave_lds_exchange_and_complete_wave32_reduction ... ok
+test real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product ... ok
+test real_gfx1250_packed16_transpose_preserves_all_64_elements ... ok
+test real_gfx1250_three_dimensional_ids_match_all_24_coordinates ... ok
+test real_gfx1250_two_wave_two_stage_gemm_preserves_all_512_outputs_and_k64 ... ok
+test real_gfx1250_wide_product_and_mad_match_exact_unsigned_and_signed_128bit_oracles ... ok
+test real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter ... ok
+test real_gfx1250_wmma_finite_byvalue_bits_distinguish_f16_and_bf16 ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 60.69s
+
