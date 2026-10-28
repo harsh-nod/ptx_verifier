@@ -85,7 +85,7 @@ pub(super) fn apply_metadata(
     let wave_size = module
         .target
         .as_deref()
-        .and_then(volta_graph::AmdArchitecture::from_target)
+        .and_then(crate::target::Architecture::from_target)
         .map_or(64, |target| target.wave_size() as u64);
     let kernels = get(root, "amdhsa.kernels")
         .and_then(Value::as_sequence)

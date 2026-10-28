@@ -118,7 +118,11 @@ pub fn analyze(
             .instructions
             .iter()
             .map(|instruction| InstructionInfo {
-                kind: if instruction.mnemonic == "s_getreg_b32" {
+                kind: if instruction.mnemonic.starts_with("tensor_") {
+                    "tensor memory"
+                } else if instruction.mnemonic == "v_nop" {
+                    "vector ALU"
+                } else if instruction.mnemonic == "s_getreg_b32" {
                     "xcnt drain"
                 } else if instruction.mnemonic.starts_with("v_wmma_") {
                     "WMMA"

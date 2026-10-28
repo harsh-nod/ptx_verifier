@@ -963,6 +963,7 @@ pub(super) fn validate_control(instruction: &Instruction) -> Result<(), ParseErr
         "s_nop" => 15,
         "s_clause" => 63,
         "s_delay_alu" => 0x7ff,
+        "v_nop" => 0,
         "s_sleep" => 127,
         "s_setprio" => 3,
         // CDNA4 SOPP S_TRAP uses SIMM16[7:0]. LLVM also accepts truncating
@@ -1153,6 +1154,12 @@ fn validate_registers(
             }
             require(0, &[Scalar], 2)?;
         }
+    }
+    if stem.starts_with("tensor_") {
+        for (index, count) in [4, 8, 4, 4].into_iter().enumerate() {
+            require(index, &[Scalar], count)?;
+        }
+        return Ok(());
     }
     match opcode {
         Opcode::ScalarAlu => {
@@ -1427,6 +1434,10 @@ fn validate_registers(
                         if architecture.wave_size() == 32 { 1 } else { 2 },
                     )?;
                 }
+            } else if stem == "v_add_nc_u64" {
+                require(0, &[Vector], 2)?;
+                source_width(1, 2)?;
+                source_width(2, 2)?;
             } else if stem == "v_lshl_add_u64" {
                 require(0, &[Vector], 2)?;
                 source_width(1, 2)?;

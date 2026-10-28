@@ -8,21 +8,35 @@ pub(super) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
         match name.trim_end_matches("_e32").trim_end_matches("_e64") {
             "s_load_b32" | "s_load_b64" | "s_load_b96" | "s_load_b128" | "s_load_b256"
             | "s_load_b512" => (ScalarMemory, 3, 3),
-            "global_load_b32" | "global_load_b64" | "global_load_b128" | "global_store_b32"
+            "global_load_u16" | "global_load_u8" | "global_store_b16" | "global_store_b8"
+            | "global_load_b32" | "global_load_b64" | "global_load_b128" | "global_store_b32"
             | "global_store_b64" | "global_store_b128" => (VectorMemory, 3, 3),
-            "ds_load_b32" | "ds_load_b64" | "ds_load_b128" | "ds_store_b32" | "ds_store_b64"
-            | "ds_store_b128" => (Lds, 2, 2),
-            "s_wait_loadcnt" | "s_wait_storecnt" | "s_wait_dscnt" | "s_wait_kmcnt"
-            | "s_wait_xcnt" | "s_wait_asynccnt" | "s_wait_tensorcnt" => (Wait, 1, 1),
+            "ds_load_u16" | "ds_load_i16" | "ds_load_u8" | "ds_load_i8" | "ds_store_b16"
+            | "ds_store_b8" | "ds_load_b32" | "ds_load_b64" | "ds_load_b128" | "ds_store_b32"
+            | "ds_store_b64" | "ds_store_b128" => (Lds, 2, 2),
+            "s_wait_loadcnt_dscnt"
+            | "s_wait_storecnt_dscnt"
+            | "s_wait_loadcnt"
+            | "s_wait_storecnt"
+            | "s_wait_dscnt"
+            | "s_wait_kmcnt"
+            | "s_wait_xcnt"
+            | "s_wait_asynccnt"
+            | "s_wait_tensorcnt" => (Wait, 1, 1),
             "s_barrier_signal" | "s_barrier_wait" => (Barrier, 1, 1),
             "s_clause" => (Control, 1, 1),
-            "s_add_co_i32" | "s_add_nc_u32" | "s_sub_nc_u32" => (ScalarAlu, 3, 3),
+            "v_nop" => (Control, 0, 0),
+            "tensor_load_to_lds" | "tensor_store_from_lds" => (VectorMemory, 4, 4),
+            "s_add_co_u32" | "s_add_co_ci_u32" | "s_mul_u64" | "s_add_nc_u64"
+            | "s_and_not1_b32" | "s_add_co_i32" | "s_add_nc_u32" | "s_sub_nc_u32" => {
+                (ScalarAlu, 3, 3)
+            }
             "s_and_saveexec_b32" | "s_andn2_saveexec_b32" | "s_or_saveexec_b32" => {
                 (ScalarAlu, 2, 2)
             }
             "v_mad_u32" => (VectorAlu, 4, 4),
             "v_add_co_ci_u32" => (VectorAlu, 5, 5),
-            "v_add_nc_u32" | "v_sub_nc_u32" | "v_bitop2_b32" => (VectorAlu, 3, 3),
+            "v_add_nc_u64" | "v_add_nc_u32" | "v_sub_nc_u32" | "v_bitop2_b32" => (VectorAlu, 3, 3),
             "v_wmma_f32_16x16x4_f32" | "v_wmma_f32_16x16x32_f16" | "v_wmma_f32_16x16x32_bf16" => {
                 (Matrix, 4, 4)
             }
@@ -60,6 +74,11 @@ pub(super) fn parse_special(
                 "lshrrev_b32",
                 "mov_b32",
                 "bitop2_b32",
+                "cndmask_b32",
+                "fmac_f32",
+                "add_nc_u32",
+                "sub_f32",
+                "max_num_f32",
             ]
             .contains(&name)
             {
@@ -68,11 +87,12 @@ pub(super) fn parse_special(
                     span,
                 });
             }
-            let mut op = super::instr::parse_instruction(
-                &format!("v_{name} {rest}"),
-                span,
-                Architecture::Gfx1250,
-            )?;
+            let text = if name == "cndmask_b32" && rest.split(',').count() == 3 {
+                format!("v_{name}_e64 {rest}, vcc_lo")
+            } else {
+                format!("v_{name} {rest}")
+            };
+            let mut op = super::instr::parse_instruction(&text, span, Architecture::Gfx1250)?;
             if name == "bitop2_b32" {
                 op.mnemonic = "v_bitop3_b32".into();
                 op.operands.push(Operand::Integer(0));

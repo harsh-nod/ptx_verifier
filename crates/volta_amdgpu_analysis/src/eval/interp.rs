@@ -106,6 +106,7 @@ struct Wave {
     accumulator: BTreeMap<(u16, u8), Value>,
     at_barrier: Option<u32>,
     generation: u32,
+    signal_generation: Option<u32>,
     exited: bool,
 }
 impl Wave {
@@ -133,6 +134,7 @@ impl Wave {
             accumulator: BTreeMap::new(),
             at_barrier: None,
             generation: 0,
+            signal_generation: None,
             exited: false,
         }
     }
@@ -422,6 +424,8 @@ enum WordFormat {
     Float32,
     Integer32,
     Float64,
+    Float16,
+    Bfloat16,
 }
 impl<'a> Interpreter<'a> {
     pub fn new(
@@ -1159,7 +1163,43 @@ impl<'a> Interpreter<'a> {
                 step?;
                 progress = true;
             }
-            if self.waves.iter().any(|wave| wave.at_barrier.is_some())
+            if self.architecture == AmdArchitecture::Gfx1250 {
+                // SIGNAL snapshots one phase without blocking. A WAIT can
+                // complete as soon as every surviving wave has signalled it,
+                // even if another participant has not reached its WAIT yet.
+                let ready: Vec<_> = self
+                    .waves
+                    .iter()
+                    .filter_map(|wave| wave.at_barrier)
+                    .filter(|generation| {
+                        self.waves.iter().filter(|wave| !wave.exited).all(|wave| {
+                            wave.signal_generation
+                                .is_some_and(|signal| signal >= *generation)
+                        })
+                    })
+                    .collect();
+                for wave in self.waves.iter_mut().filter(|wave| !wave.exited) {
+                    if let Some(generation) = wave
+                        .at_barrier
+                        .filter(|generation| ready.contains(generation))
+                    {
+                        self.builder.amd_event(
+                            wave.id,
+                            ProgramPoint(wave.pc as u32),
+                            AmdEventKind::SplitBarrierRelease {
+                                barrier: -1,
+                                generation,
+                            },
+                        );
+                        wave.at_barrier = None;
+                        wave.generation += 1;
+                        wave.pc += 1;
+                        progress = true;
+                    }
+                }
+            }
+            if self.architecture != AmdArchitecture::Gfx1250
+                && self.waves.iter().any(|wave| wave.at_barrier.is_some())
                 && self
                     .waves
                     .iter()
@@ -1383,7 +1423,8 @@ impl<'a> Interpreter<'a> {
         }
         let store =
             instruction.mnemonic.contains("store") || instruction.mnemonic.starts_with("ds_write");
-        let no_destination = (wave.width == 32 && mnemonic.starts_with("v_cmpx_"))
+        let no_destination = instruction.mnemonic.starts_with("tensor_")
+            || (wave.width == 32 && mnemonic.starts_with("v_cmpx_"))
             || matches!(
                 instruction.opcode,
                 Opcode::Branch | Opcode::Wait | Opcode::Barrier | Opcode::Control
@@ -1433,6 +1474,22 @@ impl<'a> Interpreter<'a> {
         (reads, writes)
     }
     fn scalar_mask_reads(&self, instruction: &Instruction, wave: &Wave) -> Vec<AmdRegister> {
+        if let [Operand::Dual(x, y)] = instruction.operands.as_slice() {
+            let rx = self.scalar_mask_reads(x, wave);
+            let ry = self.scalar_mask_reads(y, wave);
+            let (xr, _) = self.instruction_registers(x, wave);
+            let (yr, _) = self.instruction_registers(y, wave);
+            let data: Vec<_> = xr
+                .into_iter()
+                .filter(|r| !rx.contains(r))
+                .chain(yr.into_iter().filter(|r| !ry.contains(r)))
+                .collect();
+            return rx
+                .into_iter()
+                .chain(ry)
+                .filter(|r| !data.iter().any(|d| r.overlaps(*d)))
+                .collect();
+        }
         if wave.exec == 0 || instruction.opcode != Opcode::VectorAlu {
             return Vec::new();
         }
@@ -1566,7 +1623,10 @@ impl<'a> Interpreter<'a> {
                 let selector = name == "v_cndmask_b32" && index == 3;
                 let carry = matches!(name, "v_addc_co_u32" | "v_subb_co_u32" | "v_subbrev_co_u32")
                     && index == 4;
-                if (selector || carry) && register == SpecialRegister::Vcc {
+                if (selector || carry)
+                    && (register == SpecialRegister::Vcc
+                        || (wave.width == 32 && register == SpecialRegister::VccLo))
+                {
                     continue;
                 }
                 return Err(EvalError::Unsupported{pc:wave.pc,what:"special mask registers used as vector data require additional Table 11 dependency checks".into()});
@@ -1577,6 +1637,48 @@ impl<'a> Interpreter<'a> {
                 self.memory_instruction(wave, &instruction)?
             }
             Opcode::Wait => self.wait(wave, &instruction)?,
+            Opcode::Barrier if self.architecture == AmdArchitecture::Gfx1250 => {
+                if !matches!(instruction.operands.as_slice(), [Operand::Integer(-1)]) {
+                    return Err(self.unsupported(wave, &instruction));
+                }
+                match name {
+                    "s_barrier_signal" => {
+                        if wave.signal_generation == Some(wave.generation) {
+                            return Err(wave.fail(
+                                None,
+                                "duplicate workgroup barrier signal before phase wait",
+                            ));
+                        }
+                        self.builder.amd_event(
+                            wave.id,
+                            ProgramPoint(wave.pc as u32),
+                            AmdEventKind::SplitBarrierSignal {
+                                barrier: -1,
+                                generation: wave.generation,
+                                exec_mask: wave.exec,
+                            },
+                        );
+                        wave.signal_generation = Some(wave.generation);
+                    }
+                    "s_barrier_wait" => {
+                        if wave.signal_generation != Some(wave.generation) {
+                            return Err(self.unsupported(wave, &instruction));
+                        }
+                        self.builder.amd_event(
+                            wave.id,
+                            ProgramPoint(wave.pc as u32),
+                            AmdEventKind::SplitBarrierWait {
+                                barrier: -1,
+                                generation: wave.generation,
+                            },
+                        );
+                        wave.at_barrier = Some(wave.generation);
+                        self.stats.block_syncs += 1;
+                        return Ok(());
+                    }
+                    _ => return Err(self.unsupported(wave, &instruction)),
+                }
+            }
             Opcode::Barrier => {
                 self.builder.amd_event(
                     wave.id,
@@ -1610,6 +1712,7 @@ impl<'a> Interpreter<'a> {
                 }
             }
             Opcode::Control => match name {
+                "v_nop" => {}
                 "s_endpgm" => {
                     // CDNA4 S_ENDPGM drains all memory counters before the wave
                     // terminates and ceases participating in workgroup barriers.
@@ -1690,8 +1793,16 @@ impl<'a> Interpreter<'a> {
                     let original = wave.clone();
                     let mut wx = original.clone();
                     let mut wy = original;
-                    self.vector(&mut wx, x, canonical_alu(&x.mnemonic))?;
-                    self.vector(&mut wy, y, canonical_alu(&y.mnemonic))?;
+                    self.vector(
+                        &mut wx,
+                        x,
+                        canonical_alu(x.mnemonic.trim_end_matches("_e32").trim_end_matches("_e64")),
+                    )?;
+                    self.vector(
+                        &mut wy,
+                        y,
+                        canonical_alu(y.mnemonic.trim_end_matches("_e32").trim_end_matches("_e64")),
+                    )?;
                     for (op, computed) in [(&**x, &wx), (&**y, &wy)] {
                         let register = wave.destination(&op.operands[0])?;
                         for lane in wave.active().collect::<Vec<_>>() {
@@ -2322,14 +2433,25 @@ impl<'a> Interpreter<'a> {
             return Ok(expr);
         }
         match wave.value(operand, lane)? {
-            Value::Halves(lo, hi) => Ok(if high { hi } else { lo }),
+            Value::Halves(lo, hi) => {
+                let expr = if high { hi } else { lo };
+                self.claim_word_format(wave, expr, WordFormat::Float16)?;
+                Ok(expr)
+            }
             Value::PartialHalves(lo, hi) => {
                 if high { hi } else { lo }.ok_or_else(|| EvalError::Unsupported {
                     pc: wave.pc,
                     what: "unknown half after partial register write".into(),
                 })
             }
-            Value::Half(expr) => Ok(if high { self.arena.int(0) } else { expr }),
+            Value::Half(expr) => {
+                if high {
+                    Ok(self.arena.int(0))
+                } else {
+                    self.claim_word_format(wave, expr, WordFormat::Float16)?;
+                    Ok(expr)
+                }
+            }
             value @ (Value::Bits(_) | Value::Integer(_) | Value::SignedInteger(_)) => {
                 let bits = value.bits().unwrap();
                 let bits = if high { bits >> 16 } else { bits & 0xffff };
@@ -2446,6 +2568,18 @@ impl<'a> Interpreter<'a> {
         instruction: &Instruction,
         name: &str,
     ) -> Result<(), EvalError> {
+        if matches!(name, "s_add_nc_u64" | "s_mul_u64") {
+            let a = wave.wide(&instruction.operands[1], 0)?;
+            let b = wave.wide(&instruction.operands[2], 0)?;
+            let value = if name == "s_mul_u64" {
+                a.wrapping_mul(b)
+            } else {
+                a.wrapping_add(b)
+            };
+            let reg = wave.destination(&instruction.operands[0])?;
+            wave.put(reg, 0, 0, Value::Integer(value as u32))?;
+            return wave.put(reg, 0, 1, Value::Integer((value >> 32) as u32));
+        }
         if name == "s_getreg_b32" {
             if self.architecture != AmdArchitecture::Gfx1250
                 || !matches!(&instruction.operands[1],Operand::HardwareRegister{name,offset:6,width:4} if name=="HW_REG_IB_STS2")
@@ -2504,6 +2638,13 @@ impl<'a> Interpreter<'a> {
                     | "s_max_u32"
                     | "s_min_i32"
                     | "s_max_i32"
+                    | "s_add_nc_u32"
+                    | "s_sub_nc_u32"
+                    | "s_and_saveexec_b32"
+                    | "s_andn2_saveexec_b32"
+                    | "s_or_saveexec_b32"
+                    | "s_mul_u64"
+                    | "s_add_nc_u64"
                     | "s_bfe_u32"
             )
         {
@@ -2877,7 +3018,34 @@ impl<'a> Interpreter<'a> {
             InputKind::F32 => self.real(wave, &selected, lane),
             InputKind::F16 => self.half(wave, &selected, lane, item % 2 != 0),
             InputKind::Fp8E4m3 => self.fp8(wave, &selected, lane, item % 4),
-            InputKind::Bf16 | InputKind::Fp8E5m2 => {
+            InputKind::Bf16 => {
+                let high = item % 2 != 0;
+                let symbolic = match wave.value(&selected, lane)? {
+                    Value::Half(expr) if !high => Some(expr),
+                    Value::Half(_) if high => Some(self.arena.int(0)),
+                    Value::Halves(lo, hi) => Some(if high { hi } else { lo }),
+                    _ => None,
+                };
+                if let Some(expr) = symbolic {
+                    if !matches!(self.arena.node(expr), ExprNode::InputElement { .. })
+                        && self.arena.as_f64(expr) != Some(0.0)
+                    {
+                        return Err(EvalError::Unsupported {
+                            pc: wave.pc,
+                            what: "produced F16 cannot be reinterpreted as symbolic BF16".into(),
+                        });
+                    }
+                    self.claim_word_format(wave, expr, WordFormat::Bfloat16)?;
+                    return Ok(expr);
+                }
+                let bits = wave.bits(&selected, lane)? >> (16 * (item % 2));
+                let value = super::matrix::decode_bits(kind, bits)
+                    .map_err(|what| EvalError::Unsupported { pc: wave.pc, what })?;
+                self.arena
+                    .float_from_f64(value)
+                    .map_err(|e| wave.fail(Some(lane), e.to_string()))
+            }
+            InputKind::Fp8E5m2 => {
                 let bits =
                     wave.bits(&selected, lane)? >> (8 * (item % per_register) * (4 / per_register));
                 let value = super::matrix::decode_bits(kind, bits)
@@ -2888,7 +3056,97 @@ impl<'a> Interpreter<'a> {
             }
         }
     }
+    fn wmma(&mut self, wave: &mut Wave, instruction: &Instruction) -> Result<(), EvalError> {
+        use super::matrix::InputKind;
+        if self.architecture != AmdArchitecture::Gfx1250
+            || wave.valid != 0xffff_ffff
+            || wave.exec != 0xffff_ffff
+            || !instruction.modifiers.is_empty()
+        {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "WMMA requires one complete active wave32 and supported unmodified operands"
+                    .into(),
+            });
+        }
+        let (kind, input_kind, k) = match instruction.mnemonic.as_str() {
+            "v_wmma_f32_16x16x4_f32" => (AmdWmmaKind::F32_16x16x4, InputKind::F32, 4),
+            "v_wmma_f32_16x16x32_f16" => (AmdWmmaKind::F16_16x16x32, InputKind::F16, 32),
+            "v_wmma_f32_16x16x32_bf16" => (AmdWmmaKind::Bf16_16x16x32, InputKind::Bf16, 32),
+            _ => return Err(self.unsupported(wave, instruction)),
+        };
+        let o = &instruction.operands;
+        let (_, destinations) = self.instruction_registers(instruction, wave);
+        let mut role = instruction.clone();
+        role.operands = vec![o[0].clone(), o[1].clone(), o[2].clone()];
+        let (sources_ab, _) = self.instruction_registers(&role, wave);
+        role.operands = vec![o[0].clone(), o[3].clone()];
+        let (accumulator, _) = self.instruction_registers(&role, wave);
+        self.builder.amd_event(
+            wave.id,
+            ProgramPoint(wave.pc as u32),
+            AmdEventKind::WmmaIssue {
+                kind,
+                destinations,
+                sources_ab,
+                accumulator,
+            },
+        );
+        let mut a = vec![Vec::new(); 32];
+        let mut b = vec![Vec::new(); 32];
+        let mut c = vec![Vec::new(); 32];
+        for lane in 0..32u8 {
+            for item in 0..k / 2 {
+                a[lane as usize].push(self.matrix_input(wave, &o[1], lane, item, input_kind)?);
+                b[lane as usize].push(self.matrix_input(wave, &o[2], lane, item, input_kind)?);
+            }
+            for component in 0..8 {
+                let value = if let Operand::Register(register) = o[3] {
+                    let value = wave.reg(register, lane, component)?;
+                    self.real_value(wave, value, lane)?
+                } else {
+                    self.real(wave, &o[3], lane)?
+                };
+                c[lane as usize].push(value);
+            }
+        }
+        if a.iter().chain(&b).chain(&c).flatten().any(|&value| {
+            self.arena
+                .as_f64(value)
+                .is_some_and(|value| !value.is_finite())
+        }) {
+            return Err(wave.fail(None, "WMMA requires finite concrete operands"));
+        }
+        // Public FlyDSL f37f7a2 MmaAtom.cpp: A/B are column-major
+        // (row,K), while C/D row=(lane/16)*8+register,col=lane%16.
+        let input = |row: usize, kk: usize| {
+            if k == 4 {
+                (row + (kk / 2) * 16, kk % 2)
+            } else {
+                (row + ((kk / 8) % 2) * 16, (kk / 16) * 8 + kk % 8)
+            }
+        };
+        let destination = wave.destination(&o[0])?;
+        for lane in 0..32u8 {
+            for component in 0..8 {
+                let row = (lane as usize / 16) * 8 + component;
+                let col = lane as usize % 16;
+                let mut value = c[lane as usize][component];
+                for kk in 0..k {
+                    let (al, av) = input(row, kk);
+                    let (bl, bv) = input(col, kk);
+                    value = self.arena.fma(a[al][av], b[bl][bv], value);
+                }
+                wave.put(destination, lane, component as u16, Value::Real(value))?;
+            }
+        }
+        Ok(())
+    }
     fn matrix(&mut self, wave: &mut Wave, instruction: &Instruction) -> Result<(), EvalError> {
+        if instruction.mnemonic.starts_with("v_wmma_") {
+            return self.wmma(wave, instruction);
+        }
+
         use super::matrix::{Form, InputKind};
         let mut form = Form::from_mnemonic(&instruction.mnemonic)
             .ok_or_else(|| self.unsupported(wave, instruction))?;
@@ -3295,6 +3553,14 @@ impl<'a> Interpreter<'a> {
                 for (component, result) in results.into_iter().enumerate() {
                     wave.put(destination, lane, component as u16, Value::Real(result))?;
                 }
+            }
+            return Ok(());
+        }
+        if name == "v_add_nc_u64" {
+            for lane in lanes {
+                let a = wave.wide(&o[1], lane)?;
+                let b = wave.wide(&o[2], lane)?;
+                wave.put_wide(&o[0], lane, a.wrapping_add(b))?;
             }
             return Ok(());
         }
@@ -4068,6 +4334,35 @@ impl<'a> Interpreter<'a> {
     }
     fn wait(&mut self, wave: &Wave, instruction: &Instruction) -> Result<(), EvalError> {
         if self.architecture == AmdArchitecture::Gfx1250 {
+            if matches!(
+                instruction.mnemonic.as_str(),
+                "s_wait_loadcnt_dscnt" | "s_wait_storecnt_dscnt"
+            ) {
+                let Some(Operand::Integer(encoded)) = instruction.operands.first() else {
+                    return Err(self.unsupported(wave, instruction));
+                };
+                if *encoded < 0 || *encoded > 0x3f3f {
+                    return Err(self.unsupported(wave, instruction));
+                }
+                self.builder.amd_event(
+                    wave.id,
+                    ProgramPoint(wave.pc as u32),
+                    AmdEventKind::WaitCounters {
+                        thresholds: vec![
+                            (
+                                if instruction.mnemonic == "s_wait_loadcnt_dscnt" {
+                                    AmdCounter::Load
+                                } else {
+                                    AmdCounter::Store
+                                },
+                                ((*encoded >> 8) & 63) as u16,
+                            ),
+                            (AmdCounter::Ds, (*encoded & 63) as u16),
+                        ],
+                    },
+                );
+                return Ok(());
+            }
             let counter = match instruction.mnemonic.as_str() {
                 "s_wait_loadcnt" => AmdCounter::Load,
                 "s_wait_storecnt" => AmdCounter::Store,
@@ -4124,6 +4419,210 @@ impl<'a> Interpreter<'a> {
         );
         Ok(())
     }
+    fn tensor(&mut self, wave: &mut Wave, instruction: &Instruction) -> Result<(), EvalError> {
+        if self.architecture != AmdArchitecture::Gfx1250 || !instruction.modifiers.is_empty() {
+            return Err(self.unsupported(wave, instruction));
+        }
+        if wave.exec == 0 {
+            return Ok(());
+        }
+        let load = match instruction.mnemonic.as_str() {
+            "tensor_load_to_lds" => true,
+            "tensor_store_from_lds" => false,
+            _ => return Err(self.unsupported(wave, instruction)),
+        };
+        let mut groups = Vec::new();
+        for (operand, count) in instruction.operands.iter().zip([4, 8, 4, 4]) {
+            let register = wave.destination(operand)?;
+            if register.class != RegisterClass::Scalar || register.count != count {
+                return Err(self.unsupported(wave, instruction));
+            }
+            let mut words = Vec::new();
+            for i in 0..count {
+                words.push(
+                    wave.reg(register, 0, i)?
+                        .bits()
+                        .map_err(|e| wave.fail(None, e))?,
+                );
+            }
+            groups.push(words);
+        }
+        let d0 = &groups[0];
+        let d1 = &groups[1];
+        // Public LLVM/FlyDSL D0..D3 profile: non-cluster 2D, no
+        // padding, atomic barrier, iteration, gather, OOB fill or swizzle.
+        if d0[0] > 1
+            || d0[3] & 0xfe00_0000 != 0x8000_0000
+            || d1[0] & !0x30000 != 0
+            || groups[2].iter().chain(&groups[3]).any(|&x| x != 0)
+        {
+            return Err(EvalError::Unsupported{pc:wave.pc,what:"tensor descriptor requires bounded non-padded 2D global/LDS profile without multicast/atomic/iteration/gather".into()});
+        }
+        if d0[0] == 0 {
+            return Ok(());
+        }
+        let data_size = (d1[0] >> 16) & 3;
+        if data_size > 2 {
+            return Err(self.unsupported(wave, instruction));
+        }
+        let width = 1u64 << data_size;
+        let dim0 = ((d1[1] >> 16) as u64) | (((d1[2] & 65535) as u64) << 16);
+        let dim1 = ((d1[2] >> 16) as u64) | (((d1[3] & 65535) as u64) << 16);
+        let cols = (d1[3] >> 16) as u64;
+        let rows = (d1[4] & 65535) as u64;
+        let stride = d1[5] as u64;
+        if d1[1] & 65535 != 0
+            || d1[4] >> 16 != 0
+            || d1[6] != 0
+            || d1[7] != 0
+            || cols == 0
+            || rows == 0
+            || cols > dim0
+            || rows > dim1
+            || stride < dim0
+        {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "tensor 2D shape/stride/OOB descriptor unsupported".into(),
+            });
+        }
+        let global = d0[2] as u64 | (((d0[3] & 0x1ffffff) as u64) << 32);
+        let shared = d0[1] as u64;
+        let bytes = rows
+            .checked_mul(cols)
+            .and_then(|v| v.checked_mul(width))
+            .filter(|&v| v <= self.lds_size)
+            .ok_or_else(|| wave.fail(None, "tensor tile exceeds LDS capacity"))?;
+        let global_end = (rows - 1)
+            .checked_mul(stride)
+            .and_then(|v| v.checked_add(cols))
+            .and_then(|v| v.checked_mul(width))
+            .and_then(|v| v.checked_add(global))
+            .ok_or_else(|| wave.fail(None, "tensor global address overflow"))?;
+        if !self
+            .config
+            .arrays
+            .iter()
+            .any(|a| a.base <= global && global_end <= a.base + a.size_bytes())
+            && !self
+                .module_globals
+                .values()
+                .any(|a| a.base <= global && global_end <= a.base + a.size)
+        {
+            return Err(wave.fail(
+                None,
+                "tensor footprint crosses global allocation boundaries",
+            ));
+        }
+        let shared_end = shared
+            .checked_add(bytes)
+            .filter(|&v| v <= self.lds_size)
+            .ok_or_else(|| wave.fail(None, "tensor footprint exceeds LDS capacity"))?;
+        if !self.config.shared_allocations.is_empty()
+            && !self
+                .config
+                .shared_allocations
+                .iter()
+                .any(|a| a.offset <= shared && shared_end <= a.offset + a.size)
+        {
+            return Err(wave.fail(
+                None,
+                "tensor footprint crosses shared allocation boundaries",
+            ));
+        }
+        let (reads, _) = self.instruction_registers(instruction, wave);
+        let issue = self.builder.amd_event(
+            wave.id,
+            ProgramPoint(wave.pc as u32),
+            AmdEventKind::MemoryIssue {
+                class: if load {
+                    AmdMemoryClass::TensorLoadToLds
+                } else {
+                    AmdMemoryClass::TensorStoreFromLds
+                },
+                counters: vec![(AmdCounter::Tensor, 1)],
+                destinations: vec![],
+                held_sources: reads,
+            },
+        );
+        let lane = wave.exec.trailing_zeros() as u8;
+        let thread = ThreadIx(wave.id * wave.width + lane as u32);
+        for row in 0..rows {
+            for col in 0..cols {
+                let ga = global + (row * stride + col) * width;
+                let sa = shared + (row * cols + col) * width;
+                self.validate_address(wave, lane, false, ga, width, !load)?;
+                self.validate_address(wave, lane, true, sa, width, load)?;
+                let value = if load {
+                    self.global.read(ga, width)
+                } else {
+                    self.lds.read(sa, width)
+                }
+                .map_err(|e| wave.fail(Some(lane), e))?;
+                if load {
+                    self.lds.write(sa, width, value)
+                } else {
+                    self.global.write(ga, width, value)
+                }
+                .map_err(|e| wave.fail(Some(lane), e))?;
+                for (space, addr, mode) in [
+                    (
+                        Space::Global,
+                        ga,
+                        if load {
+                            AccessMode::Read
+                        } else {
+                            AccessMode::Write
+                        },
+                    ),
+                    (
+                        Space::Shared,
+                        sa,
+                        if load {
+                            AccessMode::Write
+                        } else {
+                            AccessMode::Read
+                        },
+                    ),
+                ] {
+                    let stored = if mode == AccessMode::Write {
+                        Some(self.builder.value(match value {
+                            Value::Input(e)
+                            | Value::Real(e)
+                            | Value::Half(e)
+                            | Value::Byte(e)
+                            | Value::IntExpr(e) => StoredValue::Scalar(e),
+                            Value::Halves(a, b) | Value::BytePair(a, b) => StoredValue::Pair(a, b),
+                            Value::Bytes(v) => StoredValue::Quad(v),
+                            Value::Integer(v) => StoredValue::Scalar(self.arena.int(v as i64)),
+                            _ => StoredValue::Opaque,
+                        }))
+                    } else {
+                        None
+                    };
+                    let effect = self.builder.thread_access(
+                        thread,
+                        ProgramPoint(wave.pc as u32),
+                        MemAccess {
+                            space,
+                            mode,
+                            ordering: OrderingKind::Ordinary,
+                            proxy: Proxy::Generic,
+                            footprint: Footprint::Bytes {
+                                addr,
+                                width: width as u32,
+                            },
+                            role: OperandRole::Plain,
+                            attributed: thread,
+                            value: stored,
+                        },
+                    );
+                    self.builder.amd_memory_effect(issue, effect);
+                }
+            }
+        }
+        Ok(())
+    }
     fn memory_instruction(
         &mut self,
         wave: &mut Wave,
@@ -4131,6 +4630,9 @@ impl<'a> Interpreter<'a> {
     ) -> Result<(), EvalError> {
         let name = instruction.mnemonic.as_str();
         let o = &instruction.operands;
+        if name.starts_with("tensor_") {
+            return self.tensor(wave, instruction);
+        }
         if name == "ds_bpermute_b32" || name == "ds_permute_b32" {
             return self.permute(wave, instruction);
         }
@@ -4645,7 +5147,8 @@ impl<'a> Interpreter<'a> {
                             value: stored,
                         },
                     );
-                    let scope = if name.starts_with("global_")
+                    let scope = if self.architecture != AmdArchitecture::Gfx1250
+                        && name.starts_with("global_")
                         && instruction
                             .modifiers
                             .iter()
@@ -4887,6 +5390,9 @@ fn selectors(
 fn canonical_alu(name: &str) -> &str {
     match name {
         "s_add_co_i32" => "s_add_i32",
+        "s_add_co_u32" => "s_add_u32",
+        "s_add_co_ci_u32" => "s_addc_u32",
+        "s_and_not1_b32" => "s_andn2_b32",
         "v_add_nc_u32" => "v_add_u32",
         "v_sub_nc_u32" => "v_sub_u32",
         "v_add_co_ci_u32" => "v_addc_co_u32",
