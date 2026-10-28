@@ -211,6 +211,13 @@ fn graph_wave_size(graph: &EventGraph) -> u32 {
     )
 }
 
+fn amd_mask(graph: &EventGraph, mask: u64) -> String {
+    format!(
+        "{mask:#0width$x}",
+        width = (graph_wave_size(graph) / 4 + 2) as usize
+    )
+}
+
 fn declared_native_target(source: &str) -> Option<(&str, volta_graph::AmdArchitecture)> {
     let mut declarations = source
         .lines()
@@ -787,7 +794,7 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
                     writes,
                     scalar_mask_reads,
                 } => {
-                    info.push(("EXEC", format!("{exec_mask:#018x}")));
+                    info.push(("EXEC", amd_mask(graph, *exec_mask)));
                     info.push(("reads", format!("{reads:?}")));
                     info.push(("writes", format!("{writes:?}")));
                     info.push(("carry/condition masks", format!("{scalar_mask_reads:?}")));
@@ -823,7 +830,7 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
                     exec_mask,
                 } => {
                     info.push(("generation", generation.to_string()));
-                    info.push(("EXEC", format!("{exec_mask:#018x}")));
+                    info.push(("EXEC", amd_mask(graph, *exec_mask)));
                     ("sync", format!("s_barrier arrive #{generation}"))
                 }
                 volta_graph::AmdEventKind::BarrierRelease { generation } => {
@@ -1385,17 +1392,76 @@ fn release_order_violation(
 
 fn checks(graph: &EventGraph, report: &GraphReport) -> Json {
     Json::Arr(
-        report.applicable_properties()
+        report
+            .applicable_properties()
             .iter()
             .map(|&property| {
                 let summary = report.summary(property);
                 let findings = match property {
-                    Property::AmdTrace=>report.amd.as_ref().map(|a|findings(&a.trace,|u|(u.reason.clone(),u.events.clone()))).unwrap_or_default(),
-                    Property::AmdWaitReadiness=>report.amd.as_ref().map(|a|findings(&a.wait_readiness,|h|(
-                        format!("wave {} {:?}: {:?}{} lanes {:#018x} is pending from e{} at e{}",h.wave,h.kind,h.register.file,h.register.index,h.register.lanes,h.issue.0,h.use_event.0),vec![h.issue,h.use_event]))).unwrap_or_default(),
-                    Property::AmdBarrier=>report.amd.as_ref().map(|a|findings(&a.barrier,|v|(format!("wave {} barrier #{}: {}",v.wave,v.generation,v.reason),vec![v.event]))).unwrap_or_default(),
-                    Property::AmdMemoryConflict=>report.amd.as_ref().map(|a|findings(&a.memory_conflict,|c|(
-                        format!("{} conflict at {} {:#x}: e{} and e{} lack AMD ordering",conflict_kind(c.kind),space_name(c.location.space),c.location.addr,c.earlier.0,c.later.0),vec![c.earlier,c.later]))).unwrap_or_default(),
+                    Property::AmdTrace => report
+                        .amd
+                        .as_ref()
+                        .map(|a| findings(&a.trace, |u| (u.reason.clone(), u.events.clone())))
+                        .unwrap_or_default(),
+                    Property::AmdWaitReadiness => report
+                        .amd
+                        .as_ref()
+                        .map(|a| {
+                            findings(&a.wait_readiness, |h| {
+                                (
+                                    format!(
+                                        "wave {} {:?}: {:?}{} {} is pending from e{} at e{}",
+                                        h.wave,
+                                        h.kind,
+                                        h.register.file,
+                                        h.register.index,
+                                        if h.register.is_uniform() {
+                                            "uniform".into()
+                                        } else {
+                                            format!("lanes {}", amd_mask(graph, h.register.lanes))
+                                        },
+                                        h.issue.0,
+                                        h.use_event.0
+                                    ),
+                                    vec![h.issue, h.use_event],
+                                )
+                            })
+                        })
+                        .unwrap_or_default(),
+                    Property::AmdBarrier => report
+                        .amd
+                        .as_ref()
+                        .map(|a| {
+                            findings(&a.barrier, |v| {
+                                (
+                                    format!(
+                                        "wave {} barrier #{}: {}",
+                                        v.wave, v.generation, v.reason
+                                    ),
+                                    vec![v.event],
+                                )
+                            })
+                        })
+                        .unwrap_or_default(),
+                    Property::AmdMemoryConflict => report
+                        .amd
+                        .as_ref()
+                        .map(|a| {
+                            findings(&a.memory_conflict, |c| {
+                                (
+                                    format!(
+                                        "{} conflict at {} {:#x}: e{} and e{} lack AMD ordering",
+                                        conflict_kind(c.kind),
+                                        space_name(c.location.space),
+                                        c.location.addr,
+                                        c.earlier.0,
+                                        c.later.0
+                                    ),
+                                    vec![c.earlier, c.later],
+                                )
+                            })
+                        })
+                        .unwrap_or_default(),
                     Property::NamedBarrierEpoch => {
                         findings(&report.named_barrier_epoch, |v| epoch_violation(graph, v))
                     }
