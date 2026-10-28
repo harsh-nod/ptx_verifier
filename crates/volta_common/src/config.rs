@@ -12,6 +12,9 @@ pub enum ParamValue {
     SymFloat(String),
     /// Pointer to a named array from `AnalysisConfig::arrays`
     ArrayPtr(String),
+    /// Exact native by-value ABI bytes, including caller-supplied padding.
+    /// PTX does not accept this parameter form.
+    Bytes(Vec<u8>),
 }
 
 /// Whether an array is a kernel input (pre-initialized with fresh symbols),
@@ -203,6 +206,9 @@ impl AnalysisConfig {
         }
         let mut sym_names = std::collections::BTreeSet::new();
         for (i, value) in self.params.iter().enumerate() {
+            if matches!(value, ParamValue::Bytes(bytes) if bytes.is_empty()) {
+                return Err(format!("parameter {i} has an empty native byte payload"));
+            }
             // NaN denotes no real number: it cannot enter the analysis
             // model (the infinities can - they are running-max/min seeds).
             if let ParamValue::Float(v) = value

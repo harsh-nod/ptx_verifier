@@ -61,6 +61,15 @@ instruction forms, ABI/toolchain envelope and arithmetic assumptions, and the
 completion gate; it fails while any baseline row is pending. Unsupported,
 sampled, aborted and resource-limited analyses remain inconclusive.
 
+### HipKittens kernels
+
+`just extract-hipkittens` compiles pinned upstream HipKittens CDNA4 sources to
+gfx950 assembly; `just hipkittens` checks them through the same external-kernel
+harness used for ThunderKittens. The workflow reports unsupported application
+instructions explicitly and includes a validated local vector-copy control.
+See [the HipKittens workflow](external/hipkittens/README.md) for setup, current
+results, exact ABI payloads, hardware checks and strict exit-status handling.
+
 ## CLI
 
 ### Check a kernel for races and deadlocks
