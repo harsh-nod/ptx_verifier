@@ -1,6 +1,6 @@
 # volta_graph_check
 
-For exactly the `gfx950` target, `check_graph` selects four AMD properties:
+For supported `gfx942`, `gfx950` and `gfx1250` targets, `check_graph` selects four AMD properties:
 trace completeness, wait/register readiness, workgroup barrier generations, and
 memory-conflict freedom. `Property::ALL` retains the ten PTX properties for API
 compatibility; consumers must enumerate `report.applicable_properties()` or
@@ -10,7 +10,9 @@ events, unsupported memory effects, and missing instruction/issue associations
 cannot produce `Verified`. An aborted prefix remains incomplete even if its checked
 obligations pass.
 
-AMD ordering is independent of PTX certificates. VM and LDS FIFO pipelines, waits
+AMD ordering is independent of PTX certificates. The following VM/LGKM/MFMA
+profile applies to gfx942/gfx950; see the separate gfx1250 section for its
+wave32 counters, replay and WMMA rules. VM and LDS FIFO pipelines, waits
 that guarantee completion, and validated workgroup rendezvous create completed-effect
 frontiers. Candidate trace order and a barrier alone do not complete memory operations.
 The checker reuses the existing byte-overlap domain and conflict forest, with clocks
@@ -46,9 +48,12 @@ separate rules. XDL accumulator-source overwrites require `passes - 1` states.
 S_NOP contributes its encoded immediate plus one and must have a pinned source
 instruction. Other matrix forms, general DPP/special-register software hazards,
 and global cache visibility policies are not inferred from this model.
-Cross-wave global communication remains `Unknown`
-even when waits/barriers establish execution order, until its cache scopes are modeled.
-Disjoint global outputs and LDS communication are covered by the ordinary checks.
+Scoped cross-wave GLOBAL publication on gfx942/gfx950 requires completed effects,
+workgroup scope at both endpoints, and the explicit `SingleCuWorkgroup` premise.
+Unscoped publication remains inconclusive even when execution order is known;
+conflicting unordered accesses still fail. No FLAT/SMEM/device/system visibility
+protocol is inferred. This legacy cache certificate is rejected on gfx1250.
+Disjoint global outputs and LDS communication use the ordinary native checks.
 
 References: [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
 (5-August-2025, sections 4.3–4.5, 7.6 Table 38, 8.3, 10.2 and 12.12), and LLVM
@@ -61,7 +66,7 @@ FP8-dependent doubled pass counts for F8F6F4 instructions.
 Focused regression suite: `cargo test -p volta_graph_check --test amdgpu_tests`.
 The PTX tests remain in the same package and are required independently.
 
-The graph branch of the pipeline: ten checks over one `volta_graph::EventGraph`
+The PTX graph branch of the pipeline runs ten checks over one `volta_graph::EventGraph`
 that decide whether the recorded candidate execution is free of data races,
 proxy and tensor-ordering hazards, and synchronization misuse. Seven are the
 algorithms of the Volta v2 design's data-race freedom check (Algorithms 1-7);
@@ -198,8 +203,9 @@ Prerequisites (`Property::prerequisites`): 1, 2, 3 and 10 need nothing; 4 and
 
 ## Conclusion
 
-- **`Verified`**: the trace completed and all ten checks passed. Nothing else
-  is consulted.
+- **`Verified`**: the trace completed and every applicable check passed: ten
+  PTX properties or four native AMD properties. Inapplicable PTX fields in an
+  AMD report do not participate in that conclusion.
 - **`Rejected { failed, deadlock }`**: some check failed (with its typed
   witnesses), or the trace is stuck (a deadlock).
 - **`Unknown`**: nothing failed, but some obligation is unresolved or the trace

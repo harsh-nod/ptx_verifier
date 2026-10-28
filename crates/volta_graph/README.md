@@ -1,7 +1,7 @@
 # volta_graph
 
-The gfx950 producer uses the same `EventGraph` and `GraphBuilder`. Its additive
-`AmdEventKind` records retain wave64 EXEC masks, individual register/lane slices,
+The gfx942/gfx950/gfx1250 producers use the same `EventGraph` and `GraphBuilder`.
+Their additive `AmdEventKind` records retain target-selected EXEC masks, individual register/lane slices,
 memory counter charges, waits, matrix operand roles, independent S_NOP states, and
 workgroup barrier generations. `EventKind::Amd(index)` indexes `amd_events()`;
 `amd_memory_effects()` associates existing byte-footprint memory events with their
@@ -11,17 +11,18 @@ though their data is calculated eagerly. Their event positions do not certify co
 Record one `Instruction` before each issued instruction and its semantic event,
 one `MemoryIssue` per wave instruction, and an association for every memory effect
 (including kernarg/dispatch reads). EXEC=0 vector instructions produce an instruction
-record but no memory issue. Cross-lane DS permutations have LGKM charges and pending
-registers with no fabricated LDS footprint. MFMA has a separate `MatrixIssue`.
-Register ranges use one entry per 32-bit register and full 64-bit lane masks.
+record but no memory issue. Cross-lane DS permutations have target-selected counter charges and pending
+registers with no fabricated LDS footprint. Legacy MFMA uses `MatrixIssue`;
+gfx1250 WMMA uses `WmmaIssue`. Register ranges use one entry per 32-bit register;
+u64 lane masks use 64 physical bits on gfx942/gfx950 and only 32 on gfx1250.
 
-PTX text dumps remain `volta-graph 1`; graphs with AMD records use
+Text dumps without native AMD events retain `volta-graph 1`; graphs with AMD events use
 `volta-graph 2` and include their sidecar associations. The text dump is a diagnostic
 format, not an executable replay input. AMD rendezvous deadlocks use
 `BlockedOn::AmdBarrier` without inventing a PTX synchronization object.
 
 The typed event graph of **one candidate execution** of a kernel. The analysis
-(`volta_ptx_analysis`) records it while it interprets the kernel; the graph checks
+(`volta_ptx_analysis` or `volta_amdgpu_analysis`) records it while it interprets the kernel; the graph checks
 (`volta_graph_check`) and the viewer (`volta_viz`) read it. Neither side
 depends on the other: this crate (plus `volta_expr`, for stored values) is
 their whole contract.
@@ -38,7 +39,7 @@ src/
 ├── graph.rs     EventGraph: the finished, immutable graph and its accessors
 ├── builder.rs   GraphBuilder: append-only construction in trace order
 ├── validate.rs  EventGraph::validate: representation invariants
-└── dump.rs      EventGraph::dump: the deterministic `volta-graph 1` text form
+└── dump.rs      EventGraph::dump: deterministic PTX v1 / native AMD v2 diagnostic text
 ```
 
 ## The data structure
@@ -48,6 +49,9 @@ each other:
 
 ```rust
 pub struct EventGraph {
+    amd_events:    Vec<AmdEvent>,                    // native wave instruction/semantic records
+    amd_memory_effects: Vec<AmdMemoryEffect>,        // issues associated with byte effects
+    shared_allocation_layout: Vec<SharedAllocation>, // explicit caller-supplied LDS bounds
     provenance:    Provenance,                       // launch, targets, assumptions, pc -> source span
     events:        IdVec<EventId, Event>,            // every event, in trace order
     accesses:      IdVec<AccessId, MemAccess>,       // memory effects (pointed to by Access events)
@@ -75,10 +79,10 @@ after `e4` in the schedule the interpreter ran. Each `Event` has:
 - `kind: EventKind`, what happened: `Access`, `Contribute`, `WaitStart`,
   `Resume`, `GenerationComplete`, `AsyncIssue`, `AsyncComplete`,
   `GroupCommit`, `Fence`, `ObjectInit`/`ObjectInval`,
-  `TmemAlloc`/`TmemDealloc`/`TmemRelinquish`, `Exit`.
+  `TmemAlloc`/`TmemDealloc`/`TmemRelinquish`, `Amd(index)`, `Exit`.
 - `pc: Option<ProgramPoint>`, the lowered instruction it belongs to (`None`
   for generation completions). `Provenance::instructions[pc]` maps it back to
-  the PTX source span.
+  the PTX or native AMD source span.
 
 ### Memory effects
 
@@ -295,9 +299,10 @@ returns `Ok`; it returns every `GraphDefect` it found.
 
 ## Text dump (`dump.rs`)
 
-`EventGraph::dump()` / `write_dump()` print the `volta-graph 1` format shown
-above: header and assumptions, then objects, generations (with contributions
-and releases), async ops, events, and the terminal state, each in id order.
+`EventGraph::dump()` / `write_dump()` print the PTX version 1 format shown
+above, or version 2 with native AMD records and associations. Both include the
+header, assumptions, objects, generations, async ops, events and terminal state
+in deterministic order. These dumps are diagnostics, not replay inputs.
 Equal graphs dump to identical bytes, so diffs of dumps show trace changes.
 
 ## Native wave geometry

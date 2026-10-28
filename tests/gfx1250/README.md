@@ -33,9 +33,9 @@ The default toolchain is `/opt/rocm-7.2.0/lib/llvm/bin`, AMD LLVM 22, compiler
 revision `7b800a19466229b8479a78de19143dc33c3ab9b5`. The old default LLVM 18
 is not used. `fixtures/compiler-provenance.json` records actual commands,
 tool/source/assembly/object/code-object hashes and the hardware exclusion.
-The compilation script rejects an empty source directory. `emitted-instructions.json`
+The compilation script rejects an empty source directory. [`fixtures/emitted-instructions.json`](fixtures/emitted-instructions.json)
 records actual instruction profiles, including VOPD components; it is an inventory,
-not a stage-support claim. `mutations.json` pins fifteen assemble-valid controls
+not a stage-support claim. [`fixtures/mutations.json`](fixtures/mutations.json) pins fifteen assemble-valid controls
 and their expected safety properties. Semantic rejection must be tested separately.
 
 `oracles.py` uses ordinary dense CPU matrix loops after decoding only the lane ABI
@@ -52,7 +52,8 @@ literals outside that language's signed64 domain.
 2,176 A/B input-basis launches across all three types, plus three finite
 by-value encoding controls. The BF16 input `0x3f80` must decode as 1, while
 the F16 input uses `0x3c00`; all 256 results are checked for every launch.
-These native gates pass the integrated execution and graph-checker contracts. `wmma-oracle-vectors.json` contains nine independent asymmetric
+These native gates pass the integrated execution and graph-checker contracts.
+[`fixtures/wmma-oracle-vectors.json`](fixtures/wmma-oracle-vectors.json) contains nine independent asymmetric
 finite CPU vectors and their complete outputs; those vectors alone do not
 certify the interpreter. Use `--vectors-output` with `oracles.py` to regenerate them.
 The native wide-product test parses once and checks all four exact outputs for
@@ -64,7 +65,7 @@ Padding, multicast, iteration and atomic-barrier descriptor features are outside
 this fixture's profile. The attention case retains all 32 keys in normalization
 and all 512 outputs; native exp/reciprocal use the disclosed real-number model,
 which does not prove physical finite-precision error bounds.
-`descriptor-oracle.json` enumerates every global/LDS element address for all
+[`fixtures/descriptor-oracle.json`](fixtures/descriptor-oracle.json) enumerates every global/LDS element address for all
 four tensor transfers, including both uses of the same bounded LDS allocation.
 
 The compiler's tensor builtin takes D0/D1/D2/D3 plus cache policy. The newer
@@ -78,7 +79,7 @@ gfx1250 is wave32 with hardwired XNACK; it must not inherit the existing
 wave64 replay-disabled assumptions. Workgroup-zero analysis does not certify
 cluster or whole-grid behavior. The existing mathematical-real abstraction
 does not establish IEEE rounding/NaN/denormal equivalence.
-`semantic-references.json` pins reachable public LLVM files at
+[`fixtures/semantic-references.json`](fixtures/semantic-references.json) pins reachable public LLVM files at
 `5fd50ec8e07abb94e203933017e8d6e40fb51824` and the independent public layout
 reference. Local source snapshots are recorded only as secondary comparisons.
 
@@ -133,15 +134,17 @@ To regenerate a focused native viewer store without recording thousands of
 numeric variations:
 
 ```sh
-VOLTA_VIZ_DIR=target/gfx1250-viewer cargo test --release -p volta_pipeline \
+VOLTA_VIZ_DIR="$PWD/target/gfx1250-viewer" cargo test --release -p volta_pipeline \
   --test gfx1250_compiler_tests -- \
   --skip real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter \
   --skip real_gfx1250_wide_product_and_mad_match_exact_unsigned_and_signed_128bit_oracles
-cargo run --release -p volta_cli -- --no-log-file viz target/gfx1250-viewer \
+cargo run --release -p volta_cli -- --no-log-file viz "$PWD/target/gfx1250-viewer" \
   -o target/gfx1250-viewer.html
 ```
 
-The skipped numeric variations still run in the full native proof suite. See
+Use an absolute `VOLTA_VIZ_DIR`: Cargo executes tests from the package folder,
+while the CLI command above starts at the repository root. The skipped numeric
+variations still run in the full native proof suite. See
 [the browser harness](../../crates/volta_viz/tests/browser/README.md) for mixing
 legacy records and running Chromium. The compiler-check receipt matches entire
 regenerated assembly after normalizing only translation-unit CUID symbols; exact

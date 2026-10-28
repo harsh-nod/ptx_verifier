@@ -1,10 +1,17 @@
-# Volta Architecture Documentation
+# GPU Kernel Verifier Architecture Documentation
 
 **Purpose**: Codebase context for AI-assisted development
 
 ## Overview
 
-Volta is an abstract interpreter for NVIDIA PTX kernels, implementing the approach from "Equivalence Checking of ML GPU Kernels" (arXiv:2511.12638). It detects data races and verifies kernel equivalence.
+GPU Kernel Verifier extends Volta's abstract interpretation and equivalence
+checking to NVIDIA PTX and selected native AMD gfx942/gfx950/gfx1250 assembly.
+The CLI and Python package retain the `volta` name. Each analyzer produces
+symbolic outputs and a candidate event graph; independent branches check
+mathematical equivalence and target-specific safety. This is an experimental
+best-effort model, not a claim of formal soundness, complete ISA coverage or
+whole-device correctness. gfx1250 software validation is complete for its
+[documented subset](tests/gfx1250/CONTRACT.md); hardware validation is pending.
 
 ## Coding practices
 
@@ -26,12 +33,14 @@ crates/
 ├── volta_expr/       # Expression language (arena, SymbolicOutputs, .vexpr text format)
 ├── volta_spec/       # Specs (.spec language -> mathematical form -> SymbolicOutputs)
 ├── volta_graph/      # Typed event graph of one candidate execution (model, builder, invariants, dump)
-├── volta_graph_check/ # The seven graph checks of the Volta v2 design (Algorithms 1-7), allocation order and permit, mbarrier release order, and their suite
+├── volta_graph_check/ # Ten PTX or four native AMD properties, selected from target provenance
 ├── volta_ptx_analysis/ # PTX frontend (lexer, parser) and abstract interpreter (PTX -> expressions + event graph)
+├── volta_amdgpu_analysis/ # Native AMD frontend, target/ABI validation, interpreter and event producer
 ├── volta_equivalence/ # Equivalence checking of expressions (decision procedure, VC dumps)
 ├── volta_pipeline/   # Analysis -> {equivalence, graph} branches -> ACCEPT/REJECT/UNKNOWN; every end-to-end PTX test
 ├── volta_viz/        # Event-graph viewer (run store -> one self-contained HTML page)
-└── volta_cli/        # Command-line interface
+├── volta_cli/        # Command-line interface
+└── volta_py/         # PyO3 bindings: parse/analyze/verify
 ```
 
 ### Dependency Graph
@@ -39,19 +48,21 @@ crates/
 Direct dependencies of each crate:
 
 ```
-volta_cli          → volta_pipeline, volta_equivalence, volta_ptx_analysis, volta_graph_check, volta_graph, volta_viz, volta_spec, volta_expr, volta_common
-volta_viz          → volta_graph_check, volta_graph, volta_expr
-volta_pipeline     → volta_ptx_analysis, volta_equivalence, volta_graph_check, volta_graph, volta_expr (+ dev: volta_viz)
-volta_equivalence  → volta_expr (+ dev: volta_spec)
-volta_spec         → volta_expr, volta_common
-volta_ptx_analysis → volta_graph, volta_expr, volta_common
-volta_graph_check  → volta_graph
-volta_graph        → volta_expr
-volta_expr         → (nothing)
-volta_common       → (nothing)
+volta_cli             → volta_amdgpu_analysis, volta_common, volta_equivalence, volta_expr, volta_graph, volta_graph_check, volta_pipeline, volta_ptx_analysis, volta_spec, volta_viz
+volta_py              → volta_amdgpu_analysis, volta_common, volta_equivalence, volta_expr, volta_graph_check, volta_pipeline, volta_ptx_analysis, volta_spec
+volta_viz             → volta_expr, volta_graph, volta_graph_check
+volta_pipeline        → volta_amdgpu_analysis, volta_equivalence, volta_expr, volta_graph, volta_graph_check, volta_ptx_analysis (+ dev: volta_viz)
+volta_amdgpu_analysis → volta_common, volta_expr, volta_graph (+ dev: volta_equivalence, volta_spec)
+volta_ptx_analysis    → volta_common, volta_expr, volta_graph
+volta_equivalence     → volta_expr (+ dev: volta_spec)
+volta_spec            → volta_common, volta_expr (+ dev: volta_equivalence)
+volta_graph_check     → volta_graph (+ dev: volta_expr)
+volta_graph           → volta_common, volta_expr
+volta_expr            → (no workspace crate)
+volta_common          → (no workspace crate)
 ```
 
-`volta_ptx_analysis` (the producer) and `volta_equivalence` (the consumer) share
+The PTX and native AMD producers and `volta_equivalence` (the consumer) share
 only the expression language; neither depends on the other. Likewise the
 event graph (`volta_graph`) is the analysis's only contract with graph
 verification (`volta_graph_check`). The analysis runs no checker and no
@@ -92,6 +103,10 @@ Volta crate. IDs: `ExprId`/`StringId`/`SymbolId` (`SymbolId::fresh()` draws
 from a process-global counter).
 
 ### Symbolic Expressions (`symbolic.rs`)
+
+Display preserves every digit of integer-valued `Real` constants, including
+values above 2^53. Other rationals use a round-tripping f64 representation or
+`p/q`; expression and VC serialization remain exact.
 
 Arena-allocated: nodes live in an `ExprArena`, referenced by copyable `ExprId`
 handles. Constructors constant-fold eagerly - **exactly**: float constants
@@ -208,8 +223,43 @@ crate-level docs in `lib.rs` are the contract.
   `Assumption`s, per-instruction kind and source span.
 - `EventGraph::validate` checks the representation invariants (every typed
   edge runs forward in trace order, so the relation is acyclic);
-  `EventGraph::dump` is the deterministic `volta-graph 1` text form
-  (`volta analyze --dump-graph FILE`).
+  `EventGraph::dump` writes diagnostic text: `volta-graph 2` when native AMD
+  events are present, otherwise version 1 (`volta analyze --dump-graph FILE`). It is not
+  an executable replay format. Native records live in `amd_events()` and
+  `amd_memory_effects()`; configured LDS subobjects are exported separately.
+
+## Crate: volta_amdgpu_analysis
+
+**Path**: `crates/volta_amdgpu_analysis/`
+
+The independent native AMD producer: `frontend::parse` builds typed LLVM AMDHSA
+assembly, `target::validate` checks generation-specific profiles, lowering keeps
+native source spans, and `analyze` executes a candidate workgroup-zero schedule.
+It returns symbolic outputs, an event graph and statistics without running graph
+or equivalence checks. Common configuration types come from `volta_common`.
+
+| Target | Geometry | Selected matrix mechanism | Aggregate LDS model |
+| --- | --- | --- | --- |
+| gfx942 | wave64 | selected CDNA3 MFMA | 65,536 bytes |
+| gfx950 | wave64 | selected CDNA4 MFMA | 163,840 bytes |
+| gfx1250 | wave32 | selected F32/F16/BF16 WMMA | 327,680 bytes |
+
+The native graph records instruction register roles, counter charges and exact
+memory associations. gfx942/gfx950 use their own VM/LGKM/EXP and MFMA rules.
+gfx1250 uses separate load/store/DS/KM/X/async/tensor completion, replay-source
+leases, split shader barriers and bounded plain 2D TDM. It does not inherit the
+legacy replay-disabled or `SingleCuWorkgroup` premises. Values are computed at
+issue; the checker independently establishes readiness/publication.
+
+The tested compiler envelope is code-object 6 and metadata 1.2. By-value bytes
+must match argument metadata exactly; unknown ABI bits remain undefined.
+Bare gfx1250, one unclustered workgroup and supported operand encodings define
+its tested subset. Advanced unsupported modes remain explicit. See the
+[crate README](crates/volta_amdgpu_analysis/README.md) and
+[gfx1250 contract](tests/gfx1250/CONTRACT.md) before extending the profile.
+Native Rust tests, genuine cross-compiled fixtures, independent oracles and
+hardware-pending evidence are separate categories. Historical gfx942/gfx950
+hardware receipts do not validate gfx1250 execution.
 
 ## Crate: volta_ptx_analysis
 
@@ -371,7 +421,7 @@ verdict, duration) in `check_graph`. `cargo run -p volta_cli
 
 **Path**: `crates/volta_graph_check/`
 
-The seven checks of the Volta v2 design's data-race freedom check (§1.3 of the
+For PTX, the seven checks of the Volta v2 design's data-race freedom check (§1.3 of the
 design document), then three beyond it (allocation order and allocation permit,
 PTX ISA rules, and mbarrier release order), one
 module each, each callable on an `EventGraph` in
@@ -483,19 +533,25 @@ none turns an unsupported case into `Pass`. Depends only on `volta_graph`.
   which an async copy's `complete_tx` escapes. No prerequisites, no
   certificate.
 - `suite.rs` - `check_graph(graph) -> GraphReport` runs them in
-  `Property::ALL` order (a topological order of `Property::prerequisites`; a
-  check whose prerequisites failed is `Unknown`); `GraphReport::conclusion()`:
-  `Verified` (a completed trace and all ten checks passing; nothing else is
-  consulted) / `Rejected { failed, deadlock }` / `Unknown`. A stuck trace is
-  the trace generator's deadlock diagnostic, an aborted one is inconclusive.
+  `Property::ALL` order for PTX (a topological order of prerequisites; a
+  check whose prerequisites failed is `Unknown`). Native AMD targets instead
+  select trace completeness, wait/readiness, barrier generations and memory
+  conflicts. Enumerate `applicable_properties()` or `summaries()`, not all PTX
+  fields. `GraphReport::conclusion()` is `Verified` only for a completed trace
+  with all applicable properties passing. Other conclusions are
+  `Rejected { failed, deadlock }` and `Unknown`. A stuck trace is the trace
+  generator's deadlock diagnostic; an aborted trace is inconclusive.
 
 ## Crate: volta_pipeline
 
 **Path**: `crates/volta_pipeline/`
 
-The integration point: `verify_kernel(module, kernel, config)` (analysis stage
-+ the graph branch's ten checks),
-`check_equivalence` (the equivalence branch over symbolic outputs only; a
+The integration point: `verify_source_kernel(&KernelModule, kernel, config)`
+dispatches to PTX or native AMD, then runs the applicable graph checks.
+`verify_kernel` remains the PTX-specific entry point. `Backend::select` keeps
+PTX as the overall default and gfx950 as the omitted AMD target; explicit
+selection must agree with the source. `check_equivalence` runs the other
+branch over symbolic outputs only (a
 claimed difference is a refutation only once the numeric oracle separates it,
 else `Unproven`), and `decide(equivalence, kernels) -> Decision { verdict,
 evidence, assumptions }`: ACCEPT needs a complete (unsampled) equivalence proof
@@ -650,9 +706,12 @@ The event-graph viewer; depends only on `volta_graph`, `volta_graph_check`
 (findings, pipeline edges) and `volta_expr` (stored values). `write_run(dir,
 &Run)` stores one run (`Outcome::Executed { graph, arena, report }` or
 `NotStarted { cause, error }`, `cause` being `Unsupported` when lowering failed)
-as a `volta-viz 1` JSON document plus a `.meta.json` summary. A run's status is
-race-free, race-condition (a memory-conflict, proxy-order or tensor-order
-failure), check-failed, deadlock, unsupported, unknown, error, or unchecked (no
+as a `volta-viz 1` JSON document plus a `.meta.json` summary. Additive target,
+source-language and wave-geometry fields distinguish PTX warp32, AMD wave64
+and gfx1250 wave32. A source-only unsupported run carries declared geometry
+without an invented launch. A run's status is
+race-free, race-condition (native memory/readiness, or PTX memory-conflict,
+proxy-order or tensor-order failure), check-failed, deadlock, unsupported, unknown, error, or unchecked (no
 graph check run).
 `write_page(dir, out)` inlines `viewer/{page.html,style.css,app.js}` and every
 stored run into one self-contained HTML page. Documents are compact
@@ -662,14 +721,30 @@ async op is `[issue, completion, effects...]`) and embedded as inert
 opened. The page lays each run out as a space-time diagram: a lane per thread,
 per issuing thread's async ops and per sync object, rows by longest-path
 layering over program order and the typed edges, the checks' witnesses and a
-stuck trace's blocked threads ringed, and the PTX source behind every pc.
+stuck trace's blocked threads ringed, and the PTX or native AMD source behind every pc.
 Around the diagram: an overview of every run (statuses, suites) while none is
 open, a step ruler, an overview map while zoomed in, a legend that highlights
 or steps through one event kind, and keyboard navigation (`?` lists the keys).
 
+## Crate: volta_py
+
+**Path**: `crates/volta_py/`
+
+PyO3 bindings expose `parse`, `analyze` and `verify`; comparison remains CLI-only.
+`Config(..., backend="amdgpu", target="gfx1250")` selects native execution.
+The independent `parse` function also takes backend/target keywords. Arrays,
+concrete parameters, `Param.bytes([...])` and optional LDS subobject premises
+mirror existing Rust configuration. Failed native checks raise typed
+`DataRaceError`/`DeadlockError`; incomplete verification warns and sets
+`race_verified=False`. `just test-python` rebuilds the extension before testing.
+
 ## Crate: volta_cli
 
 **Path**: `crates/volta_cli/`
+
+PTX is the default; `--backend amdgpu --target gfx942|gfx950|gfx1250` selects
+native assembly through `verify_source_kernel`. Omitted AMD targets keep gfx950.
+The same launch, comparison, numeric, export, logging and viewer interfaces apply.
 
 Commands:
 
@@ -696,7 +771,7 @@ Commands:
 Every run writes a `volta_common::run_log` file (`--log-dir`/
 `--no-log-file`).
 
-## Data Flow
+## Data Flow (PTX path)
 
 ```
 PTX Source
@@ -734,7 +809,9 @@ volta_pipeline::decide ──► ACCEPT / REJECT / UNKNOWN (+ evidence, assumpti
 
 ### 1. Symbolic Execution over Concrete Values
 
-All values are `Expr` (symbolic expressions). This allows analyzing behavior for arbitrary thread indices and detecting races without enumerating all inputs.
+Input data is represented by shared expression DAGs. Register state also retains
+concrete words, masks, pointers and format tags. Thread indices and launch sizes
+are concrete; the symbolic expressions represent arbitrary configured input data.
 
 ### 2. Concrete Addresses for Race Detection
 
@@ -742,11 +819,11 @@ Memory addresses must be concrete (`u64`) for race detection. Thread indices are
 
 ### 3. Race Detection Is Not Part of the Evaluator
 
-The paper's χ-context detector (Section 4.2) used to run inside the interpreter. It was removed: the interpreter records a typed event graph of its one candidate schedule, and `volta_graph_check` verifies it downstream with the seven checks of the Volta v2 design and the allocation-order, allocation-permit and mbarrier release-order checks (memory conflicts through the typed `G_HB` projection, never untyped reachability). A kernel is VERIFIED when its trace completed and all ten checks pass on it; no further schedule argument is consulted.
+The paper's χ-context detector (Section 4.2) used to run inside the interpreter. It was removed: the interpreter records a typed event graph of its one candidate schedule, and `volta_graph_check` verifies it downstream with the seven checks of the Volta v2 design and the allocation-order, allocation-permit and mbarrier release-order checks (memory conflicts through the typed `G_HB` projection, never untyped reachability). A kernel is VERIFIED when its trace completed and all applicable checks pass: ten PTX or four native AMD properties. This is a model-dependent result, not a formal soundness guarantee.
 
 ### 4. Round-Robin Scheduling
 
-Simple, deterministic interleaving: the candidate execution. The ten checks judge the event graph of this one execution (see 3).
+Deterministic interleaving produces one candidate execution: PTX thread scheduling and native AMD wave scheduling. Target-selected checks judge the resulting event graph (see 3).
 
 ### 5. Strongly-Typed IDs
 
@@ -763,7 +840,7 @@ Enables robust modifier validation and better error messages.
 
 Global, shared, local, param memories are separate `Memory` instances, matching PTX memory model.
 
-## Adding a New Instruction
+## Adding a New PTX Instruction
 
 1. **Frontend**: Add `InstrKind` variant in `frontend/instr.rs`, add to trie
 2. **Instruction Parsing**: Add `ParsedInstruction` variant, parser function
@@ -777,6 +854,14 @@ Global, shared, local, param memories are separate `Memory` instances, matching 
 ```sh
 just check # run linters
 just test  # run tests
-just viz   # record every volta_pipeline test run, write target/volta-viz/volta-graphs.html
+just viz   # records the complete pipeline suite, including thousands of numeric variations
 just loc   # count the lines of code, per crate and per language
 ```
+
+Use an absolute `VOLTA_VIZ_DIR` when recording tests manually: Cargo runs test
+binaries from their crate directories. The [focused gfx1250 recipe](tests/gfx1250/README.md#software-acceptance-and-reproduction)
+skips redundant numeric recordings while the complete proof suite still tests
+them. `just test` currently stops at the inherited PTX regression
+`test_aligned_bar_sync_reached_on_different_iterations`; `just test-python`
+runs the rebuilt Python tests independently. Evidence receipts are pinned to
+recorded revisions and are not mutable claims about every later checkout.

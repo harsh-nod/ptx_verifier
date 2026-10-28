@@ -86,7 +86,7 @@ impl InstrTrie {
 }
 
 /// PTX 9.1 instruction mnemonics, organized by category as in the PTX ISA 9.1 documentation
-/// (Section 9.7): https://docs.nvidia.com/cuda/parallel-thread-execution/index.html
+/// (Section 9.7): <https://docs.nvidia.com/cuda/parallel-thread-execution/index.html>
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InstrKind {
     // =========================================================================

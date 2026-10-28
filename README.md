@@ -9,7 +9,7 @@ GPU Kernel Verifier checks NVIDIA PTX and native AMD gfx942/gfx950/gfx1250 assem
 > [!CAUTION]
 > **This project is not intended to be a sound verifier, and we do not claim that it is a formal verifier. It is a best-effort verifier for catching bugs in generated kernels; a successful check does not guarantee correctness.**
 >
-> **We are aware of similar efforts, that claims to be a formal verifier but suffers from soundness issues in its handling of the Blackwell ISA. We recommend treating the output with care and using independent testing and validation as it seems there are no trusted blackwell verifiers yet. The latest up to date formal verifier is [Volta](https://github.com/willtunnels/volta).**
+> Results depend on the implemented instruction subset, concrete launch configuration and recorded modeling assumptions. Independent numerical and hardware checks remain necessary; gfx1250 hardware validation is pending.
 
 Kernels must have statically known sizes, and their addresses and branches must resolve from thread indices and concrete parameters, not from input values. The analyzers execute workgroup zero. An AMD result covers that workgroup under its recorded assumptions; it does not prove the whole grid.
 
@@ -21,6 +21,23 @@ just test               # Rust and Python tests
 ```
 
 `cargo run --release -p volta_cli -- <command> ...` builds and runs in one step.
+Examples below use `volta`; substitute `target/release/volta` for a local build.
+The recorded workspace baseline includes the failing PTX regression
+`test_aligned_bar_sync_reached_on_different_iterations`; a full `just test` run
+therefore exits nonzero at its Rust step. Run `just test-python` separately to
+rebuild and test Python. See the [validation receipt](tests/gfx1250/evidence/coordinator-software.json)
+for the reviewed source revision, passing tests and unchanged baseline failure.
+
+Generate the Rust library reference with:
+
+```sh
+cargo doc --workspace --no-deps --exclude volta_cli
+```
+
+The Python library and CLI binary are both named `volta`; generating both into
+one Rustdoc directory causes an output-name collision. For CLI internals, use
+`cargo doc -p volta_cli --no-deps --target-dir target/cli-rustdoc`. User-facing
+command documentation is available from `target/release/volta --help`.
 
 ## Native AMD gfx942, gfx950 and gfx1250
 
@@ -152,14 +169,18 @@ volta compare ref.ptx opt.ptx --kernel1 ref --kernel2 opt -b 128 \
 
 `--check-array NAME` (required, repeatable) names the outputs to compare. Arrays, params and globals are shared by both kernels; `--block2`/`--grid2` override the optimized kernel's dims.
 
-`verify` and `compare` print `VERDICT: ACCEPT | REJECT | UNKNOWN` (exit 0/1/2) and take:
+`verify` and kernel-to-kernel `compare` print `VERDICT: ACCEPT | REJECT | UNKNOWN` (exit 0/1/2) and take:
 
 - `--sample N`: check at most N elements per array (a sampled check is never ACCEPT)
 - `--verify-numeric`: confirm each verdict with an f64 oracle at random inputs
 - `--recycle-terms N`: bound memory by recycling intern tables past N terms
 - `--iterations N`: re-run the solve N times (timing and determinism check)
 
-`compare` can skip symbolic execution: `--exprs a.vexpr b.vexpr` (from `analyze --emit-exprs`), or `--dump-vcs pair.vcdump` once and then `--from-dump pair.vcdump`.
+`compare --dump-vcs pair.vcdump` executes and checks the kernels, then saves
+their expressions. Later, `compare --from-dump pair.vcdump --check-array out`
+or `compare --exprs a.vexpr b.vexpr --check-array out` skips execution and runs
+only equivalence. Successful replay prints `EQUIVALENT`; expression files and
+VC dumps carry no event graph and cannot recheck races or deadlocks.
 
 ### Launch flags
 
@@ -198,7 +219,7 @@ volta analyze relu.ptx --config relu.json
 
 - `block` (required) and `grid`: a number or one to three numbers
 - `arrays`: `kind` is `in`, `out`, `inout` or `index`; the element size is a `dtype` (`f32`, `bf16`, `u8`, `e4m3`, ...) or an `elem_width` in bytes, the length a `shape` or a `len`. Arrays without a `base` (a number or `"0x..."`) are laid out in order from `0x10000`, each on a 64 KiB boundary.
-- `params`: exactly one of `{"int": N}`, `{"float": X}`, `{"sym": name}` or `{"ptr": array}` each, in declaration order. An optional `"name"` labels it for the reader and is not checked against the PTX.
+- `params`: exactly one of `{"int": N}`, `{"float": X}`, `{"sym": name}`, `{"ptr": array}` or native AMD `{"bytes": [0, 1, ...]}` each, in declaration order. Byte payloads must exactly match a by-value argument's metadata size, including padding; PTX rejects them. An optional `"name"` labels the argument for the reader.
 - `globals` (`{"NAME": value}`), `dynamic_shared_bytes`, `max_instructions`, and a free-text `description`
 - `kernel`: the default for `--kernel` (`analyze`, `verify`); `compare` names its two kernels with `--kernel1`/`--kernel2` instead
 
@@ -252,7 +273,10 @@ check.equivalent, check.mismatches, check.elements_checked
 
 `just viz` records the event graph of every test kernel and builds a single HTML
 page at `target/volta-viz/volta-graphs.html`. Open it in a browser to inspect the
-events, graph checks, and PTX source.
+events, applicable graph checks, and PTX or native AMD source. The full suite
+includes thousands of gfx1250 numeric variations; use the [focused recording
+recipe](tests/gfx1250/README.md#software-acceptance-and-reproduction) for a smaller
+viewer store.
 
 ```bash
 just viz

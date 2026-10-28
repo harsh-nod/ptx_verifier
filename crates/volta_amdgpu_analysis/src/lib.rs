@@ -1,4 +1,4 @@
-//! Native gfx942/gfx950 assembly analysis using the existing expression and event artifacts.
+//! Native gfx942/gfx950/gfx1250 assembly analysis using the existing expression and event artifacts.
 mod analysis;
 mod config;
 mod eval;

@@ -1,4 +1,4 @@
-//! Python bindings for the Volta PTX analysis engine (v0: `parse`,
+//! Python bindings for the Volta PTX and native AMD analysis engines (v0: `parse`,
 //! `analyze`, and `verify` - see `crates/volta_cli` for the full command
 //! set this will grow towards, notably `compare`).
 

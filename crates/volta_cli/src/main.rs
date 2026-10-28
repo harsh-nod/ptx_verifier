@@ -1,4 +1,4 @@
-//! Volta CLI - PTX analysis tool: `parse <file>` (syntax check), `analyze <file>` (symbolically
+//! Volta CLI - PTX and native AMD analysis tool: `parse <file>` (syntax check), `analyze <file>` (symbolically
 //! execute one kernel), `compare <file1> <file2>` (equivalence), `verify <file>` (against a spec),
 //! `viz <store>` (the event-graph viewer page over recorded runs).
 
@@ -63,7 +63,7 @@ impl From<LogLevel> for log::LevelFilter {
 
 #[derive(Parser)]
 #[command(name = "volta")]
-#[command(about = "The Volta PTX analysis engine.")]
+#[command(about = "The Volta PTX and native AMD analysis engine.")]
 #[command(version)]
 struct Cli {
     /// Instruction-set backend (PTX is the backward-compatible default).
@@ -93,9 +93,9 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Parse a PTX file and check for syntax errors
+    /// Parse PTX or native AMD assembly and check for syntax errors
     Parse {
-        /// PTX file to parse
+        /// PTX or native AMD assembly file to parse
         file: PathBuf,
     },
 
@@ -176,7 +176,7 @@ struct LaunchArgs {
 
 #[derive(Args)]
 struct AnalyzeArgs {
-    /// PTX file to analyze
+    /// PTX or native AMD assembly file to analyze
     file: PathBuf,
 
     /// Kernel entry name (defaults to the first kernel in the module)
@@ -200,21 +200,21 @@ struct AnalyzeArgs {
     emit_exprs: Option<PathBuf>,
 
     /// Write the candidate execution's event graph to this file in the
-    /// deterministic `volta-graph 1` text format (also when the run fails).
+    /// diagnostic text format: version 2 with native AMD events, otherwise version 1.
     #[arg(long, value_name = "FILE")]
     dump_graph: Option<PathBuf>,
 }
 
 #[derive(Args)]
 struct CompareArgs {
-    /// Reference PTX file, or `.vexpr` file with --exprs (omit when using --from-dump)
+    /// Reference assembly file, or `.vexpr` file with --exprs (omit when using --from-dump)
     file1: Option<PathBuf>,
 
-    /// Optimized PTX file, or `.vexpr` file with --exprs (omit when using --from-dump)
+    /// Optimized assembly file, or `.vexpr` file with --exprs (omit when using --from-dump)
     file2: Option<PathBuf>,
 
     /// FILE1 and FILE2 are `.vexpr` expression files (from `analyze --emit-exprs`):
-    /// check them directly, without parsing PTX or running symbolic execution.
+    /// check them directly, without parsing assembly or running symbolic execution.
     #[arg(long, conflicts_with_all = ["from_dump", "dump_vcs"])]
     exprs: bool,
 
@@ -277,7 +277,7 @@ struct CompareArgs {
 
 #[derive(Args)]
 struct VerifyArgs {
-    /// PTX file to verify
+    /// PTX or native AMD assembly file to verify
     file: PathBuf,
 
     /// Kernel entry name (defaults to the first kernel in the module)
@@ -285,7 +285,7 @@ struct VerifyArgs {
     kernel: Option<String>,
 
     /// Path to a .spec file, or inline spec source (e.g.
-    /// "dim N; array A[N]; array C[N]; C[i] = A[i];"). Tried as a file
+    /// `dim N; array A[N]; array C[N]; C[i] = A[i];`). Tried as a file
     /// path first; if no such file exists, parsed directly as spec text.
     spec: String,
 
@@ -360,7 +360,7 @@ fn main() -> ExitCode {
     code
 }
 
-/// Parse "x[,y[,z]]" dimensions.
+/// Parse `x[,y[,z]]` dimensions.
 fn parse_dims(s: &str) -> Result<(u32, u32, u32), String> {
     let mut parts = s.split(',').map(|p| p.trim().parse::<u32>());
     let x = parts

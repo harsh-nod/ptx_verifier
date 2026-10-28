@@ -1,4 +1,4 @@
-//! A deterministic text dump of an [`EventGraph`] (`volta-graph 1`): everything is printed in
+//! A deterministic diagnostic dump of an [`EventGraph`] (v2 with native AMD events, otherwise v1): printed in
 //! id order, so two equal graphs dump byte-identically and diffs show trace changes.
 
 use std::fmt::{self, Write};

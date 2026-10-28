@@ -3,6 +3,9 @@
 This directory tracks AMD implementation evidence against upstream commit
 `e8f819919e5d4628b68aa735deacaaa48d46cf23`. The authoritative scope and workstreams
 are in [issue 1](https://github.com/harsh-nod/ptx_verifier/issues/1).
+This is a frozen baseline inventory, not a claim of complete coverage of later
+upstream additions or other AMD targets. See the [upstream functionality audit](../gfx1250/UPSTREAM_AUDIT.md)
+for the subsequent rebase and its documented native counterparts.
 
 `parity.json` inventories 359 integration fixtures, 136 mathematical specs, and
 32 workload artifacts. A pending row is unfinished work. Compiled fixtures,
@@ -82,14 +85,17 @@ visible and must not be suppressed to manufacture a successful full-suite run.
 files consumed by the symbolic interpreter. With the pinned ROCm tools:
 
 ```sh
-llvm-mc --triple=amdgcn-amd-amdhsa --mcpu=gfx950 -filetype=obj \
-  clang22-copy-add.s -o copy.o
-ld.lld -shared copy.o -o copy.hsaco
-llvm-mc --triple=amdgcn-amd-amdhsa --mcpu=gfx950 -filetype=obj \
-  clang22-mfma-f32.s -o mfma.o
-ld.lld -shared mfma.o -o mfma.hsaco
-hipcc -O2 native_copy_add.cpp -o native-check
-./native-check copy.hsaco mfma.hsaco
+# Run from the repository root; adjust the ROCm installation path as needed.
+rocm_llvm=/opt/rocm-7.2.0/lib/llvm/bin
+gfx950_fixtures=crates/volta_amdgpu_analysis/src/frontend/fixtures
+"$rocm_llvm/llvm-mc" --triple=amdgcn-amd-amdhsa --mcpu=gfx950 -filetype=obj \
+  "$gfx950_fixtures/clang22-copy-add.s" -o /tmp/gfx950-copy.o
+"$rocm_llvm/ld.lld" -shared /tmp/gfx950-copy.o -o /tmp/gfx950-copy.hsaco
+"$rocm_llvm/llvm-mc" --triple=amdgcn-amd-amdhsa --mcpu=gfx950 -filetype=obj \
+  "$gfx950_fixtures/clang22-mfma-f32.s" -o /tmp/gfx950-mfma.o
+"$rocm_llvm/ld.lld" -shared /tmp/gfx950-mfma.o -o /tmp/gfx950-mfma.hsaco
+hipcc -O2 tests/gfx950/hardware/native_copy_add.cpp -o /tmp/gfx950-native-check
+/tmp/gfx950-native-check /tmp/gfx950-copy.hsaco /tmp/gfx950-mfma.hsaco
 ```
 
 The check covers copy/add tail and wave-boundary configurations and optional

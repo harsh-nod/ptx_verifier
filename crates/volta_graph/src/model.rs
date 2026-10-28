@@ -297,7 +297,7 @@ pub enum CollectiveSide {
 /// Whether a collective orders its members' memory effects with each other.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MemberOrdering {
-    /// `bar.warp.sync`, which "guarantee[s] memory ordering among threads participating in
+    /// `bar.warp.sync`, which "guarantee\[s\] memory ordering among threads participating in
     /// barrier" (PTX ISA 9.7.15.2): each member's contribution joins.
     Synchronizing,
     /// Every other collective (`shfl.sync`, `ldmatrix`, `tcgen05.alloc`, ...): the members

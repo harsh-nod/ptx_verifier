@@ -39,11 +39,13 @@ assert v.equivalent and v.mismatches == []
 ## Build and test
 
 ```sh
-just test    # includes: uv run --reinstall-package volta pytest crates/volta_py
+just test-python    # uv run --reinstall-package volta pytest crates/volta_py
 ```
 
-Tests are in `tests/` (`test_analyze.py`, `test_verify.py`, with shared kernels
-in `kernels.py`).
+Tests are in `tests/`, including PTX, native gfx942/gfx950/gfx1250, by-value
+ABI and workload-harness cases. `just test` also runs Rust and stops at the
+[documented inherited PTX regression](../../tests/gfx1250/README.md#software-acceptance-and-reproduction)
+before its Python step; the command above rebuilds and runs Python independently.
 
 ## Native AMD targets
 
@@ -54,4 +56,11 @@ Omitting the AMD target preserves gfx950. `analyze` runs native graph checks;
 `DataRaceError`; incomplete or resource-limited traces stay inconclusive.
 By-value arguments use `Param.bytes(...)`, including descriptor padding checks.
 See [gfx1250 scope and CPU validation](../../tests/gfx1250/README.md).
-gfx1250 hardware validation remains pending.
+gfx1250 hardware validation remains pending. For native source, pass selection
+explicitly to the independent syntax check as well:
+
+```python
+volta.parse(amd_source, backend="amdgpu", target="gfx1250")
+config = volta.Config(block=(65, 1, 1), backend="amdgpu", target="gfx1250")
+# Add the source kernel's arrays and arguments before analyze/verify.
+```

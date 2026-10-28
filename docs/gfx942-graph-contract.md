@@ -1,4 +1,8 @@
-# Native AMD graph contracts
+# Native gfx942/gfx950 graph contracts
+
+The separate [gfx1250 contract](../tests/gfx1250/CONTRACT.md) covers wave32,
+WMMA, replay counters and split barriers; it does not inherit these CDNA cache
+or MFMA rules.
 
 Graph checks select `gfx942` (CDNA3) or `gfx950` (CDNA4) from the actual
 `Provenance.targets`, including recognized nonconflicting `xnack`/`sramecc`

@@ -4,9 +4,9 @@ The integration point. This is the only crate that composes the analysis stage
 with its two branches and combines their results into a verdict.
 
 ```
-analysis (volta_ptx_analysis::analyze) ──► AnalysisResult { symbolic outputs, event graph, provenance }
+analysis (selected PTX or AMD producer) ──► AnalysisResult { symbolic outputs, event graph, provenance }
    ├─ equivalence branch: symbolic outputs only  ──► EquivalenceVerdict    (equivalence.rs)
-   └─ graph branch: event graph only, ten checks ──► GraphReport           (kernel.rs)
+   └─ graph branch: event graph only, target-selected checks ──► GraphReport           (kernel.rs)
                                     aggregation (decide) ──► ACCEPT / REJECT / UNKNOWN   (aggregate.rs)
 ```
 
@@ -16,9 +16,16 @@ artifacts and never call each other or the stage.
 
 ## API
 
+- **`verify_source_kernel(&KernelModule, kernel, config) -> SourceKernelVerification`**
+  (`backend.rs`): dispatches to PTX or native AMD analysis, normalizes the common
+  outputs/graph/statistics, and runs the target-selected graph checks. Use
+  `Backend::select` and `Backend::validate_amd_target` to keep selection consistent
+  with native source. PTX uses ten applicable graph properties; supported AMD
+  targets use four. Only `report.applicable_properties()` participate in acceptance.
+
 - **`verify_kernel(module, kernel, config) -> KernelVerification`**
-  (`kernel.rs`): runs the analysis, then `volta_graph_check::check_graph` on its
-  graph. Returns the analysis result with the graph report.
+  (`kernel.rs`): the existing PTX-specific entry point runs the analysis and
+  `volta_graph_check::check_graph` on its graph. Returns the analysis result with the graph report.
 - **`check_equivalence(...) -> EquivalenceVerdict`** (`equivalence.rs`): runs
   `volta_equivalence` over the two sides' symbolic outputs. A claimed
   difference counts as a refutation only once the numeric oracle separates it

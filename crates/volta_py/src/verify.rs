@@ -1,4 +1,4 @@
-//! Check a PTX kernel against a math spec (`volta verify`): instantiate the
+//! Check a PTX or native AMD kernel against a math spec (`volta verify`): instantiate the
 //! spec under caller-supplied `dim` values, unfold it into `SymbolicOutputs`
 //! standing in for a second kernel, then run the usual equivalence pipeline.
 

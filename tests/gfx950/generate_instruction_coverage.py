@@ -84,7 +84,7 @@ def main():
         },
         "FV": {
             "stage": "frontend",
-            "meaning": "F plus the explicitly enumerated27 binary/FMA VOP source/literal profiles, including type-specific F16/F64 constants; e32/e64 choice is validated only for that pinned set.",
+            "meaning": "F plus the explicitly enumerated binary/FMA source/literal profiles, including type-specific F16/F64 constants; e32/e64 choice is validated only for that pinned set.",
             "references": [
                 reference(FRONT + "instr.rs", "validate_vop_literal_positions")
             ],
