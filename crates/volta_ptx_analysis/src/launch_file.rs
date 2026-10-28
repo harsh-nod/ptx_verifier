@@ -32,6 +32,11 @@
 //! declaration order; its optional `name` is a label for the reader, not
 //! checked against the PTX (whose names are often mangled). Unknown keys are
 //! errors, so a typo cannot silently fall back to a default.
+//!
+//! Native AMD by-value aggregates may use `{"bytes": [0, 1, ...]}` instead.
+//! The payload must exactly match the argument's metadata size; all bytes,
+//! including ABI padding and pointer values, are supplied explicitly. PTX
+//! rejects this form.
 
 use std::collections::BTreeMap;
 
@@ -234,10 +239,24 @@ struct RawParam {
     sym: Option<String>,
     #[serde(default)]
     ptr: Option<String>,
+    #[serde(default)]
+    bytes: Option<Vec<u8>>,
 }
 
 impl RawParam {
     fn resolve(self, position: usize) -> Result<ParamValue, String> {
+        if let Some(bytes) = self.bytes {
+            if self.int.is_some()
+                || self.float.is_some()
+                || self.sym.is_some()
+                || self.ptr.is_some()
+            {
+                return Err(format!(
+                    "parameter {position}: `bytes` cannot be combined with scalar parameter fields"
+                ));
+            }
+            return Ok(ParamValue::Bytes(bytes));
+        }
         match (self.int, self.float, self.sym, self.ptr) {
             (Some(v), None, None, None) => Ok(ParamValue::Int(v)),
             (None, Some(v), None, None) => Ok(ParamValue::Float(v)),

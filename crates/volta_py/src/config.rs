@@ -57,6 +57,12 @@ impl ParamPy {
         ParamPy(ParamValue::ArrayPtr(name))
     }
 
+    /// Exact native by-value ABI payload. PTX rejects this form.
+    #[staticmethod]
+    fn bytes(value: Vec<u8>) -> Self {
+        ParamPy(ParamValue::Bytes(value))
+    }
+
     fn __repr__(&self) -> String {
         format!("{:?}", self.0)
     }

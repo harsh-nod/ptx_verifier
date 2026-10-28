@@ -779,6 +779,22 @@ impl<'a> Interpreter<'a> {
                     ))
                 })?;
                 position += 1;
+                if let ParamValue::Bytes(bytes) = param {
+                    if arg.value_kind != "by_value" || bytes.len() as u64 != arg.size {
+                        return Err(EvalError::InvalidConfig(format!(
+                            "byte payload for argument {:?} must match its by_value metadata size ({} bytes)",
+                            arg.name, arg.size
+                        )));
+                    }
+                    for (offset, byte) in bytes.iter().enumerate() {
+                        self.kernargs.initialize(
+                            KERNARG_BASE + arg.offset + offset as u64,
+                            1,
+                            Value::Bits(u32::from(*byte)),
+                        );
+                    }
+                    continue;
+                }
                 if matches!(param, ParamValue::Float(_) | ParamValue::SymFloat(_)) {
                     let expected = match arg.size {
                         4 => "f32",
@@ -798,6 +814,7 @@ impl<'a> Interpreter<'a> {
                     }
                 }
                 match param {
+                    ParamValue::Bytes(_) => unreachable!("native byte payload bound above"),
                     ParamValue::Int(value) => Some((*value as u64, None)),
                     ParamValue::Float(value) => Some((
                         if arg.size == 8 {

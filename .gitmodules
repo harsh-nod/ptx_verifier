@@ -1,3 +1,6 @@
 [submodule "external/ThunderKittens"]
 	path = external/sources/ThunderKittens
 	url = https://github.com/HazyResearch/ThunderKittens.git
+[submodule "external/sources/HipKittens"]
+	path = external/sources/HipKittens
+	url = https://github.com/HazyResearch/HipKittens.git

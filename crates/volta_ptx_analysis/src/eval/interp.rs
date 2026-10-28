@@ -278,6 +278,11 @@ impl<'p> Interpreter<'p> {
         let mut params: IdVec<ParamId, Value> = IdVec::new();
         for value in &config.params {
             let v = match value {
+                ParamValue::Bytes(_) => {
+                    return Err(EvalError::Config {
+                        message: "byte payload parameters require the native AMD backend".into(),
+                    });
+                }
                 ParamValue::Int(v) => Value::Scalar(arena.int(*v)),
                 // Exact ingestion; NaN was rejected by `config.validate()`
                 // above, but the conversion stays fallible so a bypassing
