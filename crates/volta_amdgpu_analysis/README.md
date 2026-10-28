@@ -40,7 +40,7 @@ The new `core-assembler-profiles.json` receipt compares the same 725 observed
 instruction profiles with LLVM's gfx942 and gfx950 assemblers; assembly
 acceptance is separate from the mathematical and graph checks.
 
-## Execution model
+## gfx942/gfx950 execution model
 
 The analyzer executes workgroup `(0,0,0)` only. Each wave has one PC, SGPR file,
 64-bit `EXEC` and `VCC`, `SCC`, and lane-indexed vector/accumulator storage. It
@@ -147,7 +147,7 @@ square-root operands stop execution before undefined real expressions can
 disappear through later multiplication. Nonzero reciprocals and unrelated encoded
 infinities retain the upstream model.
 
-## Events and synchronization
+## gfx942/gfx950 events and synchronization
 
 Every issued instruction records its register reads and writes with 64-bit lane
 masks. Memory issues separately identify counter class, destinations, held
@@ -241,8 +241,10 @@ The validated toolchain emits code-object 6 and metadata 1.2. Target features
 are deliberately limited to bare `gfx1250`; `gfx1250-strict`, `gfx1251` and
 feature suffixes are rejected. The default AMD API target remains gfx950.
 
-The profile uses wave32, low32 EXEC/VCC masks, v0..v1023 register spellings,
-s0..s105, architected TTMP registers, and 327,680-byte aggregate LDS capacity.
+The profile uses wave32, low32 EXEC/VCC masks, s0..s105, architected TTMP
+registers, and 327,680-byte aggregate LDS capacity. Logical VGPR allocation
+reaches 1024; supported named operands are v0..v255, with higher banked
+encodings explicitly unsupported. No AGPR namespace is available.
 A register spelling being encodable does not mean every instruction can access
 all banks: allocation, tuple and instruction constraints are checked separately.
 Packed local IDs and the architected workgroup-zero ABI replace the older
