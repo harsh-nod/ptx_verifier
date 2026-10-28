@@ -4,6 +4,7 @@
 .amdhsa_code_object_version 6
 .text
 .globl k
+.p2align 8
 .type k,@function
 k:
 s_load_dwordx4 s[4:7], s[0:1], 0

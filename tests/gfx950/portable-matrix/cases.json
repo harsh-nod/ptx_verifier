@@ -30,7 +30,7 @@
         "Preserves complete 64 half output permutation; native naturally aligned 2 byte DS reads replace PTX collective 16 byte row fetch."
       ],
       "native_source": "tests/gfx950/portable-matrix/ldmatrix_transpose_8x8.s",
-      "native_sha256": "648865eb6e77e53a842020bd5961973a1f0a29e8299f52edfe606e17585ebfa8",
+      "native_sha256": "a0434ac191ae2f14f6a2712fd3a383310094c4a1702fa8e301a55ce76d1b03c6",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::ldmatrix_transpose_8x8"
     },
     {
@@ -62,7 +62,7 @@
         "Original has no output; native checks all 256 half fragment items from four 8x 8 tiles with the same 16 byte row boundaries."
       ],
       "native_source": "tests/gfx950/portable-matrix/ldmatrix_four_fragment_pairs.s",
-      "native_sha256": "f0e6df23c7bacc9101b573a2f417a01c40906525d2813455d2aec6d4fbd53347",
+      "native_sha256": "06dd86dbd2eeb82f14f4259a4c6e1c3e1805c935de014c0e30c044a90fde6229",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::ldmatrix_four_fragment_pairs"
     },
     {
@@ -94,7 +94,7 @@
         "out 0 preserves original lane 5=1005 assertion; out 1..32 check all 32 distinct 32 bit words covering exactly 128LDSbytes."
       ],
       "native_source": "tests/gfx950/portable-matrix/stmatrix_lane_word_placement.s",
-      "native_sha256": "e4d68c4a7634a2166e75814d1451974445a3e8fbc2354d97f70cf77490357a8d",
+      "native_sha256": "46cc2b36740f7f6e47e36738e6faa33b194066ce429d76a7f649a25b579b7567",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::stmatrix_lane_word_placement"
     },
     {
@@ -126,7 +126,7 @@
         "Preserves native LDS row stride 32 bytes for 16x 16F16 tile; exports every gathered half and all 256 weighted MFMA outputs. Native DS b 64 natural alignment 8 differs from PTX WMMA32 byte base/16 byte row rules."
       ],
       "native_source": "tests/gfx950/portable-matrix/wmma_fragment_contiguous.s",
-      "native_sha256": "7d9aa12bcf14b61bcc71bd2b6485445c73f69067bf41e0b27fffa0e2f81d7f19",
+      "native_sha256": "4802c3bca21e577497b5a64928697a3c0f9b359917da61759c1a7e122fdd5bc1",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::wmma_fragment_contiguous"
     },
     {
@@ -158,7 +158,7 @@
         "Preserves native LDS row stride 48 bytes for 16x 16F16 tile; exports every gathered half and all 256 weighted MFMA outputs. Native DS b 64 natural alignment 8 differs from PTX WMMA32 byte base/16 byte row rules."
       ],
       "native_source": "tests/gfx950/portable-matrix/wmma_fragment_stride48.s",
-      "native_sha256": "3c4ffd570a2b133de99142aea6a14b6c0db924429c11146e8052681609cc3499",
+      "native_sha256": "f9df8e860782edcffa03c6059fbae16c79168afde807473b119e30e06f9fb325",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::wmma_fragment_stride48"
     },
     {
@@ -190,7 +190,7 @@
         "Preserves native LDS row stride 64 bytes for 16x 16F16 tile; exports every gathered half and all 256 weighted MFMA outputs. Native DS b 64 natural alignment 8 differs from PTX WMMA32 byte base/16 byte row rules."
       ],
       "native_source": "tests/gfx950/portable-matrix/wmma_fragment_stride64.s",
-      "native_sha256": "2603880580b9595d3067404c8fa555034820e4c72f2617621f97ec4036893d71",
+      "native_sha256": "105de139eb17745bb91f8b6730af3a91bdb1dd5ddc5723a9816064ef694e66e5",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::wmma_fragment_stride64"
     },
     {
@@ -222,7 +222,7 @@
         "Original has no output; native exports all 256F32 values after row-major 64 byte LDS rows and native MFMA C-immediate 1 broadcast."
       ],
       "native_source": "tests/gfx950/portable-matrix/wmma_store_tile_ones.s",
-      "native_sha256": "cb5af1617281688ba6881d3c16f6ae42d9e70ab6428a62aaa079fe9083dea44c",
+      "native_sha256": "8487ea3b2c3a0803c157cea9f54e9f06695acbc032751dbdd854717129f0d457",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::wmma_store_tile_ones"
     },
     {
@@ -254,7 +254,7 @@
         "Raw 0x 3f 800000 C register must decode toF32 one. Full native wave executes; lower 32 lanes export exact original 128 fragment values."
       ],
       "native_source": "tests/gfx950/portable-matrix/mma_raw_accumulator_identity.s",
-      "native_sha256": "908d7b9042b754552f8344a15aa2a30458905c3c79a58965499832f72ff82ab3",
+      "native_sha256": "72b0e958e03c436fb590b38f6bce5709ca99d6c37b71f2e0c0f63b98dbba81ab",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::mma_raw_accumulator_identity"
     },
     {
@@ -286,7 +286,7 @@
         "Native MFMA requires full wave 64; lower 32 lanes export the exact original 128 fragment values [1,0,0,0]. Native scalar inline C broadcasts; two broadcasts and native register moves implement the original heterogeneous PTX immediate vector."
       ],
       "native_source": "tests/gfx950/portable-matrix/mma_immediate_accumulator_identity.s",
-      "native_sha256": "7c851d2b9eebdd64dd7e5febcc9f65144917378ca96a55b04db3f6add9f31e4e",
+      "native_sha256": "f828fc62f3f8877d1f983d4ed29879e01703322bb36c19eb95fb965878902079",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::mma_immediate_accumulator_identity"
     },
     {
@@ -331,7 +331,7 @@
         "Preserves logical M128,N8,K16 with 8 native full waves and internally paddedN16. Exports all 1024 original-shape coordinates; native LDS row-major addresses replace target-specific TCGEN descriptors/swizzle/allocation. Raw 17 also transports C seeds through actual LDS."
       ],
       "native_source": "tests/gfx950/portable-matrix/tcgen_numeric136.s",
-      "native_sha256": "f2e60ecbba88319e1f9ed91be04672926763de869b39858063bf8a525004f47c",
+      "native_sha256": "5357f8ca74a89eebdccd1a0758c68a49410a555fae73d17c5a70a22005ba58c3",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_numeric136"
     },
     {
@@ -363,7 +363,7 @@
         "Preserves logical M128,N8,K16 with 8 native full waves and internally paddedN16. Exports all 1024 original-shape coordinates; native LDS row-major addresses replace target-specific TCGEN descriptors/swizzle/allocation. Raw 17 also transports C seeds through actual LDS."
       ],
       "native_source": "tests/gfx950/portable-matrix/tcgen_raw_operands_accumulator17.s",
-      "native_sha256": "7c0bc6cf32f41c7d5481eeb2a5662aae63d1be2b00311aed91f1377250cc4a7b",
+      "native_sha256": "2bafd87f08be34f2ba0b8bb456d5220140ac4f49e5a58ce0ee35fe08452cefa7",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_raw_operands_accumulator17"
     },
     {
@@ -395,7 +395,7 @@
         "Preserves logical M128,N8,K16 with 8 native full waves and internally paddedN16. Exports all 1024 original-shape coordinates; native LDS row-major addresses replace target-specific TCGEN descriptors/swizzle/allocation. Raw 17 also transports C seeds through actual LDS."
       ],
       "native_source": "tests/gfx950/portable-matrix/tcgen_no_swizzle_128x8.s",
-      "native_sha256": "e940f850f5d232128f158846113e50bb965ec76d6d09e1d4cd4df522645902bd",
+      "native_sha256": "201efd2ef257add9e662e12459cc29df991a7c46b7cdb2fbced3406d5fe0a317",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_no_swizzle_128x8"
     },
     {
@@ -427,7 +427,7 @@
         "Preserves logical M128,N8,K32; unit-scaled nativeK128 pads remainingK with zeros. Native selected E8M0 bytes 127. A E4M3, B E5M2(blgp 1), and the original 128 byte physical gap between first and second 16-K cores are explicit."
       ],
       "native_source": "tests/gfx950/portable-matrix/tcgen_mixed_fp8_numeric408.s",
-      "native_sha256": "060934b0e9c24ec57c1d85fbb2920280705f4a34e1345c29de3713db67b1614a",
+      "native_sha256": "408a873c0fd9a8ad73a2d6e4e0c9bd169a120d816d36f9d9c0c16f5761b13289",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_mixed_fp8_numeric408"
     },
     {
@@ -445,7 +445,7 @@
         "Legal native E4M3/E4M3 negative control; D00 becomes 476, so 408 equivalence must fail."
       ],
       "native_source": "tests/gfx950/portable-matrix/tcgen_mixed_fp8_wrong_b_format.s",
-      "native_sha256": "caeb9ce642436cac80152334faaaf270825cb7607e5706a5c819c53a38dd7d24",
+      "native_sha256": "4496d4230969581b136e56f5a9c17c261d176f6e52b9b8e460317e2feb5ca682",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_mixed_fp8_wrong_b_format"
     },
     {
@@ -475,7 +475,7 @@
       ],
       "notes": [],
       "native_source": "tests/gfx950/portable-matrix/e4m3_concrete_pair.s",
-      "native_sha256": "27e0e0b6a754af44238866eada1d79e7bf900f5e337aeeb088e338aa6ce58e74",
+      "native_sha256": "f5ed55a4c8b2128cafe86dd52c0bf1d30c73d54390e1a8255af7e9c17fb3e40a",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::e4m3_concrete_pair"
     },
     {
@@ -505,7 +505,7 @@
       ],
       "notes": [],
       "native_source": "tests/gfx950/portable-matrix/e4m3_concrete_pair_relu.s",
-      "native_sha256": "6d2f276f6f3f96b8955721e4d643cb2d590fe542358dab048d9233c2b14d76c0",
+      "native_sha256": "0ab9c5d1719f9c8c4aa390da1f9e0fb314eb1bb6e140d6bdb8a34c2ecd06b348",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::e4m3_concrete_pair_relu"
     },
     {
@@ -535,7 +535,7 @@
       ],
       "notes": [],
       "native_source": "tests/gfx950/portable-matrix/e4m3_vector_bytes.s",
-      "native_sha256": "e0a6ef7715ed0a7f4f557dc617853462616b54dec0decae1c5bd15f2fa3f6a10",
+      "native_sha256": "c6a4db7de09d6802b5be6bac2a02231ee3aae618fa4911857d2e9f61a461dc93",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::e4m3_vector_bytes"
     },
     {
@@ -567,7 +567,7 @@
         "Native byte selection directly preserves the two observed low bytes 0 and 2; PTX intermediate u 16 register truncation is not an AMD opcode contract."
       ],
       "native_source": "tests/gfx950/portable-matrix/e4m3_selected_low_halves.s",
-      "native_sha256": "34353f37846574b0237b1c69153eb1efe7b4d30cc8569248a0274c9376fd1d4d",
+      "native_sha256": "54686d6e45b7fb8c22e0eb9298eecf74cbbb101c117ec4099be1948cc04ecd2d",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::e4m3_selected_low_halves"
     },
     {
@@ -597,7 +597,7 @@
       ],
       "notes": [],
       "native_source": "tests/gfx950/portable-matrix/e4m3_zero_extended_byte.s",
-      "native_sha256": "9e65fafaf885724dc89116ac6b96b838098c68f589f15cb58ebd54d476dc7710",
+      "native_sha256": "644ede9a366b54bfe777bd7ebc96c2312c67c62f606e1f3c7ef35d9a252d6842",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::e4m3_zero_extended_byte"
     },
     {
@@ -629,7 +629,7 @@
         "Preserves full logical M128,N256,K16 and original 49168 byte total LDS budget. Native 1024 threads perform 12816x 16MFMA tiles; actual compact ordinary row-major A/B occupy 12288 bytes, with exact-fit finalB DS b 64 access. Exports all 32768 zero outputs; original checks completion only. Exact PTX descriptors/swizzle/control objects remain target-specific."
       ],
       "native_source": "tests/gfx950/portable-matrix/tcgen_shape128x256_lds_bounds.s",
-      "native_sha256": "34faeda0c9ab836455f629bd5745b400c781b9ab9afdf9cea7ace6a838bd017d",
+      "native_sha256": "8ad9703459759bf9b24904dad2fe3823ac26052767434edbac9a3e2fa3169825",
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_shape128x256_lds_bounds"
     }
   ],
