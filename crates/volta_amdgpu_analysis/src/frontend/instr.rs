@@ -831,7 +831,7 @@ pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruct
             "s_waitcnt requires counters or one 16-bit immediate".into(),
         ));
     }
-    validate_registers(mnemonic, opcode, &operands).map_err(&fail)?;
+    validate_registers(mnemonic, opcode, &operands, &modifiers).map_err(&fail)?;
     if mnemonic == "v_bitop3_b32"
         && (modifiers.len() != 1
             || modifiers[0].name != "bitop3"
@@ -1020,7 +1020,12 @@ pub(super) fn normalize_f64_sources(instruction: &mut Instruction) -> Result<(),
     Ok(())
 }
 
-fn validate_registers(mnemonic: &str, opcode: Opcode, operands: &[Operand]) -> Result<(), String> {
+fn validate_registers(
+    mnemonic: &str,
+    opcode: Opcode,
+    operands: &[Operand],
+    modifiers: &[Modifier],
+) -> Result<(), String> {
     use RegisterClass::*;
     let stem = mnemonic
         .strip_suffix("_e32")
@@ -1194,6 +1199,14 @@ fn validate_registers(mnemonic: &str, opcode: Opcode, operands: &[Operand]) -> R
             }
         }
         Opcode::Matrix => {
+            if operands
+                .iter()
+                .any(|operand| matches!(operand, Operand::Modified { .. }))
+            {
+                return Err(
+                    "MFMA operands require unmodified native registers or C literals".into(),
+                );
+            }
             let width = if stem.contains("32x32") {
                 16
             } else if stem.contains("f64") {
@@ -1202,18 +1215,53 @@ fn validate_registers(mnemonic: &str, opcode: Opcode, operands: &[Operand]) -> R
                 4
             };
             require(0, &[Vector, Accumulator], width)?;
-            source_width(3, width)?;
-            if stem.ends_with("_f32") || stem.ends_with("x4f32") || stem.ends_with("x2f32") {
-                source_width(1, 1)?;
-                source_width(2, 1)?;
-            } else if stem.contains("f16") || stem.contains("bf16") {
-                let input_width = if stem.contains("16x16x32") || stem.contains("32x32x16") {
+            for index in [1, 2] {
+                let input_width = if stem.contains("f8f6f4") {
+                    let selector = if index == 1 { "cbsz" } else { "blgp" };
+                    let format = modifiers
+                        .iter()
+                        .find(|modifier| modifier.name == selector)
+                        .and_then(|modifier| modifier.value.as_deref())
+                        .and_then(integer)
+                        .unwrap_or(0);
+                    match format {
+                        0 | 1 => 8,
+                        2 | 3 => 6,
+                        4 => 4,
+                        _ => return Err("invalid native MFMA F8F6F4 operand format".into()),
+                    }
+                } else if stem.ends_with("_f32")
+                    || stem.ends_with("x4f32")
+                    || stem.ends_with("x2f32")
+                {
+                    1
+                } else if (stem.contains("f16") || stem.contains("bf16"))
+                    && (stem.contains("16x16x32") || stem.contains("32x32x16"))
+                {
                     4
                 } else {
                     2
                 };
-                source_width(1, input_width)?;
-                source_width(2, input_width)?;
+                // CDNA4 MFMA A/B selectors address vector register files;
+                // scalar and inline sources are not encodable, even for zero.
+                require(index, &[Vector, Accumulator], input_width)?;
+            }
+            match operands.get(3) {
+                Some(Operand::Register(accumulator)) => {
+                    let destination = register_at(0).expect("validated destination");
+                    require(3, &[destination.class], width)?;
+                    debug_assert_eq!(accumulator.class, destination.class);
+                }
+                Some(Operand::Integer(value))
+                    if if stem.contains("f64") {
+                        (-16..=64).contains(value)
+                    } else {
+                        (i32::MIN as i64..=u32::MAX as i64).contains(value)
+                    } => {}
+                Some(Operand::Float(value))
+                    if !stem.contains("f64")
+                        || [0.0, 0.5, 1.0, 2.0, 4.0].contains(&value.abs()) => {}
+                _ => return Err("invalid native MFMA C source".into()),
             }
         }
         Opcode::VectorAlu => {

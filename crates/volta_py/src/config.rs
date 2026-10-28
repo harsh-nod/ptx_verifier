@@ -6,7 +6,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use volta_pipeline::Backend;
 
-use volta_ptx_analysis::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue};
+use volta_ptx_analysis::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue, SharedAllocation};
 
 #[pyclass(name = "ArrayKind", eq, eq_int, from_py_object)]
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -126,6 +126,28 @@ impl ConfigPy {
     /// Declare a global-memory array visible to the kernel.
     fn add_array(&mut self, array: ArrayDefPy) {
         self.0.arrays.push(array.0);
+    }
+
+    /// Add an explicit native LDS source-allocation premise, in bytes.
+    /// Empty layouts retain aggregate bounds; PTX rejects nonempty layouts.
+    fn add_shared_allocation(&mut self, name: String, offset: u64, size: u64) -> PyResult<()> {
+        let mut layout = self.0.shared_allocations.clone();
+        layout.push(SharedAllocation { name, offset, size });
+        // Validate transactionally so a rejected region cannot poison the config.
+        let mut candidate = self.0.clone();
+        candidate.shared_allocations = layout;
+        candidate.validate().map_err(PyValueError::new_err)?;
+        self.0.shared_allocations = candidate.shared_allocations;
+        Ok(())
+    }
+
+    #[getter]
+    fn shared_allocations(&self) -> Vec<(String, u64, u64)> {
+        self.0
+            .shared_allocations
+            .iter()
+            .map(|r| (r.name.clone(), r.offset, r.size))
+            .collect()
     }
 
     /// Bind the next kernel parameter (in declaration order).

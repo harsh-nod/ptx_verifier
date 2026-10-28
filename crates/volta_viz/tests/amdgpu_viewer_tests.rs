@@ -63,7 +63,15 @@ fn v(index: u16) -> AmdRegister {
     }
 }
 fn register_graph(wait: bool, terminal: Terminal) -> EventGraph {
+    register_graph_with_layout(wait, terminal, vec![])
+}
+fn register_graph_with_layout(
+    wait: bool,
+    terminal: Terminal,
+    layout: Vec<SharedAllocation>,
+) -> EventGraph {
     let mut b = GraphBuilder::new(provenance(64));
+    b.set_shared_allocation_layout(layout);
     instruction(&mut b, 0, 0, vec![v(0), v(1)], vec![v(2)]);
     b.amd_event(
         0,
@@ -140,6 +148,41 @@ fn wave64_waits_registers_and_source_locations_export_in_existing_store() {
         assert!(text.contains(expected), "missing {expected}: {text}");
     }
     assert!(!text.contains("mbarrier epochs"));
+}
+
+#[test]
+fn configured_shared_object_names_and_boundaries_remain_visible_in_provenance() {
+    let graph = register_graph_with_layout(
+        true,
+        Terminal::Completed,
+        vec![
+            SharedAllocation {
+                name: "A".into(),
+                offset: 0,
+                size: 40,
+            },
+            SharedAllocation {
+                name: "B".into(),
+                offset: 40,
+                size: 64,
+            },
+        ],
+    );
+    let text = exported("configured_layout", &graph);
+    assert!(text.contains("caller-supplied premises"));
+    assert!(text.contains("\"shared_allocations\":[{\"name\":\"A\",\"offset\":0,\"size\":40},{\"name\":\"B\",\"offset\":40,\"size\":64}]"));
+    assert!(
+        graph
+            .dump()
+            .contains("shared-allocation \"B\" offset=0x28 size=64")
+    );
+    assert!(
+        !exported(
+            "no_configured_layout",
+            &register_graph(true, Terminal::Completed)
+        )
+        .contains("shared_allocations")
+    );
 }
 
 #[test]

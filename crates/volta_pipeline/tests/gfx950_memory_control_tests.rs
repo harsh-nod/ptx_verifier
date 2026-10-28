@@ -5,7 +5,8 @@ mod gfx950_common;
 
 use gfx950_common::Checked as Run;
 use volta_amdgpu_analysis::{
-    AnalysisConfig, ArrayDef, ArrayKind, EvalError, OutputsUnavailable, ParamValue, frontend,
+    AnalysisConfig, ArrayDef, ArrayKind, EvalError, OutputsUnavailable, ParamValue,
+    SharedAllocation, frontend,
 };
 use volta_expr::ExprNode;
 use volta_graph::{Space, Terminal};
@@ -376,6 +377,20 @@ fn compiler_static_and_dynamic_lds_share_bytes_through_flat_and_ds() {
             gfx950_common::check(source, &module, Some("dynamic_lds"), cfg.clone()).unwrap();
         assert_invalid(&too_small, "out-of-bounds LDS");
     }
+
+    // Initializing the disjoint dynamic region cannot define the static bytes.
+    let no_static_store = source.replace("flat_store_dword v[2:3], v1 sc0 sc1", "");
+    assert_ne!(no_static_store, source);
+    let no_static_module = frontend::parse(&no_static_store).unwrap();
+    cfg.dynamic_shared_bytes = 8;
+    let undefined_static = gfx950_common::check(
+        &no_static_store,
+        &no_static_module,
+        Some("dynamic_lds"),
+        cfg,
+    )
+    .unwrap();
+    assert_invalid(&undefined_static, "uninitialized byte");
 }
 
 #[test]
@@ -774,6 +789,9 @@ ds_write_b32 v11, v8
 s_waitcnt lgkmcnt(0)
 "#;
     assert_shared_conflict(&run(body, 8, 128), ConflictKind::WriteWrite);
+    let different_values = body.replace("v_add_u32 v8, 7, 0", "v_add_u32 v8, v0, 0");
+    // Only local lane0 is active: the two waves write distinct integers0/64.
+    assert_shared_conflict(&run(&different_values, 8, 128), ConflictKind::WriteWrite);
     let disjoint = body.replace(
         "v_mov_b32 v11, 0",
         "v_lshrrev_b32 v11, 6, v0\nv_lshlrev_b32 v11, 2, v11",
@@ -1317,6 +1335,532 @@ fn constant_integer_address_expressions_preserve_alias_identity() {
             );
         }
     }
+}
+
+#[test]
+fn wave_local_lds_exchange_requires_completion_without_a_workgroup_barrier() {
+    for block in [1, 63, 64] {
+        let body = format!(
+            "global_load_dword v8, v2, s[4:5]\ns_waitcnt vmcnt(0)\nds_write_b32 v2, v8\ns_waitcnt lgkmcnt(0)\nv_xor_b32 v10, 1, v0\nv_cmp_lt_u32 vcc, v10, {block}\nv_cndmask_b32 v10, v0, v10, vcc\nv_lshlrev_b32 v10, 2, v10\nds_read_b32 v8, v10\ns_waitcnt lgkmcnt(0)\nglobal_store_dword v2, v8, s[6:7]"
+        );
+        let result = run(&body, u64::from(block) * 4, block);
+        assert_input_permutation(&result, block, |index| {
+            if index ^ 1 < u64::from(block) {
+                index ^ 1
+            } else {
+                index
+            }
+        });
+        assert!(
+            !result
+                .analysis
+                .graph
+                .amd_events()
+                .iter()
+                .any(|record| matches!(
+                    record.kind,
+                    volta_graph::AmdEventKind::BarrierArrive { .. }
+                        | volta_graph::AmdEventKind::BarrierRelease { .. }
+                ))
+        );
+        let no_return_wait = body.replace(
+            "ds_read_b32 v8, v10\ns_waitcnt lgkmcnt(0)",
+            "ds_read_b32 v8, v10",
+        );
+        assert_readiness(
+            &run(&no_return_wait, u64::from(block) * 4, block),
+            AmdRegisterHazardKind::ReadBeforeReady,
+        );
+    }
+}
+
+#[test]
+fn two_copy_phases_preserve_distinct_source_slices_and_buffer_identity() {
+    let body = "global_load_dwordx4 v[8:11], v2, s[4:5]\ns_waitcnt vmcnt(0)\nds_write_b128 v2, v[8:11]\ns_waitcnt lgkmcnt(0)\nds_read_b32 v12, v2\ns_waitcnt lgkmcnt(0)\nglobal_store_dword v2, v12, s[6:7]\nglobal_load_dwordx4 v[8:11], v2, s[4:5] offset:16\ns_waitcnt vmcnt(0)\nv_mov_b32 v16, 16\nds_write_b128 v16, v[8:11]\ns_waitcnt lgkmcnt(0)\nds_read_b32 v12, v16\ns_waitcnt lgkmcnt(0)\nglobal_store_dword v2, v12, s[6:7] offset:4";
+    let result = run_config(body, 32, config(1, 8));
+    assert_input_permutation(&result, 2, |index| index * 4);
+    let no_second_return_wait = body.replace(
+        "ds_read_b32 v12, v16\ns_waitcnt lgkmcnt(0)",
+        "ds_read_b32 v12, v16",
+    );
+    assert_readiness(
+        &run_config(&no_second_return_wait, 32, config(1, 8)),
+        AmdRegisterHazardKind::ReadBeforeReady,
+    );
+}
+
+#[test]
+fn two_consumers_observe_each_distinct_generation_of_one_producer() {
+    let body = r#"
+v_cmp_lt_u32 vcc, v0, 64
+s_cbranch_vccz .Lconsumer
+s_mov_b32 s8, 1
+s_and_b64 exec, exec, 1
+s_branch .Linit
+.Lconsumer:
+s_mov_b32 s8, 0
+.Linit:
+s_mov_b32 s9, 0
+.Lphase:
+s_cmp_eq_u32 s8, 0
+s_cbranch_scc1 .Lpublish
+v_mov_b32 v10, s9
+v_lshlrev_b32 v10, 2, v10
+global_load_dword v8, v10, s[4:5]
+s_waitcnt vmcnt(0)
+v_mov_b32 v11, 0
+ds_write_b32 v11, v8
+s_waitcnt lgkmcnt(0)
+.Lpublish:
+s_barrier
+s_cmp_eq_u32 s8, 1
+s_cbranch_scc1 .Lrecycle
+v_mov_b32 v11, 0
+ds_read_b32 v8, v11
+s_waitcnt lgkmcnt(0)
+v_sub_u32 v10, v0, 64
+v_lshlrev_b32 v10, 1, v10
+v_add_u32 v10, v10, s9
+v_lshlrev_b32 v10, 2, v10
+global_store_dword v10, v8, s[6:7]
+.Lrecycle:
+s_waitcnt vmcnt(0) lgkmcnt(0)
+s_barrier
+s_add_u32 s9, s9, 1
+s_cmp_lt_u32 s9, 2
+s_cbranch_scc1 .Lphase
+"#;
+    for block in [129, 160, 192] {
+        let mut cfg = config(block, 2 * u64::from(block - 64));
+        cfg.arrays[0].len = 2;
+        let result = run_config(body, 4, cfg.clone());
+        assert_input_permutation(&result, 2 * (block - 64), |index| index % 2);
+        match &result.checks.amd.as_ref().unwrap().barrier {
+            PropertyResult::Pass(evidence) => {
+                assert_eq!(evidence.generations, 4);
+                assert_eq!(evidence.arrivals, 12);
+                assert_eq!(evidence.releases, 12);
+            }
+            other => panic!("{other:?}"),
+        }
+        let no_recycle_join = body.replace(
+            "s_waitcnt vmcnt(0) lgkmcnt(0)\ns_barrier\ns_add_u32",
+            "s_waitcnt vmcnt(0) lgkmcnt(0)\ns_add_u32",
+        );
+        assert_shared_conflict(
+            &run_config(&no_recycle_join, 4, cfg),
+            ConflictKind::ReadWrite,
+        );
+    }
+}
+
+#[test]
+fn completing_unrelated_vm_work_does_not_publish_a_pending_lds_store() {
+    let body = "global_load_dword v8, v2, s[4:5]\ns_waitcnt vmcnt(0)\nds_write_b32 v2, v8\nglobal_load_dword v12, v2, s[4:5]\ns_waitcnt vmcnt(0)\n{lds_wait}\ns_barrier\nv_xor_b32 v10, 256, v2\nds_read_b32 v8, v10\ns_waitcnt lgkmcnt(0)\nglobal_store_dword v2, v8, s[6:7]";
+    assert_input_permutation(
+        &run(
+            &body.replace("{lds_wait}", "s_waitcnt lgkmcnt(0)"),
+            512,
+            128,
+        ),
+        128,
+        |index| index ^ 64,
+    );
+    assert_shared_conflict(
+        &run(&body.replace("{lds_wait}", ""), 512, 128),
+        ConflictKind::WriteRead,
+    );
+}
+
+#[test]
+fn waves_can_reach_one_barrier_generation_from_different_loop_iterations() {
+    // This is a native two-wave control, not PTX independently diverged lanes:
+    // wave0 reaches the common S_BARRIER at iteration0, wave1 at iteration1.
+    // Both reach it once, so their wave-level generation and static PC agree.
+    let body = r#"
+v_cmp_lt_u32 vcc, v0, 64
+s_cbranch_vccz .Lsecond
+s_mov_b32 s8, 0
+global_load_dword v8, v2, s[4:5]
+s_waitcnt vmcnt(0)
+ds_write_b32 v2, v8
+s_waitcnt lgkmcnt(0)
+s_branch .Linit
+.Lsecond:
+s_mov_b32 s8, 1
+.Linit:
+s_mov_b32 s9, 0
+.Literation:
+s_cmp_eq_u32 s8, s9
+s_cbranch_scc0 .Lskip
+s_barrier
+.Lskip:
+s_add_u32 s9, s9, 1
+s_cmp_lt_u32 s9, 2
+s_cbranch_scc1 .Literation
+v_and_b32 v10, 255, v2
+ds_read_b32 v8, v10
+s_waitcnt lgkmcnt(0)
+global_store_dword v2, v8, s[6:7]
+"#;
+    let result = run(body, 256, 128);
+    assert_input_permutation(&result, 128, |index| index % 64);
+    match &result.checks.amd.as_ref().unwrap().barrier {
+        PropertyResult::Pass(evidence) => {
+            assert_eq!(evidence.generations, 1);
+            assert_eq!(evidence.arrivals, 2);
+            assert_eq!(evidence.releases, 2);
+        }
+        other => panic!("{other:?}"),
+    }
+    let no_producer_completion = body.replace(
+        "ds_write_b32 v2, v8\ns_waitcnt lgkmcnt(0)",
+        "ds_write_b32 v2, v8",
+    );
+    assert_shared_conflict(
+        &run(&no_producer_completion, 256, 128),
+        ConflictKind::WriteRead,
+    );
+}
+
+#[test]
+fn configured_lds_objects_bound_whole_vector_and_dual_offset_transfers() {
+    let prefix = "v_mov_b32 v10, 32\nv_mov_b32 v8, 0\nv_mov_b32 v9, 0\nv_mov_b32 v11, 0\nds_write_b32 v10, v8\nds_write_b32 v10, v8 offset:4\nds_write_b32 v10, v8 offset:8\nds_write_b32 v10, v8 offset:12\ns_waitcnt lgkmcnt(0)\n";
+    for transfer in [
+        "ds_read_b128 v[12:15], v10",
+        "ds_write_b128 v10, v[8:11]",
+        "ds_read2_b32 v[12:13], v10 offset0:0 offset1:2",
+        "s_mov_b64 s[8:9], src_shared_base\nv_mov_b32 v11, s9\nflat_load_dwordx4 v[12:15], v[10:11]",
+    ] {
+        let body = format!("{prefix}{transfer}\ns_waitcnt vmcnt(0) lgkmcnt(0)");
+        // Aggregate-only assembly has no knowledge of source subobjects.
+        let aggregate = run(&body, 112, 1);
+        assert_verified(&aggregate);
+        assert!(
+            aggregate
+                .analysis
+                .graph
+                .shared_allocation_layout()
+                .is_empty()
+        );
+        assert!(
+            !aggregate
+                .analysis
+                .graph
+                .provenance()
+                .assumes(volta_graph::Assumption::ConfiguredSharedAllocationLayout)
+        );
+
+        let mut cfg = config(1, 1);
+        cfg.shared_allocations = vec![
+            SharedAllocation {
+                name: "A".into(),
+                offset: 0,
+                size: 48,
+            },
+            SharedAllocation {
+                name: "B".into(),
+                offset: 48,
+                size: 64,
+            },
+        ];
+        let fitting = run_config(&body, 112, cfg.clone());
+        assert_verified(&fitting);
+        assert_eq!(
+            fitting.analysis.graph.shared_allocation_layout(),
+            cfg.shared_allocations
+        );
+        assert!(
+            fitting
+                .analysis
+                .graph
+                .provenance()
+                .assumes(volta_graph::Assumption::ConfiguredSharedAllocationLayout)
+        );
+        assert!(
+            fitting
+                .analysis
+                .graph
+                .dump()
+                .contains("shared-allocation \"A\" offset=0x0 size=48")
+        );
+
+        // Same physical addresses, now with the actual A[40]/B[64] premise:
+        // every DWORD fits some object, but the whole vector spans A and B.
+        cfg.shared_allocations[0].size = 40;
+        cfg.shared_allocations[1].offset = 40;
+        assert_invalid(&run_config(&body, 112, cfg), "configured allocation");
+    }
+}
+
+#[test]
+fn configured_shared_layout_rejects_invalid_capacity_and_ptx_cannot_ignore_it() {
+    let mut cfg = config(1, 1);
+    cfg.shared_allocations = vec![SharedAllocation {
+        name: "A".into(),
+        offset: 0,
+        size: 5,
+    }];
+    let source = source("", 4);
+    let module = frontend::parse(&source).unwrap();
+    match gfx950_common::check(&source, &module, Some("k"), cfg.clone()) {
+        Err(volta_amdgpu_analysis::AnalysisError::Eval(EvalError::InvalidConfig(reason))) => {
+            assert!(reason.contains("LDS capacity"), "{reason}")
+        }
+        _ => panic!("layout larger than aggregate LDS must reject before execution"),
+    }
+    cfg.dynamic_shared_bytes = 1;
+    assert_verified(&gfx950_common::check(&source, &module, Some("k"), cfg.clone()).unwrap());
+
+    use volta_ptx_analysis::frontend::ascii::AsAscii;
+    let ptx = b".version 8.6\n.target sm_100a\n.address_size 64\n.visible .entry k() { ret; }";
+    let ptx_module =
+        volta_ptx_analysis::frontend::parse::Parser::new(ptx.as_ascii_slice().unwrap())
+            .parse_module()
+            .unwrap();
+    assert!(matches!(
+        volta_ptx_analysis::analyze(&ptx_module, Some("k"), cfg),
+        Err(volta_ptx_analysis::AnalysisError::Eval(volta_ptx_analysis::EvalError::Config { message }))
+            if message.contains("shared_allocations")
+    ));
+}
+
+#[test]
+fn matrix_results_require_native_delay_completion_and_crosswave_lds_publication() {
+    for block in [128, 192] {
+        for (delay, producer_wait, barrier, consumer_wait, expected) in [
+            (
+                "s_nop 9",
+                "s_waitcnt lgkmcnt(0)",
+                "s_barrier",
+                "s_waitcnt lgkmcnt(0)",
+                "verified",
+            ),
+            (
+                "",
+                "s_waitcnt lgkmcnt(0)",
+                "s_barrier",
+                "s_waitcnt lgkmcnt(0)",
+                "matrix",
+            ),
+            ("s_nop 9", "", "s_barrier", "s_waitcnt lgkmcnt(0)", "memory"),
+            (
+                "s_nop 9",
+                "s_waitcnt lgkmcnt(0)",
+                "",
+                "s_waitcnt lgkmcnt(0)",
+                "memory",
+            ),
+            (
+                "s_nop 9",
+                "s_waitcnt lgkmcnt(0)",
+                "s_barrier",
+                "",
+                "register",
+            ),
+        ] {
+            // Give the candidate producer time to populate LDS even in the
+            // missing-barrier mutation. These independent reader instructions
+            // create no HB; that mutation must reach a typed conflict rather
+            // than aborting early on an uninitialized candidate value.
+            let reader_schedule = "s_nop 0\n".repeat(24);
+            let body = format!(
+                "v_cmp_lt_u32 vcc, v0, 64\ns_cbranch_vccz .Lpublish\nv_lshlrev_b32 v10, 2, v2\nv_mov_b32 v8, 1.0\nv_mov_b32 v9, 2.0\nv_mov_b32 v12, 3.0\nv_mov_b32 v13, 3.0\nv_mov_b32 v14, 3.0\nv_mov_b32 v15, 3.0\ns_nop 1\nv_mfma_f32_16x16x4_f32 v[12:15], v8, v9, v[12:15]\n{delay}\nds_write_b128 v10, v[12:15]\n{producer_wait}\n.Lpublish:\n{barrier}\ns_cbranch_vccnz .Ldone\n{reader_schedule}v_and_b32 v11, 63, v0\nv_lshlrev_b32 v11, 4, v11\nds_read_b128 v[16:19], v11\n{consumer_wait}\nv_sub_u32 v10, v0, 64\nv_lshlrev_b32 v10, 4, v10\nglobal_store_dwordx4 v10, v[16:19], s[6:7]\n.Ldone:"
+            );
+            let count = 4 * (block - 64);
+            let result = run_config(&body, 1024, config(block, u64::from(count)));
+            assert!(
+                result.analysis.symbolic_outputs().is_ok(),
+                "block={block}, {expected}: {:?}",
+                result.analysis.symbolic_outputs()
+            );
+            match expected {
+                "verified" => {
+                    assert_verified(&result);
+                    let outputs = result.analysis.symbolic_outputs().unwrap();
+                    assert_eq!(outputs.outputs[0].1.len(), count as usize);
+                    // Independent row-major reference: K=4 products of1*2,
+                    // plus each preexisting C=3, for all256 values per reader.
+                    for index in 0..u64::from(count) {
+                        assert_eq!(
+                            outputs.arena.as_f64(outputs.element("out", index).unwrap()),
+                            Some(4.0 * 1.0 * 2.0 + 3.0)
+                        );
+                    }
+                }
+                "matrix" => assert_readiness(&result, AmdRegisterHazardKind::MatrixReadBeforeReady),
+                "memory" => assert_shared_conflict(&result, ConflictKind::WriteRead),
+                "register" => assert_readiness(&result, AmdRegisterHazardKind::ReadBeforeReady),
+                _ => unreachable!(),
+            }
+        }
+    }
+}
+
+#[test]
+fn matrix_completion_does_not_publish_an_unrelated_earlier_lds_metadata_store() {
+    let body = "v_cmp_lt_u32 vcc, v0, 64\ns_cbranch_vccz .Lpublish\nv_add_u32 v8, 19, 0\nds_write_b32 v2, v8\nv_mov_b32 v8, 1.0\nv_mov_b32 v9, 2.0\ns_nop 1\nv_mfma_f32_16x16x4_f32 v[12:15], v8, v9, 0\ns_nop 9\n{metadata_wait}\n.Lpublish:\ns_barrier\ns_cbranch_vccnz .Ldone\nv_and_b32 v10, 255, v2\nds_read_b32 v8, v10\ns_waitcnt lgkmcnt(0)\nv_sub_u32 v10, v0, 64\nv_lshlrev_b32 v10, 2, v10\nglobal_store_dword v10, v8, s[6:7]\n.Ldone:";
+    let valid = run_config(
+        &body.replace("{metadata_wait}", "s_waitcnt lgkmcnt(0)"),
+        256,
+        config(192, 128),
+    );
+    assert_verified(&valid);
+    let outputs = valid.analysis.symbolic_outputs().unwrap();
+    assert_eq!(outputs.outputs[0].1.len(), 128);
+    for index in 0..128 {
+        assert_eq!(
+            outputs
+                .arena
+                .as_int_const(outputs.element("out", index).unwrap()),
+            Some(19)
+        );
+    }
+    assert_shared_conflict(
+        &run_config(&body.replace("{metadata_wait}", ""), 256, config(192, 128)),
+        ConflictKind::WriteRead,
+    );
+}
+
+#[test]
+fn explicit_exec_masks_elect_the_actual_first_active_lane() {
+    // Native EXEC explicitly selects each half-wave. Its elected leaders are
+    // lane0 and lane32, rather than a fabricated full-mask lane0 on both paths.
+    let body = "s_mov_b64 s[12:13], exec\nv_mov_b32 v11, 0\nv_cmp_lt_u32 vcc, v0, 32\ns_and_saveexec_b64 s[8:9], vcc\ns_ff1_i32_b64 s10, exec\nv_cmp_eq_u32 vcc, v0, s10\ns_and_b64 exec, exec, vcc\nv_add_u32 v8, 1, 0\nglobal_store_dword v11, v8, s[6:7]\ns_mov_b64 exec, s[12:13]\nv_cmp_ge_u32 vcc, v0, 32\ns_and_saveexec_b64 s[8:9], vcc\ns_ff1_i32_b64 s10, exec\nv_cmp_eq_u32 vcc, v0, s10\ns_and_b64 exec, exec, vcc\nv_add_u32 v8, 2, 0\nglobal_store_dword v11, v8, s[6:7] offset:4\ns_mov_b64 exec, s[12:13]";
+    let result = run_config(body, 0, config(64, 2));
+    assert_verified(&result);
+    let outputs = result.analysis.symbolic_outputs().unwrap();
+    assert_eq!(outputs.outputs[0].1.len(), 2);
+    for index in 0..2 {
+        assert_eq!(
+            outputs
+                .arena
+                .as_int_const(outputs.element("out", index).unwrap()),
+            Some(index as i64 + 1)
+        );
+    }
+}
+
+#[test]
+fn native_byte_load_zero_extension_and_two_byte_fp8_storage_are_distinct() {
+    for (load, bytes) in [("global_load_ubyte", 1), ("global_load_ushort", 2)] {
+        let body = format!(
+            "{load} v8, v2, s[4:5]\ns_waitcnt vmcnt(0)\nv_cvt_f32_fp8 v9, v8\nv_cvt_f32_fp8_sdwa v10, v8 src0_sel:BYTE_1 dst_sel:DWORD dst_unused:UNUSED_PAD\nglobal_store_dword v2, v9, s[6:7]\nglobal_store_dword v2, v10, s[6:7] offset:4"
+        );
+        let mut cfg = config(1, 2);
+        cfg.arrays[0].elem_width = 1;
+        cfg.arrays[0].len = bytes;
+        let result = run_config(&body, 0, cfg);
+        assert_verified(&result);
+        let outputs = result.analysis.symbolic_outputs().unwrap();
+        assert_eq!(outputs.outputs[0].1.len(), 2);
+        for index in 0..bytes {
+            assert!(
+                matches!(outputs.arena.node(outputs.element("out",index).unwrap()),ExprNode::InputElement{array,index: found} if outputs.arena.string(*array)=="x" && *found==index)
+            );
+        }
+        if bytes == 1 {
+            // GLOBAL_LOAD_UBYTE defines upper bits by zero extension. A PTX
+            // scalar-byte storage limitation must not fabricate native UB.
+            assert_eq!(
+                outputs.arena.as_f64(outputs.element("out", 1).unwrap()),
+                Some(0.0)
+            );
+        }
+    }
+}
+
+#[test]
+fn aggregate_lds_capacity_addition_never_wraps_or_exceeds_gfx950_limit() {
+    let mut cfg = config(1, 1);
+    cfg.dynamic_shared_bytes = 4;
+    let body = "v_mov_b32 v10, 163836\nv_mov_b32 v8, 0\nds_write_b32 v10, v8\ns_waitcnt lgkmcnt(0)\nds_read_b32 v8, v10\ns_waitcnt lgkmcnt(0)";
+    assert_verified(&run_config(body, 163836, cfg));
+    for (fixed, dynamic, reason) in [
+        (163840, 1, "gfx950 capacity"),
+        (4, u64::MAX, "LDS size overflow"),
+    ] {
+        let text = source("", fixed);
+        let module = frontend::parse(&text).unwrap();
+        let mut cfg = config(1, 1);
+        cfg.dynamic_shared_bytes = dynamic;
+        match gfx950_common::check(&text, &module, Some("k"), cfg) {
+            Err(volta_amdgpu_analysis::AnalysisError::Eval(EvalError::InvalidConfig(error))) => {
+                assert!(error.contains(reason), "{error}")
+            }
+            _ => panic!("oversized or wrapped LDS capacity must reject before execution"),
+        }
+    }
+}
+
+#[test]
+fn global_and_flat_vectors_cannot_straddle_explicit_adjacent_array_objects() {
+    for load in [
+        "global_load_dwordx4 v[8:11], v2, s[4:5]",
+        "v_mov_b32 v10, s4\nv_mov_b32 v11, s5\nflat_load_dwordx4 v[8:11], v[10:11]",
+        "s_load_dwordx4 s[8:11], s[4:5], 0\ns_waitcnt lgkmcnt(0)\nv_mov_b32 v8, s8\nv_mov_b32 v9, s9\nv_mov_b32 v10, s10\nv_mov_b32 v11, s11",
+    ] {
+        let body = format!(
+            "{load}\ns_waitcnt vmcnt(0) lgkmcnt(0)\nglobal_store_dwordx4 v2, v[8:11], s[6:7]"
+        );
+        assert_input_permutation(&run_config(&body, 0, config(1, 4)), 4, |index| index);
+        let mut adjacent = config(1, 4);
+        adjacent.arrays[0].len = 2;
+        adjacent.arrays.push(ArrayDef {
+            name: "y".into(),
+            base: 0x10008,
+            elem_width: 4,
+            len: 2,
+            kind: ArrayKind::Input,
+        });
+        assert_invalid(&run_config(&body, 0, adjacent), "allocation boundaries");
+        let mut missing_last = config(1, 4);
+        missing_last.arrays[0].len = 3;
+        assert_invalid(&run_config(&body, 0, missing_last), "out-of-bounds");
+    }
+    for store in [
+        "global_store_dwordx4 v2, v[8:11], s[4:5]",
+        "v_mov_b32 v10, s4\nv_mov_b32 v11, s5\nflat_store_dwordx4 v[10:11], v[12:15]",
+    ] {
+        let body = format!(
+            "v_mov_b32 v8, 0\nv_mov_b32 v9, 0\nv_mov_b32 v10, 0\nv_mov_b32 v11, 0\nv_mov_b32 v12, 0\nv_mov_b32 v13, 0\nv_mov_b32 v14, 0\nv_mov_b32 v15, 0\n{store}\ns_waitcnt vmcnt(0) lgkmcnt(0)"
+        );
+        let mut fitting = config(1, 4);
+        fitting.arrays[0].kind = ArrayKind::InputOutput;
+        let result = run_config(&body, 0, fitting.clone());
+        assert_verified(&result);
+        let outputs = result.analysis.symbolic_outputs().unwrap();
+        let x = outputs
+            .outputs
+            .iter()
+            .find(|(name, _)| name == "x")
+            .unwrap();
+        assert_eq!(x.1.len(), 4);
+        assert!(
+            x.1.iter()
+                .all(|(_, value)| outputs.arena.as_int_const(*value) == Some(0))
+        );
+        fitting.arrays[0].len = 2;
+        fitting.arrays.push(ArrayDef {
+            name: "y".into(),
+            base: 0x10008,
+            elem_width: 4,
+            len: 2,
+            kind: ArrayKind::InputOutput,
+        });
+        assert_invalid(&run_config(&body, 0, fitting), "allocation boundaries");
+    }
+}
+
+#[test]
+fn native_dwordx4_at_a_four_byte_offset_has_exact_full_transfer_bounds() {
+    let body = "global_load_dwordx4 v[8:11], v2, s[4:5] offset:4\ns_waitcnt vmcnt(0)\nglobal_store_dwordx4 v2, v[8:11], s[6:7]";
+    let mut exact = config(1, 4);
+    exact.arrays[0].len = 5;
+    assert_input_permutation(&run_config(body, 0, exact), 4, |index| index + 1);
+    // This native ordinary DWORDX4 address is DWORD aligned. PTX v4's
+    // independent16-byte natural-alignment restriction is not transplanted.
+    assert_invalid(&run_config(body, 0, config(1, 4)), "out-of-bounds");
 }
 
 #[test]

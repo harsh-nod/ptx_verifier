@@ -681,6 +681,34 @@ fn malformed_native_instructions_are_rejected_even_when_unreachable_or_exec_zero
 }
 
 #[test]
+fn mfma_operand_classes_match_the_pinned_gfx950_assembler() {
+    // This includes positive and negative A/B/C cases across F32, F16,
+    // BF16, F8F6F4, F64 and I8 forms. The assembly receipt records the
+    // actual encoding or diagnostic, rather than assuming zero is legal.
+    let receipt: serde_yaml::Value = serde_yaml::from_str(include_str!(
+        "../../../../tests/gfx950/portable-matrix/mfma-operand-assembler.json"
+    ))
+    .unwrap();
+    let cases = receipt["cases"].as_sequence().unwrap();
+    assert_eq!(cases.len(), 317);
+    for case in cases {
+        let instruction = case["source"].as_str().unwrap();
+        let source = format!(
+            "{}\n.amdhsa_kernel copy\n.amdhsa_next_free_sgpr 64\n.amdhsa_next_free_vgpr 128\n.amdhsa_accum_offset 64\n.end_amdhsa_kernel\n",
+            program(&format!("{instruction}\ns_endpgm"))
+        );
+        let parsed = parse(&source);
+        let legal = case["returncode"].as_i64().unwrap() == 0;
+        assert_eq!(
+            parsed.is_ok(),
+            legal,
+            "{instruction}: parser={parsed:?}; assembler={}",
+            case["stderr"].as_str().unwrap()
+        );
+    }
+}
+
+#[test]
 fn rejects_other_targets_and_bad_descriptors() {
     assert!(parse(&program("s_endpgm").replace("gfx950", "gfx942")).is_err());
     for field in [

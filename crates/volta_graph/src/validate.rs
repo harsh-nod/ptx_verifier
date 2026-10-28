@@ -61,6 +61,20 @@ impl EventGraph {
     }
 
     fn validate_amd(&self, d: &mut Defects) {
+        if let Err(reason) = crate::validate_shared_allocations(&self.shared_allocation_layout) {
+            d.global(reason);
+        }
+        if !self.shared_allocation_layout.is_empty()
+            && !self
+                .provenance
+                .targets
+                .iter()
+                .any(|target| target.split(':').next() == Some("gfx950"))
+        {
+            d.global(
+                "configured shared allocation layout requires the native gfx950 target".into(),
+            );
+        }
         for (index, record) in self.amd_events.iter().enumerate() {
             match self.events.get(record.event) {
                 Some(event)
