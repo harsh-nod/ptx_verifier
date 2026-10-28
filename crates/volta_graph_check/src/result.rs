@@ -195,8 +195,8 @@ impl Property {
     pub fn algorithm(self) -> &'static str {
         match self {
             Property::AmdTrace => "native AMD graph contract",
-            Property::AmdWaitReadiness => "CDNA counters and register dependencies",
-            Property::AmdBarrier => "CDNA S_BARRIER",
+            Property::AmdWaitReadiness => "target-selected counters and register dependencies",
+            Property::AmdBarrier => "target-selected AMD barrier objects and phases",
             Property::AmdMemoryConflict => "AMD completed-effect happens-before",
             Property::NamedBarrierEpoch | Property::MbarrierEpoch => "Algorithm 1",
             Property::MbarrierOrdering => "Algorithm 2",

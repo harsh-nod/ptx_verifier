@@ -121,6 +121,23 @@ impl Trace {
                 Space::Shared,
                 destinations.is_empty(),
             ),
+            AmdMemoryClass::AsyncLoadToLds | AmdMemoryClass::AsyncStoreFromLds => (
+                9,
+                vec![
+                    (
+                        if class == AmdMemoryClass::AsyncLoadToLds {
+                            AmdCounter::Load
+                        } else {
+                            AmdCounter::Store
+                        },
+                        1,
+                    ),
+                    (AmdCounter::X, 1),
+                    (AmdCounter::Async, 1),
+                ],
+                Space::Global,
+                class == AmdMemoryClass::AsyncStoreFromLds,
+            ),
             AmdMemoryClass::TensorLoadToLds | AmdMemoryClass::TensorStoreFromLds => (
                 10,
                 vec![(AmdCounter::Tensor, 1)],
@@ -161,6 +178,19 @@ impl Trace {
                     write,
                     addr + lane as u64 * 4,
                 );
+                if matches!(
+                    class,
+                    AmdMemoryClass::AsyncLoadToLds | AmdMemoryClass::AsyncStoreFromLds
+                ) {
+                    self.effect(
+                        issue,
+                        wave * 32 + lane,
+                        pc,
+                        Space::Shared,
+                        !write,
+                        lane as u64 * 4,
+                    );
+                }
             }
             if matches!(
                 class,
@@ -986,6 +1016,106 @@ fn completed_prefix_and_progress_after_endpgm_cannot_claim_a_complete_native_tra
         assert_eq!(
             check_graph(&t.b.finish(Terminal::Completed)).verdict(Property::AmdTrace),
             Verdict::Unknown
+        );
+    }
+}
+
+#[test]
+fn async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse() {
+    for class in [
+        AmdMemoryClass::AsyncLoadToLds,
+        AmdMemoryClass::AsyncStoreFromLds,
+    ] {
+        for (data_wait, async_wait) in [(false, false), (true, false), (false, true), (true, true)]
+        {
+            let mut t = Trace::new(1);
+            t.issue(0, class, vec![], vec![s(2)], 4096);
+            if data_wait {
+                t.wait(
+                    0,
+                    if class == AmdMemoryClass::AsyncLoadToLds {
+                        AmdCounter::Load
+                    } else {
+                        AmdCounter::Store
+                    },
+                    0,
+                );
+            }
+            if async_wait {
+                t.wait(0, AmdCounter::Async, 0);
+            }
+            t.issue(0, AmdMemoryClass::Ds, vec![], vec![], 0);
+            let r = check_graph(&t.finish());
+            assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+            assert_eq!(
+                r.verdict(Property::AmdMemoryConflict),
+                if data_wait && async_wait {
+                    Verdict::Pass
+                } else {
+                    Verdict::Fail
+                }
+            );
+        }
+    }
+}
+#[test]
+fn legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication() {
+    for unpaired in [false, true] {
+        let mut t = Trace::new(2);
+        let pc = if unpaired { 9 } else { 1 };
+        t.ins(0, pc, vec![], vec![]);
+        let issue = t.b.amd_event(
+            0,
+            ProgramPoint(pc),
+            AmdEventKind::MemoryIssue {
+                class: if unpaired {
+                    AmdMemoryClass::AsyncLoadToLds
+                } else {
+                    AmdMemoryClass::VectorStore
+                },
+                counters: if unpaired {
+                    vec![
+                        (AmdCounter::Load, 1),
+                        (AmdCounter::X, 1),
+                        (AmdCounter::Async, 1),
+                    ]
+                } else {
+                    vec![(AmdCounter::Store, 1), (AmdCounter::X, 1)]
+                },
+                destinations: vec![],
+                held_sources: vec![],
+            },
+        );
+        if unpaired {
+            t.effect(issue, 0, pc, Space::Global, false, 0);
+            t.effect(issue, 1, pc, Space::Shared, true, 0);
+        } else {
+            for thread in 0..2 {
+                let value = t.b.value(StoredValue::Opaque);
+                let effect = t.b.thread_access(
+                    ThreadIx(thread),
+                    ProgramPoint(pc),
+                    MemAccess {
+                        space: Space::Global,
+                        mode: AccessMode::Write,
+                        ordering: OrderingKind::Ordinary,
+                        proxy: Proxy::Generic,
+                        footprint: Footprint::Bytes {
+                            addr: thread as u64 * 4,
+                            width: 4,
+                        },
+                        role: OperandRole::Plain,
+                        attributed: ThreadIx(thread),
+                        value: Some(value),
+                    },
+                );
+                t.b.amd_memory_effect_scoped(issue, effect, AmdMemoryScope::Workgroup);
+            }
+        }
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdTrace),
+            Verdict::Unknown,
+            "unpaired {unpaired}"
         );
     }
 }

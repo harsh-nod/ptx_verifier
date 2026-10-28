@@ -445,7 +445,7 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
     }
     let mut associations = HashMap::new();
     let mut represented = HashMap::<EventId, HashSet<u32>>::new();
-    let mut transferred = HashMap::<EventId, (u64, u64)>::new();
+    let mut transferred = HashMap::<EventId, HashMap<ThreadIx, (u64, u64)>>::new();
     let mut footprints = HashMap::<(EventId, ThreadIx), (u64, u64)>::new();
     let mut last_record = HashMap::new();
     for link in graph.amd_memory_effects() {
@@ -541,20 +541,19 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         "gfx1250 memory class/effect space, direction or ordering disagree",
                     ));
                 }
-                if link.scope == AmdMemoryScope::Workgroup
-                    && !(access.space == Space::Global
-                        && matches!(
-                            class,
-                            AmdMemoryClass::VectorLoad | AmdMemoryClass::VectorStore
-                        ))
-                {
-                    unresolved.push(Unresolved::at(
-                        event_id,
-                        "workgroup visibility scope is unsupported for this memory operation",
-                    ));
+                // The old scope tag certifies CDNA SC0/SC1 encodings. GFX12
+                // uses a distinct SCOPE field, whose cache/publication protocol
+                // must not be invented from a legacy tag on an external graph.
+                if link.scope != AmdMemoryScope::Unspecified {
+                    unresolved.push(Unresolved::at(event_id,
+                        "legacy CDNA workgroup visibility does not certify gfx1250 SCOPE/cache publication"));
                 }
                 if let Footprint::Bytes { addr, width } = access.footprint {
-                    let count = transferred.entry(link.issue).or_default();
+                    let count = transferred
+                        .entry(link.issue)
+                        .or_default()
+                        .entry(access.attributed)
+                        .or_default();
                     if read {
                         count.0 += width as u64;
                     } else {
@@ -639,11 +638,12 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                 | AmdMemoryClass::AsyncStoreFromLds
                 | AmdMemoryClass::TensorLoadToLds
                 | AmdMemoryClass::TensorStoreFromLds
-        ) && transferred
-            .get(&id)
-            .is_none_or(|&(read, write)| read == 0 || read != write)
-        {
-            unresolved.push(Unresolved::at(id, "DMA instruction requires both source and destination footprints of equal byte size"));
+        ) && transferred.get(&id).is_none_or(|lanes| {
+            lanes
+                .values()
+                .any(|&(read, write)| read == 0 || read != write)
+        }) {
+            unresolved.push(Unresolved::at(id, "DMA instruction requires paired source/destination footprints of equal byte size for each attributed lane"));
         }
     }
     if !graph.shared_allocation_layout().is_empty() {

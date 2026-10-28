@@ -747,14 +747,14 @@ impl MatrixOperation {
 pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
     let Some(architecture) = AmdArchitecture::from_targets(&graph.provenance().targets) else {
         return AmdReport {
-            trace: unknown("AMD checks require one recognized gfx942/gfx950 target"),
+            trace: unknown("AMD checks require one recognized gfx942/gfx950/gfx1250 target"),
             wait_readiness: unknown("AMD target selection did not pass"),
             barrier: unknown("AMD target selection did not pass"),
             memory_conflict: unknown("AMD target selection did not pass"),
         };
     };
-    // Geometry recognition is additive; the legacy CDNA counter/barrier rules
-    // must never accept a wave32 trace while its target contract is unavailable.
+    // Each generation owns its completion and synchronization contract;
+    // gfx1250 wave32 must never inherit legacy CDNA counter/barrier semantics.
     if architecture == AmdArchitecture::Gfx1250 {
         return gfx1250::check(graph);
     }
