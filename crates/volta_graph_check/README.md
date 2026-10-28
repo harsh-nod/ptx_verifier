@@ -210,3 +210,14 @@ Prerequisites (`Property::prerequisites`): 1, 2, 3 and 10 need nothing; 4 and
 `tests/` holds graph-level unit tests built with `GraphBuilder`. End-to-end PTX
 tests for each check live in `volta_pipeline/tests/<check>_tests.rs` and assert on
 the check's typed witness.
+
+## gfx1250 checks
+
+The target-selected wave32 checker validates trace completeness before readiness,
+barrier-generation and memory-conflict checks. X replay-source leases are
+separate from completion counters. Shader split signals publish completed
+effects; missing data waits remain hazards. WMMA operand roles and dependencies
+use gfx1250 layouts. Missing waves, wrong masks/register classes, forged memory
+associations and incomplete traces stay inconclusive or fail their typed
+obligation. Advanced barrier/cache/tensor modes outside the documented subset
+cannot inherit gfx942/gfx950 certificates. Hardware validation is pending.

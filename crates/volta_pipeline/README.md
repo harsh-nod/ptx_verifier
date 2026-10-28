@@ -105,3 +105,13 @@ VOLTA_BLESS=1 cargo test -p volta_pipeline      # regenerate .out files
 
 The `logging` feature narrates the stages (`[analysis]`, `[graph]`,
 `[equivalence]`).
+
+## Native target dispatch
+
+`Backend::select("amdgpu", Some("gfx1250"))` selects wave32 analysis through the
+same `KernelModule`, symbolic outputs, graph reports and aggregation used by
+PTX/gfx942/gfx950. Source and selected target must agree. The AMD default stays
+gfx950. Native fixtures under `tests/gfx1250` exercise complete graph acceptance,
+independent matrix/arithmetic oracles, and typed safety rejections. Expression
+and VC replay checks equivalence only: those formats carry no event graph and
+cannot reestablish race freedom. gfx1250 hardware validation remains pending.

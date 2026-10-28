@@ -44,3 +44,14 @@ just test    # includes: uv run --reinstall-package volta pytest crates/volta_py
 
 Tests are in `tests/` (`test_analyze.py`, `test_verify.py`, with shared kernels
 in `kernels.py`).
+
+## Native AMD targets
+
+Pass `backend="amdgpu", target="gfx1250"` to `Config` and `parse` for the
+selected wave32 profile; use `gfx942`/`gfx950` for those source targets.
+Omitting the AMD target preserves gfx950. `analyze` runs native graph checks;
+`verify` also checks the complete configured specification. Missing waits raise
+`DataRaceError`; incomplete or resource-limited traces stay inconclusive.
+By-value arguments use `Param.bytes(...)`, including descriptor padding checks.
+See [gfx1250 scope and CPU validation](../../tests/gfx1250/README.md).
+gfx1250 hardware validation remains pending.
