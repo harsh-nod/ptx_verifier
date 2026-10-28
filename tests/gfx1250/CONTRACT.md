@@ -12,7 +12,7 @@ evidence classes.
 | Object/metadata | Tested AMDHSA code-object6, metadata1.2 |
 | Launch | One unclustered workgroup `(0,0,0)`, grid `(1,1,1)`, 1..1024 workitems |
 | Geometry | Wave32; only low32 bits of stored EXEC/VCC masks are physical lanes |
-| Registers | s0..s105, v0..v1023 spelling, TTMP0..15; actual allocation/tuple/encoding constraints apply |
+| Registers | s0..s105, logical VGPR allocation1024, encoded operands v0..v255, TTMP0..15; no AGPR namespace |
 | LDS | Aggregate static plus dynamic capacity up to327,680 bytes; explicit subobjects optional |
 | Inputs | Concrete addresses/control, symbolic mathematical data, exact by-value metadata bytes |
 | Replay | Hardwired XNACK; independent X-count address-source leases and data completion |
@@ -23,7 +23,7 @@ evidence classes.
 | Arithmetic | Existing mathematical reals; exact concrete signed/unsigned64 products and mad |
 
 Register bounds are assembler/ABI probes rather than blanket access guarantees.
-The checked compiler profile's high-bank constraints remain instruction-specific.
+Higher banked VGPR encodings are explicitly unsupported; their logical allocation limit is not confused with the supported operand spelling.
 Initial ABI state includes only defined architected TTMP fields, descriptor
 user-SGPR inputs, packed local IDs and recognized hidden launch values. Runtime
 facilities and padding remain undefined unless metadata/configuration defines
@@ -31,7 +31,7 @@ them. Argument count/layout, required dimensions, descriptor resources and
 static/dynamic LDS bounds are checked before acceptance.
 
 Unsupported or inconclusive modes include clusters/multiple workgroups,
-`tg_split`, general named/privileged barriers, arbitrary raw symbolic format
+`tg_split`, expert scheduling, general named/privileged barriers, arbitrary raw symbolic format
 reinterpretation, legacy CDNA cache visibility certificates, advanced tensor
 padding/multicast/gather/iteration/atomic-barrier modes and nonzero tensor waits.
 They are not projected into a weaker workgroup-zero safety claim. A required
