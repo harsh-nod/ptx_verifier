@@ -21,6 +21,7 @@ use crate::memory_conflict::{
     CONFLICT_CAP, MemoryConflict, MemoryConflictEvidence, MemoryConflictResult,
 };
 use crate::{PropertyResult, Unresolved, Verdict};
+mod gfx1250;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AmdTraceEvidence {
@@ -755,12 +756,7 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
     // Geometry recognition is additive; the legacy CDNA counter/barrier rules
     // must never accept a wave32 trace while its target contract is unavailable.
     if architecture == AmdArchitecture::Gfx1250 {
-        return AmdReport {
-            trace: unknown("gfx1250 graph completion/barrier contract is not yet implemented"),
-            wait_readiness: unknown("gfx1250 target contract did not pass"),
-            barrier: unknown("gfx1250 target contract did not pass"),
-            memory_conflict: unknown("gfx1250 target contract did not pass"),
-        };
+        return gfx1250::check(graph);
     }
     let trace = trace_contract(graph, architecture);
     if trace.verdict() != Verdict::Pass {
