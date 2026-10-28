@@ -12,11 +12,11 @@
   ],
   "generator": "tests/gfx950/generate_instruction_coverage.py",
   "totals": {
-    "sources": 170,
+    "sources": 182,
     "compiler_sources": 23,
-    "instructions": 14562,
+    "instructions": 14830,
     "exact_mnemonics": 238,
-    "observed_profiles": 721
+    "observed_profiles": 725
   },
   "primary_sources": {
     "amd-cdna4": {
@@ -1820,10 +1820,46 @@
       ]
     },
     {
+      "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+      "sha256": "a240f36356baa1f8832f51ee59866047394d2a6be2c135ca45a73cce9976d88c",
+      "compiler_pinned": false,
+      "instructions": 43,
+      "kernels": [
+        "k"
+      ]
+    },
+    {
       "path": "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
       "sha256": "eeddf5e145a3c2f90ee1a9ecd6ddace4b8c2da9fc9de8cfa866feb8867e2054d",
       "compiler_pinned": false,
       "instructions": 21,
+      "kernels": [
+        "k"
+      ]
+    },
+    {
+      "path": "tests/gfx950/portable-memory/copy_completion_marker.s",
+      "sha256": "ddd105878d8b68131d5b702bf9cca4fd96686aef4a4d1304a4d387d75af04085",
+      "compiler_pinned": false,
+      "instructions": 13,
+      "kernels": [
+        "k"
+      ]
+    },
+    {
+      "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+      "sha256": "c367681303240cdf2f90e38ed508b5021422d921bbfa80c24c37c294a782ae3a",
+      "compiler_pinned": false,
+      "instructions": 15,
+      "kernels": [
+        "k"
+      ]
+    },
+    {
+      "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+      "sha256": "ab235bfa76aa7f98acdb3c21e09b9ffdc04aec60baad406db0c9d058d1c12894",
+      "compiler_pinned": false,
+      "instructions": 16,
       "kernels": [
         "k"
       ]
@@ -1838,10 +1874,28 @@
       ]
     },
     {
+      "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+      "sha256": "c5ee5d31d0b5097294b93d1f15d3fb0c5c99c03f6d3d2bf5309fa83033fcb915",
+      "compiler_pinned": false,
+      "instructions": 21,
+      "kernels": [
+        "k"
+      ]
+    },
+    {
       "path": "tests/gfx950/portable-memory/logical_lane_ids.s",
       "sha256": "177b274a865a1e42a29b02eb33edbf43e9dec62586d8f452a766f833dd65bf95",
       "compiler_pinned": false,
       "instructions": 10,
+      "kernels": [
+        "k"
+      ]
+    },
+    {
+      "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+      "sha256": "68745746961ad0aa876bbb2d3e542eb81ce6a321c3c7273a72c2ba922576be6a",
+      "compiler_pinned": false,
+      "instructions": 15,
       "kernels": [
         "k"
       ]
@@ -1869,6 +1923,60 @@
       "sha256": "5b574029cd39909520ea09b051907353a519d37e7781b1ef8b4c79b12c9ca9de",
       "compiler_pinned": false,
       "instructions": 16,
+      "kernels": [
+        "k"
+      ]
+    },
+    {
+      "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+      "sha256": "f1c7ccdfc4859b84e63c0574ae6d487885986dc8508a6981229df46f1cab97c6",
+      "compiler_pinned": false,
+      "instructions": 45,
+      "kernels": [
+        "k"
+      ]
+    },
+    {
+      "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+      "sha256": "00ae9dbddc83e340dd1ce676dc97c5d2856b130ed593732fae7dac740562edc9",
+      "compiler_pinned": false,
+      "instructions": 19,
+      "kernels": [
+        "k"
+      ]
+    },
+    {
+      "path": "tests/gfx950/portable-memory/single_wave_symbolic_copy.s",
+      "sha256": "8d2ac17de5bc9d389b0e4205a543095c9aa75078194902b0887f9d797d0fb717",
+      "compiler_pinned": false,
+      "instructions": 11,
+      "kernels": [
+        "k"
+      ]
+    },
+    {
+      "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+      "sha256": "70736da5770ddfe0b449c78b27cd88ca52d59741cc28f381eb6627ad45ca02f0",
+      "compiler_pinned": false,
+      "instructions": 17,
+      "kernels": [
+        "k"
+      ]
+    },
+    {
+      "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+      "sha256": "0221cd217b3f117871fd6e848fd1ac4f4496401c41bc209ca7782277c4372fb9",
+      "compiler_pinned": false,
+      "instructions": 18,
+      "kernels": [
+        "k"
+      ]
+    },
+    {
+      "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+      "sha256": "9bbc7cc69c171fbd3ce76b30022fa872816efa1fea6550607b0d79d409aadd87",
+      "compiler_pinned": false,
+      "instructions": 35,
       "kernels": [
         "k"
       ]
@@ -2896,7 +3004,7 @@
     {
       "mnemonic": "ds_read_b128",
       "family": "Lds",
-      "occurrences": 69,
+      "occurrences": 70,
       "frontend": "F",
       "lower": "L",
       "value": "M",
@@ -2921,7 +3029,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 19,
+          "occurrences": 20,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.s",
@@ -2972,6 +3080,11 @@
               "path": "tests/gfx950/portable-matrix/wmma_store_tile_ones.s",
               "kernel": "k",
               "line": 31
+            },
+            {
+              "path": "tests/gfx950/portable-memory/copy_completion_marker.s",
+              "kernel": "k",
+              "line": 16
             },
             {
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
@@ -3730,7 +3843,7 @@
     {
       "mnemonic": "ds_read_b32",
       "family": "Lds",
-      "occurrences": 24,
+      "occurrences": 35,
       "frontend": "F",
       "lower": "L",
       "value": "M",
@@ -3755,7 +3868,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 17,
+          "occurrences": 26,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.s",
@@ -3803,9 +3916,29 @@
               "line": 18
             },
             {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 20
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 21
+            },
+            {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 20
+            },
+            {
               "path": "tests/gfx950/portable-memory/logical_lane_ids.s",
               "kernel": "k",
               "line": 15
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 20
             },
             {
               "path": "tests/gfx950/portable-memory/logical_partitions.s",
@@ -3816,6 +3949,26 @@
               "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
               "kernel": "k",
               "line": 21
+            },
+            {
+              "path": "tests/gfx950/portable-memory/single_wave_symbolic_copy.s",
+              "kernel": "k",
+              "line": 17
+            },
+            {
+              "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+              "kernel": "k",
+              "line": 22
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+              "kernel": "k",
+              "line": 23
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 34
             },
             {
               "path": "tests/gfx950/portable-scalar/extern_only_shared_placement_and_bounds.s",
@@ -3951,6 +4104,41 @@
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f32.s",
               "kernel": "pipelined_mfma_f32",
               "line": 53
+            }
+          ]
+        },
+        {
+          "operands": [
+            {
+              "class": "Vector",
+              "kind": "register",
+              "special": "None",
+              "words": 1
+            },
+            {
+              "class": "Vector",
+              "kind": "register",
+              "special": "None",
+              "words": 1
+            }
+          ],
+          "modifiers": [
+            {
+              "name": "offset",
+              "value": "16"
+            }
+          ],
+          "occurrences": 2,
+          "examples": [
+            {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 47
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 49
             }
           ]
         },
@@ -4198,7 +4386,7 @@
     {
       "mnemonic": "ds_read_u16",
       "family": "Lds",
-      "occurrences": 153,
+      "occurrences": 155,
       "frontend": "F",
       "lower": "L",
       "value": "M",
@@ -4223,7 +4411,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 28,
+          "occurrences": 29,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f16.s",
@@ -4279,6 +4467,11 @@
               "path": "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
               "kernel": "k",
               "line": 22
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 21
             },
             {
               "path": "tests/gfx950/portable-scalar/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.s",
@@ -4703,12 +4896,17 @@
               "value": "2"
             }
           ],
-          "occurrences": 1,
+          "occurrences": 2,
           "examples": [
             {
               "path": "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
               "kernel": "k",
               "line": 23
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 20
             }
           ]
         },
@@ -6771,7 +6969,7 @@
     {
       "mnemonic": "ds_write_b128",
       "family": "Lds",
-      "occurrences": 20,
+      "occurrences": 24,
       "frontend": "F",
       "lower": "L",
       "value": "M",
@@ -6796,7 +6994,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 17,
+          "occurrences": 20,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.s",
@@ -6844,6 +7042,21 @@
               "line": 64
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 17
+            },
+            {
+              "path": "tests/gfx950/portable-memory/copy_completion_marker.s",
+              "kernel": "k",
+              "line": 14
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 16
+            },
+            {
               "path": "tests/gfx950/portable-scalar/region_edge_exact_fit_accesses_pass.s",
               "kernel": "k",
               "line": 18
@@ -6871,7 +7084,7 @@
               "value": "16"
             }
           ],
-          "occurrences": 3,
+          "occurrences": 4,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-state.s",
@@ -6882,6 +7095,11 @@
               "path": "tests/gfx950/portable-descriptor/tile-edge.s",
               "kernel": "k",
               "line": 27
+            },
+            {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 21
             }
           ]
         }
@@ -6890,7 +7108,7 @@
     {
       "mnemonic": "ds_write_b16",
       "family": "Lds",
-      "occurrences": 264,
+      "occurrences": 265,
       "frontend": "F",
       "lower": "L",
       "value": "M",
@@ -7370,12 +7588,17 @@
               "value": "2"
             }
           ],
-          "occurrences": 1,
+          "occurrences": 2,
           "examples": [
             {
               "path": "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
               "kernel": "k",
               "line": 16
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 18
             }
           ]
         },
@@ -9768,7 +9991,7 @@
     {
       "mnemonic": "ds_write_b32",
       "family": "Lds",
-      "occurrences": 35,
+      "occurrences": 45,
       "frontend": "F",
       "lower": "L",
       "value": "M",
@@ -9793,7 +10016,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 23,
+          "occurrences": 32,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.s",
@@ -9851,9 +10074,29 @@
               "line": 24
             },
             {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 16
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 17
+            },
+            {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 17
+            },
+            {
               "path": "tests/gfx950/portable-memory/logical_lane_ids.s",
               "kernel": "k",
               "line": 13
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 16
             },
             {
               "path": "tests/gfx950/portable-memory/logical_partitions.s",
@@ -9869,6 +10112,31 @@
               "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
               "kernel": "k",
               "line": 15
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 16
+            },
+            {
+              "path": "tests/gfx950/portable-memory/single_wave_symbolic_copy.s",
+              "kernel": "k",
+              "line": 15
+            },
+            {
+              "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+              "kernel": "k",
+              "line": 16
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+              "kernel": "k",
+              "line": 17
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 28
             },
             {
               "path": "tests/gfx950/portable-scalar/extern_only_shared_placement_and_bounds.s",
@@ -9954,6 +10222,36 @@
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
               "kernel": "k",
               "line": 32
+            }
+          ]
+        },
+        {
+          "operands": [
+            {
+              "class": "Vector",
+              "kind": "register",
+              "special": "None",
+              "words": 1
+            },
+            {
+              "class": "Vector",
+              "kind": "register",
+              "special": "None",
+              "words": 1
+            }
+          ],
+          "modifiers": [
+            {
+              "name": "offset",
+              "value": "16"
+            }
+          ],
+          "occurrences": 1,
+          "examples": [
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 23
             }
           ]
         },
@@ -11735,7 +12033,7 @@
     {
       "mnemonic": "global_load_dword",
       "family": "VectorMemory",
-      "occurrences": 145,
+      "occurrences": 151,
       "frontend": "F",
       "lower": "L",
       "value": "M",
@@ -11766,7 +12064,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 69,
+          "occurrences": 75,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.s",
@@ -11934,9 +12232,39 @@
               "line": 13
             },
             {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 15
+            },
+            {
               "path": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
               "kernel": "k",
               "line": 15
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 14
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/single_wave_symbolic_copy.s",
+              "kernel": "k",
+              "line": 13
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+              "kernel": "k",
+              "line": 15
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 26
             },
             {
               "path": "tests/gfx950/portable-scalar/cvta_to_global_accepted.s",
@@ -13347,7 +13675,7 @@
     {
       "mnemonic": "global_load_dwordx4",
       "family": "VectorMemory",
-      "occurrences": 57,
+      "occurrences": 61,
       "frontend": "F",
       "lower": "L",
       "value": "M",
@@ -13378,7 +13706,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 29,
+          "occurrences": 32,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s",
@@ -13404,6 +13732,21 @@
               "path": "tests/gfx950/portable-data/payload_aligned_vector_load.s",
               "kernel": "k",
               "line": 13
+            },
+            {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 15
+            },
+            {
+              "path": "tests/gfx950/portable-memory/copy_completion_marker.s",
+              "kernel": "k",
+              "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 14
             },
             {
               "path": "tests/gfx950/portable-negative/balanced_tree_sum.s",
@@ -13534,7 +13877,7 @@
               "value": "16"
             }
           ],
-          "occurrences": 4,
+          "occurrences": 5,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s",
@@ -13545,6 +13888,11 @@
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s",
               "kernel": "mfma_e4m3_k128",
               "line": 218
+            },
+            {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 19
             }
           ]
         },
@@ -15543,7 +15891,7 @@
     {
       "mnemonic": "global_store_dword",
       "family": "VectorMemory",
-      "occurrences": 292,
+      "occurrences": 304,
       "frontend": "F",
       "lower": "L",
       "value": "M",
@@ -15713,7 +16061,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 141,
+          "occurrences": 152,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.s",
@@ -15996,14 +16344,44 @@
               "line": 51
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 51
+            },
+            {
+              "path": "tests/gfx950/portable-memory/copy_completion_marker.s",
+              "kernel": "k",
+              "line": 20
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 22
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 23
+            },
+            {
               "path": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
               "kernel": "k",
               "line": 18
             },
             {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 29
+            },
+            {
               "path": "tests/gfx950/portable-memory/logical_lane_ids.s",
               "kernel": "k",
               "line": 18
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 22
             },
             {
               "path": "tests/gfx950/portable-memory/logical_partitions.s",
@@ -16014,6 +16392,31 @@
               "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
               "kernel": "k",
               "line": 24
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 51
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 26
+            },
+            {
+              "path": "tests/gfx950/portable-memory/single_wave_symbolic_copy.s",
+              "kernel": "k",
+              "line": 19
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+              "kernel": "k",
+              "line": 25
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 41
             },
             {
               "path": "tests/gfx950/portable-negative/balanced_tree_sum.s",
@@ -16857,7 +17260,7 @@
               "value": "4"
             }
           ],
-          "occurrences": 16,
+          "occurrences": 17,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-sinkhorn.s",
@@ -16873,6 +17276,11 @@
               "path": "tests/gfx950/portable-matrix/stmatrix_lane_word_placement.s",
               "kernel": "k",
               "line": 23
+            },
+            {
+              "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+              "kernel": "k",
+              "line": 24
             },
             {
               "path": "tests/gfx950/portable-negative/swapped_noncommutative_mut.s",
@@ -19065,7 +19473,7 @@
     {
       "mnemonic": "s_add_u32",
       "family": "ScalarAlu",
-      "occurrences": 36,
+      "occurrences": 37,
       "frontend": "F",
       "lower": "L",
       "value": "S",
@@ -19164,7 +19572,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 10,
+          "occurrences": 11,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-sinkhorn.s",
@@ -19190,6 +19598,11 @@
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-state.s",
               "kernel": "mamba2_chunk_state_full",
               "line": 386
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 45
             },
             {
               "path": "tests/gfx950/portable-scalar/elect_sync_elects_the_lowest_active_lane.s",
@@ -19582,7 +19995,7 @@
     {
       "mnemonic": "s_and_b64",
       "family": "ScalarAlu",
-      "occurrences": 16,
+      "occurrences": 21,
       "frontend": "F",
       "lower": "L",
       "value": "S",
@@ -19706,12 +20119,17 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 1,
+          "occurrences": 2,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
               "kernel": "reduction_f16",
               "line": 727
+            },
+            {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 26
             }
           ]
         },
@@ -19734,7 +20152,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 3,
+          "occurrences": 7,
           "examples": [
             {
               "path": "tests/gfx950/portable-matrix/mma_immediate_accumulator_identity.s",
@@ -19745,6 +20163,26 @@
               "path": "tests/gfx950/portable-matrix/mma_raw_accumulator_identity.s",
               "kernel": "k",
               "line": 24
+            },
+            {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 14
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 13
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 13
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 12
             },
             {
               "path": "tests/gfx950/portable-scalar/elect_sync_skips_an_already_exited_lane.s",
@@ -19809,7 +20247,7 @@
     {
       "mnemonic": "s_and_saveexec_b64",
       "family": "ScalarAlu",
-      "occurrences": 60,
+      "occurrences": 68,
       "frontend": "F",
       "lower": "L",
       "value": "S",
@@ -19869,7 +20307,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 51,
+          "occurrences": 59,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-copy-add.s",
@@ -19987,12 +20425,32 @@
               "line": 55
             },
             {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 24
+            },
+            {
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
               "kernel": "k",
               "line": 28
             },
             {
               "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
+              "kernel": "k",
+              "line": 14
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 13
+            },
+            {
+              "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+              "kernel": "k",
+              "line": 14
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
               "kernel": "k",
               "line": 14
             },
@@ -20195,7 +20653,7 @@
     {
       "mnemonic": "s_barrier",
       "family": "Barrier",
-      "occurrences": 83,
+      "occurrences": 94,
       "frontend": "F",
       "lower": "L",
       "value": "G",
@@ -20207,7 +20665,7 @@
         {
           "operands": [],
           "modifiers": [],
-          "occurrences": 83,
+          "occurrences": 94,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.s",
@@ -20405,6 +20863,31 @@
               "line": 29
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 24
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 18
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 19
+            },
+            {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 19
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 18
+            },
+            {
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
               "kernel": "k",
               "line": 39
@@ -20413,6 +20896,26 @@
               "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
               "kernel": "k",
               "line": 18
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 19
+            },
+            {
+              "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+              "kernel": "k",
+              "line": 19
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+              "kernel": "k",
+              "line": 20
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 31
             }
           ]
         }
@@ -20540,7 +21043,7 @@
     {
       "mnemonic": "s_branch",
       "family": "Branch",
-      "occurrences": 39,
+      "occurrences": 40,
       "frontend": "F",
       "lower": "L",
       "value": "J",
@@ -20557,7 +21060,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 39,
+          "occurrences": 40,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-convolution.s",
@@ -20653,6 +21156,11 @@
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
               "kernel": "k",
               "line": 35
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 16
             }
           ]
         }
@@ -20869,7 +21377,7 @@
     {
       "mnemonic": "s_cbranch_scc1",
       "family": "Branch",
-      "occurrences": 17,
+      "occurrences": 20,
       "frontend": "F",
       "lower": "L",
       "value": "J",
@@ -20886,7 +21394,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 17,
+          "occurrences": 20,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-convolution.s",
@@ -20947,6 +21455,11 @@
               "path": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
               "kernel": "k",
               "line": 20
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 23
             }
           ]
         }
@@ -21061,7 +21574,7 @@
     {
       "mnemonic": "s_cbranch_vccz",
       "family": "Branch",
-      "occurrences": 6,
+      "occurrences": 8,
       "frontend": "F",
       "lower": "L",
       "value": "J",
@@ -21078,7 +21591,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 6,
+          "occurrences": 8,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.s",
@@ -21096,9 +21609,19 @@
               "line": 289
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 13
+            },
+            {
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
               "kernel": "k",
               "line": 13
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 14
             }
           ]
         }
@@ -21107,7 +21630,7 @@
     {
       "mnemonic": "s_cmp_eq_u32",
       "family": "ScalarAlu",
-      "occurrences": 10,
+      "occurrences": 12,
       "frontend": "F",
       "lower": "L",
       "value": "S",
@@ -21129,7 +21652,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 10,
+          "occurrences": 12,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-attention.s",
@@ -21155,6 +21678,11 @@
               "path": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
               "kernel": "k",
               "line": 19
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 22
             }
           ]
         }
@@ -21245,7 +21773,7 @@
     {
       "mnemonic": "s_cmp_lt_u32",
       "family": "ScalarAlu",
-      "occurrences": 1,
+      "occurrences": 2,
       "frontend": "F",
       "lower": "L",
       "value": "S",
@@ -21267,12 +21795,17 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 1,
+          "occurrences": 2,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-sinkhorn.s",
               "kernel": "flash_sinkhorn_full",
               "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 46
             }
           ]
         }
@@ -21786,7 +22319,7 @@
     {
       "mnemonic": "s_endpgm",
       "family": "Control",
-      "occurrences": 198,
+      "occurrences": 210,
       "frontend": "F",
       "lower": "L",
       "value": "T",
@@ -21798,7 +22331,7 @@
         {
           "operands": [],
           "modifiers": [],
-          "occurrences": 198,
+          "occurrences": 210,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s",
@@ -22431,9 +22964,29 @@
               "line": 34
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 52
+            },
+            {
               "path": "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
               "kernel": "k",
               "line": 30
+            },
+            {
+              "path": "tests/gfx950/portable-memory/copy_completion_marker.s",
+              "kernel": "k",
+              "line": 21
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 23
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 24
             },
             {
               "path": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
@@ -22441,9 +22994,19 @@
               "line": 23
             },
             {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 30
+            },
+            {
               "path": "tests/gfx950/portable-memory/logical_lane_ids.s",
               "kernel": "k",
               "line": 19
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 23
             },
             {
               "path": "tests/gfx950/portable-memory/logical_partitions.s",
@@ -22459,6 +23022,36 @@
               "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
               "kernel": "k",
               "line": 25
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 53
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 27
+            },
+            {
+              "path": "tests/gfx950/portable-memory/single_wave_symbolic_copy.s",
+              "kernel": "k",
+              "line": 20
+            },
+            {
+              "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+              "kernel": "k",
+              "line": 26
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+              "kernel": "k",
+              "line": 27
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 48
             },
             {
               "path": "tests/gfx950/portable-negative/balanced_tree_sum.s",
@@ -23205,7 +23798,7 @@
     {
       "mnemonic": "s_load_dwordx4",
       "family": "ScalarMemory",
-      "occurrences": 184,
+      "occurrences": 196,
       "frontend": "F",
       "lower": "L",
       "value": "M",
@@ -23233,7 +23826,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 184,
+          "occurrences": 196,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s",
@@ -23791,9 +24384,29 @@
               "line": 10
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 9
+            },
+            {
               "path": "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
               "kernel": "k",
               "line": 10
+            },
+            {
+              "path": "tests/gfx950/portable-memory/copy_completion_marker.s",
+              "kernel": "k",
+              "line": 9
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 9
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 9
             },
             {
               "path": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
@@ -23801,9 +24414,19 @@
               "line": 10
             },
             {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 10
+            },
+            {
               "path": "tests/gfx950/portable-memory/logical_lane_ids.s",
               "kernel": "k",
               "line": 10
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 9
             },
             {
               "path": "tests/gfx950/portable-memory/logical_partitions.s",
@@ -23819,6 +24442,36 @@
               "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
               "kernel": "k",
               "line": 10
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 9
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 9
+            },
+            {
+              "path": "tests/gfx950/portable-memory/single_wave_symbolic_copy.s",
+              "kernel": "k",
+              "line": 10
+            },
+            {
+              "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+              "kernel": "k",
+              "line": 10
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+              "kernel": "k",
+              "line": 10
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 9
             },
             {
               "path": "tests/gfx950/portable-negative/balanced_tree_sum.s",
@@ -24548,7 +25201,7 @@
     {
       "mnemonic": "s_mov_b32",
       "family": "ScalarAlu",
-      "occurrences": 68,
+      "occurrences": 71,
       "frontend": "F",
       "lower": "L",
       "value": "S",
@@ -24620,7 +25273,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 61,
+          "occurrences": 64,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-grid-output.s",
@@ -24721,6 +25374,11 @@
               "path": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
               "kernel": "k",
               "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 15
             }
           ]
         }
@@ -24729,7 +25387,7 @@
     {
       "mnemonic": "s_mov_b64",
       "family": "ScalarAlu",
-      "occurrences": 56,
+      "occurrences": 63,
       "frontend": "F",
       "lower": "L",
       "value": "S",
@@ -24901,7 +25559,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 23,
+          "occurrences": 30,
           "examples": [
             {
               "path": "tests/gfx950/portable-descriptor/copy-replace-races.s",
@@ -24952,6 +25610,21 @@
               "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
               "kernel": "k",
               "line": 17
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 18
+            },
+            {
+              "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+              "kernel": "k",
+              "line": 18
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+              "kernel": "k",
+              "line": 19
             },
             {
               "path": "tests/gfx950/portable-scalar/extern_vs_static_shared_no_false_race.s",
@@ -25247,7 +25920,7 @@
     {
       "mnemonic": "s_nop",
       "family": "Control",
-      "occurrences": 187,
+      "occurrences": 227,
       "frontend": "F",
       "lower": "L",
       "value": "T",
@@ -25263,7 +25936,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 187,
+          "occurrences": 227,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s",
@@ -25521,9 +26194,19 @@
               "line": 16
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 27
+            },
+            {
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
               "kernel": "k",
               "line": 20
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 29
             },
             {
               "path": "tests/gfx950/portable-negative/exp_product_of_exps.s",
@@ -25908,7 +26591,7 @@
     {
       "mnemonic": "s_waitcnt",
       "family": "Wait",
-      "occurrences": 1317,
+      "occurrences": 1368,
       "frontend": "F",
       "lower": "L",
       "value": "W",
@@ -25925,7 +26608,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 586,
+          "occurrences": 626,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s",
@@ -26558,9 +27241,29 @@
               "line": 11
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 10
+            },
+            {
               "path": "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
               "kernel": "k",
               "line": 11
+            },
+            {
+              "path": "tests/gfx950/portable-memory/copy_completion_marker.s",
+              "kernel": "k",
+              "line": 10
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 10
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 10
             },
             {
               "path": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
@@ -26568,9 +27271,19 @@
               "line": 11
             },
             {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 11
+            },
+            {
               "path": "tests/gfx950/portable-memory/logical_lane_ids.s",
               "kernel": "k",
               "line": 11
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 10
             },
             {
               "path": "tests/gfx950/portable-memory/logical_partitions.s",
@@ -26586,6 +27299,36 @@
               "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
               "kernel": "k",
               "line": 11
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 10
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 10
+            },
+            {
+              "path": "tests/gfx950/portable-memory/single_wave_symbolic_copy.s",
+              "kernel": "k",
+              "line": 11
+            },
+            {
+              "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+              "kernel": "k",
+              "line": 11
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+              "kernel": "k",
+              "line": 11
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 10
             },
             {
               "path": "tests/gfx950/portable-negative/balanced_tree_sum.s",
@@ -26931,7 +27674,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 7,
+          "occurrences": 8,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-attention.s",
@@ -26952,6 +27695,11 @@
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-forgetting-attention.s",
               "kernel": "forgetting_attention_full",
               "line": 300
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 43
             }
           ]
         },
@@ -26963,7 +27711,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 724,
+          "occurrences": 734,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s",
@@ -27406,9 +28154,54 @@
               "line": 14
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 16
+            },
+            {
+              "path": "tests/gfx950/portable-memory/copy_completion_marker.s",
+              "kernel": "k",
+              "line": 13
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 16
+            },
+            {
               "path": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
               "kernel": "k",
               "line": 16
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 15
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 15
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 13
+            },
+            {
+              "path": "tests/gfx950/portable-memory/single_wave_symbolic_copy.s",
+              "kernel": "k",
+              "line": 14
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+              "kernel": "k",
+              "line": 16
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 27
             },
             {
               "path": "tests/gfx950/portable-negative/balanced_tree_sum.s",
@@ -28344,7 +29137,7 @@
     {
       "mnemonic": "v_add_f32",
       "family": "VectorAlu",
-      "occurrences": 67,
+      "occurrences": 68,
       "frontend": "FV",
       "lower": "L",
       "value": "F32",
@@ -28548,7 +29341,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 42,
+          "occurrences": 43,
           "examples": [
             {
               "path": "tests/gfx950/portable-data/f32_nan_bits.s",
@@ -28559,6 +29352,11 @@
               "path": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
               "kernel": "k",
               "line": 17
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 25
             },
             {
               "path": "tests/gfx950/portable-negative/balanced_tree_sum.s",
@@ -29166,7 +29964,7 @@
     {
       "mnemonic": "v_add_u32",
       "family": "VectorAlu",
-      "occurrences": 76,
+      "occurrences": 78,
       "frontend": "FV",
       "lower": "L",
       "value": "K",
@@ -29175,6 +29973,37 @@
       "primary_source": "amd-cdna4",
       "limits": [],
       "profiles": [
+        {
+          "operands": [
+            {
+              "class": "Vector",
+              "kind": "register",
+              "special": "None",
+              "words": 1
+            },
+            {
+              "class": "Vector",
+              "kind": "register",
+              "special": "None",
+              "words": 1
+            },
+            {
+              "class": "Scalar",
+              "kind": "register",
+              "special": "None",
+              "words": 1
+            }
+          ],
+          "modifiers": [],
+          "occurrences": 1,
+          "examples": [
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 39
+            }
+          ]
+        },
         {
           "operands": [
             {
@@ -29235,7 +30064,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 56,
+          "occurrences": 57,
           "examples": [
             {
               "path": "tests/gfx950/portable-data/payload_load_s8_sign_extends.s",
@@ -29321,6 +30150,11 @@
               "path": "tests/gfx950/portable-matrix/wmma_fragment_stride64.s",
               "kernel": "k",
               "line": 29
+            },
+            {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 16
             },
             {
               "path": "tests/gfx950/portable-negative/sentinel_off_by_one_mut.s",
@@ -30064,7 +30898,7 @@
     {
       "mnemonic": "v_and_b32",
       "family": "VectorAlu",
-      "occurrences": 58,
+      "occurrences": 59,
       "frontend": "FV",
       "lower": "L",
       "value": "K",
@@ -30092,7 +30926,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 58,
+          "occurrences": 59,
           "examples": [
             {
               "path": "tests/gfx950/portable-data/payload_cvt_reinterprets_at_source_format.s",
@@ -30173,6 +31007,11 @@
               "path": "tests/gfx950/portable-matrix/wmma_store_tile_ones.s",
               "kernel": "k",
               "line": 20
+            },
+            {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 14
             },
             {
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
@@ -30957,7 +31796,7 @@
     {
       "mnemonic": "v_cmp_eq_u32",
       "family": "VectorAlu",
-      "occurrences": 34,
+      "occurrences": 42,
       "frontend": "F",
       "lower": "L",
       "value": "B",
@@ -31021,7 +31860,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 4,
+          "occurrences": 11,
           "examples": [
             {
               "path": "tests/gfx950/portable-descriptor/copy-replace-races.s",
@@ -31035,6 +31874,21 @@
             },
             {
               "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
+              "kernel": "k",
+              "line": 13
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+              "kernel": "k",
+              "line": 13
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
               "kernel": "k",
               "line": 13
             }
@@ -31059,7 +31913,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 28,
+          "occurrences": 29,
           "examples": [
             {
               "path": "tests/gfx950/portable-data/predicate_permute_side_effect_race.s",
@@ -31105,6 +31959,11 @@
               "path": "tests/gfx950/portable-matrix/tcgen_raw_operands_accumulator17.s",
               "kernel": "k",
               "line": 19
+            },
+            {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 23
             },
             {
               "path": "tests/gfx950/portable-scalar/extern_vs_static_shared_no_false_race.s",
@@ -31252,7 +32111,7 @@
     {
       "mnemonic": "v_cmp_ge_u32",
       "family": "VectorAlu",
-      "occurrences": 2,
+      "occurrences": 3,
       "frontend": "F",
       "lower": "L",
       "value": "B",
@@ -31280,8 +32139,13 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 2,
+          "occurrences": 3,
           "examples": [
+            {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 25
+            },
             {
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
               "kernel": "k",
@@ -31604,7 +32468,7 @@
     {
       "mnemonic": "v_cmp_lt_u32",
       "family": "VectorAlu",
-      "occurrences": 27,
+      "occurrences": 29,
       "frontend": "F",
       "lower": "L",
       "value": "B",
@@ -31663,7 +32527,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 25,
+          "occurrences": 27,
           "examples": [
             {
               "path": "tests/gfx950/portable-descriptor/copy-replace-races.s",
@@ -31706,9 +32570,19 @@
               "line": 54
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 12
+            },
+            {
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
               "kernel": "k",
               "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 13
             },
             {
               "path": "tests/gfx950/portable-scalar/b16_shift_amount_is_read_as_u32.s",
@@ -32572,7 +33446,7 @@
     {
       "mnemonic": "v_cvt_f16_f32",
       "family": "VectorAlu",
-      "occurrences": 17,
+      "occurrences": 18,
       "frontend": "F",
       "lower": "L",
       "value": "H",
@@ -32597,7 +33471,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 17,
+          "occurrences": 18,
           "examples": [
             {
               "path": "tests/gfx950/portable-data/payload_mov_unpack_native_pair_source.s",
@@ -32633,6 +33507,11 @@
               "path": "tests/gfx950/portable-matrix/wmma_fragment_stride64.s",
               "kernel": "k",
               "line": 31
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 14
             }
           ]
         }
@@ -32850,7 +33729,7 @@
     {
       "mnemonic": "v_cvt_f32_f16",
       "family": "VectorAlu",
-      "occurrences": 4,
+      "occurrences": 6,
       "frontend": "F",
       "lower": "L",
       "value": "H",
@@ -32875,12 +33754,17 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 4,
+          "occurrences": 6,
           "examples": [
             {
               "path": "tests/gfx950/portable-data/payload_mov_unpack_native_pair_source.s",
               "kernel": "k",
               "line": 15
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 23
             },
             {
               "path": "tests/gfx950/portable-scalar/float_ops_decode_raw_bit_patterns.s",
@@ -33539,7 +34423,7 @@
     {
       "mnemonic": "v_cvt_f32_u32",
       "family": "VectorAlu",
-      "occurrences": 18,
+      "occurrences": 22,
       "frontend": "F",
       "lower": "L",
       "value": "F32",
@@ -33600,6 +34484,43 @@
               "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
               "kernel": "k",
               "line": 23
+            }
+          ]
+        },
+        {
+          "operands": [
+            {
+              "class": "Vector",
+              "kind": "register",
+              "special": "None",
+              "words": 1
+            },
+            {
+              "kind": "integer"
+            }
+          ],
+          "modifiers": [],
+          "occurrences": 4,
+          "examples": [
+            {
+              "path": "tests/gfx950/portable-memory/copy_completion_marker.s",
+              "kernel": "k",
+              "line": 19
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 15
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 22
+            },
+            {
+              "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+              "kernel": "k",
+              "line": 15
             }
           ]
         }
@@ -34876,7 +35797,7 @@
     {
       "mnemonic": "v_lshl_add_u32",
       "family": "VectorAlu",
-      "occurrences": 100,
+      "occurrences": 101,
       "frontend": "F",
       "lower": "L",
       "value": "K",
@@ -35093,7 +36014,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 72,
+          "occurrences": 73,
           "examples": [
             {
               "path": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-convolution.s",
@@ -35199,6 +36120,11 @@
               "path": "tests/gfx950/portable-matrix/wmma_store_tile_ones.s",
               "kernel": "k",
               "line": 23
+            },
+            {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 15
             },
             {
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
@@ -35895,7 +36821,7 @@
     {
       "mnemonic": "v_lshlrev_b32",
       "family": "VectorAlu",
-      "occurrences": 117,
+      "occurrences": 126,
       "frontend": "FV",
       "lower": "L",
       "value": "K",
@@ -35954,7 +36880,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 116,
+          "occurrences": 125,
           "examples": [
             {
               "path": "tests/gfx950/portable-data/integer_floor_doubled.s",
@@ -36062,14 +36988,39 @@
               "line": 21
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 50
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 14
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 14
+            },
+            {
               "path": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
               "kernel": "k",
               "line": 14
             },
             {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 13
+            },
+            {
               "path": "tests/gfx950/portable-memory/logical_lane_ids.s",
               "kernel": "k",
               "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 13
             },
             {
               "path": "tests/gfx950/portable-memory/logical_partitions.s",
@@ -36080,6 +37031,11 @@
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
               "kernel": "k",
               "line": 24
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 25
             },
             {
               "path": "tests/gfx950/portable-negative/balanced_tree_sum.s",
@@ -36735,7 +37691,7 @@
     {
       "mnemonic": "v_lshrrev_b32",
       "family": "VectorAlu",
-      "occurrences": 41,
+      "occurrences": 45,
       "frontend": "FV",
       "lower": "L",
       "value": "K",
@@ -36794,7 +37750,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 40,
+          "occurrences": 44,
           "examples": [
             {
               "path": "tests/gfx950/portable-data/concrete_integer_division.s",
@@ -36882,9 +37838,29 @@
               "line": 15
             },
             {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 12
+            },
+            {
               "path": "tests/gfx950/portable-memory/logical_partitions.s",
               "kernel": "k",
               "line": 13
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 36
             },
             {
               "path": "tests/gfx950/portable-scalar/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.s",
@@ -39046,7 +40022,7 @@
     {
       "mnemonic": "v_mov_b32",
       "family": "VectorAlu",
-      "occurrences": 420,
+      "occurrences": 437,
       "frontend": "F",
       "lower": "L",
       "value": "K",
@@ -39071,7 +40047,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 5,
+          "occurrences": 6,
           "examples": [
             {
               "path": "tests/gfx950/portable-data/select_computed_complement.s",
@@ -39082,6 +40058,11 @@
               "path": "tests/gfx950/portable-descriptor/tile-edge.s",
               "kernel": "k",
               "line": 18
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 24
             },
             {
               "path": "tests/gfx950/portable-scalar/elect_sync_elects_the_lowest_active_lane.s",
@@ -39111,7 +40092,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 28,
+          "occurrences": 30,
           "examples": [
             {
               "path": "tests/gfx950/portable-data/payload_vector_store_with_immediate_source.s",
@@ -39142,6 +40123,16 @@
               "path": "tests/gfx950/portable-matrix/tcgen_raw_operands_accumulator17.s",
               "kernel": "k",
               "line": 50
+            },
+            {
+              "path": "tests/gfx950/portable-memory/copy_completion_marker.s",
+              "kernel": "k",
+              "line": 18
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 12
             },
             {
               "path": "tests/gfx950/portable-negative/off_by_one_index_mut.s",
@@ -39230,7 +40221,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 378,
+          "occurrences": 392,
           "examples": [
             {
               "path": "tests/gfx950/portable-data/concrete_integer_division.s",
@@ -39583,9 +40574,39 @@
               "line": 12
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 11
+            },
+            {
               "path": "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
               "kernel": "k",
               "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/copy_completion_marker.s",
+              "kernel": "k",
+              "line": 11
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 11
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 11
+            },
+            {
+              "path": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+              "kernel": "k",
+              "line": 25
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 11
             },
             {
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
@@ -39596,6 +40617,36 @@
               "path": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
               "kernel": "k",
               "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+              "kernel": "k",
+              "line": 11
+            },
+            {
+              "path": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+              "kernel": "k",
+              "line": 11
+            },
+            {
+              "path": "tests/gfx950/portable-memory/single_wave_symbolic_copy.s",
+              "kernel": "k",
+              "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+              "kernel": "k",
+              "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+              "kernel": "k",
+              "line": 12
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 11
             },
             {
               "path": "tests/gfx950/portable-negative/balanced_tree_sum.s",
@@ -43961,7 +45012,7 @@
     {
       "mnemonic": "v_sub_u32",
       "family": "VectorAlu",
-      "occurrences": 14,
+      "occurrences": 16,
       "frontend": "FV",
       "lower": "L",
       "value": "K",
@@ -44035,7 +45086,7 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 6,
+          "occurrences": 8,
           "examples": [
             {
               "path": "tests/gfx950/portable-data/payload_cvt_reinterprets_at_source_format.s",
@@ -44063,9 +45114,19 @@
               "line": 32
             },
             {
+              "path": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+              "kernel": "k",
+              "line": 49
+            },
+            {
               "path": "tests/gfx950/portable-memory/masked_matrix_publication.s",
               "kernel": "k",
               "line": 42
+            },
+            {
+              "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+              "kernel": "k",
+              "line": 37
             }
           ]
         },
@@ -44205,7 +45266,7 @@
     {
       "mnemonic": "v_xor_b32",
       "family": "VectorAlu",
-      "occurrences": 4,
+      "occurrences": 7,
       "frontend": "FV",
       "lower": "L",
       "value": "K",
@@ -44264,8 +45325,23 @@
             }
           ],
           "modifiers": [],
-          "occurrences": 2,
+          "occurrences": 5,
           "examples": [
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+              "kernel": "k",
+              "line": 19
+            },
+            {
+              "path": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 20
+            },
+            {
+              "path": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+              "kernel": "k",
+              "line": 19
+            },
             {
               "path": "tests/gfx950/portable-negative/integer_sign_bit_xor_ref.s",
               "kernel": "k",
