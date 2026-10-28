@@ -67,10 +67,20 @@
         "two MFMA tiles",
         "repeated workgroup barriers"
       ],
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [
         "Reduced matrix mechanism coverage; does not close full-shape baseline workload parity."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE*",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "pipelined_mfma_f32/pipelined_mfma_f32",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        ],
+        "scope": "Supplemental reduced mechanism control; does not replace full baseline launch."
+      }
     },
     {
       "kernel": "pipelined_mfma_f16",
@@ -138,10 +148,20 @@
         "two MFMA tiles",
         "repeated workgroup barriers"
       ],
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [
         "Reduced matrix mechanism coverage; does not close full-shape baseline workload parity."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE*",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "pipelined_mfma_f16/pipelined_mfma_f16",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        ],
+        "scope": "Supplemental reduced mechanism control; does not replace full baseline launch."
+      }
     },
     {
       "kernel": "mfma_f32",
@@ -204,7 +224,17 @@
         "bytes": 1024
       },
       "reduced_case": true,
-      "status": "compiler_and_assembler_validated; independent symbolic layout validated by executor; hardware pending"
+      "status": "coordinator_validated_declared_native_scope",
+      "expected_native_outcome": "RACE-FREE*",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "mfma_f32/mfma_f32",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        ],
+        "scope": "Supplemental reduced mechanism control; does not replace full baseline launch."
+      }
     },
     {
       "kernel": "ids_3d",
@@ -252,7 +282,17 @@
         "bytes": 96
       },
       "reduced_case": false,
-      "status": "compiler_and_assembler_validated; symbolic_and_hardware_pending"
+      "status": "coordinator_validated_declared_native_scope",
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "ids_3d/ids_3d",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     }
   ]
 }

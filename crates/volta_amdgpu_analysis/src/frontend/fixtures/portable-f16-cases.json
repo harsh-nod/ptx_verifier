@@ -52,8 +52,18 @@
         "ptr:out"
       ],
       "dtype": "f16 input/output with f32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
-      "notes": []
+      "status": "coordinator_validated_declared_native_scope",
+      "notes": [],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "relu/relu_f16",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     },
     {
       "kernel": "silu_f16",
@@ -100,8 +110,18 @@
         "ptr:out"
       ],
       "dtype": "f16 input/output with f32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
-      "notes": []
+      "status": "coordinator_validated_declared_native_scope",
+      "notes": [],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "silu/silu_f16",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     },
     {
       "kernel": "sigmoid_f16",
@@ -148,8 +168,18 @@
         "ptr:out"
       ],
       "dtype": "f16 input/output with f32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
-      "notes": []
+      "status": "coordinator_validated_declared_native_scope",
+      "notes": [],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "sigmoid/sigmoid_f16",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     },
     {
       "kernel": "swiglu_f16",
@@ -204,8 +234,18 @@
         "ptr:out"
       ],
       "dtype": "f16 input/output with f32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
-      "notes": []
+      "status": "coordinator_validated_declared_native_scope",
+      "notes": [],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "swiglu/swiglu_f16",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     },
     {
       "kernel": "rope_f16",
@@ -269,8 +309,18 @@
         "ptr:out"
       ],
       "dtype": "f16 input/output with f32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
-      "notes": []
+      "status": "coordinator_validated_declared_native_scope",
+      "notes": [],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "rope/rope_f16",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     },
     {
       "kernel": "reduction_f16",
@@ -319,7 +369,7 @@
         "ptr:out"
       ],
       "dtype": "f16 input/output with f32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "status": "explicit_symbolic_unsupported_boundary; numerical_hardware_validation_is_separate",
       "notes": [
         "The first symbolic boundary is v_readfirstlane Table11 software dependencies. Later native global_atomic_add_f32 is also outside the symbolic envelope. Physical numerical validation is recorded separately and is not a positive symbolic proof.",
         "Only workgroup zero is scoped; this is not whole-grid atomic verification.",
@@ -328,10 +378,14 @@
       "expected_native_outcome": "UNSUPPORTED",
       "expected_native_detail": "lane/accumulator register moves need Table 11 software dependency checks",
       "validation_evidence": {
-        "symbolic_boundary": "tests/gfx950/evidence/reduction-native-boundary-6bc63a5.json",
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "reduction_sum/reduction_f16",
         "hardware": [
-          "tests/gfx950/evidence/hardware-portable-f16-corrected-2026-10-27.json"
-        ]
+          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        ],
+        "scope": "Known Unsupported boundary and no symbolic outputs; numerical hardware PASS is not a symbolic proof.",
+        "symbolic_boundary": "tests/gfx950/evidence/reduction-native-boundary-6bc63a5.json"
       }
     },
     {
@@ -384,12 +438,22 @@
         "int:256"
       ],
       "dtype": "f16 input/output with f32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [
         "Full original16x256 row footprint. Historical4x256 receipts are supplemental reduced cases; a separate final4096-output replay validates this configuration. The original PTX Softmax workload remains an observed baseline limitation."
       ],
       "full_baseline_shape": true,
-      "reduced_case": false
+      "reduced_case": false,
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "softmax/softmax_f16",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     },
     {
       "kernel": "rmsnorm_f16",
@@ -445,8 +509,18 @@
         "ptr:out"
       ],
       "dtype": "f16 input/output with f32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
-      "notes": []
+      "status": "coordinator_validated_declared_native_scope",
+      "notes": [],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "rmsnorm/rmsnorm_f16",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     },
     {
       "kernel": "matvec_f16",
@@ -502,10 +576,20 @@
         "ptr:out"
       ],
       "dtype": "f16 input/output with f32 arithmetic",
-      "status": "compiled_and_assembled; symbolic_and_hardware_validation_pending",
+      "status": "coordinator_validated_declared_native_scope",
       "notes": [
         "Preserves all32 output rows and the fullK4096 reduction with an ordinary wave-ALU/LDS implementation. Native MFMA pipeline mechanics are exercised separately; this kernel does not use MFMA or claim equal PTX instruction scheduling."
-      ]
+      ],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
+        "result_key": "matvec/matvec_f16",
+        "hardware": [
+          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json"
+        ],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
     }
   ]
 }

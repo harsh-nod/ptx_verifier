@@ -1,0 +1,99 @@
+{
+  "validated_by": "coordinator exact-native full16-row softmax and block128 matvec hardware replay",
+  "revision": "8819de34fd286c0afe903bdd42f790a5486c0cb5",
+  "softmax_rows": 16,
+  "softmax_outputs": 4096,
+  "host": "mi350",
+  "target": "gfx950",
+  "matvec_block": 128,
+  "supersedes": "matvec_f16 launch in hardware-2026-10-27-initial-corpus.json used256; current replay uses source/manifest128. Historical numeric agreement alone did not establish intended launch.",
+  "commands": [
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "portable-f16.s",
+        "-o",
+        "native.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/ld.lld",
+        "-shared",
+        "native.o",
+        "-o",
+        "native.hsaco"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-O2",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-D__HIP_PLATFORM_AMD__",
+        "-I/opt/rocm/include",
+        "native_portable_f16.cpp",
+        "-L/opt/rocm/lib",
+        "-Wl,-rpath,/opt/rocm/lib",
+        "-lamdhip64",
+        "-o",
+        "runner"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./runner",
+        "native.hsaco"
+      ],
+      "exit_code": 0,
+      "stdout": "PASS relu_f16 elements=1024 max_abs_error=0 atol=3e-05 rtol=0.002\nPASS silu_f16 elements=512 max_abs_error=0.000938356892 atol=3e-05 rtol=0.002\nPASS sigmoid_f16 elements=1024 max_abs_error=0.000242999804 atol=3e-05 rtol=0.002\nPASS swiglu_f16 elements=1024 max_abs_error=0.000966262698 atol=3e-05 rtol=0.002\nPASS rope_f16 elements=128 max_abs_error=0 atol=0 rtol=0\nPASS reduction_f16 elements=1 max_abs_error=0 atol=0 rtol=0\nPASS softmax_f16 elements=4096 max_abs_error=5.46919234e-06 atol=2e-06 rtol=0.002\nPASS rmsnorm_f16 elements=4096 max_abs_error=0.000881580626 atol=1e-05 rtol=0.002\nPASS matvec_f16 elements=32 max_abs_error=0 atol=1e-05 rtol=0.002\nPASS exact-native f16 corpus:9 kernels device=AMD Instinct MI350X arch=gfx950:sramecc+:xnack-\n",
+      "stderr": ""
+    }
+  ],
+  "hashes": {
+    "portable-f16.s": "122ca33f751b37c42460f1680194e4431310d4af2ada4f067e6638e2781f43c7",
+    "native_portable_f16.cpp": "79425267c116952fb74167befe38a6142cd26ce7c52e43dedb2bea0753dfe5f6",
+    "native.o": "e01cccbe610d01c574b05dcbcc62c116cee072e02ba936dc71397cd598ef3331",
+    "native.hsaco": "085796b9560c54be972928cd41bbf61ca16f95b38ce549bb5dbee55fe8dddc20",
+    "runner": "1d96188d79d6a95627f8145f149f065facfb1160b323664ff8f0006b4e3c891c"
+  },
+  "toolchain": {
+    "host": "mi350",
+    "tools": {
+      "/opt/rocm/llvm/bin/llvm-mc": {
+        "realpath": "/opt/rocm-7.2.1/lib/llvm/bin/llvm-mc",
+        "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+        "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+      },
+      "/opt/rocm/llvm/bin/ld.lld": {
+        "realpath": "/opt/rocm-7.2.1/lib/llvm/bin/lld",
+        "sha256": "3a4db0f90a45844be78a068b47f886b7ba6000a75a88876d9999cb0bb46fb5f3",
+        "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm f58b06dce1f9c15707c5f808fd002e18c2accf7e) (compatible with GNU linkers)\n"
+      },
+      "/opt/rocm/llvm/bin/clang++": {
+        "realpath": "/opt/rocm-7.2.1/lib/llvm/bin/clang-22",
+        "sha256": "872d83777e58dd203d6af2a45af532668e83f51830eb296e1fe504eee6d66c18",
+        "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.1 26084 f58b06dce1f9c15707c5f808fd002e18c2accf7e)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.1/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.1/lib/llvm/bin/clang++.cfg\n"
+      },
+      "/opt/rocm/lib/libamdhip64.so": {
+        "realpath": "/opt/rocm-7.2.1/lib/libamdhip64.so.7.2.70201",
+        "sha256": "0bfd6cb0b010626f333bd8d96a01df1b7e2cb825c961f5a7ecce7c28a5c717ab"
+      }
+    }
+  },
+  "scope": "Full16x256 native softmax hardware configuration and all8 other same-source controls; block128 matvec retained. The reduction numerical PASS remains distinct from its explicit symbolic Unsupported boundary."
+}
