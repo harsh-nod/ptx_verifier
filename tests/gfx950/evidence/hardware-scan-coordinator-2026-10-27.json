@@ -1,0 +1,102 @@
+{
+  "validated_by": "coordinator independent second-host exact native assembly replay",
+  "host": "mi350",
+  "target": "gfx950",
+  "commands": [
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "native-mamba2-scan.s",
+        "-o",
+        "scan.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/ld.lld",
+        "-shared",
+        "scan.o",
+        "-o",
+        "scan.hsaco"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-O2",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-D__HIP_PLATFORM_AMD__",
+        "-I/opt/rocm/include",
+        "native_scan_workloads.cpp",
+        "-L/opt/rocm/lib",
+        "-Wl,-rpath,/opt/rocm/lib",
+        "-lamdhip64",
+        "-o",
+        "runner"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "./runner",
+        "scan.hsaco",
+        "3"
+      ],
+      "exit_code": 0,
+      "stdout": "PASS host checker detects missing output, all pitched gaps, prefix/suffix guards and nonzero companion\nDEVICE name=AMD Instinct MI350X arch=gfx950:sramecc+:xnack- wave=64 selected_workgroup=0,0,0\nPASS mamba2_chunk_scan_full pattern=0 mode=state_only outputs=4096 companion_zeros=4096 gaps=57344 guards=256 max_abs=0 max_rel=0 atol=3e-5 rtol=.002 rows32 features128 stateK32 scanK128 Xpitch1024 Cpitch64\nPASS mamba2_chunk_scan_full pattern=1 mode=scan_only outputs=4096 companion_zeros=4096 gaps=57344 guards=256 max_abs=0 max_rel=0 atol=3e-5 rtol=.002 rows32 features128 stateK32 scanK128 Xpitch1024 Cpitch64\nPASS mamba2_chunk_scan_full pattern=2 mode=mixed outputs=4096 companion_zeros=4096 gaps=57344 guards=256 max_abs=0 max_rel=0 atol=3e-5 rtol=.002 rows32 features128 stateK32 scanK128 Xpitch1024 Cpitch64\n",
+      "stderr": ""
+    }
+  ],
+  "hashes": {
+    "native-mamba2-scan.s": "e73a3aad07ed349160d945487fc6e63e08db2f9c2b864902cfea7a44453408af",
+    "native_scan_workloads.cpp": "322604ff3bf593b989bf4fae2afa581984d09a7c9c04b3bab862731270e8da2c",
+    "scan.o": "f289a7344cd37565b527db03a161ec4e6c43b2fc5f09ace85fd2b65b6c3d0810",
+    "scan.hsaco": "288ce31474e91e41c3f4ec393ac916b009cfe40d762a4ee4b70b8c0c6d9a98c7",
+    "runner": "a7caa8547e7fc265830faf6ce941008acd98c94924f51bf3347ff56a38dd3646"
+  },
+  "toolchain": {
+    "host": "mi350",
+    "tools": {
+      "/opt/rocm/llvm/bin/llvm-mc": {
+        "realpath": "/opt/rocm-7.2.1/lib/llvm/bin/llvm-mc",
+        "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+        "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+      },
+      "/opt/rocm/llvm/bin/ld.lld": {
+        "realpath": "/opt/rocm-7.2.1/lib/llvm/bin/lld",
+        "sha256": "3a4db0f90a45844be78a068b47f886b7ba6000a75a88876d9999cb0bb46fb5f3",
+        "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm f58b06dce1f9c15707c5f808fd002e18c2accf7e) (compatible with GNU linkers)\n"
+      },
+      "/opt/rocm/llvm/bin/clang++": {
+        "realpath": "/opt/rocm-7.2.1/lib/llvm/bin/clang-22",
+        "sha256": "872d83777e58dd203d6af2a45af532668e83f51830eb296e1fe504eee6d66c18",
+        "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.1 26084 f58b06dce1f9c15707c5f808fd002e18c2accf7e)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.1/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.1/lib/llvm/bin/clang++.cfg\n"
+      },
+      "/opt/rocm/lib/libamdhip64.so": {
+        "realpath": "/opt/rocm-7.2.1/lib/libamdhip64.so.7.2.70201",
+        "sha256": "0bfd6cb0b010626f333bd8d96a01df1b7e2cb825c961f5a7ecce7c28a5c717ab"
+      }
+    }
+  },
+  "counts": {
+    "launches": 3,
+    "outputs_including_exact_zero_companions": 24576,
+    "pitched_gap_checks": 172032,
+    "guard_checks": 768
+  },
+  "reference": "Independent dense CPU state and scan formulas, with F16 conversion at the original operand boundaries; state-only, scan-only and mixed patterns.",
+  "scope": "Selected native workgroup0; numerical hardware evidence supplements symbolic proof and actual native wait/barrier mutations. PTX proxy mechanism stays source-specific."
+}

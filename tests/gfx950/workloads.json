@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "target": "gfx950",
-  "scope": "Initial infrastructure cases. This manifest is not a claim of complete baseline workload parity; see parity.json.",
+  "scope": "Native gfx950 workloads and explicit supplemental/reduced mechanism controls. Baseline computations, safety properties and exceptions are reviewed in parity.json; a reduced case does not replace a full baseline shape.",
   "kernels": [
     {
       "family": "copy",
@@ -77,6 +77,7 @@
     "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-gemm-cases.json",
     "crates/volta_amdgpu_analysis/src/frontend/fixtures/full-convolution-cases.json",
     "crates/volta_amdgpu_analysis/src/frontend/fixtures/advanced-cases.json",
-    "crates/volta_amdgpu_analysis/src/frontend/fixtures/abi-cases.json"
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/abi-cases.json",
+    "crates/volta_amdgpu_analysis/src/frontend/fixtures/scan-cases.json"
   ]
 }

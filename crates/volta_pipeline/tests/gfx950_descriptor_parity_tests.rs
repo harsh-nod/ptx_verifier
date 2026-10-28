@@ -2,10 +2,12 @@
 //! It has explicit completion/publication obligations; no TMA proxy is invented.
 mod gfx950_common;
 
-use volta_amdgpu_analysis::{frontend, AnalysisConfig, ArrayDef, ArrayKind, ParamValue};
+use volta_amdgpu_analysis::{
+    AnalysisConfig, ArrayDef, ArrayKind, EvalError, OutputsUnavailable, ParamValue, frontend,
+};
 use volta_expr::ExprNode;
 use volta_graph::Space;
-use volta_graph_check::{amdgpu::AmdRegisterHazardKind, domain::ConflictKind, GraphConclusion};
+use volta_graph_check::{GraphConclusion, amdgpu::AmdRegisterHazardKind, domain::ConflictKind};
 
 const SOURCE: &str = include_str!("../../../tests/gfx950/portable-descriptor/tile-edge.s");
 
@@ -68,6 +70,29 @@ fn published_native_descriptor_preserves_pitch_coordinates_and_edge_zero_fill() 
         "{:#?}",
         checked.checks
     );
+}
+
+#[test]
+fn incomplete_native_descriptor_cannot_supply_uninitialized_address_fields() {
+    // Keep the complete native copy and publication protocol, but initialize
+    // only the base pointer. The following descriptor load must fail on the
+    // actual absent pitch/width bytes before those bytes can form an address.
+    let source = SOURCE.replace("ds_write_b128 v3, v[4:7]", "ds_write_b64 v3, v[4:5]");
+    assert_ne!(source, SOURCE);
+    let checked = run(&source);
+    assert!(matches!(
+        checked.analysis.symbolic_outputs(),
+        Err(OutputsUnavailable::Aborted(EvalError::Invalid { what, .. }))
+            if what.contains("uninitialized byte")
+    ));
+    assert!(matches!(
+        checked.checks.conclusion(),
+        GraphConclusion::Unknown { .. }
+    ));
+    assert!(checked.analysis.graph.validate().is_ok());
+    let complete = run(SOURCE);
+    assert_payload(&complete);
+    assert_eq!(complete.checks.conclusion(), GraphConclusion::Verified);
 }
 
 #[test]

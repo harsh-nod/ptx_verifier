@@ -1,5 +1,5 @@
 {
-  "host": "mi350",
+  "host": "mi350-2",
   "assembler": "/opt/rocm/llvm/bin/llvm-mc",
   "target": "amdgcn-amd-amdhsa",
   "mcpu": "gfx950",
@@ -9,29 +9,68 @@
       "source_sha256": "2600148a2bf000dd7cf4f800149d3cfcb4392931c38aa084d38e64f89f0cda17",
       "returncode": 0,
       "object_sha256": "110843216d7c4aa3ecdd884259b2817cbff2d9afd7012ad24e72c6db5734ce33",
-      "stderr": ""
+      "stderr": "",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-header-cleanup-qQI7p3/tests/gfx950/portable-data/nonzero_reciprocals.s",
+        "-o",
+        "/tmp/ptx-verifier-header-cleanup-qQI7p3/tests/gfx950/portable-data/nonzero_reciprocals.o"
+      ]
     },
     {
       "path": "tests/gfx950/portable-data/zero_rcp_f32.s",
-      "source_sha256": "bc83770fdaa26e3c3503549afb1c93ec12982fe39a94e4f961fc7d7a14aa84a8",
+      "source_sha256": "c569b74dd4e4ec294c6b4a8fe426b8d387659655b3b77ca671dc2c0159a11ffc",
       "returncode": 0,
       "object_sha256": "39c1fa46fc22741b1871606845070e7e1cf1e68c84053e1e6bae589ae8ea4114",
-      "stderr": ""
+      "stderr": "",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-header-cleanup-qQI7p3/tests/gfx950/portable-data/zero_rcp_f32.s",
+        "-o",
+        "/tmp/ptx-verifier-header-cleanup-qQI7p3/tests/gfx950/portable-data/zero_rcp_f32.o"
+      ]
     },
     {
       "path": "tests/gfx950/portable-data/zero_rcp_f64.s",
       "source_sha256": "768f6d2ff270a9958f76f5bf2d8c63de7b46358550bdd2fd02180babca78cf0f",
       "returncode": 0,
       "object_sha256": "59a87c0ff35a094d1585e57d371a38992ae56ae04d330aae0ce918b7d4b7dbca",
-      "stderr": ""
+      "stderr": "",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-header-cleanup-qQI7p3/tests/gfx950/portable-data/zero_rcp_f64.s",
+        "-o",
+        "/tmp/ptx-verifier-header-cleanup-qQI7p3/tests/gfx950/portable-data/zero_rcp_f64.o"
+      ]
     },
     {
       "path": "tests/gfx950/portable-data/zero_rsqrt_f32.s",
       "source_sha256": "8ae40bcbf72105d89a5a4fbc8dd61f25d7e4231194845aaca22f976a3c556f20",
       "returncode": 0,
       "object_sha256": "1430a1facf0f82e51135a2415d4aeeecc17e51152fb355b49007fae377783b1a",
-      "stderr": ""
+      "stderr": "",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-header-cleanup-qQI7p3/tests/gfx950/portable-data/zero_rsqrt_f32.s",
+        "-o",
+        "/tmp/ptx-verifier-header-cleanup-qQI7p3/tests/gfx950/portable-data/zero_rsqrt_f32.o"
+      ]
     }
   ],
-  "packaging": "kernel entry .p2align8; exact arithmetic instructions unchanged"
+  "packaging": "Kernel entry .p2align 8; current sources replayed after header-only cleanup; object hashes unchanged.",
+  "directory": "/tmp/ptx-verifier-header-cleanup-qQI7p3",
+  "assembler_sha256": "e95688e5b40bb13fe0d74ba6a45d180ced24aac768c101c94760b8f7dfa52f70",
+  "assembler_version": "AMD LLVM version 22.0.0git"
 }

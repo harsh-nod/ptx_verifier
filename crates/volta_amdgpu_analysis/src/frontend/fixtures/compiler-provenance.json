@@ -649,6 +649,37 @@
         "/tmp/ptx-verifier-abi-fixtures-h38pwq/clang22-mixed-byvalue.o"
       ],
       "assembly_validation": "passed on mi350-2;2026-10-27; unchanged compiler output"
+    },
+    {
+      "source": "native-mamba2-scan.hip",
+      "assembly": "native-mamba2-scan.s",
+      "source_sha256": "57688795a4f995ad36bfcca827477ccab2847db54eb5baa098457ca441b9f466",
+      "assembly_sha256": "e73a3aad07ed349160d945487fc6e63e08db2f9c2b864902cfea7a44453408af",
+      "object_sha256": "f289a7344cd37565b527db03a161ec4e6c43b2fc5f09ace85fd2b65b6c3d0810",
+      "compiler_argv": [
+        "/opt/rocm/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx950",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/tmp/ptx-verifier-execution-scan/native-mamba2-scan.hip",
+        "-o",
+        "/tmp/ptx-verifier-execution-scan/native-mamba2-scan.s"
+      ],
+      "assembler_argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-execution-scan/native-mamba2-scan.s",
+        "-o",
+        "/tmp/ptx-verifier-execution-scan/native-mamba2-scan.o"
+      ],
+      "assembly_validation": "passed on mi350-2;2026-10-27; unchanged compiler output",
+      "provenance_file": "native-mamba2-scan-provenance.json"
     }
   ]
 }
