@@ -1,0 +1,953 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Installed toolchain encoding/metadata acceptance only. Rejection by this older compiler does not prove a hardware limit; semantic bounds must also follow pinned primary documentation.",
+  "assembler": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+  "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "cases": [
+    {
+      "name": "vgpr0",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32 v0, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case0.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case0.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "vgpr255",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32 v255, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case1.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case1.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "vgpr256",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32 v256, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case2.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case2.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case2.s:4:11: error: register index is out of range\nv_mov_b32 v256, v0\n          ^\n"
+    },
+    {
+      "name": "vgpr511",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32 v511, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case3.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case3.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case3.s:4:11: error: register index is out of range\nv_mov_b32 v511, v0\n          ^\n"
+    },
+    {
+      "name": "vgpr512",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32 v512, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case4.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case4.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case4.s:4:11: error: register index is out of range\nv_mov_b32 v512, v0\n          ^\n"
+    },
+    {
+      "name": "vgpr1023",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32 v1023, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case5.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case5.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case5.s:4:11: error: register index is out of range\nv_mov_b32 v1023, v0\n          ^\n"
+    },
+    {
+      "name": "vgpr1024",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32 v1024, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case6.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case6.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case6.s:4:11: error: register index is out of range\nv_mov_b32 v1024, v0\n          ^\n"
+    },
+    {
+      "name": "vgpr0_e32",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e32 v0, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case7.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case7.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "vgpr255_e32",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e32 v255, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case8.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case8.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "vgpr256_e32",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e32 v256, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case9.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case9.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case9.s:4:15: error: register index is out of range\nv_mov_b32_e32 v256, v0\n              ^\n"
+    },
+    {
+      "name": "vgpr511_e32",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e32 v511, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case10.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case10.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case10.s:4:15: error: register index is out of range\nv_mov_b32_e32 v511, v0\n              ^\n"
+    },
+    {
+      "name": "vgpr512_e32",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e32 v512, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case11.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case11.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case11.s:4:15: error: register index is out of range\nv_mov_b32_e32 v512, v0\n              ^\n"
+    },
+    {
+      "name": "vgpr1023_e32",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e32 v1023, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case12.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case12.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case12.s:4:15: error: register index is out of range\nv_mov_b32_e32 v1023, v0\n              ^\n"
+    },
+    {
+      "name": "vgpr1024_e32",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e32 v1024, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case13.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case13.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case13.s:4:15: error: register index is out of range\nv_mov_b32_e32 v1024, v0\n              ^\n"
+    },
+    {
+      "name": "vgpr0_e64",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e64 v0, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case14.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case14.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "vgpr255_e64",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e64 v255, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case15.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case15.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "vgpr256_e64",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e64 v256, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case16.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case16.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case16.s:4:15: error: register index is out of range\nv_mov_b32_e64 v256, v0\n              ^\n"
+    },
+    {
+      "name": "vgpr511_e64",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e64 v511, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case17.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case17.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case17.s:4:15: error: register index is out of range\nv_mov_b32_e64 v511, v0\n              ^\n"
+    },
+    {
+      "name": "vgpr512_e64",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e64 v512, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case18.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case18.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case18.s:4:15: error: register index is out of range\nv_mov_b32_e64 v512, v0\n              ^\n"
+    },
+    {
+      "name": "vgpr1023_e64",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e64 v1023, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case19.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case19.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case19.s:4:15: error: register index is out of range\nv_mov_b32_e64 v1023, v0\n              ^\n"
+    },
+    {
+      "name": "vgpr1024_e64",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e64 v1024, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case20.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case20.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case20.s:4:15: error: register index is out of range\nv_mov_b32_e64 v1024, v0\n              ^\n"
+    },
+    {
+      "name": "vgpr0_e96",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e96 v0, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case21.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case21.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case21.s:4:1: error: invalid instruction\nv_mov_b32_e96 v0, v0\n^\n"
+    },
+    {
+      "name": "vgpr255_e96",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e96 v255, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case22.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case22.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case22.s:4:1: error: invalid instruction\nv_mov_b32_e96 v255, v0\n^\n"
+    },
+    {
+      "name": "vgpr256_e96",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e96 v256, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case23.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case23.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case23.s:4:1: error: invalid instruction\nv_mov_b32_e96 v256, v0\n^\n"
+    },
+    {
+      "name": "vgpr511_e96",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e96 v511, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case24.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case24.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case24.s:4:1: error: invalid instruction\nv_mov_b32_e96 v511, v0\n^\n"
+    },
+    {
+      "name": "vgpr512_e96",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e96 v512, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case25.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case25.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case25.s:4:1: error: invalid instruction\nv_mov_b32_e96 v512, v0\n^\n"
+    },
+    {
+      "name": "vgpr1023_e96",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e96 v1023, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case26.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case26.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case26.s:4:1: error: invalid instruction\nv_mov_b32_e96 v1023, v0\n^\n"
+    },
+    {
+      "name": "vgpr1024_e96",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32_e96 v1024, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case27.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case27.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case27.s:4:1: error: invalid instruction\nv_mov_b32_e96 v1024, v0\n^\n"
+    },
+    {
+      "name": "sgpr0",
+      "assembly": ".text\n.globl k\nk:\ns_mov_b32 s0, 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case28.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case28.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "sgpr103",
+      "assembly": ".text\n.globl k\nk:\ns_mov_b32 s103, 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case29.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case29.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "sgpr104",
+      "assembly": ".text\n.globl k\nk:\ns_mov_b32 s104, 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case30.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case30.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "sgpr105",
+      "assembly": ".text\n.globl k\nk:\ns_mov_b32 s105, 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case31.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case31.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "sgpr106",
+      "assembly": ".text\n.globl k\nk:\ns_mov_b32 s106, 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case32.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case32.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case32.s:4:11: error: register index is out of range\ns_mov_b32 s106, 0\n          ^\n"
+    },
+    {
+      "name": "sgpr127",
+      "assembly": ".text\n.globl k\nk:\ns_mov_b32 s127, 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case33.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case33.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case33.s:4:11: error: register index is out of range\ns_mov_b32 s127, 0\n          ^\n"
+    },
+    {
+      "name": "v_accvgpr_write_b32 a0, v0",
+      "assembly": ".text\n.globl k\nk:\nv_accvgpr_write_b32 a0, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case34.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case34.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case34.s:4:1: error: instruction not supported on this GPU\nv_accvgpr_write_b32 a0, v0\n^\n"
+    },
+    {
+      "name": "v_mov_b32 a0, v0",
+      "assembly": ".text\n.globl k\nk:\nv_mov_b32 a0, v0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case35.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case35.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case35.s:4:11: error: invalid operand for instruction\nv_mov_b32 a0, v0\n          ^\n"
+    },
+    {
+      "name": "s_mov_b32 exec_lo, -1",
+      "assembly": ".text\n.globl k\nk:\ns_mov_b32 exec_lo, -1\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case36.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case36.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "s_mov_b32 exec_hi, 0",
+      "assembly": ".text\n.globl k\nk:\ns_mov_b32 exec_hi, 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case37.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case37.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "s_mov_b32 vcc_lo, 0",
+      "assembly": ".text\n.globl k\nk:\ns_mov_b32 vcc_lo, 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case38.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case38.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "s_mov_b32 vcc_hi, 0",
+      "assembly": ".text\n.globl k\nk:\ns_mov_b32 vcc_hi, 0\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case39.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case39.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "s_mov_b32 s0, ttmp6",
+      "assembly": ".text\n.globl k\nk:\ns_mov_b32 s0, ttmp6\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case40.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case40.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "s_mov_b32 s0, ttmp9",
+      "assembly": ".text\n.globl k\nk:\ns_mov_b32 s0, ttmp9\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case41.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case41.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "allocation_vgpr0",
+      "assembly": ".text\n.globl k\nk:\ns_endpgm\n\n.section .rodata,\"a\",@progbits\n.amdhsa_kernel k\n.amdhsa_next_free_vgpr 0\n.amdhsa_next_free_sgpr 8\n.amdhsa_wavefront_size32 1\n.amdhsa_group_segment_fixed_size 0\n.end_amdhsa_kernel\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case42.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case42.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "allocation_vgpr1",
+      "assembly": ".text\n.globl k\nk:\ns_endpgm\n\n.section .rodata,\"a\",@progbits\n.amdhsa_kernel k\n.amdhsa_next_free_vgpr 1\n.amdhsa_next_free_sgpr 8\n.amdhsa_wavefront_size32 1\n.amdhsa_group_segment_fixed_size 0\n.end_amdhsa_kernel\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case43.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case43.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "allocation_vgpr256",
+      "assembly": ".text\n.globl k\nk:\ns_endpgm\n\n.section .rodata,\"a\",@progbits\n.amdhsa_kernel k\n.amdhsa_next_free_vgpr 256\n.amdhsa_next_free_sgpr 8\n.amdhsa_wavefront_size32 1\n.amdhsa_group_segment_fixed_size 0\n.end_amdhsa_kernel\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case44.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case44.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "allocation_vgpr512",
+      "assembly": ".text\n.globl k\nk:\ns_endpgm\n\n.section .rodata,\"a\",@progbits\n.amdhsa_kernel k\n.amdhsa_next_free_vgpr 512\n.amdhsa_next_free_sgpr 8\n.amdhsa_wavefront_size32 1\n.amdhsa_group_segment_fixed_size 0\n.end_amdhsa_kernel\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case45.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case45.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "allocation_vgpr1024",
+      "assembly": ".text\n.globl k\nk:\ns_endpgm\n\n.section .rodata,\"a\",@progbits\n.amdhsa_kernel k\n.amdhsa_next_free_vgpr 1024\n.amdhsa_next_free_sgpr 8\n.amdhsa_wavefront_size32 1\n.amdhsa_group_segment_fixed_size 0\n.end_amdhsa_kernel\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case46.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case46.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "allocation_vgpr1025",
+      "assembly": ".text\n.globl k\nk:\ns_endpgm\n\n.section .rodata,\"a\",@progbits\n.amdhsa_kernel k\n.amdhsa_next_free_vgpr 1025\n.amdhsa_next_free_sgpr 8\n.amdhsa_wavefront_size32 1\n.amdhsa_group_segment_fixed_size 0\n.end_amdhsa_kernel\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case47.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case47.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case47.s:8:24: error: value out of range\n.amdhsa_next_free_vgpr 1025\n                       ^~~~\n"
+    },
+    {
+      "name": "allocation_lds0",
+      "assembly": ".text\n.globl k\nk:\ns_endpgm\n\n.section .rodata,\"a\",@progbits\n.amdhsa_kernel k\n.amdhsa_next_free_vgpr 8\n.amdhsa_next_free_sgpr 8\n.amdhsa_wavefront_size32 1\n.amdhsa_group_segment_fixed_size 0\n.end_amdhsa_kernel\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case48.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case48.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "allocation_lds65536",
+      "assembly": ".text\n.globl k\nk:\ns_endpgm\n\n.section .rodata,\"a\",@progbits\n.amdhsa_kernel k\n.amdhsa_next_free_vgpr 8\n.amdhsa_next_free_sgpr 8\n.amdhsa_wavefront_size32 1\n.amdhsa_group_segment_fixed_size 65536\n.end_amdhsa_kernel\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case49.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case49.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "allocation_lds163840",
+      "assembly": ".text\n.globl k\nk:\ns_endpgm\n\n.section .rodata,\"a\",@progbits\n.amdhsa_kernel k\n.amdhsa_next_free_vgpr 8\n.amdhsa_next_free_sgpr 8\n.amdhsa_wavefront_size32 1\n.amdhsa_group_segment_fixed_size 163840\n.end_amdhsa_kernel\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case50.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case50.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "allocation_lds327680",
+      "assembly": ".text\n.globl k\nk:\ns_endpgm\n\n.section .rodata,\"a\",@progbits\n.amdhsa_kernel k\n.amdhsa_next_free_vgpr 8\n.amdhsa_next_free_sgpr 8\n.amdhsa_wavefront_size32 1\n.amdhsa_group_segment_fixed_size 327680\n.end_amdhsa_kernel\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case51.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case51.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "allocation_lds327681",
+      "assembly": ".text\n.globl k\nk:\ns_endpgm\n\n.section .rodata,\"a\",@progbits\n.amdhsa_kernel k\n.amdhsa_next_free_vgpr 8\n.amdhsa_next_free_sgpr 8\n.amdhsa_wavefront_size32 1\n.amdhsa_group_segment_fixed_size 327681\n.end_amdhsa_kernel\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case52.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case52.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "wave64_descriptor",
+      "assembly": ".text\n.globl k\nk:\ns_endpgm\n\n.section .rodata,\"a\",@progbits\n.amdhsa_kernel k\n.amdhsa_next_free_vgpr 8\n.amdhsa_next_free_sgpr 8\n.amdhsa_wavefront_size32 0\n.amdhsa_group_segment_fixed_size 0\n.end_amdhsa_kernel\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case53.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case53.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "target",
+      "assembly": ".amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n.text\n.globl k\nk:\ns_endpgm\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case54.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case54.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "target:xnack+",
+      "assembly": ".amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:xnack+\"\n.text\n.globl k\nk:\ns_endpgm\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case55.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case55.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case55.s:1:16: error: .amdgcn_target directive's target id amdgcn-amd-amdhsa--gfx1250:xnack+ does not match the specified target id amdgcn-amd-amdhsa--gfx1250\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:xnack+\"\n               ^\n"
+    },
+    {
+      "name": "target:xnack-",
+      "assembly": ".amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:xnack-\"\n.text\n.globl k\nk:\ns_endpgm\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case56.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case56.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case56.s:1:16: error: .amdgcn_target directive's target id amdgcn-amd-amdhsa--gfx1250:xnack- does not match the specified target id amdgcn-amd-amdhsa--gfx1250\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:xnack-\"\n               ^\n"
+    },
+    {
+      "name": "target:sramecc+",
+      "assembly": ".amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:sramecc+\"\n.text\n.globl k\nk:\ns_endpgm\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case57.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case57.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case57.s:1:16: error: .amdgcn_target directive's target id amdgcn-amd-amdhsa--gfx1250:sramecc+ does not match the specified target id amdgcn-amd-amdhsa--gfx1250\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:sramecc+\"\n               ^\n"
+    },
+    {
+      "name": "target:sramecc-",
+      "assembly": ".amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:sramecc-\"\n.text\n.globl k\nk:\ns_endpgm\n",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case58.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case58.o"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "/tmp/ptx-verifier-gfx1250-boundary-bx5y5puf/case58.s:1:16: error: .amdgcn_target directive's target id amdgcn-amd-amdhsa--gfx1250:sramecc- does not match the specified target id amdgcn-amd-amdhsa--gfx1250\n.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250:sramecc-\"\n               ^\n"
+    }
+  ]
+}

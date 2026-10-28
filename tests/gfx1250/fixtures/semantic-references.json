@@ -1,0 +1,42 @@
+{
+  "public_reference_commit": "5fd50ec8e07abb94e203933017e8d6e40fb51824",
+  "actual_compiler_commit": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+  "local_sources": [
+    {
+      "source_path": "clang/include/clang/Basic/BuiltinsAMDGPU.td",
+      "local_snapshot_commit": "f13414fb26b92bdbbfdf4b2b5401117936da84af",
+      "sha256": "8659b7fc3822315202b613a4156d36bfc5201908e81201ce159816071578bed0"
+    },
+    {
+      "source_path": "clang/include/clang/Basic/BuiltinsAMDGPUDocs.td",
+      "local_snapshot_commit": "f13414fb26b92bdbbfdf4b2b5401117936da84af",
+      "sha256": "68ee34a966fdfa37ba95c8f762d0257dc7d546363e3068dbeeaef372788bed84"
+    },
+    {
+      "source_path": "llvm/docs/AMDGPUUsage.rst",
+      "local_snapshot_commit": "f13414fb26b92bdbbfdf4b2b5401117936da84af",
+      "sha256": "33a56b3e27220f00254b5d964e207ac7cf9ad666ca3f0a58fcc7626c3e11e246"
+    },
+    {
+      "source_path": "llvm/docs/AMDGPUDMAOperations.md",
+      "local_snapshot_commit": "f13414fb26b92bdbbfdf4b2b5401117936da84af",
+      "sha256": "7fc625cbeccb167e222a0abd3cc9cc8402e77b8522088d726f200ba5745893c9"
+    },
+    {
+      "source_path": "llvm/docs/AMDGPUAsyncOperations.md",
+      "local_snapshot_commit": "f13414fb26b92bdbbfdf4b2b5401117936da84af",
+      "sha256": "6d174313f613a304deedf229235b4f047e21613012b6c688ebc217a600aa7cbe"
+    },
+    {
+      "source_path": "llvm/lib/Target/AMDGPU/SIISelLowering.cpp",
+      "local_snapshot_commit": "f13414fb26b92bdbbfdf4b2b5401117936da84af",
+      "sha256": "38e9f61b1282254cd63525f66bfdd3ae70bcadd9dc62cfd10fd9dd5a1a8534d1"
+    },
+    {
+      "source_path": "mlir/lib/Conversion/AMDGPUToROCDL/AMDGPUToROCDL.cpp",
+      "local_snapshot_commit": "f13414fb26b92bdbbfdf4b2b5401117936da84af",
+      "sha256": "70f361ae30a0a4472c96593ba1be53a4ecb73b4c195c92150525211497353065"
+    }
+  ],
+  "caution": "Actual compiler and public/latest source snapshots differ; record and test emitted forms, do not assume identical builtin signatures or high-register availability."
+}

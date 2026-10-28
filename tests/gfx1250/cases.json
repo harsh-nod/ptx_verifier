@@ -1,0 +1,268 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Initial genuine compiler cases; broader WMMA/tensor/workload acceptance corpus is required and remains unfinished.",
+  "cases": [
+    {
+      "kernel": "copy",
+      "assembly": "fixtures/native-copy-add.s",
+      "source": "fixtures/native-copy-add.hip",
+      "block": [
+        65,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 65
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 65,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 196608,
+          "element_size": 4,
+          "length": 65,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out",
+        "int:65"
+      ],
+      "spec": "specs/copy.spec",
+      "expected_outputs": 65,
+      "required": true,
+      "software_validation": "pending; compilation/assembly alone do not certify values or graph safety",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "source_sha256": "23e509c17429f8a65722928df3271b6102906ae7afc86263cd288fea444cb136",
+      "assembly_sha256": "d24b4c3c354d99405265eccef632e2108e4a5719faed14de2d69e721a1b4aff9",
+      "spec_sha256": "035ae94161202624eb5cd4580136b470f6f7e44439ab9d55a85dee5737402456"
+    },
+    {
+      "kernel": "add",
+      "assembly": "fixtures/native-copy-add.s",
+      "source": "fixtures/native-copy-add.hip",
+      "block": [
+        65,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 65
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 65,
+          "kind": "in"
+        },
+        {
+          "name": "y",
+          "base_address": 131072,
+          "element_size": 4,
+          "length": 65,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 196608,
+          "element_size": 4,
+          "length": 65,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:y",
+        "ptr:out",
+        "int:65"
+      ],
+      "spec": "specs/add.spec",
+      "expected_outputs": 65,
+      "required": true,
+      "software_validation": "pending; compilation/assembly alone do not certify values or graph safety",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "source_sha256": "23e509c17429f8a65722928df3271b6102906ae7afc86263cd288fea444cb136",
+      "assembly_sha256": "d24b4c3c354d99405265eccef632e2108e4a5719faed14de2d69e721a1b4aff9",
+      "spec_sha256": "aa5269c5cdc8232618fc8c63705d77cd79f896cfbda0f3e6be83356565ded080"
+    },
+    {
+      "kernel": "exchange",
+      "assembly": "fixtures/native-lds-ids.s",
+      "source": "fixtures/native-lds-ids.hip",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "WAVES": 2,
+        "LANES": 32
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 64,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 131072,
+          "element_size": 4,
+          "length": 64,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "spec": "specs/exchange.spec",
+      "expected_outputs": 64,
+      "required": true,
+      "software_validation": "pending; compilation/assembly alone do not certify values or graph safety",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "source_sha256": "139885bae4ac30332eacdbe9e39a68da60b2a350815028eece67fd3ab7dde535",
+      "assembly_sha256": "845841d12d12f785a0e0bdd70ca8afdf7a21d31687d2d0593f4d4c7fe001f176",
+      "spec_sha256": "fbcd282e02d953af4bcd7ee20b52b1811cb92fe7a55623fe06e04962a414864d"
+    },
+    {
+      "kernel": "reduce",
+      "assembly": "fixtures/native-lds-ids.s",
+      "source": "fixtures/native-lds-ids.hip",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "WAVES": 2,
+        "LANES": 32
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 64,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 131072,
+          "element_size": 4,
+          "length": 2,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "spec": "specs/reduce.spec",
+      "expected_outputs": 2,
+      "required": true,
+      "software_validation": "pending; compilation/assembly alone do not certify values or graph safety",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "source_sha256": "139885bae4ac30332eacdbe9e39a68da60b2a350815028eece67fd3ab7dde535",
+      "assembly_sha256": "845841d12d12f785a0e0bdd70ca8afdf7a21d31687d2d0593f4d4c7fe001f176",
+      "spec_sha256": "541c057a722aa829e9da05a39cd9ad8b40f230f3c2d6b0c4109190f88bcc699b"
+    },
+    {
+      "kernel": "ids_3d",
+      "assembly": "fixtures/native-lds-ids.s",
+      "source": "fixtures/native-lds-ids.hip",
+      "block": [
+        4,
+        3,
+        2
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "X": 4,
+        "Y": 3,
+        "Z": 2
+      },
+      "arrays": [
+        {
+          "name": "out",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 24,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:out"
+      ],
+      "spec": "specs/ids.spec",
+      "expected_outputs": 24,
+      "required": true,
+      "software_validation": "pending; compilation/assembly alone do not certify values or graph safety",
+      "hardware_validation": "not_performed_no_gfx1250_device",
+      "source_sha256": "139885bae4ac30332eacdbe9e39a68da60b2a350815028eece67fd3ab7dde535",
+      "assembly_sha256": "845841d12d12f785a0e0bdd70ca8afdf7a21d31687d2d0593f4d4c7fe001f176",
+      "spec_sha256": "13e6b33467f4ddf2888e7797dbdd93aacb67be0e16ed8ea991dba559b3457b88"
+    }
+  ]
+}

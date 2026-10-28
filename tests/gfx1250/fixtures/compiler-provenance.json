@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "host": "XSJHARMENON01",
+  "scope": "Genuine native compiler outputs, not edited or retargeted assembly; compilation/assembly alone make no semantic verification claim.",
+  "hardware_validation": "not_performed_no_gfx1250_device",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/clang-22",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.0/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.0/lib/llvm/bin/clang++.cfg\n"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n"
+    }
+  },
+  "fixtures": [
+    {
+      "source": "native-copy-add.hip",
+      "assembly": "native-copy-add.s",
+      "source_sha256": "23e509c17429f8a65722928df3271b6102906ae7afc86263cd288fea444cb136",
+      "assembly_sha256": "d24b4c3c354d99405265eccef632e2108e4a5719faed14de2d69e721a1b4aff9",
+      "object_sha256": "e438967bb516c7e031a067186ce8c034d88a5872c1bd9aed934fe1f4070c8a47",
+      "code_object_sha256": "3e69f45dd1b2a33d535a642d6cbfa0906775ac64c185bd2c0c9032b79c874bd4",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-copy-add.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-copy-add.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-copy-add.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-copy-add.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-copy-add.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-copy-add.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-lds-ids.hip",
+      "assembly": "native-lds-ids.s",
+      "source_sha256": "139885bae4ac30332eacdbe9e39a68da60b2a350815028eece67fd3ab7dde535",
+      "assembly_sha256": "845841d12d12f785a0e0bdd70ca8afdf7a21d31687d2d0593f4d4c7fe001f176",
+      "object_sha256": "b81eb08ddc9e1dc57f15f14b1932de69a38aa9c5605580e1cd3ca84243c52a71",
+      "code_object_sha256": "64bebbc9194b30b1e8d444ef45e367c56880aaaa3643f39c856c5fb1086a11c6",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-lds-ids.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-lds-ids.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-lds-ids.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-lds-ids.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-lds-ids.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-lds-ids.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-tensor-probe.hip",
+      "assembly": "native-tensor-probe.s",
+      "source_sha256": "93d358082f2c4047bd52423574d761eacd6e064486b8bcc5172fb6bc222c57bc",
+      "assembly_sha256": "1464ae364787a1bc034e2b935cfc298f33cdcb0f1ddb3e681a85d5ae1c5c52be",
+      "object_sha256": "4204977c5ddc409f0b03a238b69d9bbd15fad7a64e020ce174cde1f1ab4a024d",
+      "code_object_sha256": "f4e5e5471f3df46742b109b217748ae098fe925b84d4a7358a0d1bd339a86da5",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-tensor-probe.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-tensor-probe.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-tensor-probe.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-tensor-probe.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-tensor-probe.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-tensor-probe.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-wmma.hip",
+      "assembly": "native-wmma.s",
+      "source_sha256": "9cbe1c2d95c364be11106cc9c398d83bbcffe3f8b282bf3de322e09454726b8d",
+      "assembly_sha256": "23ea3d5e8dd774580758675a46511c04c3b32380866cdf3a0e5d270f1c819bcc",
+      "object_sha256": "9a6cbdb026f5da03152ca89eeca895fa38b0a1f5796704f2351646abb3905973",
+      "code_object_sha256": "0a919f12031a9d7dfea5e80298e87edae8e61377c4676ad809e6b155c478c8f4",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-fixtures/tests/gfx1250/fixtures/native-wmma.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,1448 @@
+{
+  "native-copy-add.s": {
+    "sha256": "d24b4c3c354d99405265eccef632e2108e4a5719faed14de2d69e721a1b4aff9",
+    "instructions": [
+      {
+        "line": 10,
+        "text": "s_clause 0x1",
+        "components": [
+          "s_clause 0x1"
+        ]
+      },
+      {
+        "line": 11,
+        "text": "s_load_b32 s2, s[0:1], 0x24",
+        "components": [
+          "s_load_b32 s2, s[0:1], 0x24"
+        ]
+      },
+      {
+        "line": 12,
+        "text": "s_load_b32 s3, s[0:1], 0x10",
+        "components": [
+          "s_load_b32 s3, s[0:1], 0x10"
+        ]
+      },
+      {
+        "line": 13,
+        "text": "s_bfe_u32 s4, ttmp6, 0x4000c",
+        "components": [
+          "s_bfe_u32 s4, ttmp6, 0x4000c"
+        ]
+      },
+      {
+        "line": 14,
+        "text": "s_and_b32 s5, ttmp6, 15",
+        "components": [
+          "s_and_b32 s5, ttmp6, 15"
+        ]
+      },
+      {
+        "line": 15,
+        "text": "s_add_co_i32 s4, s4, 1",
+        "components": [
+          "s_add_co_i32 s4, s4, 1"
+        ]
+      },
+      {
+        "line": 16,
+        "text": "s_getreg_b32 s6, hwreg(HW_REG_IB_STS2, 6, 4)",
+        "components": [
+          "s_getreg_b32 s6, hwreg(HW_REG_IB_STS2, 6, 4)"
+        ]
+      },
+      {
+        "line": 17,
+        "text": "s_mul_i32 s4, ttmp9, s4",
+        "components": [
+          "s_mul_i32 s4, ttmp9, s4"
+        ]
+      },
+      {
+        "line": 18,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1) | instskip(SKIP_4) | instid1(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1) | instskip(SKIP_4) | instid1(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 19,
+        "text": "s_add_co_i32 s5, s5, s4",
+        "components": [
+          "s_add_co_i32 s5, s5, s4"
+        ]
+      },
+      {
+        "line": 20,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 21,
+        "text": "s_and_b32 s2, s2, 0xffff",
+        "components": [
+          "s_and_b32 s2, s2, 0xffff"
+        ]
+      },
+      {
+        "line": 22,
+        "text": "s_cmp_eq_u32 s6, 0",
+        "components": [
+          "s_cmp_eq_u32 s6, 0"
+        ]
+      },
+      {
+        "line": 23,
+        "text": "s_cselect_b32 s4, ttmp9, s5",
+        "components": [
+          "s_cselect_b32 s4, ttmp9, s5"
+        ]
+      },
+      {
+        "line": 24,
+        "text": "v_mad_u32 v0, s4, s2, v0",
+        "components": [
+          "v_mad_u32 v0, s4, s2, v0"
+        ]
+      },
+      {
+        "line": 25,
+        "text": "s_mov_b32 s2, exec_lo",
+        "components": [
+          "s_mov_b32 s2, exec_lo"
+        ]
+      },
+      {
+        "line": 26,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 27,
+        "text": "v_cmpx_gt_u32_e64 s3, v0",
+        "components": [
+          "v_cmpx_gt_u32_e64 s3, v0"
+        ]
+      },
+      {
+        "line": 28,
+        "text": "s_cbranch_execz .LBB0_2",
+        "components": [
+          "s_cbranch_execz .LBB0_2"
+        ]
+      },
+      {
+        "line": 30,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 31,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 32,
+        "text": "global_load_b32 v1, v0, s[0:1] scale_offset",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] scale_offset"
+        ]
+      },
+      {
+        "line": 33,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 34,
+        "text": "global_store_b32 v0, v1, s[2:3] scale_offset",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3] scale_offset"
+        ]
+      },
+      {
+        "line": 36,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 125,
+        "text": "s_clause 0x1",
+        "components": [
+          "s_clause 0x1"
+        ]
+      },
+      {
+        "line": 126,
+        "text": "s_load_b32 s2, s[0:1], 0x2c",
+        "components": [
+          "s_load_b32 s2, s[0:1], 0x2c"
+        ]
+      },
+      {
+        "line": 127,
+        "text": "s_load_b32 s3, s[0:1], 0x18",
+        "components": [
+          "s_load_b32 s3, s[0:1], 0x18"
+        ]
+      },
+      {
+        "line": 128,
+        "text": "s_bfe_u32 s4, ttmp6, 0x4000c",
+        "components": [
+          "s_bfe_u32 s4, ttmp6, 0x4000c"
+        ]
+      },
+      {
+        "line": 129,
+        "text": "s_and_b32 s5, ttmp6, 15",
+        "components": [
+          "s_and_b32 s5, ttmp6, 15"
+        ]
+      },
+      {
+        "line": 130,
+        "text": "s_add_co_i32 s4, s4, 1",
+        "components": [
+          "s_add_co_i32 s4, s4, 1"
+        ]
+      },
+      {
+        "line": 131,
+        "text": "s_getreg_b32 s6, hwreg(HW_REG_IB_STS2, 6, 4)",
+        "components": [
+          "s_getreg_b32 s6, hwreg(HW_REG_IB_STS2, 6, 4)"
+        ]
+      },
+      {
+        "line": 132,
+        "text": "s_mul_i32 s4, ttmp9, s4",
+        "components": [
+          "s_mul_i32 s4, ttmp9, s4"
+        ]
+      },
+      {
+        "line": 133,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1) | instskip(SKIP_4) | instid1(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1) | instskip(SKIP_4) | instid1(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 134,
+        "text": "s_add_co_i32 s5, s5, s4",
+        "components": [
+          "s_add_co_i32 s5, s5, s4"
+        ]
+      },
+      {
+        "line": 135,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 136,
+        "text": "s_and_b32 s2, s2, 0xffff",
+        "components": [
+          "s_and_b32 s2, s2, 0xffff"
+        ]
+      },
+      {
+        "line": 137,
+        "text": "s_cmp_eq_u32 s6, 0",
+        "components": [
+          "s_cmp_eq_u32 s6, 0"
+        ]
+      },
+      {
+        "line": 138,
+        "text": "s_cselect_b32 s4, ttmp9, s5",
+        "components": [
+          "s_cselect_b32 s4, ttmp9, s5"
+        ]
+      },
+      {
+        "line": 139,
+        "text": "v_mad_u32 v0, s4, s2, v0",
+        "components": [
+          "v_mad_u32 v0, s4, s2, v0"
+        ]
+      },
+      {
+        "line": 140,
+        "text": "s_mov_b32 s2, exec_lo",
+        "components": [
+          "s_mov_b32 s2, exec_lo"
+        ]
+      },
+      {
+        "line": 141,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 142,
+        "text": "v_cmpx_gt_u32_e64 s3, v0",
+        "components": [
+          "v_cmpx_gt_u32_e64 s3, v0"
+        ]
+      },
+      {
+        "line": 143,
+        "text": "s_cbranch_execz .LBB1_2",
+        "components": [
+          "s_cbranch_execz .LBB1_2"
+        ]
+      },
+      {
+        "line": 145,
+        "text": "s_clause 0x1",
+        "components": [
+          "s_clause 0x1"
+        ]
+      },
+      {
+        "line": 146,
+        "text": "s_load_b128 s[4:7], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[4:7], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 147,
+        "text": "s_load_b64 s[2:3], s[0:1], 0x10",
+        "components": [
+          "s_load_b64 s[2:3], s[0:1], 0x10"
+        ]
+      },
+      {
+        "line": 148,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 149,
+        "text": "s_clause 0x1",
+        "components": [
+          "s_clause 0x1"
+        ]
+      },
+      {
+        "line": 150,
+        "text": "global_load_b32 v1, v0, s[4:5] scale_offset",
+        "components": [
+          "global_load_b32 v1, v0, s[4:5] scale_offset"
+        ]
+      },
+      {
+        "line": 151,
+        "text": "global_load_b32 v2, v0, s[6:7] scale_offset",
+        "components": [
+          "global_load_b32 v2, v0, s[6:7] scale_offset"
+        ]
+      },
+      {
+        "line": 152,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 153,
+        "text": "v_add_f32_e32 v1, v1, v2",
+        "components": [
+          "v_add_f32_e32 v1, v1, v2"
+        ]
+      },
+      {
+        "line": 154,
+        "text": "global_store_b32 v0, v1, s[2:3] scale_offset",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3] scale_offset"
+        ]
+      },
+      {
+        "line": 156,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      }
+    ]
+  },
+  "native-lds-ids.s": {
+    "sha256": "845841d12d12f785a0e0bdd70ca8afdf7a21d31687d2d0593f4d4c7fe001f176",
+    "instructions": [
+      {
+        "line": 10,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 11,
+        "text": "v_dual_lshlrev_b32 v3, 2, v0 :: v_dual_bitop2_b32 v2, 32, v0 bitop3:0x14",
+        "components": [
+          "v_dual_lshlrev_b32 v3, 2, v0",
+          "v_dual_bitop2_b32 v2, 32, v0 bitop3:0x14"
+        ]
+      },
+      {
+        "line": 12,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 13,
+        "text": "v_lshlrev_b32_e32 v2, 2, v2",
+        "components": [
+          "v_lshlrev_b32_e32 v2, 2, v2"
+        ]
+      },
+      {
+        "line": 14,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 15,
+        "text": "global_load_b32 v1, v0, s[0:1] scale_offset",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] scale_offset"
+        ]
+      },
+      {
+        "line": 16,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 17,
+        "text": "ds_store_b32 v3, v1",
+        "components": [
+          "ds_store_b32 v3, v1"
+        ]
+      },
+      {
+        "line": 18,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 19,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 20,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 21,
+        "text": "ds_load_b32 v1, v2",
+        "components": [
+          "ds_load_b32 v1, v2"
+        ]
+      },
+      {
+        "line": 22,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 23,
+        "text": "global_store_b32 v0, v1, s[2:3] scale_offset",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3] scale_offset"
+        ]
+      },
+      {
+        "line": 24,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 113,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 114,
+        "text": "v_mbcnt_lo_u32_b32 v2, -1, 0",
+        "components": [
+          "v_mbcnt_lo_u32_b32 v2, -1, 0"
+        ]
+      },
+      {
+        "line": 115,
+        "text": "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 116,
+        "text": "v_bitop3_b32 v3, v2, 16, 31 bitop3:0x48",
+        "components": [
+          "v_bitop3_b32 v3, v2, 16, 31 bitop3:0x48"
+        ]
+      },
+      {
+        "line": 117,
+        "text": "v_add_lshl_u32 v3, v3, v2, 2",
+        "components": [
+          "v_add_lshl_u32 v3, v3, v2, 2"
+        ]
+      },
+      {
+        "line": 118,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 119,
+        "text": "global_load_b32 v1, v0, s[0:1] scale_offset",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] scale_offset"
+        ]
+      },
+      {
+        "line": 120,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 121,
+        "text": "s_mov_b32 s0, exec_lo",
+        "components": [
+          "s_mov_b32 s0, exec_lo"
+        ]
+      },
+      {
+        "line": 122,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 123,
+        "text": "ds_bpermute_b32 v3, v3, v1",
+        "components": [
+          "ds_bpermute_b32 v3, v3, v1"
+        ]
+      },
+      {
+        "line": 124,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 125,
+        "text": "v_dual_add_f32 v1, v1, v3 :: v_dual_bitop2_b32 v4, 31, v2 bitop3:0x14",
+        "components": [
+          "v_dual_add_f32 v1, v1, v3",
+          "v_dual_bitop2_b32 v4, 31, v2 bitop3:0x14"
+        ]
+      },
+      {
+        "line": 126,
+        "text": "s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)"
+        ]
+      },
+      {
+        "line": 127,
+        "text": "v_cmp_gt_u32_e32 vcc_lo, 8, v4",
+        "components": [
+          "v_cmp_gt_u32_e32 vcc_lo, 8, v4"
+        ]
+      },
+      {
+        "line": 128,
+        "text": "v_cndmask_b32_e64 v5, 8, 0, vcc_lo",
+        "components": [
+          "v_cndmask_b32_e64 v5, 8, 0, vcc_lo"
+        ]
+      },
+      {
+        "line": 129,
+        "text": "v_cmp_gt_u32_e32 vcc_lo, 4, v4",
+        "components": [
+          "v_cmp_gt_u32_e32 vcc_lo, 4, v4"
+        ]
+      },
+      {
+        "line": 130,
+        "text": "v_add_lshl_u32 v5, v5, v2, 2",
+        "components": [
+          "v_add_lshl_u32 v5, v5, v2, 2"
+        ]
+      },
+      {
+        "line": 131,
+        "text": "ds_bpermute_b32 v3, v5, v1",
+        "components": [
+          "ds_bpermute_b32 v3, v5, v1"
+        ]
+      },
+      {
+        "line": 132,
+        "text": "v_cndmask_b32_e64 v5, 4, 0, vcc_lo",
+        "components": [
+          "v_cndmask_b32_e64 v5, 4, 0, vcc_lo"
+        ]
+      },
+      {
+        "line": 133,
+        "text": "v_cmp_gt_u32_e32 vcc_lo, 2, v4",
+        "components": [
+          "v_cmp_gt_u32_e32 vcc_lo, 2, v4"
+        ]
+      },
+      {
+        "line": 134,
+        "text": "s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)"
+        ]
+      },
+      {
+        "line": 135,
+        "text": "v_add_lshl_u32 v5, v5, v2, 2",
+        "components": [
+          "v_add_lshl_u32 v5, v5, v2, 2"
+        ]
+      },
+      {
+        "line": 136,
+        "text": "v_cndmask_b32_e64 v4, 2, 0, vcc_lo",
+        "components": [
+          "v_cndmask_b32_e64 v4, 2, 0, vcc_lo"
+        ]
+      },
+      {
+        "line": 137,
+        "text": "v_cmp_ne_u32_e32 vcc_lo, 31, v2",
+        "components": [
+          "v_cmp_ne_u32_e32 vcc_lo, 31, v2"
+        ]
+      },
+      {
+        "line": 138,
+        "text": "v_add_lshl_u32 v4, v4, v2, 2",
+        "components": [
+          "v_add_lshl_u32 v4, v4, v2, 2"
+        ]
+      },
+      {
+        "line": 139,
+        "text": "v_add_co_ci_u32_e64 v2, null, 0, v2, vcc_lo",
+        "components": [
+          "v_add_co_ci_u32_e64 v2, null, 0, v2, vcc_lo"
+        ]
+      },
+      {
+        "line": 140,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 141,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 142,
+        "text": "v_dual_add_f32 v1, v1, v3 :: v_dual_lshlrev_b32 v2, 2, v2",
+        "components": [
+          "v_dual_add_f32 v1, v1, v3",
+          "v_dual_lshlrev_b32 v2, 2, v2"
+        ]
+      },
+      {
+        "line": 143,
+        "text": "ds_bpermute_b32 v3, v5, v1",
+        "components": [
+          "ds_bpermute_b32 v3, v5, v1"
+        ]
+      },
+      {
+        "line": 144,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 145,
+        "text": "v_add_f32_e32 v1, v1, v3",
+        "components": [
+          "v_add_f32_e32 v1, v1, v3"
+        ]
+      },
+      {
+        "line": 146,
+        "text": "ds_bpermute_b32 v3, v4, v1",
+        "components": [
+          "ds_bpermute_b32 v3, v4, v1"
+        ]
+      },
+      {
+        "line": 147,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 148,
+        "text": "v_dual_add_f32 v1, v1, v3 :: v_dual_bitop2_b32 v3, 31, v0 bitop3:0x40",
+        "components": [
+          "v_dual_add_f32 v1, v1, v3",
+          "v_dual_bitop2_b32 v3, 31, v0 bitop3:0x40"
+        ]
+      },
+      {
+        "line": 149,
+        "text": "ds_bpermute_b32 v2, v2, v1",
+        "components": [
+          "ds_bpermute_b32 v2, v2, v1"
+        ]
+      },
+      {
+        "line": 150,
+        "text": "v_cmpx_eq_u32_e32 0, v3",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v3"
+        ]
+      },
+      {
+        "line": 151,
+        "text": "s_cbranch_execz .LBB1_2",
+        "components": [
+          "s_cbranch_execz .LBB1_2"
+        ]
+      },
+      {
+        "line": 153,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 154,
+        "text": "v_dual_add_f32 v1, v1, v2 :: v_dual_lshrrev_b32 v0, 3, v0",
+        "components": [
+          "v_dual_add_f32 v1, v1, v2",
+          "v_dual_lshrrev_b32 v0, 3, v0"
+        ]
+      },
+      {
+        "line": 155,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 157,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 246,
+        "text": "s_load_b32 s2, s[0:1], 0x14",
+        "components": [
+          "s_load_b32 s2, s[0:1], 0x14"
+        ]
+      },
+      {
+        "line": 247,
+        "text": "v_bfe_u32 v1, v0, 10, 10",
+        "components": [
+          "v_bfe_u32 v1, v0, 10, 10"
+        ]
+      },
+      {
+        "line": 248,
+        "text": "v_bfe_u32 v2, v0, 20, 10",
+        "components": [
+          "v_bfe_u32 v2, v0, 20, 10"
+        ]
+      },
+      {
+        "line": 249,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 250,
+        "text": "s_load_b64 s[0:1], s[0:1], 0x0",
+        "components": [
+          "s_load_b64 s[0:1], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 251,
+        "text": "v_and_b32_e32 v0, 0x3ff, v0",
+        "components": [
+          "v_and_b32_e32 v0, 0x3ff, v0"
+        ]
+      },
+      {
+        "line": 252,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 253,
+        "text": "s_lshr_b32 s3, s2, 16",
+        "components": [
+          "s_lshr_b32 s3, s2, 16"
+        ]
+      },
+      {
+        "line": 254,
+        "text": "s_and_b32 s2, s2, 0xffff",
+        "components": [
+          "s_and_b32 s2, s2, 0xffff"
+        ]
+      },
+      {
+        "line": 255,
+        "text": "v_mad_u32_u24 v3, v2, s3, v1",
+        "components": [
+          "v_mad_u32_u24 v3, v2, s3, v1"
+        ]
+      },
+      {
+        "line": 256,
+        "text": "v_mul_u32_u24_e32 v1, 10, v1",
+        "components": [
+          "v_mul_u32_u24_e32 v1, 10, v1"
+        ]
+      },
+      {
+        "line": 257,
+        "text": "v_mul_u32_u24_e32 v2, 0x64, v2",
+        "components": [
+          "v_mul_u32_u24_e32 v2, 0x64, v2"
+        ]
+      },
+      {
+        "line": 258,
+        "text": "s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)"
+        ]
+      },
+      {
+        "line": 259,
+        "text": "v_mad_u32 v3, v3, s2, v0",
+        "components": [
+          "v_mad_u32 v3, v3, s2, v0"
+        ]
+      },
+      {
+        "line": 260,
+        "text": "v_add3_u32 v0, v1, v0, v2",
+        "components": [
+          "v_add3_u32 v0, v1, v0, v2"
+        ]
+      },
+      {
+        "line": 261,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 262,
+        "text": "v_cvt_f32_u32_e32 v0, v0",
+        "components": [
+          "v_cvt_f32_u32_e32 v0, v0"
+        ]
+      },
+      {
+        "line": 263,
+        "text": "global_store_b32 v3, v0, s[0:1] scale_offset",
+        "components": [
+          "global_store_b32 v3, v0, s[0:1] scale_offset"
+        ]
+      },
+      {
+        "line": 264,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      }
+    ]
+  },
+  "native-tensor-probe.s": {
+    "sha256": "1464ae364787a1bc034e2b935cfc298f33cdcb0f1ddb3e681a85d5ae1c5c52be",
+    "instructions": [
+      {
+        "line": 8,
+        "text": "tensor_load_probe:                      ; @tensor_load_probe",
+        "components": [
+          "tensor_load_probe:                      ; @tensor_load_probe"
+        ]
+      },
+      {
+        "line": 10,
+        "text": "s_mov_b32 s2, exec_lo",
+        "components": [
+          "s_mov_b32 s2, exec_lo"
+        ]
+      },
+      {
+        "line": 11,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 12,
+        "text": "s_cbranch_execz .LBB0_2",
+        "components": [
+          "s_cbranch_execz .LBB0_2"
+        ]
+      },
+      {
+        "line": 14,
+        "text": "s_clause 0x1",
+        "components": [
+          "s_clause 0x1"
+        ]
+      },
+      {
+        "line": 15,
+        "text": "s_load_b128 s[20:23], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[20:23], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 16,
+        "text": "s_load_b512 s[4:19], s[0:1], 0x20",
+        "components": [
+          "s_load_b512 s[4:19], s[0:1], 0x20"
+        ]
+      },
+      {
+        "line": 17,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 18,
+        "text": "tensor_load_to_lds s[20:23], s[4:11], s[12:15], s[16:19]",
+        "components": [
+          "tensor_load_to_lds s[20:23], s[4:11], s[12:15], s[16:19]"
+        ]
+      },
+      {
+        "line": 20,
+        "text": "s_or_b32 exec_lo, exec_lo, s2",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s2"
+        ]
+      },
+      {
+        "line": 21,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 22,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 109,
+        "text": "tensor_store_probe:                     ; @tensor_store_probe",
+        "components": [
+          "tensor_store_probe:                     ; @tensor_store_probe"
+        ]
+      },
+      {
+        "line": 111,
+        "text": "s_mov_b32 s2, exec_lo",
+        "components": [
+          "s_mov_b32 s2, exec_lo"
+        ]
+      },
+      {
+        "line": 112,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 113,
+        "text": "s_cbranch_execz .LBB1_2",
+        "components": [
+          "s_cbranch_execz .LBB1_2"
+        ]
+      },
+      {
+        "line": 115,
+        "text": "s_clause 0x1",
+        "components": [
+          "s_clause 0x1"
+        ]
+      },
+      {
+        "line": 116,
+        "text": "s_load_b128 s[20:23], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[20:23], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 117,
+        "text": "s_load_b512 s[4:19], s[0:1], 0x20",
+        "components": [
+          "s_load_b512 s[4:19], s[0:1], 0x20"
+        ]
+      },
+      {
+        "line": 118,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 119,
+        "text": "tensor_store_from_lds s[20:23], s[4:11], s[12:15], s[16:19]",
+        "components": [
+          "tensor_store_from_lds s[20:23], s[4:11], s[12:15], s[16:19]"
+        ]
+      },
+      {
+        "line": 121,
+        "text": "s_or_b32 exec_lo, exec_lo, s2",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s2"
+        ]
+      },
+      {
+        "line": 122,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 123,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      }
+    ]
+  },
+  "native-wmma.s": {
+    "sha256": "23ea3d5e8dd774580758675a46511c04c3b32380866cdf3a0e5d270f1c819bcc",
+    "instructions": [
+      {
+        "line": 10,
+        "text": "s_clause 0x1",
+        "components": [
+          "s_clause 0x1"
+        ]
+      },
+      {
+        "line": 11,
+        "text": "s_load_b128 s[4:7], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[4:7], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 12,
+        "text": "s_load_b64 s[2:3], s[0:1], 0x10",
+        "components": [
+          "s_load_b64 s[2:3], s[0:1], 0x10"
+        ]
+      },
+      {
+        "line": 13,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 14,
+        "text": "s_clause 0x1",
+        "components": [
+          "s_clause 0x1"
+        ]
+      },
+      {
+        "line": 15,
+        "text": "global_load_b64 v[10:11], v0, s[4:5] scale_offset",
+        "components": [
+          "global_load_b64 v[10:11], v0, s[4:5] scale_offset"
+        ]
+      },
+      {
+        "line": 16,
+        "text": "global_load_b64 v[12:13], v0, s[6:7] scale_offset",
+        "components": [
+          "global_load_b64 v[12:13], v0, s[6:7] scale_offset"
+        ]
+      },
+      {
+        "line": 17,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 18,
+        "text": "v_lshlrev_b32_e32 v0, 5, v0",
+        "components": [
+          "v_lshlrev_b32_e32 v0, 5, v0"
+        ]
+      },
+      {
+        "line": 19,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 20,
+        "text": "v_wmma_f32_16x16x4_f32 v[2:9], v[10:11], v[12:13], 0",
+        "components": [
+          "v_wmma_f32_16x16x4_f32 v[2:9], v[10:11], v[12:13], 0"
+        ]
+      },
+      {
+        "line": 21,
+        "text": "s_clause 0x1",
+        "components": [
+          "s_clause 0x1"
+        ]
+      },
+      {
+        "line": 22,
+        "text": "global_store_b128 v0, v[6:9], s[2:3] offset:16",
+        "components": [
+          "global_store_b128 v0, v[6:9], s[2:3] offset:16"
+        ]
+      },
+      {
+        "line": 23,
+        "text": "global_store_b128 v0, v[2:5], s[2:3]",
+        "components": [
+          "global_store_b128 v0, v[2:5], s[2:3]"
+        ]
+      },
+      {
+        "line": 24,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 113,
+        "text": "s_load_b128 s[4:7], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[4:7], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 114,
+        "text": "v_lshlrev_b32_e32 v24, 5, v0",
+        "components": [
+          "v_lshlrev_b32_e32 v24, 5, v0"
+        ]
+      },
+      {
+        "line": 115,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 116,
+        "text": "s_load_b64 s[0:1], s[0:1], 0x10",
+        "components": [
+          "s_load_b64 s[0:1], s[0:1], 0x10"
+        ]
+      },
+      {
+        "line": 117,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 118,
+        "text": "s_clause 0x3",
+        "components": [
+          "s_clause 0x3"
+        ]
+      },
+      {
+        "line": 119,
+        "text": "global_load_b128 v[4:7], v24, s[4:5] offset:16",
+        "components": [
+          "global_load_b128 v[4:7], v24, s[4:5] offset:16"
+        ]
+      },
+      {
+        "line": 120,
+        "text": "global_load_b128 v[12:15], v24, s[6:7] offset:16",
+        "components": [
+          "global_load_b128 v[12:15], v24, s[6:7] offset:16"
+        ]
+      },
+      {
+        "line": 121,
+        "text": "global_load_b128 v[0:3], v24, s[4:5]",
+        "components": [
+          "global_load_b128 v[0:3], v24, s[4:5]"
+        ]
+      },
+      {
+        "line": 122,
+        "text": "global_load_b128 v[8:11], v24, s[6:7]",
+        "components": [
+          "global_load_b128 v[8:11], v24, s[6:7]"
+        ]
+      },
+      {
+        "line": 123,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 124,
+        "text": "v_wmma_f32_16x16x32_f16 v[16:23], v[0:7], v[8:15], 0",
+        "components": [
+          "v_wmma_f32_16x16x32_f16 v[16:23], v[0:7], v[8:15], 0"
+        ]
+      },
+      {
+        "line": 125,
+        "text": "s_clause 0x1",
+        "components": [
+          "s_clause 0x1"
+        ]
+      },
+      {
+        "line": 126,
+        "text": "global_store_b128 v24, v[20:23], s[0:1] offset:16",
+        "components": [
+          "global_store_b128 v24, v[20:23], s[0:1] offset:16"
+        ]
+      },
+      {
+        "line": 127,
+        "text": "global_store_b128 v24, v[16:19], s[0:1]",
+        "components": [
+          "global_store_b128 v24, v[16:19], s[0:1]"
+        ]
+      },
+      {
+        "line": 128,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 217,
+        "text": "s_load_b128 s[4:7], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[4:7], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 218,
+        "text": "v_lshlrev_b32_e32 v24, 5, v0",
+        "components": [
+          "v_lshlrev_b32_e32 v24, 5, v0"
+        ]
+      },
+      {
+        "line": 219,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 220,
+        "text": "s_load_b64 s[0:1], s[0:1], 0x10",
+        "components": [
+          "s_load_b64 s[0:1], s[0:1], 0x10"
+        ]
+      },
+      {
+        "line": 221,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 222,
+        "text": "s_clause 0x3",
+        "components": [
+          "s_clause 0x3"
+        ]
+      },
+      {
+        "line": 223,
+        "text": "global_load_b128 v[4:7], v24, s[4:5] offset:16",
+        "components": [
+          "global_load_b128 v[4:7], v24, s[4:5] offset:16"
+        ]
+      },
+      {
+        "line": 224,
+        "text": "global_load_b128 v[12:15], v24, s[6:7] offset:16",
+        "components": [
+          "global_load_b128 v[12:15], v24, s[6:7] offset:16"
+        ]
+      },
+      {
+        "line": 225,
+        "text": "global_load_b128 v[0:3], v24, s[4:5]",
+        "components": [
+          "global_load_b128 v[0:3], v24, s[4:5]"
+        ]
+      },
+      {
+        "line": 226,
+        "text": "global_load_b128 v[8:11], v24, s[6:7]",
+        "components": [
+          "global_load_b128 v[8:11], v24, s[6:7]"
+        ]
+      },
+      {
+        "line": 227,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 228,
+        "text": "v_wmma_f32_16x16x32_bf16 v[16:23], v[0:7], v[8:15], 0",
+        "components": [
+          "v_wmma_f32_16x16x32_bf16 v[16:23], v[0:7], v[8:15], 0"
+        ]
+      },
+      {
+        "line": 229,
+        "text": "s_clause 0x1",
+        "components": [
+          "s_clause 0x1"
+        ]
+      },
+      {
+        "line": 230,
+        "text": "global_store_b128 v24, v[20:23], s[0:1] offset:16",
+        "components": [
+          "global_store_b128 v24, v[20:23], s[0:1] offset:16"
+        ]
+      },
+      {
+        "line": 231,
+        "text": "global_store_b128 v24, v[16:19], s[0:1]",
+        "components": [
+          "global_store_b128 v24, v[16:19], s[0:1]"
+        ]
+      },
+      {
+        "line": 232,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      }
+    ]
+  }
+}
