@@ -324,6 +324,66 @@ fn compare_expression_vc_and_graph_artifacts_preserve_native_wave32_results() {
 }
 
 #[test]
+fn wave32_profiles_and_run_logs_preserve_success_and_typed_failure() {
+    let directory = directory();
+    let source = root().join("fixtures/native-copy-add.s");
+    let bad = directory.join("missing-load-wait.s");
+    fs::write(
+        &bad,
+        fs::read_to_string(&source)
+            .unwrap()
+            .replace("s_wait_loadcnt 0x0", "s_nop 0"),
+    )
+    .unwrap();
+    for (name, source, expected) in [("good", source, 0), ("bad", bad, 1)] {
+        let logs = directory.join(format!("{name}-logs"));
+        let graph = directory.join(format!("{name}.graph"));
+        let mut args = vec![
+            "--backend".into(),
+            "amdgpu".into(),
+            "--target".into(),
+            "gfx1250".into(),
+            "--log-dir".into(),
+            logs.display().to_string(),
+            "analyze".into(),
+            source.display().to_string(),
+            "--dump-graph".into(),
+            graph.display().to_string(),
+        ];
+        args.extend(copy_config(65, 65));
+        args.retain(|arg| arg != "--no-profile");
+        let output = Command::new(env!("CARGO_BIN_EXE_volta"))
+            .args(args)
+            .output()
+            .unwrap();
+        let stdout = code(&output, expected);
+        assert!(stdout.contains("instruction profile:"), "{stdout}");
+        assert!(stdout.contains("65 element(s) written"), "{stdout}");
+        let graph = fs::read_to_string(graph).unwrap();
+        assert!(
+            graph.starts_with("volta-graph 2\n") && graph.contains("gfx1250"),
+            "{graph}"
+        );
+        let files = fs::read_dir(logs)
+            .unwrap()
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        assert_eq!(files.len(), 1);
+        let log = fs::read_to_string(files[0].path()).unwrap();
+        assert!(log.contains("--backend amdgpu --target gfx1250"), "{log}");
+        assert!(
+            log.contains(if expected == 0 {
+                "VERIFIED"
+            } else {
+                "REJECTED"
+            }),
+            "{log}"
+        );
+    }
+    fs::remove_dir_all(directory).unwrap();
+}
+
+#[test]
 fn missing_wait_is_rejected_and_sampling_remains_inconclusive() {
     let directory = directory();
     let source = root().join("fixtures/native-copy-add.s");
