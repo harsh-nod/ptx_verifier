@@ -24103,7 +24103,7 @@
         "crates/volta_amdgpu_analysis/README.md",
         "tests/gfx950/evidence/fa115fe.json"
       ],
-      "reason": "The baseline supports copysign only atF32/F64 and intentionally rejectsF16. Native typedF32/F64 sign/magnitude controls and half-storage/bitcast boundary controls are separate; no synthetic standalone AMD copysign opcode or positive F16 result is claimed."
+      "reason": "The baseline supports copysign only at F32/F64 and intentionally rejects F16. Native F32 sign/magnitude controls and half-storage/bitcast boundary controls are separate, as are the documented F64 arithmetic tests. No synthetic standalone AMD copysign opcode or positive F16 result is claimed."
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/cp_async_bulk_tensor_rejects_an_incomplete_tensor_map.ptx",
