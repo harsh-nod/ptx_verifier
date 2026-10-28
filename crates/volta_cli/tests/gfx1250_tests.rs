@@ -48,7 +48,36 @@ fn portable_math_specs_cover_every_configured_output() {
     let manifest: Value =
         serde_json::from_str(&fs::read_to_string(root().join("portable-cases.json")).unwrap())
             .unwrap();
-    for case in manifest["cases"].as_array().unwrap() {
+    let cases = manifest["cases"].as_array().unwrap();
+    assert_eq!(
+        cases.len(),
+        20,
+        "the frozen portable corpus must not shrink silently"
+    );
+    let families = cases
+        .iter()
+        .map(|case| case["family"].as_str().unwrap())
+        .collect::<std::collections::HashSet<_>>();
+    assert_eq!(
+        families.len(),
+        20,
+        "every baseline family needs its own counterpart"
+    );
+    let inventory: Value =
+        serde_json::from_str(&fs::read_to_string(root().join("acceptance-corpus.json")).unwrap())
+            .unwrap();
+    let required = inventory["families"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|row| row.get("baseline_artifacts").is_some())
+        .map(|row| row["family"].as_str().unwrap())
+        .collect::<std::collections::HashSet<_>>();
+    assert_eq!(
+        families, required,
+        "required baseline families cannot disappear from acceptance"
+    );
+    for case in cases {
         let path = root().join(case["spec"].as_str().unwrap());
         let parsed = volta_spec::parse_spec(&fs::read_to_string(&path).unwrap())
             .unwrap_or_else(|e| panic!("{}: {e:?}", path.display()));
@@ -133,7 +162,11 @@ fn compiler_corpus_parses_analyzes_and_matches_full_specs_via_launch_json() {
         .iter()
         .chain(portable["cases"].as_array().unwrap())
         .collect::<Vec<_>>();
-    assert!(!cases.is_empty(), "empty corpus cannot establish support");
+    assert_eq!(
+        cases.len(),
+        34,
+        "the fourteen mechanism and twenty workload cases are required"
+    );
     let directory = directory();
     for (index, case) in cases.iter().enumerate() {
         let source = root()
