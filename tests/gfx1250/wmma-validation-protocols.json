@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "scope": "Actual native interpreter protocols, separate from independent CPU oracle self-checks; allpending until testsrun successfully",
+  "scope": "Actual native interpreter protocols passed under independent coordinator validation; separate from CPU oracle self-checks and hardware execution",
   "hardware_validation": "not_performed_no_gfx1250_device",
   "protocols": [
     {
@@ -19,7 +19,7 @@
       "required": true,
       "native_launches": 2176,
       "complete_outputs_per_launch": 256,
-      "software_validation": "pending; no unknown/unsupported positive counted as verified",
+      "software_validation": "coordinator_verified_all_launches_and_complete_outputs",
       "kernels": {
         "wmma_f32_basis": {
           "K": 4
@@ -47,7 +47,8 @@
         2
       ],
       "expected": "basis_b0: D[row,col]=(row==selected); basis_b1:D[row,col]=(col==selected), allrows/allcols; A/B sourceK basis and stripe match selectedK",
-      "native_test": "real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      "native_test": "real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+      "coordinator_evidence": "evidence/coordinator-software.json"
     },
     {
       "profile": "finite_values",
@@ -64,7 +65,7 @@
       "required": true,
       "native_launches": 3,
       "complete_outputs_per_launch": 256,
-      "software_validation": "pending; no unknown/unsupported positive counted as verified",
+      "software_validation": "coordinator_verified_all_launches_and_complete_outputs",
       "native_test": "real_gfx1250_wmma_finite_byvalue_bits_distinguish_f16_and_bf16",
       "cases": [
         {
@@ -93,7 +94,8 @@
           "vector_items": 16,
           "all_output_values": 64
         }
-      ]
+      ],
+      "coordinator_evidence": "evidence/coordinator-software.json"
     }
   ]
 }

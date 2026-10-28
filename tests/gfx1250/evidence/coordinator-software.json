@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "recorded_utc": "2026-10-28T18:01:19.575828+00:00",
+  "coordinator_reviewed_source_commit": "08d44dd6514813d20024158b1eb3cae8a5fe2f98",
+  "merged_software_commit": "18687412e74fb12a5f313afae83fc3ecd597865d",
+  "upstream_master": "308b0ef388b75f9bab6759438012c1a7e961ba13",
+  "software_status": "validated_for_the_documented_subset",
+  "hardware_validation": "pending_no_gfx1250_device; user_explicitly_excluded_hardware_execution",
+  "build_directory": "/home/harsh/ptx-verifier-gfx1250-integration/target",
+  "exclusive_build_directory": true,
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--release",
+        "--workspace",
+        "--no-fail-fast"
+      ],
+      "exit_code": 101,
+      "result": {
+        "passed": 1548,
+        "failed": 1,
+        "ignored": 0
+      },
+      "unexpected_failures": 0,
+      "inherited_failure": "test_aligned_bar_sync_reached_on_different_iterations"
+    },
+    {
+      "argv": [
+        "uv",
+        "run",
+        "--reinstall-package",
+        "volta",
+        "pytest",
+        "crates/volta_py"
+      ],
+      "exit_code": 0,
+      "passed": 89
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--workspace"
+      ],
+      "exit_code": 0,
+      "warnings": "retained; no blanket warning-free claim"
+    },
+    {
+      "argv": [
+        "uv",
+        "run",
+        "ruff",
+        "check",
+        "crates/volta_py/tests/test_gfx1250.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "python3",
+        "-m",
+        "pytest",
+        "external/tests",
+        "-q"
+      ],
+      "exit_code": 0,
+      "passed": 18
+    },
+    {
+      "argv": [
+        "python3",
+        "ai_compiler_kernels/check_races.py",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx1250",
+        "--binary",
+        "target/release/volta",
+        "--color",
+        "never"
+      ],
+      "exit_code": 0,
+      "verified_cases": 14,
+      "complete_output_elements": 2212,
+      "full_spec_accepts": 12,
+      "exact_wide_graph_and_footprint_only_in_this_adapter": 2
+    },
+    {
+      "argv": [
+        "python3",
+        "ai_compiler_kernels/check_races.py",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx1250",
+        "--binary",
+        "target/release/volta",
+        "--mutate",
+        "-k",
+        "copy",
+        "--color",
+        "never"
+      ],
+      "exit_code": 0,
+      "typed_readiness_rejections": 3
+    }
+  ],
+  "native_independent_oracles": {
+    "passed_test_functions": 12,
+    "wmma_basis_launches": 2176,
+    "basis_outputs_per_launch": 256,
+    "wide_unsigned_launches": 343,
+    "wide_signed_launches": 343,
+    "outputs_per_wide_launch": 4,
+    "assemble_valid_harmful_controls": 15,
+    "typed_graph_rejections": 14,
+    "exact_lds_bounds_aborts": 1
+  },
+  "public_acceptance": {
+    "mechanism_configurations": 14,
+    "mechanism_output_elements": 2212,
+    "portable_families": 20,
+    "portable_output_elements": 590,
+    "configured_outputs_checked": "all; no sampling",
+    "portable_scope": "bounded decoded F32 family counterparts; no original PTX shape/dtype/grid or complete ISA parity"
+  },
+  "compiler": {
+    "genuine_translation_units_rebuilt": 11,
+    "normalization": "only translation-unit CUID symbol when comparing entire emitted assembly; no assembly edits",
+    "committed_assembly": "independently assembled and linked exactly",
+    "boundary_outcomes_reproduced": 78,
+    "evidence": "coordinator-compiler.json"
+  },
+  "browser": {
+    "runs": 191,
+    "errors": 0,
+    "receipt": "coordinator-browser.json",
+    "local_standalone_artifact": "/tmp/ptx-gfx1250-coordinator-final-store/index.html",
+    "source_revision": "08d44dd6514813d20024158b1eb3cae8a5fe2f98",
+    "scope": "actual records, source/event links, typed findings, wave/warp labels, unsupported source, filters and UI recovery; rendering counts are separate from proof counts"
+  },
+  "profiling_logging_and_resources": {
+    "logging_feature": "fresh success and typed-failure controls passed",
+    "measured_bounded_kernels": 8,
+    "evidence": [
+      "coordinator-logging.json",
+      "coordinator-performance.json"
+    ]
+  },
+  "provenance_note": "Historical compiler/native-oracle receipts retain their original tested source pins and initial metadata hashes. Coordinator promotion changes status metadata only; source/assembly/spec/launch inputs remain unchanged. This receipt states the final integrated semantic review.",
+  "artifacts": {
+    "coordinator-rust.log": {
+      "sha256": "0631e6ac9edfca97878d8e90e8eaa1760e4732b3652a26bdbe430c45305511ec",
+      "bytes": 121465
+    },
+    "coordinator-python.log": {
+      "sha256": "4ce50cd8dc9a70b59cebf4d1c47ccbedd07cab762cb419a545579b6b69d646db",
+      "bytes": 1292
+    },
+    "coordinator-clippy.log": {
+      "sha256": "083e64a25bf5b38a1c198b3aa4c3612bedb43479aad671b8e5471e36a05e77eb",
+      "bytes": 40447
+    },
+    "coordinator-external-tests.log": {
+      "sha256": "db4ca9a3fc71415150a2c2450489a41e5f46839a0e6368cf68dd301df445db40",
+      "bytes": 99
+    },
+    "coordinator-native-harness.log": {
+      "sha256": "ca28ad380785e102d257bf285b7a51e4c73a779e9f1e90f840befc7b7557238c",
+      "bytes": 1628
+    },
+    "coordinator-native-mutants.log": {
+      "sha256": "4bb68e292b35f6ca606ea6a420851668834497cda05899af20306486304c9e04",
+      "bytes": 893
+    },
+    "coordinator-compiler.json": {
+      "sha256": "38fdec120c46a4d47858d4c87fbdd5b67904d0581671113c4936a7fa7e486696",
+      "bytes": 14242
+    },
+    "coordinator-boundaries.json": {
+      "sha256": "9024ecfb1f345e345a6d19cf936134c3c3ee3d9b55921fc1e21ab223590320c1",
+      "bytes": 29475
+    },
+    "coordinator-browser.json": {
+      "sha256": "715381b538415fbdfde8fe37f553fcc565136b6db99d490cdccec74b9519816e",
+      "bytes": 342771
+    },
+    "coordinator-browser-errors.json": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    "coordinator-performance.json": {
+      "sha256": "f0569b3aaf035e5528172b73d75421436023d89d3f337a8b30922bd2bc1b1d01",
+      "bytes": 21001
+    },
+    "coordinator-logging.json": {
+      "sha256": "e885634ace49151c707469db9c4ef73ed56328e2c315cbbab5c78822311c4272",
+      "bytes": 3772
+    },
+    "coordinator-extraction-replay.log": {
+      "sha256": "e95f7541c0816555683f1a504ede3b18d3b72dfb9ebb6f948880279ec17f0d35",
+      "bytes": 193
+    },
+    "coordinator-mutation-encoding.log": {
+      "sha256": "cb36f3b4fb3b037d035577e9edb280f5a7f66c1f3523cf87af857315d98b3ccb",
+      "bytes": 91
+    },
+    "coordinator-acceptance-cli.log": {
+      "sha256": "77e2ee64ce350c226f1885ffea329b96598130c987aff109aef0c92e50ca910c",
+      "bytes": 2574
+    }
+  },
+  "input_manifests": {
+    "cases.json": "f331b1c135402a93e0ba38ff0115147f5ce88f2e1f78a0e3689707b9359388a7",
+    "portable-cases.json": "6e5ad66e3d6e149af796e1eab0615bdabe15fc0bce4cb42e36cdf045106d0784",
+    "acceptance-corpus.json": "7c5b090040db7147623ab8c2e6b20da390996b0a39ffe1d65e7199d6a5c16178",
+    "wmma-validation-protocols.json": "d49ebf3835357930239cf927649d794ab1e232b0d290d5f1838f7f5487688e60"
+  },
+  "status_promotion_validation": {
+    "cli_test_functions": 6,
+    "executable_launch_spec_inputs_unchanged_from_reviewed_commit": true,
+    "metadata_validation_base": "18687412e74fb12a5f313afae83fc3ecd597865d",
+    "log": "coordinator-acceptance-cli.log"
+  }
+}

@@ -1,6 +1,6 @@
 # Native gfx1250 software validation
 
-Work in progress for [issue 13](https://github.com/harsh-nod/ptx_verifier/issues/13).
+Software milestone for [issue 13](https://github.com/harsh-nod/ptx_verifier/issues/13).
 These fixtures are genuinely cross-compiled for gfx1250 with the pinned ROCm
 LLVM toolchain. Their assembly is not rewritten from another target.
 
@@ -10,8 +10,8 @@ Compiler/assembler acceptance and CPU semantic tests cannot replace hardware
 evidence. gfx942/gfx950 devices are not gfx1250 hardware substitutes.
 
 `cases.json` uses the existing native case schema for CLI/Python integration.
-Each required case remains pending until its graph checks, complete footprint
-and independent mathematical reference are validated. The fourteen configurations
+The coordinator validated every required case through graph checks, complete
+output footprints and independent mathematical references. The fourteen configurations
 cover copy/add, cross-wave LDS, wave32 reduction, multidimensional IDs, raw
 F32/F16/BF16 WMMA, two-wave staged GEMM, two-stage tensor roundtrip, complete
 small attention, packed 16-bit transpose, and signed/unsigned wide products.
@@ -22,9 +22,11 @@ manifest; the mechanism cases do not silently stand in for original full shapes.
 Cross-compilation needs no GPU:
 
 ```sh
-python3 tests/gfx1250/compile_fixtures.py tests/gfx1250/fixtures
-python3 tests/gfx1250/oracles.py --output tests/gfx1250/fixtures/oracle-self-checks.json
-python3 tests/gfx1250/validate_mutations.py
+fixture_dir="$(mktemp -d /tmp/gfx1250-fixtures.XXXXXX)"
+cp tests/gfx1250/fixtures/*.hip "$fixture_dir/"
+python3 tests/gfx1250/compile_fixtures.py "$fixture_dir"
+python3 tests/gfx1250/oracles.py --output "$fixture_dir/oracle-self-checks.json"
+python3 tests/gfx1250/validate_mutations.py --directory "$fixture_dir"
 ```
 
 The default toolchain is `/opt/rocm-7.2.0/lib/llvm/bin`, AMD LLVM 22, compiler
@@ -50,8 +52,7 @@ literals outside that language's signed64 domain.
 2,176 A/B input-basis launches across all three types, plus three finite
 by-value encoding controls. The BF16 input `0x3f80` must decode as 1, while
 the F16 input uses `0x3c00`; all 256 results are checked for every launch.
-These strict native tests remain pending until the new execution and checker
-contracts pass. `wmma-oracle-vectors.json` contains nine independent asymmetric
+These native gates pass the integrated execution and graph-checker contracts. `wmma-oracle-vectors.json` contains nine independent asymmetric
 finite CPU vectors and their complete outputs; those vectors alone do not
 certify the interpreter. Use `--vectors-output` with `oracles.py` to regenerate them.
 The native wide-product test parses once and checks all four exact outputs for
@@ -80,3 +81,80 @@ does not establish IEEE rounding/NaN/denormal equivalence.
 `semantic-references.json` pins reachable public LLVM files at
 `5fd50ec8e07abb94e203933017e8d6e40fb51824` and the independent public layout
 reference. Local source snapshots are recorded only as secondary comparisons.
+
+## Software acceptance and reproduction
+
+The frozen acceptance corpus contains fourteen mechanism configurations plus
+twenty bounded workload-family computations. The CLI and rebuilt Python tests
+require complete configured output coverage; Rust additionally checks all 2,176
+A/B WMMA basis launches and 686 exact signed/unsigned wide-arithmetic cases.
+Fifteen assemble-valid safety mutants produce fourteen concrete typed graph
+rejections and one exact LDS capacity abort. Empty selections, unsupported,
+unknown, crashes and missing outputs cannot satisfy the mutation gate.
+
+The portable ports cover elementwise activations, RoPE, reduction, softmax,
+RMSNorm, matvec/GEMM, BitDelta, convolution, Mamba state/scan and four attention
+families. They use decoded F32 inputs and explicit bounded dimensions, with all 590
+outputs checked. BitDelta uses concrete index-generated packed words and complete
+32-bit unpacking; Sage attention starts with decoded values. This is family
+coverage, not original PTX shape/dtype/packing or whole-grid parity. Separate
+WMMA tests cover finite raw F16/BF16 encodings and all 256 output coordinates.
+
+```sh
+cargo test --release --workspace --no-fail-fast
+uv run --reinstall-package volta pytest crates/volta_py
+python3 -m pytest external/tests -q
+python3 ai_compiler_kernels/check_races.py --backend amdgpu --target gfx1250 \
+  --binary target/release/volta --color never
+python3 ai_compiler_kernels/check_races.py --backend amdgpu --target gfx1250 \
+  --binary target/release/volta --mutate -k copy --color never
+```
+
+The workspace retains the inherited PTX failure
+`test_aligned_bar_sync_reached_on_different_iterations`. It is disclosed in the
+coordinator receipt and is not a gfx1250 acceptance or regression claim.
+Expression/VC replay checks equivalence only, because those formats contain no
+native event graph. Target-preserving graph dumps and the viewer carry their
+own trace evidence.
+
+The [contract](CONTRACT.md) states register/ABI, replay and advanced-mode limits.
+The [upstream audit](UPSTREAM_AUDIT.md) maps the latest transpose, BF16, wide
+arithmetic and barrier-loop changes to native counterparts or explicit
+architecture boundaries. [External recipes](../../external/gfx1250/README.md)
+keep the existing HipKittens CDNA4 library profile explicit and provide genuine
+LLVM-native gfx1250 extraction controls.
+
+`evidence/coordinator-software.json` records source pins, exact commands, test
+counts, artifact hashes and the hardware exclusion. Associated browser evidence
+covers 191 mixed PTX/gfx942/gfx950/gfx1250 records with real Chromium, including
+source-only unsupported cases, new waits/matrix/tensor/split-barrier events and
+typed finding navigation. Rendering counts are distinct from proof counts.
+To regenerate a focused native viewer store without recording thousands of
+numeric variations:
+
+```sh
+VOLTA_VIZ_DIR=target/gfx1250-viewer cargo test --release -p volta_pipeline \
+  --test gfx1250_compiler_tests -- \
+  --skip real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter \
+  --skip real_gfx1250_wide_product_and_mad_match_exact_unsigned_and_signed_128bit_oracles
+cargo run --release -p volta_cli -- --no-log-file viz target/gfx1250-viewer \
+  -o target/gfx1250-viewer.html
+```
+
+The skipped numeric variations still run in the full native proof suite. See
+[the browser harness](../../crates/volta_viz/tests/browser/README.md) for mixing
+legacy records and running Chromium. The compiler-check receipt matches entire
+regenerated assembly after normalizing only translation-unit CUID symbols; exact
+committed assembly is separately assembled and linked. No generated assembly is
+rewritten or relabeled as compiler evidence.
+
+Representative release host analysis costs and graph sizes are recorded in
+`evidence/coordinator-performance.json`, including an attention case with 512
+outputs. These bounded measurements do not claim original-size scalability or
+GPU performance. G1250-09 remains open until the exact kernels can execute on
+real gfx1250 hardware with independent value/layout/guard checks.
+
+Historical compiler/assembler receipts retain the original source pins and
+initial pending tags from their recording time. Current coordinator acceptance
+is recorded separately; the frozen encoding receipts are not rewritten into
+semantic claims. The final status promotion changes no launch/spec/source data.

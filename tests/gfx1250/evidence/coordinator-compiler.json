@@ -1,0 +1,289 @@
+{
+  "source_commit": "ed4a36209db7ce8370835dce8da243e085ae6693",
+  "scope": "independent coordinator compilation and encoding review only; semantic and hardware validation are separate",
+  "hardware_validation": "pending_no_device",
+  "compiler_command": [
+    "python3",
+    "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/compile_fixtures.py",
+    "/tmp/ptx-gfx1250-coordinator-final-compiler"
+  ],
+  "compiler_version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)",
+  "elapsed_seconds": 17.388365030288696,
+  "files": [
+    {
+      "source": "native-attention-small.hip",
+      "source_sha256": "0353849fabca74ba9cf46b5a7da6185921cf0556c02a37985b656ea841765829",
+      "assembly_sha256": "23540c5749eefcf6c9d796e27dda5b131dda8bd77ae6ce566c59c6e2c2599bb0",
+      "normalized_entire_assembly_match": true,
+      "normalization": "translation-unit __hip_cuid hexadecimal symbol only",
+      "committed_object_sha256": "aa3335074c34029592bb2d9c7a05a0c07c6e038fff8a2e752bb292ff6424a1e7",
+      "committed_code_object_sha256": "9dd412209643fcbb7a4eefea4323aeddcc0cf5683c9deb3834c61bfc8f3a5e40",
+      "assembler_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/fixtures/native-attention-small.s",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-attention-small.committed.o"
+      ],
+      "link_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-attention-small.committed.o",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-attention-small.committed.hsaco"
+      ]
+    },
+    {
+      "source": "native-copy-add.hip",
+      "source_sha256": "23e509c17429f8a65722928df3271b6102906ae7afc86263cd288fea444cb136",
+      "assembly_sha256": "d24b4c3c354d99405265eccef632e2108e4a5719faed14de2d69e721a1b4aff9",
+      "normalized_entire_assembly_match": true,
+      "normalization": "translation-unit __hip_cuid hexadecimal symbol only",
+      "committed_object_sha256": "e438967bb516c7e031a067186ce8c034d88a5872c1bd9aed934fe1f4070c8a47",
+      "committed_code_object_sha256": "3e69f45dd1b2a33d535a642d6cbfa0906775ac64c185bd2c0c9032b79c874bd4",
+      "assembler_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/fixtures/native-copy-add.s",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-copy-add.committed.o"
+      ],
+      "link_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-copy-add.committed.o",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-copy-add.committed.hsaco"
+      ]
+    },
+    {
+      "source": "native-gemm-pipeline.hip",
+      "source_sha256": "786376dcc0ea9e542094ee6b75523304b4e8905f1a6855f1241a342f57b5b772",
+      "assembly_sha256": "74e2d29d5e3b83ad8f312c73eea2c18c925c70e4707070f1553f3af0468fb00e",
+      "normalized_entire_assembly_match": true,
+      "normalization": "translation-unit __hip_cuid hexadecimal symbol only",
+      "committed_object_sha256": "96df957ba369fff7754d10f17fdc818f3115d345c6ee6d4c61a80efb152ca7e5",
+      "committed_code_object_sha256": "ed18ff04b5002177ce2b18f92411e514c661352413778a1ee334b9f9d61b50c9",
+      "assembler_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/fixtures/native-gemm-pipeline.s",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-gemm-pipeline.committed.o"
+      ],
+      "link_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-gemm-pipeline.committed.o",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-gemm-pipeline.committed.hsaco"
+      ]
+    },
+    {
+      "source": "native-lds-ids.hip",
+      "source_sha256": "139885bae4ac30332eacdbe9e39a68da60b2a350815028eece67fd3ab7dde535",
+      "assembly_sha256": "845841d12d12f785a0e0bdd70ca8afdf7a21d31687d2d0593f4d4c7fe001f176",
+      "normalized_entire_assembly_match": true,
+      "normalization": "translation-unit __hip_cuid hexadecimal symbol only",
+      "committed_object_sha256": "b81eb08ddc9e1dc57f15f14b1932de69a38aa9c5605580e1cd3ca84243c52a71",
+      "committed_code_object_sha256": "64bebbc9194b30b1e8d444ef45e367c56880aaaa3643f39c856c5fb1086a11c6",
+      "assembler_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/fixtures/native-lds-ids.s",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-lds-ids.committed.o"
+      ],
+      "link_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-lds-ids.committed.o",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-lds-ids.committed.hsaco"
+      ]
+    },
+    {
+      "source": "native-portable-workloads.hip",
+      "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
+      "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
+      "normalized_entire_assembly_match": true,
+      "normalization": "translation-unit __hip_cuid hexadecimal symbol only",
+      "committed_object_sha256": "bf3713b207497acae906a6294a1ef4bf73a0c6f1cbff435605a77ca0ee3ca079",
+      "committed_code_object_sha256": "903520d5ec5226afb16ca3cffabd167cdcc36ed42943d06e6249499b7a6d7ca8",
+      "assembler_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/fixtures/native-portable-workloads.s",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-portable-workloads.committed.o"
+      ],
+      "link_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-portable-workloads.committed.o",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-portable-workloads.committed.hsaco"
+      ]
+    },
+    {
+      "source": "native-tensor-probe.hip",
+      "source_sha256": "93d358082f2c4047bd52423574d761eacd6e064486b8bcc5172fb6bc222c57bc",
+      "assembly_sha256": "1464ae364787a1bc034e2b935cfc298f33cdcb0f1ddb3e681a85d5ae1c5c52be",
+      "normalized_entire_assembly_match": true,
+      "normalization": "translation-unit __hip_cuid hexadecimal symbol only",
+      "committed_object_sha256": "4204977c5ddc409f0b03a238b69d9bbd15fad7a64e020ce174cde1f1ab4a024d",
+      "committed_code_object_sha256": "f4e5e5471f3df46742b109b217748ae098fe925b84d4a7358a0d1bd339a86da5",
+      "assembler_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/fixtures/native-tensor-probe.s",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-tensor-probe.committed.o"
+      ],
+      "link_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-tensor-probe.committed.o",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-tensor-probe.committed.hsaco"
+      ]
+    },
+    {
+      "source": "native-tensor-roundtrip.hip",
+      "source_sha256": "845a99a7f59f8db92d0bed7b0feccd3ce30f8183814fa6c5927d14482d65e4b5",
+      "assembly_sha256": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
+      "normalized_entire_assembly_match": true,
+      "normalization": "translation-unit __hip_cuid hexadecimal symbol only",
+      "committed_object_sha256": "a79275706c1eafb0770512c74dc6eabe08a566967b0a7128e256e3e4f053836c",
+      "committed_code_object_sha256": "ee768abd18a0aa6775ee4a714f6d7de4b35cf4b806361b46cd1cc44f952f4a0c",
+      "assembler_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/fixtures/native-tensor-roundtrip.s",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-tensor-roundtrip.committed.o"
+      ],
+      "link_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-tensor-roundtrip.committed.o",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-tensor-roundtrip.committed.hsaco"
+      ]
+    },
+    {
+      "source": "native-transpose-high64.hip",
+      "source_sha256": "e6ce43b03bd3c7532960ff8065625cf4191b2fb6047d8b5acd2a7f68ac17e059",
+      "assembly_sha256": "34e66779492f5474dd3e412a44d4d81e82ebf51909943c8c87255672ea9adaa3",
+      "normalized_entire_assembly_match": true,
+      "normalization": "translation-unit __hip_cuid hexadecimal symbol only",
+      "committed_object_sha256": "4df4a4868f2d0b766f96917f98e2b60aeb9277d371aafcdba72b28bc33fa656d",
+      "committed_code_object_sha256": "7c582b6f7b6a40262525958ef69f5b13dcf35de1d09d21be8375978ee2c5fbc9",
+      "assembler_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/fixtures/native-transpose-high64.s",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-transpose-high64.committed.o"
+      ],
+      "link_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-transpose-high64.committed.o",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-transpose-high64.committed.hsaco"
+      ]
+    },
+    {
+      "source": "native-wmma-basis.hip",
+      "source_sha256": "8cb11de9fe6dc7e48649317da620a7d915400920b84545ad6843d6f2b35d5d06",
+      "assembly_sha256": "1b0d2e54609184a601586a29e84e18514b0ebac7817d66f574c3f338d0d1e4f6",
+      "normalized_entire_assembly_match": true,
+      "normalization": "translation-unit __hip_cuid hexadecimal symbol only",
+      "committed_object_sha256": "373499eb00096359b4a1fb24200bd11d5a1d60680b1236214e8b3c91a24ac843",
+      "committed_code_object_sha256": "5989066f84f7ef5b148c1919e090ebbfbfc448be9befaddcadc5b91b3d7b68a4",
+      "assembler_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/fixtures/native-wmma-basis.s",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-wmma-basis.committed.o"
+      ],
+      "link_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-wmma-basis.committed.o",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-wmma-basis.committed.hsaco"
+      ]
+    },
+    {
+      "source": "native-wmma-values.hip",
+      "source_sha256": "c6fabd996882485503cf5c3a66572050fcdbc84eceabf2e290a6926e984c6dc7",
+      "assembly_sha256": "c8562521a86f360768d14d1354f708d76189718badb78d6bf7f5a86e66660c05",
+      "normalized_entire_assembly_match": true,
+      "normalization": "translation-unit __hip_cuid hexadecimal symbol only",
+      "committed_object_sha256": "95c4a8abec577001497f449cde95412c157c3347ccaa5df0c24581da2322b090",
+      "committed_code_object_sha256": "6f1978480c13d65afa47a507a1420f817e8ff06d2cb3f27dbc5c69aca7f221fb",
+      "assembler_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/fixtures/native-wmma-values.s",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-wmma-values.committed.o"
+      ],
+      "link_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-wmma-values.committed.o",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-wmma-values.committed.hsaco"
+      ]
+    },
+    {
+      "source": "native-wmma.hip",
+      "source_sha256": "9cbe1c2d95c364be11106cc9c398d83bbcffe3f8b282bf3de322e09454726b8d",
+      "assembly_sha256": "23ea3d5e8dd774580758675a46511c04c3b32380866cdf3a0e5d270f1c819bcc",
+      "normalized_entire_assembly_match": true,
+      "normalization": "translation-unit __hip_cuid hexadecimal symbol only",
+      "committed_object_sha256": "9a6cbdb026f5da03152ca89eeca895fa38b0a1f5796704f2351646abb3905973",
+      "committed_code_object_sha256": "0a919f12031a9d7dfea5e80298e87edae8e61377c4676ad809e6b155c478c8f4",
+      "assembler_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-integration/tests/gfx1250/fixtures/native-wmma.s",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-wmma.committed.o"
+      ],
+      "link_command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-wmma.committed.o",
+        "-o",
+        "/tmp/ptx-gfx1250-coordinator-final-compiler/native-wmma.committed.hsaco"
+      ]
+    }
+  ]
+}

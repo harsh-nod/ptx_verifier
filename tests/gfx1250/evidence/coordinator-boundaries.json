@@ -1,0 +1,1021 @@
+{
+  "scope": "coordinator independent assembler encoding/metadata boundary replay only; no semantic or hardware claim",
+  "source_sha256": "efb0fbba15a3e9aaedc74c925f0c7c906705ec765596c183dcac11db273343ec",
+  "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "cases": [
+    {
+      "name": "vgpr0",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case0.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case0.o"
+      ]
+    },
+    {
+      "name": "vgpr255",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case1.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case1.o"
+      ]
+    },
+    {
+      "name": "vgpr256",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case2.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case2.o"
+      ]
+    },
+    {
+      "name": "vgpr511",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case3.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case3.o"
+      ]
+    },
+    {
+      "name": "vgpr512",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case4.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case4.o"
+      ]
+    },
+    {
+      "name": "vgpr1023",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case5.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case5.o"
+      ]
+    },
+    {
+      "name": "vgpr1024",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case6.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case6.o"
+      ]
+    },
+    {
+      "name": "vgpr0_e32",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case7.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case7.o"
+      ]
+    },
+    {
+      "name": "vgpr255_e32",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case8.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case8.o"
+      ]
+    },
+    {
+      "name": "vgpr256_e32",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case9.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case9.o"
+      ]
+    },
+    {
+      "name": "vgpr511_e32",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case10.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case10.o"
+      ]
+    },
+    {
+      "name": "vgpr512_e32",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case11.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case11.o"
+      ]
+    },
+    {
+      "name": "vgpr1023_e32",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case12.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case12.o"
+      ]
+    },
+    {
+      "name": "vgpr1024_e32",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case13.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case13.o"
+      ]
+    },
+    {
+      "name": "vgpr0_e64",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case14.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case14.o"
+      ]
+    },
+    {
+      "name": "vgpr255_e64",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case15.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case15.o"
+      ]
+    },
+    {
+      "name": "vgpr256_e64",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case16.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case16.o"
+      ]
+    },
+    {
+      "name": "vgpr511_e64",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case17.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case17.o"
+      ]
+    },
+    {
+      "name": "vgpr512_e64",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case18.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case18.o"
+      ]
+    },
+    {
+      "name": "vgpr1023_e64",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case19.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case19.o"
+      ]
+    },
+    {
+      "name": "vgpr1024_e64",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case20.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case20.o"
+      ]
+    },
+    {
+      "name": "vgpr0_e96",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case21.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case21.o"
+      ]
+    },
+    {
+      "name": "vgpr255_e96",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case22.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case22.o"
+      ]
+    },
+    {
+      "name": "vgpr256_e96",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case23.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case23.o"
+      ]
+    },
+    {
+      "name": "vgpr511_e96",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case24.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case24.o"
+      ]
+    },
+    {
+      "name": "vgpr512_e96",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case25.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case25.o"
+      ]
+    },
+    {
+      "name": "vgpr1023_e96",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case26.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case26.o"
+      ]
+    },
+    {
+      "name": "vgpr1024_e96",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case27.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case27.o"
+      ]
+    },
+    {
+      "name": "sgpr0",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case28.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case28.o"
+      ]
+    },
+    {
+      "name": "sgpr103",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case29.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case29.o"
+      ]
+    },
+    {
+      "name": "sgpr104",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case30.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case30.o"
+      ]
+    },
+    {
+      "name": "sgpr105",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case31.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case31.o"
+      ]
+    },
+    {
+      "name": "sgpr106",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case32.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case32.o"
+      ]
+    },
+    {
+      "name": "sgpr127",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case33.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case33.o"
+      ]
+    },
+    {
+      "name": "v_accvgpr_write_b32 a0, v0",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case34.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case34.o"
+      ]
+    },
+    {
+      "name": "v_mov_b32 a0, v0",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case35.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case35.o"
+      ]
+    },
+    {
+      "name": "s_mov_b32 exec_lo, -1",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case36.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case36.o"
+      ]
+    },
+    {
+      "name": "s_mov_b32 exec_hi, 0",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case37.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case37.o"
+      ]
+    },
+    {
+      "name": "s_mov_b32 vcc_lo, 0",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case38.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case38.o"
+      ]
+    },
+    {
+      "name": "s_mov_b32 vcc_hi, 0",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case39.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case39.o"
+      ]
+    },
+    {
+      "name": "s_mov_b32 s0, ttmp6",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case40.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case40.o"
+      ]
+    },
+    {
+      "name": "s_mov_b32 s0, ttmp9",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case41.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case41.o"
+      ]
+    },
+    {
+      "name": "allocation_vgpr0",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case42.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case42.o"
+      ]
+    },
+    {
+      "name": "allocation_vgpr1",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case43.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case43.o"
+      ]
+    },
+    {
+      "name": "allocation_vgpr256",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case44.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case44.o"
+      ]
+    },
+    {
+      "name": "allocation_vgpr512",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case45.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case45.o"
+      ]
+    },
+    {
+      "name": "allocation_vgpr1024",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case46.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case46.o"
+      ]
+    },
+    {
+      "name": "allocation_vgpr1025",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case47.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case47.o"
+      ]
+    },
+    {
+      "name": "allocation_lds0",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case48.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case48.o"
+      ]
+    },
+    {
+      "name": "allocation_lds65536",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case49.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case49.o"
+      ]
+    },
+    {
+      "name": "allocation_lds163840",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case50.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case50.o"
+      ]
+    },
+    {
+      "name": "allocation_lds327680",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case51.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case51.o"
+      ]
+    },
+    {
+      "name": "allocation_lds327681",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case52.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case52.o"
+      ]
+    },
+    {
+      "name": "wave64_descriptor",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case53.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case53.o"
+      ]
+    },
+    {
+      "name": "target",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case54.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case54.o"
+      ]
+    },
+    {
+      "name": "target:xnack+",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case55.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case55.o"
+      ]
+    },
+    {
+      "name": "target:xnack-",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case56.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case56.o"
+      ]
+    },
+    {
+      "name": "target:sramecc+",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case57.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case57.o"
+      ]
+    },
+    {
+      "name": "target:sramecc-",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case58.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case58.o"
+      ]
+    },
+    {
+      "name": "s_wait_tensorcnt 0",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case59.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case59.o"
+      ]
+    },
+    {
+      "name": "s_wait_tensorcnt 1",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case60.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case60.o"
+      ]
+    },
+    {
+      "name": "s_wait_tensorcnt 31",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case61.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case61.o"
+      ]
+    },
+    {
+      "name": "s_wait_tensorcnt 63",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case62.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case62.o"
+      ]
+    },
+    {
+      "name": "s_wait_tensorcnt 64",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case63.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case63.o"
+      ]
+    },
+    {
+      "name": "s_wait_tensorcnt 255",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case64.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case64.o"
+      ]
+    },
+    {
+      "name": "s_wait_tensorcnt 65535",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case65.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case65.o"
+      ]
+    },
+    {
+      "name": "s_wait_asynccnt 31",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case66.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case66.o"
+      ]
+    },
+    {
+      "name": "s_wait_asynccnt 63",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case67.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case67.o"
+      ]
+    },
+    {
+      "name": "s_wait_asynccnt 64",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case68.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case68.o"
+      ]
+    },
+    {
+      "name": "smem96_alignment0",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case69.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case69.o"
+      ]
+    },
+    {
+      "name": "smem96_alignment1",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case70.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case70.o"
+      ]
+    },
+    {
+      "name": "smem96_alignment2",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case71.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case71.o"
+      ]
+    },
+    {
+      "name": "smem96_alignment3",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case72.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case72.o"
+      ]
+    },
+    {
+      "name": "smem96_alignment4",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case73.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case73.o"
+      ]
+    },
+    {
+      "name": "smem96_alignment5",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case74.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case74.o"
+      ]
+    },
+    {
+      "name": "smem96_alignment6",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case75.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case75.o"
+      ]
+    },
+    {
+      "name": "smem96_alignment7",
+      "exit_code": 1,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case76.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case76.o"
+      ]
+    },
+    {
+      "name": "smem96_alignment8",
+      "exit_code": 0,
+      "command": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case77.s",
+        "-o",
+        "/tmp/gfx1250-coordinator-boundaries-_yzxi7xc/case77.o"
+      ]
+    }
+  ]
+}

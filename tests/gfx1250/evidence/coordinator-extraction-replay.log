@@ -1,0 +1,6 @@
+== native: 1 launches
+copy.full  RACE-FREE          0.0s  65/65 tile outputs written
+
+native: 1 RACE-FREE
+wrote /home/harsh/ptx-verifier-gfx1250-integration/external/output/native.gfx1250.csv
+
