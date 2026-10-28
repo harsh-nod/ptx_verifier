@@ -82,6 +82,11 @@ pub(super) fn apply_metadata(
         let target = string(target).ok_or_else(|| fail("amdhsa.target must be a string".into()))?;
         parse::set_target(module, &target, span)?;
     }
+    let wave_size = module
+        .target
+        .as_deref()
+        .and_then(crate::target::Architecture::from_target)
+        .map_or(64, |target| target.wave_size() as u64);
     let kernels = get(root, "amdhsa.kernels")
         .and_then(Value::as_sequence)
         .ok_or_else(|| fail("missing amdhsa.kernels metadata".into()))?;
@@ -110,8 +115,10 @@ pub(super) fn apply_metadata(
             .find(|kernel| kernel.name == name)
             .ok_or_else(|| fail(format!("metadata refers to undefined kernel `{name}`")))?;
         if let Some(wavefront_size) = get(entry, ".wavefront_size") {
-            if number(wavefront_size) != Some(64) {
-                return Err(fail(format!("kernel `{name}` must use wavefront_size 64")));
+            if number(wavefront_size) != Some(wave_size) {
+                return Err(fail(format!(
+                    "kernel `{name}` must use wavefront_size {wave_size}"
+                )));
             }
         }
         if let Some(symbol) = get(entry, ".symbol")

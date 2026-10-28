@@ -1,0 +1,454 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Assemble-valid native safety mutations; never run on substitute hardware",
+  "assembler": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+  "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "cases": [
+    {
+      "name": "copy_missing_km_wait",
+      "source": "native-copy-add.s",
+      "kernel": "copy",
+      "source_sha256": "d24b4c3c354d99405265eccef632e2108e4a5719faed14de2d69e721a1b4aff9",
+      "edits": [
+        {
+          "source_line": 20,
+          "original": "s_wait_kmcnt 0x0",
+          "replacement": "s_nop 0"
+        }
+      ],
+      "mutated_source_sha256": "aacb5614c138034c43b852328c426ee88f79f63e705f09e4463603618447bc75",
+      "object_sha256": "36f039c5897631cbf1d8d5aada55068cfd287974a935a319d28aa5db928f437b",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/copy_missing_km_wait.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/copy_missing_km_wait.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "Scalar kernarg destination readiness",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "copy_missing_load_wait",
+      "source": "native-copy-add.s",
+      "kernel": "copy",
+      "source_sha256": "d24b4c3c354d99405265eccef632e2108e4a5719faed14de2d69e721a1b4aff9",
+      "edits": [
+        {
+          "source_line": 33,
+          "original": "s_wait_loadcnt 0x0",
+          "replacement": "s_nop 0"
+        }
+      ],
+      "mutated_source_sha256": "306232c33ad31e5b9acfdabeffad5c488a389620f122e0aba2658aa8a03a31ad",
+      "object_sha256": "2c774aa0f6b1f242978734821a4d0676d6a83b601aa58253f349b75248ed5863",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/copy_missing_load_wait.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/copy_missing_load_wait.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "Global-load destination readiness",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "exchange_missing_publication",
+      "source": "native-lds-ids.s",
+      "kernel": "exchange",
+      "source_sha256": "845841d12d12f785a0e0bdd70ca8afdf7a21d31687d2d0593f4d4c7fe001f176",
+      "edits": [
+        {
+          "source_line": 19,
+          "original": "s_barrier_signal -1",
+          "replacement": "s_nop 0"
+        },
+        {
+          "source_line": 20,
+          "original": "s_barrier_wait -1",
+          "replacement": "s_nop 0"
+        }
+      ],
+      "mutated_source_sha256": "21f8b701ff2d1bd457f3711da163a0e7b9b309c008dbe5b6f4a995d020435f54",
+      "object_sha256": "c240e1048fc08f5e77080cbc544889d1c05ff5a54d5d236879a057f92b70a51d",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/exchange_missing_publication.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/exchange_missing_publication.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "Cross-wave producer/consumer LDS publication",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "exchange_wrong_ds_counter",
+      "source": "native-lds-ids.s",
+      "kernel": "exchange",
+      "source_sha256": "845841d12d12f785a0e0bdd70ca8afdf7a21d31687d2d0593f4d4c7fe001f176",
+      "edits": [
+        {
+          "source_line": 18,
+          "original": "s_wait_dscnt 0x0",
+          "replacement": "s_wait_loadcnt 0"
+        }
+      ],
+      "mutated_source_sha256": "3d62c8818070a2a90b5dc5fe258df32ed63112c4b6006a42477012470cb9dc4a",
+      "object_sha256": "247e2dd3caa2a8d066596902a22539e2bcf7eb1c21bea46ea4ec32bc66a70e26",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/exchange_wrong_ds_counter.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/exchange_wrong_ds_counter.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "Waiting a different counter cannot complete LDS stores",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "wmma_missing_operand_load_wait",
+      "source": "native-wmma.s",
+      "kernel": "wmma_f32",
+      "source_sha256": "23ea3d5e8dd774580758675a46511c04c3b32380866cdf3a0e5d270f1c819bcc",
+      "edits": [
+        {
+          "source_line": 19,
+          "original": "s_wait_loadcnt 0x0",
+          "replacement": "s_nop 0"
+        }
+      ],
+      "mutated_source_sha256": "6b5b46a8de87e63ca0efe64f3b0b038fc74d48e5168487cf7bffbf917308f916",
+      "object_sha256": "eefbf7fd2981675c80ed581515ab9ebcb01f2adc2ecd882c0bc69583334be227",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/wmma_missing_operand_load_wait.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/wmma_missing_operand_load_wait.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "WMMA input-register readiness",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "gemm_missing_initial_publication",
+      "source": "native-gemm-pipeline.s",
+      "kernel": "gemm_pipeline_f16",
+      "source_sha256": "74e2d29d5e3b83ad8f312c73eea2c18c925c70e4707070f1553f3af0468fb00e",
+      "edits": [
+        {
+          "source_line": 127,
+          "original": "s_barrier_signal -1",
+          "replacement": "s_nop 0"
+        },
+        {
+          "source_line": 132,
+          "original": "s_barrier_wait -1",
+          "replacement": "s_nop 0"
+        }
+      ],
+      "mutated_source_sha256": "d1e4b573ce9e18224f9d205af5884c01176ca66391fafe1a2c656666f72d644e",
+      "object_sha256": "5a445076272c10354a28a6175b288d1cfd07aded2cc1ff475bec525553bf2de2",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/gemm_missing_initial_publication.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/gemm_missing_initial_publication.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "First multi-wave LDS matrix-tile publication",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "gemm_missing_next_tile_publication",
+      "source": "native-gemm-pipeline.s",
+      "kernel": "gemm_pipeline_f16",
+      "source_sha256": "74e2d29d5e3b83ad8f312c73eea2c18c925c70e4707070f1553f3af0468fb00e",
+      "edits": [
+        {
+          "source_line": 246,
+          "original": "s_barrier_signal -1",
+          "replacement": "s_nop 0"
+        },
+        {
+          "source_line": 247,
+          "original": "s_barrier_wait -1",
+          "replacement": "s_nop 0"
+        }
+      ],
+      "mutated_source_sha256": "680b77d5d252ed50301c3e8fafb5a921e674bb43e7d4339f2693f263d85f1116",
+      "object_sha256": "ff1457bf0b7192ec24807c16b89912069786edf348b50a64cc0cf4b8267d5673",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/gemm_missing_next_tile_publication.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/gemm_missing_next_tile_publication.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "Second staged multi-wave LDS matrix-tile publication",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "gemm_missing_matrix_ds_wait",
+      "source": "native-gemm-pipeline.s",
+      "kernel": "gemm_pipeline_f16",
+      "source_sha256": "74e2d29d5e3b83ad8f312c73eea2c18c925c70e4707070f1553f3af0468fb00e",
+      "edits": [
+        {
+          "source_line": 260,
+          "original": "s_wait_dscnt 0x0",
+          "replacement": "s_nop 0"
+        }
+      ],
+      "mutated_source_sha256": "2725533801f74cb40d57f1bbae3598bd3f4d51fabc6bb12b2b03ff258079bffc",
+      "object_sha256": "e9640dc10286e118ff6993a44ed3324c520d5e14754479a6894d4fb83ba5d5f6",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/gemm_missing_matrix_ds_wait.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/gemm_missing_matrix_ds_wait.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "Second WMMA operand destination readiness",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "tensor_missing_load_completion",
+      "source": "native-tensor-roundtrip.s",
+      "kernel": "tensor_roundtrip",
+      "source_sha256": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
+      "edits": [
+        {
+          "source_line": 38,
+          "original": "s_wait_tensorcnt 0x0",
+          "replacement": "s_nop 0"
+        }
+      ],
+      "mutated_source_sha256": "6e109e823314bff087f12cdd84a6a4e0c0ac44e03a11bcbd1f944765f6874394",
+      "object_sha256": "c9814a7c265f0a6c6438a5fa1c735997772a855ad3b9849b2f18caa26f35ca70",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/tensor_missing_load_completion.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/tensor_missing_load_completion.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "Tensor global-to-LDS completion before consumers",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "tensor_wrong_load_counter",
+      "source": "native-tensor-roundtrip.s",
+      "kernel": "tensor_roundtrip",
+      "source_sha256": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
+      "edits": [
+        {
+          "source_line": 38,
+          "original": "s_wait_tensorcnt 0x0",
+          "replacement": "s_wait_loadcnt 0"
+        }
+      ],
+      "mutated_source_sha256": "159fb30cdc7e07b7bf26b21af82b57ba8abf01f8f3caf2e9938863d365b00261",
+      "object_sha256": "76109ab6aa3aa1a1f08dcc90099b75e4280475a1aeb8e622b6f0b2df96e51729",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/tensor_wrong_load_counter.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/tensor_wrong_load_counter.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "Ordinary global-load counter does not complete tensor DMA",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "tensor_missing_crosswave_publication",
+      "source": "native-tensor-roundtrip.s",
+      "kernel": "tensor_roundtrip",
+      "source_sha256": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
+      "edits": [
+        {
+          "source_line": 39,
+          "original": "s_barrier_signal -1",
+          "replacement": "s_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0"
+        },
+        {
+          "source_line": 40,
+          "original": "s_barrier_wait -1",
+          "replacement": "s_nop 0"
+        }
+      ],
+      "mutated_source_sha256": "8a94d57aca00e87d59011a4f96045816e5efa40c0349c06a5aac32445023e8c1",
+      "object_sha256": "d4215afe670fca6fa69b69c1156a13a81f96db4e3ef4321ae74150cd527a8e6c",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/tensor_missing_crosswave_publication.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/tensor_missing_crosswave_publication.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "Independent NOPs let descriptor issue occur before a scheduled consumer; NOPs add no HB/completion and issuing-wave tensor wait cannot publish to another wave without rendezvous",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "tensor_missing_store_producers",
+      "source": "native-tensor-roundtrip.s",
+      "kernel": "tensor_roundtrip",
+      "source_sha256": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
+      "edits": [
+        {
+          "source_line": 46,
+          "original": "s_barrier_signal -1",
+          "replacement": "s_nop 0"
+        },
+        {
+          "source_line": 47,
+          "original": "s_barrier_wait -1",
+          "replacement": "s_nop 0"
+        }
+      ],
+      "mutated_source_sha256": "0e3ab2e18a588d9269095714bcc536dc33b4579947039ac268802313ead484ce",
+      "object_sha256": "a4a469ec215483ea24e051a3fca61b0b0bb45037b8d5c0f0050c083e22b74cf6",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/tensor_missing_store_producers.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/tensor_missing_store_producers.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "All producer waves must publish LDS before tensor store borrows it",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "tensor_missing_store_completion",
+      "source": "native-tensor-roundtrip.s",
+      "kernel": "tensor_roundtrip",
+      "source_sha256": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
+      "edits": [
+        {
+          "source_line": 73,
+          "original": "s_wait_tensorcnt 0x0",
+          "replacement": "s_nop 0"
+        }
+      ],
+      "mutated_source_sha256": "b015ad619b8d1b2cd835e50946bb71fbe7baa1bd39ffb1b558c3f29b0307a855",
+      "object_sha256": "ff4363200a6a53ed3daddbdc5128830677c0ae26e16a2fb60b73e017d2d6ef88",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/tensor_missing_store_completion.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/tensor_missing_store_completion.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "Borrowed LDS source cannot be overwritten by next-stage tensor load before store completion",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "tensor_lds_footprint_out_of_bounds",
+      "source": "native-tensor-roundtrip.s",
+      "kernel": "tensor_roundtrip",
+      "source_sha256": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
+      "edits": [
+        {
+          "source_line": 34,
+          "original": "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]",
+          "replacement": "s_mov_b32 s5, 256\n\ttensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]"
+        }
+      ],
+      "mutated_source_sha256": "cb90363f4c620b5a3c923d51dc02f99998be6fa56683d82af1d2e0423a0bc86a",
+      "object_sha256": "bc513f7fb81d4b2229d9324c1a8a959eb58867fade8d3003676ba25cb0ddbde3",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/tensor_lds_footprint_out_of_bounds.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/tensor_lds_footprint_out_of_bounds.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "Canonical 64-float tensor shape at LDS base256 has footprint[256,512), exceeding the 256-byte LDS allocation",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    },
+    {
+      "name": "transpose_missing_ds_completion",
+      "source": "native-transpose-high64.s",
+      "kernel": "transpose_8x8_b16",
+      "source_sha256": "34e66779492f5474dd3e412a44d4d81e82ebf51909943c8c87255672ea9adaa3",
+      "edits": [
+        {
+          "source_line": 23,
+          "original": "s_wait_dscnt 0x0",
+          "replacement": "s_nop 0"
+        }
+      ],
+      "mutated_source_sha256": "1c53eeb895ef1dacb4debef8f83e5c468918377c0d876f57e8ad174d6a9cdcfd",
+      "object_sha256": "b955e937499e6bac13a5b789a6a8bb74202849b874ccbb58fabfb126077c4157",
+      "assemble_argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/transpose_missing_ds_completion.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx1250-mutations-qn3qc_h_/transpose_missing_ds_completion.o"
+      ],
+      "assembler_exit_code": 0,
+      "stderr": "",
+      "expected_property": "Full packed16 transpose destination readiness",
+      "semantic_validation": "pending; MC success is not semantic validation"
+    }
+  ]
+}

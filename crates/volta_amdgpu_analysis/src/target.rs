@@ -17,6 +17,47 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
         ),
         span: SourceSpan::default(),
     })?;
+    for kernel in &module.kernels {
+        let wave32 = architecture == Architecture::Gfx1250;
+        if kernel.descriptor.flag("wavefront_size32") != wave32 {
+            return Err(ParseError {
+                message: format!(
+                    "{} requires wave{}",
+                    architecture.name(),
+                    architecture.wave_size()
+                ),
+                span: SourceSpan::default(),
+            });
+        }
+        for (key, limit) in [
+            ("next_free_vgpr", if wave32 { 1024 } else { 512 }),
+            ("next_free_sgpr", if wave32 { 106 } else { 102 }),
+        ] {
+            if kernel.descriptor.value(key, 0) > limit {
+                return Err(ParseError {
+                    message: format!("{key} exceeds {} limit", architecture.name()),
+                    span: SourceSpan::default(),
+                });
+            }
+        }
+    }
+    if architecture == Architecture::Gfx1250 {
+        for kernel in &module.kernels {
+            for instruction in &kernel.instructions {
+                if instruction.mnemonic.starts_with("v_mfma")
+                    || instruction.mnemonic.starts_with("v_accvgpr")
+                    || instruction.mnemonic == "s_waitcnt"
+                    || instruction.mnemonic == "s_barrier"
+                {
+                    return Err(ParseError {
+                        message: format!("{} is not a gfx1250 instruction", instruction.mnemonic),
+                        span: instruction.span,
+                    });
+                }
+            }
+        }
+        return Ok(architecture);
+    }
     if architecture == Architecture::Gfx950 {
         return Ok(architecture);
     }

@@ -1,0 +1,9 @@
+{
+  "target": "gfx1250",
+  "compiler_commit": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+  "code_object_directive_version": 6,
+  "elf_machine": "EM_AMDGPU",
+  "elf_flags_from_llvm_readelf": "0x549, gfx1250, xnack, sramecc",
+  "caution": "Feature labels printed by this LLVM reader must not be interpreted as XNACKdisabled; gfx1250 hardwiredreplay contract is separatelyderived. No runtime/hardware was invoked.",
+  "hardware_validation": "not_performed_no_target_device"
+}

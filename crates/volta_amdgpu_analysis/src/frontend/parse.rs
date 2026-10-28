@@ -313,7 +313,11 @@ impl Parser {
             .ok_or_else(|| fail("instruction outside executable function".into()))?;
         let normalized =
             instr::resolve_register_indices(line, &self.module.constants).map_err(&fail)?;
-        let mut instruction = instr::parse_instruction(&normalized, span)?;
+        let architecture = crate::target::Architecture::from_target(
+            self.module.target.as_deref().unwrap_or("gfx950"),
+        )
+        .ok_or_else(|| fail("unsupported AMD target".into()))?;
+        let mut instruction = instr::parse_instruction(&normalized, span, architecture)?;
         for operand in &mut instruction.operands {
             if let super::Operand::Symbol(name) = operand
                 && let Some(value) = self.module.constants.get(name)
@@ -705,7 +709,7 @@ pub(super) fn set_target(
 ) -> Result<(), ParseError> {
     let base = target.strip_prefix("amdgcn-amd-amdhsa--").unwrap_or(target);
     let gpu = base.split(':').next().unwrap_or(base);
-    if !["gfx942", "gfx950"].contains(&gpu) {
+    if !["gfx942", "gfx950", "gfx1250"].contains(&gpu) {
         return Err(ParseError {
             message: format!("unsupported AMD target `{target}`; expected gfx942 or gfx950"),
             span,
@@ -788,6 +792,11 @@ fn descriptor_fields() -> &'static [&'static str] {
         "fp16_overflow",
         "tg_split",
         "wavefront_size32",
+        "named_barrier_count",
+        "memory_ordered",
+        "forward_progress",
+        "inst_pref_size",
+        "round_robin_scheduling",
         "exception_fp_ieee_invalid_op",
         "exception_fp_denorm_src",
         "exception_fp_ieee_div_zero",
@@ -828,9 +837,6 @@ fn validate_descriptor(kernel: &Kernel) -> Result<(), ParseError> {
         {
             return Err(fail(format!("descriptor `{key}` must be zero or one")));
         }
-        if key == "wavefront_size32" && *value != 0 {
-            return Err(fail("native AMD backend requires wave64".into()));
-        }
         if key == "system_vgpr_workitem_id" && *value > 2 {
             return Err(fail("system_vgpr_workitem_id must be 0, 1 or 2".into()));
         }
@@ -841,12 +847,12 @@ fn validate_descriptor(kernel: &Kernel) -> Result<(), ParseError> {
         }
         // Operand namespaces stop at255, but this descriptor counts the
         // unified VGPR+AGPR physical allocation on both CDNA3 and CDNA4.
-        if key == "next_free_vgpr" && *value > 512 {
+        if key == "next_free_vgpr" && *value > 1024 {
             return Err(fail(
                 "next_free_vgpr exceeds the unified native AMD allocation limit".into(),
             ));
         }
-        if key == "next_free_sgpr" && *value > 102 {
+        if key == "next_free_sgpr" && *value > 106 {
             return Err(fail(
                 "next_free_sgpr exceeds the native AMD register range".into(),
             ));
@@ -922,6 +928,7 @@ fn validate_descriptor(kernel: &Kernel) -> Result<(), ParseError> {
                 }
             }
             super::RegisterClass::Special => {}
+            super::RegisterClass::Temporary => {}
         }
     }
     if kernel.descriptor.flag("tg_split")

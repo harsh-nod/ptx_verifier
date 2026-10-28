@@ -21,6 +21,7 @@ use crate::memory_conflict::{
     CONFLICT_CAP, MemoryConflict, MemoryConflictEvidence, MemoryConflictResult,
 };
 use crate::{PropertyResult, Unresolved, Verdict};
+mod gfx1250;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AmdTraceEvidence {
@@ -86,7 +87,7 @@ pub struct AmdReport {
     pub memory_conflict: MemoryConflictResult,
 }
 
-const CLASSES: usize = 5;
+const CLASSES: usize = 12;
 fn class_index(class: AmdMemoryClass) -> usize {
     // CDNA4 §4.4 orders same-type LDS instructions. §12.12's DS_(B)PERMUTE
     // uses LDS hardware, with no LDS memory footprint. LLVM AMDGPUHWEvents.cpp
@@ -99,6 +100,14 @@ fn class_index(class: AmdMemoryClass) -> usize {
         AmdMemoryClass::Lds | AmdMemoryClass::CrossLane => 2,
         AmdMemoryClass::Flat | AmdMemoryClass::FlatStoreWide => 3,
         AmdMemoryClass::Message => 4,
+        AmdMemoryClass::VectorLoad => 5,
+        AmdMemoryClass::VectorStore => 6,
+        AmdMemoryClass::ScalarLoad => 7,
+        AmdMemoryClass::Ds => 2,
+        AmdMemoryClass::AsyncLoadToLds => 8,
+        AmdMemoryClass::AsyncStoreFromLds => 9,
+        AmdMemoryClass::TensorLoadToLds => 10,
+        AmdMemoryClass::TensorStoreFromLds => 11,
     }
 }
 fn ordered(class: AmdMemoryClass) -> bool {
@@ -180,7 +189,8 @@ fn trace_contract(graph: &EventGraph, architecture: AmdArchitecture) -> AmdTrace
         };
         let check_regs = |regs: &[AmdRegister], unresolved: &mut Vec<Unresolved>| {
             for r in regs {
-                if r.index >= 256
+                if r.file == AmdRegisterFile::Temporary
+                    || r.index >= 256
                     || (r.file == AmdRegisterFile::Scalar
                         && r.index > 101
                         && !matches!(r.index, 106 | 107 | 126 | 127))
@@ -297,6 +307,7 @@ fn trace_contract(graph: &EventGraph, architecture: AmdArchitecture) -> AmdTrace
                             && counters.contains(&(AmdCounter::Vm, 1))
                             && counters.contains(&(AmdCounter::Lgkm, 1))
                     }
+                    _ => false,
                 };
                 if !valid {
                     unresolved.push(Unresolved::at(
@@ -490,6 +501,15 @@ fn trace_contract(graph: &EventGraph, architecture: AmdArchitecture) -> AmdTrace
                     ));
                 }
             }
+            AmdEventKind::WmmaIssue { .. }
+            | AmdEventKind::DelayAlu { .. }
+            | AmdEventKind::WaitCounters { .. }
+            | AmdEventKind::SplitBarrierSignal { .. }
+            | AmdEventKind::SplitBarrierWait { .. }
+            | AmdEventKind::SplitBarrierRelease { .. } => unresolved.push(Unresolved::at(
+                record.event,
+                "GFX12 event cannot use a legacy CDNA target contract",
+            )),
             _ => {}
         }
     }
@@ -547,6 +567,7 @@ fn trace_contract(graph: &EventGraph, architecture: AmdArchitecture) -> AmdTrace
                             matches!(access.space, Space::Global | Space::Shared)
                         }
                         AmdMemoryClass::Message | AmdMemoryClass::CrossLane => false,
+                        _ => false,
                     };
                     if !correct_space {
                         unresolved.push(Unresolved::at(
@@ -726,21 +747,16 @@ impl MatrixOperation {
 pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
     let Some(architecture) = AmdArchitecture::from_targets(&graph.provenance().targets) else {
         return AmdReport {
-            trace: unknown("AMD checks require one recognized gfx942/gfx950 target"),
+            trace: unknown("AMD checks require one recognized gfx942/gfx950/gfx1250 target"),
             wait_readiness: unknown("AMD target selection did not pass"),
             barrier: unknown("AMD target selection did not pass"),
             memory_conflict: unknown("AMD target selection did not pass"),
         };
     };
-    // Geometry recognition is additive; the legacy CDNA counter/barrier rules
-    // must never accept a wave32 trace while its target contract is unavailable.
+    // Each generation owns its completion and synchronization contract;
+    // gfx1250 wave32 must never inherit legacy CDNA counter/barrier semantics.
     if architecture == AmdArchitecture::Gfx1250 {
-        return AmdReport {
-            trace: unknown("gfx1250 graph completion/barrier contract is not yet implemented"),
-            wait_readiness: unknown("gfx1250 target contract did not pass"),
-            barrier: unknown("gfx1250 target contract did not pass"),
-            memory_conflict: unknown("gfx1250 target contract did not pass"),
-        };
+        return gfx1250::check(graph);
     }
     let trace = trace_contract(graph, architecture);
     if trace.verdict() != Verdict::Pass {
@@ -1130,6 +1146,7 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                         AmdCounter::Vm => 63,
                         AmdCounter::Lgkm => 15,
                         AmdCounter::Exp => 7,
+                        _ => unreachable!("legacy Wait contains only VM/LGKM/EXP"),
                     };
                     if threshold == maximum {
                         continue;
@@ -1276,6 +1293,7 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                     blocked_at[wave] = None;
                 }
             }
+            _ => unreachable!("unsupported target events are rejected by the trace contract"),
         }
     }
     if matches!(graph.terminal(), Terminal::Completed) {

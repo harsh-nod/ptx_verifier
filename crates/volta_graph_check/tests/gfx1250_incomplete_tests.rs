@@ -1,5 +1,5 @@
 //! A recognized target must not turn missing native evidence into acceptance.
-use volta_graph::{GraphBuilder, ProgramPoint, Provenance, Terminal, ThreadIx};
+use volta_graph::{GraphBuilder, InstructionInfo, ProgramPoint, Provenance, Terminal, ThreadIx};
 use volta_graph_check::{GraphConclusion, Property, Verdict, check_graph};
 
 #[test]
@@ -11,12 +11,21 @@ fn completed_threads_without_native_wave_evidence_never_verify_gfx1250() {
             grid_dim: (1, 1, 1),
             targets: vec!["gfx1250".into()],
             assumptions: vec![],
-            instructions: vec![],
+            instructions: vec![InstructionInfo {
+                kind: "control",
+                span: None,
+            }],
         });
         for thread in 0..threads {
             builder.exit(ThreadIx(thread), ProgramPoint(0));
         }
-        let report = check_graph(&builder.finish(Terminal::Completed));
+        let graph = builder.finish(Terminal::Completed);
+        assert!(
+            graph.validate().is_ok(),
+            "structural graph must be valid: {:?}",
+            graph.validate()
+        );
+        let report = check_graph(&graph);
         assert_ne!(report.conclusion(), GraphConclusion::Verified);
         assert!(report.applicable_properties().contains(&Property::AmdTrace));
         assert_ne!(report.summary(Property::AmdTrace).verdict, Verdict::Pass);

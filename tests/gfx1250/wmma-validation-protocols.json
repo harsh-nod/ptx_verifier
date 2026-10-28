@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Actual native interpreter protocols, separate from independent CPU oracle self-checks; allpending until testsrun successfully",
+  "hardware_validation": "not_performed_no_gfx1250_device",
+  "protocols": [
+    {
+      "profile": "basis",
+      "source": "fixtures/native-wmma-basis.hip",
+      "assembly": "fixtures/native-wmma-basis.s",
+      "source_sha256": "8cb11de9fe6dc7e48649317da620a7d915400920b84545ad6843d6f2b35d5d06",
+      "assembly_sha256": "1b0d2e54609184a601586a29e84e18514b0ebac7817d66f574c3f338d0d1e4f6",
+      "native_test_file": "crates/volta_pipeline/tests/gfx1250_compiler_tests.rs",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "required": true,
+      "native_launches": 2176,
+      "complete_outputs_per_launch": 256,
+      "software_validation": "pending; no unknown/unsupported positive counted as verified",
+      "kernels": {
+        "wmma_f32_basis": {
+          "K": 4
+        },
+        "wmma_f16_basis": {
+          "K": 32
+        },
+        "wmma_bf16_basis": {
+          "K": 32
+        }
+      },
+      "params_order": [
+        "ptr:out",
+        "int:selected_coordinate",
+        "int:selected_k",
+        "int:basis_b"
+      ],
+      "selected_coordinate_range": [
+        0,
+        16
+      ],
+      "selected_k_range": "[0,K)",
+      "basis_b_range": [
+        0,
+        2
+      ],
+      "expected": "basis_b0: D[row,col]=(row==selected); basis_b1:D[row,col]=(col==selected), allrows/allcols; A/B sourceK basis and stripe match selectedK",
+      "native_test": "real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+    },
+    {
+      "profile": "finite_values",
+      "source": "fixtures/native-wmma-values.hip",
+      "assembly": "fixtures/native-wmma-values.s",
+      "source_sha256": "c6fabd996882485503cf5c3a66572050fcdbc84eceabf2e290a6926e984c6dc7",
+      "assembly_sha256": "c8562521a86f360768d14d1354f708d76189718badb78d6bf7f5a86e66660c05",
+      "native_test_file": "crates/volta_pipeline/tests/gfx1250_compiler_tests.rs",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "required": true,
+      "native_launches": 3,
+      "complete_outputs_per_launch": 256,
+      "software_validation": "pending; no unknown/unsupported positive counted as verified",
+      "native_test": "real_gfx1250_wmma_finite_byvalue_bits_distinguish_f16_and_bf16",
+      "cases": [
+        {
+          "kernel": "wmma_f32_values",
+          "a_f32": [
+            0.5,
+            -1
+          ],
+          "b_f32": [
+            2,
+            4
+          ],
+          "all_output_values": -6
+        },
+        {
+          "kernel": "wmma_f16_values",
+          "a_repeated_u16": 15360,
+          "b_repeated_u16": 16384,
+          "vector_items": 16,
+          "all_output_values": 64
+        },
+        {
+          "kernel": "wmma_bf16_values",
+          "a_repeated_u16": 16256,
+          "b_repeated_u16": 16384,
+          "vector_items": 16,
+          "all_output_values": 64
+        }
+      ]
+    }
+  ]
+}

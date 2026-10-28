@@ -315,8 +315,12 @@ fn amd_deadlock_mentions_wave_barrier_without_ptx_object() {
 }
 
 #[test]
-fn gfx942_and_gfx950_provenance_select_wave64_even_before_the_first_event() {
-    for target in ["gfx942:sramecc+:xnack-", "gfx950:xnack-"] {
+fn native_target_provenance_selects_geometry_even_before_the_first_event() {
+    for (target, wave_size, last_lane) in [
+        ("gfx942:sramecc+:xnack-", 64, "w0:l63"),
+        ("gfx950:xnack-", 64, "w0:l63"),
+        ("gfx1250", 32, "w1:l31"),
+    ] {
         let mut p = provenance(64);
         p.targets = vec![target.into()];
         p.kernel = format!("{}_view", target.split(':').next().unwrap());
@@ -327,10 +331,11 @@ fn gfx942_and_gfx950_provenance_select_wave64_even_before_the_first_event() {
             reason: "unsupported native instruction before first event".into(),
         });
         let text = exported(&format!("eventless_{target}"), &graph);
+        assert!(text.contains(&format!("\"wave_size\":{wave_size}")));
         for expected in [
-            "\"wave_size\":64",
+            "\"wave_kind\":\"wave\"",
             "\"source_language\":\"amdgpu\"",
-            "w0:l63",
+            last_lane,
             target,
             "\"status\":\"unsupported\"",
         ] {
@@ -339,6 +344,76 @@ fn gfx942_and_gfx950_provenance_select_wave64_even_before_the_first_event() {
         assert!(!text.contains("gfx950 graph contract"));
         assert!(!text.contains("CDNA4 counters"));
     }
+}
+
+#[test]
+fn gfx1250_waits_and_split_barriers_keep_their_objects_and_wave32() {
+    let mut p = provenance(65);
+    p.targets = vec!["gfx1250".into()];
+    let mut b = GraphBuilder::new(p);
+    b.amd_event(
+        0,
+        ProgramPoint(0),
+        AmdEventKind::DelayAlu {
+            instid0: AmdAluDependency::Valu(1),
+            instskip: 4,
+            instid1: Some(AmdAluDependency::SaluCycles(1)),
+        },
+    );
+    b.amd_event(
+        1,
+        ProgramPoint(0),
+        AmdEventKind::WaitCounters {
+            thresholds: vec![(AmdCounter::X, 0), (AmdCounter::Tensor, 0)],
+        },
+    );
+    b.amd_event(
+        1,
+        ProgramPoint(0),
+        AmdEventKind::SplitBarrierSignal {
+            barrier: -1,
+            generation: 2,
+            exec_mask: 0,
+        },
+    );
+    b.amd_event(
+        1,
+        ProgramPoint(0),
+        AmdEventKind::SplitBarrierWait {
+            barrier: -1,
+            generation: 2,
+        },
+    );
+    b.amd_event(
+        1,
+        ProgramPoint(0),
+        AmdEventKind::SplitBarrierRelease {
+            barrier: -1,
+            generation: 2,
+        },
+    );
+    let graph = b.finish(Terminal::Aborted {
+        thread: None,
+        pc: None,
+        cause: AbortCause::Unsupported,
+        reason: "schema preview: no execution proof".into(),
+    });
+    let text = exported("gfx1250_events", &graph);
+    for expected in [
+        "\"wave_size\":32",
+        "\"wave_kind\":\"wave\"",
+        "w2:l0",
+        "s_delay_alu",
+        "native wait",
+        "Tensor",
+        "s_barrier_signal -1 phase 2",
+        "s_barrier_wait -1 phase 2",
+        "barrier -1 phase 2 released",
+        "amd-barrier",
+    ] {
+        assert!(text.contains(expected), "missing {expected}");
+    }
+    assert!(!text.contains("\"status\":\"race-free\""));
 }
 
 #[test]

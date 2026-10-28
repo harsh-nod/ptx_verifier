@@ -179,6 +179,15 @@ pub fn document(run: &Run) -> Json {
             Json::str(if amd_source { "amdgpu" } else { "ptx" }),
         ),
     ];
+    if matches!(run.outcome, Outcome::NotStarted { .. }) {
+        if let Some((target, architecture)) = declared_native_target(run.source) {
+            // Source declaration only: these fields do not assert that parsing,
+            // launch validation or symbolic execution started successfully.
+            fields.push(("source_target", Json::str(target)));
+            fields.push(("source_wave_size", Json::uint(architecture.wave_size())));
+            fields.push(("source_wave_kind", Json::str("wave")));
+        }
+    }
     match &run.outcome {
         Outcome::NotStarted { error, .. } => fields.push(("error", Json::str(error.clone()))),
         Outcome::Executed {
@@ -193,6 +202,29 @@ pub fn document(run: &Run) -> Json {
 fn native_amd_graph(graph: &EventGraph) -> bool {
     volta_graph::AmdArchitecture::from_targets(&graph.provenance().targets).is_some()
         || !graph.amd_events().is_empty()
+}
+
+fn graph_wave_size(graph: &EventGraph) -> u32 {
+    volta_graph::AmdArchitecture::from_targets(&graph.provenance().targets).map_or(
+        if native_amd_graph(graph) { 64 } else { 32 },
+        |architecture| architecture.wave_size(),
+    )
+}
+
+fn declared_native_target(source: &str) -> Option<(&str, volta_graph::AmdArchitecture)> {
+    let mut declarations = source
+        .lines()
+        .filter(|line| line.split_whitespace().next() == Some(".amdgcn_target"));
+    let line = declarations.next()?;
+    if declarations.next().is_some() {
+        return None;
+    }
+    let token = line.split_whitespace().nth(1)?;
+    let target = token
+        .strip_prefix('"')?
+        .strip_suffix('"')?
+        .strip_prefix("amdgcn-amd-amdhsa--")?;
+    volta_graph::AmdArchitecture::from_target(target).map(|architecture| (target, architecture))
 }
 
 /// Each distinct string and `(key, value)` detail pair of a document, stored once.
@@ -282,12 +314,13 @@ fn graph_fields(
     vec![
         ("launch", {
             let mut launch = vec![
+                ("wave_size", Json::uint(graph_wave_size(graph))),
                 (
-                    "wave_size",
-                    Json::uint(if native_amd_graph(graph) {
-                        64u32
+                    "wave_kind",
+                    Json::str(if native_amd_graph(graph) {
+                        "wave"
                     } else {
-                        32u32
+                        "warp"
                     }),
                 ),
                 (
@@ -446,7 +479,11 @@ impl Lanes {
             lanes.lanes.push(Lane {
                 kind: LaneKind::Thread,
                 label: if native_amd_graph(graph) {
-                    format!("w{}:l{}", t.0 / 64, t.0 % 64)
+                    format!(
+                        "w{}:l{}",
+                        t.0 / graph_wave_size(graph),
+                        t.0 % graph_wave_size(graph)
+                    )
                 } else {
                     format!("t{}", t.0)
                 },
@@ -566,8 +603,37 @@ fn edges(graph: &EventGraph) -> Json {
         }
     }
     let mut amd_arrivals = HashMap::<u32, Vec<EventId>>::new();
+    let mut split_arrivals = HashMap::<(i16, u32), Vec<EventId>>::new();
+    let mut split_waits = HashMap::new();
     for record in graph.amd_events() {
         match record.kind {
+            volta_graph::AmdEventKind::SplitBarrierSignal {
+                barrier,
+                generation,
+                ..
+            } => split_arrivals
+                .entry((barrier, generation))
+                .or_default()
+                .push(record.event),
+            volta_graph::AmdEventKind::SplitBarrierWait {
+                barrier,
+                generation,
+            } => {
+                split_waits.insert((barrier, generation, record.wave), record.event);
+            }
+            volta_graph::AmdEventKind::SplitBarrierRelease {
+                barrier,
+                generation,
+            } => {
+                if let Some(arrivals) = split_arrivals.get(&(barrier, generation)) {
+                    for &arrival in arrivals {
+                        push("amd-barrier", arrival, record.event);
+                    }
+                }
+                if let Some(&wait) = split_waits.get(&(barrier, generation, record.wave)) {
+                    push("amd-barrier", wait, record.event);
+                }
+            }
             volta_graph::AmdEventKind::BarrierArrive { generation, .. } => amd_arrivals
                 .entry(generation)
                 .or_default()
@@ -632,6 +698,70 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
             };
             info.push(("wave", record.wave.to_string()));
             match &record.kind {
+                volta_graph::AmdEventKind::WmmaIssue {
+                    kind,
+                    destinations,
+                    sources_ab,
+                    accumulator,
+                } => {
+                    info.push(("matrix form", format!("{kind:?}")));
+                    info.push(("destinations", format!("{destinations:?}")));
+                    info.push(("A/B sources", format!("{sources_ab:?}")));
+                    info.push(("accumulator", format!("{accumulator:?}")));
+                    ("issue", format!("wave {} WMMA {kind:?}", record.wave))
+                }
+                volta_graph::AmdEventKind::DelayAlu {
+                    instid0,
+                    instskip,
+                    instid1,
+                } => {
+                    info.push(("dependency 0", format!("{instid0:?}")));
+                    info.push(("instruction skip", instskip.to_string()));
+                    info.push(("dependency 1", format!("{instid1:?}")));
+                    (
+                        "wait",
+                        format!("s_delay_alu {instid0:?} skip {instskip} {instid1:?}"),
+                    )
+                }
+                volta_graph::AmdEventKind::WaitCounters { thresholds } => {
+                    info.push(("counter thresholds", format!("{thresholds:?}")));
+                    ("wait", format!("native wait {thresholds:?}"))
+                }
+                volta_graph::AmdEventKind::SplitBarrierSignal {
+                    barrier,
+                    generation,
+                    exec_mask,
+                } => {
+                    info.push(("barrier object", barrier.to_string()));
+                    info.push(("generation", generation.to_string()));
+                    info.push(("EXEC", format!("{exec_mask:#x}")));
+                    (
+                        "sync",
+                        format!("s_barrier_signal {barrier} phase {generation}"),
+                    )
+                }
+                volta_graph::AmdEventKind::SplitBarrierWait {
+                    barrier,
+                    generation,
+                } => {
+                    info.push(("barrier object", barrier.to_string()));
+                    info.push(("generation", generation.to_string()));
+                    (
+                        "wait",
+                        format!("s_barrier_wait {barrier} phase {generation}"),
+                    )
+                }
+                volta_graph::AmdEventKind::SplitBarrierRelease {
+                    barrier,
+                    generation,
+                } => {
+                    info.push(("barrier object", barrier.to_string()));
+                    info.push(("generation", generation.to_string()));
+                    (
+                        "resume",
+                        format!("barrier {barrier} phase {generation} released"),
+                    )
+                }
                 volta_graph::AmdEventKind::MatrixIssue {
                     kind,
                     destinations,

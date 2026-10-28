@@ -53,6 +53,15 @@ fn shape(operand: &Operand) -> String {
         Operand::WaitCounter { name, .. } => {
             format!("{{\"kind\":\"wait_counter\",\"name\":{}}}", quoted(name))
         }
+        Operand::HardwareRegister {
+            name,
+            offset,
+            width,
+        } => format!(
+            "{{\"kind\":\"hardware_register\",\"name\":\"{}\",\"offset\":{},\"width\":{}}}",
+            name, offset, width
+        ),
+        Operand::Dual(_, _) => "{\"kind\":\"dual_vector_instruction\"}".into(),
         Operand::BranchTarget(_) => "{\"kind\":\"lowered_branch\"}".into(),
     }
 }

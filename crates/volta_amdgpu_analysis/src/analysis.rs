@@ -98,7 +98,11 @@ pub fn analyze(
         Assumption::MathematicalRealArithmetic,
         Assumption::EagerAsyncData,
     ];
-    if !replay_enabled {
+    if crate::target::Architecture::from_target(&target)
+        == Some(crate::target::Architecture::Gfx1250)
+    {
+        assumptions.push(Assumption::UnclusteredWorkgroup);
+    } else if !replay_enabled {
         assumptions.push(Assumption::XnackReplayDisabled);
     }
     if !program.descriptor.flag("tg_split") {
@@ -114,7 +118,21 @@ pub fn analyze(
             .instructions
             .iter()
             .map(|instruction| InstructionInfo {
-                kind: if instruction.mnemonic == "s_nop" {
+                kind: if instruction.mnemonic.starts_with("tensor_") {
+                    "tensor memory"
+                } else if instruction.mnemonic == "v_nop" {
+                    "vector ALU"
+                } else if instruction.mnemonic == "s_getreg_b32" {
+                    "xcnt drain"
+                } else if instruction.mnemonic.starts_with("v_wmma_") {
+                    "WMMA"
+                } else if instruction.mnemonic == "s_delay_alu" {
+                    "s_delay_alu"
+                } else if instruction.mnemonic == "s_barrier_signal" {
+                    "barrier signal"
+                } else if instruction.mnemonic == "s_barrier_wait" {
+                    "barrier wait"
+                } else if instruction.mnemonic == "s_nop" {
                     "s_nop"
                 } else if instruction.mnemonic == "s_endpgm" {
                     "s_endpgm"
