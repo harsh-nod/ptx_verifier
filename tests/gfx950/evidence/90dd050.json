@@ -1,0 +1,24 @@
+{
+  "revision": "90dd050ec572d824bda954d79a4ecedee87ebe56",
+  "validated_by": "coordinator in isolated detached worktree",
+  "rust": {
+    "command": "cargo test --release --workspace --no-fail-fast",
+    "passed": 1405,
+    "failed": 1,
+    "new_failures": 0,
+    "preexisting_failure": "volta_pipeline::false_positive_tests::test_aligned_bar_sync_reached_on_different_iterations"
+  },
+  "python": {
+    "command": "uv run --reinstall-package volta pytest crates/volta_py",
+    "passed": 41
+  },
+  "static": {
+    "commands": [
+      "just check",
+      "cargo clippy --release --workspace --all-targets"
+    ],
+    "exit_code": 0,
+    "warnings_present": true
+  },
+  "scope": "Fixed checkpoint including precise descriptor races and allocation layouts. Final payload/parser review and complete row dispositions remain outstanding."
+}
