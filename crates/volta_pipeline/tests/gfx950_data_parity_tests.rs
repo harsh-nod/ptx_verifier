@@ -261,9 +261,9 @@ fn native_sign_extended_byte_load_is_numeric_and_cannot_be_reinterpreted_as_fp8(
 fn native_integer_floor_does_not_become_rational_division_or_roundtrip_identity() {
     let actual = complete("portable-data/integer_floor_doubled.s", config(4, 1, 4, 1));
     let identity = expected(1, |_, x, _| x);
-    assert!(!matches!(
+    assert!(matches!(
         check_output_equivalence(&actual, &identity, &["out".into()]).unwrap(),
-        EquivOutcome::Equivalent
+        EquivOutcome::NotEquivalent { .. }
     ));
     let mut cfg = config(4, 8, 4, 8);
     cfg.block_dim = (8, 1, 1);

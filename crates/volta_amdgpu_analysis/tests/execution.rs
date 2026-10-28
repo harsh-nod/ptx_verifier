@@ -1631,13 +1631,36 @@ fn compiler_module_globals_use_checked_storage_and_exact_relocations() {
             .contains("read-only module global")
     );
     cfg.global_values.clear();
-    cfg.arrays[0].base = 0x7000_0000_0000_0000;
-    assert!(
-        analyze(&module, None, cfg.clone())
-            .unwrap_err()
-            .to_string()
-            .contains("module-global window")
-    );
+    const MODULE_BASE: u64 = 0x7000_0000_0000_0000;
+    for base in [MODULE_BASE, MODULE_BASE - 8] {
+        cfg.arrays[0].base = base;
+        let error = analyze(&module, None, cfg.clone()).unwrap_err();
+        assert!(
+            matches!(
+                error,
+                volta_amdgpu_analysis::AnalysisError::Eval(
+                    volta_amdgpu_analysis::EvalError::InvalidConfig(ref message)
+                ) if message.contains("module-global window")
+            ),
+            "array starting at {base:#x} must reject its module-global overlap: {error}"
+        );
+    }
+    // The half-open interval ending at the module window is disjoint, even
+    // though the native kernel writes every element right up to that edge.
+    cfg.arrays[0].base = MODULE_BASE - cfg.arrays[0].size_bytes();
+    let disjoint = analyze(&module, Some("module_globals"), cfg.clone()).unwrap();
+    let outputs = disjoint.symbolic_outputs().unwrap();
+    assert_eq!(outputs.outputs.len(), 1);
+    assert_eq!(outputs.outputs[0].1.len(), 64);
+    for index in 0..64 {
+        assert_eq!(
+            outputs
+                .arena
+                .as_int_const(outputs.element("out", index).unwrap()),
+            Some(3 + [2, 3, 5, 7][index as usize % 4])
+        );
+    }
+    assert!(disjoint.graph.validate().is_ok());
 
     let modified = text
         .replacen(

@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "scope": "Nine precise parser/control counterparts; coordinator owns parity disposition.",
+  "cases": [
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/brkpt_extra_operand.ptx",
+      "baseline_sha256": "c1dd299484354adc0101dc015207f14ddd5cc374c1d1738b741139152784c6ff",
+      "baseline_rust": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 292,
+          "excerpt": "fn brkpt_must_reject_operands() {\n    let source = ptx!(\"soundness/brkpt_extra_operand\");\n    let control = source.replace(\"brkpt 123;\", \"brkpt;\");\n    let control = parse_named(\"soundness/brkpt_control\", &control);\n    let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n        .expect(\"brkpt without operands must be valid\");\n    assert_eq!(verified.graph.conclusion(), GraphConclusion::Verified);\n\n    let module = parse_named(\"soundness/brkpt_extra_operand\", &source);\n    match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n        Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n            instruction,\n            reason,\n        })) => {\n            assert_eq!(instruction, \"Brkpt\");\n            assert_eq!(\n                reason.as_deref(),\n                Some(\"Instruction parsing failed: WrongOperandCount { expected: 0, got: 1 }\")\n            );\n        }\n        Err(other) => panic!(\"expected a brkpt operand-count error, got {other:?}\"),\n        Ok(_) => panic!(\"brkpt 123; must fail validation: brkpt takes no operands\"),\n    }\n}\n"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 292,
+          "excerpt": "fn brkpt_must_reject_operands() {\n    let source = ptx!(\"soundness/brkpt_extra_operand\");\n    let control = source.replace(\"brkpt 123;\", \"brkpt;\");\n    let control = parse_named(\"soundness/brkpt_control\", &control);\n    let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n        .expect(\"brkpt without operands must be valid\");\n    assert_eq!(verified.graph.conclusion(), GraphConclusion::Verified);\n\n    let module = parse_named(\"soundness/brkpt_extra_operand\", &source);\n    match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n        Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n            instruction,\n            reason,\n        })) => {\n            assert_eq!(instruction, \"Brkpt\");\n            assert_eq!(\n                reason.as_deref(),\n                Some(\"Instruction parsing failed: WrongOperandCount { expected: 0, got: 1 }\")\n            );\n        }\n        Err(other) => panic!(\"expected a brkpt operand-count error, got {other:?}\"),\n        Ok(_) => panic!(\"brkpt 123; must fail validation: brkpt takes no operands\"),\n    }\n}\n"
+        }
+      ],
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::native_trap_ids_are_recognized_but_never_assume_a_returning_handler",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_traps_are_rejected_even_when_unreachable_or_exec_is_zero"
+      ],
+      "reason": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "target_difference": "PTX BRKPT is a no-op in its existing backend. NativeS_TRAP enters a handler and is recognized butUnsupported; no semantic equivalence to a no-op is claimed."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/brkpt_invalid_modifier.ptx",
+      "baseline_sha256": "ee880a58e1eae58f3bae1090b89745d5ee3688aca64086187b1b4742b31623a8",
+      "baseline_rust": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 264,
+          "excerpt": "fn brkpt_must_reject_an_unknown_modifier() {\n    let source = ptx!(\"soundness/brkpt_invalid_modifier\");\n    let control = source.replace(\"brkpt.not_a_modifier;\", \"brkpt;\");\n    let control = parse_named(\"soundness/brkpt_control\", &control);\n    let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n        .expect(\"brkpt without a modifier must be valid\");\n    assert_eq!(verified.graph.conclusion(), GraphConclusion::Verified);\n\n    let module = parse_named(\"soundness/brkpt_invalid_modifier\", &source);\n    match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n        Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n            instruction,\n            reason: Some(reason),\n        })) => {\n            assert_eq!(instruction, \"Brkpt\");\n            assert!(\n                reason.starts_with(\"Instruction parsing failed: UnexpectedModifier(\"),\n                \"expected an unexpected-modifier error, got {reason}\"\n            );\n        }\n        Err(other) => panic!(\"expected a brkpt modifier error, got {other:?}\"),\n        Ok(_) => {\n            panic!(\"brkpt.not_a_modifier; was accepted instead of rejecting the unknown modifier\")\n        }\n    }\n}\n"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 264,
+          "excerpt": "fn brkpt_must_reject_an_unknown_modifier() {\n    let source = ptx!(\"soundness/brkpt_invalid_modifier\");\n    let control = source.replace(\"brkpt.not_a_modifier;\", \"brkpt;\");\n    let control = parse_named(\"soundness/brkpt_control\", &control);\n    let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n        .expect(\"brkpt without a modifier must be valid\");\n    assert_eq!(verified.graph.conclusion(), GraphConclusion::Verified);\n\n    let module = parse_named(\"soundness/brkpt_invalid_modifier\", &source);\n    match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n        Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n            instruction,\n            reason: Some(reason),\n        })) => {\n            assert_eq!(instruction, \"Brkpt\");\n            assert!(\n                reason.starts_with(\"Instruction parsing failed: UnexpectedModifier(\"),\n                \"expected an unexpected-modifier error, got {reason}\"\n            );\n        }\n        Err(other) => panic!(\"expected a brkpt modifier error, got {other:?}\"),\n        Ok(_) => {\n            panic!(\"brkpt.not_a_modifier; was accepted instead of rejecting the unknown modifier\")\n        }\n    }\n}\n"
+        }
+      ],
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::native_trap_ids_are_recognized_but_never_assume_a_returning_handler",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_traps_are_rejected_even_when_unreachable_or_exec_is_zero"
+      ],
+      "reason": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "target_difference": "PTX BRKPT is a no-op in its existing backend. NativeS_TRAP enters a handler and is recognized butUnsupported; no semantic equivalence to a no-op is claimed."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/exit_extra_operand.ptx",
+      "baseline_sha256": "5f5ff1ffef3009871239cad915a974ca2b31f04343d0b49672eb26061422c65b",
+      "baseline_rust": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 238,
+          "excerpt": "fn exit_must_reject_operands() {\n    let source = ptx!(\"soundness/exit_extra_operand\");\n    let control = source.replace(\"exit 123;\", \"exit;\");\n    let control = parse_named(\"soundness/exit_control\", &control);\n    let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n        .expect(\"exit without operands must be valid\");\n    assert_eq!(verified.graph.conclusion(), GraphConclusion::Verified);\n\n    let module = parse_named(\"soundness/exit_extra_operand\", &source);\n    match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n        Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n            instruction,\n            reason,\n        })) => {\n            assert_eq!(instruction, \"Exit\");\n            assert_eq!(\n                reason.as_deref(),\n                Some(\"Instruction parsing failed: WrongOperandCount { expected: 0, got: 1 }\")\n            );\n        }\n        Err(other) => panic!(\"expected an exit operand-count error, got {other:?}\"),\n        Ok(_) => panic!(\"exit 123; must fail validation: exit takes no operands\"),\n    }\n}\n"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 238,
+          "excerpt": "fn exit_must_reject_operands() {\n    let source = ptx!(\"soundness/exit_extra_operand\");\n    let control = source.replace(\"exit 123;\", \"exit;\");\n    let control = parse_named(\"soundness/exit_control\", &control);\n    let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n        .expect(\"exit without operands must be valid\");\n    assert_eq!(verified.graph.conclusion(), GraphConclusion::Verified);\n\n    let module = parse_named(\"soundness/exit_extra_operand\", &source);\n    match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n        Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n            instruction,\n            reason,\n        })) => {\n            assert_eq!(instruction, \"Exit\");\n            assert_eq!(\n                reason.as_deref(),\n                Some(\"Instruction parsing failed: WrongOperandCount { expected: 0, got: 1 }\")\n            );\n        }\n        Err(other) => panic!(\"expected an exit operand-count error, got {other:?}\"),\n        Ok(_) => panic!(\"exit 123; must fail validation: exit takes no operands\"),\n    }\n}\n"
+        }
+      ],
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::canonical_native_endpgm_and_optional_encoded_immediate_complete",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_termination_is_rejected_before_control_flow_or_exec_can_hide_it"
+      ],
+      "reason": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "target_difference": null
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/exit_invalid_modifier.ptx",
+      "baseline_sha256": "b29d0d6cba934e11db715f294b0138168bc8d84be2697a09847c94260c5e199f",
+      "baseline_rust": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 210,
+          "excerpt": "fn exit_must_reject_an_unknown_modifier() {\n    let source = ptx!(\"soundness/exit_invalid_modifier\");\n    let control = source.replace(\"exit.not_a_modifier;\", \"exit;\");\n    let control = parse_named(\"soundness/exit_control\", &control);\n    let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n        .expect(\"exit without a modifier must be valid\");\n    assert_eq!(verified.graph.conclusion(), GraphConclusion::Verified);\n\n    let module = parse_named(\"soundness/exit_invalid_modifier\", &source);\n    match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n        Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n            instruction,\n            reason: Some(reason),\n        })) => {\n            assert_eq!(instruction, \"Exit\");\n            assert!(\n                reason.starts_with(\"Instruction parsing failed: UnexpectedModifier(\"),\n                \"expected an unexpected-modifier error, got {reason}\"\n            );\n        }\n        Err(other) => panic!(\"expected an exit modifier error, got {other:?}\"),\n        Ok(_) => {\n            panic!(\"exit.not_a_modifier; was accepted instead of rejecting the unknown modifier\")\n        }\n    }\n}\n"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 210,
+          "excerpt": "fn exit_must_reject_an_unknown_modifier() {\n    let source = ptx!(\"soundness/exit_invalid_modifier\");\n    let control = source.replace(\"exit.not_a_modifier;\", \"exit;\");\n    let control = parse_named(\"soundness/exit_control\", &control);\n    let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n        .expect(\"exit without a modifier must be valid\");\n    assert_eq!(verified.graph.conclusion(), GraphConclusion::Verified);\n\n    let module = parse_named(\"soundness/exit_invalid_modifier\", &source);\n    match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n        Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n            instruction,\n            reason: Some(reason),\n        })) => {\n            assert_eq!(instruction, \"Exit\");\n            assert!(\n                reason.starts_with(\"Instruction parsing failed: UnexpectedModifier(\"),\n                \"expected an unexpected-modifier error, got {reason}\"\n            );\n        }\n        Err(other) => panic!(\"expected an exit modifier error, got {other:?}\"),\n        Ok(_) => {\n            panic!(\"exit.not_a_modifier; was accepted instead of rejecting the unknown modifier\")\n        }\n    }\n}\n"
+        }
+      ],
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::canonical_native_endpgm_and_optional_encoded_immediate_complete",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_termination_is_rejected_before_control_flow_or_exec_can_hide_it"
+      ],
+      "reason": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "target_difference": null
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/ret_extra_operand.ptx",
+      "baseline_sha256": "a14e0663db9e27e7ba9db9da731706bbcba0ab8dbe10370df4cb92375d141600",
+      "baseline_rust": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 92,
+          "excerpt": "fn ret_must_reject_operands() {\n    let source = ptx!(\"soundness/ret_extra_operand\");\n    for ret in [\"ret\", \"ret.uni\"] {\n        let invalid = source.replace(\"ret 123;\", &format!(\"{ret} 123;\"));\n        let module = parse_named(\"soundness/ret_extra_operand\", &invalid);\n        match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n            Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n                instruction,\n                reason,\n            })) => {\n                assert_eq!(instruction, \"Ret\");\n                assert_eq!(\n                    reason.as_deref(),\n                    Some(\"Instruction parsing failed: WrongOperandCount { expected: 0, got: 1 }\")\n                );\n            }\n            Err(other) => panic!(\"expected a ret operand-count error, got {other:?}\"),\n            Ok(_) => panic!(\"{ret} 123; must fail validation: ret takes no operands\"),\n        }\n\n        let valid = source.replace(\"ret 123;\", &format!(\"{ret};\"));\n        let module = parse_named(\"soundness/ret_control\", &valid);\n        let verified = verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n            .expect(\"ret without operands must remain valid\");\n        assert_eq!(verified.graph.conclusion(), GraphConclusion::Verified);\n    }\n}\n"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 92,
+          "excerpt": "fn ret_must_reject_operands() {\n    let source = ptx!(\"soundness/ret_extra_operand\");\n    for ret in [\"ret\", \"ret.uni\"] {\n        let invalid = source.replace(\"ret 123;\", &format!(\"{ret} 123;\"));\n        let module = parse_named(\"soundness/ret_extra_operand\", &invalid);\n        match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n            Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n                instruction,\n                reason,\n            })) => {\n                assert_eq!(instruction, \"Ret\");\n                assert_eq!(\n                    reason.as_deref(),\n                    Some(\"Instruction parsing failed: WrongOperandCount { expected: 0, got: 1 }\")\n                );\n            }\n            Err(other) => panic!(\"expected a ret operand-count error, got {other:?}\"),\n            Ok(_) => panic!(\"{ret} 123; must fail validation: ret takes no operands\"),\n        }\n\n        let valid = source.replace(\"ret 123;\", &format!(\"{ret};\"));\n        let module = parse_named(\"soundness/ret_control\", &valid);\n        let verified = verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n            .expect(\"ret without operands must remain valid\");\n        assert_eq!(verified.graph.conclusion(), GraphConclusion::Verified);\n    }\n}\n"
+        }
+      ],
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::canonical_native_endpgm_and_optional_encoded_immediate_complete",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_termination_is_rejected_before_control_flow_or_exec_can_hide_it"
+      ],
+      "reason": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "target_difference": null
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/trap_extra_operand.ptx",
+      "baseline_sha256": "c09fa28a6c5a835d33f4291ff60215ae5271094fc24ae0f88da7a595ac9612a9",
+      "baseline_rust": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 351,
+          "excerpt": "fn trap_must_reject_operands() {\n    let source = ptx!(\"soundness/trap_extra_operand\");\n    let control = source.replace(\"trap 123;\", \"trap;\");\n    let control = parse_named(\"soundness/trap_control\", &control);\n    let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n        .expect(\"trap without operands must pass validation\");\n    assert!(matches!(\n        verified.analysis.symbolic_outputs(),\n        Err(OutputsUnavailable::Aborted(EvalError::TrapReached { .. }))\n    ));\n\n    let module = parse_named(\"soundness/trap_extra_operand\", &source);\n    match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n        Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n            instruction,\n            reason,\n        })) => {\n            assert_eq!(instruction, \"Trap\");\n            assert_eq!(\n                reason.as_deref(),\n                Some(\"Instruction parsing failed: WrongOperandCount { expected: 0, got: 1 }\")\n            );\n        }\n        Err(other) => panic!(\"expected a trap operand-count error, got {other:?}\"),\n        Ok(_) => panic!(\"trap 123; must fail validation: trap takes no operands\"),\n    }\n}\n"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 351,
+          "excerpt": "fn trap_must_reject_operands() {\n    let source = ptx!(\"soundness/trap_extra_operand\");\n    let control = source.replace(\"trap 123;\", \"trap;\");\n    let control = parse_named(\"soundness/trap_control\", &control);\n    let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n        .expect(\"trap without operands must pass validation\");\n    assert!(matches!(\n        verified.analysis.symbolic_outputs(),\n        Err(OutputsUnavailable::Aborted(EvalError::TrapReached { .. }))\n    ));\n\n    let module = parse_named(\"soundness/trap_extra_operand\", &source);\n    match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n        Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n            instruction,\n            reason,\n        })) => {\n            assert_eq!(instruction, \"Trap\");\n            assert_eq!(\n                reason.as_deref(),\n                Some(\"Instruction parsing failed: WrongOperandCount { expected: 0, got: 1 }\")\n            );\n        }\n        Err(other) => panic!(\"expected a trap operand-count error, got {other:?}\"),\n        Ok(_) => panic!(\"trap 123; must fail validation: trap takes no operands\"),\n    }\n}\n"
+        }
+      ],
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::native_trap_ids_are_recognized_but_never_assume_a_returning_handler",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_traps_are_rejected_even_when_unreachable_or_exec_is_zero"
+      ],
+      "reason": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "target_difference": null
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/trap_invalid_modifier.ptx",
+      "baseline_sha256": "32ec9ec05a97a09d3acf8e7e4db9b06dc0381d4839a65ac29f440e50003ac707",
+      "baseline_rust": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 318,
+          "excerpt": "fn trap_must_reject_an_unknown_modifier() {\n    let source = ptx!(\"soundness/trap_invalid_modifier\");\n    let control = source.replace(\"trap.not_a_modifier;\", \"trap;\");\n    let control = parse_named(\"soundness/trap_control\", &control);\n    let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n        .expect(\"trap without a modifier must pass validation\");\n    assert!(matches!(\n        verified.analysis.symbolic_outputs(),\n        Err(OutputsUnavailable::Aborted(EvalError::TrapReached { .. }))\n    ));\n\n    let module = parse_named(\"soundness/trap_invalid_modifier\", &source);\n    match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n        Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n            instruction,\n            reason: Some(reason),\n        })) => {\n            assert_eq!(instruction, \"Trap\");\n            assert!(\n                reason.starts_with(\"Instruction parsing failed: UnexpectedModifier(\"),\n                \"expected an unexpected-modifier error, got {reason}\"\n            );\n        }\n        Err(other) => panic!(\"expected a trap modifier error, got {other:?}\"),\n        Ok(_) => {\n            panic!(\n                \"trap.not_a_modifier; reached execution instead of rejecting the unknown modifier\"\n            )\n        }\n    }\n}\n"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 318,
+          "excerpt": "fn trap_must_reject_an_unknown_modifier() {\n    let source = ptx!(\"soundness/trap_invalid_modifier\");\n    let control = source.replace(\"trap.not_a_modifier;\", \"trap;\");\n    let control = parse_named(\"soundness/trap_control\", &control);\n    let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n        .expect(\"trap without a modifier must pass validation\");\n    assert!(matches!(\n        verified.analysis.symbolic_outputs(),\n        Err(OutputsUnavailable::Aborted(EvalError::TrapReached { .. }))\n    ));\n\n    let module = parse_named(\"soundness/trap_invalid_modifier\", &source);\n    match verify(&module, Some(\"k\"), AnalysisConfig::new((1, 1, 1))) {\n        Err(AnalysisError::Lower(LowerError::UnsupportedInstruction {\n            instruction,\n            reason: Some(reason),\n        })) => {\n            assert_eq!(instruction, \"Trap\");\n            assert!(\n                reason.starts_with(\"Instruction parsing failed: UnexpectedModifier(\"),\n                \"expected an unexpected-modifier error, got {reason}\"\n            );\n        }\n        Err(other) => panic!(\"expected a trap modifier error, got {other:?}\"),\n        Ok(_) => {\n            panic!(\n                \"trap.not_a_modifier; reached execution instead of rejecting the unknown modifier\"\n            )\n        }\n    }\n}\n"
+        }
+      ],
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::native_trap_ids_are_recognized_but_never_assume_a_returning_handler",
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::malformed_traps_are_rejected_even_when_unreachable_or_exec_is_zero"
+      ],
+      "reason": "Preserves static rejection of extra operands/invalid modifiers with actual legal native controls; malformed forms are also rejected behind branches and emptyEXEC.",
+      "target_difference": null
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/unknown_directive.ptx",
+      "baseline_sha256": "42f73dca8a1f21980cf9e115c678db8cf9744d7b0528bb3e17804faf097abc91",
+      "baseline_rust": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 121,
+          "excerpt": "fn unknown_directives_must_be_rejected() {\n    let source = ptx!(\"soundness/unknown_directive\");\n    let directive = \".this_is_not_a_ptx_directive\";\n    let statement = format!(\"{directive} arbitrary tokens;\");\n    assert_eq!(source.matches(&statement).count(), 1);\n\n    for replacement in [\"\", \".pragma \\\"nounroll\\\";\"] {\n        let control = source.replacen(&statement, replacement, 1);\n        let control = parse_named(\"soundness/unknown_directive_control\", &control);\n        let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n            .expect(\"removing the unknown directive or using a known pragma must be valid\");\n        assert_eq!(verified.graph.conclusion(), GraphConclusion::Verified);\n    }\n\n    let ascii = source\n        .as_bytes()\n        .as_ascii_slice()\n        .expect(\"ASCII PTX source\");\n    let error = match Parser::new(ascii).parse_module() {\n        Err(error) => error,\n        Ok(_) => panic!(\"unknown directive {directive} was silently accepted by the parser\"),\n    };\n    assert!(\n        matches!(&error.error, ParseErrorKind::InvalidDirective(name)\n            if name.as_str() == &directive[1..]),\n        \"expected InvalidDirective naming {directive}, got {error:?}\"\n    );\n    let span = error\n        .span\n        .expect(\"the diagnostic must locate the directive\");\n    assert_eq!(span.0, source.find(directive).unwrap());\n    assert!(source[span.0..span.1].starts_with(directive));\n}\n"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "line": 121,
+          "excerpt": "fn unknown_directives_must_be_rejected() {\n    let source = ptx!(\"soundness/unknown_directive\");\n    let directive = \".this_is_not_a_ptx_directive\";\n    let statement = format!(\"{directive} arbitrary tokens;\");\n    assert_eq!(source.matches(&statement).count(), 1);\n\n    for replacement in [\"\", \".pragma \\\"nounroll\\\";\"] {\n        let control = source.replacen(&statement, replacement, 1);\n        let control = parse_named(\"soundness/unknown_directive_control\", &control);\n        let verified = verify(&control, Some(\"k\"), AnalysisConfig::new((1, 1, 1)))\n            .expect(\"removing the unknown directive or using a known pragma must be valid\");\n        assert_eq!(verified.graph.conclusion(), GraphConclusion::Verified);\n    }\n\n    let ascii = source\n        .as_bytes()\n        .as_ascii_slice()\n        .expect(\"ASCII PTX source\");\n    let error = match Parser::new(ascii).parse_module() {\n        Err(error) => error,\n        Ok(_) => panic!(\"unknown directive {directive} was silently accepted by the parser\"),\n    };\n    assert!(\n        matches!(&error.error, ParseErrorKind::InvalidDirective(name)\n            if name.as_str() == &directive[1..]),\n        \"expected InvalidDirective naming {directive}, got {error:?}\"\n    );\n    let span = error\n        .span\n        .expect(\"the diagnostic must locate the directive\");\n    assert_eq!(span.0, source.find(directive).unwrap());\n    assert!(source[span.0..span.1].starts_with(directive));\n}\n"
+        }
+      ],
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::valid_text_directive_is_a_control_for_unknown_directive_rejection"
+      ],
+      "reason": "Ordinary native.text control is accepted, unknown executable directives reject.",
+      "target_difference": null
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/membar_levels_none.ptx",
+      "baseline_sha256": "874bfac541e9cee53106ecea30c393dd092711f44f083dc722dfec67d46e70ed",
+      "baseline_rust": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "line": 742,
+          "excerpt": "fn test_membar_levels() {\n    let analyze = |src: String| run_kernel(&parse(&src), None, AnalysisConfig::new((1, 1, 1)));\n    for (level, src) in [\n        (\".cluster\", ptx!(\"failing/membar_levels_cluster\")),\n        (\".gpu\", ptx!(\"failing/membar_levels_gpu\")),\n        (\"\", ptx!(\"failing/membar_levels_none\")),\n    ] {\n        match analyze(src) {\n            Err(AnalysisError::Lower(LowerError::UnsupportedInstruction { reason, .. })) => {\n                let reason = reason.unwrap_or_default();\n                assert!(reason.contains(\"parsing failed\"), \"membar{level}: {reason}\");\n            }\n            other => panic!(\"membar{level}: expected a parse failure, got {other:?}\"),\n        }\n    }\n    for (proxy, src) in [\n        (\"alias\", ptx!(\"failing/membar_levels_proxy_alias\")),\n        (\"async\", ptx!(\"failing/membar_levels_proxy_async\")),\n    ] {\n        match analyze(src) {\n            Err(AnalysisError::Lower(LowerError::UnsupportedInstruction { reason, .. })) => {\n                let reason = reason.unwrap_or_default();\n                assert!(reason.contains(\"not implemented yet\"), \"{proxy}: {reason}\");\n            }\n            other => panic!(\"membar.proxy.{proxy}: expected unsupported, got {other:?}\"),\n        }\n    }\n}\n\n/// `mbarrier.inval` is rejected until a check orders an mbarrier's other operations before its\n/// invalidation: a late `arrive` racing with the reuse of the object's bytes would go unnoticed."
+        }
+      ],
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs::native_wait_requires_its_own_counter_operand_grammar"
+      ],
+      "reason": "Native s_waitcnt requires an explicit counter/immediate operand. Canonical native waits complete; missing operands reject statically, including unreachable/emptyEXEC. This is a grammar-completeness counterpart, not PTX membar semantics."
+    }
+  ]
+}
