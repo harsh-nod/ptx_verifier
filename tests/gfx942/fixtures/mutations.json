@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "target": "gfx942",
+  "scope": "Actual native compiler mutations accepted by LLVM MC; their semantic negative assertions live in gfx942_compiler_tests.rs. Unsafe mutants are not run on hardware.",
+  "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "cases": [
+    {
+      "source": "native-lds-ids.s",
+      "source_sha256": "9608b0cde97271c00bfcc9be0c18358eec31f655187351769066ee41b3fbe865",
+      "kernel": "exchange",
+      "source_line": 19,
+      "original": "s_barrier",
+      "replacement": "s_nop 0",
+      "mutated_source_sha256": "503dec6e8bbe51317700d900a9dd9867f4df1aa997fa42920368e7f30e3aa47b",
+      "object_sha256": "87a5d5a32a5920c8ebf39da11fa131a675181c730fae61e20f080c8676d76da2",
+      "argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx942",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/mutation-0.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/mutation-0.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "expected_typed_negative": "Shared LDS conflict"
+    },
+    {
+      "source": "native-pipeline-f16.s",
+      "source_sha256": "50a234e1b7aa8e0b9cdef9bd54005a288b58253eb4e810e4910cb90db7e86015",
+      "kernel": "pipelined_mfma_f16",
+      "source_line": 31,
+      "original": "s_barrier",
+      "replacement": "s_nop 0",
+      "mutated_source_sha256": "02db52548f42817d366436beffbe7f70f4232f05a7abaedad29b81870d8eb63c",
+      "object_sha256": "975b19450a1838b8b33fcbe1248e52fd2a551eefbec62cd49b9a5c2f78f1ecb7",
+      "argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx942",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/mutation-1.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/mutation-1.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "expected_typed_negative": "Shared LDS conflict"
+    },
+    {
+      "source": "native-lds-ids.s",
+      "source_sha256": "9608b0cde97271c00bfcc9be0c18358eec31f655187351769066ee41b3fbe865",
+      "kernel": "exchange",
+      "source_line": 14,
+      "original": "s_waitcnt lgkmcnt(0)",
+      "replacement": "s_nop 0",
+      "mutated_source_sha256": "21d483739fe145e067720e5119479f5496bedc567d04e2c362fbb48cf4f33178",
+      "object_sha256": "33d13229c304645cae039e7262055b0522dd682fcf20948fb539e4af1df940b8",
+      "argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx942",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/mutation-2.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/mutation-2.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "expected_typed_negative": "SMEM destination/source readiness"
+    },
+    {
+      "source": "native-mfma.s",
+      "source_sha256": "1c52b31917fe837e8ecea8701f24e56692241e75797b727d3ea5fba73d65416a",
+      "kernel": "mfma_f32",
+      "source_line": 19,
+      "original": "s_nop 9",
+      "replacement": "s_nop 0",
+      "mutated_source_sha256": "19de4c41721b8c9569fd3cdf536a38537d9dddf12ef73b1f4a80a96730be745a",
+      "object_sha256": "7b7565d550165850035c1f654a68f678896e009bea7824b238c1449d585acc13",
+      "argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx942",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/mutation-3.s",
+        "-o",
+        "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/mutation-3.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "expected_typed_negative": "MFMA result readiness"
+    }
+  ]
+}
