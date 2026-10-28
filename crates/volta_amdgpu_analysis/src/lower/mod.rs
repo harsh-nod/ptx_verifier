@@ -36,6 +36,10 @@ pub fn lower_kernel_in_module(
     module: &Module,
     kernel: &Kernel,
 ) -> Result<LoweredKernel, LowerError> {
+    crate::target::validate(module).map_err(|error| LowerError {
+        message: error.message,
+        span: error.span,
+    })?;
     lower_with_globals(kernel, &module.globals)
 }
 

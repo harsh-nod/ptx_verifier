@@ -338,7 +338,9 @@ fn sampling_cannot_accept_and_wrong_target_cannot_parse() {
         .output()
         .unwrap();
     assert_code(&output, 1);
-    assert!(String::from_utf8_lossy(&output.stderr).contains("requires gfx950"));
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("conflicts with source target gfx950")
+    );
 }
 
 #[test]

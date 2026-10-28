@@ -123,10 +123,7 @@ impl ConfigPy {
 
     #[getter]
     fn target(&self) -> Option<&'static str> {
-        match self.1 {
-            Backend::Ptx => None,
-            Backend::Amdgpu => Some("gfx950"),
-        }
+        self.1.target()
     }
 
     /// Declare a global-memory array visible to the kernel.
