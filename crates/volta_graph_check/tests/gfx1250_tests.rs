@@ -1119,3 +1119,21 @@ fn legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication()
         );
     }
 }
+
+#[test]
+fn memory_operation_cannot_forge_a_destination_register_namespace() {
+    for (class, destination) in [
+        (AmdMemoryClass::VectorLoad, s(4)),
+        (AmdMemoryClass::ScalarLoad, v(4, 1)),
+        (AmdMemoryClass::VectorStore, v(4, 1)),
+        (AmdMemoryClass::Ds, s(4)),
+    ] {
+        let mut t = Trace::new(1);
+        t.issue(0, class, vec![destination], vec![], 0);
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdTrace),
+            Verdict::Unknown,
+            "{class:?}"
+        );
+    }
+}
