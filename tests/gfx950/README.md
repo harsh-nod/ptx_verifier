@@ -16,14 +16,21 @@ and safety negatives for the two original proxy-race workloads. Six originally
 unsupported workload artifacts remain explicit baseline limitations; the seventh
 limitation is the original unsupported half-copysign integration fixture.
 
-`evidence/full-workloads-final-default.json` retains exact commands, binaries,
+`evidence/full-workloads-final-default.json` and
+`evidence/full-workloads-final-logging.json` retain exact commands, binaries,
 source/spec hashes, stdout, resources and the coordinator's current-configuration
-audit for 39 positive native cases: 37 math/spec proofs and two copy/add graph
+audit for 39 positive native cases per build: 37 math/spec proofs and two copy/add graph
 and footprint cases. Six of these are explicitly reduced mechanism controls.
 One further configured reduction case remains Unsupported and is never counted
 as a positive proof. Native full16-row softmax has a separate complete replay
 and hardware receipt. All claims remain scoped to the selected workgroup and
 the real-number model.
+
+`evidence/m6-final-coordinator-review.json` is the final completion ledger.
+Earlier revision-named receipts retain their historical checkpoint outcomes and
+then-open gaps. The final ledger and `parity.json` identify their resolutions.
+The final isolated rebuild reproduces the exact default and logging executable
+hashes used by both workload replays.
 
 ```sh
 python3 scripts/gfx950_parity.py check

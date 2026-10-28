@@ -68,7 +68,8 @@
         "hardware": [
           "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
         ],
-        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -131,7 +132,8 @@
         "hardware": [
           "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
         ],
-        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -194,7 +196,8 @@
         "hardware": [
           "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
         ],
-        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -265,7 +268,8 @@
         "hardware": [
           "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
         ],
-        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -345,7 +349,8 @@
         "hardware": [
           "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
         ],
-        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -417,7 +422,8 @@
         "hardware": [
           "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
         ],
-        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     },
     {
@@ -491,7 +497,8 @@
         "hardware": [
           "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json"
         ],
-        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
+        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
       }
     }
   ]
