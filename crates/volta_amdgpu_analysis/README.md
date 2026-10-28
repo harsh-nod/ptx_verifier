@@ -70,7 +70,11 @@ input identities while packing keeps the original byte positions.
 Two-byte encoded byte pairs retain both identities through native 16-bit memory
 transfers. Exact 32-bit word transport via b64 shifts by zero or 32 and OR with a
 concrete zero preserves symbolic data tags; other symbolic b64 shifts require
-encoded bits. Concrete b64 shifts retain unsigned integer provenance for numeric
+encoded bits. Concrete `v_ashrrev_i64` retains signed whole-value integer
+provenance; its count uses the low six bits. Symbolic signed64 arithmetic remains unsupported.
+An integer consumer of a symbolic UBYTE input records its unsigned-byte numeric
+interpretation, which cannot be combined with FP8 decoding of the same array.
+Concrete logical b64 shifts retain unsigned integer provenance for numeric
 64-bit output extraction while remaining usable as native address bits.
 General base2 exponentials/logarithms use the exact reciprocal of rounded f32
 log2(e), matching the existing PTX mathematical contract; executing that path

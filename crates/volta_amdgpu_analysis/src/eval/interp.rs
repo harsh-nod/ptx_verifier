@@ -1637,6 +1637,12 @@ impl<'a> Interpreter<'a> {
                 self.claim_word_format(wave, expr, WordFormat::Integer32)?;
                 Ok(expr)
             }
+            Value::Byte(expr) => {
+                // Native UBYTE loads zero-extend; an integer consumer fixes
+                // the encoded input's numeric interpretation as unsigned8.
+                self.claim_byte_format(wave, expr, ByteFormat::UnsignedU8)?;
+                Ok(expr)
+            }
             Value::IntExpr(expr) | Value::NarrowInt { expr, .. } => Ok(expr),
             Value::SignedInteger(value) => Ok(self.arena.int(value as i64)),
             Value::Bits(value) | Value::Integer(value) => Ok(self.arena.int(if ty.signed {
@@ -3501,9 +3507,37 @@ impl<'a> Interpreter<'a> {
                     let condition = self.predicate_condition(wave, o.get(3), lane)?;
                     self.select_word(wave, condition, &o[2], &o[1], lane, saturate)?
                 }
-                "v_lshlrev_b64" | "v_lshrrev_b64" => {
+                "v_lshlrev_b64" | "v_lshrrev_b64" | "v_ashrrev_i64" => {
                     let shift = wave.bits(&o[1], lane)? & 63;
                     let destination = wave.destination(&o[0])?;
+                    if name == "v_ashrrev_i64" {
+                        // CDNA4 V_ASHRREV_I64: D0.i64 = S1.i64 >> S0[5:0].
+                        // The signed consumer fixes the output interpretation;
+                        // store width alone never supplies signedness.
+                        let value = (wave.wide(&o[2], lane)? as i64) >> shift;
+                        let expr = self.arena.int(value);
+                        wave.put(
+                            destination,
+                            lane,
+                            0,
+                            Value::WidePart {
+                                expr,
+                                high: false,
+                                kind: WideKind::Integer,
+                            },
+                        )?;
+                        wave.put(
+                            destination,
+                            lane,
+                            1,
+                            Value::WidePart {
+                                expr,
+                                high: true,
+                                kind: WideKind::Integer,
+                            },
+                        )?;
+                        continue;
+                    }
                     if let Ok(bits) = wave.wide(&o[2], lane) {
                         let result = if name == "v_lshlrev_b64" {
                             bits.wrapping_shl(shift)
