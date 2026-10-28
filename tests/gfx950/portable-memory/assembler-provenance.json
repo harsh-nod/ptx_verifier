@@ -5,6 +5,118 @@
   "target": "gfx950",
   "cases": [
     {
+      "source": "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+      "source_sha256": "a240f36356baa1f8832f51ee59866047394d2a6be2c135ca45a73cce9976d88c",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/announcements_full_broadcast.s",
+        "-o",
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/announcements_full_broadcast.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "55032e9af9d5658cd3eb44f138b10986cddcbec27900486da612413693beb8f0"
+    },
+    {
+      "source": "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
+      "source_sha256": "eeddf5e145a3c2f90ee1a9ecd6ddace4b8c2da9fc9de8cfa866feb8867e2054d",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
+        "-o",
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/concrete_pair_low16_store.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "6f7f3be15f07114b500a8dff15288701325313b6f78f36a174a4f9834a82d730"
+    },
+    {
+      "source": "tests/gfx950/portable-memory/copy_completion_marker.s",
+      "source_sha256": "ddd105878d8b68131d5b702bf9cca4fd96686aef4a4d1304a4d387d75af04085",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/copy_completion_marker.s",
+        "-o",
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/copy_completion_marker.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "a96290a341957e450ccbe31e368065264561f69be200e47f9121dd901c8a54ab"
+    },
+    {
+      "source": "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+      "source_sha256": "c367681303240cdf2f90e38ed508b5021422d921bbfa80c24c37c294a782ae3a",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/crosswave_constant_wakeup.s",
+        "-o",
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/crosswave_constant_wakeup.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "6866ca566f045bdbc474d31a82c3be1b9f6534068ded9a4817b1bd87d304d909"
+    },
+    {
+      "source": "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+      "source_sha256": "ab235bfa76aa7f98acdb3c21e09b9ffdc04aec60baad406db0c9d058d1c12894",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/crosswave_neighbor_exchange.s",
+        "-o",
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/crosswave_neighbor_exchange.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "9fb05406d409518a9f9971dce64be17448806d757ffd5d868b439bf14ba40ab8"
+    },
+    {
+      "source": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
+      "source_sha256": "1b7b01390f87ab4b2d8109ab3916634be4159b0f0036dd51c4cb02d94db65133",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
+        "-o",
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/declined_cancel_one_pass.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "f5b49355764a435182cddf22fd5a7c8ac25171b9d2a9a06f3196f431bdf8e687"
+    },
+    {
+      "source": "tests/gfx950/portable-memory/lane_word_single_projection.s",
+      "source_sha256": "c5ee5d31d0b5097294b93d1f15d3fb0c5c99c03f6d3d2bf5309fa83033fcb915",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/lane_word_single_projection.s",
+        "-o",
+        "/tmp/gfx950-memory-final-mc-1998gtk3/lane_word_single_projection.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "3cac131703c378b6285d2cb3972f3585f52e473c4eb3962fa34a5e22c90493b0"
+    },
+    {
       "source": "tests/gfx950/portable-memory/logical_lane_ids.s",
       "source_sha256": "177b274a865a1e42a29b02eb33edbf43e9dec62586d8f452a766f833dd65bf95",
       "command": [
@@ -14,11 +126,27 @@
         "-filetype=obj",
         "tests/gfx950/portable-memory/logical_lane_ids.s",
         "-o",
-        "/tmp/gfx950-memory-payload-logical_lane_ids.o"
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/logical_lane_ids.o"
       ],
       "returncode": 0,
       "stderr": "",
       "object_sha256": "11f2de6e0aeb9f8a8f3836d481b95c5abc430bd2f65d2cb1f6d28dce2e12fa05"
+    },
+    {
+      "source": "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+      "source_sha256": "68745746961ad0aa876bbb2d3e542eb81ce6a321c3c7273a72c2ba922576be6a",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/logical_neighbor_exchange.s",
+        "-o",
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/logical_neighbor_exchange.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "7b6c11891690b9eed693f0ff8370bc728ce62500046f32b293cd6079478ca869"
     },
     {
       "source": "tests/gfx950/portable-memory/logical_partitions.s",
@@ -30,7 +158,7 @@
         "-filetype=obj",
         "tests/gfx950/portable-memory/logical_partitions.s",
         "-o",
-        "/tmp/gfx950-memory-payload-logical_partitions.o"
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/logical_partitions.o"
       ],
       "returncode": 0,
       "stderr": "",
@@ -46,27 +174,11 @@
         "-filetype=obj",
         "tests/gfx950/portable-memory/masked_matrix_publication.s",
         "-o",
-        "/tmp/gfx950-memory-payload-masked_matrix_publication.o"
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/masked_matrix_publication.o"
       ],
       "returncode": 0,
       "stderr": "",
       "object_sha256": "4f76968b6c48f4d159437e20333a3a66ade1f83a9a584a903e9a1496a737d8c5"
-    },
-    {
-      "source": "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
-      "source_sha256": "1b7b01390f87ab4b2d8109ab3916634be4159b0f0036dd51c4cb02d94db65133",
-      "command": [
-        "/opt/rocm/llvm/bin/llvm-mc",
-        "-triple=amdgcn-amd-amdhsa",
-        "-mcpu=gfx950",
-        "-filetype=obj",
-        "tests/gfx950/portable-memory/declined_cancel_one_pass.s",
-        "-o",
-        "/tmp/gfx950-memory-payload-declined_cancel_one_pass.o"
-      ],
-      "returncode": 0,
-      "stderr": "",
-      "object_sha256": "f5b49355764a435182cddf22fd5a7c8ac25171b9d2a9a06f3196f431bdf8e687"
     },
     {
       "source": "tests/gfx950/portable-memory/ordered_lane_transfer.s",
@@ -78,27 +190,107 @@
         "-filetype=obj",
         "tests/gfx950/portable-memory/ordered_lane_transfer.s",
         "-o",
-        "/tmp/gfx950-memory-payload-ordered_lane_transfer.o"
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/ordered_lane_transfer.o"
       ],
       "returncode": 0,
       "stderr": "",
       "object_sha256": "cbd6e047947a7fac64dc9de571ceec83e942fbb3e466e3b5fc3dbae7910fc2fe"
     },
     {
-      "source": "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
-      "source_sha256": "eeddf5e145a3c2f90ee1a9ecd6ddace4b8c2da9fc9de8cfa866feb8867e2054d",
+      "source": "tests/gfx950/portable-memory/parity_marker_after_copy.s",
+      "source_sha256": "f1c7ccdfc4859b84e63c0574ae6d487885986dc8508a6981229df46f1cab97c6",
       "command": [
         "/opt/rocm/llvm/bin/llvm-mc",
         "-triple=amdgcn-amd-amdhsa",
         "-mcpu=gfx950",
         "-filetype=obj",
-        "tests/gfx950/portable-memory/concrete_pair_low16_store.s",
+        "tests/gfx950/portable-memory/parity_marker_after_copy.s",
         "-o",
-        "/tmp/gfx950-memory-payload-concrete_pair_low16_store.o"
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/parity_marker_after_copy.o"
       ],
       "returncode": 0,
       "stderr": "",
-      "object_sha256": "6f7f3be15f07114b500a8dff15288701325313b6f78f36a174a4f9834a82d730"
+      "object_sha256": "ee8c179f897583d2a43e5cf633b6751bba4822ccc9f254f9dc7c4fc624fad9a7"
+    },
+    {
+      "source": "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+      "source_sha256": "00ae9dbddc83e340dd1ce676dc97c5d2856b130ed593732fae7dac740562edc9",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/scalar_granule_single_output.s",
+        "-o",
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/scalar_granule_single_output.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "56b0a09141259a3b1f56643578f90a50834268e406fb744b74458e43341b1ef3"
+    },
+    {
+      "source": "tests/gfx950/portable-memory/single_wave_symbolic_copy.s",
+      "source_sha256": "8d2ac17de5bc9d389b0e4205a543095c9aa75078194902b0887f9d797d0fb717",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/single_wave_symbolic_copy.s",
+        "-o",
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/single_wave_symbolic_copy.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "5bbce86543832f901bfa42dd53674b9faf952b61bb6d82ca7b026a5d29813e99"
+    },
+    {
+      "source": "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+      "source_sha256": "70736da5770ddfe0b449c78b27cd88ca52d59741cc28f381eb6627ad45ca02f0",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/sparse_constant_handoff.s",
+        "-o",
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/sparse_constant_handoff.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "7e58078a4bd12ac01141dc5a00b32f448e20e1b8e3d2737ec976421e0c8837d3"
+    },
+    {
+      "source": "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+      "source_sha256": "0221cd217b3f117871fd6e848fd1ac4f4496401c41bc209ca7782277c4372fb9",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/symbolic_crosswave_handoff.s",
+        "-o",
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/symbolic_crosswave_handoff.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "cf79a44ba42416887cff313d3fb9d38d44df7c257b560d08ef11b970e5be9446"
+    },
+    {
+      "source": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+      "source_sha256": "9bbc7cc69c171fbd3ce76b30022fa872816efa1fea6550607b0d79d409aadd87",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
+        "-o",
+        "/tmp/gfx950-memory-exact-mc-xbqrrzg2/two_generation_leader_fanout.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "7ae3a54cb619ff83c87525e5488d1c45366a2a6189cf8b5f485d93be85831275"
     }
   ]
 }

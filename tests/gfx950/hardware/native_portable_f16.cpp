@@ -116,7 +116,7 @@ int main(int argc,char **argv) {
     for(unsigned k=0;k<4096;++k)x.host[k]=(_Float16)((int(k%17)-8)*.125f);
     for(unsigned row=0;row<32;++row)for(unsigned k=0;k<4096;++k){a.host[row*4096+k]=(_Float16)((int((row*7+k)%23)-11)*.125f);expected[row]+=(double)a.host[row*4096+k]*(double)x.host[k];}
     a.upload();x.upload();void *args[]={&a.device,&x.device,&out.device};
-    launch(module,"matvec_f16",256,args);out.download();compare("matvec_f16",out.host,expected,0.00001,0.002);
+    launch(module,"matvec_f16",128,args);out.download();compare("matvec_f16",out.host,expected,0.00001,0.002);
   }
   check(hipModuleUnload(module),"unload");
   std::printf("PASS exact-native f16 corpus:9 kernels device=%s arch=%s\n",device.name,device.gcnArchName);
