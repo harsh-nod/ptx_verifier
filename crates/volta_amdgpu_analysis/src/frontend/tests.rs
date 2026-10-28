@@ -806,7 +806,7 @@ fn trap_and_signed64_shift_profiles_match_pinned_native_controls() {
 
 #[test]
 fn rejects_other_targets_and_bad_descriptors() {
-    assert!(parse(&program("s_endpgm").replace("gfx950", "gfx942")).is_err());
+    assert!(parse(&program("s_endpgm").replace("gfx950", "gfx940")).is_err());
     for field in [
         ".amdhsa_wavefront_size32 1",
         ".amdhsa_system_vgpr_workitem_id 3",

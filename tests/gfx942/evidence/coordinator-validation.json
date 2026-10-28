@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "validated_by": "coordinator",
+  "source_checkpoint": "f79ee93641099aac2c17e1a85a31ce2ea40a2b7e",
+  "parent_main": "879b727",
+  "scope": "Bounded gfx942 support with eight genuine compiler kernel configurations; no complete-target or full gfx950 corpus parity claim. Graph and math proofs analyze workgroup zero over the recorded real-number abstraction.",
+  "checks": {
+    "rust_workspace": {
+      "passed": 1471,
+      "failed": 1,
+      "known_inherited_failure": "volta_pipeline::false_positive_tests::test_aligned_bar_sync_reached_on_different_iterations",
+      "failure_test_source_unchanged": true
+    },
+    "rebuilt_python": {
+      "passed": 53,
+      "failed": 0
+    },
+    "external_harness_unittests": {
+      "passed": 7,
+      "failed": 0
+    },
+    "logging_cli_tests": {
+      "passed": 23,
+      "failed": 0
+    },
+    "public_cli_default": {
+      "passed": 21,
+      "failed": 0
+    },
+    "public_cli_logging": {
+      "passed": 21,
+      "failed": 0
+    },
+    "clippy_release_workspace_all_targets": {
+      "exit_code": 0,
+      "warnings": "existing warnings retained"
+    },
+    "hardware_mi300x": {
+      "launches": 850,
+      "output_checks": 195494,
+      "guard_bytes": 430848,
+      "unchanged_input_bytes": 1334624,
+      "absolute_tolerance": 0,
+      "relative_tolerance": 0,
+      "exact_s_o_hsaco_hashes_match_fixture_evidence": true
+    },
+    "hipkittens_compatibility": {
+      "race_free": 1,
+      "unsupported": 3,
+      "no_unsupported_success_claim": true
+    },
+    "gfx950_parity_gate": {
+      "validated": 416,
+      "ptx_only": 104,
+      "baseline_limited": 7,
+      "pending": 0,
+      "historical_ledger_unchanged": true
+    },
+    "high_agpr_source": {
+      "exact_new_positive_source_assembled": true,
+      "targets": [
+        "gfx942",
+        "gfx950"
+      ],
+      "allocation_limit": 512,
+      "operand_file_limit": 256
+    }
+  },
+  "artifacts": {
+    "coordinator-cli-default.json": "eb3ad6c60f83335d848ca45eb882816f40b45382d5ccadf807b32a212e212e37",
+    "coordinator-cli-logging.json": "9499fccc252832aef352172baa1450120a06cd291f987d885c17d01027db5c5c",
+    "coordinator-hipkittens.json": "8ad4bff2bce44a931559d9d6633946c9a3b2f87ede3d9b0d691015989dfcb9ca",
+    "hardware-mi300x-coordinator.json": "3c5d3c0e7d2920fe8359db0edba7788ebc215c42cebb8147fc07d874a0e8587d"
+  }
+}

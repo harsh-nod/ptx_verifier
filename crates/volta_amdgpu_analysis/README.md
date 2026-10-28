@@ -1,19 +1,50 @@
-# Native gfx950 analysis
+# Native gfx942 and gfx950 analysis
 
 This crate mirrors `volta_ptx_analysis`: typed assembly frontend, lowering, one
 candidate wave64 execution, then the existing symbolic-output and event-graph
 artifacts. It does not depend on the pipeline, equivalence checker, or graph
 checker. Backend dispatch and verification remain in the existing pipeline.
 
-The target is LLVM AMDHSA assembly for gfx950, tested with code-object version 6
+The targets are LLVM AMDHSA assembly for gfx942 and gfx950, tested with code-object version 6
 and metadata 1.2. Compiler fixtures retain source and toolchain provenance under
 `src/frontend/fixtures`. CPU-only tests require no ROCm installation or GPU.
+
+Select gfx942 explicitly with CLI `--backend amdgpu --target gfx942` or Python
+`Config(..., backend="amdgpu", target="gfx942")`. The source target must match
+that selection; omitted API targets retain gfx950 as the default. Direct Rust
+analysis uses the module's declared architecture. Target feature suffixes remain
+in graph provenance and survive serialization.
+
+| Architecture boundary | gfx942 (CDNA3 / MI300) | gfx950 (CDNA4 / MI350) |
+| --- | --- | --- |
+| Wavefront and local-ID ABI | Wave64, packed x/y/z in v0 | Same |
+| Aggregate static plus dynamic LDS | 65,536 bytes | 163,840 bytes |
+| Selected native MFMA | F32 16x16x4/32x32x2, F16 16x16x16/32x32x8, BF16 `_1k` counterparts | Existing selected forms, including doubled-K and F8F6F4 forms |
+| XDL ordinary-result wait | Target-specific CDNA3 pass count plus three | CDNA4 pass count plus four |
+| FP8/BF8 numeric decoding | Unsupported: FNUZ is distinct from the existing OCP abstraction | Existing OCP support |
+| `v_cvt_pk_f16_f32`, bitop3, native BF16 conversion | Rejected | Existing supported subset |
+
+This is a selected instruction model. Unimplemented CDNA3 FP8 MFMA, atomics,
+replay-enabled vector clauses, and other existing unsupported instruction families
+remain unsupported. BF16 matrix arithmetic currently requires concrete encoded
+BF16 operands; arbitrary symbolic BF16 reinterpretation remains unsupported.
+Native gfx942 compiler sources, hardware drivers and receipts live under
+[`tests/gfx942`](../../tests/gfx942). The architecture gate is applied both during
+parsing and lowering of caller-built modules, so changing a target string cannot
+make a CDNA4-only instruction execute as CDNA3.
+
+Architecture references: [AMD CDNA3 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-mi300-cdna3-instruction-set-architecture.pdf),
+[LLVM AMDGPU ABI and processor tables](https://llvm.org/docs/AMDGPUUsage.html),
+and [LLVM processor features](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AMDGPU/AMDGPU.td).
+The new `core-assembler-profiles.json` receipt compares the same 725 observed
+instruction profiles with LLVM's gfx942 and gfx950 assemblers; assembly
+acceptance is separate from the mathematical and graph checks.
 
 ## Execution model
 
 The analyzer executes workgroup `(0,0,0)` only. Each wave has one PC, SGPR file,
 64-bit `EXEC` and `VCC`, `SCC`, and lane-indexed vector/accumulator storage. It
-initializes partial waves and gfx950 packed multidimensional local IDs from
+initializes partial waves and packed multidimensional local IDs from
 launch dimensions. Initial VCC halves and SCC remain undefined until written.
 Reading an undefined flag stops analysis. Scalar instructions execute with empty
 `EXEC`; ordinary vector reads/writes and vector memory issues do not. Comparisons
@@ -35,6 +66,10 @@ Kernarg preloading remains unsupported. Launch checks
 enforce descriptor workgroup limits and required dimensions. Split workgroups
 are unsupported. Explicit VGPR/AGPR allocations must not alias in the unified
 physical register file.
+Both targets have separately encoded v0..v255/a0..a255 operands and numbered
+s0..s101 operands. The unified VGPR/AGPR descriptor allocation can reach512
+words; the accumulator offset is a multiple of four in4..256. Every explicit
+register must fit its allocation, and overlapping VGPR/AGPR names are rejected.
 
 Defined module globals have bounded, aligned storage with their exact initialized
 bytes. `global_values` can override a writable scalar object of one, two, four,
@@ -95,7 +130,7 @@ with this high word and a concrete low offset accesses the same LDS bytes as DS
 instructions; its encoded displacement cannot carry out of the aperture.
 The token cannot become data bits, participate in arithmetic, or form a GLOBAL
 address. Other generic-pointer apertures remain unsupported.
-Generic `gfx950` assembly and explicit `xnack-` targets model execution with
+Generic `gfx942`/`gfx950` assembly and explicit `xnack-` targets model execution with
 XNACK replay disabled, matching the test devices; provenance records the
 `XnackReplayDisabled` assumption. Target feature suffixes remain in provenance.
 Explicit `xnack+` targets enforce conservative scalar-memory replay checks:

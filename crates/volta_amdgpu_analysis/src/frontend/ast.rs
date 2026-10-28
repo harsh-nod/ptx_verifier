@@ -1,4 +1,4 @@
-//! Typed native gfx950 assembly syntax, source locations and kernel metadata.
+//! Typed native AMD assembly syntax, source locations and kernel metadata.
 
 use std::collections::BTreeMap;
 

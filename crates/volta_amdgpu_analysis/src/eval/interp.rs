@@ -44,9 +44,9 @@ pub enum EvalError {
 impl fmt::Display for EvalError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidConfig(what) => write!(f, "invalid gfx950 configuration: {what}"),
+            Self::InvalidConfig(what) => write!(f, "invalid AMD configuration: {what}"),
             Self::Unsupported { pc, what } => {
-                write!(f, "unsupported gfx950 instruction at pc {pc}: {what}")
+                write!(f, "unsupported AMD instruction at pc {pc}: {what}")
             }
             Self::Invalid {
                 wave,
@@ -505,7 +505,7 @@ impl<'a> Interpreter<'a> {
             .ok_or_else(|| EvalError::InvalidConfig("block dimension overflow".into()))?;
         if threads == 0 || threads > 1024 {
             return Err(EvalError::InvalidConfig(
-                "gfx950 workgroup must contain 1..=1024 workitems".into(),
+                "native AMD workgroup must contain 1..=1024 workitems".into(),
             ));
         }
         if config.grid_dim.0 == 0 || config.grid_dim.1 == 0 || config.grid_dim.2 == 0 {
@@ -549,10 +549,15 @@ impl<'a> Interpreter<'a> {
             .value("group_segment_fixed_size", 0)
             .checked_add(config.dynamic_shared_bytes)
             .ok_or_else(|| EvalError::InvalidConfig("LDS size overflow".into()))?;
-        if lds_size > 163840 {
-            return Err(EvalError::InvalidConfig(
-                "requested LDS exceeds gfx950 capacity".into(),
-            ));
+        let architecture = AmdArchitecture::from_targets(&provenance.targets).ok_or_else(|| {
+            EvalError::InvalidConfig("expected one supported native AMD target".into())
+        })?;
+        if lds_size > architecture.lds_capacity() {
+            return Err(EvalError::InvalidConfig(format!(
+                "requested LDS exceeds {} capacity of {} bytes",
+                architecture.name(),
+                architecture.lds_capacity()
+            )));
         }
         for allocation in &config.shared_allocations {
             if allocation
@@ -593,7 +598,7 @@ impl<'a> Interpreter<'a> {
                     "AGPR use requires explicit accum_offset descriptor".into(),
                 )
             })?;
-            if offset < 4 || offset % 4 != 0 || offset > 512 {
+            if offset < 4 || offset % 4 != 0 || offset > 256 {
                 return Err(EvalError::InvalidConfig(
                     "invalid accumulator register offset".into(),
                 ));
@@ -632,7 +637,9 @@ impl<'a> Interpreter<'a> {
             }
         }
         if program.descriptor.flag("wavefront_size32") {
-            return Err(EvalError::InvalidConfig("gfx950 requires wave64".into()));
+            return Err(EvalError::InvalidConfig(
+                "native AMD requires wave64".into(),
+            ));
         }
         if program
             .descriptor
@@ -1016,7 +1023,7 @@ impl<'a> Interpreter<'a> {
             let x = linear % self.config.block_dim.0;
             let y = (linear / self.config.block_dim.0) % self.config.block_dim.1;
             let z = linear / (self.config.block_dim.0 * self.config.block_dim.1);
-            // gfx950 uses the packed-workitem-ID ABI: x in 9:0, enabled y in
+            // gfx942/gfx950 use the packed-workitem-ID ABI: x in 9:0, enabled y in
             // 19:10 and enabled z in 29:20 of v0. v1/v2 are not initialized.
             let packed = x
                 | if dimensions >= 1 { y << 10 } else { 0 }

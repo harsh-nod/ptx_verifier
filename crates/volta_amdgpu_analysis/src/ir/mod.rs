@@ -1,4 +1,4 @@
-//! Lowered native gfx950 program; syntax types remain owned by the frontend.
+//! Lowered native AMD program; syntax types remain owned by the frontend.
 
 pub use crate::frontend::ast::*;
 use std::collections::BTreeMap;

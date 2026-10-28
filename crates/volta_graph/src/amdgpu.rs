@@ -1,7 +1,77 @@
-//! Additive gfx950 trace metadata. AMD checks interpret these records without borrowing
+//! Additive native AMD trace metadata. Checks interpret these records without borrowing
 //! PTX synchronization certificates or treating trace order as memory completion.
 
 use crate::{EventId, ThreadIx};
+
+/// Architectures with an explicitly implemented native graph contract.
+/// Target features remain in `Provenance::targets`; recognizing a target does
+/// not imply that every instruction or execution mode is supported.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum AmdArchitecture {
+    Gfx942,
+    Gfx950,
+}
+
+impl AmdArchitecture {
+    pub fn from_target(target: &str) -> Option<Self> {
+        let mut fields = target.split(':');
+        let architecture = match fields.next()? {
+            "gfx942" => Self::Gfx942,
+            "gfx950" => Self::Gfx950,
+            _ => return None,
+        };
+        let (mut xnack, mut sramecc) = (false, false);
+        for feature in fields {
+            let seen = match feature {
+                "xnack+" | "xnack-" => &mut xnack,
+                "sramecc+" | "sramecc-" => &mut sramecc,
+                _ => return None,
+            };
+            if *seen {
+                return None;
+            }
+            *seen = true;
+        }
+        Some(architecture)
+    }
+
+    pub fn from_targets(targets: &[String]) -> Option<Self> {
+        if targets.len() != 1 {
+            return None;
+        }
+        Self::from_target(&targets[0])
+    }
+
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Gfx942 => "gfx942",
+            Self::Gfx950 => "gfx950",
+        }
+    }
+
+    pub const fn lds_capacity(self) -> u64 {
+        match self {
+            Self::Gfx942 => 65_536,
+            Self::Gfx950 => 163_840,
+        }
+    }
+
+    /// This model's selected MFMA forms, not an exhaustive ISA inventory.
+    /// CDNA4's doubled-K and f8f6f4/scale forms must not become CDNA3
+    /// instructions merely by changing a graph's target string.
+    pub fn supports_matrix(self, kind: AmdMatrixKind) -> bool {
+        self == Self::Gfx950
+            || matches!(
+                kind,
+                AmdMatrixKind::F32_16x16x4
+                    | AmdMatrixKind::F32_32x32x2
+                    | AmdMatrixKind::F16_16x16x16
+                    | AmdMatrixKind::F16_32x32x8
+                    | AmdMatrixKind::Bf16_16x16x16
+                    | AmdMatrixKind::Bf16_32x32x8
+            )
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum AmdCounter {
@@ -186,4 +256,43 @@ pub struct AmdMemoryEffect {
 
 pub fn amd_wave_thread(wave: u32) -> ThreadIx {
     ThreadIx(wave * 64)
+}
+
+#[cfg(test)]
+mod architecture_tests {
+    use super::*;
+
+    #[test]
+    fn targets_retain_architecture_and_reject_conflicting_or_unknown_features() {
+        for (target, expected) in [
+            ("gfx942", Some(AmdArchitecture::Gfx942)),
+            ("gfx942:sramecc+:xnack-", Some(AmdArchitecture::Gfx942)),
+            ("gfx950:xnack+:sramecc-", Some(AmdArchitecture::Gfx950)),
+            ("gfx942:xnack+:xnack-", None),
+            ("gfx942:sramecc+:sramecc+", None),
+            ("gfx942:wave32", None),
+            ("gfx942:", None),
+            ("gfx941", None),
+            ("sm_100a", None),
+        ] {
+            assert_eq!(AmdArchitecture::from_target(target), expected, "{target}");
+        }
+        assert_eq!(AmdArchitecture::from_targets(&[]), None);
+        assert_eq!(
+            AmdArchitecture::from_targets(&["gfx942".into(), "gfx950".into()]),
+            None
+        );
+        assert_eq!(AmdArchitecture::Gfx942.lds_capacity(), 65_536);
+        assert_eq!(AmdArchitecture::Gfx950.lds_capacity(), 163_840);
+        assert!(AmdArchitecture::Gfx942.supports_matrix(AmdMatrixKind::F16_16x16x16));
+        for kind in [
+            AmdMatrixKind::F16_16x16x32,
+            AmdMatrixKind::Bf16_32x32x16,
+            AmdMatrixKind::Fp8_16x16x128,
+            AmdMatrixKind::Fp8Scale_32x32x64,
+        ] {
+            assert!(!AmdArchitecture::Gfx942.supports_matrix(kind));
+            assert!(AmdArchitecture::Gfx950.supports_matrix(kind));
+        }
+    }
 }
