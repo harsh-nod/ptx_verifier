@@ -33,12 +33,12 @@
         "asserted_property": {
           "input_capacity": 1,
           "output_capacity": 1,
-          "written_indices": [
+          "written_elements": 1,
+          "reference": "out[0]=in[0]; producer0 LDS write, consumer64 LDS read; removing S_BARRIER preserves value/footprint but yields typed Shared WriteRead",
+          "written_index_range_inclusive": [
             0,
             0
-          ],
-          "written_elements": 1,
-          "reference": "out[0]=in[0]; producer0 LDS write, consumer64 LDS read; removing S_BARRIER preserves value/footprint but yields typed Shared WriteRead"
+          ]
         },
         "scope": "Exact single-output symbolic communication across independent native wave64s. GLOBAL VM completion, LDS LGKM completion and S_BARRIER replace target copy groups/proxy operations and explicit barrier IDs/counts; no PTX proxy or counted-barrier engine is claimed.",
         "input_name_rule": "Input parameter names may be alpha-renamed in\u2192x; positional array identity, element indices and complete output footprint are checked."
@@ -262,12 +262,12 @@
         "asserted_property": {
           "input_capacity": 1,
           "output_capacity": 1,
-          "written_indices": [
+          "written_elements": 1,
+          "reference": "out[0]=in[0]; producer0 LDS write, consumer64 LDS read; removing S_BARRIER preserves value/footprint but yields typed Shared WriteRead",
+          "written_index_range_inclusive": [
             0,
             0
-          ],
-          "written_elements": 1,
-          "reference": "out[0]=in[0]; producer0 LDS write, consumer64 LDS read; removing S_BARRIER preserves value/footprint but yields typed Shared WriteRead"
+          ]
         },
         "scope": "Exact single-output symbolic communication across independent native wave64s. GLOBAL VM completion, LDS LGKM completion and S_BARRIER replace target copy groups/proxy operations and explicit barrier IDs/counts; no PTX proxy or counted-barrier engine is claimed.",
         "input_name_rule": "Input parameter names may be alpha-renamed in\u2192x; positional array identity, element indices and complete output footprint are checked."
@@ -305,12 +305,12 @@
         "asserted_property": {
           "input_capacity": 1,
           "output_capacity": 1,
-          "written_indices": [
+          "written_elements": 1,
+          "reference": "out[0]=in[0]; producer0 LDS write, consumer64 LDS read; removing S_BARRIER preserves value/footprint but yields typed Shared WriteRead",
+          "written_index_range_inclusive": [
             0,
             0
-          ],
-          "written_elements": 1,
-          "reference": "out[0]=in[0]; producer0 LDS write, consumer64 LDS read; removing S_BARRIER preserves value/footprint but yields typed Shared WriteRead"
+          ]
         },
         "scope": "Exact single-output symbolic communication across independent native wave64s. GLOBAL VM completion, LDS LGKM completion and S_BARRIER replace target copy groups/proxy operations and explicit barrier IDs/counts; no PTX proxy or counted-barrier engine is claimed.",
         "input_name_rule": "Input parameter names may be alpha-renamed in\u2192x; positional array identity, element indices and complete output footprint are checked."
@@ -1029,7 +1029,7 @@
     },
     {
       "path": "tests/gfx950/portable-memory/cases.json",
-      "sha256": "81c575b2933da1d5194028f0a3979511ad588606873c7a19c99f08a922ce9616"
+      "sha256": "cbd7a63cdf35cf2ab2ce1d530467de90836c8592be828ee199d94a1bd301ffa1"
     },
     {
       "path": "tests/gfx950/portable-memory/assembler-provenance.json",
@@ -1107,5 +1107,6 @@
       "path": "tests/gfx950/portable-memory/two_generation_leader_fanout.s",
       "sha256": "9bbc7cc69c171fbd3ce76b30022fa872816efa1fea6550607b0d79d409aadd87"
     }
-  ]
+  ],
+  "coordinator_metadata_correction": "Compressed endpoint pairs explicitly renamed written_index_range_inclusive after the6bc63a5 code review; native instruction/test/baseline/golden bytes are unchanged."
 }

@@ -21,8 +21,9 @@
     "warnings_present": true
   },
   "binary": {
-    "build": "cargo build --release -p volta_cli --features logging",
-    "sha256": "3d2d435e4b557e7ac8a37d80ab4727802fca5c779253dcd4b575df5c5657aee2"
+    "sha256": "3d2d435e4b557e7ac8a37d80ab4727802fca5c779253dcd4b575df5c5657aee2",
+    "logging_feature": false,
+    "artifact_note": "The full workspace test invocation left its default-feature CLI at target/release/volta after the separate logging build. Help confirms absence of --log-level. The replay probes actual capabilities and correctly uses this default artifact. A separate final logging artifact is independently replayed."
   },
   "hardware_scan": "tests/gfx950/evidence/hardware-scan-coordinator-2026-10-27.json",
   "scope": "Complete native scan/memory payload checkpoint. Additional exact counted-barrier handoff and corrected historical hardware launch evidence remain under review; full40 workload replay is running, not claimed complete."

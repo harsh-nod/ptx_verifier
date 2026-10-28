@@ -85,7 +85,10 @@ def main():
                            "timed_out": timed_out,
                            "elapsed_seconds": round(time.monotonic() - start, 3),
                            "resources": usage.read_text() if usage.exists() else None})
-            if process.returncode or timed_out:
+            # CLI codes1/2 carry refuted or incomplete semantic verdicts. Let
+            # the existing harness retain those distinctions; process failures
+            # and timeouts remain errors. A nonzero stage can never pass below.
+            if timed_out or process.returncode not in (0, 1, 2):
                 raise harness.VoltaFailure(
                     f"stage {index} exit={process.returncode} timeout={timed_out}: {stderr[-2000:]}")
             return stdout, stderr
@@ -101,8 +104,10 @@ def main():
         has_logging = "--log-level" in probe.stdout
         harness.cli_has_logging = lambda *_: has_logging
         report = harness.check(variant, full=True, echo=None)
-        accepted = report.outcome in {harness.Outcome.RACE_FREE,
-                                      harness.Outcome.REDUCED_RACE_FREE}
+        accepted = (report.outcome in {harness.Outcome.RACE_FREE,
+                                       harness.Outcome.REDUCED_RACE_FREE}
+                    and all(stage["exit_code"] == 0 and not stage["timed_out"]
+                            for stage in stages))
         result = {"name": variant.name, "revision": args.revision,
                   "binary_sha256": sha(binary), "source": str(variant.path.relative_to(ROOT)),
                   "source_sha256": sha(variant.path),
@@ -126,17 +131,22 @@ def main():
     selected.sort(key=lambda v: (-v.expected_outputs, v.name))
 
     def run_worker(variant):
+        result_file = output / variant.folder / variant.stem / "result.json"
+        # Only this invocation may create the receipt consumed below. Keep
+        # fresh failure receipts without confusing an old success with a run.
+        result_file.unlink(missing_ok=True)
         command = [sys.executable, str(Path(__file__).resolve()), "--binary", str(binary),
                    "--output", str(output), "--revision", args.revision,
                    "--worker", variant.name]
         run = subprocess.run(command, text=True, capture_output=True)
-        result_file = output / variant.folder / variant.stem / "result.json"
-        if run.returncode == 0 and result_file.is_file():
+        if result_file.is_file():
             result = json.loads(result_file.read_text())
         else:
             result = {"name": variant.name, "passed_expected_native_contract": False,
                       "worker_exit": run.returncode, "stderr": run.stderr[-4000:]}
         result["worker_exit"] = run.returncode
+        if run.returncode != 0:
+            result["passed_expected_native_contract"] = False
         return result
 
     results = []

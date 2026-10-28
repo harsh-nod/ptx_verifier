@@ -6329,7 +6329,7 @@
       },
       "covers_full_baseline_shape": true,
       "baseline_tile_mapping": {
-        "kind": "validated-tile-superset-candidate",
+        "kind": "validated-tile-superset",
         "original_tile": {
           "channel_count": 128,
           "spatial_begin": 0,
@@ -6344,7 +6344,7 @@
           "elements": 8192,
           "channel_pitch_elements": 2916
         },
-        "validation": "Coordinator must validate graph, mathematical reference and physical hardware evidence separately; compilation alone does not validate this mapping."
+        "validation": "Coordinator graph/mathematical validation is recorded in tests/gfx950/evidence/full-workloads-a57cdf5.json and physical numerical validation in tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json; current full40 replay remains a separate revision-pinned gate. Compilation alone does not validate the mapping."
       }
     }
   ]
