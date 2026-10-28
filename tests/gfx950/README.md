@@ -9,6 +9,22 @@ are in [issue 1](https://github.com/harsh-nod/ptx_verifier/issues/1).
 successful parser tests, and inconclusive safety results do not close a row.
 Only the coordinator records validated completion after integration testing.
 
+The final corpus has **416 validated entries, 104 explained PTX-only contracts,
+seven inherited baseline limitations, and zero pending entries**. The workload
+receipts prove all 24 supported original computations plus native computations
+and safety negatives for the two original proxy-race workloads. Six originally
+unsupported workload artifacts remain explicit baseline limitations; the seventh
+limitation is the original unsupported half-copysign integration fixture.
+
+`evidence/full-workloads-final-default.json` retains exact commands, binaries,
+source/spec hashes, stdout, resources and the coordinator's current-configuration
+audit for 39 positive native cases: 37 math/spec proofs and two copy/add graph
+and footprint cases. Six of these are explicitly reduced mechanism controls.
+One further configured reduction case remains Unsupported and is never counted
+as a positive proof. Native full16-row softmax has a separate complete replay
+and hardware receipt. All claims remain scoped to the selected workgroup and
+the real-number model.
+
 ```sh
 python3 scripts/gfx950_parity.py check
 python3 scripts/gfx950_parity.py summary --require-complete
@@ -29,7 +45,7 @@ python3 tests/gfx950/replay_workloads.py --binary target/release/volta \
   --output /tmp/gfx950-replay --revision "$(git rev-parse HEAD)" --jobs 3
 ```
 
-The strict completeness check intentionally fails while work remains. The
+The strict completeness check requires zero pending entries. The
 native workload manifest includes copy/add, portable FP16/FP8, full-size GEMM,
 convolution and attention-family cases, alongside matrix/ID and ABI controls.
 Reduced cases are explicitly labeled and do not replace full baseline shapes.
@@ -102,3 +118,26 @@ cases pass when rerun with a larger memory envelope, as recorded separately in
 `evidence/baseline-workloads-large-memory.json`. These are required positive
 parity cases. Their earlier resource failures are not an unsupported-feature
 exception.
+
+## Artifact scale measurements
+
+The public native-analysis example reports candidate graph events, memory
+accesses, expression nodes, output counts, and separate parse/analysis times:
+
+```sh
+cargo build --release -p volta_amdgpu_analysis --example artifact_stats
+/usr/bin/time -v target/release/examples/artifact_stats \
+  crates/volta_amdgpu_analysis/src/frontend/fixtures/full-gemm-cases.json \
+  gemm_f16_full
+```
+
+It consumes an existing case manifest and calls the same analysis API. It does
+not perform graph checks or equivalence, and reports `verification_performed:
+false`. Workload proof receipts separately retain graph/spec time, process
+limits and peak resident memory. `scale-cases.json` supplies the existing
+128-input, two-wave compiler reduction configuration for a small reduction
+measurement; it adds no original workload or parity disposition.
+`evidence/artifact-scale-final.json` records measurements for elementwise,
+reduction, full GEMM and full attention. Expression-node counts include the
+whole allocated arena, including nodes unreachable from outputs; memory-access
+counts are graph records, not bytes or distinct addresses.
