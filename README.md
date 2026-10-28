@@ -1,8 +1,10 @@
+<h1 align="center">GPU Kernel Verifier</h1>
+
 <p align="center">
-  <img src="volta-logo.png" alt="Volta Blackwell logo" width="400">
+  <img src="gpu-kernel-verifier.png" alt="GPU Kernel Verifier: NVIDIA PTX and AMD gfx950" width="560">
 </p>
 
-Volta Blackwell checks NVIDIA PTX and native AMD gfx942/gfx950 assembly for data races and deadlocks, and checks a kernel for equivalence to a reference kernel or a math spec (floats are modeled as reals). This is an experimental fork of [Volta](https://github.com/willtunnels/volta).
+GPU Kernel Verifier checks NVIDIA PTX and native AMD gfx942/gfx950 assembly for data races and deadlocks, and checks a kernel for equivalence to a reference kernel or a math spec (floats are modeled as reals). This is an experimental fork of [Volta](https://github.com/willtunnels/volta). The CLI and Python package retain the `volta` name for compatibility.
 
 > [!CAUTION]
 > **This project is not intended to be a sound verifier, and we do not claim that it is a formal verifier. It is a best-effort verifier for catching bugs in generated kernels; a successful check does not guarantee correctness.**
@@ -241,7 +243,7 @@ volta viz <run-store> -o page.html
 ```
 
 <p align="center">
-  <img src="volta-viz.png" alt="The Volta Blackwell event-graph viewer showing warp 1's reads racing a bulk async copy">
+  <img src="volta-viz.png" alt="The GPU Kernel Verifier event-graph viewer showing warp 1's reads racing a bulk async copy">
   <br>
   <sub>Warp 1's reads race a <code>cp.async.bulk</code> copy that a <code>bar.sync</code> does not order.</sub>
 </p>
