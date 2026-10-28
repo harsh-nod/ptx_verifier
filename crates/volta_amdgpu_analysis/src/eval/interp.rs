@@ -2999,7 +2999,12 @@ impl<'a> Interpreter<'a> {
                         }
                         float_unary(&mut self.arena, FloatUnOp::Rcp, a)
                     }
-                    "v_sqrt_f64" => float_unary(&mut self.arena, FloatUnOp::Sqrt, a),
+                    "v_sqrt_f64" => {
+                        if self.concrete_sign(a) == Some(std::cmp::Ordering::Less) {
+                            return Err(EvalError::Unsupported{pc:wave.pc,what:"negative concrete square root is undefined under the real-arithmetic contract".into()});
+                        }
+                        float_unary(&mut self.arena, FloatUnOp::Sqrt, a)
+                    }
                     _ => {
                         let b = self.real64(wave, &o[2], lane)?;
                         match name {
@@ -3560,6 +3565,22 @@ impl<'a> Interpreter<'a> {
                     if matches!(name, "v_rcp_f32" | "v_rsq_f32") && self.concrete_zero(a) {
                         return Err(EvalError::Unsupported{pc:wave.pc,what:"concrete zero reciprocal/rsqrt is undefined under the real-arithmetic contract".into()});
                     }
+                    let sign = self.concrete_sign(a);
+                    if (matches!(name, "v_sqrt_f32" | "v_rsq_f32")
+                        && sign == Some(std::cmp::Ordering::Less))
+                        || (name == "v_log_f32"
+                            && matches!(
+                                sign,
+                                Some(std::cmp::Ordering::Less | std::cmp::Ordering::Equal)
+                            ))
+                    {
+                        return Err(EvalError::Unsupported {
+                            pc: wave.pc,
+                            what: format!(
+                                "concrete operand outside {name} domain is undefined under the real-arithmetic contract"
+                            ),
+                        });
+                    }
                     let result = match name {
                         "v_rcp_f32" => self.arena.rcp(a),
                         "v_sqrt_f32" => self.arena.sqrt(a),
@@ -3786,6 +3807,13 @@ impl<'a> Interpreter<'a> {
             ExprNode::IntConst(0) => true,
             ExprNode::RealConst(value) => value.is_zero(),
             _ => false,
+        }
+    }
+    fn concrete_sign(&self, value: ExprId) -> Option<std::cmp::Ordering> {
+        match self.arena.node(value) {
+            ExprNode::IntConst(value) => Some(value.cmp(&0)),
+            ExprNode::RealConst(value) => Some(value.cmp(&volta_expr::Real::from_i64(0))),
+            _ => None,
         }
     }
     fn wait(&mut self, wave: &Wave, instruction: &Instruction) -> Result<(), EvalError> {

@@ -98,3 +98,72 @@ fn nonzero_f32_f64_reciprocals_and_rsqrt_keep_exact_real_expressions() {
         check_output_equivalence(&actual, &expected, &["out".into(), "wide".into()]).unwrap();
     assert!(matches!(result, EquivOutcome::Equivalent), "{result:?}");
 }
+
+#[test]
+fn zero_times_concrete_invalid_sqrt_rsqrt_and_log_never_hides_the_domain_error() {
+    for (source, width) in [
+        (
+            include_str!("../../../tests/gfx950/portable-data/negative_sqrt_f32.s"),
+            4,
+        ),
+        (
+            include_str!("../../../tests/gfx950/portable-data/negative_rsqrt_f32.s"),
+            4,
+        ),
+        (
+            include_str!("../../../tests/gfx950/portable-data/nonpositive_log_f32.s"),
+            4,
+        ),
+        (
+            include_str!("../../../tests/gfx950/portable-data/negative_log_f32.s"),
+            4,
+        ),
+        (
+            include_str!("../../../tests/gfx950/portable-data/negative_sqrt_f64.s"),
+            8,
+        ),
+    ] {
+        let module = frontend::parse(source).unwrap();
+        let checked = gfx950_common::check(source, &module, Some("k"), config(width, 1)).unwrap();
+        let error = checked.analysis.symbolic_outputs().unwrap_err().to_string();
+        assert!(error.contains("undefined"), "{error}");
+        assert!(matches!(
+            checked.checks.conclusion(),
+            GraphConclusion::Unknown { .. }
+        ));
+    }
+}
+
+#[test]
+fn valid_sqrt_rsqrt_and_log_use_the_existing_exact_function_fragment() {
+    let source = include_str!("../../../tests/gfx950/portable-data/valid_math_domains.s");
+    let module = frontend::parse(source).unwrap();
+    let checked = gfx950_common::check(source, &module, Some("k"), config(4, 3)).unwrap();
+    assert_eq!(
+        checked.checks.conclusion(),
+        GraphConclusion::Verified,
+        "{:#?}",
+        checked.checks
+    );
+    let actual = checked.analysis.into_parts().outputs.unwrap();
+    let mut arena = ExprArena::new();
+    let four = arena.float_from_f64(4.0).unwrap();
+    let root = arena.sqrt(four);
+    let inverse_root = arena.rcp(root);
+    let one = arena.float_from_f64(1.0).unwrap();
+    let logarithm = arena.log(one);
+    let log2_e = arena
+        .float_from_f64(std::f32::consts::LOG2_E as f64)
+        .unwrap();
+    let ln2 = arena.rcp(log2_e);
+    let logarithm = arena.div(logarithm, ln2);
+    let expected = SymbolicOutputs {
+        arena,
+        outputs: vec![(
+            "out".into(),
+            vec![(0, root), (1, inverse_root), (2, logarithm)],
+        )],
+    };
+    let result = check_output_equivalence(&actual, &expected, &["out".into()]).unwrap();
+    assert!(matches!(result, EquivOutcome::Equivalent), "{result:?}");
+}

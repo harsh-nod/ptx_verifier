@@ -1,0 +1,343 @@
+{
+  "schema": 1,
+  "scope": "28 actual baseline row obligations; source-stage and target-specific differences are explicit. No issue completion claims.",
+  "model": "Existing mathematical real arithmetic, symbolic32 ring operations and typed bit-node boundaries; single gfx950 wave64 workgroup, no IEEE rounding claim.",
+  "entries": [
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/e4m3x2_rejects_the_concrete_nan_byte_pattern.ptx",
+      "baseline_sha256": "facf94c374122d2649a80ec4ca722b75bae8fb81a3df90d62cb26b176e813521",
+      "property_groups": [
+        "fp8-half-packing-and-independent-elements"
+      ],
+      "native_source": "tests/gfx950/portable-data/fp8_nan_pair.s",
+      "native_source_sha256": "2d48d59fda29225f185c8785fb082c9dcd38f4c154580f9397cedc7356d25828",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::concrete_fp8_pairs_decode_low_high_and_relu_independently",
+      "scope_note": "Concrete0x7f byte is rejected by actual OCP E4M3 decoder.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/float_op_rejects_nan_bit_pattern.ptx",
+      "baseline_sha256": "2b0c07396e3210c6f73e16a8058686175c57df74e71b01222c6802c22f9b67b7",
+      "property_groups": [
+        "non-real-arithmetic-rejection"
+      ],
+      "native_source": "tests/gfx950/portable-data/f32_nan_bits.s",
+      "native_source_sha256": "4cc116b1be20db2a7239d20a5807bfd78b70769b8921e629966d709d54adb604",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::nonreal_literals_raw_bits_parameters_and_zero_division_have_no_positive_result",
+      "scope_note": "Runtime rejects raw NaN bits at actual floating arithmetic consumer.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/nan_float_param_rejected.ptx",
+      "baseline_sha256": "8c7b07bb6156d52cf6d745c0da9370d64ee53a697226b091ba92c47e8ccaae14",
+      "property_groups": [
+        "non-real-arithmetic-rejection"
+      ],
+      "native_source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-mixed-byvalue.s",
+      "native_source_sha256": "72a7cea82b970a8e181f000d9de99cab9b9479a75d87e15e48b082d5f01c9014",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::nonreal_literals_raw_bits_parameters_and_zero_division_have_no_positive_result",
+      "scope_note": "Genuine six-argument ABI configured with NaN alpha rejects configuration before execution.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/nan_literal_rejected_at_lowering.ptx",
+      "baseline_sha256": "1a9254977f3cb63a294a43282853b66c933385a905a1fc8ac4cd865a7c978b7d",
+      "property_groups": [
+        "non-real-arithmetic-rejection"
+      ],
+      "native_source": "tests/gfx950/portable-data/f32_nan_literal.s",
+      "native_source_sha256": "cba8919e755037673ba940712261b3100bd1b6ffa80d9e8ea3403af6d506a493",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::nonreal_literals_raw_bits_parameters_and_zero_division_have_no_positive_result",
+      "scope_note": "Native raw literal encoding is legal assembly; typed floating consumer rejects NaN. Target stage differs from PTX lowering.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/symbolic_branch_rejected.ptx",
+      "baseline_sha256": "1c7c05d366ba42c1b3dc93cd86038c2fd0fdb832310f303b9a38841cb68b97e0",
+      "property_groups": [
+        "explicit-model-boundaries"
+      ],
+      "native_source": "tests/gfx950/portable-data/symbolic_branch.s",
+      "native_source_sha256": "4ba82c6de6cefee7a8399c755d1fa322af0d27361fe3c61963d26337ffe3b346",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_branches_and_observable_narrow_scalar_bitcasts_remain_closed",
+      "scope_note": "Symbolic comparison mask cannot select native scalar control flow.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/symbolic_integer_div_is_unsupported.ptx",
+      "baseline_sha256": "f8ee9759dd03eff3241160a54eb4e16e739b8f36771840be149e13049f355ec3",
+      "property_groups": [
+        "explicit-model-boundaries"
+      ],
+      "native_source": "tests/gfx950/portable-data/integer_floor_doubled.s",
+      "native_source_sha256": "f39dc021d812de931710dd4766983a0563b53baac42022ce26e43dbd9c45c288",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_integer_floor_does_not_become_rational_division_or_roundtrip_identity",
+      "scope_note": "Native divide-by-two is exactly represented by masked integer shifts. Symbolic roundtrip is not proved identity; IndexInput values0..7 independently demonstrate truncation and counterexample1->0. This supports more native arithmetic than PTX symbolic div.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/symbolic_sub_register_load_rejected.ptx",
+      "baseline_sha256": "e4fb2c0658e3f9b916999957beb1c481102116016db2f2fd39762231e10bd912",
+      "property_groups": [
+        "explicit-model-boundaries"
+      ],
+      "native_source": "tests/gfx950/portable-data/signed_byte_extension.s",
+      "native_source_sha256": "1b6e1d2313b7c663205997609b0cc34cf17a2577ea3c90e68d2cc6dcaef01461",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_sign_extended_byte_load_is_numeric_and_cannot_be_reinterpreted_as_fp8",
+      "scope_note": "AMD GLOBAL_LOAD_SBYTE explicitly sign-extends. Numeric I8 input identity is supported, and conflicting FP8 reinterpretation is rejected; differs from PTX unsupported narrow-load model.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/symbolic_sub_register_store_rejected.ptx",
+      "baseline_sha256": "791b66dbaf5485075d11bac5dad1bdd80b51dea45c2943fe8b3396968242cc73",
+      "property_groups": [
+        "explicit-model-boundaries"
+      ],
+      "native_source": "tests/gfx950/portable-data/symbolic_narrow_store.s",
+      "native_source_sha256": "4a8b0affd9d5c4315d67ff4467af78b956aa2dcd2435d03144a50f223c53b681",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_branches_and_observable_narrow_scalar_bitcasts_remain_closed",
+      "scope_note": "An arbitrary symbolic32 word cannot silently truncate to a byte.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/zero_over_zero_is_a_loud_equivalence_error.ptx",
+      "baseline_sha256": "72d6e14d863fc4865e25c0031bdf0377a74cd3646fcb9a88fb570d4f7999154d",
+      "property_groups": [
+        "non-real-arithmetic-rejection"
+      ],
+      "native_source": "tests/gfx950/portable-data/zero_rcp_f32.s",
+      "native_source_sha256": "bc83770fdaa26e3c3503549afb1c93ec12982fe39a94e4f961fc7d7a14aa84a8",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::nonreal_literals_raw_bits_parameters_and_zero_division_have_no_positive_result",
+      "scope_note": "Native divide counterpart0*rcp0 rejects at concrete reciprocal; it cannot simplify to zero. Stage differs from direct PTX division.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/redux_predicate_side_effect_race.ptx",
+      "baseline_sha256": "b131a2f052b02faa73355ca8be06303649b54f1cc64566a0819b91d36adc2e42",
+      "property_groups": [
+        "unsupported-idioms-cannot-drop-predicate-side-effects"
+      ],
+      "native_source": "tests/gfx950/portable-data/predicate_permute_side_effect_race.s",
+      "native_source_sha256": "4f76b0453286fdbc1ea6718fd6447d09e9c1e86de390a7c633336a775f01839a",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_predicate_permute_idiom_retains_the_same_value_shared_write_race",
+      "scope_note": "Supported native DS permutation plus predicate-controlled two-wave writes retain same-value LDS WriteWrite conflict. PTX redux opcode is not claimed; portable no-dropped-side-effects property is tested.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.ptx",
+      "baseline_sha256": "904915bd3fcf5cbc221490fcbae91a0fbc2f4c28e048a752b952b918bd7ad549",
+      "property_groups": [
+        "fp8-half-packing-and-independent-elements"
+      ],
+      "native_source": "tests/gfx950/portable-scalar/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.s",
+      "native_source_sha256": "d3fa955e4f4581ff120063c9b1446072c9fec5b791f22f1c26c940ad3b152d8a",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_fp8_bytes_survive_vector_pair_and_native_low16_truncation",
+      "scope_note": "Reuses independently assembled native16-bit global/LDS byte-pair transport.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvt_pack_halves_values.ptx",
+      "baseline_sha256": "da22611303840aa029831ec3f8c3d68d5d5121d32c96388c2ead307cfb6f927e",
+      "property_groups": [
+        "fp8-half-packing-and-independent-elements"
+      ],
+      "native_source": "tests/gfx950/portable-data/pack_halves_order.s",
+      "native_source_sha256": "2c41392b04a83d03f5acee48bdc1f996ca7b743bca5e71b6a6f3f1ed4e137bd9",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_half_packing_order_and_relu_have_independent_typed_references",
+      "scope_note": "AMD packed conversion stores SRC0 low and SRC1 high; source operands preserve baseline output order2.5,1.5.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvt_relu_symbolic_is_max.ptx",
+      "baseline_sha256": "a5e6dae51c93d336b25e2b055ad78509a1c867e9af7641c2f0e4d9fc1f72e37c",
+      "property_groups": [
+        "fp8-half-packing-and-independent-elements"
+      ],
+      "native_source": "tests/gfx950/portable-data/relu_half_identity.s",
+      "native_source_sha256": "4efecc4a926abc3fa015956a3ca10ea124e0ea19cc2c563eafae8d987a0753bd",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_half_packing_order_and_relu_have_independent_typed_references",
+      "scope_note": "Native max plus F16 conversion implements the same mathematical max(x,0), preserving symbolic identity.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_decodes_a_concrete_scalar_bit_pattern.ptx",
+      "baseline_sha256": "d012832ec82eca8c92f48090edd5959c3514238f428278beeece89a1ffb7f1eb",
+      "property_groups": [
+        "fp8-half-packing-and-independent-elements"
+      ],
+      "native_source": "tests/gfx950/portable-matrix/e4m3_concrete_pair.s",
+      "native_source_sha256": "f5ed55a4c8b2128cafe86dd52c0bf1d30c73d54390e1a8255af7e9c17fb3e40a",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::concrete_fp8_pairs_decode_low_high_and_relu_independently",
+      "scope_note": "Reuses exact native packed FP8 decoder;0xb838 produces +1,-1.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_low_half_extracted_via_cvt_u16_u32_truncation_of_a_quad.ptx",
+      "baseline_sha256": "0762344ccdf0869a59e6825b08a1f42c98b635a62af5e4c7acf9f4ea4869d723",
+      "property_groups": [
+        "fp8-half-packing-and-independent-elements"
+      ],
+      "native_source": "tests/gfx950/portable-data/fp8_truncate_quad.s",
+      "native_source_sha256": "f865f3e5d0f28ea9cc7223a0c9a20f9109f4709d887cdb0a6343def58b01689e",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_fp8_bytes_survive_vector_pair_and_native_low16_truncation",
+      "scope_note": "Native16-bit LDS stores retain bytes0/1, then bytes2/3; selecting each pair low byte yields x0,x2.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_relu_clamps_a_negative_decoded_lane_to_zero.ptx",
+      "baseline_sha256": "3a391d0e2e65fe61cb45502d99f5ad303a18eb8e4028e8c670600bc683ae3d5c",
+      "property_groups": [
+        "fp8-half-packing-and-independent-elements"
+      ],
+      "native_source": "tests/gfx950/portable-matrix/e4m3_concrete_pair_relu.s",
+      "native_source_sha256": "0ab9c5d1719f9c8c4aa390da1f9e0fb314eb1bb6e140d6bdb8a34c2ecd06b348",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::concrete_fp8_pairs_decode_low_high_and_relu_independently",
+      "scope_note": "Same actual packed decoder plus native maximum clamps only negative lane.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_scalar_source_from_a_zero_extended_byte_load.ptx",
+      "baseline_sha256": "231351fdc0c0531a9d83408c00e6291d70e72553e4e594827af92434c48d67e1",
+      "property_groups": [
+        "fp8-half-packing-and-independent-elements"
+      ],
+      "native_source": "tests/gfx950/portable-data/fp8_scalar_byte.s",
+      "native_source_sha256": "afe29fb57a2243b502e8bad3fdbe985d1073995e2ce93123ce00ea4218202fc1",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_fp8_bytes_survive_vector_pair_and_native_low16_truncation",
+      "scope_note": "GLOBAL_LOAD_UBYTE initializes all upper register bits to zero on AMD; only the real low element is compared.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_vector_load_keeps_four_symbolic_bytes_independent.ptx",
+      "baseline_sha256": "1c31b2fa0d12e82ee27c31f91a64d5eedb4ac0b79698884c1c9fd4b93f38f8af",
+      "property_groups": [
+        "fp8-half-packing-and-independent-elements"
+      ],
+      "native_source": "tests/gfx950/portable-matrix/e4m3_vector_bytes.s",
+      "native_source_sha256": "c6a4db7de09d6802b5be6bac2a02231ee3aae618fa4911857d2e9f61a461dc93",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_fp8_bytes_survive_vector_pair_and_native_low16_truncation",
+      "scope_note": "Reuses two real packed native FP8 conversions and shift16; all four independent symbolic identities are checked.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_add_s32_neg1.ptx",
+      "baseline_sha256": "a0c9c46ec386fb489ee68389bae02ebf5942ce0d22c87444d5dd415f3579f2a6",
+      "property_groups": [
+        "symbolic-integer-data-ring-constants"
+      ],
+      "native_source": "tests/gfx950/portable-data/ring_add_s32_neg1.s",
+      "native_source_sha256": "d8eda2e5b9549df43baafe5bc7de1e857547da40d357b5fb2c074e0845dfa20a",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
+      "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_add_u32_neg1.ptx",
+      "baseline_sha256": "f30240414dc9cc0d765f0a4ce13d89e311da046ed5e1ec1e959f2a6c62db26e3",
+      "property_groups": [
+        "symbolic-integer-data-ring-constants"
+      ],
+      "native_source": "tests/gfx950/portable-data/ring_add_u32_neg1.s",
+      "native_source_sha256": "d8eda2e5b9549df43baafe5bc7de1e857547da40d357b5fb2c074e0845dfa20a",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
+      "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_mul_lo_s32_neg3.ptx",
+      "baseline_sha256": "100f71b1103325a835a7491cda81fc3211c81ac4998b70043746ad77cd15b4a3",
+      "property_groups": [
+        "symbolic-integer-data-ring-constants"
+      ],
+      "native_source": "tests/gfx950/portable-data/ring_mul_lo_s32_neg3.s",
+      "native_source_sha256": "163596976b17cd80b19aef96c43c3f055ce001713b7d740f1d73ca91a9e7ce2a",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
+      "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_mul_lo_u32_neg3.ptx",
+      "baseline_sha256": "55ad0dadbc15471add500f03d8d8fe2401cee69af7f80f0221844f4cad4735ce",
+      "property_groups": [
+        "symbolic-integer-data-ring-constants"
+      ],
+      "native_source": "tests/gfx950/portable-data/ring_mul_lo_u32_neg3.s",
+      "native_source_sha256": "9fd4eb4cac09e39642fde365b8cc25f9ade24958f8f0e52c05047b7d7c4bab5d",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
+      "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_sub_s32_neg7.ptx",
+      "baseline_sha256": "17982d3b9761572c1be2a2bf927a19b794e1b58e85fc50a76b5db05f3cce0197",
+      "property_groups": [
+        "symbolic-integer-data-ring-constants"
+      ],
+      "native_source": "tests/gfx950/portable-data/ring_sub_s32_neg7.s",
+      "native_source_sha256": "95654b77637b8fba0a423366f2b03167365fcce3324dd26f0d9f56ae057f3628",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
+      "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_sub_u32_1.ptx",
+      "baseline_sha256": "c0e0aab083fc6b3e1a450f4c457aad800ebb776bd11c8fc2f38ab81d7cacca56",
+      "property_groups": [
+        "symbolic-integer-data-ring-constants"
+      ],
+      "native_source": "tests/gfx950/portable-data/ring_sub_u32_1.s",
+      "native_source_sha256": "3bb0927031aec055d3d2b292cbb283e9d4ac099e8ec8c97e5d92d2626a210953",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
+      "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_sub_u32_neg7.ptx",
+      "baseline_sha256": "f60371450a8fed7415dc5fb799fab026c0311930c4561a006d625a31941f1d93",
+      "property_groups": [
+        "symbolic-integer-data-ring-constants"
+      ],
+      "native_source": "tests/gfx950/portable-data/ring_sub_u32_neg7.s",
+      "native_source_sha256": "95654b77637b8fba0a423366f2b03167365fcce3324dd26f0d9f56ae057f3628",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
+      "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/setp_selp_canonicalize_operands.ptx",
+      "baseline_sha256": "7921b4d2c4bc1f1553faf23ce15a3f0bda4386338c8ca826d049837f3bac101a",
+      "property_groups": [
+        "symbolic-select-canonicalization"
+      ],
+      "native_source": "tests/gfx950/portable-data/select_signed_minus_one.s",
+      "native_source_sha256": "a6b0455dff499bcbf7b00cdd612348697bbf66db67928b7c9724457d8accd9a8",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::both_symbolic_setp_selp_rows_canonicalize_signed_minus_one_and_complement",
+      "scope_note": "Signed comparison of symbolic integer to-1 and unsigned32 full-bit select arm.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/setp_selp_canonicalize_operands_2.ptx",
+      "baseline_sha256": "29eda948b5dd997bce867751565f7100ed94122cffd9a76ab0a8e90cd09c27f1",
+      "property_groups": [
+        "symbolic-select-canonicalization"
+      ],
+      "native_source": "tests/gfx950/portable-data/select_computed_complement.s",
+      "native_source_sha256": "28f5591f59bb39e15f3f0bd8775d24ed307561bb4b82e616d7a442426d342abb",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::both_symbolic_setp_selp_rows_canonicalize_signed_minus_one_and_complement",
+      "scope_note": "Computed complement0xffffffff has same signed comparison and unsigned select-arm interpretation.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/symbolic_integer_div_is_unsupported_concrete.ptx",
+      "baseline_sha256": "857d666a6de3457620f75387c111596ce1b5c334d409c0b2580ab897d6275654",
+      "property_groups": [
+        "explicit-model-boundaries"
+      ],
+      "native_source": "tests/gfx950/portable-data/concrete_integer_division.s",
+      "native_source_sha256": "91272d823378c564f98d249fc23826c09c838e253f32b1e1d39fad2d4732c9e7",
+      "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_integer_floor_does_not_become_rational_division_or_roundtrip_identity",
+      "scope_note": "Native exact constant shift implements unsigned7/2=3; no blanket unsupported disposition.",
+      "validation": "candidate locally passed; coordinator independently validates integration and alone updates issue/parity status"
+    }
+  ]
+}

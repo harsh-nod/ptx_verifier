@@ -832,6 +832,16 @@ pub(super) fn parse_instruction(text: &str, span: SourceSpan) -> Result<Instruct
         ));
     }
     validate_registers(mnemonic, opcode, &operands, &modifiers).map_err(&fail)?;
+    validate_vop_literal_positions(mnemonic, &operands, &modifiers).map_err(&fail)?;
+    if ["v_cvt_f32_fp8_sdwa", "v_cvt_f32_bf8_sdwa"].contains(&mnemonic)
+        && modifiers
+            .iter()
+            .any(|modifier| matches!(modifier.name.as_str(), "dst_sel" | "dst_unused"))
+    {
+        return Err(fail(
+            "FP8/BF8-to-F32 SDWA conversion has no destination selector fields".into(),
+        ));
+    }
     if mnemonic == "v_bitop3_b32"
         && (modifiers.len() != 1
             || modifiers[0].name != "bitop3"
@@ -1347,6 +1357,97 @@ fn validate_registers(
             }
         }
         _ => {}
+    }
+    Ok(())
+}
+
+/// Pinned gfx950 binary forms: VOP2 can encode one literal in SRC0; VOP3
+/// has inline constants but no literal word. Bare aliases select VOP3 when
+/// their second source or modifiers require it. Other instruction families
+/// retain their separate encoding profiles rather than inheriting this rule.
+fn validate_vop_literal_positions(
+    mnemonic: &str,
+    operands: &[Operand],
+    modifiers: &[Modifier],
+) -> Result<(), String> {
+    let explicit32 = mnemonic.ends_with("_e32");
+    let explicit64 = mnemonic.ends_with("_e64");
+    let stem = mnemonic
+        .strip_suffix("_e32")
+        .or_else(|| mnemonic.strip_suffix("_e64"))
+        .unwrap_or(mnemonic);
+    if ![
+        "v_add_u32",
+        "v_sub_u32",
+        "v_subrev_u32",
+        "v_add_f32",
+        "v_sub_f32",
+        "v_mul_f32",
+        "v_and_b32",
+        "v_or_b32",
+        "v_xor_b32",
+        "v_lshlrev_b32",
+        "v_lshrrev_b32",
+        "v_ashrrev_i32",
+        "v_mul_lo_u32",
+    ]
+    .contains(&stem)
+    {
+        return Ok(());
+    }
+    fn inline(bits: u32) -> bool {
+        bits <= 64
+            || bits >= (-16_i32) as u32
+            || [
+                0x3f00_0000,
+                0xbf00_0000,
+                0x3f80_0000,
+                0xbf80_0000,
+                0x4000_0000,
+                0xc000_0000,
+                0x4080_0000,
+                0xc080_0000,
+                0x3e22_f983,
+            ]
+            .contains(&bits)
+    }
+    fn literal(operand: &Operand) -> Result<bool, String> {
+        match operand {
+            Operand::Integer(value) => {
+                if !(i32::MIN as i64..=u32::MAX as i64).contains(value) {
+                    return Err("native 32-bit literal is outside its encoded range".into());
+                }
+                Ok(!inline(*value as u32))
+            }
+            Operand::Float(value) => Ok(!inline((*value as f32).to_bits())),
+            Operand::Modified { value, .. } => literal(value),
+            _ => Ok(false),
+        }
+    }
+    let src1_vgpr = matches!(
+        operands.get(2),
+        Some(Operand::Register(Register {
+            class: RegisterClass::Vector,
+            count: 1,
+            ..
+        }))
+    );
+    if explicit32 && (stem == "v_mul_lo_u32" || !src1_vgpr) {
+        return Err("native e32 form requires an encoded VOP2 and VGPR SRC1".into());
+    }
+    let vop3 = explicit64
+        || stem == "v_mul_lo_u32"
+        || !src1_vgpr
+        || !modifiers.is_empty()
+        || operands
+            .iter()
+            .any(|operand| matches!(operand, Operand::Modified { .. }));
+    for (index, operand) in operands.iter().enumerate().skip(1) {
+        if literal(operand)? && (vop3 || index != 1) {
+            return Err(
+                "gfx950 VOP3 has no literal word; materialize this source in a VGPR".into(),
+            );
+        }
     }
     Ok(())
 }

@@ -8,7 +8,8 @@ use volta_amdgpu_analysis::{
     AnalysisConfig, ArrayDef, ArrayKind, EvalError, OutputsUnavailable, ParamValue,
     SharedAllocation, frontend,
 };
-use volta_expr::ExprNode;
+use volta_equivalence::{EquivOutcome, check_output_equivalence};
+use volta_expr::{ExprArena, ExprId, ExprNode, SymbolicOutputs};
 use volta_graph::{Space, Terminal};
 use volta_graph_check::amdgpu::AmdRegisterHazardKind;
 use volta_graph_check::domain::ConflictKind;
@@ -122,6 +123,22 @@ fn assert_input_permutation(run: &Run, block: u32, partner: impl Fn(u64) -> u64)
             "out[{index}]: {node:?}"
         );
     }
+}
+
+fn assert_single_symbolic_output(run: &Run, reference: impl FnOnce(&mut ExprArena) -> ExprId) {
+    let actual = run.analysis.symbolic_outputs().unwrap();
+    assert_eq!(actual.outputs.len(), 1, "complete output array footprint");
+    assert_eq!(actual.outputs[0].0, "out");
+    assert_eq!(actual.outputs[0].1.len(), 1, "complete output footprint");
+    assert_eq!(actual.outputs[0].1[0].0, 0);
+    let mut arena = ExprArena::new();
+    let value = reference(&mut arena);
+    let expected = SymbolicOutputs {
+        arena,
+        outputs: vec![("out".into(), vec![(0, value)])],
+    };
+    let outcome = check_output_equivalence(actual, &expected, &["out".into()]).unwrap();
+    assert!(matches!(outcome, EquivOutcome::Equivalent), "{outcome:?}");
 }
 
 fn assert_readiness(run: &Run, expected: AmdRegisterHazardKind) {
@@ -305,6 +322,69 @@ fn scalar_barrier_participation_is_independent_of_empty_exec() {
             arrivals[1],
             (1, if empty_wave.is_empty() { 0 } else { u64::MAX })
         );
+    }
+}
+
+#[test]
+fn repeated_partial_and_empty_exec_barriers_preserve_the_original_symbolic_payload() {
+    // PTX's lone-lane counted arrival is replaced by native scalar S_BARRIER:
+    // every launched wave participates, including partial waves with EXEC=0.
+    // Preserve the baseline's full output ((x[0]+x[1])*x[2])-x[0].
+    let body = r#"
+v_mov_b32 v11, 0
+v_cmp_eq_u32 vcc, v0, 0
+s_and_saveexec_b64 s[8:9], vcc
+global_load_dword v8, v11, s[4:5]
+global_load_dword v9, v11, s[4:5] offset:4
+s_waitcnt vmcnt(0)
+s_barrier
+global_load_dword v12, v11, s[4:5] offset:8
+s_waitcnt vmcnt(0)
+v_add_f32 v10, v8, v9
+s_mov_b64 s[10:11], exec
+s_mov_b64 exec, 0
+s_barrier
+s_mov_b64 exec, s[10:11]
+v_mul_f32 v10, v10, v12
+v_sub_f32 v10, v10, v8
+s_barrier
+global_store_dword v11, v10, s[6:7]
+"#;
+    for block in [1, 63, 64, 65, 96, 128] {
+        let mut cfg = config(block, 3);
+        cfg.arrays[1].len = 1;
+        let result = run_config(body, 0, cfg);
+        assert_verified(&result);
+        assert_single_symbolic_output(&result, |arena| {
+            let x = arena.intern_string("x");
+            let a = arena.input_element(x, 0);
+            let b = arena.input_element(x, 1);
+            let c = arena.input_element(x, 2);
+            let sum = arena.add(a, b);
+            let product = arena.mul(sum, c);
+            arena.sub(product, a)
+        });
+        match &result.checks.amd.as_ref().unwrap().barrier {
+            PropertyResult::Pass(evidence) => {
+                assert_eq!(evidence.generations, 3);
+                assert_eq!(evidence.arrivals, 3 * block.div_ceil(64) as usize);
+            }
+            other => panic!("{other:?}"),
+        }
+        for event in result.analysis.graph.amd_events() {
+            if let volta_graph::AmdEventKind::BarrierArrive {
+                generation,
+                exec_mask,
+            } = event.kind
+            {
+                let expected = u64::from(event.wave == 0 && generation != 1);
+                assert_eq!(
+                    exec_mask, expected,
+                    "wave {} generation {generation}",
+                    event.wave
+                );
+            }
+        }
     }
 }
 
@@ -814,6 +894,50 @@ s_waitcnt lgkmcnt(0)
 s_mov_b64 exec, s[8:9]
 "#;
     assert_verified(&run(ordered_same_address, 4, 128));
+}
+
+#[test]
+fn equal_symbolic_writes_need_a_barrier_and_preserve_the_doubled_input() {
+    let body = r#"
+v_mov_b32 v11, 0
+global_load_dword v8, v11, s[4:5]
+s_waitcnt vmcnt(0)
+v_mul_f32 v8, 2.0, v8
+v_cmp_eq_u32 vcc, v0, 0
+s_and_saveexec_b64 s[8:9], vcc
+ds_write_b32 v11, v8
+s_waitcnt lgkmcnt(0)
+s_mov_b64 exec, s[8:9]
+s_barrier // equal-write publication
+v_cmp_eq_u32 vcc, v0, 64
+s_and_saveexec_b64 s[8:9], vcc
+ds_write_b32 v11, v8
+s_waitcnt lgkmcnt(0)
+s_mov_b64 exec, s[8:9]
+s_barrier
+v_cmp_eq_u32 vcc, v0, 0
+s_and_saveexec_b64 s[8:9], vcc
+ds_read_b32 v9, v11
+s_waitcnt lgkmcnt(0)
+global_store_dword v11, v9, s[6:7]
+"#;
+    let reference = |arena: &mut ExprArena| {
+        let x = arena.intern_string("x");
+        let input = arena.input_element(x, 0);
+        let two = arena.int(2);
+        arena.mul(input, two)
+    };
+    let ordered = run_config(body, 4, config(128, 1));
+    assert_verified(&ordered);
+    assert_single_symbolic_output(&ordered, reference);
+
+    let unordered = run_config(
+        &body.replace("s_barrier // equal-write publication", ""),
+        4,
+        config(128, 1),
+    );
+    assert_single_symbolic_output(&unordered, reference);
+    assert_shared_conflict(&unordered, ConflictKind::WriteWrite);
 }
 
 #[test]
@@ -1745,7 +1869,7 @@ fn explicit_exec_masks_elect_the_actual_first_active_lane() {
 fn native_byte_load_zero_extension_and_two_byte_fp8_storage_are_distinct() {
     for (load, bytes) in [("global_load_ubyte", 1), ("global_load_ushort", 2)] {
         let body = format!(
-            "{load} v8, v2, s[4:5]\ns_waitcnt vmcnt(0)\nv_cvt_f32_fp8 v9, v8\nv_cvt_f32_fp8_sdwa v10, v8 src0_sel:BYTE_1 dst_sel:DWORD dst_unused:UNUSED_PAD\nglobal_store_dword v2, v9, s[6:7]\nglobal_store_dword v2, v10, s[6:7] offset:4"
+            "{load} v8, v2, s[4:5]\ns_waitcnt vmcnt(0)\nv_cvt_f32_fp8 v9, v8\nv_cvt_f32_fp8_sdwa v10, v8 src0_sel:BYTE_1\nglobal_store_dword v2, v9, s[6:7]\nglobal_store_dword v2, v10, s[6:7] offset:4"
         );
         let mut cfg = config(1, 2);
         cfg.arrays[0].elem_width = 1;

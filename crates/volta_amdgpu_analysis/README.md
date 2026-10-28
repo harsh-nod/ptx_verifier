@@ -103,9 +103,10 @@ scope.
 Missing stores remain missing for downstream equivalence to diagnose. Concrete
 integer ALU results retain integer provenance; ambiguous raw-bit output constants
 require a conversion instead of guessing their numeric type.
-Concrete zero reciprocal and reciprocal-square-root operands stop execution
-before undefined real expressions can disappear through later multiplication.
-Nonzero reciprocals and unrelated encoded infinities retain the upstream model.
+Known zero reciprocal, nonpositive reciprocal-square-root/logarithm, and negative
+square-root operands stop execution before undefined real expressions can
+disappear through later multiplication. Nonzero reciprocals and unrelated encoded
+infinities retain the upstream model.
 
 ## Events and synchronization
 
