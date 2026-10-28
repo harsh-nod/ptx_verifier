@@ -167,7 +167,9 @@ pub(super) fn apply_metadata(
                 fields.insert(format!("reqd_workgroup_size_{axis}"), value);
             }
             if total > 1024 {
-                return Err(fail("required workgroup size exceeds gfx950 limit".into()));
+                return Err(fail(
+                    "required workgroup size exceeds the native AMD limit".into(),
+                ));
             }
         }
         if let Some(uniform) = get(entry, ".uniform_work_group_size") {

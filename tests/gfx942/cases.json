@@ -1,0 +1,449 @@
+{
+  "schema_version": 1,
+  "target": "gfx942",
+  "scope": "Eight representative genuine compiler kernels with full configured footprints. No blanket retargeting or complete target parity claim.",
+  "cases": [
+    {
+      "kernel": "copy",
+      "assembly": "fixtures/native-copy-add.s",
+      "source": "fixtures/native-copy-add.hip",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 65
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 65,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 196608,
+          "element_size": 4,
+          "length": 65,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out",
+        "int:65"
+      ],
+      "spec": "specs/copy.spec",
+      "expected_outputs": 65,
+      "native_test": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+      "scope": "Representative bounded native case; no whole-grid or full gfx950-corpus parity claim.",
+      "assembly_sha256": "8a5ad0e582a6a4b0d61c8a91242459c0cccf59cddd79cf9b3d56534a3e41ac57",
+      "source_sha256": "8afb33c6f2fe8a9d2c2c4bacc5b1173c9cb9c2b0922fdd0e1afafd3471d18d52",
+      "spec_sha256": "d240ab03417ec46a13a3a158e5e349ac1971d49562cbe578d4406a87471e6db8"
+    },
+    {
+      "kernel": "add",
+      "assembly": "fixtures/native-copy-add.s",
+      "source": "fixtures/native-copy-add.hip",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 65
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 65,
+          "kind": "in"
+        },
+        {
+          "name": "y",
+          "base_address": 131072,
+          "element_size": 4,
+          "length": 65,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 196608,
+          "element_size": 4,
+          "length": 65,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:y",
+        "ptr:out",
+        "int:65"
+      ],
+      "spec": "specs/add.spec",
+      "expected_outputs": 65,
+      "native_test": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+      "scope": "Representative bounded native case; no whole-grid or full gfx950-corpus parity claim.",
+      "assembly_sha256": "8a5ad0e582a6a4b0d61c8a91242459c0cccf59cddd79cf9b3d56534a3e41ac57",
+      "source_sha256": "8afb33c6f2fe8a9d2c2c4bacc5b1173c9cb9c2b0922fdd0e1afafd3471d18d52",
+      "spec_sha256": "33d04409a0947f28cb3abbb0b325f4e3825a59b01d9c2f1014b4fe9d6ba54071"
+    },
+    {
+      "kernel": "exchange",
+      "assembly": "fixtures/native-lds-ids.s",
+      "source": "fixtures/native-lds-ids.hip",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "WAVES": 2,
+        "LANES": 64
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 128,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 131072,
+          "element_size": 4,
+          "length": 128,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "spec": "specs/exchange.spec",
+      "expected_outputs": 128,
+      "native_test": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+      "scope": "Representative bounded native case; no whole-grid or full gfx950-corpus parity claim.",
+      "assembly_sha256": "9608b0cde97271c00bfcc9be0c18358eec31f655187351769066ee41b3fbe865",
+      "source_sha256": "c66f7382f477c03888bbb0bd3d2d3982e9c724c2fd47dbb72d0f7d6c2eca196e",
+      "spec_sha256": "475fd16a299bc280eae55a60e3ecf39efec07230cbb7303c2d0927c0667389f0"
+    },
+    {
+      "kernel": "reduce",
+      "assembly": "fixtures/native-lds-ids.s",
+      "source": "fixtures/native-lds-ids.hip",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "WAVES": 2,
+        "LANES": 64
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 128,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 131072,
+          "element_size": 4,
+          "length": 2,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "spec": "specs/reduce.spec",
+      "expected_outputs": 2,
+      "native_test": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+      "scope": "Representative bounded native case; no whole-grid or full gfx950-corpus parity claim.",
+      "assembly_sha256": "9608b0cde97271c00bfcc9be0c18358eec31f655187351769066ee41b3fbe865",
+      "source_sha256": "c66f7382f477c03888bbb0bd3d2d3982e9c724c2fd47dbb72d0f7d6c2eca196e",
+      "spec_sha256": "f68098ce1273634c5fcea355c2750d9f6a01f0057955ffd170b25704154b0eaf"
+    },
+    {
+      "kernel": "ids_3d",
+      "assembly": "fixtures/native-lds-ids.s",
+      "source": "fixtures/native-lds-ids.hip",
+      "block": [
+        4,
+        3,
+        2
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "X": 4,
+        "Y": 3,
+        "Z": 2
+      },
+      "arrays": [
+        {
+          "name": "out",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 24,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:out"
+      ],
+      "spec": "specs/ids.spec",
+      "expected_outputs": 24,
+      "native_test": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+      "scope": "Representative bounded native case; no whole-grid or full gfx950-corpus parity claim.",
+      "assembly_sha256": "9608b0cde97271c00bfcc9be0c18358eec31f655187351769066ee41b3fbe865",
+      "source_sha256": "c66f7382f477c03888bbb0bd3d2d3982e9c724c2fd47dbb72d0f7d6c2eca196e",
+      "spec_sha256": "4eeb39263334a2aaebffac7f024c0ecebca6d4dac2edec5c00e9cfa096c6d385"
+    },
+    {
+      "kernel": "mfma_f32",
+      "assembly": "fixtures/native-mfma.s",
+      "source": "fixtures/native-mfma.hip",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "GROUPS": 4,
+        "M": 16,
+        "N": 16,
+        "ITEMS": 1,
+        "G": 4,
+        "C": 4
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 64,
+          "kind": "in"
+        },
+        {
+          "name": "b",
+          "base_address": 131072,
+          "element_size": 4,
+          "length": 64,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 196608,
+          "element_size": 4,
+          "length": 256,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "spec": "specs/mfma.spec",
+      "expected_outputs": 256,
+      "native_test": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+      "scope": "Representative bounded native case; no whole-grid or full gfx950-corpus parity claim.",
+      "assembly_sha256": "1c52b31917fe837e8ecea8701f24e56692241e75797b727d3ea5fba73d65416a",
+      "source_sha256": "e790e67ac1748b850b3ac6f8ec4edb5486823cef5514a0543825b73298efe2e1",
+      "spec_sha256": "94e08b33201f3364e30b89b705e465a58ba9445b49b91c44835dd1fcfa87742e"
+    },
+    {
+      "kernel": "mfma_f16",
+      "assembly": "fixtures/native-mfma.s",
+      "source": "fixtures/native-mfma.hip",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "GROUPS": 4,
+        "M": 16,
+        "N": 16,
+        "ITEMS": 4,
+        "G": 4,
+        "C": 4
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "base_address": 65536,
+          "element_size": 2,
+          "length": 256,
+          "kind": "in"
+        },
+        {
+          "name": "b",
+          "base_address": 131072,
+          "element_size": 2,
+          "length": 256,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 196608,
+          "element_size": 4,
+          "length": 256,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "spec": "specs/mfma.spec",
+      "expected_outputs": 256,
+      "native_test": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+      "scope": "Representative bounded native case; no whole-grid or full gfx950-corpus parity claim.",
+      "assembly_sha256": "1c52b31917fe837e8ecea8701f24e56692241e75797b727d3ea5fba73d65416a",
+      "source_sha256": "e790e67ac1748b850b3ac6f8ec4edb5486823cef5514a0543825b73298efe2e1",
+      "spec_sha256": "94e08b33201f3364e30b89b705e465a58ba9445b49b91c44835dd1fcfa87742e"
+    },
+    {
+      "kernel": "pipelined_mfma_f16",
+      "assembly": "fixtures/native-pipeline-f16.s",
+      "source": "fixtures/native-pipeline-f16.hip",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "M": 32,
+        "N": 16,
+        "K": 32
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "base_address": 65536,
+          "element_size": 2,
+          "length": 1024,
+          "kind": "in"
+        },
+        {
+          "name": "b",
+          "base_address": 131072,
+          "element_size": 2,
+          "length": 512,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 196608,
+          "element_size": 2,
+          "length": 512,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "spec": "specs/pipeline.spec",
+      "expected_outputs": 512,
+      "native_test": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+      "scope": "Representative bounded native case; no whole-grid or full gfx950-corpus parity claim.",
+      "assembly_sha256": "50a234e1b7aa8e0b9cdef9bd54005a288b58253eb4e810e4910cb90db7e86015",
+      "source_sha256": "d623f770252e62094051b775f9b01cffb31816f356553b7b556302edbc78f562",
+      "spec_sha256": "d5e11588c0784130782491050a109f3c17668e3e7cef09a3fea01312be2649da"
+    }
+  ]
+}

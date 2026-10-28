@@ -2,7 +2,7 @@
   <img src="volta-logo.png" alt="Volta Blackwell logo" width="400">
 </p>
 
-Volta Blackwell checks NVIDIA PTX and native AMD gfx950 assembly for data races and deadlocks, and checks a kernel for equivalence to a reference kernel or a math spec (floats are modeled as reals). This is an experimental fork of [Volta](https://github.com/willtunnels/volta).
+Volta Blackwell checks NVIDIA PTX and native AMD gfx942/gfx950 assembly for data races and deadlocks, and checks a kernel for equivalence to a reference kernel or a math spec (floats are modeled as reals). This is an experimental fork of [Volta](https://github.com/willtunnels/volta).
 
 > [!CAUTION]
 > **This project is not intended to be a sound verifier, and we do not claim that it is a formal verifier. It is a best-effort verifier for catching bugs in generated kernels; a successful check does not guarantee correctness.**
@@ -20,11 +20,13 @@ just test               # Rust and Python tests
 
 `cargo run --release -p volta_cli -- <command> ...` builds and runs in one step.
 
-## Native AMD gfx950
+## Native AMD gfx942 and gfx950
 
-Select `--backend amdgpu --target gfx950` to analyze native LLVM AMDHSA `.s`
+Select `--backend amdgpu --target gfx942` (MI300/CDNA3) or `--target gfx950`
+(MI350/CDNA4) to analyze native LLVM AMDHSA `.s`
 files. PTX remains the default. CPU analysis requires no ROCm installation;
-hardware validation requires an actual gfx950 device.
+hardware validation requires the corresponding GPU. Explicit target selection
+must match the assembly; omitted AMD targets retain gfx950 as the default.
 For example, the checked-in compiler copy kernel crosses a wave boundary:
 
 ```bash
@@ -44,6 +46,22 @@ The same backend selection supports `parse`, two-kernel `compare`, expression
 and VC exchange, numeric confirmation, profiling, logs, and the existing graph
 viewer. Python selects it with
 `volta.Config(block=(65, 1, 1), backend="amdgpu", target="gfx950")`.
+Use `target="gfx942"` for gfx942 source. For a genuine MI300X compiler fixture:
+
+```bash
+volta verify tests/gfx942/fixtures/native-copy-add.s tests/gfx942/specs/copy.spec \
+  --backend amdgpu --target gfx942 -k copy -b 65 --dim N=65 \
+  --array x:0x10000:4:65:in --array out:0x30000:4:65:out \
+  --param ptr:x --param ptr:out --param int:65
+```
+
+gfx942 support includes native copy/add, LDS exchange/reduction, packed local
+IDs, selected F32/F16/BF16 MFMA forms, and a two-wave LDS/F16 matrix pipeline.
+It uses its own LDS capacity and MFMA hazard timings. CDNA4-only instructions
+and gfx942 FP8/BF8 number formats remain unsupported. See the
+[gfx942 scope, compiler fixtures and MI300X validation](tests/gfx942/README.md).
+The existing gfx950 parity inventory does not assert complete gfx942 parity.
+
 Launch arguments follow the selected kernel's descriptor and argument metadata.
 `--global NAME=value` overrides a writable defined module object;
 `--dyn-shared N` supplies dynamic LDS capacity.

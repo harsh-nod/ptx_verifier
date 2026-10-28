@@ -45,8 +45,11 @@ class ExternalRaceTests(unittest.TestCase):
         self.assertIn("1/256", result.detail)
 
     def test_native_unsupported_and_signal_exit_are_distinct(self):
-        result, _ = self.check(stderr="error: test.s: 22:2: unsupported gfx950 instruction `v_mad_i64_i32`", code=1)
-        self.assertIs(result.outcome, RUNNER.Outcome.UNSUPPORTED)
+        for target in ("AMD", "gfx942", "gfx950"):
+            result, _ = self.check(stderr=f"error: test.s: 22:2: unsupported {target} instruction `v_mad_i64_i32`", code=1)
+            self.assertIs(result.outcome, RUNNER.Outcome.UNSUPPORTED)
+        result, _ = self.check(stderr="error: invalid AMD configuration: byte payload size mismatch", code=1)
+        self.assertIs(result.outcome, RUNNER.Outcome.ERROR)
         result, _ = self.check("GRAPH VERIFICATION: VERIFIED\n", code=-9)
         self.assertIs(result.outcome, RUNNER.Outcome.ERROR)
 

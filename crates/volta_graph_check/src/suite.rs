@@ -26,7 +26,7 @@ use crate::tensor_order::{TensorOrderResult, check_tensor_order};
 /// Every check's result for one graph, and how the trace ended.
 #[derive(Debug, Clone)]
 pub struct GraphReport {
-    /// AMD checks, present only for an explicitly selected gfx950 target.
+    /// AMD checks, present only for an explicitly selected supported AMD target.
     pub amd: Option<crate::amdgpu::AmdReport>,
     applicable: Vec<Property>,
     selection_error: Option<String>,
@@ -299,12 +299,12 @@ pub fn check_graph(graph: &EventGraph) -> GraphReport {
     let targets = &graph.provenance().targets;
     let amd_target = targets.iter().any(|t| t.starts_with("gfx"));
     if amd_target || !graph.amd_events().is_empty() {
-        let supported = targets.len() == 1 && supported_amd_target(&targets[0]);
+        let supported = volta_graph::AmdArchitecture::from_targets(targets).is_some();
         return GraphReport {
             terminal:graph.terminal().clone(),
             amd:supported.then(||crate::amdgpu::check_amdgpu(graph)),
             applicable:Property::AMD.to_vec(),
-            selection_error:(!supported).then(||format!("unsupported or conflicting graph targets {targets:?}; AMD checks require gfx950 with recognized, nonconflicting target features")),
+            selection_error:(!supported).then(||format!("unsupported or conflicting graph targets {targets:?}; AMD checks require gfx942 or gfx950 with recognized, nonconflicting target features")),
             named_barrier_epoch:not_applicable(),mbarrier_epoch:not_applicable(),mbarrier_ordering:not_applicable(),
             memory_conflict:not_applicable(),proxy_order:not_applicable(),tensor_order:not_applicable(),resource_lifetime:not_applicable(),
             allocation_order:not_applicable(),allocation_permit:not_applicable(),mbarrier_release_order:not_applicable(),
@@ -382,28 +382,8 @@ pub fn check_graph(graph: &EventGraph) -> GraphReport {
     }
 }
 
-fn supported_amd_target(target: &str) -> bool {
-    let mut fields = target.split(':');
-    if fields.next() != Some("gfx950") {
-        return false;
-    }
-    let (mut xnack, mut sramecc) = (false, false);
-    for feature in fields {
-        let seen = match feature {
-            "xnack+" | "xnack-" => &mut xnack,
-            "sramecc+" | "sramecc-" => &mut sramecc,
-            _ => return false,
-        };
-        if *seen {
-            return false;
-        }
-        *seen = true;
-    }
-    true
-}
-
 fn not_applicable<E, V>() -> PropertyResult<E, V> {
     PropertyResult::Unknown(vec![Unresolved::global(
-        "PTX check is not applicable to the gfx950 backend",
+        "PTX check is not applicable to the native AMD backend",
     )])
 }

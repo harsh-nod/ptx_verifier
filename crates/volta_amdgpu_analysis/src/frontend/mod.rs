@@ -1,4 +1,4 @@
-//! Native gfx950 assembly frontend. Parsing preserves typed operands and source
+//! Native gfx942/gfx950 assembly frontend. Parsing preserves typed operands and source
 //! locations; lowering resolves local control flow before symbolic execution.
 //!
 //! The accepted descriptor/metadata dialect is LLVM AMDHSA code-object 4–6,
