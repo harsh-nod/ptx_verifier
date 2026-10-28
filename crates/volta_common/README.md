@@ -3,6 +3,12 @@
 Base utilities shared by the frontend, the analysis and the CLI. It depends on
 no other Volta crate.
 
+- **Shared configuration** (`config.rs`): `AnalysisConfig`, `ArrayDef`,
+  `ArrayKind`, `ParamValue` and `SharedAllocation` describe launch dimensions,
+  inputs/outputs, parameters and optional native LDS subobjects. Common validation
+  checks geometry, binding identities and allocation layout; target-specific ABI,
+  by-value payload sizes and execution restrictions stay in the selected analyzer.
+  Both producers re-export these shared types for compatibility.
 - **`Span`** (`lib.rs`): a source location as a `(low, high)` byte-offset pair.
 - **`Locate<E>`** (`lib.rs`): an error wrapper that adds an optional span and
   file path to an error kind `E`. Each crate defines an error kind enum and

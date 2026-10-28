@@ -85,6 +85,10 @@ tests of internals.
 
 **Path**: `crates/volta_common/`
 
+- `config.rs` - Shared `AnalysisConfig`, `ArrayDef`, `ArrayKind`, `ParamValue`
+  and `SharedAllocation`; common validation of launch/binding/allocation inputs.
+  Both producers re-export these types. Target-specific ABI and execution
+  restrictions remain in their analyzers.
 - `Span` - Source location (low + high byte offset)
 - `FileCache` - Caches file content to make sure we always use a consistent version of each file
 - `Locate<E>` - Error wrapper with optional location info (span + file path)
