@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "target": "gfx1250",
+  "status": "compiled_assembled_linked_only_semantics_pending",
+  "compiler_host": "XSJHARMENON01",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/clang-22",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.0/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.0/lib/llvm/bin/clang++.cfg\n"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n"
+    }
+  },
+  "fixture": {
+    "source": "original-matrix.hip",
+    "assembly": "original-matrix.s",
+    "source_sha256": "2bdddc88f94ce173b0ac758b2c754b5c77017fdef4a1279750c0850c9c802a78",
+    "assembly_sha256": "fd8ce2a98a1bc707da75b8bd50b8f68eecd5a642a84c739b53fa6a3b025fca43",
+    "object_sha256": "81cd04112044688b8eca81b922718b2643c7e8817231d265afa9e952167e6ce6",
+    "code_object_sha256": "66037289435d3d0c5af80a4ad26d904b1b4baa7113b3d1628ee08e86e3edd1a3",
+    "compile": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "-x",
+      "hip",
+      "--offload-device-only",
+      "--offload-arch=gfx1250",
+      "--rocm-path=/opt/rocm-7.2.0",
+      "-O2",
+      "-std=c++17",
+      "-S",
+      "tests/gfx1250/full/fixtures/original-matrix.hip",
+      "-o",
+      "tests/gfx1250/full/fixtures/original-matrix.s"
+    ],
+    "assemble": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "--triple=amdgcn-amd-amdhsa",
+      "--mcpu=gfx1250",
+      "-filetype=obj",
+      "tests/gfx1250/full/fixtures/original-matrix.s",
+      "-o",
+      "/tmp/ptx-gfx1250-original-matrix.o"
+    ],
+    "link": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "-shared",
+      "/tmp/ptx-gfx1250-original-matrix.o",
+      "-o",
+      "/tmp/ptx-gfx1250-original-matrix.hsaco"
+    ]
+  }
+}
