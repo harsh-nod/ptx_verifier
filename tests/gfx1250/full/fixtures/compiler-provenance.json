@@ -197,10 +197,11 @@
         "-o",
         "/tmp/ptx-gfx1250-original-attention.hsaco"
       ],
-      "source_sha256": "9ceb3b697516e2a306dd32752b6e8c67de5a1854474c396ac63c8a5efa770765",
-      "assembly_sha256": "2cbd4714e00c51eed4cce55ca6f8c448fd8cd4809474fef406cb8188a13f74f1",
-      "object_sha256": "0ace24b1253e21d75b86141ad75d10a7bf61f5b216ea02721a97a0d85346a1ec",
-      "code_object_sha256": "f9351cf4fb466fcd481d67e88217500e1aff8a11397f97536e97240e53ada8c1"
+      "source_sha256": "a6f79415b4677af7b7d1d425661227682ddf03ebcac58ca8ea18f348e0443de3",
+      "assembly_sha256": "51772854ca74693443f17d7c3f382e5f1b65d6705f2b1fdb003216cf04b7c314",
+      "object_sha256": "fdac3f94a4d1211826097fc9de777df49dcd128d9507099e146019d6ebe8570b",
+      "code_object_sha256": "817881df3697ca1d213df28ca60b34a478535fcbfe180c06b0b69b1a69463d9d",
+      "software_hazard_spacing": "Four v_nop instructions tied to destination and both WMMA input fragments after every WMMA, matching the pinned LLVM gfx1250 coexecution source/result reuse window; no SALU/wait/barrier substitution."
     },
     {
       "source": "original-sinkhorn.hip",
