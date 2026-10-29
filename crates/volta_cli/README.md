@@ -34,7 +34,11 @@ source + backend/target + launch flags ──► KernelModule + AnalysisConfig
   dynamic shared size. `--config FILE` replaces them all with a JSON launch
   file (`volta_ptx_analysis`'s `launch_file` format), whose `"kernel"` is the
   default `--kernel` of `analyze`/`verify`. `compare` adds `--block2/--grid2`
-  for the optimized kernel.
+  for the optimized kernel. Native JSON may include `shared_allocations` byte
+  ranges such as `[{"name":"tile","offset":0,"size":256}]`, matching
+  `--shared-allocation NAME:OFFSET:SIZE` and Python LDS premises. Names/ranges
+  are validated strictly; native accesses must fit the supplied objects and
+  aggregate LDS capacity, and PTX rejects this native-only option.
 - **Equivalence flags**: `--sample N`, `--verify-numeric`,
   `--recycle-terms N`, `--iterations N`.
 - **Artifacts**: `analyze --emit-exprs FILE` (`.vexpr`) and `--dump-graph FILE`
