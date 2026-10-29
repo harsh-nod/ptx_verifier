@@ -92,8 +92,19 @@ class OriginalShapeContractTests(unittest.TestCase):
         ):
             data = copy.deepcopy(self.registry)
             mutate(data["cases"][0])
-            with self.assertRaisesRegex(ValueError, "projection"):
+            with self.assertRaisesRegex(ValueError, "project"):
                 self.validate(data)
+
+    def test_reusing_a_native_half_for_both_original_halves_is_rejected(self):
+        data = copy.deepcopy(self.registry)
+        case = data["cases"][0]
+        original = case["output_projection"][0]
+        case["output_projection"] = [
+            dict(original, length=512),
+            dict(original, baseline_start=512, native_start=0, length=512),
+        ]
+        with self.assertRaisesRegex(ValueError, "projected native bytes|duplicate native"):
+            self.validate(data)
 
     def test_changed_source_spec_or_launch_hashes_are_rejected(self):
         for field in ("source", "assembly", "spec", "launch_config"):
