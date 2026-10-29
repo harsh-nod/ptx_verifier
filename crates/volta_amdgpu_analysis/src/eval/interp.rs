@@ -12,6 +12,9 @@ use volta_graph::*;
 
 const KERNARG_BASE: u64 = 0xffff_0000_0000;
 const DISPATCH_BASE: u64 = 0xffff_1000_0000;
+#[cfg(test)]
+#[path = "interp_address_tests.rs"]
+mod address_tests;
 // Synthetic module storage is disjoint from host-bound arrays and analyzer ABI
 // packets. Match the existing PTX module-window convention without a dependency.
 pub const MODULE_GLOBAL_BASE: u64 = 0x7000_0000_0000_0000;
@@ -3152,6 +3155,7 @@ impl<'a> Interpreter<'a> {
                 self.program
                     .global_address_sequences
                     .get(&anchor)
+                    .filter(|sequence| stage < sequence.form.mnemonics().len())
                     .map(|sequence| (stage, sequence))
             })
         });
@@ -3159,7 +3163,7 @@ impl<'a> Interpreter<'a> {
             return Ok(false);
         };
         if sequence.anchor_pc + stage != wave.pc
-            || instruction.mnemonic != ["s_getpc_b64", "s_add_u32", "s_addc_u32"][stage]
+            || instruction.mnemonic != sequence.form.mnemonics()[stage]
         {
             return Err(wave.fail(None, "invalid approved module-address sequence stage"));
         }
@@ -3195,7 +3199,11 @@ impl<'a> Interpreter<'a> {
                     return Err(wave.fail(None, "PC-relative low stage lost its opaque anchor"));
                 }
                 wave.put(pair, 0, 0, Value::Bits(address as u32))?;
-                wave.scc_defined = false;
+                if sequence.form == crate::ir::GlobalAddressForm::Rel64 {
+                    wave.put(pair, 0, 1, Value::Bits((address >> 32) as u32))?;
+                } else {
+                    wave.scc_defined = false;
+                }
             }
             2 => {
                 if wave.reg(pair, 0, 0)?.bits().ok() != Some(address as u32)
@@ -5930,6 +5938,46 @@ impl<'a> Interpreter<'a> {
             }
         }
         Ok((wave.wide(operand, lane)?.wrapping_add(offset), false))
+    }
+
+    /// Resolve the two native FLAT addressing profiles without assigning a
+    /// numeric value to the process-dependent shared-memory aperture.
+    fn flat_memory_address_with_saddr(
+        &self,
+        wave: &Wave,
+        vector: &Operand,
+        scalar: Option<&Operand>,
+        lane: u8,
+        offset: i64,
+    ) -> Result<(u64, bool), EvalError> {
+        let base = scalar.unwrap_or(vector);
+        let vector_offset = if scalar.is_some() {
+            u64::from(wave.bits(vector, lane)?)
+        } else {
+            0
+        };
+        if let Operand::Register(register) = base {
+            if register.count == 2 && wave.reg(*register, lane, 1)? == Value::SharedApertureHi {
+                let low = wave
+                    .reg(*register, lane, 0)?
+                    .bits()
+                    .map_err(|error| wave.fail(Some(lane), error))?;
+                let address = u64::from(low)
+                    .checked_add(vector_offset)
+                    .and_then(|value| value.checked_add_signed(offset))
+                    .filter(|value| *value <= u64::from(u32::MAX))
+                    .ok_or_else(|| {
+                        wave.fail(Some(lane), "FLAT offset escapes the shared aperture")
+                    })?;
+                return Ok((address, true));
+            }
+        }
+        Ok((
+            wave.wide(base, lane)?
+                .wrapping_add(vector_offset)
+                .wrapping_add_signed(offset),
+            false,
+        ))
     }
     /// CDNA4 §8.2.1 forbids replay-enabled scalar-memory clauses from overwriting
     /// an address-source SGPR, except one DWORD loaded by an isolated instruction.

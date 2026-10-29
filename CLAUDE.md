@@ -279,6 +279,11 @@ inherit this profile. Global cache publication is independent.
 
 The tested compiler envelope is code-object 6 and metadata 1.2. By-value bytes
 must match argument metadata exactly; unknown ABI bits remain undefined.
+Module-address lowering recognizes exact contiguous REL32 and gfx1250 REL64
+profiles; PC words stay opaque, and only the no-carry REL64 profile preserves
+SCC. Scalar-base FLAT addresses preserve the opaque LDS aperture and checked
+subobject bounds rather than inventing a numeric process aperture.
+
 Bare gfx1250, one unclustered workgroup and supported operand encodings define
 its tested subset. Advanced unsupported modes remain explicit. See the
 [crate README](crates/volta_amdgpu_analysis/README.md) and

@@ -91,11 +91,15 @@ register must fit its allocation, and overlapping VGPR/AGPR names are rejected.
 
 Defined module globals have bounded, aligned storage with their exact initialized
 bytes. `global_values` can override a writable scalar object of one, two, four,
-or eight bytes. Read-only objects cannot be rebound or written. Only the native
+or eight bytes. Read-only objects cannot be rebound or written. The native
 contiguous `s_getpc_b64` / `s_add_u32 symbol@rel32@lo+4` /
 `s_addc_u32 symbol@rel32@hi+12` relocation sequence resolves an object address.
-Intermediate PC words remain opaque and the resulting SCC is undefined; the
-analyzer does not invent linker addresses or carry flags. Undefined externs,
+gfx1250 additionally has a two-instruction `s_get_pc_i64 s[p:p+1]` /
+`s_add_nc_u64 s[p:p+1], s[p:p+1], symbol@rel64+4` profile. Both retain their
+original instructions and reject branches into the middle of the sequence.
+Intermediate PC words remain opaque. The split REL32 profile leaves SCC
+undefined; the no-carry REL64 profile preserves SCC. The analyzer does not
+invent linker addresses or carry flags. Undefined externs,
 GOT relocations, arbitrary PC arithmetic, and overlapping storage are rejected.
 
 Concrete integers and addresses use native-width wrapping arithmetic. Symbolic
@@ -146,6 +150,11 @@ An exact native `s_mov_b64 ..., src_shared_base` produces an opaque shared-apert
 high word and a zero low word. Copies preserve that token. A FLAT address pair
 with this high word and a concrete low offset accesses the same LDS bytes as DS
 instructions; its encoded displacement cannot carry out of the aperture.
+The gfx1250 scalar-base FLAT profile adds a concrete vector DWORD offset to
+an SGPR address pair. An opaque shared high word retains the LDS interpretation;
+a concrete address pair retains the global interpretation. Signed displacements
+cannot escape the shared aperture, and the complete transfer still obeys its
+configured allocation and aggregate bounds.
 The token cannot become data bits, participate in arithmetic, or form a GLOBAL
 address. Other generic-pointer apertures remain unsupported.
 Generic `gfx942`/`gfx950` assembly and explicit `xnack-` targets model execution with
