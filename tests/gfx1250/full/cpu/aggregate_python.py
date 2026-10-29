@@ -48,6 +48,62 @@ def required_input_pins(registry):
     return {str(path): sha(path) for path in paths}
 
 
+def refuse_input_output_aliases(output, registry, receipt_paths):
+    """Protect evidence before creating the new invocation's INCOMPLETE file.
+
+    Missing/malformed receipts remain normal validation failures below. Their
+    known paths and artifact directories are still protected here.
+    """
+    protected = {registry, Path(__file__), HERE / "prove_python.py", HERE / "prove_advanced.py"}
+    full = registry.parent
+    inventory = full.parent / "full-parity/gaps.json"
+    protected.update((inventory, full.parent / "full-parity/contract.py"))
+    if len(full.parents) >= 3:
+        root = full.parents[2]
+        protected.add(root / "crates/volta_py/tests/test_gfx1250_original_workloads.py")
+    else:
+        root = None
+    for manifest, field, keys, base in (
+        (registry, "cases", ("source", "assembly", "spec", "launch_config"), full),
+        (inventory, "workloads", ("baseline_path", "baseline_config_path"), root),
+    ):
+        try:
+            data = json.loads(manifest.read_text())
+        except (OSError, ValueError):
+            continue
+        if not isinstance(data, dict) or not isinstance(data.get(field), list) or base is None:
+            continue
+        for row in data[field]:
+            if isinstance(row, dict):
+                protected.update(base / row[key] for key in keys if isinstance(row.get(key), str))
+    for path in receipt_paths:
+        protected.add(path)
+        protected.update(path.parent / name for name in
+                         ("junit.xml", "stdout.txt", "stderr.txt", "resources.txt"))
+        try:
+            record = json.loads(path.read_text())
+        except (OSError, ValueError):
+            continue
+        if not isinstance(record, dict):
+            continue
+        for key in ("input_sha256", "runtime_sha256"):
+            values = record.get(key)
+            if isinstance(values, dict):
+                protected.update(Path(value) for value in values if isinstance(value, str))
+        for key in ("python", "extension"):
+            value = record.get(key)
+            if isinstance(value, str) and value:
+                protected.add(Path(value))
+                if key == "extension":
+                    protected.add(Path(value).parent / "__init__.py")
+    for source in protected:
+        # Resolve symlinks and also detect hard links to retained artifacts.
+        same = output.resolve() == source.resolve()
+        if not same and output.exists() and source.exists():
+            same = output.samefile(source)
+        require(not same, f"aggregate output aliases retained input artifact: {source}")
+
+
 def aggregate(registry, receipt_paths):
     """Inspect the actual JUnit/logs and pinned inputs, not just status strings."""
     registry = registry.resolve(strict=True)
@@ -135,9 +191,11 @@ def main():
     parser.add_argument("--receipt", action="append", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
+    try:
+        refuse_input_output_aliases(args.output, args.registry, args.receipt)
+    except (ValueError, OSError) as error:
+        parser.error(str(error))
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    if args.output.resolve() in {path.resolve() for path in args.receipt}:
-        parser.error("aggregate output must not overwrite an individual group receipt")
     # Invalidate any previous PASS before loading an input or performing an
     # operational preflight. Individual subset receipts remain unchanged.
     receipt = {"status": "incomplete", "gate": "complete original32 Python groups",

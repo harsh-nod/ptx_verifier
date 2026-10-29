@@ -165,6 +165,30 @@ class AggregateControls(unittest.TestCase):
         self.assertIs(result["sampling"], False)
         self.assertNotIn("case_count", result)
 
+    def test_registry_junit_extension_and_hardlink_outputs_preserve_all_inputs(self):
+        for kind in ("registry", "junit", "extension", "hardlink"):
+            root, paths = self.fixture()
+            registry = root / "registry.json"
+            registry.write_bytes(self.registry.read_bytes())
+            record = json.loads(paths[0].read_text())
+            source = {"registry": registry, "junit": paths[0].parent / "junit.xml",
+                      "extension": Path(record["extension"]),
+                      "hardlink": Path(record["extension"])}[kind]
+            output = source
+            if kind == "hardlink":
+                output = root / "extension-alias.json"
+                output.hardlink_to(source)
+            before = source.read_bytes()
+            run = subprocess.run([
+                sys.executable, str(HERE / "aggregate_python.py"),
+                "--registry", str(registry), "--receipt", str(paths[0]),
+                "--output", str(output),
+            ], capture_output=True, text=True, timeout=30)
+            self.assertEqual(run.returncode, 2)
+            self.assertIn("aliases retained input artifact", run.stderr)
+            self.assertEqual(source.read_bytes(), before)
+            self.assertEqual(output.read_bytes(), before)
+
 
 if __name__ == "__main__":
     unittest.main()
