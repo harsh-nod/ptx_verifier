@@ -5986,6 +5986,7 @@ impl<'a> Interpreter<'a> {
     ) -> Result<(), EvalError> {
         let name = match instruction.mnemonic.as_str() {
             "ds_store_b16_d16_hi" => "ds_write_b16_d16_hi",
+            "ds_load_2addr_b32" if self.architecture == AmdArchitecture::Gfx1250 => "ds_read2_b32",
             name => name,
         };
         let o = &instruction.operands;

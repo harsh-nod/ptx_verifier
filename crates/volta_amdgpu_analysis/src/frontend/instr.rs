@@ -1385,7 +1385,10 @@ pub(super) fn validate_registers(
             } else {
                 1
             };
-            let pair = stem.starts_with("ds_read2") || stem.starts_with("ds_write2");
+            let pair = stem.starts_with("ds_read2")
+                || stem.starts_with("ds_write2")
+                || (architecture == crate::target::Architecture::Gfx1250
+                    && stem == "ds_load_2addr_b32");
             if stem.starts_with("ds_read") || stem.starts_with("ds_load") {
                 require(0, &[Vector], element_width * if pair { 2 } else { 1 })?;
                 require(1, &[Vector], 1)?;

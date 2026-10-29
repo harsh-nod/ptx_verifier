@@ -271,6 +271,7 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
             | "global_store_b16" | "global_store_b8" | "global_load_b32" | "global_load_b64"
             | "global_load_b96" | "global_load_b128" | "global_store_b32" | "global_store_b64"
             | "global_store_b96" | "global_store_b128" => (VectorMemory, 3, 3),
+            "ds_load_2addr_b32" => (Lds, 2, 2),
             "ds_load_u16"
             | "ds_load_i16"
             | "ds_load_u8"
