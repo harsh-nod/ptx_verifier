@@ -1,7 +1,0 @@
-== copy/copy
-   as written           RACE-FREE           0.0s  3 removable statements
-   -s_wait_kmcnt@L20    RACE-CONDITION      0.0s  AMD wait and register readiness: AmdRegisterHazard { issue: EventId(4), use_event: EventId(45), wave: 0, register: AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }, kind: ReadBeforeReady }
-   -s_wait_kmcnt@L31    RACE-CONDITION      0.0s  AMD wait and register readiness: AmdRegisterHazard { issue: EventId(79), use_event: EventId(96), wave: 0, register: AmdRegister { file: Scalar, index: 0, lanes: 18446744073709551615 }, kind: ReadBeforeReady }
-   -s_wait_loadcnt@L33  RACE-CONDITION      0.0s  AMD wait and register readiness: AmdRegisterHazard { issue: EventId(103), use_event: EventId(173), wave: 0, register: AmdRegister { file: Vector, index: 1, lanes: 4294967295 }, kind: ReadBeforeReady }
-
-3/3 mutants caught: 3 race conditions

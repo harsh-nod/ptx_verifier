@@ -1,5 +1,7 @@
 # Native gfx942, gfx950 and gfx1250 analysis
 
+Local validation run artifacts are not retained. Source fixtures and reproduction workflows remain available; removed observations do not establish current acceptance.
+
 This crate mirrors `volta_ptx_analysis`: typed assembly frontend, lowering, one
 candidate execution with target-selected wave geometry, then the existing symbolic-output and event-graph
 artifacts. It does not depend on the pipeline, equivalence checker, or graph
@@ -60,13 +62,6 @@ Native gfx942 compiler sources, hardware drivers and receipts live under
 [`tests/gfx942`](../../tests/gfx942). The architecture gate is applied both during
 parsing and lowering of caller-built modules, so changing a target string cannot
 make a CDNA4-only instruction execute as CDNA3.
-
-Architecture references: [AMD CDNA3 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-mi300-cdna3-instruction-set-architecture.pdf),
-[LLVM AMDGPU ABI and processor tables](https://llvm.org/docs/AMDGPUUsage.html),
-and [LLVM processor features](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/AMDGPU/AMDGPU.td).
-The [`core-assembler-profiles.json`](../../tests/gfx942/evidence/core-assembler-profiles.json) receipt compares the same 725 observed
-instruction profiles with LLVM's gfx942 and gfx950 assemblers; assembly
-acceptance is separate from the mathematical and graph checks.
 
 ## gfx942/gfx950 execution model
 
@@ -314,8 +309,7 @@ base2 conversion coefficients. It does not establish IEEE rounding, NaNs or
 denormal behavior. Raw finite F16/BF16 controls test decoding separately from
 symbolic mathematical input identities. See the [detailed contract](../../tests/gfx1250/CONTRACT.md)
 and [reproducible corpus](../../tests/gfx1250/README.md).
-The exact checked-in positive assembly has passed independent execution on real
-gfx1250 hardware, including dense and basis WMMA layouts, staged tensor reuse,
-wave boundaries and all twenty bounded portable families. Reproduction and
-source-pinned receipts are in [the hardware guide](../../tests/gfx1250/hardware/README.md).
+Optional numerical checks for the exact positive assembly are described in
+[the hardware guide](../../tests/gfx1250/hardware/README.md). Device-run records
+and machine-specific observations are not retained.
 This does not expand the selected instruction or mathematical-model contract.

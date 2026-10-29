@@ -1,8 +1,8 @@
 # Implemented gfx1250 contract
 
-This is the selected model for issue #13. Its positive corpus has passed exact-assembly
-execution on real gfx1250 hardware, independently repeated by the coordinator;
-see [the hardware scope and receipts](hardware/README.md). CPU analysis is usable without ROCm once built.
+This is the selected model for issue #13. See [hardware reproduction](hardware/README.md)
+for optional numerical checks; device-run records are not retained. CPU analysis
+is usable without ROCm once built.
 Compiler encodings, independent semantic checks and device execution are separate
 evidence classes.
 

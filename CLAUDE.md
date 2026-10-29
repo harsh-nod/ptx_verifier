@@ -11,8 +11,7 @@ symbolic outputs and a candidate event graph; independent branches check
 mathematical equivalence and target-specific safety. This is an experimental
 best-effort model, not a claim of formal soundness, complete ISA coverage or
 whole-device correctness. gfx1250 software validation is complete for its
-[documented subset](tests/gfx1250/CONTRACT.md); exact-assembly hardware validation
-on gfx1250 is recorded in `tests/gfx1250/evidence/hardware-*-coordinator.json`.
+[documented subset](tests/gfx1250/CONTRACT.md). Run artifacts are local; the repository retains source fixtures and reproduction workflows.
 
 ## Coding practices
 

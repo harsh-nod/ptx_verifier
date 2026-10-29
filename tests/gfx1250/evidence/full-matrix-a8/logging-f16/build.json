@@ -1,7 +1,0 @@
-{
-  "revision": "a8e8e2275c8f5eeb7c2ad2f9e388b99e15341d7d",
-  "binary_sha256": "f7782b891b8c64bb13bb30e80afc4836a73a7ccfe8e34560b3ad369735b6e9bc",
-  "profile": "release logging",
-  "source_worktree": "/home/harsh/ptx-verifier-gfx1250-full-integration",
-  "path": "/tmp/gfx1250-frozen-build-a8e8e2275c8f/volta-logging"
-}

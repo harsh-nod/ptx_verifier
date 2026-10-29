@@ -1,1 +1,0 @@
-user=1768.03 system=33.85 peak_rss_kib=53102044 wall=1802.14 exit=0

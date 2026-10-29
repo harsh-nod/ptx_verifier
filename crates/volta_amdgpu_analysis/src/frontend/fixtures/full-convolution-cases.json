@@ -3169,13 +3169,9 @@
       "expected_native_outcome": "RACE-FREE",
       "validation_evidence": {
         "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
         "result_key": "conv2d/convolution_f16_full",
-        "hardware": [
-          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
-        ],
-        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
-        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
+        "hardware": [],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
       }
     },
     {
@@ -6355,18 +6351,14 @@
           "elements": 8192,
           "channel_pitch_elements": 2916
         },
-        "validation": "Coordinator graph/mathematical validation is recorded in tests/gfx950/evidence/full-workloads-a57cdf5.json and physical numerical validation in tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json; current full40 replay remains a separate revision-pinned gate. Compilation alone does not validate the mapping."
+        "validation": "Coordinator graph/mathematical validation is recorded in local run artifacts (not retained) and physical numerical validation in local run artifacts (not retained); current full40 replay remains a separate revision-pinned gate. Compilation alone does not validate the mapping."
       },
       "expected_native_outcome": "RACE-FREE",
       "validation_evidence": {
         "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
         "result_key": "conv2d/convolution_f8_full",
-        "hardware": [
-          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json"
-        ],
-        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping.",
-        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
+        "hardware": [],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
       }
     }
   ]

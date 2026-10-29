@@ -5,7 +5,7 @@ Volta portable feature/workflow surface and all original workload shapes and
 storage dtypes. This is a finite workload/feature parity effort, not a complete
 ISA implementation. Only the coordinator marks acceptance after independent
 validation. The completed [issue #13](https://github.com/harsh-nod/ptx_verifier/issues/13)
-remains the source-pinned bounded subset; its historical receipts are unchanged.
+remains the source-pinned bounded subset. Historical run artifacts are not retained.
 
 `gaps.json` records 32 original variants across 20 families at fork `e0511fb` and
 upstream `b3a3791`. It includes source/config hashes, actual original array bases,
@@ -149,9 +149,8 @@ PLAYWRIGHT_MODULE=/path/to/playwright node tests/gfx1250/full-parity/browser.cjs
 
 The browser receipt checks all mixed runs and event/source navigation for these
 four actual new traces. It attests rendering only; symbolic/math and independent
-physical hardware receipts are separate. The first18 native hardware workload
-slice has its own coordinator validation; neither that numeric slice nor these
-workflow tests closes the other original families or issue #21.
+physical hardware checks are separate. Device-run records are not retained;
+these workflow tests alone do not close the original families or issue #21.
 
 ## Reviewed feature references
 

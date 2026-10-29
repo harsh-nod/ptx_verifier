@@ -133,9 +133,8 @@ PTX/gfx942/gfx950. Source and selected target must agree. The AMD default stays
 gfx950. Native fixtures under `tests/gfx1250` exercise complete graph acceptance,
 independent matrix/arithmetic oracles, and typed safety rejections. Expression
 and VC replay checks equivalence only: those formats carry no event graph and
-cannot reestablish race freedom. Independent execution of the exact positive
-gfx1250 assembly is recorded in the [hardware receipts](../../tests/gfx1250/hardware/README.md);
-that supporting numerical evidence does not replace graph checks.
+cannot reestablish race freedom. The [hardware workflows](../../tests/gfx1250/hardware/README.md)
+check exact positive assembly separately; local device-run records are not retained.
 
 `gfx1250_original_matrix_tests` separately checks parsing/lowering of the exact
 full K4096 six-kernel matrix corpus and its zero-scratch native descriptors.

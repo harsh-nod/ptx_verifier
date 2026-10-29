@@ -65,7 +65,7 @@ array shapes, source revision and artifact hashes before launching the exact
 `--local`, or use the built-in SSH staging from a clean committed checkout:
 
 ```sh
-python3 tests/gfx1250/hardware/portable_run.py --host mi400 --device 2 \
+python3 tests/gfx1250/hardware/portable_run.py --host "$GFX1250_HOST" --device "$GFX1250_DEVICE" \
   --result /tmp/hardware-portable.json
 ```
 
@@ -79,27 +79,6 @@ command above runs these alongside the seven core-runner controls.
 
 ## Coordinator acceptance
 
-On `mi400`, four actual gfx1250 devices report wave32 and 256 compute units each.
-The core author ran GPU0 and the portable author ran GPU1. The coordinator
-reviewed both drivers and repeated both complete suites on GPU2 at source
-`97b5df0ab258a3818f41bfc1d2620649185e1384`.
-
-| Independent coordinator replay | Launches | Complete output checks | Receipt |
-| --- | ---: | ---: | --- |
-| Core mechanisms, all WMMA basis and wide integer boundaries | 3,615 | 644,518 | [Core](../evidence/hardware-core-coordinator.json) |
-| Twenty bounded portable families, seventeen patterns each | 340 | 10,030 | [Portable](../evidence/hardware-portable-coordinator.json) |
-
-The core replay checked 1,850,880 output-guard bytes and 1,070,520 input/guard
-bytes. Portable replay checked 135,388 input bytes, 61,139,140 gap bytes and
-2,785,280 edge-guard bytes. The count totals cover repeated checks across
-launches, not unique storage capacity.
-
-These runs use ROCm `10.2.0a20261013+bkc.20261019` and LLVM24 revision
-`c7ceccf9a5789b92fda4056b8501450d0b7a75de` to assemble/link the unchanged
-LLVM22 fixture output. All hardware comparisons pass. Core attention's maximum
-absolute error is `5.89e-8`; the portable maximum is `3.73e-7`, within the
-disclosed tolerances. Exact comparisons cover the dyadic and raw integer cases.
-Supplemental multi-block copy execution does not expand the verifier's
-single-workgroup contract. The author receipts are retained separately as
-[core](../evidence/hardware-core-mi400.json) and
-[portable](../evidence/hardware-portable-mi400.json).
+Device-run records and machine-specific observations are not retained. Run the
+commands above on a matching device to obtain results for the revision under
+review; software acceptance and hardware numerical checks remain separate.

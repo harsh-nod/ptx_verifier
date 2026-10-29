@@ -1,15 +1,16 @@
 # Native gfx1250 validation
 
+Local validation run artifacts are not retained. Source fixtures and reproduction workflows remain available; removed observations do not establish current acceptance.
+
 Software milestone for [issue 13](https://github.com/harsh-nod/ptx_verifier/issues/13).
 These fixtures are genuinely cross-compiled for gfx1250 with the pinned ROCm
 LLVM toolchain. Their assembly is not rewritten from another target.
 
-**Software and hardware validation are complete for the documented subset.**
-The exact checked-in assembly passed on actual wave32 gfx1250 devices on `mi400`,
-then the coordinator independently repeated every hardware suite on a different
-physical GPU. See [hardware reproduction and receipts](hardware/README.md).
+See [hardware reproduction](hardware/README.md) for optional device checks.
+Device-run records and machine-specific observations are not retained.
 Compiler acceptance, graph/equivalence checks and numerical device execution
 remain separate evidence classes; none establishes full ISA or whole-device coverage.
+See [public semantic sources and artifact retention](PUBLIC_SOURCES.md).
 
 `cases.json` uses the existing native case schema for CLI/Python integration.
 The coordinator validated every required case through graph checks, complete
@@ -83,7 +84,7 @@ cluster or whole-grid behavior. The existing mathematical-real abstraction
 does not establish IEEE rounding/NaN/denormal equivalence.
 [`fixtures/semantic-references.json`](fixtures/semantic-references.json) pins reachable public LLVM files at
 `5fd50ec8e07abb94e203933017e8d6e40fb51824` and the independent public layout
-reference. Local source snapshots are recorded only as secondary comparisons.
+reference. Public references are the semantic sources; machine-local snapshots are not retained.
 
 ## Software acceptance and reproduction
 
@@ -115,7 +116,7 @@ python3 ai_compiler_kernels/check_races.py --backend amdgpu --target gfx1250 \
 
 The workspace retains the inherited PTX failure
 `test_aligned_bar_sync_reached_on_different_iterations`. It is disclosed in the
-coordinator receipt and is not a gfx1250 acceptance or regression claim.
+historical baseline and is not a gfx1250 acceptance or regression claim.
 Expression/VC replay checks equivalence only, because those formats contain no
 native event graph. Target-preserving graph dumps and the viewer carry their
 own trace evidence.
@@ -126,14 +127,6 @@ arithmetic and barrier-loop changes to native counterparts or explicit
 architecture boundaries. [External recipes](../../external/gfx1250/README.md)
 keep the existing HipKittens CDNA4 library profile explicit and provide genuine
 LLVM-native gfx1250 extraction controls.
-
-`evidence/coordinator-software.json` records source pins, exact commands, test
-counts, artifact hashes and its historical hardware exclusion. Associated browser evidence
-covers 191 mixed PTX/gfx942/gfx950/gfx1250 records with real Chromium, including
-source-only unsupported cases, new waits/matrix/tensor/split-barrier events and
-typed finding navigation. Rendering counts are distinct from proof counts.
-To regenerate a focused native viewer store without recording thousands of
-numeric variations:
 
 ```sh
 VOLTA_VIZ_DIR="$PWD/target/gfx1250-viewer" cargo test --release -p volta_pipeline \
@@ -153,26 +146,6 @@ regenerated assembly after normalizing only translation-unit CUID symbols; exact
 committed assembly is separately assembled and linked. No generated assembly is
 rewritten or relabeled as compiler evidence.
 
-Representative release host analysis costs and graph sizes are recorded in
-`evidence/coordinator-performance.json`, including an attention case with 512
-outputs. These bounded measurements do not claim original-size scalability or
-GPU performance. The G1250-09 hardware gate is now supported by
-[`hardware-core-coordinator.json`](evidence/hardware-core-coordinator.json) and
-[`hardware-portable-coordinator.json`](evidence/hardware-portable-coordinator.json):
-3,955 launches and 654,548 complete output checks on physical GPU2, including
-all 2,176 WMMA basis launches, 686 signed/unsigned wide cases and seventeen
-patterns for each of the twenty portable families. Every configured input and
-output guard is checked; portable runs also compare every inter-array gap byte.
-Core comparisons are exact except attention (`atol=1e-5`, `rtol=1e-4`). Portable
-tolerances are recorded per kernel; the maximum observed absolute error was
-`3.73e-7`. No deliberately unsafe mutant was executed on hardware.
-
-Hardware replay uses ROCm `10.2.0a20261013+bkc.20261019`, AMD LLVM24 revision
-`c7ceccf9a5789b92fda4056b8501450d0b7a75de`, to assemble/link the unchanged LLVM22
-fixture output. This validates those bytes on that runtime; it does not claim
-that all newly generated LLVM24 instruction profiles are implemented.
-
-Historical compiler/assembler receipts retain the original source pins and
-initial pending tags from their recording time. Current coordinator acceptance
-is recorded separately; the frozen encoding receipts are not rewritten into
-semantic claims. The final status promotion changes no launch/spec/source data.
+Run logs, measured host costs and hardware receipts are local artifacts. Reproduce
+the software checks above and the [hardware workflows](hardware/README.md) for
+the revision under review. Removed observations do not establish current acceptance.

@@ -11,7 +11,8 @@
     "amd_mapping": "Native block/grid tiling may differ only through an explicit validated mapping preserving all original logical extents and outputs. Additional native outputs must be separately checked.",
     "coordinator_only_completion": true,
     "required_unsupported_is_incomplete": true,
-    "preserve_historical_receipts": true
+    "preserve_historical_receipts": false,
+    "run_artifact_retention": "Local only; removed hardware records are not current acceptance evidence."
   },
   "counts": {
     "original_variants": 32,
@@ -117,12 +118,12 @@
               "N": 64
             },
             "expected_outputs": 64,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.hip",
@@ -131,16 +132,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/ReLUKernel/NVIDIA_B200_Float16_1.0000x.ptx",
@@ -160,7 +155,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -261,12 +256,12 @@
               "N": 64
             },
             "expected_outputs": 64,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.hip",
@@ -275,16 +270,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/ReLUKernel/NVIDIA_B200_Float8_1.0000x.ptx",
@@ -306,7 +295,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -407,12 +396,12 @@
               "N": 64
             },
             "expected_outputs": 64,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.hip",
@@ -421,16 +410,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/SigmoidKernel/NVIDIA_B200_Float16_1.0001x.ptx",
@@ -450,7 +433,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -551,12 +534,12 @@
               "N": 64
             },
             "expected_outputs": 64,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.hip",
@@ -565,16 +548,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/SigmoidKernel/NVIDIA_B200_Float8_1.0000x.ptx",
@@ -596,7 +573,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -697,12 +674,12 @@
               "N": 64
             },
             "expected_outputs": 64,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.hip",
@@ -711,16 +688,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/SiLUKernel/NVIDIA_B200_Float16_1.0000x.ptx",
@@ -740,7 +711,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -841,12 +812,12 @@
               "N": 64
             },
             "expected_outputs": 64,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.hip",
@@ -855,17 +826,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
-          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/SiLUKernel/NVIDIA_B200_Float8_1.0000x.ptx",
@@ -887,7 +851,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -998,12 +962,12 @@
               "N": 64
             },
             "expected_outputs": 64,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.hip",
@@ -1012,16 +976,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/SwiGLUKernel/NVIDIA_B200_Float16_1.0001x.ptx",
@@ -1041,7 +999,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -1152,12 +1110,12 @@
               "N": 64
             },
             "expected_outputs": 64,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.hip",
@@ -1166,16 +1124,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/SwiGLUKernel/NVIDIA_B200_Float8_1.0000x.ptx",
@@ -1197,7 +1149,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -1320,12 +1272,12 @@
               "D": 16
             },
             "expected_outputs": 32,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.hip",
@@ -1334,16 +1286,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/RoPEKernel/NVIDIA_B200_Float16_1.0000x.ptx",
@@ -1363,7 +1309,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -1486,12 +1432,12 @@
               "D": 16
             },
             "expected_outputs": 32,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.hip",
@@ -1500,16 +1446,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/RoPEKernel/NVIDIA_B200_Float8_1.0000x.ptx",
@@ -1531,7 +1471,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -1644,12 +1584,12 @@
               "N": 32
             },
             "expected_outputs": 64,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.hip",
@@ -1658,16 +1598,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/RMSNormKernel/NVIDIA_B200_Float16_1.0000x.ptx",
@@ -1687,7 +1621,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -1800,12 +1734,12 @@
               "N": 32
             },
             "expected_outputs": 64,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.hip",
@@ -1814,16 +1748,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/RMSNormKernel/NVIDIA_B200_Float8_1.0206x.ptx",
@@ -1845,7 +1773,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -1957,17 +1885,14 @@
               "C": 32
             },
             "expected_outputs": 64,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
         "parity_status": "baseline-limited",
         "fixtures": [],
-        "evidence": [
-          "tests/gfx950/evidence/baseline-workloads.json",
-          "tests/gfx950/evidence/workload-row-review.json"
-        ],
+        "evidence": [],
         "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
       },
       "historical_baseline_observation": {
@@ -1988,7 +1913,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -2100,17 +2025,14 @@
               "C": 32
             },
             "expected_outputs": 64,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
         "parity_status": "baseline-limited",
         "fixtures": [],
-        "evidence": [
-          "tests/gfx950/evidence/baseline-workloads.json",
-          "tests/gfx950/evidence/workload-row-review.json"
-        ],
+        "evidence": [],
         "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
       },
       "historical_baseline_observation": {
@@ -2133,7 +2055,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -2249,12 +2171,12 @@
               "K": 32
             },
             "expected_outputs": 4,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.hip",
@@ -2265,18 +2187,12 @@
           "tests/gfx950/portable-workload/cases.json"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-portable-f16-full16-2026-10-27.json",
           "tests/gfx950/portable-workload/cases.json",
-          "tests/gfx950/portable-workload/assembler-provenance.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "tests/gfx950/portable-workload/assembler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/MatrixVectorMultiplicationKernel/NVIDIA_B200_Float16_1.0103x.ptx",
@@ -2296,7 +2212,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -2412,12 +2328,12 @@
               "K": 32
             },
             "expected_outputs": 4,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f8.hip",
@@ -2426,16 +2342,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/MatrixVectorMultiplicationKernel/NVIDIA_B200_Float8_1.0002x.ptx",
@@ -2457,7 +2367,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -2560,17 +2470,14 @@
               "N": 32
             },
             "expected_outputs": 2,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
         "parity_status": "baseline-limited",
         "fixtures": [],
-        "evidence": [
-          "tests/gfx950/evidence/baseline-workloads.json",
-          "tests/gfx950/evidence/workload-row-review.json"
-        ],
+        "evidence": [],
         "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
       },
       "historical_baseline_observation": {
@@ -2592,7 +2499,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -2695,17 +2602,14 @@
               "N": 32
             },
             "expected_outputs": 2,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
         "parity_status": "baseline-limited",
         "fixtures": [],
-        "evidence": [
-          "tests/gfx950/evidence/baseline-workloads.json",
-          "tests/gfx950/evidence/workload-row-review.json"
-        ],
+        "evidence": [],
         "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
       },
       "historical_baseline_observation": {
@@ -2729,7 +2633,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -2865,12 +2769,12 @@
               "OW": 3
             },
             "expected_outputs": 18,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-convolution.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-convolution.hip",
@@ -2879,16 +2783,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/Convolution2DKernel/NVIDIA_B200_Float16_1.3590x.ptx",
@@ -2911,7 +2809,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -3047,12 +2945,12 @@
               "OW": 3
             },
             "expected_outputs": 18,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-convolution.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-convolution.hip",
@@ -3061,16 +2959,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/Convolution2DKernel/NVIDIA_B200_Float8_2.0810x.ptx",
@@ -3095,7 +2987,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -3261,12 +3153,12 @@
               "D": 4
             },
             "expected_outputs": 2,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-sinkhorn.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-sinkhorn.hip",
@@ -3275,16 +3167,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/FlashSinkhornFusedSchurMatvec/NVIDIA_B200_Unknown_1.5491x.ptx",
@@ -3307,7 +3193,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -3460,12 +3346,12 @@
               "TWO": 2
             },
             "expected_outputs": 10,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-forgetting-attention.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-forgetting-attention.hip",
@@ -3474,16 +3360,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/ForgettingAttentionICLR2025Forward/NVIDIA_B200_Unknown_1.0139x.ptx",
@@ -3506,7 +3386,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -3657,12 +3537,12 @@
               "TWO": 2
             },
             "expected_outputs": 10,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-attention.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-attention.hip",
@@ -3671,16 +3551,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-attention-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/FlashAttentionNeurIPS2022Forward/NVIDIA_B200_Unknown_1.2610x.ptx",
@@ -3704,7 +3578,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -3867,12 +3741,12 @@
               "TWO": 2
             },
             "expected_outputs": 8,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case. Q/K values are decoded F32 values; int8 packing and quantization are outside this case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Q/K values are decoded F32 values; int8 packing and quantization are outside this case."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-sage-attention.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-sage-attention.hip",
@@ -3881,16 +3755,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/SageAttentionICLR2025/NVIDIA_B200_Unknown_1.4104x.ptx",
@@ -3914,7 +3782,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -4058,12 +3926,12 @@
               "N": 4
             },
             "expected_outputs": 16,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-state.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-state.hip",
@@ -4072,16 +3940,10 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/Mamba2ChunkStateForward/NVIDIA_B200_Unknown_1.0984x.ptx",
@@ -4104,7 +3966,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -4293,12 +4155,12 @@
               "T": 8
             },
             "expected_outputs": 16,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-scan.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-scan.hip",
@@ -4309,18 +4171,12 @@
           "tests/gfx950/portable-workload/cases.json"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-scan-coordinator-2026-10-27.json",
           "tests/gfx950/portable-workload/cases.json",
-          "tests/gfx950/portable-workload/assembler-provenance.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "tests/gfx950/portable-workload/assembler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "baseline_path": "ai_compiler_kernels/Mamba2ChunkScanForward/NVIDIA_B200_Unknown_1.0740x.ptx",
@@ -4343,7 +4199,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -4467,12 +4323,12 @@
               "K": 16
             },
             "expected_outputs": 32,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.hip",
@@ -4481,22 +4337,15 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "outcome": "RACE-FREE",
         "expected_outputs": 65536,
         "seconds": 65.35517926188186,
-        "evidence": "tests/gfx950/evidence/baseline-workloads-large-memory.json",
         "resource_envelope": "128GiB address-space,600CPU seconds per kernel",
         "note": "Original full-K4096/256x256-output tile. AMD positive parity required."
       },
@@ -4515,7 +4364,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -4639,12 +4488,12 @@
               "K": 16
             },
             "expected_outputs": 32,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.hip",
@@ -4653,22 +4502,15 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "outcome": "RACE-FREE",
         "expected_outputs": 65536,
         "seconds": 36.47664561122656,
-        "evidence": "tests/gfx950/evidence/baseline-workloads-large-memory.json",
         "resource_envelope": "128GiB address-space,600CPU seconds per kernel",
         "note": "Original full-K4096/256x256-output tile. AMD positive parity required."
       },
@@ -4689,7 +4531,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -4825,12 +4667,12 @@
               "K": 16
             },
             "expected_outputs": 32,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.hip",
@@ -4839,22 +4681,15 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "outcome": "RACE-FREE",
         "expected_outputs": 65536,
         "seconds": 43.87252653623,
-        "evidence": "tests/gfx950/evidence/baseline-workloads-large-memory.json",
         "resource_envelope": "128GiB address-space,600CPU seconds per kernel",
         "note": "Original full-K4096/256x256-output tile. AMD positive parity required."
       },
@@ -4873,7 +4708,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -5009,12 +4844,12 @@
               "K": 16
             },
             "expected_outputs": 32,
-            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case."
+            "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity."
           }
         ]
       },
       "gfx950_reuse_candidates": {
-        "parity_status": "validated",
+        "parity_status": "pending_revalidation",
         "fixtures": [
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.s",
           "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-gemm.hip",
@@ -5023,22 +4858,15 @@
           "ai_compiler_kernels/check_races.py"
         ],
         "evidence": [
-          "tests/gfx950/evidence/full-workloads-final-default.json",
-          "tests/gfx950/evidence/workload-row-review.json",
-          "tests/gfx950/evidence/replay-manifest-independent-final.json",
-          "tests/gfx950/evidence/6bc63a5.json",
-          "tests/gfx950/evidence/native-assembly-final182.json",
-          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-          "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
-          "tests/gfx950/evidence/full-workloads-final-logging.json"
+          "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json"
         ],
-        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
+        "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof.",
+        "historical_parity_status": "validated"
       },
       "historical_baseline_observation": {
         "outcome": "RACE-FREE",
         "expected_outputs": 65536,
         "seconds": 34.69095971388742,
-        "evidence": "tests/gfx950/evidence/baseline-workloads-large-memory.json",
         "resource_envelope": "128GiB address-space,600CPU seconds per kernel",
         "note": "Original full-K4096/256x256-output tile. AMD positive parity required."
       },
@@ -5059,7 +4887,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -5192,10 +5020,7 @@
       "gfx950_reuse_candidates": {
         "parity_status": "baseline-limited",
         "fixtures": [],
-        "evidence": [
-          "tests/gfx950/evidence/baseline-workloads.json",
-          "tests/gfx950/evidence/workload-row-review.json"
-        ],
+        "evidence": [],
         "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
       },
       "historical_baseline_observation": {
@@ -5217,7 +5042,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -5352,10 +5177,7 @@
       "gfx950_reuse_candidates": {
         "parity_status": "baseline-limited",
         "fixtures": [],
-        "evidence": [
-          "tests/gfx950/evidence/baseline-workloads.json",
-          "tests/gfx950/evidence/workload-row-review.json"
-        ],
+        "evidence": [],
         "limitation": "Different architecture. Candidate math/config/reference source only; not gfx1250 encoding, ABI, graph, or hardware proof."
       },
       "historical_baseline_observation": {
@@ -5377,7 +5199,7 @@
         "explicit original-to-native launch/layout/dtype mapping",
         "no reduced K/sequence/tile or decoded-F32 substitution for packed source dtype",
         "all exact expected output indices checked with unsampled math and graph PASS",
-        "independent mi400 exact-assembly numeric run, output sentinels, unchanged input/gap/guard checks",
+        "independent exact-assembly numeric run on a matching gfx1250 device, output sentinels, unchanged input/gap/guard checks",
         "assemble-valid harmful mutations rejected on CPU, not run on hardware",
         "all required public workflows and source-pinned receipts independently reproduced by coordinator"
       ]
@@ -9646,7 +9468,6 @@
     {
       "id": "profiling-logging-scale",
       "status": "pending_original_shape_validation",
-      "current_bounded_evidence": "tests/gfx1250/evidence/coordinator-performance.json",
       "required_extension": "Original-shape time/RSS, complete graph/expression/op counts, logging/default builds and resource-limit artifacts."
     },
     {
@@ -9658,7 +9479,6 @@
     {
       "id": "graph-viewer-browser",
       "status": "pending_original_shape_validation",
-      "current_bounded_evidence": "tests/gfx1250/evidence/integration-browser.json",
       "required_extension": "Actual full-size mixed-target traces, AMDwave32 provenance/selection, sparse views, new typed findings and zero console errors."
     },
     {

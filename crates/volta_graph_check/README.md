@@ -226,10 +226,9 @@ effects; missing data waits remain hazards. WMMA operand roles and dependencies
 use gfx1250 layouts. Missing waves, wrong masks/register classes, forged memory
 associations and incomplete traces stay inconclusive or fail their typed
 obligation. Advanced barrier/cache/tensor modes outside the documented subset
-cannot inherit gfx942/gfx950 certificates. Independent gfx1250 hardware evidence
-is recorded separately in `tests/gfx1250/evidence`; extending a graph profile
-does not establish a hardware result. Numerical agreement remains separate
-from these graph obligations.
+cannot inherit gfx942/gfx950 certificates. Extending a graph profile does not
+establish a hardware result. Numerical agreement remains separate from these
+graph obligations; local hardware run records are not retained.
 The logical launch grid is preserved in provenance. A grid larger than one
 requires `SingleWorkgroupAnalyzed`: the result covers only the selected workgroup,
 including its launch-coordinate inputs, and makes no claim about other groups.
