@@ -78,3 +78,6 @@ full-size mismatch. `VOLTA_GFX1250_ORIGINAL_FULL=1` requests the separate heavy
 32-case gate and refuses missing registrations. See the [original-shape workflow
 recipes](../../tests/gfx1250/full-parity/README.md#public-workflow-gates); neither
 metadata registration nor expression replay attests a verified execution graph.
+The [coordinator review](../../tests/gfx1250/full-parity/coordinator-review.md)
+records the completed full32 gates and the distinct revisions used by immutable
+mathematical proofs and final integrated graph replay.

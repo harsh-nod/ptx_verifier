@@ -126,6 +126,9 @@ The [contract](CONTRACT.md) states register/ABI, replay and advanced-mode limits
 The [original32 registration and workflow contract](full-parity/README.md) and
 [instruction-stage table](full-parity/stage-support.md) describe the subsequent
 issue #21 implementation separately from the bounded issue #13 corpus.
+The [coordinator acceptance record](full-parity/coordinator-review.md) and its
+source-bound decisions cover all32 original variants and the520 finite reference
+rows while preserving historical planning and explicit proof limits.
 The [upstream audit](UPSTREAM_AUDIT.md) maps the latest transpose, BF16, wide
 arithmetic and barrier-loop changes to native counterparts or explicit
 architecture boundaries. [External recipes](../../external/gfx1250/README.md)
