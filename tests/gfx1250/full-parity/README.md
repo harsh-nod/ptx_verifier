@@ -41,7 +41,12 @@ are explicitly omitted. Both softmax variants retain all six meaningful argument
 W27–W32 add the six genuine full K4096 GEMM/fused-GEMM/BitDelta entries. Their
 native1024/256-thread partitions are explicitly mapped to the original CTA0,
 and named output row views retain every original byte address and pitch4096.
-W19–W26 remain explicitly unregistered; current registration is not full parity.
+W19–W20 register the genuine full K576 F16/E4M3 convolutions: all128/64
+original spatial positions across128 output channels, at pitch2916. Their native
+fixed24576/16384-byte two-slot LDS staging replaces the original232448-byte
+dynamic budget explicitly, without changing input/output storage or claiming
+an enlarged FP8 tile. W21–W26 remain explicitly unregistered; current registration
+is not full parity.
 
 Each case has an `original_shape`, explicit dtype labels, source/assembly/spec
 hashes, a public `launch_config`, and an `output_projection`. The first slice
@@ -74,7 +79,7 @@ it explicitly makes no execution/proof claim. The final registration gate is:
 python3 tests/gfx1250/full-parity/contract.py --require-all
 ```
 
-That command currently fails because W19–W26 are missing. Required Unsupported,
+That command currently fails because W21–W26 are missing. Required Unsupported,
 Unknown, timeout/resource errors or smaller decoded-F32 computations do not
 satisfy original-shape acceptance. `--require-all` checks registration only; the
 coordinator must additionally reproduce every positive graph/math/public-workflow

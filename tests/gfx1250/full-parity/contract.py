@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -119,6 +120,9 @@ def expected_dimensions(row: dict) -> dict | None:
         return {"M": original["expected_outputs"], "K": 4096}
     if family == "ReductionSumKernel":
         return {"R": 1, "TILE": original["arrays"][0]["length"]}
+    if row["id"] in {"W19", "W20"}:
+        return {"C": 64, "H": 56, "W": 56, "O": 128, "R": 3, "S": 3,
+                "SPATIAL": original["shape_and_layout"]["selected_spatial_positions"]}
     if row["id"] in {"W27", "W28", "W29", "W30"}:
         return {"M": 4096, "N": 4096, "K": 4096, "TILE": 256}
     if row["id"] in {"W31", "W32"}:
@@ -233,27 +237,44 @@ def validate_registry(
         native = {a["name"]: a for a in case["arrays"]}
         require(len(native) == len(case["arrays"]), f"{identifier}: duplicate native array")
         original_names = {a["name"] for a in original["arrays"]}
+        convolution = identifier in {"W19", "W20"}
+        if convolution:
+            fixed = 24576 if identifier == "W19" else 16384
+            require(case.get("shared_memory_mapping") == {
+                "original_dynamic_budget": 232448, "native_dynamic": 0,
+                "native_fixed": fixed, "kind": "two_slot_K32_WMMA_staging",
+            } and case.get("dynamic_shared_bytes") == 0,
+                    f"{identifier}: incorrect native fixed-LDS staging mapping")
+            assembly = (directory / case["assembly"]).read_text()
+            require(re.search(r"\.amdhsa_kernel\s+" + re.escape(case["kernel"])
+                              + r"\s+\.amdhsa_group_segment_fixed_size\s+" + str(fixed)
+                              + r"\b", assembly) is not None,
+                    f"{identifier}: native fixed-LDS descriptor differs")
+        viewed = matrix or convolution
+        output_name = "out" if convolution else "c"
+        pitch = 2916 if convolution else 4096
         views = set()
-        if matrix:
-            rows_count = original["shape_and_layout"]["tile_M"]
-            columns = original["shape_and_layout"]["tile_N"]
+        if viewed:
+            rows_count = (128 if convolution else original["shape_and_layout"]["tile_M"])
+            columns = (original["shape_and_layout"]["selected_spatial_positions"] if convolution
+                       else original["shape_and_layout"]["tile_N"])
             views = {f"out{i:03}" for i in range(rows_count)}
             require(case.get("array_view_mapping") == {
-                "baseline_array": "c", "native_arrays": sorted(views),
-                "row_pitch_elements": 4096, "rows": rows_count, "columns": columns,
+                "baseline_array": output_name, "native_arrays": sorted(views),
+                "row_pitch_elements": pitch, "rows": rows_count, "columns": columns,
             }, f"{identifier}: missing original sparse row-view mapping")
-        require(set(native) == ((original_names - {"c"}) | views if matrix else original_names),
+        require(set(native) == ((original_names - {output_name}) | views if viewed else original_names),
                 f"{identifier}: missing or extra native arrays")
         for array in original["arrays"]:
             dtype = "e4m3" if array["dtype"] == "ocp_e4m3_fp8" else array["dtype"]
-            if matrix and array["name"] == "c":
+            if viewed and array["name"] == output_name:
                 for i, name in enumerate(sorted(views)):
                     actual = native[name]
                     require(actual["element_size"] == array["element_size"]
                             and actual["dtype"] == dtype
                             and actual["length"] == columns
                             and actual["kind"] == array["kind"]
-                            and actual["base_address"] == array["base_address"] + i * 4096 * array["element_size"],
+                            and actual["base_address"] == array["base_address"] + i * pitch * array["element_size"],
                             f"{identifier}: {name} sparse original output storage changed")
                 continue
             actual = native[array["name"]]
@@ -262,11 +283,12 @@ def validate_registry(
                         f"{identifier}: {array['name']} {field} changed")
             require(actual.get("dtype") == dtype,
                     f"{identifier}: {array['name']} storage dtype changed")
-        params = ["ptr:out000" if matrix and p == "ptr:c" else p for p in original["params"]]
+        params = ["ptr:out000" if viewed and p == "ptr:" + output_name else p
+                  for p in original["params"]]
         require(case["params"] == params,
                 f"{identifier}: native ABI requires an explicit reviewed mapping")
-        if matrix:
-            require(case.get("parameter_mapping") == {"ptr:c": "ptr:out000"},
+        if viewed:
+            require(case.get("parameter_mapping") == {"ptr:" + output_name: "ptr:out000"},
                     f"{identifier}: missing same-address output pointer mapping")
         expected, covered, native_covered = output_indices(row), {}, {}
         for projection in case["output_projection"]:
