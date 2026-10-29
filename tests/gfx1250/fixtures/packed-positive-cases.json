@@ -1,0 +1,665 @@
+{
+  "scope": "Safe hardware-positive source/ABI inventory only; no execution claim. NaN/refusal mutants excluded.",
+  "cases": [
+    {
+      "kernel": "fp8_pack_half_values",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": null,
+      "output": {
+        "name": "out",
+        "element_width": 2,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "kernel": "fp8_relu_to_half",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 1,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 2,
+        "elements": 1,
+        "written_indices": [
+          0
+        ]
+      }
+    },
+    {
+      "kernel": "fp8_concrete_pair",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": null,
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "kernel": "fp8_selected_halves",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "x",
+        "element_width": 1,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "kernel": "fp8_concrete_relu",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": null,
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "kernel": "fp8_zero_extended_byte",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "x",
+        "element_width": 1,
+        "elements": 1,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 1,
+        "written_indices": [
+          0
+        ]
+      }
+    },
+    {
+      "kernel": "fp8_vector_bytes",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "x",
+        "element_width": 1,
+        "elements": 8,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "kernel": "packed_constant_operand",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "kernel": "packed_memory_fma",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "kernel": "packed_register_fma",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "kernel": "packed_high_shift",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "kernel": "packed_unfused",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "kernel": "packed_zero_extend",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "kernel": "packed_shift_or",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "kernel": "packed_scalar_reference",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "kernel": "packed_wrong_math",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "kernel": "packed_pointer_direct",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          2
+        ]
+      }
+    },
+    {
+      "kernel": "packed_pointer_reassembled",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          2
+        ]
+      }
+    },
+    {
+      "kernel": "packed_half_pack",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 2,
+        "elements": 2,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 2,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "kernel": "packed_integer_halves",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": null,
+      "output": {
+        "name": "out",
+        "element_width": 8,
+        "elements": 1,
+        "written_indices": [
+          0
+        ]
+      }
+    },
+    {
+      "kernel": "packed_half_unpack",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 2,
+        "elements": 2,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 2,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "kernel": "packed_raw_halfwords",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": null,
+      "output": {
+        "name": "out",
+        "element_width": 2,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      }
+    }
+  ],
+  "extra_native_storage_case": {
+    "kernel": "fp8_byte_low_and_high",
+    "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+    "block": [
+      1,
+      1,
+      1
+    ],
+    "grid": [
+      1,
+      1,
+      1
+    ],
+    "input": {
+      "name": "x",
+      "element_width": 1,
+      "elements": 1
+    },
+    "output": {
+      "name": "out",
+      "element_width": 4,
+      "elements": 2,
+      "written_indices": [
+        0,
+        1
+      ]
+    },
+    "expected": [
+      "x[0]",
+      0
+    ]
+  }
+}

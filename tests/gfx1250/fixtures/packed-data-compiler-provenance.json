@@ -1,0 +1,200 @@
+{
+  "schema": 1,
+  "target": "gfx1250",
+  "compiler_revision": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+  "scope": "Genuine HIP compiler output, llvm-mc and linked object evidence only; CPU graph/math and hardware gates are separate.",
+  "compiler_working_directory": "/home/harsh/ptx-verifier-gfx1250-packed-data",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)"
+    }
+  },
+  "modules": [
+    {
+      "hip": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "hip_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "object_sha256": "365e891a8662c0c5cd0489ea7b943bfe32ee04f60800fd443c3d288b02fb8abc",
+      "linked_object_sha256": "5a77d78db4d9c81a2a7a647d8e9795304cbb0446930017f7367f0d6a44a9a340",
+      "commands": [
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+            "-x",
+            "hip",
+            "--offload-device-only",
+            "--offload-arch=gfx1250",
+            "--rocm-path=/opt/rocm-7.2.0",
+            "-O2",
+            "-std=c++17",
+            "-S",
+            "tests/gfx1250/fixtures/native-packed-data.hip",
+            "-o",
+            "tests/gfx1250/fixtures/native-packed-data.s"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx1250",
+            "-filetype=obj",
+            "tests/gfx1250/fixtures/native-packed-data.s",
+            "-o",
+            "/tmp/gfx1250-packed-provenance-rpqnz13x/native-packed-data.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+            "-shared",
+            "/tmp/gfx1250-packed-provenance-rpqnz13x/native-packed-data.o",
+            "-o",
+            "/tmp/gfx1250-packed-provenance-rpqnz13x/native-packed-data.hsaco"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ],
+      "kernel_names": [
+        "packed_scalar_reference",
+        "packed_register_fma",
+        "packed_memory_fma",
+        "packed_unfused",
+        "packed_constant_operand",
+        "packed_wrong_math",
+        "packed_shift_or",
+        "packed_zero_extend",
+        "packed_high_shift",
+        "packed_pointer_direct",
+        "packed_pointer_reassembled",
+        "packed_half_pack",
+        "packed_half_unpack",
+        "packed_integer_halves",
+        "packed_raw_halfwords"
+      ],
+      "wave32_descriptors": 15,
+      "private_segment_sizes": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ]
+    },
+    {
+      "hip": "tests/gfx1250/fixtures/native-fp8-packing.hip",
+      "hip_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
+      "assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
+      "object_sha256": "f9e0c172e1fdaed6d7547ee7712f6a6dfed8e4466ddb8de76bf6442c83f27ce6",
+      "linked_object_sha256": "4a4ee24a9c88a33922feb860bf25678f44e2be1e27a5f98c9932f5e53a4ef38f",
+      "commands": [
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+            "-x",
+            "hip",
+            "--offload-device-only",
+            "--offload-arch=gfx1250",
+            "--rocm-path=/opt/rocm-7.2.0",
+            "-O2",
+            "-std=c++17",
+            "-S",
+            "tests/gfx1250/fixtures/native-fp8-packing.hip",
+            "-o",
+            "tests/gfx1250/fixtures/native-fp8-packing.s"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx1250",
+            "-filetype=obj",
+            "tests/gfx1250/fixtures/native-fp8-packing.s",
+            "-o",
+            "/tmp/gfx1250-packed-provenance-z6is6268/native-fp8-packing.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+            "-shared",
+            "/tmp/gfx1250-packed-provenance-z6is6268/native-fp8-packing.o",
+            "-o",
+            "/tmp/gfx1250-packed-provenance-z6is6268/native-fp8-packing.hsaco"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ],
+      "kernel_names": [
+        "fp8_concrete_pair",
+        "fp8_concrete_relu",
+        "fp8_vector_bytes",
+        "fp8_selected_halves",
+        "fp8_zero_extended_byte",
+        "fp8_byte_low_and_high",
+        "fp8_nan_decode",
+        "fp8_pack_half_values",
+        "fp8_relu_to_half"
+      ],
+      "wave32_descriptors": 9,
+      "private_segment_sizes": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ]
+    }
+  ],
+  "primary_references": [
+    "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/VOP3PInstructions.td",
+    "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/VOP1Instructions.td",
+    "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNFeatures.td"
+  ],
+  "hardware_execution": false
+}
