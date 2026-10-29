@@ -30,6 +30,16 @@ def validate(document, ledger, root=ROOT):
     rows = {row["baseline_path"]: row for row in document["rows"]}
     require(len(rows) == len(document["rows"]), "duplicate native mapping")
     require(rows.keys() == references.keys(), "dropped or extra reference mapping")
+    positive_cases = {}
+    if "positive_abi_inventory" in document:
+        inventory = root / document["positive_abi_inventory"]
+        require(
+            sha(inventory) == document["positive_abi_inventory_sha256"],
+            "safe ABI inventory changed",
+        )
+        cases = json.loads(inventory.read_text())["cases"]
+        positive_cases = {case["kernel"]: case for case in cases}
+        require(len(positive_cases) == len(cases), "duplicate safe ABI kernel")
     for path, row in rows.items():
         reference = references[path]
         require(
@@ -52,13 +62,13 @@ def validate(document, ledger, root=ROOT):
                 "positive_computation",
                 "model_domain_refusal",
                 "target_storage_residual_with_native_payload",
+                "portable_feature",
             ),
             "unreviewed exclusion",
         )
         test, name = row["test"].rsplit("::", 1)
-        require(
-            test == document["test_source"], "mapping points to another test corpus"
-        )
+        sources = document.get("test_sources", [document.get("test_source")])
+        require(test in sources, "mapping points to another test corpus")
         test_source = (root / test).read_text()
         require(
             re.search(r"\bfn\s+" + re.escape(name) + r"\s*\(", test_source)
@@ -103,6 +113,45 @@ def validate(document, ledger, root=ROOT):
             require(
                 row.get("reason", "").strip(), "missing exact domain/storage residual"
             )
+        if row["candidate_kind"] == "portable_feature":
+            if row["kernel"] in positive_cases and row["native_outputs"]:
+                case = positive_cases[row["kernel"]]
+                require(
+                    row["native_outputs"]
+                    == {
+                        array["name"]: array["elements"]
+                        for array in case["arrays"]
+                        if array["kind"] == "out"
+                    },
+                    "native output view changed",
+                )
+            require(
+                row.get("native_property", "").strip()
+                and row.get("target_residual", "").strip(),
+                "missing portable property or precise target residual",
+            )
+            golden = reference.get("baseline_golden")
+            if golden:
+                require(
+                    row["golden_path"] == golden["path"]
+                    and row["golden_sha256"] == golden["sha256"]
+                    and sha(root / row["golden_path"]) == row["golden_sha256"],
+                    "wrong original golden",
+                )
+                require(
+                    row["original_output_coordinates"] == golden["output_coordinates"],
+                    "original projection changed",
+                )
+            for related in row.get("related_tests", []):
+                related_path, related_name = related.rsplit("::", 1)
+                require(
+                    related_path in sources
+                    and re.search(
+                        r"\bfn\s+" + re.escape(related_name) + r"\s*\(",
+                        (root / related_path).read_text(),
+                    ),
+                    "missing related native control",
+                )
     return len(rows)
 
 

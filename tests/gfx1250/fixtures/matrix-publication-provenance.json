@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Actual HIP compiler, MC and linker provenance only. Native graph/math and hardware acceptance are separate. Harmful source mutations and domain-refusal entries are CPU-only.",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)"
+    }
+  },
+  "fixtures": [
+    {
+      "source": "tests/gfx1250/fixtures/native-matrix-publication.hip",
+      "source_sha256": "3385cb4ed8ad2ae4faf046dc9b45857733056d1714495bcb472554b3fed0b3a9",
+      "assembly": "tests/gfx1250/fixtures/native-matrix-publication.s",
+      "assembly_sha256": "1c5b38f00224e10a2b3a5329b46c67b1f22b13c8fe8103dd0a950410bdb3439d",
+      "object_sha256": "5c52e450b75f0f6162e3fb6cebb0b8b7d4b4204e8ff79c4f6bdd998d2205076e",
+      "code_object_sha256": "d0c60fa0d826e5ca6ff768fa9395a128df347b96d9135485e7b9757c447beaa0",
+      "commands": [
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+            "-x",
+            "hip",
+            "--offload-device-only",
+            "--offload-arch=gfx1250",
+            "--rocm-path=/opt/rocm-7.2.0",
+            "-O2",
+            "-std=c++17",
+            "-S",
+            "tests/gfx1250/fixtures/native-matrix-publication.hip",
+            "-o",
+            "tests/gfx1250/fixtures/native-matrix-publication.s"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx1250",
+            "-filetype=obj",
+            "tests/gfx1250/fixtures/native-matrix-publication.s",
+            "-o",
+            "/tmp/ptx-matrix-publication-compile-t3zq747v/native-matrix-publication.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+            "-shared",
+            "/tmp/ptx-matrix-publication-compile-t3zq747v/native-matrix-publication.o",
+            "-o",
+            "/tmp/ptx-matrix-publication-compile-t3zq747v/native-matrix-publication.hsaco"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    }
+  ],
+  "cpu_only_mutation_legality": [
+    {
+      "name": "wrong_lds_completion",
+      "mutated_assembly_sha256": "e3a3e2b1801ad4aac31f366b910bcade73d6eca37e9931ec9a10bc74e92e6308",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-matrix-mutation-mc-1q6671w2/wrong_lds_completion.s",
+        "-o",
+        "/tmp/ptx-matrix-mutation-mc-1q6671w2/wrong_lds_completion.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "missing_publication",
+      "mutated_assembly_sha256": "a5e90124a30acf915bd8706ef0824118dc7db97da0e7021b74f5106106cd7ff1",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-matrix-mutation-mc-1q6671w2/missing_publication.s",
+        "-o",
+        "/tmp/ptx-matrix-mutation-mc-1q6671w2/missing_publication.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "early_result_read",
+      "mutated_assembly_sha256": "e1dcffdb8a091e10872cd9dd7c312e6681691eab3f6fa0cbac01d8188b766164",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-matrix-mutation-mc-1q6671w2/early_result_read.s",
+        "-o",
+        "/tmp/ptx-matrix-mutation-mc-1q6671w2/early_result_read.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "source_reuse",
+      "mutated_assembly_sha256": "431947edf6faa578d57d058468361c0d6ff9e0c094d702904e2e0af16648f0ac",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-matrix-mutation-mc-1q6671w2/source_reuse.s",
+        "-o",
+        "/tmp/ptx-matrix-mutation-mc-1q6671w2/source_reuse.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

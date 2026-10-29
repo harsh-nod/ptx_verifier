@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "hardware_execution": false,
+  "scope": "Actual default O2 HIP compiler/MC/link provenance only; native payload, graph and physical gates are separate. Unmodeled matrix-B-reuse and disabled-LDS-read kernels are CPU-only controls.",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.0/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.0/lib/llvm/bin/clang++.cfg\n"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n"
+    }
+  },
+  "fixtures": [
+    {
+      "source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "recompiled_assembly_sha256": "e4e91de66236869baaa1106ebf323859451eb8213014a482d5abb327fbe18264",
+      "compiler_reproduction": "identical except path/output-dependent HIP CUID symbol; frozen assembly is assembled unchanged",
+      "object_sha256": "4a9cf3afa2eb0141be1ab2981744097ab75b6b3ea022a74c1e13ff401da3c5ff",
+      "code_object_sha256": "6f0938a8d374309b76b509273172c20babcd1a061e2a9801adfb714f0a0728e7",
+      "commands": [
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+            "-x",
+            "hip",
+            "--offload-device-only",
+            "--offload-arch=gfx1250",
+            "--rocm-path=/opt/rocm-7.2.0",
+            "-O2",
+            "-std=c++17",
+            "-S",
+            "tests/gfx1250/fixtures/native-matrix-layout.hip",
+            "-o",
+            "/tmp/gfx1250-matrix-provenance-wzc88ws4/native-matrix-layout.s"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx1250",
+            "-filetype=obj",
+            "tests/gfx1250/fixtures/native-matrix-layout.s",
+            "-o",
+            "/tmp/gfx1250-matrix-provenance-wzc88ws4/layout.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+            "-shared",
+            "/tmp/gfx1250-matrix-provenance-wzc88ws4/layout.o",
+            "-o",
+            "/tmp/gfx1250-matrix-provenance-wzc88ws4/layout.hsaco"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

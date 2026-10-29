@@ -1,0 +1,604 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Safe positive source/ABI inventory only, not execution evidence or coordinator acceptance. Original/natively padded outputs are checked separately. All harmful synchronization, overlap, undefinedness and unmodeled-mode kernels are excluded.",
+  "cases": [
+    {
+      "kernel": "matrix_stride32",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "input",
+        "out",
+        "fragment"
+      ],
+      "arrays": [
+        {
+          "name": "input",
+          "kind": "in",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "F16",
+          "written_indices": null
+        },
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 256,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        },
+        {
+          "name": "fragment",
+          "kind": "out",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "F16",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "fragment[i]=input[i]; out[row*16+column]=sum(input[row*16+k]*(k+1),k=0..15); full256 outputs in both arrays."
+    },
+    {
+      "kernel": "matrix_stride40",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "input",
+        "out",
+        "fragment"
+      ],
+      "arrays": [
+        {
+          "name": "input",
+          "kind": "in",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "F16",
+          "written_indices": null
+        },
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 256,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        },
+        {
+          "name": "fragment",
+          "kind": "out",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "F16",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "fragment[i]=input[i]; out[row*16+column]=sum(input[row*16+k]*(k+1),k=0..15); full256 outputs in both arrays."
+    },
+    {
+      "kernel": "matrix_stride48",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "input",
+        "out",
+        "fragment"
+      ],
+      "arrays": [
+        {
+          "name": "input",
+          "kind": "in",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "F16",
+          "written_indices": null
+        },
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 256,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        },
+        {
+          "name": "fragment",
+          "kind": "out",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "F16",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "fragment[i]=input[i]; out[row*16+column]=sum(input[row*16+k]*(k+1),k=0..15); full256 outputs in both arrays."
+    },
+    {
+      "kernel": "matrix_stride64",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "input",
+        "out",
+        "fragment"
+      ],
+      "arrays": [
+        {
+          "name": "input",
+          "kind": "in",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "F16",
+          "written_indices": null
+        },
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 256,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        },
+        {
+          "name": "fragment",
+          "kind": "out",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "F16",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "fragment[i]=input[i]; out[row*16+column]=sum(input[row*16+k]*(k+1),k=0..15); full256 outputs in both arrays."
+    },
+    {
+      "kernel": "matrix_raw_accumulator",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "out",
+        "native"
+      ],
+      "arrays": [
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 128,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        },
+        {
+          "name": "native",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 256,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "Each array element i is1 iff i%4==0, otherwise0. The native superset is checked separately."
+    },
+    {
+      "kernel": "matrix_immediate_accumulator",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "out",
+        "native"
+      ],
+      "arrays": [
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 128,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        },
+        {
+          "name": "native",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 256,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "Each array element i is1 iff i%4==0, otherwise0. The native superset is checked separately."
+    },
+    {
+      "kernel": "matrix_four_fragment_pairs",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "input",
+        "out"
+      ],
+      "arrays": [
+        {
+          "name": "input",
+          "kind": "in",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "U16 raw transport",
+          "written_indices": null
+        },
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "U16 raw transport",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "out[i]=input[((i%8)/2)*64+(i/8)*2+i%2], using integer quotients and exact raw16 equality."
+    },
+    {
+      "kernel": "matrix_lane_word_placement",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "out"
+      ],
+      "arrays": [
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 33,
+          "storage_dtype": "U32",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "out[0]=1005; out[i]=999+i for i=1..32; exact integer/raw32 equality."
+    },
+    {
+      "kernel": "matrix_numeric136",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "out",
+        "native"
+      ],
+      "arrays": [
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 1024,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        },
+        {
+          "name": "native",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 2048,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "out[0]=native[0]=136; other logical cells=0; native padded columns >= 8 equal0; original pitch8, native pitch16; all128 rows checked."
+    },
+    {
+      "kernel": "matrix_raw17",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "out",
+        "native"
+      ],
+      "arrays": [
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 1024,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        },
+        {
+          "name": "native",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 2048,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "out[0]=native[0]=17; other logical cells=1; native padded columns >= 8 equal0; original pitch8, native pitch16; all128 rows checked."
+    },
+    {
+      "kernel": "matrix_zero_128x8",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "out",
+        "native"
+      ],
+      "arrays": [
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 1024,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        },
+        {
+          "name": "native",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 2048,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "out[0]=native[0]=0; other logical cells=0; native padded columns >= 8 equal0; original pitch8, native pitch16; all128 rows checked."
+    },
+    {
+      "kernel": "matrix_zero_128x256",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "out",
+        "native"
+      ],
+      "arrays": [
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 32768,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        },
+        {
+          "name": "native",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 32768,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "out[0]=native[0]=0; other logical cells=0; native padded columns >= 256 equal0; original pitch256, native pitch256; all128 rows checked."
+    },
+    {
+      "kernel": "matrix_mixed408",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "out",
+        "native"
+      ],
+      "arrays": [
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 1024,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        },
+        {
+          "name": "native",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 2048,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "out[0]=native[0]=408; other logical cells=0; native padded columns >= 8 equal0; original pitch8, native pitch16; all128 rows checked."
+    },
+    {
+      "kernel": "matrix_wrong_b476",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "out",
+        "native"
+      ],
+      "arrays": [
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 1024,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        },
+        {
+          "name": "native",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 2048,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "out[0]=native[0]=476; other logical cells=0; native padded columns >= 8 equal0; original pitch8, native pitch16; all128 rows checked."
+    },
+    {
+      "kernel": "matrix_cross_wave_publication",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-publication.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-publication.s",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "input",
+        "out"
+      ],
+      "arrays": [
+        {
+          "name": "input",
+          "kind": "in",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "F16",
+          "written_indices": null
+        },
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 256,
+          "storage_dtype": "F32",
+          "written_indices": "all"
+        }
+      ],
+      "independent_reference": "out[row*16+column]=sum(input[row*16+k]*(k+1),k=0..15); complete256 output coordinates. Producer wave0, consumer wave1, completed prior zero phase."
+    }
+  ]
+}
