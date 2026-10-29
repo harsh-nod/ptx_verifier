@@ -136,6 +136,12 @@ and VC replay checks equivalence only: those formats carry no event graph and
 cannot reestablish race freedom. The [hardware workflows](../../tests/gfx1250/hardware/README.md)
 check exact positive assembly separately; local device-run records are not retained.
 
+`gfx1250_tensor_parity_tests` preserves the complete 4×4 F16 edge tile and
+128-byte ordinary descriptor copy, with original PTX output projections,
+independent native-superset checks and typed adverse controls. The
+[tensor reference inventory](../../tests/gfx1250/portable-tensor/README.md)
+keeps encoding residuals separate from portable payload and lifetime obligations.
+
 `gfx1250_original_matrix_tests` separately checks parsing/lowering of the exact
 full K4096 six-kernel matrix corpus and its zero-scratch native descriptors.
 That frontend gate does not claim execution, equivalence, or graph acceptance.

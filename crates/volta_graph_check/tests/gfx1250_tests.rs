@@ -232,6 +232,24 @@ impl Trace {
         held_sources: Vec<AmdRegister>,
         addr: u64,
     ) -> EventId {
+        self.issue_scoped(
+            wave,
+            class,
+            destinations,
+            held_sources,
+            addr,
+            AmdMemoryScope::Unspecified,
+        )
+    }
+    fn issue_scoped(
+        &mut self,
+        wave: u32,
+        class: AmdMemoryClass,
+        destinations: Vec<AmdRegister>,
+        held_sources: Vec<AmdRegister>,
+        addr: u64,
+        scope: AmdMemoryScope,
+    ) -> EventId {
         let (pc, counters, space, write) = match class {
             AmdMemoryClass::VectorLoad => (
                 1,
@@ -336,13 +354,14 @@ impl Trace {
                 self.mask(wave).count_ones()
             };
             for lane in 0..count {
-                self.effect(
+                self.effect_scoped(
                     issue,
                     wave * 32 + lane,
                     pc,
                     space,
                     write,
                     addr + lane as u64 * 4,
+                    scope,
                 );
                 if matches!(
                     class,
@@ -402,6 +421,26 @@ impl Trace {
         write: bool,
         addr: u64,
     ) {
+        self.effect_scoped(
+            issue,
+            thread,
+            pc,
+            space,
+            write,
+            addr,
+            AmdMemoryScope::Unspecified,
+        );
+    }
+    fn effect_scoped(
+        &mut self,
+        issue: EventId,
+        thread: u32,
+        pc: u32,
+        space: Space,
+        write: bool,
+        addr: u64,
+        scope: AmdMemoryScope,
+    ) {
         let value = write.then(|| self.b.value(StoredValue::Opaque));
         let effect = self.b.thread_access(
             ThreadIx(thread),
@@ -421,7 +460,7 @@ impl Trace {
                 value,
             },
         );
-        self.b.amd_memory_effect(issue, effect);
+        self.b.amd_memory_effect_scoped(issue, effect, scope);
     }
     fn wait(&mut self, wave: u32, counter: AmdCounter, threshold: u16) {
         self.ins(wave, 4, vec![], vec![]);
@@ -1653,6 +1692,132 @@ fn legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication()
             "unpaired {unpaired}"
         );
     }
+}
+
+#[test]
+fn system_scope_visibility_requires_both_endpoints_completion_and_publication() {
+    for flat in [false, true] {
+        for (producer_scope, consumer_scope, complete, publish, expected) in [
+            (true, true, true, true, Verdict::Pass),
+            (false, true, true, true, Verdict::Unknown),
+            (true, false, true, true, Verdict::Unknown),
+            (false, false, true, true, Verdict::Unknown),
+            (true, true, false, true, Verdict::Fail),
+            (true, true, true, false, Verdict::Fail),
+        ] {
+            let mut t = Trace::new(64);
+            let scope = |enabled| {
+                if enabled {
+                    AmdMemoryScope::Gfx1250System
+                } else {
+                    AmdMemoryScope::Unspecified
+                }
+            };
+            t.issue_scoped(
+                0,
+                if flat {
+                    AmdMemoryClass::FlatGlobalStore
+                } else {
+                    AmdMemoryClass::VectorStore
+                },
+                vec![],
+                if flat { vec![s(126)] } else { vec![] },
+                0,
+                scope(producer_scope),
+            );
+            if complete {
+                t.wait(0, AmdCounter::Store, 0);
+                if flat {
+                    t.wait(0, AmdCounter::Ds, 0);
+                }
+            }
+            if publish {
+                t.publish_init();
+            }
+            t.issue_scoped(
+                1,
+                if flat {
+                    AmdMemoryClass::FlatGlobalLoad
+                } else {
+                    AmdMemoryClass::VectorLoad
+                },
+                vec![v(4, t.mask(1))],
+                if flat { vec![s(126)] } else { vec![] },
+                0,
+                scope(consumer_scope),
+            );
+            t.wait(1, AmdCounter::Load, 0);
+            if flat {
+                t.wait(1, AmdCounter::Ds, 0);
+            }
+            let report = check_graph(&t.finish());
+            assert_eq!(
+                report.verdict(Property::AmdTrace),
+                Verdict::Pass,
+                "{report:?}"
+            );
+            assert_eq!(
+                report.verdict(Property::AmdMemoryConflict),
+                expected,
+                "flat={flat}, producer={producer_scope}, consumer={consumer_scope}, complete={complete}, publish={publish}: {report:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn system_scope_cannot_certify_scalar_or_resolved_shared_effects() {
+    for class in [
+        AmdMemoryClass::ScalarLoad,
+        AmdMemoryClass::Ds,
+        AmdMemoryClass::FlatLdsLoad,
+    ] {
+        let mut t = Trace::new(1);
+        let destination = if class == AmdMemoryClass::ScalarLoad {
+            s(4)
+        } else {
+            v(4, 1)
+        };
+        t.issue_scoped(
+            0,
+            class,
+            vec![destination],
+            vec![],
+            0,
+            AmdMemoryScope::Gfx1250System,
+        );
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdTrace),
+            Verdict::Unknown
+        );
+    }
+}
+
+#[test]
+fn system_scope_does_not_expand_the_selected_workgroup_contract() {
+    let mut t = Trace::with_geometry(64, (2, 1, 1), vec![Assumption::UnclusteredWorkgroup]);
+    t.issue_scoped(
+        0,
+        AmdMemoryClass::VectorStore,
+        vec![],
+        vec![],
+        0,
+        AmdMemoryScope::Gfx1250System,
+    );
+    t.wait(0, AmdCounter::Store, 0);
+    t.publish_init();
+    t.issue_scoped(
+        1,
+        AmdMemoryClass::VectorLoad,
+        vec![v(4, t.mask(1))],
+        vec![],
+        0,
+        AmdMemoryScope::Gfx1250System,
+    );
+    t.wait(1, AmdCounter::Load, 0);
+    let report = check_graph(&t.finish());
+    assert_eq!(report.verdict(Property::AmdTrace), Verdict::Unknown);
+    assert_ne!(report.conclusion(), GraphConclusion::Verified);
 }
 
 #[test]

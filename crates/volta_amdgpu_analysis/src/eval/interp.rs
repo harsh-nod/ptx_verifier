@@ -6728,7 +6728,15 @@ impl<'a> Interpreter<'a> {
                             value: stored,
                         },
                     );
-                    let scope = if self.architecture != AmdArchitecture::Gfx1250
+                    let scope = if self.architecture == AmdArchitecture::Gfx1250
+                        && !effective_lds
+                        && (name.starts_with("global_") || flat)
+                        && instruction.modifiers.iter().any(|modifier| {
+                            modifier.name == "scope"
+                                && modifier.value.as_deref() == Some("SCOPE_SYS")
+                        }) {
+                        AmdMemoryScope::Gfx1250System
+                    } else if self.architecture != AmdArchitecture::Gfx1250
                         && name.starts_with("global_")
                         && instruction
                             .modifiers

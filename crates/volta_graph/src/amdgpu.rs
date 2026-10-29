@@ -423,6 +423,10 @@ pub enum AmdMemoryScope {
     /// Native GLOBAL SC0=1, SC1=0. Visibility additionally requires a recorded
     /// single-CU workgroup premise; scope does not create memory ordering.
     Workgroup,
+    /// Explicit gfx1250 SCOPE_SYS on ordinary GLOBAL or resolved-global FLAT
+    /// accesses. Both endpoints must carry it; completion and ordering remain
+    /// separate requirements within the analyzed workgroup.
+    Gfx1250System,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

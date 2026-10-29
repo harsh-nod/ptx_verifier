@@ -100,8 +100,7 @@ python3 tests/gfx1250/portable-tensor/check_mutants.py \
   --output /tmp/gfx1250-tensor-mutants.json
 python3 tests/gfx1250/portable-tensor/check_inventory.py
 python3 -m unittest discover -s tests/gfx1250/portable-tensor -p 'test_*.py'
-CARGO_HTTP_CAINFO=/home/harsh/.codex-openai/ca-combined.pem \
-  cargo test --release -p volta_pipeline --test gfx1250_tensor_parity_tests
+cargo test --release -p volta_pipeline --test gfx1250_tensor_parity_tests
 ```
 
 `mutations.tsv` is shared by the Rust semantic controls and the actual LLVM-MC

@@ -790,12 +790,24 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         "gfx1250 memory class/effect space, direction or ordering disagree",
                     ));
                 }
-                // The old scope tag certifies CDNA SC0/SC1 encodings. GFX12
-                // uses a distinct SCOPE field, whose cache/publication protocol
-                // must not be invented from a legacy tag on an external graph.
-                if link.scope != AmdMemoryScope::Unspecified {
+                if link.scope == AmdMemoryScope::Workgroup {
                     unresolved.push(Unresolved::at(event_id,
                         "legacy CDNA workgroup visibility does not certify gfx1250 SCOPE/cache publication"));
+                }
+                if link.scope == AmdMemoryScope::Gfx1250System
+                    && !(access.space == Space::Global
+                        && matches!(
+                            class,
+                            AmdMemoryClass::VectorLoad
+                                | AmdMemoryClass::VectorStore
+                                | AmdMemoryClass::FlatGlobalLoad
+                                | AmdMemoryClass::FlatGlobalStore
+                        ))
+                {
+                    unresolved.push(Unresolved::at(
+                        event_id,
+                        "gfx1250 system scope requires an ordinary GLOBAL or resolved-global FLAT effect",
+                    ));
                 }
                 if let Footprint::Bytes { addr, width } = access.footprint {
                     if atomic {

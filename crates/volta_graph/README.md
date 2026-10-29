@@ -16,6 +16,11 @@ registers with no fabricated LDS footprint. Legacy MFMA uses `MatrixIssue`;
 gfx1250 WMMA uses `WmmaIssue`. Register ranges use one entry per 32-bit register;
 u64 lane masks use 64 physical bits on gfx942/gfx950 and only 32 on gfx1250.
 
+`AmdMemoryScope::Gfx1250System` preserves explicit `SCOPE_SYS` on ordinary
+gfx1250 GLOBAL and resolved-global FLAT effects. It is distinct from legacy
+CDNA workgroup scope. Visibility requires both endpoints; the scope does not
+create completion, synchronization or coverage beyond the selected workgroup.
+
 The selected gfx1250 `GlobalAtomicAddF32NoReturn` profile records device-scoped
 F32 RMWs with one active lane, no destination register, and Store/X charges.
 Its read then write use paired aligned 4-byte Global effects with `Atomic`

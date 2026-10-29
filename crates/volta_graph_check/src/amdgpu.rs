@@ -607,6 +607,12 @@ fn trace_contract(graph: &EventGraph, architecture: AmdArchitecture) -> AmdTrace
                             "workgroup scope is supported only for native GLOBAL vector effects",
                         ));
                     }
+                    if link.scope == AmdMemoryScope::Gfx1250System {
+                        unresolved.push(Unresolved::at(
+                            link.effect,
+                            "gfx1250 system scope cannot certify a legacy AMD target",
+                        ));
+                    }
                 }
             }
         }
@@ -1433,10 +1439,21 @@ fn memory_conflicts_with_clock(
         .provenance()
         .assumptions
         .contains(&volta_graph::Assumption::SingleCuWorkgroup);
+    let gfx1250 = AmdArchitecture::from_targets(&graph.provenance().targets)
+        == Some(AmdArchitecture::Gfx1250);
+    // LLVM AMDGPUUsage.md at5fd50ec8, Memory Model GFX125x: explicit
+    // SCOPE_SYS forwards both accesses through smaller-scope caches. This
+    // supplies visibility only after the existing completion and HB checks.
     let scoped: HashSet<EventId> = graph
         .amd_memory_effects()
         .iter()
-        .filter(|link| single_cu && link.scope == AmdMemoryScope::Workgroup)
+        .filter(|link| {
+            if gfx1250 {
+                link.scope == AmdMemoryScope::Gfx1250System
+            } else {
+                single_cu && link.scope == AmdMemoryScope::Workgroup
+            }
+        })
         .map(|link| link.effect)
         .collect();
     let mut written = written_bytes(graph);
@@ -1487,7 +1504,11 @@ fn memory_conflicts_with_clock(
                     later_scoped,
                 ) {
                     unresolved.push(Unresolved::between(earlier, event,
-                        "native AMD cache visibility for an ordered cross-wave GLOBAL conflict requires workgroup-scoped endpoints and a single-CU workgroup premise"));
+                        if gfx1250 {
+                            "gfx1250 ordered cross-wave GLOBAL visibility requires explicit SCOPE_SYS at both endpoints"
+                        } else {
+                            "native AMD cache visibility for an ordered cross-wave GLOBAL conflict requires workgroup-scoped endpoints and a single-CU workgroup premise"
+                        }));
                 }
             }
             ordered

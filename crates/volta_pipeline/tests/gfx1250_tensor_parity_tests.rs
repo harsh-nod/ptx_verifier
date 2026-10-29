@@ -581,6 +581,15 @@ fn assert_complete_descriptor_bytes(outputs: &SymbolicOutputs) {
 #[test]
 fn ordinary_native_descriptor_copy_preserves_all_128_bytes_in_both_outputs() {
     let run = descriptor_bytes_check("tensor_descriptor_bytes_ordered");
+    assert!(
+        run.analysis
+            .graph
+            .amd_memory_effects()
+            .iter()
+            .filter(|effect| effect.scope == volta_graph::AmdMemoryScope::Gfx1250System)
+            .count()
+            >= 64
+    );
     assert_eq!(
         run.checks.conclusion(),
         GraphConclusion::Verified,

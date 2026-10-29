@@ -15,7 +15,7 @@
     "tests/gfx1250/portable-tensor/native-tensor-metadata.s": "47b07da2ebc20e6fb47301adc7143911d90317d7f25cb77b09c59501a88b9bf7",
     "tests/gfx1250/portable-tensor/native-tensor-publication.hip": "462a5e205bb9182390695fdf86807ecc07b0d4d8e61008e6c9a6b5c8516845b6",
     "tests/gfx1250/portable-tensor/native-tensor-publication.s": "c1cd868abf53ddb2ab51f3b6dcd94acde60a9c8c8ac7d17112c307e6b0045aac",
-    "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs": "253810ad4ede2ab68a332ab051c61038d4ceb487cee198e61d88cfb3d4edb83b"
+    "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs": "b3bd8a1d4c38ed1e5ae3ba152473f2f0a54ab77281c9e17613a4a74aed4a1cc2"
   },
   "native_edge_configuration": {
     "block": [
