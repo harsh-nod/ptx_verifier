@@ -174,7 +174,7 @@ pub enum UnaryOp {
 
 /// Whether a named-barrier instruction is `.aligned` (every `bar.*`, and `barrier.*.aligned`):
 /// a warp executes an aligned barrier as one collective, so its arriving lanes must all be at
-/// that one instruction.
+/// the same visit to that instruction, including visits skipped by its predicate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BarrierAlignment {
     Aligned,
