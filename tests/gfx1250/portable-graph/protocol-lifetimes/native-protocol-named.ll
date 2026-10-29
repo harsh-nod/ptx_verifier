@@ -89,7 +89,7 @@ end:
   ret void
 }
 
-define amdgpu_kernel void @named_new_lifetime_count_change(ptr addrspace(1) %out, i32 %unused) #0 {
+define amdgpu_kernel void @named_new_lifetime_count_change(ptr addrspace(1) %out, i32 %ordered) #0 {
 entry:
   %tid = call i32 @llvm.amdgcn.workitem.id.x()
   %producer = icmp ult i32 %tid, 32
@@ -118,9 +118,15 @@ read:
   br label %leave
 leave:
   call void @llvm.amdgcn.s.barrier.leave(i16 1)
+  %gate = icmp ne i32 %ordered, 0
+  br i1 %gate, label %lifetimegate, label %dispatchnew
+lifetimegate:
   call void @llvm.amdgcn.s.barrier()
+  br label %dispatchnew
+dispatchnew:
   br i1 %producer, label %newinit, label %end
 newinit:
+  call void asm sideeffect "s_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0\0As_nop 0", "~{memory}"()
   call void @llvm.amdgcn.s.barrier.init(ptr addrspace(3) @protocol_bar, i32 1)
   call void @llvm.amdgcn.s.barrier.join(ptr addrspace(3) @protocol_bar)
   call void @llvm.amdgcn.s.barrier.signal.var(ptr addrspace(3) @protocol_bar, i32 0)

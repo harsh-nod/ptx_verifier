@@ -1,5 +1,11 @@
 # volta_graph_check
 
+The gfx1250 named-object checker requires execution order from initialization
+to every other wave's use, and from earlier uses to reinitialization. Absent
+order admits a potential uninitialized/reset-object protocol hazard and yields
+a typed `AmdBarrierViolation`. Reinitialization with live joins remains outside
+the selected profile; it does not gain an ordering certificate from this rule.
+
 For supported `gfx942`, `gfx950` and `gfx1250` targets, `check_graph` selects four AMD properties:
 trace completeness, wait/register readiness, workgroup barrier generations, and
 memory-conflict freedom. `Property::ALL` retains the ten PTX properties for API

@@ -155,10 +155,11 @@ impl State {
             if let Some(previous) = self.objects.get(&handle.id)
                 && previous.uses.iter().any(|p| !p.before(&point))
             {
-                self.unresolved.push(Unresolved::at(
-                    record.event,
+                self.fail(
+                    record,
+                    0,
                     "named reinitialization is not ordered after every previous use",
-                ));
+                );
             }
             let previous = self.objects.insert(
                 handle.id,
@@ -239,11 +240,12 @@ impl State {
             return None;
         }
         if !object.init.before(&point) {
-            self.unresolved.push(Unresolved::between(
-                object.init.event,
-                record.event,
-                "named initialization is not ordered before another wave's use",
-            ));
+            self.violations.push(AmdBarrierViolation {
+                generation: phase,
+                event: record.event,
+                wave: record.wave,
+                reason: "named initialization is not ordered before another wave's use".into(),
+            });
         }
         object.uses.push(point.clone());
         match record.kind {

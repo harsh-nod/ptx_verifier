@@ -184,7 +184,7 @@ fn allocated_object_initialization_precedes_every_other_wave_use() {
     named_marker_payload(&unordered);
     assert_eq!(
         unordered.checks.verdict(Property::AmdBarrier),
-        Verdict::Unknown,
+        Verdict::Fail,
         "{:?}\n{:?}",
         unordered.analysis.graph.terminal(),
         unordered.checks
@@ -206,7 +206,7 @@ fn reinitializing_an_object_with_live_joins_stays_explicitly_unsupported() {
 
 #[test]
 fn native_count_changes_require_a_released_ordered_new_initialization_lifetime() {
-    let safe = named(NAMED, "named_new_lifetime_count_change", 0);
+    let safe = named(NAMED, "named_new_lifetime_count_change", 1);
     assert_eq!(
         safe.checks.conclusion(),
         GraphConclusion::Verified,
@@ -228,6 +228,29 @@ fn native_count_changes_require_a_released_ordered_new_initialization_lifetime()
         })
         .collect();
     assert_eq!(initialized, [(0, 2), (1, 1)]);
+    let unordered = named(NAMED, "named_new_lifetime_count_change", 0);
+    payload(&unordered, &[7, 7]);
+    assert!(matches!(
+        unordered.analysis.graph.terminal(),
+        Terminal::Completed
+    ));
+    assert_eq!(
+        unordered.checks.verdict(Property::AmdBarrier),
+        Verdict::Fail,
+        "{:?}",
+        unordered.checks
+    );
+    assert!(
+        unordered
+            .checks
+            .amd
+            .as_ref()
+            .unwrap()
+            .barrier
+            .violations()
+            .iter()
+            .any(|v| v.reason.contains("reinitialization is not ordered"))
+    );
     let mismatch = named(NAMED, "named_count_mismatch_7", 0);
     assert!(
         matches!(mismatch.analysis.graph.terminal(), Terminal::Stuck { .. }),

@@ -87,10 +87,10 @@
     {
       "source": "native-protocol-named.ll",
       "assembly": "native-protocol-named.s",
-      "source_sha256": "648dbf01ddd1ae04a1de21afaa16f94c77707a4510a0c3a9816fab327cd5ec0a",
-      "assembly_sha256": "0af297927e487b5f0efb45bb33a07ea4b24a12a80b024889d510b790a7ce9ded",
-      "object_sha256": "03d303cd1276661688e6493bb6bbc10eba8fe73f1a672d58808c5ae27f66b6c1",
-      "code_object_sha256": "21410bfd1e78933e0435aa88e5b02037e2670a3a0732d22466a7c9d05129361f",
+      "source_sha256": "dcd8da1a19cc63fc1e8628d1d6e7c6676926ce9c36dddd99184523c56c0708e3",
+      "assembly_sha256": "c8e0eef5ea9cbbfb26f1779b81d2b941e16b5d1abdc3ae3b7051911d16bdab51",
+      "object_sha256": "f2c88028948d9e73f69a62e3e65f94d731c1dcfb1a57ae10836b1fbc90b259fe",
+      "code_object_sha256": "dc4e566b3d44508420ed931017db60cff4c5999718847c308f98337202fd0d97",
       "compile": {
         "argv": [
           "/opt/rocm-7.2.0/lib/llvm/bin/llc",
