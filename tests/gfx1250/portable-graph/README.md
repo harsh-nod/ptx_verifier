@@ -172,3 +172,42 @@ graph property. Independent scalar NOPs in the last mutation keep its candidate
 execution complete; they do not establish memory ordering. The mutations are
 CPU-only. Compiler and mutation receipts record source/tool/object hashes; no
 hardware result or completion of the entire portable feature group is claimed.
+
+## Named lifecycle markers
+
+`native-named-lifecycle.ll` adds six allocated named-object kernels with exact
+portable output markers. Each logical participant maps to one native wave.
+For crosswave payload controls, initialization and joins precede a rendezvous; the payload stores being tested
+occur afterward, so that rendezvous cannot publish them.
+
+| Kernel | Tested launch and arguments | Full assertion |
+| --- | --- | --- |
+| `named_wait_only_consumer_42` | block 64, `out[2]` | Only the producer arrives at count 1; only the consumer waits; four LDS bytes publish to lane 32; only `out[1] = 42` is written |
+| `named_two_marker_ones` | block 64, `out[2], skip:u32=0` | Both waves arrive/wait; `out = [1,1]`; CPU-only `skip=1` leaves expected 2/arrived 1 and records all 64 blocked workitems |
+| `named_one_arrival_marker` | block 1, `out[1]` | A count-1 arrival and actual hardware WAIT precede the only marker `out[0] = 1`; no memory transfer is invented |
+| `named_wait_then_copy_exit` | block 1, `in[1], out[1]` | Actual WAIT then completed scalar input load and copy; `out[0] = in[0]` |
+| `named_copy_then_metadata_phase_7` | block 64, `in[8], out[8]` | A 16-byte copy completes in phase 0; the consumer observes it before phase 1; a distinct four-byte LDS metadata word is published in phase 1; only `out[0] = 7` is written |
+| `named_producer_first_buffer_is_free` | block 64, `in[2], out[2]` | Full and empty objects both count 1; producer skips a nonexistent initial empty wait, then waits on the real consumer release before reuse; `out = [in[0], in[1]]` |
+
+The two block-1 controls compile for a 1..64 workitem range to retain the actual
+hardware WAIT rather than LLVM's wave-only replacement. They are tested only
+with one workitem. Explicit native F32 add-zero identities give the finite
+markers 42, 1 and 7 a typed arithmetic role without changing their bits or adding
+synchronization. The model cannot infer an output type from arbitrary raw
+MOV/store bits: direct store-only F32/U32 constants remain ambiguous under the
+untyped `ArrayDef` API. These fixtures do not add that support.
+
+```sh
+python3 tests/gfx1250/portable-graph/validate_named_profile.py --module native-named-lifecycle
+cargo test -p volta_pipeline --test gfx1250_named_lifecycle_tests
+```
+
+The eleven CPU tests preserve exact output indices/tails and global write bytes,
+participant counts, phases and memory footprints. Four MC-accepted CPU-only
+mutations expose a missing LDS completion, a phase-1 wait unsatisfied by a
+completed phase 0, a count-1 wait with no arrival and missing consumer release
+before buffer reuse. The same-source scalar
+skip control is also CPU-only. No hardware outcome is claimed. Hardware WAIT
+does not reproduce PTX scoped polling-loop grammar; AMD count-1 completion does
+not emulate manual NVIDIA transaction-byte credits or tensor-engine commits.
+Those mechanism residuals remain separate from the native marker assertions.

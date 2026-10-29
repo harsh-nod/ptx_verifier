@@ -646,6 +646,15 @@ publication. The corpus and hash receipts live in
 `tests/gfx1250/portable-graph/copy-order`; native DMA/proxy/transaction-byte
 mechanisms are not inferred from these ordinary-memory controls.
 
+`gfx1250_named_lifecycle_tests` preserves the distinct marker42 at out[1], both
+marker ones, the single marker one, WAIT-then-identity, and copy-phase0 followed
+by metadata-phase1 marker7, plus a first-free buffer followed by a count-1
+consumer-release handshake. Explicit F32 zero identities retain typed finite
+markers; arbitrary raw constant MOV/store output typing remains unsupported.
+Its MC mutations and missing-arrival scalar input are CPU-only, and phase/count
+diagnostics retain every blocked workitem. Polling grammar and manual NVIDIA
+transaction-byte credits remain explicit mechanism residuals.
+
 `examples/measure_native_export.rs` measures a completed native graph and its
 viewer export on CPU; its counts and GraphVerified guard are independent of
 mathematical equivalence and hardware evidence.

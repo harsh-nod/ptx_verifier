@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "hardware_execution": false,
+  "scope": "Compiler/MC/link provenance; Rust graph and payload gates are separate",
+  "input": "/home/harsh/ptx-verifier-gfx1250-portable-copy/tests/gfx1250/portable-graph/native-named-lifecycle.ll",
+  "input_sha256": "7a15eb5b4d95997070c24b38b44114284355cabd9f343e762005b7b63e821b9a",
+  "assembly": "/home/harsh/ptx-verifier-gfx1250-portable-copy/tests/gfx1250/portable-graph/native-named-lifecycle.s",
+  "assembly_sha256": "b88f6c0057763fc9293991de0b3ce6d3962dbbd0937406ba8e4def930ed7ac25",
+  "tools": {
+    "llc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+      "sha256": "88b786477a6f2db121523da927bc176f84f209c2bca2ba2c9e870e2202f0f5f6",
+      "version": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+          "--version"
+        ],
+        "exit_code": 0,
+        "stdout": "AMD LLVM version 22.0.0git\n  Optimized build.\n  Default target: x86_64-unknown-linux-gnu\n  Host CPU: znver5\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n",
+        "stderr": ""
+      }
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--version"
+        ],
+        "exit_code": 0,
+        "stdout": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n",
+        "stderr": ""
+      }
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "--version"
+        ],
+        "exit_code": 0,
+        "stdout": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n",
+        "stderr": ""
+      }
+    }
+  },
+  "mutations": [
+    {
+      "name": "consumer_only_wait_does_not_complete_lds",
+      "kernel": "named_wait_only_consumer_42",
+      "source_line": 66,
+      "original": "s_wait_dscnt 0\n",
+      "replacement": "s_wait_loadcnt 0\n",
+      "assembly_sha256": "09cfd13614d641b1988082411af170fda4a7b07223c1ecd8b61a0c44991f63c0",
+      "object_sha256": "3ffd2cf04cf2cc130f4998d77e4b7c7d2ceff91a20f05058975807c7a42fc05d",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-named-profile-durms0n8/consumer_only_wait_does_not_complete_lds.s",
+          "-o",
+          "/tmp/gfx1250-named-profile-durms0n8/consumer_only_wait_does_not_complete_lds.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "Shared conflict: arrival/wait cannot replace actual LDS completion",
+      "hardware_execution": false
+    },
+    {
+      "name": "earlier_phase_cannot_release_metadata_phase",
+      "kernel": "named_copy_then_metadata_phase_7",
+      "source_line": 583,
+      "original": "s_barrier_signal m0 \n\ts_endpgm",
+      "replacement": "s_nop 0\n\ts_endpgm",
+      "assembly_sha256": "2b59e46d2b563492cd6f98022dc6d87470db70c2f919a9d7293230d8cba07f42",
+      "object_sha256": "1b69b13462ead69aac3ffa260eb0478adcab1c33b233614b9930737c2494b688",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-named-profile-durms0n8/earlier_phase_cannot_release_metadata_phase.s",
+          "-o",
+          "/tmp/gfx1250-named-profile-durms0n8/earlier_phase_cannot_release_metadata_phase.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "named deadlock: consumer phase 1 expected 1, arrived 0, after phase 0 completed",
+      "hardware_execution": false
+    },
+    {
+      "name": "marker_needs_actual_arrival",
+      "kernel": "named_one_arrival_marker",
+      "source_line": 294,
+      "original": "s_barrier_signal m0",
+      "replacement": "s_nop 0",
+      "assembly_sha256": "e0496429e27edfc3dab24990c90ac0ebba4a8aeaac40189fb1a64aa02d6494d2",
+      "object_sha256": "fc2475ab01cf562fc333ac9473294e006e2876ba68437fe7b5fec2fb5212ceca",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-named-profile-durms0n8/marker_needs_actual_arrival.s",
+          "-o",
+          "/tmp/gfx1250-named-profile-durms0n8/marker_needs_actual_arrival.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "named deadlock: count-1 wait cannot fall through without arrival",
+      "hardware_execution": false
+    },
+    {
+      "name": "first_free_buffer_still_needs_later_handshake",
+      "kernel": "named_producer_first_buffer_is_free",
+      "source_line": 770,
+      "original": "s_barrier_wait 1",
+      "replacement": "s_nop 0",
+      "assembly_sha256": "b51c257e539505b1ebefa6fd657312737af19424e604e03e2670a246e627631d",
+      "object_sha256": "5cd1e0f2f1569de3a2d2b6c09e454c83d5a14ee38d76498c88de89eb404a4c7b",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-named-profile-durms0n8/first_free_buffer_still_needs_later_handshake.s",
+          "-o",
+          "/tmp/gfx1250-named-profile-durms0n8/first_free_buffer_still_needs_later_handshake.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "Shared conflict: an initially free buffer cannot be reused before its consumer releases it",
+      "hardware_execution": false
+    }
+  ],
+  "runtime_control": {
+    "kernel": "named_two_marker_ones",
+    "scalar_parameter": "skip",
+    "positive": 0,
+    "cpu_only_deadlock": 1,
+    "scope": "Same actual assembly; skip 1 suppresses only wave 1 arrival, leaving expected 2 and arrived 1"
+  },
+  "compile": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+      "-mtriple=amdgcn-amd-amdhsa",
+      "-mcpu=gfx1250",
+      "-O2",
+      "/home/harsh/ptx-verifier-gfx1250-portable-copy/tests/gfx1250/portable-graph/native-named-lifecycle.ll",
+      "-o",
+      "/tmp/gfx1250-named-profile-durms0n8/native-named-lifecycle.s"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "assemble": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "--triple=amdgcn-amd-amdhsa",
+      "--mcpu=gfx1250",
+      "-filetype=obj",
+      "/home/harsh/ptx-verifier-gfx1250-portable-copy/tests/gfx1250/portable-graph/native-named-lifecycle.s",
+      "-o",
+      "/tmp/gfx1250-named-profile-durms0n8/native.o"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "link": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "-shared",
+      "/tmp/gfx1250-named-profile-durms0n8/native.o",
+      "-o",
+      "/tmp/gfx1250-named-profile-durms0n8/native.hsaco"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "object_sha256": "29847279ffc1e8975c2a88d258870db01ad2330a4009c61545c96308ad387be7",
+  "code_object_sha256": "3d125d971f9cddd248d8b7c65ea39379b0337f0e04bb453d19c440a228c37f31"
+}
