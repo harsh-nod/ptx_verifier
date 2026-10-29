@@ -179,7 +179,11 @@ impl Memory {
             (_, Value::Low16Integer(_)) => {
                 return Err("store observes undefined upper half of true16 integer".into());
             }
-            (1, Value::BytePair(lo, _)) => Value::Byte(lo),
+            (1, Value::BytePair(lo, _) | Value::PartialBytePair(lo, _)) => Value::Byte(lo),
+            (2, Value::PartialBytePair(lo, hi)) => Value::BytePair(lo, hi),
+            (_, Value::PartialBytePair(..)) => {
+                return Err("store observes undefined upper bytes of true16 byte packing".into());
+            }
             (2, Value::Bytes(bytes)) => Value::BytePair(bytes[0], bytes[1]),
             (1 | 2, value @ Value::PartialBits { .. }) => {
                 Value::Bits(value.selected_bits(0, (8 * width) as u32)?)
@@ -365,7 +369,7 @@ impl Memory {
             Value::Bits(_) => Err("raw register bits have ambiguous integer/float output type; convert explicitly before storing".into()),
             Value::PartialBits { .. } => Err("output observes undefined bits from ABI padding".into()),
             Value::Halves(..)|Value::BytePair(..) => Err("packed output needs element-width extraction".into()),
-            Value::PartialHalves(..)|Value::Bytes(..)=>Err("packed/partially initialized output needs element-width extraction".into()),
+            Value::PartialHalves(..)|Value::Bytes(..)|Value::PartialBytePair(..)=>Err("packed/partially initialized output needs element-width extraction".into()),
             Value::WidePart { .. } => Err("one word of a 64-bit mathematical value cannot be extracted as a scalar32".into()),
             Value::PredicateWord { .. } => Err("symbolic predicate mask cannot be extracted as data bits".into()),
             Value::RelocationWord { .. } => Err("opaque PC relocation cannot be extracted as data bits".into()),

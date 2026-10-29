@@ -2370,6 +2370,28 @@ impl<'a> Interpreter<'a> {
             wave.value(operand, lane)
         }
     }
+    /// Exact encoded byte transport only. Unknown bytes stay absent; no array
+    /// interpretation is claimed until a numeric decoder actually consumes one.
+    fn encoded_bytes(&mut self, value: Value) -> Option<[Option<ExprId>; 4]> {
+        let zero = self.arena.int(0);
+        Some(match value {
+            Value::Byte(a) => [Some(a), Some(zero), Some(zero), Some(zero)],
+            Value::BytePair(a, b) => [Some(a), Some(b), Some(zero), Some(zero)],
+            Value::PartialBytePair(a, b) => [Some(a), Some(b), None, None],
+            Value::Bytes(bytes) => bytes.map(Some),
+            Value::PartialBits { bits, defined } => std::array::from_fn(|i| {
+                ((defined >> (i * 8)) & 255 == 255)
+                    .then(|| self.arena.int(((bits >> (i * 8)) & 255) as i64))
+            }),
+            Value::Bits(bits) | Value::Integer(bits) => {
+                std::array::from_fn(|i| Some(self.arena.int(((bits >> (i * 8)) & 255) as i64)))
+            }
+            Value::SignedInteger(bits) => std::array::from_fn(|i| {
+                Some(self.arena.int((((bits as u32) >> (i * 8)) & 255) as i64))
+            }),
+            _ => return None,
+        })
+    }
     fn fp8(
         &mut self,
         wave: &Wave,
@@ -2384,6 +2406,17 @@ impl<'a> Interpreter<'a> {
             Value::Bytes(bytes) => {
                 self.claim_byte_format(wave, bytes[byte], ByteFormat::OcpE4m3)?;
                 return Ok(bytes[byte]);
+            }
+            Value::PartialBytePair(lo, hi) => {
+                if byte >= 2 {
+                    return Err(wave.fail(
+                        Some(lane),
+                        "selected undefined upper byte of true16 packing",
+                    ));
+                }
+                let value = if byte == 0 { lo } else { hi };
+                self.claim_byte_format(wave, value, ByteFormat::OcpE4m3)?;
+                return Ok(value);
             }
             Value::BytePair(lo, hi) => {
                 if byte < 2 {
@@ -2623,7 +2656,8 @@ impl<'a> Interpreter<'a> {
             | Value::Real(_)
             | Value::Byte(_)
             | Value::Bytes(_)
-            | Value::BytePair(..) => Err(EvalError::Unsupported {
+            | Value::BytePair(..)
+            | Value::PartialBytePair(..) => Err(EvalError::Unsupported {
                 pc: wave.pc,
                 what: "symbolic non-f16 bits reinterpreted as half".into(),
             }),
@@ -3866,6 +3900,28 @@ impl<'a> Interpreter<'a> {
                         },
                     )
                     .map_err(|e| wave.fail(Some(lane), e))?;
+                if matches!(name, "v_lshlrev_b16" | "v_lshrrev_b16") && matches!(a, 0 | 8) {
+                    let source = wave.value(&o[2], lane)?;
+                    if matches!(
+                        source,
+                        Value::Byte(_)
+                            | Value::BytePair(..)
+                            | Value::PartialBytePair(..)
+                            | Value::Bytes(_)
+                    ) {
+                        let bytes = self.encoded_bytes(source).expect("encoded byte tag");
+                        let zero = self.arena.int(0);
+                        let (lo, hi) = match (name, a) {
+                            (_, 0) => (bytes[0], bytes[1]),
+                            ("v_lshlrev_b16", 8) => (Some(zero), bytes[0]),
+                            _ => (bytes[1], Some(zero)),
+                        };
+                        if let (Some(lo), Some(hi)) = (lo, hi) {
+                            wave.put_value(&o[0], lane, Value::PartialBytePair(lo, hi))?;
+                            continue;
+                        }
+                    }
+                }
                 let b = wave
                     .value(&o[2], lane)?
                     .selected_bits(0, 16)
@@ -4841,14 +4897,15 @@ impl<'a> Interpreter<'a> {
                     };
                     Value::Real(result)
                 }
-                "v_cvt_f32_ubyte2" => {
+                "v_cvt_f32_ubyte2" | "v_cvt_f32_ubyte3" => {
+                    let byte = if name == "v_cvt_f32_ubyte2" { 2 } else { 3 };
                     let value = wave.value(&o[1], lane)?;
                     let expr = if let Value::Bytes(bytes) = value {
-                        self.claim_byte_format(wave, bytes[2], ByteFormat::UnsignedU8)?;
-                        bytes[2]
+                        self.claim_byte_format(wave, bytes[byte], ByteFormat::UnsignedU8)?;
+                        bytes[byte]
                     } else {
                         let byte = value
-                            .selected_bits(16, 8)
+                            .selected_bits(byte as u32 * 8, 8)
                             .map_err(|error| wave.fail(Some(lane), error))?;
                         self.arena.int(byte as i64)
                     };
@@ -4881,6 +4938,60 @@ impl<'a> Interpreter<'a> {
                     if name == "v_or_b32" {
                         let a = wave.value(&o[1], lane)?;
                         let b = wave.value(&o[2], lane)?;
+                        if matches!(
+                            a,
+                            Value::Byte(_)
+                                | Value::BytePair(..)
+                                | Value::PartialBytePair(..)
+                                | Value::Bytes(_)
+                        ) || matches!(
+                            b,
+                            Value::Byte(_)
+                                | Value::BytePair(..)
+                                | Value::PartialBytePair(..)
+                                | Value::Bytes(_)
+                        ) {
+                            if let (Some(a), Some(b)) =
+                                (self.encoded_bytes(a), self.encoded_bytes(b))
+                            {
+                                let mut bytes = [None; 4];
+                                for i in 0..4 {
+                                    bytes[i] = match (a[i], b[i]) {
+                                        (Some(x), other)
+                                            if self.arena.as_int_const(x) == Some(0) =>
+                                        {
+                                            other
+                                        }
+                                        (other, Some(y))
+                                            if self.arena.as_int_const(y) == Some(0) =>
+                                        {
+                                            other
+                                        }
+                                        (Some(x), Some(y)) if x == y => Some(x),
+                                        (Some(x), Some(y)) => match (
+                                            self.arena.as_int_const(x),
+                                            self.arena.as_int_const(y),
+                                        ) {
+                                            (Some(x), Some(y)) => {
+                                                Some(self.arena.int((x | y) & 255))
+                                            }
+                                            _ => None,
+                                        },
+                                        _ => None,
+                                    };
+                                }
+                                if let [Some(lo), Some(hi), upper0, upper1] = bytes {
+                                    let value = if let (Some(c), Some(d)) = (upper0, upper1) {
+                                        Value::Bytes([lo, hi, c, d])
+                                    } else {
+                                        Value::PartialBytePair(lo, hi)
+                                    };
+                                    wave.put_value(&o[0], lane, value)?;
+                                    continue;
+                                }
+                            }
+                            return Err(self.unsupported(wave, instruction));
+                        }
                         let transport = |value: Value| {
                             matches!(
                                 value,
@@ -5642,7 +5753,17 @@ impl<'a> Interpreter<'a> {
         } else {
             0
         };
-        if scalar && ((wave.wide(&o[1], 0)? | scalar_displacement | offset as u64) & 3) != 0 {
+        let scalar_alignment = if self.architecture == AmdArchitecture::Gfx1250
+            && matches!(name, "s_load_u8" | "s_load_u16")
+        {
+            width - 1
+        } else {
+            3
+        };
+        if scalar
+            && ((wave.wide(&o[1], 0)? & 3) != 0
+                || ((scalar_displacement | offset as u64) & scalar_alignment) != 0)
+        {
             return Err(EvalError::Unsupported {
                 pc: wave.pc,
                 what: "unaligned SMEM address components require native low-bit masking semantics"
@@ -6061,6 +6182,7 @@ impl<'a> Interpreter<'a> {
                             | Value::RelocationWord { .. }
                             | Value::SharedApertureHi
                             | Value::PartialBits { .. }
+                            | Value::PartialBytePair(..)
                             | Value::Low16Integer(_) => StoredValue::Opaque,
                         }))
                     } else {

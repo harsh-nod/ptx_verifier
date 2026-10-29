@@ -1274,6 +1274,15 @@ pub(super) fn validate_registers(
         }
         Opcode::ScalarMemory => {
             if architecture == crate::target::Architecture::Gfx1250
+                && matches!(stem, "s_load_u8" | "s_load_u16")
+            {
+                if !matches!(operands.get(2),Some(Operand::Integer(value)) if (0..=0xffffff).contains(value))
+                    && !matches!(operands.get(2),Some(Operand::Register(r)) if r.class==Scalar && r.count==1)
+                {
+                    return Err("selected subword SMEM requires an unsigned24 immediate byte offset or one numbered SGPR".into());
+                }
+            }
+            if architecture == crate::target::Architecture::Gfx1250
                 && modifiers
                     .iter()
                     .any(|m| matches!(m.name.as_str(), "offset" | "scale_offset"))
@@ -1450,6 +1459,17 @@ pub(super) fn validate_registers(
             }
         }
         Opcode::VectorAlu => {
+            if architecture == crate::target::Architecture::Gfx1250 && stem == "v_cvt_f32_ubyte3" {
+                if !modifiers.is_empty()
+                    || !matches!(operands.get(1),Some(Operand::Register(r)) if matches!(r.class,Scalar|Vector) && r.count==1)
+                        && !matches!(operands.get(1),Some(Operand::Integer(v)) if (i32::MIN as i64..=u32::MAX as i64).contains(v))
+                {
+                    return Err(
+                        "selected UBYTE3 conversion needs one unmodified encoded32bit source"
+                            .into(),
+                    );
+                }
+            }
             if stem == "v_s_exp_f32" {
                 // LLVM VOP_Pseudo_Scalar_F32 uses SSrc_f32, not VSrc_f32:
                 // reading an arbitrary VGPR lane would change its semantics.

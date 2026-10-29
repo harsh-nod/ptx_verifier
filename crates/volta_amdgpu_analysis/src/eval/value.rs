@@ -61,6 +61,9 @@ pub(super) enum Value {
     Byte(ExprId),
     /// Two encoded bytes in low16, with a zero-filled upper half.
     BytePair(ExprId, ExprId),
+    /// Two exact encoded low bytes. High16 is undefined, as for a true16
+    /// integer result: selected-byte/low16 consumers may use it, full words may not.
+    PartialBytePair(ExprId, ExprId),
     Bytes([ExprId; 4]),
 }
 
@@ -71,6 +74,9 @@ impl Value {
             Self::SignedInteger(bits) => Ok(bits as u32),
             Self::PartialBits { .. } => {
                 Err("undefined bits in a partially initialized ABI word".into())
+            }
+            Self::PartialBytePair(..) => {
+                Err("undefined upper bytes in a true16 packed-byte word".into())
             }
             Self::PredicateWord { .. } => {
                 Err("symbolic predicate mask used as concrete integer/address bits".into())
@@ -128,6 +134,7 @@ impl Value {
             | Self::PartialHalves(..)
             | Self::Byte(..)
             | Self::BytePair(..)
+            | Self::PartialBytePair(..)
             | Self::Bytes(..) => Err("encoded packed data used as one f32 value".into()),
         }
     }

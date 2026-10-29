@@ -245,7 +245,7 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
     Some(
         match name.trim_end_matches("_e32").trim_end_matches("_e64") {
             "s_load_b32" | "s_load_b64" | "s_load_b96" | "s_load_b128" | "s_load_b256"
-            | "s_load_b512" | "s_load_u8" => (ScalarMemory, 3, 3),
+            | "s_load_b512" | "s_load_u8" | "s_load_u16" => (ScalarMemory, 3, 3),
             "s_get_pc_i64" => (ScalarAlu, 1, 1),
             "s_cvt_f32_i32" => (ScalarAlu, 2, 2),
             "flat_load_u8" | "flat_load_i8" | "flat_load_u16" | "flat_load_i16"
@@ -293,7 +293,7 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
             "s_add_f32" | "s_sub_f32" | "s_mul_f32" | "s_min_num_f32" => (ScalarAlu, 3, 3),
             "s_ctz_i32_b32" | "s_addk_co_i32" => (ScalarAlu, 2, 2),
             "v_fmac_f16" => (VectorAlu, 3, 3),
-            "v_s_exp_f32" => (VectorAlu, 2, 2),
+            "v_s_exp_f32" | "v_cvt_f32_ubyte3" => (VectorAlu, 2, 2),
             "v_pk_max_num_f16" | "v_max_num_f16" | "v_pk_mul_lo_u16" | "v_pk_sub_i16" => {
                 (VectorAlu, 3, 3)
             }
