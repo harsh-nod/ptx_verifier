@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "hardware_execution": false,
+  "scope": "Compiler/MC/link provenance; Rust graph and payload gates are separate",
+  "input": "/home/harsh/ptx-verifier-gfx1250-named-barriers/tests/gfx1250/portable-graph/native-named-phases.ll",
+  "input_sha256": "1f47b6f5275c63b1ce9e4081abd9f67e97d6bb6f11f87475fd887567d2a48b55",
+  "assembly": "/home/harsh/ptx-verifier-gfx1250-named-barriers/tests/gfx1250/portable-graph/native-named-phases.s",
+  "assembly_sha256": "5f29e82c9934af307f2472a60617716c563f4d652f7b2fa2dd8a3a5b4ea9dd7b",
+  "tools": {
+    "llc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+      "sha256": "88b786477a6f2db121523da927bc176f84f209c2bca2ba2c9e870e2202f0f5f6",
+      "version": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+          "--version"
+        ],
+        "exit_code": 0,
+        "stdout": "AMD LLVM version 22.0.0git\n  Optimized build.\n  Default target: x86_64-unknown-linux-gnu\n  Host CPU: znver5\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n",
+        "stderr": ""
+      }
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--version"
+        ],
+        "exit_code": 0,
+        "stdout": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n",
+        "stderr": ""
+      }
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "--version"
+        ],
+        "exit_code": 0,
+        "stdout": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n",
+        "stderr": ""
+      }
+    }
+  },
+  "mutations": [
+    {
+      "name": "missing_consumer_handshake",
+      "kernel": "named_two_object_handshake",
+      "source_line": 97,
+      "original": "s_barrier_wait 2",
+      "replacement": "s_nop 0",
+      "assembly_sha256": "ca05e1f58b44d87ebce689ad8a795b33f442d3b312ec34020abe906ee9910005",
+      "object_sha256": "7cf4d5e9fd4b9d17487185a556470b8697119829aaad88fc22b8438a3f567608",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-named-profile-k3hhl181/missing_consumer_handshake.s",
+          "-o",
+          "/tmp/gfx1250-named-profile-k3hhl181/missing_consumer_handshake.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "Shared conflict: the producer cannot reuse the buffer before its consumer completes",
+      "hardware_execution": false
+    },
+    {
+      "name": "independent_object_count_mismatch",
+      "kernel": "named_independent_object_counts",
+      "source_line": 208,
+      "original": "s_mov_b32 m0, 0x10002",
+      "replacement": "s_mov_b32 m0, 0x20002",
+      "assembly_sha256": "c9fc5b95ba144c44756013050d8faa41784f6af24c408975a493cd68052e11ed",
+      "object_sha256": "a32a6ba98fb93c06f8b70d197ade4300fb10c17bc128f17e775596bbf871bfcd",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-named-profile-k3hhl181/independent_object_count_mismatch.s",
+          "-o",
+          "/tmp/gfx1250-named-profile-k3hhl181/independent_object_count_mismatch.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "named deadlock: distinct objects each retain expected 2 and arrived 1",
+      "hardware_execution": false
+    },
+    {
+      "name": "encoded_selector_does_not_change_joined_object",
+      "kernel": "named_two_object_handshake",
+      "source_line": 97,
+      "original": "s_barrier_wait 2",
+      "replacement": "s_barrier_wait 1",
+      "assembly_sha256": "b3ce55ad581d696adedd88f1751b4119d889368ad451e94c4aa89a09ec050ef5",
+      "object_sha256": "aefb264d33bfb949f93fdd662a834e387fc6cb3f080d79f355f5772033f3a25f",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-named-profile-k3hhl181/encoded_selector_does_not_change_joined_object.s",
+          "-o",
+          "/tmp/gfx1250-named-profile-k3hhl181/encoded_selector_does_not_change_joined_object.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "positive metamorphic control: both complete outputs remain identical",
+      "hardware_execution": false
+    }
+  ],
+  "runtime_control": {
+    "kernel": "named_selected_object_copy",
+    "scalar_parameter": "different",
+    "positive": 0,
+    "cpu_only_deadlock": 1,
+    "scope": "Same actual assembly; flag 1 makes the two waves join different allocated objects"
+  },
+  "compile": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+      "-mtriple=amdgcn-amd-amdhsa",
+      "-mcpu=gfx1250",
+      "-O2",
+      "/home/harsh/ptx-verifier-gfx1250-named-barriers/tests/gfx1250/portable-graph/native-named-phases.ll",
+      "-o",
+      "/tmp/gfx1250-named-profile-k3hhl181/native-named-phases.s"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "assemble": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "--triple=amdgcn-amd-amdhsa",
+      "--mcpu=gfx1250",
+      "-filetype=obj",
+      "/home/harsh/ptx-verifier-gfx1250-named-barriers/tests/gfx1250/portable-graph/native-named-phases.s",
+      "-o",
+      "/tmp/gfx1250-named-profile-k3hhl181/native.o"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "link": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "-shared",
+      "/tmp/gfx1250-named-profile-k3hhl181/native.o",
+      "-o",
+      "/tmp/gfx1250-named-profile-k3hhl181/native.hsaco"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "object_sha256": "3d185d31d2e01bc8c976e1bba0961be65c12bd87227aba4bce92f730dae11c11",
+  "code_object_sha256": "b52102bc001eb57f5b32f506ff728e4b5634359b69b704be9db5efbbd5addcd0"
+}

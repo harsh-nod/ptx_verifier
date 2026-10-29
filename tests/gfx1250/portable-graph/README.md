@@ -111,3 +111,31 @@ resolved selectors, reinitialization incarnations, subset drops, the counted
 END-without-drop deadlock, the unbound NULL limit and a typed Shared witness.
 The browser receipt states its rendering-only scope and binds the page/script
 hashes; mathematical, graph and hardware evidence remain separate.
+
+## Independent objects and producer handshakes
+
+`native-named-phases.ll` and its unchanged compiler output add four separate
+controls. The compiler assigns `full` object ID 2 and `empty` ID 1 in this module;
+the tests check those actual allocations, count values and every observed phase.
+The original six-kernel module is unchanged.
+
+| Kernel | Launch/ABI | Complete payload and obligation |
+| --- | --- | --- |
+| `named_two_object_handshake` | block 64, `in*, out*`, both length 2 | `out = [in[0], in[1]]`; full count 2 plus empty count 2 order buffer reuse between generations |
+| `named_independent_object_counts` | block 64, no arguments or outputs | Object 2 count 1 completes phases 0 and 1 around object 1 count 2 phase 0 |
+| `named_three_arrivals_expression` | block 32, `in*, out*`, capacity 3 | Only out[0] is written: `(in[0] + in[1]) * in[2] - in[0]`; one wave with one payload lane completes three count-1 arrival phases |
+| `named_selected_object_copy` | block 64, `in*, out*, u32 different`, arrays length 1 | Safe `different=0` copies `in[0]`; **different=1 is CPU-only** and deadlocks both waves on different IDs |
+
+```sh
+python3 tests/gfx1250/portable-graph/validate_named_profile.py --module native-named-phases
+cargo test -p volta_pipeline --test gfx1250_named_barrier_tests
+```
+
+The separate `named-phases-profile-evidence.json` records compilation, MC/link
+and three assemble-valid mutations: removing the consumer handshake must expose
+a Shared conflict; changing one object's expected count must deadlock both waves;
+changing the encoded WAIT selector preserves both payloads because the joined
+object still determines the wait. The runtime ID-mismatch control uses the same
+actual assembly with a different scalar input, not an edited descriptor. No
+hardware outcome is claimed here. The native payload lane is inactive elsewhere;
+this does not emulate PTX independent lane termination or PTX count rounding.

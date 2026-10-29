@@ -46,6 +46,9 @@ artifacts and never call each other or the stage.
 symbolic payloads, repeated initialization, subset drops and NULL joins. Its
 assemble-valid CPU-only mutations distinguish count deadlocks, missing joins,
 END without a named drop, and LDS completion from arrival/publication.
+Its separate phases module checks two-object handshakes, independent counts,
+the complete three-arrival arithmetic expression, and runtime-selected ID
+deadlocks with a passing native control first.
 
 Every PTX-driven test in the workspace lives here, end to end: each runs real
 kernels from `tests/ptx/` through `verify_kernel` and asserts on the outcome.

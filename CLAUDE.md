@@ -628,6 +628,9 @@ deadlock/conflict controls in `gfx1250_named_barrier_tests`; harmful assembly
 mutations are CPU-only and separately validated with llvm-mc.
 `tests/gfx1250/portable-graph/named_browser.cjs` checks actual Chromium event,
 source and typed-finding navigation on those native runs in a mixed target store.
+The separate `native-named-phases.ll` corpus preserves two-object handshakes,
+independent per-object counts, the three-arrival expression and selected-ID
+deadlocks; the runtime mismatch input is CPU-only.
 
 `examples/measure_native_export.rs` measures a completed native graph and its
 viewer export on CPU; its counts and GraphVerified guard are independent of

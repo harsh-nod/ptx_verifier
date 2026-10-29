@@ -22,11 +22,15 @@ def command(argv):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--llvm", type=Path, default=Path("/opt/rocm-7.2.0/lib/llvm/bin"))
-    parser.add_argument("--output", type=Path,
-                        default=Path(__file__).with_name("named-profile-evidence.json"))
+    parser.add_argument("--module", choices=["native-named-barriers", "native-named-phases"],
+                        default="native-named-barriers")
+    parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     directory = Path(__file__).resolve().parent
-    source = directory / "native-named-barriers.ll"
+    source = directory / (args.module + ".ll")
+    if args.output is None:
+        args.output = directory / ("named-profile-evidence.json" if args.module == "native-named-barriers"
+                                   else "named-phases-profile-evidence.json")
     assembly = source.with_suffix(".s")
     llc, mc, linker = [args.llvm / name for name in ("llc", "llvm-mc", "ld.lld")]
     receipt = {"schema_version": 1, "target": "gfx1250", "hardware_execution": False,
@@ -49,6 +53,20 @@ def main():
         ("wrong_completion_class", "named_identity", "s_wait_dscnt 0\n",
          "s_wait_loadcnt 0\n", "Shared memory conflict: named arrival does not complete DS"),
     ]
+    if args.module == "native-named-phases":
+        mutations = [
+            ("missing_consumer_handshake", "named_two_object_handshake", "s_barrier_wait 2",
+             "s_nop 0", "Shared conflict: the producer cannot reuse the buffer before its consumer completes"),
+            ("independent_object_count_mismatch", "named_independent_object_counts",
+             "s_mov_b32 m0, 0x10002", "s_mov_b32 m0, 0x20002",
+             "named deadlock: distinct objects each retain expected 2 and arrived 1"),
+            ("encoded_selector_does_not_change_joined_object", "named_two_object_handshake",
+             "s_barrier_wait 2", "s_barrier_wait 1",
+             "positive metamorphic control: both complete outputs remain identical"),
+        ]
+        receipt["runtime_control"] = {"kernel": "named_selected_object_copy",
+            "scalar_parameter": "different", "positive": 0, "cpu_only_deadlock": 1,
+            "scope": "Same actual assembly; flag 1 makes the two waves join different allocated objects"}
     with tempfile.TemporaryDirectory(prefix="gfx1250-named-profile-") as temp:
         temp = Path(temp)
         regenerated = temp / assembly.name
@@ -57,7 +75,8 @@ def main():
         if regenerated.read_bytes() != assembly.read_bytes():
             raise RuntimeError("compiler output differs from the frozen assembly")
         text = assembly.read_text()
-        if text.count(".amdhsa_named_barrier_count 1") != 6:
+        kernels = 6 if args.module == "native-named-barriers" else 4
+        if text.count(".amdhsa_named_barrier_count 1") != kernels:
             raise RuntimeError("each genuine kernel must allocate four named objects")
         obj, code = temp / "native.o", temp / "native.hsaco"
         receipt["assemble"] = command([mc, "--triple=amdgcn-amd-amdhsa", "--mcpu=gfx1250",
