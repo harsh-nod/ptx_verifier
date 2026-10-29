@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "scope": "Twenty bounded workload-family mathematical counterparts. Complete configured footprints; no original-shape/dtype/workgroup-grid parity or hardware claim.",
+  "scope": "Twenty bounded decoded-F32 workload counterparts, coordinator validated in software and on gfx1250 hardware. No original PTX shape/dtype/grid parity claim.",
   "cases": [
     {
       "kernel": "portable_relu",
@@ -49,13 +49,14 @@
       "spec": "specs/portable/portable_relu.spec",
       "expected_outputs": 64,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "39d177ccb6c9f6ed1f86f99e369249419b53249466e69450b7cfe4f9eaa9dfb3",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_sigmoid",
@@ -103,13 +104,14 @@
       "spec": "specs/portable/portable_sigmoid.spec",
       "expected_outputs": 64,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "a0df03401186e7f3501e9367a9df1e24a21c8eb9a49b090785b09bc5ed9565b8",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_silu",
@@ -157,13 +159,14 @@
       "spec": "specs/portable/portable_silu.spec",
       "expected_outputs": 64,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "96175683d073cea7f2c5aedab539477f7c61c0d1b85cf9b95deb6b88378aefbf",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_swiglu",
@@ -219,13 +222,14 @@
       "spec": "specs/portable/portable_swiglu.spec",
       "expected_outputs": 64,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "dbfa1289abfe5b811dcaf43409d404ad6f2e00ede6291f5154448e9bd14a1e77",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_rope",
@@ -290,13 +294,14 @@
       "spec": "specs/portable/portable_rope.spec",
       "expected_outputs": 32,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "408fbf0e4f2a1d07d7d9e85dcadf5c1cbb19d646befcc74142fa742b2176b0ff",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_reduction",
@@ -345,13 +350,14 @@
       "spec": "specs/portable/portable_reduction.spec",
       "expected_outputs": 2,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "8b93d90c3f15fc0835f877dd26b13d78a260ed04c046a07a45e6ef19e9d2da89",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_softmax",
@@ -400,13 +406,14 @@
       "spec": "specs/portable/portable_softmax.spec",
       "expected_outputs": 64,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "8b686a62778ffc982f8e84c234483061eff12d7f28cc1b85bb9cb87758fe37a5",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_rmsnorm",
@@ -463,13 +470,14 @@
       "spec": "specs/portable/portable_rmsnorm.spec",
       "expected_outputs": 64,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "4837d4d36fe7d4df030de51638e56dde13e42064a7eb5e6d12e874c4034fd548",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_matvec",
@@ -526,13 +534,14 @@
       "spec": "specs/portable/portable_matvec.spec",
       "expected_outputs": 4,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "6f822e4a8a30f5f811aaf089fb42e39925641d27c56f35eb7e43c00be9ba21dd",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_gemm",
@@ -590,13 +599,14 @@
       "spec": "specs/portable/portable_gemm.spec",
       "expected_outputs": 32,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "3831aeeaca670f404bfee2bccede96838dfdd27bf4af4f8cad7e4251aa2b1fe5",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_gemm_add_silu",
@@ -662,13 +672,14 @@
       "spec": "specs/portable/portable_gemm_add_silu.spec",
       "expected_outputs": 32,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "64bd232375e676d03f571eea0849c682563e7a583e401cb0fedcdd792939c9f1",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_bitdelta",
@@ -748,11 +759,12 @@
       "required": true,
       "scope": "Complete bounded 1-bit-weight matmul with all 32 unpacked bits; concrete IndexInput packed[i]=i, arbitrary symbolic decoded F32 A. This does not validate arbitrary symbolic packed words or original large PTX shapes.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "00c612b9fc5813e4ee99f092fa270588460e501c441dd60b8dd6e5d2c05c330c",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_bitdelta_batched",
@@ -861,11 +873,12 @@
       "required": true,
       "scope": "Complete bounded 1-bit-weight matmul with all 32 unpacked bits; concrete IndexInput packed[i]=i, arbitrary symbolic decoded F32 A. This does not validate arbitrary symbolic packed words or original large PTX shapes.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "2ddd1107266662288cb7dd698c7f77e8040fee01b204d5712fd81b278db53140",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_convolution",
@@ -928,13 +941,14 @@
       "spec": "specs/portable/portable_convolution.spec",
       "expected_outputs": 18,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "102f603c3480128c807c53629dcaa27206628a8189eb42b0530aa7e2bb91d989",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_mamba_state",
@@ -1009,13 +1023,14 @@
       "spec": "specs/portable/portable_mamba_state.spec",
       "expected_outputs": 16,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "79c8980730794d527ae8ced2786449e6098428bb64b5f8d1d73aec1cf2a1db41",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_mamba_scan",
@@ -1114,13 +1129,14 @@
       "spec": "specs/portable/portable_mamba_scan.spec",
       "expected_outputs": 16,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "475821d7cb47e951e42b24f696f3577c9a94afb4b8140f5bdcdda5033bd18899",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_flash_attention",
@@ -1197,13 +1213,14 @@
       "spec": "specs/portable/portable_flash_attention.spec",
       "expected_outputs": 10,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "e61f6240fdbf82df762459812af3f6c8220044788eba94eac78cf48620c93543",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_forgetting_attention",
@@ -1288,13 +1305,14 @@
       "spec": "specs/portable/portable_forgetting_attention.spec",
       "expected_outputs": 10,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "1b4af5b517b1cb4ca8f47c48659d02550852136d68c3d5bac48455b58b50bdc2",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_sage_attention",
@@ -1379,13 +1397,14 @@
       "spec": "specs/portable/portable_sage_attention.spec",
       "expected_outputs": 8,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested. Q/K values are decoded F32 values; int8 packing and quantization are outside this case.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case. Q/K values are decoded F32 values; int8 packing and quantization are outside this case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "67e9e22f70ddcf1bef20f072d3382caed8106303dbe66d6d5902914da547b699",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     },
     {
       "kernel": "portable_sinkhorn",
@@ -1467,13 +1486,14 @@
       "spec": "specs/portable/portable_sinkhorn.spec",
       "expected_outputs": 2,
       "required": true,
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Exact-assembly hardware replay passed on mi400 for this bounded case.",
       "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_performed_no_gfx1250_device",
+      "hardware_validation": "coordinator_validated_mi400_gfx1250_exact_assembly",
       "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
       "assembly_sha256": "4dd692920c1fc8c100957665318f797fffd83c2a33b338954f01c57b0a9c5934",
       "spec_sha256": "dcf5f38a760b1f507defa73ab9fcd21b5d753560ea634f6722e233b0c708c146",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "coordinator_evidence": "evidence/coordinator-software.json",
+      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
     }
   ]
 }

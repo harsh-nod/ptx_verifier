@@ -28,8 +28,12 @@ impl fmt::Display for ParseError {
 
 impl Error for ParseError {}
 
-/// Parse native gfx942/gfx950 assembly without executing it. Unsupported syntax remains
-/// an error even if it occurs on a path the configured launch would not take.
+/// Parse native gfx942/gfx950/gfx1250 assembly without executing it.
+///
+/// Descriptors and AMDHSA metadata identify entry kernels. Explicitly declared,
+/// bounded non-entry functions are excluded; calls are unsupported. Every entry
+/// instruction is checked, including instructions on unreachable paths. Without
+/// entry declarations, all function bodies retain the strict handwritten dialect.
 pub fn parse(source: &str) -> Result<Module, ParseError> {
     parse_module(source)
 }
@@ -43,6 +47,10 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
         active: None,
         descriptor: None,
         functions: BTreeSet::new(),
+        text_labels: BTreeSet::new(),
+        bodies: BTreeMap::new(),
+        closed_functions: BTreeSet::new(),
+        overlapping_functions: Vec::new(),
         globals: BTreeSet::new(),
         text_section: true,
         metadata: None,
@@ -55,6 +63,7 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
         data_read_only: false,
         data_section_supported: false,
     };
+    parser.collect_function_declarations(source);
     let mut start = 0;
     for (line_index, raw) in source.split_inclusive('\n').enumerate() {
         let span = SourceSpan {
@@ -119,10 +128,65 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
             span: parser.metadata_blocks[1].1,
         });
     }
+    let mut entries = parser.descriptors.clone();
     for (buffer, span) in std::mem::take(&mut parser.metadata_blocks) {
-        metadata::apply_metadata(&mut parser.module, &buffer, span)?;
+        entries.extend(metadata::apply_metadata(&mut parser.module, &buffer, span)?);
     }
-    crate::target::validate(&parser.module)?;
+    // Instruction parsing follows entry classification: compiler modules can
+    // contain unrelated functions using instructions outside our kernel model.
+    // Structural directives, metadata and globals have already been checked.
+    let skipped = parser
+        .module
+        .kernels
+        .iter()
+        .filter(|kernel| !entries.is_empty() && !entries.contains(&kernel.name))
+        .map(|kernel| kernel.name.clone())
+        .collect::<BTreeSet<_>>();
+    for name in &skipped {
+        if !parser.functions.contains(name) || !parser.closed_functions.contains(name) {
+            return Err(ParseError {
+                message: format!(
+                    "non-entry function `{name}` requires explicit .type and matching .size"
+                ),
+                span: parser.bodies[name].span,
+            });
+        }
+    }
+    for (previous, next, span) in &parser.overlapping_functions {
+        if skipped.contains(previous) || skipped.contains(next) {
+            return Err(ParseError {
+                message: format!("function `{next}` begins before explicit .size for `{previous}`"),
+                span: *span,
+            });
+        }
+    }
+    parser
+        .module
+        .kernels
+        .retain(|kernel| !skipped.contains(&kernel.name));
+    let architecture = crate::target::Architecture::from_target(
+        parser.module.target.as_deref().unwrap_or("gfx950"),
+    )
+    .ok_or_else(|| ParseError {
+        message: "unsupported AMD target".into(),
+        span: SourceSpan::default(),
+    })?;
+    for kernel in &mut parser.module.kernels {
+        if let Some(body) = parser.bodies.get(&kernel.name) {
+            for (line, span) in &body.instructions {
+                let normalized = instr::resolve_register_indices(line, &parser.module.constants)
+                    .map_err(|message| ParseError {
+                        message,
+                        span: *span,
+                    })?;
+                kernel.instructions.push(instr::parse_instruction(
+                    &normalized,
+                    *span,
+                    architecture,
+                )?);
+            }
+        }
+    }
     for kernel in &mut parser.module.kernels {
         for instruction in &mut kernel.instructions {
             if instruction.opcode == super::Opcode::Branch {
@@ -138,7 +202,24 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
             instr::validate_control(instruction)?;
             instr::normalize_f64_sources(instruction)?;
         }
+        // Do not turn a physical fallthrough into an implicit return when
+        // excluding another function's bytes. Branch destinations are still
+        // resolved strictly within this kernel by lowering.
+        if !skipped.is_empty()
+            && kernel.instructions.last().is_some_and(|instruction| {
+                !matches!(instruction.mnemonic.as_str(), "s_endpgm" | "s_branch")
+            })
+        {
+            return Err(ParseError {
+                message: format!(
+                    "entry kernel `{}` has unsupported function fallthrough",
+                    kernel.name
+                ),
+                span: kernel.instructions.last().unwrap().span,
+            });
+        }
     }
+    crate::target::validate(&parser.module)?;
     if parser.module.kernels.is_empty() {
         return Err(ParseError {
             message: "no executable kernels found".into(),
@@ -162,6 +243,10 @@ struct Parser {
     active: Option<usize>,
     descriptor: Option<usize>,
     functions: BTreeSet<String>,
+    text_labels: BTreeSet<String>,
+    bodies: BTreeMap<String, FunctionBody>,
+    closed_functions: BTreeSet<String>,
+    overlapping_functions: Vec<(String, String, SourceSpan)>,
     globals: BTreeSet<String>,
     text_section: bool,
     metadata: Option<String>,
@@ -175,7 +260,46 @@ struct Parser {
     data_section_supported: bool,
 }
 
+struct FunctionBody {
+    span: SourceSpan,
+    instructions: Vec<(String, SourceSpan)>,
+}
+
 impl Parser {
+    // A function's .type may follow its label. Discover declarations before
+    // assigning labels to bodies, using exactly the same comment lexer. The
+    // normal pass validates directive syntax, symbol kinds and metadata.
+    fn collect_function_declarations(&mut self, source: &str) {
+        let mut in_metadata = false;
+        for raw in source.split_inclusive('\n') {
+            if in_metadata {
+                in_metadata = raw.trim() != ".end_amdgpu_metadata";
+                continue;
+            }
+            let line = self.strip_comments(raw);
+            let mut line = line.trim();
+            while let Some((label, rest)) = line.split_once(':')
+                && valid_symbol(label)
+            {
+                line = rest.trim();
+            }
+            if line == ".amdgpu_metadata" {
+                in_metadata = true;
+                continue;
+            }
+            let (directive, args) = line.split_once(char::is_whitespace).unwrap_or((line, ""));
+            if directive == ".type"
+                && let Ok(parts) = instr::split_top_level(args.trim(), ',')
+                && parts.len() == 2
+                && valid_symbol(parts[0])
+                && matches!(parts[1], "@function" | "%function")
+            {
+                self.functions.insert(parts[0].into());
+            }
+        }
+        self.in_block_comment = false;
+    }
+
     fn strip_comments(&mut self, raw: &str) -> String {
         let mut result = String::new();
         let mut chars = raw.chars().peekable();
@@ -227,9 +351,22 @@ impl Parser {
                 return Err(fail(format!("malformed label `{label}`")));
             }
             if self.text_section {
+                if !self.text_labels.insert(label.into()) {
+                    return Err(fail(format!("duplicate assembly label `{label}`")));
+                }
                 if self.functions.contains(label)
                     || !label.starts_with('.') && self.active.is_none()
                 {
+                    if self.bodies.contains_key(label) {
+                        return Err(fail(format!("duplicate function `{label}`")));
+                    }
+                    if let Some(index) = self.active {
+                        self.overlapping_functions.push((
+                            self.module.kernels[index].name.clone(),
+                            label.into(),
+                            span,
+                        ));
+                    }
                     let index = if let Some(index) = self
                         .module
                         .kernels
@@ -250,13 +387,20 @@ impl Parser {
                         });
                         index
                     };
+                    self.bodies.insert(
+                        label.into(),
+                        FunctionBody {
+                            span,
+                            instructions: Vec::new(),
+                        },
+                    );
                     self.active = Some(index);
                 }
                 if let Some(index) = self.active {
                     let kernel = &mut self.module.kernels[index];
                     if kernel
                         .labels
-                        .insert(label.into(), kernel.instructions.len())
+                        .insert(label.into(), self.bodies[&kernel.name].instructions.len())
                         .is_some()
                     {
                         return Err(fail(format!("duplicate label `{label}`")));
@@ -311,21 +455,11 @@ impl Parser {
         let index = self
             .active
             .ok_or_else(|| fail("instruction outside executable function".into()))?;
-        let normalized =
-            instr::resolve_register_indices(line, &self.module.constants).map_err(&fail)?;
-        let architecture = crate::target::Architecture::from_target(
-            self.module.target.as_deref().unwrap_or("gfx950"),
-        )
-        .ok_or_else(|| fail("unsupported AMD target".into()))?;
-        let mut instruction = instr::parse_instruction(&normalized, span, architecture)?;
-        for operand in &mut instruction.operands {
-            if let super::Operand::Symbol(name) = operand
-                && let Some(value) = self.module.constants.get(name)
-            {
-                *operand = super::Operand::Integer(*value);
-            }
-        }
-        self.module.kernels[index].instructions.push(instruction);
+        self.bodies
+            .get_mut(&self.module.kernels[index].name)
+            .unwrap()
+            .instructions
+            .push((line.into(), span));
         Ok(())
     }
 
@@ -485,6 +619,7 @@ impl Parser {
                     .active
                     .is_some_and(|index| self.module.kernels[index].name == parts[0])
                 {
+                    self.closed_functions.insert(parts[0].into());
                     self.active = None;
                 }
                 if self.globals.contains(parts[0]) {

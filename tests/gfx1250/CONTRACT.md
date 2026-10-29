@@ -1,7 +1,8 @@
 # Implemented gfx1250 contract
 
-This is the selected software model for issue #13. Hardware validation is pending;
-no target device was available. CPU analysis is usable without ROCm once built.
+This is the selected model for issue #13. Its positive corpus has passed exact-assembly
+execution on real gfx1250 hardware, independently repeated by the coordinator;
+see [the hardware scope and receipts](hardware/README.md). CPU analysis is usable without ROCm once built.
 Compiler encodings, independent semantic checks and device execution are separate
 evidence classes.
 
@@ -61,4 +62,5 @@ in `portable-cases.json`; BitDelta uses concrete index-generated packed words.
 These ports are family coverage, not original PTX binary/shape/dtype equivalence.
 WMMA raw finite F16/BF16 encodings have separate native tests. No physical IEEE
 rounding, NaN, denormal, approximation-error or whole-device execution claim is
-made. Required hardware evidence stays open in G1250-09.
+made. Hardware numerical agreement is supporting evidence for the tested programs;
+it does not replace the graph obligations or expand the selected instruction model.

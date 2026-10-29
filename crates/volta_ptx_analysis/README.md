@@ -15,10 +15,11 @@ pipeline sends the outputs to `volta_equivalence` and the graph to
 
 ```rust
 let result = volta_ptx_analysis::analyze(&module, Some("kernel"), config)?;
-let graph = result.graph();                 // always present (partial on abort)
+let graph = &result.graph;                  // always present (partial on abort)
 let outputs = result.symbolic_outputs()?;   // only if the run completed
 ```
 
+The analyzer rejects native AMD `shared_allocations`; PTX declares its own shared objects.
 ## Frontend (`frontend/`)
 
 `frontend/` turns PTX source text into a typed AST. It is the one public module

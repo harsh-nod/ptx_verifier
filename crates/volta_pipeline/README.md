@@ -47,6 +47,10 @@ kernels from `tests/ptx/` through `verify_kernel` and asserts on the outcome.
 
 - `aggregation_tests.rs`: real kernels through both branches and `decide`.
 - `architecture_tests.rs`: the stage/branch dependency boundaries.
+- `amd_frontend_compatibility_tests.rs`: the unchanged upstream gfx950 copy
+  fixture through both syntax frontends, complete native output equivalence at
+  wave boundaries, and typed missing-wait rejections. The upstream parser is a
+  test-only dependency; production AMD dispatch remains native.
 - the suites below, over `tests/common/`.
 
 ### How a test runs
@@ -121,4 +125,6 @@ PTX/gfx942/gfx950. Source and selected target must agree. The AMD default stays
 gfx950. Native fixtures under `tests/gfx1250` exercise complete graph acceptance,
 independent matrix/arithmetic oracles, and typed safety rejections. Expression
 and VC replay checks equivalence only: those formats carry no event graph and
-cannot reestablish race freedom. gfx1250 hardware validation remains pending.
+cannot reestablish race freedom. Independent execution of the exact positive
+gfx1250 assembly is recorded in the [hardware receipts](../../tests/gfx1250/hardware/README.md);
+that supporting numerical evidence does not replace graph checks.

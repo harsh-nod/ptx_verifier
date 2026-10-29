@@ -21,4 +21,38 @@ through genuine gfx1250 assembly while retaining explicit shape/dtype limits.
 
 The preexisting `test_aligned_bar_sync_reached_on_different_iterations` PTX
 failure remains visible and unchanged. No unrelated assertion or golden output
-was weakened. gfx1250 hardware validation remains pending.
+was weakened. Hardware was pending at that audit; the subsequent exact-assembly
+gfx1250 replay is recorded in the [hardware guide](hardware/README.md).
+
+## AMD frontend integration through `b3a3791`
+
+The next upstream merge adds `eedab43` (AMD stage layout), `7824998` (compiled
+gfx950 copy parsing), `ce1dca8` (typed syntax operands), and `85495ca` (public
+PTX IR execution), merged by `103c082bf88d2e538bb89f7c4f2e795c408d2339`.
+The subsequent `b3a3791` change adds an independent typed AMD IR and lowering
+for the gfx950 copy subset and removes the temporary PTX IR reuse API. The
+experimental `volta_amd_analysis` parser/lowering and the implemented
+`volta_amdgpu_analysis` backend remain distinct workspace members. These changes
+add no AMD symbolic executor or new operation requiring native emulation.
+
+The unchanged upstream copy assembly includes an unrelated OpenCL helper using
+`s_setpc_b64`. Native parsing must distinguish descriptor-backed kernel entries
+from non-entry functions while continuing to reject unsupported instructions
+inside an entry and all unmodeled calls or inter-function branches. Stripping
+helper code from a fixture is only a diagnostic control, not acceptance evidence.
+
+`amd_frontend_compatibility_tests.rs` compares target, descriptor values, exact
+mnemonics and supported typed operands across the two frontends. It also checks
+the unchanged copy kernel's entire output at wave64 boundaries and rejects
+missing memory waits through native graph readiness. This provides a common
+regression contract for incremental upstream convergence. A shift-input control
+also checks that `34` remains explicit in the upstream IR while native execution
+uses its low five bits, and omitted wait classes remain unconstrained. Lowering
+the missing-wait mutants cannot certify native readiness. These checks avoid replacing
+target-specific AMD execution with the PTX interpreter's semantics.
+
+The final public PTX API follows upstream: `analyze_lowered` and the newly
+exported IR types are removed, along with their now-obsolete integration tests.
+The existing PTX rejection of native LDS layout premises stays at its original
+source-analysis boundary. The earlier API-specific review finding is retired
+with that API; no compatibility wrapper or additional execution route is retained.

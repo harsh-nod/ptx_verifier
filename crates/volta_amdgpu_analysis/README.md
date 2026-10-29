@@ -13,6 +13,19 @@ under `src/frontend/fixtures`; gfx1250 fixtures live under
 [`tests/gfx1250`](../../tests/gfx1250). CPU analysis of checked-in assembly
 requires no ROCm installation or GPU.
 
+`frontend::parse` and `parse_module` preserve the original source, instruction
+spans, globals, descriptors and argument metadata. Descriptors and AMDHSA metadata
+identify the entry kernels in compiler modules. Unrelated functions are excluded
+only when declared with `.type ...,@function` and closed by a matching `.size`;
+overlapping function definitions and entry fallthrough are rejected when excluding
+helpers. Module directives, metadata and global objects are still validated.
+Every entry instruction is checked, including unreachable instructions. Calls and
+computed jumps remain unsupported; lowering rejects branches outside the entry
+body. Descriptor-free, metadata-free handwritten modules retain strict parsing of
+all functions. This frontend does not analyze helper call graphs or synthesize
+returns. Select an entry through `lower::lower_module_kernel(&module, name)` after
+parsing, so target information and module globals remain available.
+
 Select gfx942 explicitly with CLI `--backend amdgpu --target gfx942` or Python
 `Config(..., backend="amdgpu", target="gfx942")`. The source target must match
 that selection; omitted API targets retain gfx950 as the default. Direct Rust
@@ -274,4 +287,8 @@ base2 conversion coefficients. It does not establish IEEE rounding, NaNs or
 denormal behavior. Raw finite F16/BF16 controls test decoding separately from
 symbolic mathematical input identities. See the [detailed contract](../../tests/gfx1250/CONTRACT.md)
 and [reproducible corpus](../../tests/gfx1250/README.md).
-**No gfx1250 hardware execution has been performed.**
+The exact checked-in positive assembly has passed independent execution on real
+gfx1250 hardware, including dense and basis WMMA layouts, staged tensor reuse,
+wave boundaries and all twenty bounded portable families. Reproduction and
+source-pinned receipts are in [the hardware guide](../../tests/gfx1250/hardware/README.md).
+This does not expand the selected instruction or mathematical-model contract.

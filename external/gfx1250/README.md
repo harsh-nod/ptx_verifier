@@ -1,8 +1,9 @@
 # Native gfx1250 adapter controls
 
 The external race and mutation adapters accept an explicit gfx1250 target.
-They analyze native assembly on the CPU. No gfx1250 hardware is available, and
-these recipes make no hardware or HipKittens application-support claim.
+They analyze native assembly on the CPU. These recipes make no hardware or
+HipKittens application-support claim. The separate positive-corpus hardware
+replay is documented in [the gfx1250 hardware guide](../../tests/gfx1250/hardware/README.md).
 
 The pinned HipKittens extraction recipe remains a gfx950/CDNA4 recipe. Running
 `python3 external/extraction/hipkittens.py --target gfx1250` reports `UNSUPPORTED`

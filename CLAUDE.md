@@ -11,7 +11,8 @@ symbolic outputs and a candidate event graph; independent branches check
 mathematical equivalence and target-specific safety. This is an experimental
 best-effort model, not a claim of formal soundness, complete ISA coverage or
 whole-device correctness. gfx1250 software validation is complete for its
-[documented subset](tests/gfx1250/CONTRACT.md); hardware validation is pending.
+[documented subset](tests/gfx1250/CONTRACT.md); exact-assembly hardware validation
+on gfx1250 is recorded in `tests/gfx1250/evidence/hardware-*-coordinator.json`.
 
 ## Coding practices
 
@@ -21,6 +22,7 @@ whole-device correctness. gfx1250 software validation is complete for its
   - Maximum 3 lines of comments per code block.
   - Prefer zero comments when the code is self-explanatory.
   - Never narrate what the code does.
+  - Describe lasting roles and invariants, not temporary development status such as "scaffold", "empty", or "not implemented yet".
   - Only document non-obvious invariants, assumptions, or design decisions.
   - Do not split long comments into multiple blocks to bypass this limit.
 - READMEs: every crate has a `README.md` explaining it. A change to a crate's API, behavior, structure or tests updates that crate's README in the same commit, along with the crate's section of this file.
@@ -36,6 +38,7 @@ crates/
 ├── volta_graph_check/ # Ten PTX or four native AMD properties, selected from target provenance
 ├── volta_ptx_analysis/ # PTX frontend (lexer, parser) and abstract interpreter (PTX -> expressions + event graph)
 ├── volta_amdgpu_analysis/ # Native AMD frontend, target/ABI validation, interpreter and event producer
+├── volta_amd_analysis/ # Upstream experimental AMD parser and typed lowering
 ├── volta_equivalence/ # Equivalence checking of expressions (decision procedure, VC dumps)
 ├── volta_pipeline/   # Analysis -> {equivalence, graph} branches -> ACCEPT/REJECT/UNKNOWN; every end-to-end PTX test
 ├── volta_viz/        # Event-graph viewer (run store -> one self-contained HTML page)
@@ -51,7 +54,8 @@ Direct dependencies of each crate:
 volta_cli             → volta_amdgpu_analysis, volta_common, volta_equivalence, volta_expr, volta_graph, volta_graph_check, volta_pipeline, volta_ptx_analysis, volta_spec, volta_viz
 volta_py              → volta_amdgpu_analysis, volta_common, volta_equivalence, volta_expr, volta_graph_check, volta_pipeline, volta_ptx_analysis, volta_spec
 volta_viz             → volta_expr, volta_graph, volta_graph_check
-volta_pipeline        → volta_amdgpu_analysis, volta_equivalence, volta_expr, volta_graph, volta_graph_check, volta_ptx_analysis (+ dev: volta_viz)
+volta_pipeline        → volta_amdgpu_analysis, volta_equivalence, volta_expr, volta_graph, volta_graph_check, volta_ptx_analysis (+ dev: volta_amd_analysis, volta_viz)
+volta_amd_analysis    → (no workspace crate)
 volta_amdgpu_analysis → volta_common, volta_expr, volta_graph (+ dev: volta_equivalence, volta_spec)
 volta_ptx_analysis    → volta_common, volta_expr, volta_graph
 volta_equivalence     → volta_expr (+ dev: volta_spec)
@@ -262,8 +266,9 @@ its tested subset. Advanced unsupported modes remain explicit. See the
 [crate README](crates/volta_amdgpu_analysis/README.md) and
 [gfx1250 contract](tests/gfx1250/CONTRACT.md) before extending the profile.
 Native Rust tests, genuine cross-compiled fixtures, independent oracles and
-hardware-pending evidence are separate categories. Historical gfx942/gfx950
-hardware receipts do not validate gfx1250 execution.
+hardware evidence are separate categories. gfx1250 receipts pin the actual device,
+ROCm/LLVM/runtime, exact assembly and complete output/input/guard checks.
+Historical gfx942/gfx950 receipts do not validate gfx1250 execution.
 
 ## Crate: volta_ptx_analysis
 
@@ -420,6 +425,23 @@ info, tagged `[analysis]`/`[graph]`/`[equivalence]`: graph extraction and
 the equivalence branch in `volta_pipeline`, each of the ten checks (start,
 verdict, duration) in `check_graph`. `cargo run -p volta_cli
 --features logging -- --log-level info analyze ...` narrates a run.
+
+## Crate: volta_amd_analysis
+
+**Path**: `crates/volta_amd_analysis/`
+
+The upstream experimental AMD parser and typed lowering. The public
+`frontend::parse::parse_kernel(source, name)` extracts a selected straight-line
+kernel. `lower_kernel` produces the separate AMD `LoweredKernel` IR for the
+supported gfx950 copy subset, preserving physical registers, waits and descriptor
+values. The crate has no symbolic executor or verifier dispatch yet.
+
+CLI and Python AMD analysis continue through `volta_amdgpu_analysis` and its
+target-specific graph checks. The pipeline's
+`amd_frontend_compatibility_tests.rs` compares both parsers on the unchanged
+upstream fixture, checks the upstream typed lowering, and verifies complete
+native outputs and missing-wait mutations. No AMD instructions are translated
+through PTX execution semantics.
 
 ## Crate: volta_graph_check
 

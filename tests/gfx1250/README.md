@@ -1,13 +1,15 @@
-# Native gfx1250 software validation
+# Native gfx1250 validation
 
 Software milestone for [issue 13](https://github.com/harsh-nod/ptx_verifier/issues/13).
 These fixtures are genuinely cross-compiled for gfx1250 with the pinned ROCm
 LLVM toolchain. Their assembly is not rewritten from another target.
 
-**No gfx1250 hardware execution has been performed.** Hardware validation is
-explicitly skipped for this software task because no target device is available.
-Compiler/assembler acceptance and CPU semantic tests cannot replace hardware
-evidence. gfx942/gfx950 devices are not gfx1250 hardware substitutes.
+**Software and hardware validation are complete for the documented subset.**
+The exact checked-in assembly passed on actual wave32 gfx1250 devices on `mi400`,
+then the coordinator independently repeated every hardware suite on a different
+physical GPU. See [hardware reproduction and receipts](hardware/README.md).
+Compiler acceptance, graph/equivalence checks and numerical device execution
+remain separate evidence classes; none establishes full ISA or whole-device coverage.
 
 `cases.json` uses the existing native case schema for CLI/Python integration.
 The coordinator validated every required case through graph checks, complete
@@ -126,7 +128,7 @@ keep the existing HipKittens CDNA4 library profile explicit and provide genuine
 LLVM-native gfx1250 extraction controls.
 
 `evidence/coordinator-software.json` records source pins, exact commands, test
-counts, artifact hashes and the hardware exclusion. Associated browser evidence
+counts, artifact hashes and its historical hardware exclusion. Associated browser evidence
 covers 191 mixed PTX/gfx942/gfx950/gfx1250 records with real Chromium, including
 source-only unsupported cases, new waits/matrix/tensor/split-barrier events and
 typed finding navigation. Rendering counts are distinct from proof counts.
@@ -154,8 +156,21 @@ rewritten or relabeled as compiler evidence.
 Representative release host analysis costs and graph sizes are recorded in
 `evidence/coordinator-performance.json`, including an attention case with 512
 outputs. These bounded measurements do not claim original-size scalability or
-GPU performance. G1250-09 remains open until the exact kernels can execute on
-real gfx1250 hardware with independent value/layout/guard checks.
+GPU performance. The G1250-09 hardware gate is now supported by
+[`hardware-core-coordinator.json`](evidence/hardware-core-coordinator.json) and
+[`hardware-portable-coordinator.json`](evidence/hardware-portable-coordinator.json):
+3,955 launches and 654,548 complete output checks on physical GPU2, including
+all 2,176 WMMA basis launches, 686 signed/unsigned wide cases and seventeen
+patterns for each of the twenty portable families. Every configured input and
+output guard is checked; portable runs also compare every inter-array gap byte.
+Core comparisons are exact except attention (`atol=1e-5`, `rtol=1e-4`). Portable
+tolerances are recorded per kernel; the maximum observed absolute error was
+`3.73e-7`. No deliberately unsafe mutant was executed on hardware.
+
+Hardware replay uses ROCm `10.2.0a20261013+bkc.20261019`, AMD LLVM24 revision
+`c7ceccf9a5789b92fda4056b8501450d0b7a75de`, to assemble/link the unchanged LLVM22
+fixture output. This validates those bytes on that runtime; it does not claim
+that all newly generated LLVM24 instruction profiles are implemented.
 
 Historical compiler/assembler receipts retain the original source pins and
 initial pending tags from their recording time. Current coordinator acceptance

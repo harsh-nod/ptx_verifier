@@ -33,7 +33,7 @@ pub(super) fn apply_metadata(
     module: &mut Module,
     yaml: &str,
     span: SourceSpan,
-) -> Result<(), ParseError> {
+) -> Result<BTreeSet<String>, ParseError> {
     let fail = |message| ParseError { message, span };
     let document: Value = serde_yaml::from_str(yaml).map_err(|error| {
         let location = error.location();
@@ -226,7 +226,7 @@ pub(super) fn apply_metadata(
             kernel.args = parsed_args;
         }
     }
-    Ok(())
+    Ok(seen_kernels)
 }
 
 fn parse_arg(value: &Value, span: SourceSpan) -> Result<KernelArg, ParseError> {
