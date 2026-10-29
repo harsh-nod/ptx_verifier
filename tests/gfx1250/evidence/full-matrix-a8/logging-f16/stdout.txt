@@ -1,0 +1,28 @@
+instruction profile:
+  vector ALU           389280  ( 24.7%)
+  control              245536  ( 15.6%)
+  wait                 242112  ( 15.4%)
+  LDS                  212992  ( 13.5%)
+  scalar ALU           212480  ( 13.5%)
+  vector memory        133120  (  8.5%)
+  branch                89600  (  5.7%)
+  MFMA                  32768  (  2.1%)
+  barrier               16512  (  1.0%)
+  scalar memory            64  (  0.0%)
+Exec: 37.812s  instructions: 1574464  block syncs: 8256  warp syncs: 0
+kernel: graph verification
+  AMD trace completeness (native AMD graph contract)      PASS
+  AMD wait and register readiness (target-selected counters and register dependencies) PASS
+  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS
+  AMD memory-conflict freedom (AMD completed-effect happens-before) PASS
+VC check: 1141.769s (decision procedure 884.712s)  elements: 65536
+EQUIVALENT (matches spec)
+VERDICT: ACCEPT
+  equivalence: all 65536 compared elements proved equivalent
+  kernel: every graph check passed
+  under the assumptions:
+    - one AMD workgroup is analyzed; other workgroups are outside this result
+    - workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result
+    - arithmetic is modeled over mathematical reals, not bit-exact floating-point
+    - addresses, branch conditions and synchronization parameters are concrete
+    - asynchronous operations compute their data at issue; only completion is asynchronous
