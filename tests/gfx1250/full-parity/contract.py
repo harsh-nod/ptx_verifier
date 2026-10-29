@@ -65,7 +65,9 @@ def validate_inventory(data: dict, root: Path = ROOT) -> dict[str, dict]:
         {row["id"] for row in rows} == {f"W{i:02}" for i in range(1, 33)},
         "duplicate/missing original IDs",
     )
-    require(len({row["baseline_path"] for row in rows}) == 32, "duplicate original artifact")
+    require(
+        len({row["baseline_path"] for row in rows}) == 32, "duplicate original artifact"
+    )
     require(len({row["family"] for row in rows}) == 20, "original families omitted")
     total = 0
     for row in rows:
@@ -84,7 +86,10 @@ def validate_inventory(data: dict, root: Path = ROOT) -> dict[str, dict]:
             f"{row['id']}: metadata changed",
         )
         arrays = {a["name"]: a for a in original["arrays"]}
-        require(len(arrays) == len(original["arrays"]), f"{row['id']}: duplicate original arrays")
+        require(
+            len(arrays) == len(original["arrays"]),
+            f"{row['id']}: duplicate original arrays",
+        )
         indices = output_indices(row)
         require(
             sum(map(len, indices.values())) == original["expected_outputs"],
@@ -120,18 +125,75 @@ def expected_dimensions(row: dict) -> dict | None:
         return {"M": original["expected_outputs"], "K": 4096}
     if family == "ReductionSumKernel":
         return {"R": 1, "TILE": original["arrays"][0]["length"]}
+    advanced = {
+        "W21": {"R": 32, "T": 1024, "D": 64},
+        "W22": {"Q": 128, "T": 1024, "D": 64},
+        "W23": {"Q": 128, "T": 1024, "D": 64},
+        "W24": {"Q": 128, "T": 128, "D": 64, "HALF": 64, "ONE": 1, "TWO": 2},
+        "W25": {"T": 256, "PITCH": 512, "M": 64, "N": 128},
+        "W26": {"R": 32, "N": 128, "S": 32, "T": 128, "XPITCH": 1024, "CPITCH": 64},
+    }
+    if row["id"] in advanced:
+        return advanced[row["id"]]
     if row["id"] in {"W19", "W20"}:
-        return {"C": 64, "H": 56, "W": 56, "O": 128, "R": 3, "S": 3,
-                "SPATIAL": original["shape_and_layout"]["selected_spatial_positions"]}
+        return {
+            "C": 64,
+            "H": 56,
+            "W": 56,
+            "O": 128,
+            "R": 3,
+            "S": 3,
+            "SPATIAL": original["shape_and_layout"]["selected_spatial_positions"],
+        }
     if row["id"] in {"W27", "W28", "W29", "W30"}:
         return {"M": 4096, "N": 4096, "K": 4096, "TILE": 256}
     if row["id"] in {"W31", "W32"}:
-        return {"M": 4096, "N": 4096, "K": 4096, "WORDS": 128,
-                "TILE": original["shape_and_layout"]["tile_N"]}
+        return {
+            "M": 4096,
+            "N": 4096,
+            "K": 4096,
+            "WORDS": 128,
+            "TILE": original["shape_and_layout"]["tile_N"],
+        }
     # Later native source slices can use named output views in their specs. Their
     # shape/output projections remain mandatory; numerical equivalence proves
     # semantics rather than treating a dimension-label convention as evidence.
     return None
+
+
+def row_view_mappings(row: dict) -> list[dict]:
+    identifier, shape = row["id"], row["original"]["shape_and_layout"]
+    if identifier == "W26":
+        return [
+            {
+                "baseline_array": name,
+                "native_arrays": [f"{prefix}{i:03}" for i in range(32)],
+                "row_pitch_elements": 1024,
+                "rows": 32,
+                "columns": 128,
+            }
+            for name, prefix in (("out", "out"), ("out_x", "outx"))
+        ]
+    if identifier in {"W19", "W20"}:
+        name, rows, columns, pitch = (
+            "out",
+            128,
+            shape["selected_spatial_positions"],
+            2916,
+        )
+    elif identifier in {"W27", "W28", "W29", "W30", "W31", "W32"}:
+        name, rows, columns, pitch = "c", shape["tile_M"], shape["tile_N"], 4096
+    else:
+        return []
+    return [
+        {
+            "baseline_array": name,
+            "native_arrays": [f"out{i:03}" for i in range(rows)],
+            "row_pitch_elements": pitch,
+            "rows": rows,
+            "columns": columns,
+        }
+    ]
 
 
 def launch_config(case: dict) -> dict:
@@ -149,13 +211,21 @@ def launch_config(case: dict) -> dict:
             kind, value = parameter.split(":", 1)
             require(kind in {"ptr", "int", "float", "sym"}, "unknown parameter kind")
             params.append(
-                {kind: int(value) if kind == "int" else float(value) if kind == "float" else value}
+                {
+                    kind: int(value)
+                    if kind == "int"
+                    else float(value)
+                    if kind == "float"
+                    else value
+                }
             )
     config = {
         "kernel": case["kernel"],
         "block": case["block"],
         "grid": case["grid"],
-        "dynamic_shared_bytes": case.get("dynamic_shared_bytes", case.get("dynamic_shared", 0)),
+        "dynamic_shared_bytes": case.get(
+            "dynamic_shared_bytes", case.get("dynamic_shared", 0)
+        ),
         "arrays": [
             {
                 "name": a["name"],
@@ -185,7 +255,8 @@ def validate_registry(
         "registry must select gfx1250 schema1",
     )
     require(
-        set(data.get("required_baseline_ids", [])) == set(rows), "required original scope changed"
+        set(data.get("required_baseline_ids", [])) == set(rows),
+        "required original scope changed",
     )
     cases = data.get("cases", [])
     require(cases, "empty native registry cannot pass")
@@ -216,14 +287,27 @@ def validate_registry(
             case["expected_outputs"] == original["expected_outputs"],
             f"{identifier}: output count changed",
         )
+        require(
+            case.get("workgroup") == original["selected_workgroup"],
+            f"{identifier}: selected original workgroup changed",
+        )
         matrix = identifier in {"W27", "W28", "W29", "W30", "W31", "W32"}
-        native_block = [1024 if identifier in {"W27", "W28", "W29", "W30"} else 256, 1, 1]
+        native_block = [
+            1024 if identifier in {"W27", "W28", "W29", "W30"} else 256,
+            1,
+            1,
+        ]
         if matrix:
-            require(case.get("launch_mapping") == {
-                "kind": "gfx1250_wave32_wmma_partition",
-                "baseline_block": original["block"], "native_block": native_block,
-                "selected_workgroup": [0, 0, 0],
-            }, f"{identifier}: missing reviewed WMMA launch mapping")
+            require(
+                case.get("launch_mapping")
+                == {
+                    "kind": "gfx1250_wave32_wmma_partition",
+                    "baseline_block": original["block"],
+                    "native_block": native_block,
+                    "selected_workgroup": [0, 0, 0],
+                },
+                f"{identifier}: missing reviewed WMMA launch mapping",
+            )
         require(
             case["block"] == (native_block if matrix else original["block"])
             and case["grid"] == original["grid"],
@@ -234,68 +318,117 @@ def validate_registry(
             dimensions is None or case["dimensions"] == dimensions,
             f"{identifier}: original spec dimensions changed",
         )
+        if identifier == "W23":
+            require(
+                case.get("physical_grid_mapping")
+                == {
+                    "symbolic_selected_workgroup": [0, 0, 0],
+                    "symbolic_query_rows": 128,
+                    "physical_grid": [16, 1, 1],
+                    "physical_query_rows": 1024,
+                    "logical_sequence_length": 1024,
+                    "odd_x_workgroups": "return without writes",
+                },
+                f"{identifier}: full physical FlashAttention grid mapping differs",
+            )
         native = {a["name"]: a for a in case["arrays"]}
-        require(len(native) == len(case["arrays"]), f"{identifier}: duplicate native array")
+        require(
+            len(native) == len(case["arrays"]), f"{identifier}: duplicate native array"
+        )
         original_names = {a["name"] for a in original["arrays"]}
         convolution = identifier in {"W19", "W20"}
         if convolution:
             fixed = 24576 if identifier == "W19" else 16384
-            require(case.get("shared_memory_mapping") == {
-                "original_dynamic_budget": 232448, "native_dynamic": 0,
-                "native_fixed": fixed, "kind": "two_slot_K32_WMMA_staging",
-            } and case.get("dynamic_shared_bytes") == 0,
-                    f"{identifier}: incorrect native fixed-LDS staging mapping")
+            require(
+                case.get("shared_memory_mapping")
+                == {
+                    "original_dynamic_budget": 232448,
+                    "native_dynamic": 0,
+                    "native_fixed": fixed,
+                    "kind": "two_slot_K32_WMMA_staging",
+                }
+                and case.get("dynamic_shared_bytes") == 0,
+                f"{identifier}: incorrect native fixed-LDS staging mapping",
+            )
             assembly = (directory / case["assembly"]).read_text()
-            require(re.search(r"\.amdhsa_kernel\s+" + re.escape(case["kernel"])
-                              + r"\s+\.amdhsa_group_segment_fixed_size\s+" + str(fixed)
-                              + r"\b", assembly) is not None,
-                    f"{identifier}: native fixed-LDS descriptor differs")
-        viewed = matrix or convolution
-        output_name = "out" if convolution else "c"
-        pitch = 2916 if convolution else 4096
-        views = set()
-        if viewed:
-            rows_count = (128 if convolution else original["shape_and_layout"]["tile_M"])
-            columns = (original["shape_and_layout"]["selected_spatial_positions"] if convolution
-                       else original["shape_and_layout"]["tile_N"])
-            views = {f"out{i:03}" for i in range(rows_count)}
-            require(case.get("array_view_mapping") == {
-                "baseline_array": output_name, "native_arrays": sorted(views),
-                "row_pitch_elements": pitch, "rows": rows_count, "columns": columns,
-            }, f"{identifier}: missing original sparse row-view mapping")
-        require(set(native) == ((original_names - {output_name}) | views if viewed else original_names),
-                f"{identifier}: missing or extra native arrays")
+            require(
+                re.search(
+                    r"\.amdhsa_kernel\s+"
+                    + re.escape(case["kernel"])
+                    + r"\s+\.amdhsa_group_segment_fixed_size\s+"
+                    + str(fixed)
+                    + r"\b",
+                    assembly,
+                )
+                is not None,
+                f"{identifier}: native fixed-LDS descriptor differs",
+            )
+        plans = row_view_mappings(row)
+        if plans:
+            require(
+                (
+                    case.get("array_view_mapping") == plans[0]
+                    if len(plans) == 1
+                    else case.get("array_view_mappings") == plans
+                ),
+                f"{identifier}: missing original sparse row-view mapping",
+            )
+        views_by_original = {plan["baseline_array"]: plan for plan in plans}
+        views = {name for plan in plans for name in plan["native_arrays"]}
+        require(
+            set(native) == ((original_names - views_by_original.keys()) | views),
+            f"{identifier}: missing or extra native arrays",
+        )
         for array in original["arrays"]:
             dtype = "e4m3" if array["dtype"] == "ocp_e4m3_fp8" else array["dtype"]
-            if viewed and array["name"] == output_name:
-                for i, name in enumerate(sorted(views)):
+            if array["name"] in views_by_original:
+                plan = views_by_original[array["name"]]
+                for i, name in enumerate(plan["native_arrays"]):
                     actual = native[name]
-                    require(actual["element_size"] == array["element_size"]
-                            and actual["dtype"] == dtype
-                            and actual["length"] == columns
-                            and actual["kind"] == array["kind"]
-                            and actual["base_address"] == array["base_address"] + i * pitch * array["element_size"],
-                            f"{identifier}: {name} sparse original output storage changed")
+                    require(
+                        actual["element_size"] == array["element_size"]
+                        and actual["dtype"] == dtype
+                        and actual["length"] == plan["columns"]
+                        and actual["kind"] == array["kind"]
+                        and actual["base_address"]
+                        == array["base_address"]
+                        + i * plan["row_pitch_elements"] * array["element_size"],
+                        f"{identifier}: {name} sparse original output storage changed",
+                    )
                 continue
             actual = native[array["name"]]
             for field in ("element_size", "length", "kind", "base_address"):
-                require(actual[field] == array[field],
-                        f"{identifier}: {array['name']} {field} changed")
-            require(actual.get("dtype") == dtype,
-                    f"{identifier}: {array['name']} storage dtype changed")
-        params = ["ptr:out000" if viewed and p == "ptr:" + output_name else p
-                  for p in original["params"]]
-        require(case["params"] == params,
-                f"{identifier}: native ABI requires an explicit reviewed mapping")
-        if viewed:
-            require(case.get("parameter_mapping") == {"ptr:" + output_name: "ptr:out000"},
-                    f"{identifier}: missing same-address output pointer mapping")
+                require(
+                    actual[field] == array[field],
+                    f"{identifier}: {array['name']} {field} changed",
+                )
+            require(
+                actual.get("dtype") == dtype,
+                f"{identifier}: {array['name']} storage dtype changed",
+            )
+        pointer_mapping = {
+            "ptr:" + name: "ptr:" + plan["native_arrays"][0]
+            for name, plan in views_by_original.items()
+        }
+        params = [pointer_mapping.get(p, p) for p in original["params"]]
+        require(
+            case["params"] == params,
+            f"{identifier}: native ABI requires an explicit reviewed mapping",
+        )
+        if plans:
+            require(
+                case.get("parameter_mapping") == pointer_mapping,
+                f"{identifier}: missing same-address output pointer mapping",
+            )
         expected, covered, native_covered = output_indices(row), {}, {}
         for projection in case["output_projection"]:
             name, target = projection["baseline_array"], projection["native_array"]
             count = projection["length"]
             require(type(count) is int and count > 0, f"{identifier}: empty projection")
-            start, native_start = projection["baseline_start"], projection["native_start"]
+            start, native_start = (
+                projection["baseline_start"],
+                projection["native_start"],
+            )
             require(
                 type(start) is int
                 and start >= 0
@@ -324,7 +457,9 @@ def validate_registry(
             )
             native_values = set(range(native_start, native_start + count))
             require(
-                not native_covered.setdefault(target, set()).intersection(native_values),
+                not native_covered.setdefault(target, set()).intersection(
+                    native_values
+                ),
                 f"{identifier}: duplicate native output projection",
             )
             native_covered[target].update(native_values)
@@ -335,7 +470,8 @@ def validate_registry(
             )
             covered[name].update(values)
         require(
-            covered == expected, f"{identifier}: complete sparse original output projection differs"
+            covered == expected,
+            f"{identifier}: complete sparse original output projection differs",
         )
         for kind in ("source", "assembly", "spec", "launch_config"):
             path = directory / case[kind]
@@ -349,7 +485,10 @@ def validate_registry(
             f"{identifier}: public launch JSON differs from registration",
         )
     pending = sorted(set(rows) - registered)
-    require(data.get("pending_baseline_ids") == pending, "pending original cases were hidden")
+    require(
+        data.get("pending_baseline_ids") == pending,
+        "pending original cases were hidden",
+    )
     require(
         data.get("registered_original_outputs")
         == sum(rows[i]["original"]["expected_outputs"] for i in registered),

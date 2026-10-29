@@ -38,15 +38,8 @@
     "W31",
     "W32"
   ],
-  "pending_baseline_ids": [
-    "W21",
-    "W22",
-    "W23",
-    "W24",
-    "W25",
-    "W26"
-  ],
-  "registered_original_outputs": 354146,
+  "pending_baseline_ids": [],
+  "registered_original_outputs": 395394,
   "cases": [
     {
       "baseline_id": "W01",
@@ -5987,6 +5980,1814 @@
       "assembly_sha256": "57ce53c898c4dcde8db7388c81a887fa72bb9dbec1469d5b732c256259268962",
       "spec_sha256": "09df805c1f78603854c5aff1812611d8343323f8ea22e4226c5793d40d20b4a0",
       "launch_config_sha256": "dec90591b39a30db8e244a00ff01f0f52d32a88e8a6310b94e4d2f9b99deae8b"
+    },
+    {
+      "baseline_id": "W21",
+      "baseline_path": "ai_compiler_kernels/FlashSinkhornFusedSchurMatvec/NVIDIA_B200_Unknown_1.5491x.ptx",
+      "baseline_sha256": "b3047824738c49706f514000a1a59d132492fc64e3403ed03280dcaa8930eca4",
+      "family": "FlashSinkhornFusedSchurMatvec",
+      "kernel": "sinkhorn_original",
+      "source": "fixtures/original-sinkhorn.hip",
+      "assembly": "fixtures/original-sinkhorn.s",
+      "spec": "specs/sinkhorn_original.spec",
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dynamic_shared_bytes": 0,
+      "arrays": [
+        {
+          "name": "x",
+          "element_size": 2,
+          "length": 2048,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 65536
+        },
+        {
+          "name": "y",
+          "element_size": 2,
+          "length": 65536,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 131072
+        },
+        {
+          "name": "f_hat",
+          "element_size": 4,
+          "length": 32,
+          "kind": "in",
+          "dtype": "f32",
+          "base_address": 262144
+        },
+        {
+          "name": "g_hat",
+          "element_size": 4,
+          "length": 1024,
+          "kind": "in",
+          "dtype": "f32",
+          "base_address": 327680
+        },
+        {
+          "name": "log_b",
+          "element_size": 4,
+          "length": 1024,
+          "kind": "in",
+          "dtype": "f32",
+          "base_address": 393216
+        },
+        {
+          "name": "f_out",
+          "element_size": 4,
+          "length": 32,
+          "kind": "out",
+          "dtype": "f32",
+          "base_address": 458752
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:y",
+        "ptr:f_hat",
+        "ptr:g_hat",
+        "int:0",
+        "ptr:log_b",
+        "ptr:f_out",
+        "int:0",
+        "int:0",
+        "int:0",
+        "int:0"
+      ],
+      "dimensions": {
+        "R": 32,
+        "T": 1024,
+        "D": 64
+      },
+      "original_shape": {
+        "query_rows": 32,
+        "keys": 1024,
+        "D": 64,
+        "data_dtype": "f16",
+        "potential_and_output_dtype": "f32",
+        "inactive_null_parameters": [
+          "log_a",
+          "g_out",
+          "label_x",
+          "label_y",
+          "W"
+        ]
+      },
+      "output_projection": [
+        {
+          "baseline_array": "f_out",
+          "baseline_start": 0,
+          "native_array": "f_out",
+          "native_start": 0,
+          "length": 32
+        }
+      ],
+      "expected_outputs": 32,
+      "required": true,
+      "reduced_case": false,
+      "launch_config": "launch/sinkhorn_original.json",
+      "mapping": "Original selectedCTA0 complete mathematical problem, input/output storage dtypes, masks/scales/null arguments, block/grid and source pitches are preserved. Native wave32 WMMA uses fixedLDS staging. The original232448-byte dynamic budget is not a physical native allocation. Full output coordinates are mandatory; smaller shapes, dropped outputs or decoded-F32 substitutes cannot close this case.",
+      "validation_scope": "Registration only. Required graph/full mathematical/public workflow/independent numeric hardware gates remain separate; Unsupported/Unknown/error is not acceptance.",
+      "max_instructions": 2000000000,
+      "source_sha256": "20266853dcdef64e15b37a9fed5de8fe99ef30a21bacc8e0000468531946a0b6",
+      "assembly_sha256": "ebb24ab3d1b6afe29c4d85f1528da6fca005d250d0abb2242c68fa9f295e1761",
+      "spec_sha256": "121a94d64eecd6361aee2139ecbc932f89662e401c98c7b7577e7a857b4e2be9",
+      "launch_config_sha256": "d6ebd5e36fac2d247f762b1c72465e5903f19019461998086a5373ac03810ccb"
+    },
+    {
+      "baseline_id": "W22",
+      "baseline_path": "ai_compiler_kernels/ForgettingAttentionICLR2025Forward/NVIDIA_B200_Unknown_1.0139x.ptx",
+      "baseline_sha256": "57c77d6ce7ac4927ca520bf629b05d6b303cb095af348a3da7c079787ce17e01",
+      "family": "ForgettingAttentionICLR2025Forward",
+      "kernel": "forgetting_attention_original",
+      "source": "fixtures/original-attention.hip",
+      "assembly": "fixtures/original-attention.s",
+      "spec": "specs/forgetting_attention_original.spec",
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dynamic_shared_bytes": 0,
+      "arrays": [
+        {
+          "name": "q",
+          "element_size": 2,
+          "length": 8192,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 65536
+        },
+        {
+          "name": "k",
+          "element_size": 2,
+          "length": 65536,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 131072
+        },
+        {
+          "name": "v",
+          "element_size": 2,
+          "length": 65536,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 262144
+        },
+        {
+          "name": "log_lambda",
+          "element_size": 4,
+          "length": 1024,
+          "kind": "in",
+          "dtype": "f32",
+          "base_address": 393216
+        },
+        {
+          "name": "l",
+          "element_size": 4,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f32",
+          "base_address": 458752
+        },
+        {
+          "name": "o",
+          "element_size": 2,
+          "length": 8192,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 524288
+        }
+      ],
+      "params": [
+        "ptr:q",
+        "ptr:k",
+        "ptr:v",
+        "ptr:log_lambda",
+        "ptr:l",
+        "ptr:o"
+      ],
+      "dimensions": {
+        "Q": 128,
+        "T": 1024,
+        "D": 64
+      },
+      "original_shape": {
+        "query_rows": 128,
+        "keys": 1024,
+        "D": 64,
+        "data_dtype": "f16",
+        "log_lambda_and_lse_dtype": "f32",
+        "log_lambda_length": 1024
+      },
+      "output_projection": [
+        {
+          "baseline_array": "l",
+          "baseline_start": 0,
+          "native_array": "l",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "o",
+          "baseline_start": 0,
+          "native_array": "o",
+          "native_start": 0,
+          "length": 8192
+        }
+      ],
+      "expected_outputs": 8320,
+      "required": true,
+      "reduced_case": false,
+      "launch_config": "launch/forgetting_attention_original.json",
+      "mapping": "Original selectedCTA0 complete mathematical problem, input/output storage dtypes, masks/scales/null arguments, block/grid and source pitches are preserved. Native wave32 WMMA uses fixedLDS staging. The original232448-byte dynamic budget is not a physical native allocation. Full output coordinates are mandatory; smaller shapes, dropped outputs or decoded-F32 substitutes cannot close this case.",
+      "validation_scope": "Registration only. Required graph/full mathematical/public workflow/independent numeric hardware gates remain separate; Unsupported/Unknown/error is not acceptance.",
+      "max_instructions": 2000000000,
+      "source_sha256": "9ceb3b697516e2a306dd32752b6e8c67de5a1854474c396ac63c8a5efa770765",
+      "assembly_sha256": "2cbd4714e00c51eed4cce55ca6f8c448fd8cd4809474fef406cb8188a13f74f1",
+      "spec_sha256": "ba2ff5ea1263e6683cb2e452efdedd655e5c7dea8a813467806f67b4d0c6ffd1",
+      "launch_config_sha256": "a7978a5d4529eb19d2ea615187d04f55aaf03fdb68aa51f165fcc4fd69a0ff30"
+    },
+    {
+      "baseline_id": "W23",
+      "baseline_path": "ai_compiler_kernels/FlashAttentionNeurIPS2022Forward/NVIDIA_B200_Unknown_1.2610x.ptx",
+      "baseline_sha256": "c664596ce78e61f94aad2006669bdeadf5655fc075dd483a79e91a525d89827d",
+      "family": "FlashAttentionNeurIPS2022Forward",
+      "kernel": "flash_attention_original",
+      "source": "fixtures/original-attention.hip",
+      "assembly": "fixtures/original-attention.s",
+      "spec": "specs/flash_attention_original.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        16,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dynamic_shared_bytes": 0,
+      "arrays": [
+        {
+          "name": "q",
+          "element_size": 2,
+          "length": 8192,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 65536
+        },
+        {
+          "name": "k",
+          "element_size": 2,
+          "length": 65536,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 131072
+        },
+        {
+          "name": "v",
+          "element_size": 2,
+          "length": 65536,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 262144
+        },
+        {
+          "name": "out",
+          "element_size": 2,
+          "length": 8192,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 393216
+        },
+        {
+          "name": "lse",
+          "element_size": 4,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f32",
+          "base_address": 458752
+        }
+      ],
+      "params": [
+        "ptr:q",
+        "ptr:k",
+        "ptr:v",
+        "int:0",
+        "ptr:out",
+        "ptr:lse",
+        "int:0"
+      ],
+      "dimensions": {
+        "Q": 128,
+        "T": 1024,
+        "D": 64
+      },
+      "original_shape": {
+        "query_rows": 128,
+        "keys": 1024,
+        "D": 64,
+        "data_dtype": "f16",
+        "lse_dtype": "f32",
+        "sequence_derivation": "block_m64 * configured_grid_x16",
+        "inactive_null_parameters": [
+          "Bias_ptr",
+          "TMP_ptr"
+        ]
+      },
+      "output_projection": [
+        {
+          "baseline_array": "out",
+          "baseline_start": 0,
+          "native_array": "out",
+          "native_start": 0,
+          "length": 8192
+        },
+        {
+          "baseline_array": "lse",
+          "baseline_start": 0,
+          "native_array": "lse",
+          "native_start": 0,
+          "length": 128
+        }
+      ],
+      "expected_outputs": 8320,
+      "required": true,
+      "reduced_case": false,
+      "launch_config": "launch/flash_attention_original.json",
+      "mapping": "Original selectedCTA0 complete mathematical problem, input/output storage dtypes, masks/scales/null arguments, block/grid and source pitches are preserved. Native wave32 WMMA uses fixedLDS staging. The original232448-byte dynamic budget is not a physical native allocation. Full output coordinates are mandatory; smaller shapes, dropped outputs or decoded-F32 substitutes cannot close this case. Original grid.x16 derives T1024; this symbolic selectedCTA0 owns128 queryrows. A full physical grid replay must allocate all1024 query/output rows and retain genuine source no-op oddCTAs.",
+      "validation_scope": "Registration only. Required graph/full mathematical/public workflow/independent numeric hardware gates remain separate; Unsupported/Unknown/error is not acceptance.",
+      "max_instructions": 2000000000,
+      "physical_grid_mapping": {
+        "symbolic_selected_workgroup": [
+          0,
+          0,
+          0
+        ],
+        "symbolic_query_rows": 128,
+        "physical_grid": [
+          16,
+          1,
+          1
+        ],
+        "physical_query_rows": 1024,
+        "logical_sequence_length": 1024,
+        "odd_x_workgroups": "return without writes"
+      },
+      "source_sha256": "9ceb3b697516e2a306dd32752b6e8c67de5a1854474c396ac63c8a5efa770765",
+      "assembly_sha256": "2cbd4714e00c51eed4cce55ca6f8c448fd8cd4809474fef406cb8188a13f74f1",
+      "spec_sha256": "88336371d83bc5056dd2f3733228c1aa600798dc57c5920ff012fe0151a4d63f",
+      "launch_config_sha256": "76c91dadfcc63ef35633c9576d02fbf7863e7a8923fb35cf3e840cc2921ff16c"
+    },
+    {
+      "baseline_id": "W24",
+      "baseline_path": "ai_compiler_kernels/SageAttentionICLR2025/NVIDIA_B200_Unknown_1.4104x.ptx",
+      "baseline_sha256": "60495f2a95422279c4997e0ad554518dd6c90d670dcd951ec45be03899b12303",
+      "family": "SageAttentionICLR2025",
+      "kernel": "sage_attention_original",
+      "source": "fixtures/original-attention.hip",
+      "assembly": "fixtures/original-attention.s",
+      "spec": "specs/sage_attention_original.spec",
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dynamic_shared_bytes": 0,
+      "arrays": [
+        {
+          "name": "q",
+          "element_size": 1,
+          "length": 8192,
+          "kind": "in",
+          "dtype": "signed_i8",
+          "base_address": 65536
+        },
+        {
+          "name": "k",
+          "element_size": 1,
+          "length": 8192,
+          "kind": "in",
+          "dtype": "signed_i8",
+          "base_address": 131072
+        },
+        {
+          "name": "v",
+          "element_size": 2,
+          "length": 8192,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 196608
+        },
+        {
+          "name": "q_scale",
+          "element_size": 4,
+          "length": 1,
+          "kind": "in",
+          "dtype": "f32",
+          "base_address": 262144
+        },
+        {
+          "name": "k_scale",
+          "element_size": 4,
+          "length": 2,
+          "kind": "in",
+          "dtype": "f32",
+          "base_address": 327680
+        },
+        {
+          "name": "out",
+          "element_size": 2,
+          "length": 8192,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 393216
+        }
+      ],
+      "params": [
+        "ptr:q",
+        "ptr:k",
+        "ptr:v",
+        "ptr:q_scale",
+        "ptr:k_scale",
+        "ptr:out",
+        "int:0",
+        "int:0"
+      ],
+      "dimensions": {
+        "Q": 128,
+        "T": 128,
+        "D": 64,
+        "HALF": 64,
+        "ONE": 1,
+        "TWO": 2
+      },
+      "original_shape": {
+        "query_rows": 128,
+        "keys": 128,
+        "D": 64,
+        "Q_K_dtype": "signed_i8",
+        "V_out_dtype": "f16",
+        "scale_dtype": "f32",
+        "q_scale_count": 1,
+        "k_scale_count": 2,
+        "k_scale_group_keys": 64,
+        "inactive_null_parameters": [
+          "mask_ptr",
+          "Lse_ptr"
+        ]
+      },
+      "output_projection": [
+        {
+          "baseline_array": "out",
+          "baseline_start": 0,
+          "native_array": "out",
+          "native_start": 0,
+          "length": 8192
+        }
+      ],
+      "expected_outputs": 8192,
+      "required": true,
+      "reduced_case": false,
+      "launch_config": "launch/sage_attention_original.json",
+      "mapping": "Original selectedCTA0 complete mathematical problem, input/output storage dtypes, masks/scales/null arguments, block/grid and source pitches are preserved. Native wave32 WMMA uses fixedLDS staging. The original232448-byte dynamic budget is not a physical native allocation. Full output coordinates are mandatory; smaller shapes, dropped outputs or decoded-F32 substitutes cannot close this case.",
+      "validation_scope": "Registration only. Required graph/full mathematical/public workflow/independent numeric hardware gates remain separate; Unsupported/Unknown/error is not acceptance.",
+      "max_instructions": 2000000000,
+      "source_sha256": "9ceb3b697516e2a306dd32752b6e8c67de5a1854474c396ac63c8a5efa770765",
+      "assembly_sha256": "2cbd4714e00c51eed4cce55ca6f8c448fd8cd4809474fef406cb8188a13f74f1",
+      "spec_sha256": "d4d52f428fb06492d2bf88246a334543df0d9539abaa73e36feb171aaaa8e335",
+      "launch_config_sha256": "e16598348381e614ff7b59d9bdba74593a4754834f17931f0389c74c8b85cd88"
+    },
+    {
+      "baseline_id": "W25",
+      "baseline_path": "ai_compiler_kernels/Mamba2ChunkStateForward/NVIDIA_B200_Unknown_1.0984x.ptx",
+      "baseline_sha256": "183dbc76b8989c1f650ccc26bdc6012f2802ec3e38ae7c0998dd1ae3da6ddbcb",
+      "family": "Mamba2ChunkStateForward",
+      "kernel": "mamba_state_original",
+      "source": "fixtures/original-mamba.hip",
+      "assembly": "fixtures/original-mamba.s",
+      "spec": "specs/mamba_state_original.spec",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dynamic_shared_bytes": 0,
+      "arrays": [
+        {
+          "name": "x",
+          "element_size": 2,
+          "length": 131072,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 65536
+        },
+        {
+          "name": "b",
+          "element_size": 2,
+          "length": 131072,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 327680
+        },
+        {
+          "name": "states",
+          "element_size": 4,
+          "length": 8192,
+          "kind": "out",
+          "dtype": "f32",
+          "base_address": 589824
+        },
+        {
+          "name": "dt",
+          "element_size": 4,
+          "length": 256,
+          "kind": "in",
+          "dtype": "f32",
+          "base_address": 655360
+        },
+        {
+          "name": "dA_cumsum",
+          "element_size": 4,
+          "length": 256,
+          "kind": "in",
+          "dtype": "f32",
+          "base_address": 720896
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:b",
+        "ptr:states",
+        "ptr:dt",
+        "ptr:dA_cumsum",
+        "int:0"
+      ],
+      "dimensions": {
+        "T": 256,
+        "PITCH": 512,
+        "M": 64,
+        "N": 128
+      },
+      "original_shape": {
+        "steps": 256,
+        "features": 64,
+        "states": 128,
+        "x_row_stride": 512,
+        "B_row_stride": 512,
+        "X_B_dtype": "f16",
+        "dt_dA_states_dtype": "f32",
+        "inactive_null_parameters": [
+          "seq_idx_ptr"
+        ]
+      },
+      "output_projection": [
+        {
+          "baseline_array": "states",
+          "baseline_start": 0,
+          "native_array": "states",
+          "native_start": 0,
+          "length": 8192
+        }
+      ],
+      "expected_outputs": 8192,
+      "required": true,
+      "reduced_case": false,
+      "launch_config": "launch/mamba_state_original.json",
+      "mapping": "Original selectedCTA0 complete mathematical problem, input/output storage dtypes, masks/scales/null arguments, block/grid and source pitches are preserved. Native wave32 WMMA uses fixedLDS staging. The original232448-byte dynamic budget is not a physical native allocation. Full output coordinates are mandatory; smaller shapes, dropped outputs or decoded-F32 substitutes cannot close this case.",
+      "validation_scope": "Registration only. Required graph/full mathematical/public workflow/independent numeric hardware gates remain separate; Unsupported/Unknown/error is not acceptance.",
+      "max_instructions": 2000000000,
+      "source_sha256": "81fee6a9b4830fb2ce091eee9b32319f9c7c5ff5ea02e713fbc1d60b97ff6cc9",
+      "assembly_sha256": "4ecfaa2c02825b4db0caab6c02e7d96555a44ade43d76b32e574b08db87cfbf2",
+      "spec_sha256": "10c6c7129c2d51f2bb16d22bdd45f2582e657adebf480f71e52f6656de84efc5",
+      "launch_config_sha256": "6fc6f003bf957090a673077430c91e76eb7f006c7b9e450ab980ab329abbd592"
+    },
+    {
+      "baseline_id": "W26",
+      "baseline_path": "ai_compiler_kernels/Mamba2ChunkScanForward/NVIDIA_B200_Unknown_1.0740x.ptx",
+      "baseline_sha256": "785ebe3c604e3e1793f98cf3a34a8d30a19a7f61b5f6ba23dbb57b53130074c5",
+      "family": "Mamba2ChunkScanForward",
+      "kernel": "mamba_scan_original",
+      "source": "fixtures/original-mamba.hip",
+      "assembly": "fixtures/original-mamba.s",
+      "spec": "specs/mamba_scan_original.spec",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dynamic_shared_bytes": 0,
+      "arrays": [
+        {
+          "name": "cb",
+          "element_size": 4,
+          "length": 4096,
+          "kind": "in",
+          "dtype": "f32",
+          "base_address": 65536
+        },
+        {
+          "name": "x",
+          "element_size": 2,
+          "length": 131072,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 131072
+        },
+        {
+          "name": "out000",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 393216
+        },
+        {
+          "name": "out001",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 395264
+        },
+        {
+          "name": "out002",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 397312
+        },
+        {
+          "name": "out003",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 399360
+        },
+        {
+          "name": "out004",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 401408
+        },
+        {
+          "name": "out005",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 403456
+        },
+        {
+          "name": "out006",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 405504
+        },
+        {
+          "name": "out007",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 407552
+        },
+        {
+          "name": "out008",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 409600
+        },
+        {
+          "name": "out009",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 411648
+        },
+        {
+          "name": "out010",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 413696
+        },
+        {
+          "name": "out011",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 415744
+        },
+        {
+          "name": "out012",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 417792
+        },
+        {
+          "name": "out013",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 419840
+        },
+        {
+          "name": "out014",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 421888
+        },
+        {
+          "name": "out015",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 423936
+        },
+        {
+          "name": "out016",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 425984
+        },
+        {
+          "name": "out017",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 428032
+        },
+        {
+          "name": "out018",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 430080
+        },
+        {
+          "name": "out019",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 432128
+        },
+        {
+          "name": "out020",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 434176
+        },
+        {
+          "name": "out021",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 436224
+        },
+        {
+          "name": "out022",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 438272
+        },
+        {
+          "name": "out023",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 440320
+        },
+        {
+          "name": "out024",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 442368
+        },
+        {
+          "name": "out025",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 444416
+        },
+        {
+          "name": "out026",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 446464
+        },
+        {
+          "name": "out027",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 448512
+        },
+        {
+          "name": "out028",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 450560
+        },
+        {
+          "name": "out029",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 452608
+        },
+        {
+          "name": "out030",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 454656
+        },
+        {
+          "name": "out031",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 456704
+        },
+        {
+          "name": "outx000",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 458752
+        },
+        {
+          "name": "outx001",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 460800
+        },
+        {
+          "name": "outx002",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 462848
+        },
+        {
+          "name": "outx003",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 464896
+        },
+        {
+          "name": "outx004",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 466944
+        },
+        {
+          "name": "outx005",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 468992
+        },
+        {
+          "name": "outx006",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 471040
+        },
+        {
+          "name": "outx007",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 473088
+        },
+        {
+          "name": "outx008",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 475136
+        },
+        {
+          "name": "outx009",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 477184
+        },
+        {
+          "name": "outx010",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 479232
+        },
+        {
+          "name": "outx011",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 481280
+        },
+        {
+          "name": "outx012",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 483328
+        },
+        {
+          "name": "outx013",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 485376
+        },
+        {
+          "name": "outx014",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 487424
+        },
+        {
+          "name": "outx015",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 489472
+        },
+        {
+          "name": "outx016",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 491520
+        },
+        {
+          "name": "outx017",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 493568
+        },
+        {
+          "name": "outx018",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 495616
+        },
+        {
+          "name": "outx019",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 497664
+        },
+        {
+          "name": "outx020",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 499712
+        },
+        {
+          "name": "outx021",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 501760
+        },
+        {
+          "name": "outx022",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 503808
+        },
+        {
+          "name": "outx023",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 505856
+        },
+        {
+          "name": "outx024",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 507904
+        },
+        {
+          "name": "outx025",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 509952
+        },
+        {
+          "name": "outx026",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 512000
+        },
+        {
+          "name": "outx027",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 514048
+        },
+        {
+          "name": "outx028",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 516096
+        },
+        {
+          "name": "outx029",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 518144
+        },
+        {
+          "name": "outx030",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 520192
+        },
+        {
+          "name": "outx031",
+          "element_size": 2,
+          "length": 128,
+          "kind": "out",
+          "dtype": "f16",
+          "base_address": 522240
+        },
+        {
+          "name": "dt",
+          "element_size": 4,
+          "length": 128,
+          "kind": "in",
+          "dtype": "f32",
+          "base_address": 524288
+        },
+        {
+          "name": "dA_cumsum",
+          "element_size": 4,
+          "length": 128,
+          "kind": "in",
+          "dtype": "f32",
+          "base_address": 589824
+        },
+        {
+          "name": "C",
+          "element_size": 2,
+          "length": 2048,
+          "kind": "in",
+          "dtype": "f16",
+          "base_address": 655360
+        },
+        {
+          "name": "prev_states",
+          "element_size": 4,
+          "length": 4096,
+          "kind": "in",
+          "dtype": "f32",
+          "base_address": 720896
+        }
+      ],
+      "params": [
+        "ptr:cb",
+        "ptr:x",
+        "int:0",
+        "ptr:out000",
+        "ptr:outx000",
+        "ptr:dt",
+        "ptr:dA_cumsum",
+        "int:0",
+        "ptr:C",
+        "ptr:prev_states",
+        "int:0"
+      ],
+      "dimensions": {
+        "R": 32,
+        "N": 128,
+        "S": 32,
+        "T": 128,
+        "XPITCH": 1024,
+        "CPITCH": 64
+      },
+      "original_shape": {
+        "steps": 128,
+        "selected_rows": 32,
+        "features": 128,
+        "states": 32,
+        "x_row_stride": 1024,
+        "C_row_stride": 64,
+        "prev_states_shape": [
+          128,
+          32
+        ],
+        "output_row_stride": 1024,
+        "X_C_output_dtype": "f16",
+        "CB_dt_dA_prev_dtype": "f32",
+        "inactive_null_parameters": [
+          "z_ptr",
+          "seq_idx_ptr",
+          "D_ptr"
+        ]
+      },
+      "output_projection": [
+        {
+          "baseline_array": "out",
+          "baseline_start": 0,
+          "native_array": "out000",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 1024,
+          "native_array": "out001",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 2048,
+          "native_array": "out002",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 3072,
+          "native_array": "out003",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 4096,
+          "native_array": "out004",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 5120,
+          "native_array": "out005",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 6144,
+          "native_array": "out006",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 7168,
+          "native_array": "out007",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 8192,
+          "native_array": "out008",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 9216,
+          "native_array": "out009",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 10240,
+          "native_array": "out010",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 11264,
+          "native_array": "out011",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 12288,
+          "native_array": "out012",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 13312,
+          "native_array": "out013",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 14336,
+          "native_array": "out014",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 15360,
+          "native_array": "out015",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 16384,
+          "native_array": "out016",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 17408,
+          "native_array": "out017",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 18432,
+          "native_array": "out018",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 19456,
+          "native_array": "out019",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 20480,
+          "native_array": "out020",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 21504,
+          "native_array": "out021",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 22528,
+          "native_array": "out022",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 23552,
+          "native_array": "out023",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 24576,
+          "native_array": "out024",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 25600,
+          "native_array": "out025",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 26624,
+          "native_array": "out026",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 27648,
+          "native_array": "out027",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 28672,
+          "native_array": "out028",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 29696,
+          "native_array": "out029",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 30720,
+          "native_array": "out030",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out",
+          "baseline_start": 31744,
+          "native_array": "out031",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 0,
+          "native_array": "outx000",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 1024,
+          "native_array": "outx001",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 2048,
+          "native_array": "outx002",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 3072,
+          "native_array": "outx003",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 4096,
+          "native_array": "outx004",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 5120,
+          "native_array": "outx005",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 6144,
+          "native_array": "outx006",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 7168,
+          "native_array": "outx007",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 8192,
+          "native_array": "outx008",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 9216,
+          "native_array": "outx009",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 10240,
+          "native_array": "outx010",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 11264,
+          "native_array": "outx011",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 12288,
+          "native_array": "outx012",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 13312,
+          "native_array": "outx013",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 14336,
+          "native_array": "outx014",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 15360,
+          "native_array": "outx015",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 16384,
+          "native_array": "outx016",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 17408,
+          "native_array": "outx017",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 18432,
+          "native_array": "outx018",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 19456,
+          "native_array": "outx019",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 20480,
+          "native_array": "outx020",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 21504,
+          "native_array": "outx021",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 22528,
+          "native_array": "outx022",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 23552,
+          "native_array": "outx023",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 24576,
+          "native_array": "outx024",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 25600,
+          "native_array": "outx025",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 26624,
+          "native_array": "outx026",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 27648,
+          "native_array": "outx027",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 28672,
+          "native_array": "outx028",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 29696,
+          "native_array": "outx029",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 30720,
+          "native_array": "outx030",
+          "native_start": 0,
+          "length": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "baseline_start": 31744,
+          "native_array": "outx031",
+          "native_start": 0,
+          "length": 128
+        }
+      ],
+      "expected_outputs": 8192,
+      "required": true,
+      "reduced_case": false,
+      "launch_config": "launch/mamba_scan_original.json",
+      "mapping": "Original selectedCTA0 complete mathematical problem, input/output storage dtypes, masks/scales/null arguments, block/grid and source pitches are preserved. Native wave32 WMMA uses fixedLDS staging. The original232448-byte dynamic budget is not a physical native allocation. Full output coordinates are mandatory; smaller shapes, dropped outputs or decoded-F32 substitutes cannot close this case. Both4096-element out/out_x footprints preserve original1024-element row pitch. Same-address row views do not discard the second output; out_x is the original zero branch.",
+      "validation_scope": "Registration only. Required graph/full mathematical/public workflow/independent numeric hardware gates remain separate; Unsupported/Unknown/error is not acceptance.",
+      "max_instructions": 2000000000,
+      "array_view_mappings": [
+        {
+          "baseline_array": "out",
+          "native_arrays": [
+            "out000",
+            "out001",
+            "out002",
+            "out003",
+            "out004",
+            "out005",
+            "out006",
+            "out007",
+            "out008",
+            "out009",
+            "out010",
+            "out011",
+            "out012",
+            "out013",
+            "out014",
+            "out015",
+            "out016",
+            "out017",
+            "out018",
+            "out019",
+            "out020",
+            "out021",
+            "out022",
+            "out023",
+            "out024",
+            "out025",
+            "out026",
+            "out027",
+            "out028",
+            "out029",
+            "out030",
+            "out031"
+          ],
+          "row_pitch_elements": 1024,
+          "rows": 32,
+          "columns": 128
+        },
+        {
+          "baseline_array": "out_x",
+          "native_arrays": [
+            "outx000",
+            "outx001",
+            "outx002",
+            "outx003",
+            "outx004",
+            "outx005",
+            "outx006",
+            "outx007",
+            "outx008",
+            "outx009",
+            "outx010",
+            "outx011",
+            "outx012",
+            "outx013",
+            "outx014",
+            "outx015",
+            "outx016",
+            "outx017",
+            "outx018",
+            "outx019",
+            "outx020",
+            "outx021",
+            "outx022",
+            "outx023",
+            "outx024",
+            "outx025",
+            "outx026",
+            "outx027",
+            "outx028",
+            "outx029",
+            "outx030",
+            "outx031"
+          ],
+          "row_pitch_elements": 1024,
+          "rows": 32,
+          "columns": 128
+        }
+      ],
+      "parameter_mapping": {
+        "ptr:out": "ptr:out000",
+        "ptr:out_x": "ptr:outx000"
+      },
+      "source_sha256": "81fee6a9b4830fb2ce091eee9b32319f9c7c5ff5ea02e713fbc1d60b97ff6cc9",
+      "assembly_sha256": "4ecfaa2c02825b4db0caab6c02e7d96555a44ade43d76b32e574b08db87cfbf2",
+      "spec_sha256": "b04678ea95a8fbe710db2ab1b6985f57400ccd64af753ceeab24938447aa368a",
+      "launch_config_sha256": "466f9bdf66bf9ef92821f1abbdf36163e296edbabbee24be60d7bcd6405ac28e"
     },
     {
       "baseline_id": "W27",

@@ -77,6 +77,42 @@ fn cases() -> Vec<Value> {
 }
 
 #[test]
+fn all_original_spec_registrations_parse_and_declare_the_complete_output_shapes() {
+    let manifest: Value =
+        serde_json::from_str(&fs::read_to_string(root().join("cases.json")).unwrap()).unwrap();
+    let cases = manifest["cases"].as_array().unwrap();
+    assert_eq!(cases.len(), 32);
+    assert!(
+        manifest["pending_baseline_ids"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    for case in cases {
+        let parsed = volta_spec::parse_spec(
+            &fs::read_to_string(root().join(case["spec"].as_str().unwrap())).unwrap(),
+        )
+        .unwrap();
+        let dimensions = case["dimensions"]
+            .as_object()
+            .unwrap()
+            .iter()
+            .map(|(name, value)| (name.clone(), value.as_u64().unwrap()))
+            .collect();
+        let (_, outputs) = volta_spec::instantiate(&parsed, &dimensions).unwrap();
+        assert_eq!(
+            outputs
+                .iter()
+                .map(|output| output.shape.size())
+                .sum::<u64>(),
+            case["expected_outputs"].as_u64().unwrap(),
+            "{} declared shape",
+            case["kernel"]
+        );
+    }
+}
+
+#[test]
 fn selected_original_cases_keep_every_output_index_and_full_numeric_spec() {
     let root = root();
     let dir = directory();
