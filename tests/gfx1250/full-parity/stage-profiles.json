@@ -8,7 +8,7 @@
     "path": "tests/gfx1250/full/cases.json",
     "sha256": "5f3b7ee4dd0a18d7c5ee80909e735e29a6a7c38f61dc6f308b9e6e86f72f2fff"
   },
-  "generator_sha256": "e7d683ef3aed02d2338c92d393303ab26c835b3304666198f23a2ad664b095eb",
+  "generator_sha256": "3d88eaab050e4c99af3760ec7d937af8e8f6958423aacaca6333cc40186346c3",
   "inventory_example_sha256": "f583ffbf4c1ee7af758ec51be0fa9ff490d02f8400208d220c30cbf94a8521de",
   "source_pins": {
     "tests/gfx1250/full/fixtures/original-attention.hip": "a6f79415b4677af7b7d1d425661227682ddf03ebcac58ca8ea18f348e0443de3",
@@ -51,6 +51,78 @@
   "profile_count": 497,
   "instruction_component_occurrences": 13239,
   "implementation_contracts": {
+    "hardware_abi": {
+      "scope": "Only the compiler's HW_REG_IB_STS2 offset6 width4 read is modeled in the selected unsplit launch profile. Other hardware fields never receive a fabricated zero; no general hardware-register model is claimed.",
+      "frontend_legality": [
+        {
+          "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
+          "function": "validate_registers",
+          "line": 1168
+        },
+        {
+          "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
+          "function": "validate_typed_profile",
+          "line": 166
+        }
+      ],
+      "lowering": [
+        {
+          "path": "crates/volta_amdgpu_analysis/src/lower/mod.rs",
+          "function": "lower_with_globals",
+          "line": 50
+        }
+      ],
+      "value_semantics": [
+        {
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "function": "scalar",
+          "line": 1659
+        }
+      ],
+      "event_semantics": [
+        {
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "function": "step",
+          "line": 1694
+        },
+        {
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "function": "instruction_registers",
+          "line": 1359
+        }
+      ],
+      "checker": [
+        {
+          "path": "crates/volta_graph_check/src/amdgpu.rs",
+          "function": "trace_contract",
+          "line": 156
+        },
+        {
+          "path": "crates/volta_graph_check/src/amdgpu.rs",
+          "function": "check_amdgpu",
+          "line": 773
+        }
+      ],
+      "primary_sources": [
+        "https://github.com/ROCm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md",
+        "https://github.com/ROCm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md"
+      ],
+      "positive_controls": [
+        {
+          "path": "crates/volta_amdgpu_analysis/tests/gfx1250_full_execution.rs",
+          "function": "original_f16_relu_preserves_both_symbolically_selected_halves",
+          "line": 172
+        }
+      ],
+      "negative_controls": [
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_mechanism_boundary_tests.rs",
+          "function": "compiler_hardware_field_read_never_generalizes_to_unmodeled_field_bits",
+          "line": 47
+        }
+      ],
+      "control_scope": "Named controls test the selected semantic family. They do not establish execution of every indexed PC or arbitrary immediate/modifier combinations."
+    },
     "scalar": {
       "scope": "Exact concrete integer/bit/carry and typed mathematical scalar data; opaque address and SCC restrictions remain explicit.",
       "frontend_legality": [
@@ -14967,7 +15039,7 @@
       ],
       "modifiers": [],
       "component_slot": null,
-      "implementation_contract": "scalar",
+      "implementation_contract": "hardware_abi",
       "occurrences": 32,
       "case_occurrences": {
         "W01": 1,
