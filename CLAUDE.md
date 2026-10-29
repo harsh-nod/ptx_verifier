@@ -626,6 +626,8 @@ none turns an unsupported case into `Pass`. Depends only on `volta_graph`.
 The allocated LLVM named-barrier corpus has complete native payload and typed
 deadlock/conflict controls in `gfx1250_named_barrier_tests`; harmful assembly
 mutations are CPU-only and separately validated with llvm-mc.
+`tests/gfx1250/portable-graph/named_browser.cjs` checks actual Chromium event,
+source and typed-finding navigation on those native runs in a mixed target store.
 
 `examples/measure_native_export.rs` measures a completed native graph and its
 viewer export on CPU; its counts and GraphVerified guard are independent of

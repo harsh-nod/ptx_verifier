@@ -98,3 +98,16 @@ or reinitialization with outstanding joins, and does not complete every portable
 barrier, lifetime or asynchronous-copy obligation. No hardware result is claimed.
 NULL waits require an explicit NULL join; an unbound initial last-joined selector
 is not inferred from the encoded operand and remains Unknown.
+
+After recording these tests with `VOLTA_VIZ_DIR` into a mixed PTX/gfx942/gfx950/
+gfx1250 store and building its HTML page, run the actual Chromium control with:
+
+```sh
+PLAYWRIGHT_MODULE=/path/to/playwright node tests/gfx1250/portable-graph/named_browser.cjs /path/to/index.html /path/to/evidence
+```
+
+It checks all six native kernels' actual event/source links, encoded versus
+resolved selectors, reinitialization incarnations, subset drops, the counted
+END-without-drop deadlock, the unbound NULL limit and a typed Shared witness.
+The browser receipt states its rendering-only scope and binds the page/script
+hashes; mathematical, graph and hardware evidence remain separate.
