@@ -290,6 +290,9 @@ treated as replay-disabled: X-count replay-source leases are tracked separately
 from load/store/DS/KM/async/tensor completion. Signals publish only completed
 effects; issue order and execution synchronization do not invent data waits.
 Legacy CDNA cache-scope annotations cannot certify gfx1250 publication.
+Explicit `scope:SCOPE_SYS` on ordinary GLOBAL and resolved-global FLAT accesses
+is retained as a separate target-specific effect scope. Resolved LDS, scalar,
+atomic and tensor effects do not acquire this visibility annotation.
 
 The compiler epilogue `s_sendmsg sendmsg(MSG_DEALLOC_VGPRS)` (immediate3)
 is supported only with zero scratch and an immediately following `s_endpgm`.

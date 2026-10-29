@@ -1150,6 +1150,23 @@ fn scoped_global_publication_requires_both_endpoints_single_cu_completion_and_ba
 }
 
 #[test]
+fn gfx1250_system_scope_does_not_certify_legacy_global_effects() {
+    let mut t = Trace::new(1);
+    t.issue_scoped(
+        0,
+        0,
+        AmdMemoryClass::VectorMemory,
+        vec![v(1, 1)],
+        vec![],
+        0,
+        false,
+        AmdMemoryScope::Gfx1250System,
+    );
+    let report = check_graph(&t.finish());
+    assert_eq!(report.verdict(Property::AmdTrace), Verdict::Unknown);
+}
+
+#[test]
 fn read_read_global_pairs_do_not_require_publication_scope() {
     let mut t = Trace::new(128);
     t.b.assume(Assumption::SingleCuWorkgroup);

@@ -1,0 +1,12 @@
+id	source	kernel	original	occurrence	replacement
+metadata_publication	native-tensor-metadata.s	tensor_metadata_ordered	s_barrier_signal -1	0	$NOP128
+metadata_publication	native-tensor-metadata.s	tensor_metadata_ordered	s_barrier_wait -1	0	s_nop 0
+metadata_incomplete	native-tensor-metadata.s	tensor_metadata_ordered	flat_store_b128 v8, v[6:9], s[8:9] scope:SCOPE_SYS	0	s_nop 0
+metadata_data_wait	native-tensor-metadata.s	tensor_metadata_ordered	s_wait_dscnt 0x0\n\tv_readfirstlane_b32 s20	0	s_wait_kmcnt 0\n\tv_readfirstlane_b32 s20
+tensor_completion	native-tensor-metadata.s	tensor_metadata_ordered	s_wait_tensorcnt 0x0	0	s_wait_loadcnt 0
+copied_publication	native-tensor-metadata.s	tensor_metadata_copied	s_barrier_signal -1	1	$NOP128
+copied_publication	native-tensor-metadata.s	tensor_metadata_copied	s_barrier_wait -1	1	s_nop 0
+unrelated_publication	native-tensor-publication.s	tensor_completion_publication	s_barrier_signal -1	0	$NOP128
+unrelated_publication	native-tensor-publication.s	tensor_completion_publication	s_barrier_wait -1	0	s_nop 0
+descriptor_bytes_publication	native-tensor-descriptor-bytes.s	tensor_descriptor_bytes_ordered	s_barrier_signal -1	1	$NOP512
+descriptor_bytes_publication	native-tensor-descriptor-bytes.s	tensor_descriptor_bytes_ordered	s_barrier_wait -1	1	s_nop 0

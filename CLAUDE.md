@@ -496,6 +496,8 @@ native optional trailing commas and either wait-counter separator.
 
 ## Crate: volta_graph_check
 
+The appended `Gfx1250System` memory-scope variant retains explicit ordinary GLOBAL/resolved-global FLAT `SCOPE_SYS`. Both endpoints and actual completion/publication are required within the selected workgroup; the legacy cache-scope contract stays separate.
+
 **Path**: `crates/volta_graph_check/`
 
 `amdgpu/gfx1250/named.rs` independently reconstructs named object lifetimes,

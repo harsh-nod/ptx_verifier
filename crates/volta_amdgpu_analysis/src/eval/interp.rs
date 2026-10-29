@@ -5217,6 +5217,35 @@ impl<'a> Interpreter<'a> {
                 "v_lshl_add_u64" => {
                     let base = wave.wide(&o[1], lane)?;
                     let shift = wave.bits(&o[2], lane)? & 63;
+                    if self.architecture == AmdArchitecture::Gfx1250 {
+                        if let Operand::Register(addend) = &o[3] {
+                            if addend.count == 2
+                                && wave.reg(*addend, lane, 1)? == Value::SharedApertureHi
+                            {
+                                let low = wave
+                                    .reg(*addend, lane, 0)?
+                                    .bits()
+                                    .map_err(|error| wave.fail(Some(lane), error))?;
+                                // Preserve the opaque aperture, rather than assigning
+                                // it numeric bits. Only a provably non-wrapping low32
+                                // offset is supported by this exact address idiom.
+                                let offset = base
+                                    .checked_mul(1u64 << shift)
+                                    .and_then(|index| index.checked_add(u64::from(low)))
+                                    .filter(|offset| *offset <= u64::from(u32::MAX))
+                                    .ok_or_else(|| {
+                                        wave.fail(
+                                            Some(lane),
+                                            "scaled offset escapes the shared aperture",
+                                        )
+                                    })?;
+                                let destination = wave.destination(&o[0])?;
+                                wave.put(destination, lane, 0, Value::Bits(offset as u32))?;
+                                wave.put(destination, lane, 1, Value::SharedApertureHi)?;
+                                continue;
+                            }
+                        }
+                    }
                     let addend = wave.wide(&o[3], lane)?;
                     wave.put_wide(&o[0], lane, base.wrapping_shl(shift).wrapping_add(addend))?;
                     continue;
@@ -6199,16 +6228,38 @@ impl<'a> Interpreter<'a> {
                     .into(),
             });
         }
+        let flat_scale = if flat
+            && instruction
+                .modifiers
+                .iter()
+                .any(|modifier| modifier.name == "scale_offset")
+        {
+            if self.architecture != AmdArchitecture::Gfx1250
+                || o.len() != 3
+                || !matches!(name, "flat_load_b32" | "flat_store_b32")
+            {
+                return Err(self.unsupported(wave, instruction));
+            }
+            4
+        } else {
+            1
+        };
         let native_flat_shared = if self.architecture == AmdArchitecture::Gfx1250 && flat {
             let mut shared = None;
             for lane in wave.active() {
-                let (_, is_shared) = self.flat_memory_address_with_saddr(
-                    wave,
-                    if store { &o[0] } else { &o[1] },
-                    o.get(2),
-                    lane,
-                    offset,
-                )?;
+                let vector = if store { &o[0] } else { &o[1] };
+                let (_, is_shared) = if flat_scale == 1 {
+                    self.flat_memory_address_with_saddr(wave, vector, o.get(2), lane, offset)?
+                } else {
+                    self.flat_memory_address_with_scale(
+                        wave,
+                        vector,
+                        o.get(2),
+                        lane,
+                        offset,
+                        flat_scale,
+                    )?
+                };
                 if shared.is_some_and(|old| old != is_shared) {
                     return Err(wave.fail(
                         Some(lane),
@@ -6344,7 +6395,18 @@ impl<'a> Interpreter<'a> {
             } else if flat {
                 let operand = if store { &o[0] } else { &o[1] };
                 let (address, shared) = if self.architecture == AmdArchitecture::Gfx1250 {
-                    self.flat_memory_address_with_saddr(wave, operand, o.get(2), lane, offset)?
+                    if flat_scale == 1 {
+                        self.flat_memory_address_with_saddr(wave, operand, o.get(2), lane, offset)?
+                    } else {
+                        self.flat_memory_address_with_scale(
+                            wave,
+                            operand,
+                            o.get(2),
+                            lane,
+                            offset,
+                            flat_scale,
+                        )?
+                    }
                 } else {
                     self.flat_memory_address(wave, operand, lane, offset as u64)?
                 };
@@ -6657,7 +6719,15 @@ impl<'a> Interpreter<'a> {
                             value: stored,
                         },
                     );
-                    let scope = if self.architecture != AmdArchitecture::Gfx1250
+                    let scope = if self.architecture == AmdArchitecture::Gfx1250
+                        && !effective_lds
+                        && (name.starts_with("global_") || flat)
+                        && instruction.modifiers.iter().any(|modifier| {
+                            modifier.name == "scope"
+                                && modifier.value.as_deref() == Some("SCOPE_SYS")
+                        }) {
+                        AmdMemoryScope::Gfx1250System
+                    } else if self.architecture != AmdArchitecture::Gfx1250
                         && name.starts_with("global_")
                         && instruction
                             .modifiers
@@ -6713,9 +6783,23 @@ impl<'a> Interpreter<'a> {
         lane: u8,
         offset: i64,
     ) -> Result<(u64, bool), EvalError> {
+        self.flat_memory_address_with_scale(wave, vector, scalar, lane, offset, 1)
+    }
+
+    fn flat_memory_address_with_scale(
+        &self,
+        wave: &Wave,
+        vector: &Operand,
+        scalar: Option<&Operand>,
+        lane: u8,
+        offset: i64,
+        scale: u64,
+    ) -> Result<(u64, bool), EvalError> {
         let base = scalar.unwrap_or(vector);
         let vector_offset = if scalar.is_some() {
             u64::from(wave.bits(vector, lane)?)
+                .checked_mul(scale)
+                .ok_or_else(|| wave.fail(Some(lane), "scaled FLAT index overflow"))?
         } else {
             0
         };

@@ -229,6 +229,13 @@ obligation. Advanced barrier/cache/tensor modes outside the documented subset
 cannot inherit gfx942/gfx950 certificates. Extending a graph profile does not
 establish a hardware result. Numerical agreement remains separate from these
 graph obligations; local hardware run records are not retained.
+For ordinary gfx1250 GLOBAL and resolved-global FLAT accesses, explicit
+`SCOPE_SYS` at both endpoints supplies cache visibility under the pinned
+[LLVM GFX125x memory model](https://github.com/ROCm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md#memory-model-gfx125x).
+Completed effects and a validated publication path remain required. Missing
+either scope stays inconclusive; a missing completion or rendezvous remains a
+conflict. The target-specific annotation cannot certify legacy AMD targets,
+scalar caches, LDS, atomics, tensor effects or another workgroup.
 The logical launch grid is preserved in provenance. A grid larger than one
 requires `SingleWorkgroupAnalyzed`: the result covers only the selected workgroup,
 including its launch-coordinate inputs, and makes no claim about other groups.

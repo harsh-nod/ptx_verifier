@@ -1,0 +1,198 @@
+{
+  "status": "pass",
+  "schema_version": 1,
+  "target": "gfx1250",
+  "hardware_execution": false,
+  "scope": "Encoding evidence only. Harmful mutants are evaluated by CPU tests and never launched.",
+  "checker_sha256": "59087c159f57d724934dc1fa8056b0aee873484d900a358e9f631f94d9036e4f",
+  "table_sha256": "8156c8e74ea50be55a92e9897f4e94d45542bec3c4a49b51939ade03adc0f87a",
+  "source_sha256": {
+    "native-tensor-descriptor-bytes.s": "dbd72d48a0f4bbab026b03b7ddbfb376fa31e637e0396dbeb6a453b9e60a7862",
+    "native-tensor-edge.s": "2ed3809b7bc1a9a7d862041ff5374944eede92439070587688c620b5c7a235ec",
+    "native-tensor-metadata.s": "47b07da2ebc20e6fb47301adc7143911d90317d7f25cb77b09c59501a88b9bf7",
+    "native-tensor-publication.s": "c1cd868abf53ddb2ab51f3b6dcd94acde60a9c8c8ac7d17112c307e6b0045aac"
+  },
+  "assembler": {
+    "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+    "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+    "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+  },
+  "controls": [
+    {
+      "id": "native-tensor-descriptor-bytes",
+      "assembly_sha256": "dbd72d48a0f4bbab026b03b7ddbfb376fa31e637e0396dbeb6a453b9e60a7862",
+      "object_sha256": "b53476eb1e94c0726d874010a74762ad1d8924bac63d0f99b25f241158956955",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/native-tensor-descriptor-bytes.s",
+        "-o",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/native-tensor-descriptor-bytes.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "native-tensor-edge",
+      "assembly_sha256": "2ed3809b7bc1a9a7d862041ff5374944eede92439070587688c620b5c7a235ec",
+      "object_sha256": "c6eda7aeccf1fc27f43770d9936b90025dd2051f03f12b7650b7ee4e75694b05",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/native-tensor-edge.s",
+        "-o",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/native-tensor-edge.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "native-tensor-metadata",
+      "assembly_sha256": "47b07da2ebc20e6fb47301adc7143911d90317d7f25cb77b09c59501a88b9bf7",
+      "object_sha256": "1521c5f0302e5b1e716d8ebd658b9bef5d830d556a9f7b7767afc2eb07e47c71",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/native-tensor-metadata.s",
+        "-o",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/native-tensor-metadata.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "native-tensor-publication",
+      "assembly_sha256": "c1cd868abf53ddb2ab51f3b6dcd94acde60a9c8c8ac7d17112c307e6b0045aac",
+      "object_sha256": "1c564292a254417abdc6253afcceb519e754e3d3857dbf037f39a8a627321556",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/native-tensor-publication.s",
+        "-o",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/native-tensor-publication.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "metadata_publication",
+      "assembly_sha256": "bcb44bca1a88b6491af754eee55c7be5d5c8370b88f0fb3416a5f5f8562e5afa",
+      "object_sha256": "533fe2c4aefbc1f6ef367314da80c00b444e03560459508271edc7f4548055a0",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/metadata_publication.s",
+        "-o",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/metadata_publication.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "metadata_incomplete",
+      "assembly_sha256": "d73b1ad2d13ebf9957ca3b21bb5d8b7ba7cffd8608456017eb6121930e56b838",
+      "object_sha256": "41057b01a4bdd12776a1a8747622639a530b7b2e73a9939cdcb8f58239f87018",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/metadata_incomplete.s",
+        "-o",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/metadata_incomplete.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "metadata_data_wait",
+      "assembly_sha256": "0d360d046ca868bfc857dcbb167500755bb75cd7ddca638eaf6d9aa5e603ef51",
+      "object_sha256": "a19045118602401b97550f102590760989c5dcee306dc9b3eac220f3ccda7a60",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/metadata_data_wait.s",
+        "-o",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/metadata_data_wait.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "tensor_completion",
+      "assembly_sha256": "1c5c39214e6ae4f05c0ffb56cf9f1ddffb2bfb1644e5f564faff03e20d77eb35",
+      "object_sha256": "2fe9b05ee03467f417715f3f482bde08835acc3ed2d56cc8fb816cc915d2b27f",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/tensor_completion.s",
+        "-o",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/tensor_completion.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "copied_publication",
+      "assembly_sha256": "5e32a2072a418b34875878a003ead258fad4ee07aa59232fcfdc864522da5743",
+      "object_sha256": "b8ea8e038af0b6e2161cf0d978867c5783fbb876e64aaea7dfb6cbbdf4aa391c",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/copied_publication.s",
+        "-o",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/copied_publication.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "unrelated_publication",
+      "assembly_sha256": "c4c26bf8aea8b683e82fbc239091dbce019488f5f9a2b6fa26381b263f234a1d",
+      "object_sha256": "5541eb9a722d404793243e291d85365af2dfcc937f7df93542f04b125c53bda0",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/unrelated_publication.s",
+        "-o",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/unrelated_publication.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "descriptor_bytes_publication",
+      "assembly_sha256": "2c1ed3960e29f161f8cd0f094560323284a50709e682d34cc83a8bfe907e8aab",
+      "object_sha256": "666ef0576f6d90df509c05439db13669cc7b933a007814f125be2d9bc5251546",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/descriptor_bytes_publication.s",
+        "-o",
+        "/tmp/ptx-gfx1250-tensor-mutants-amvb5vzj/descriptor_bytes_publication.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    }
+  ]
+}
