@@ -65,3 +65,10 @@ volta.parse(amd_source, backend="amdgpu", target="gfx1250")
 config = volta.Config(block=(65, 1, 1), backend="amdgpu", target="gfx1250")
 # Add the source kernel's arrays and arguments before analyze/verify.
 ```
+
+`tests/test_gfx1250_original_workloads.py` checks all18 first-family original
+shapes/storage dtypes through parse/analyze/verify, exact output coordinates and
+unsampled numeric specifications. The separate heavy32-case workflow gate uses
+`VOLTA_GFX1250_ORIGINAL_FULL=1` and refuses missing registrations. These tests
+rebuild the current extension; they do not reuse an older binary as evidence.
+See the [full-parity workflow recipes](../../tests/gfx1250/full-parity/README.md#public-workflow-gates).
