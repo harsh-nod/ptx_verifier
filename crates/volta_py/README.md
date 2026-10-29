@@ -81,3 +81,6 @@ unsampled numeric specifications. The separate heavy32-case workflow gate uses
 `VOLTA_GFX1250_ORIGINAL_FULL=1` and refuses missing registrations. These tests
 rebuild the current extension; they do not reuse an older binary as evidence.
 See the [full-parity workflow recipes](../../tests/gfx1250/full-parity/README.md#public-workflow-gates).
+The [coordinator review](../../tests/gfx1250/full-parity/coordinator-review.md)
+records the full32 extension proof revision and final rebuilt Python regression
+gate separately, with complete original output accounting.

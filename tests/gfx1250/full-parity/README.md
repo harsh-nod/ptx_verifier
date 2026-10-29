@@ -7,6 +7,13 @@ ISA implementation. Only the coordinator marks acceptance after independent
 validation. The completed [issue #13](https://github.com/harsh-nod/ptx_verifier/issues/13)
 remains the source-pinned bounded subset. Historical run artifacts are not retained.
 
+Current acceptance is recorded in the [coordinator review](coordinator-review.md)
+and [explicit source-bound decisions](coordinator-decisions.json): all32 original
+variants and all520 finite reference rows have been independently reviewed.
+The planning and registration discussion below retains its historical statuses;
+the current review states the exact proof revisions and remaining model/target
+boundaries separately.
+
 `gaps.json` records 32 original variants across 20 families at fork `e0511fb` and
 upstream `b3a3791`. It includes source/config hashes, actual original array bases,
 widths and lengths, argument order, unused dummy parameters, configured block/grid,

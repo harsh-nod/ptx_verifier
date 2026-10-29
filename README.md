@@ -104,6 +104,9 @@ The bounded issue #13 ports remain separate from the
 [original32 workload and portable-feature contract](tests/gfx1250/full-parity/README.md).
 That contract preserves original dimensions, storage dtypes and sparse output
 projections; registration and individual test results do not imply full acceptance.
+The [coordinator review](tests/gfx1250/full-parity/coordinator-review.md) records
+the completed original32 and finite portable-feature gates, exact proof
+revisions, reproduction budgets and retained target/model boundaries.
 
 Launch arguments follow the selected kernel's descriptor and argument metadata.
 `--global NAME=value` overrides a writable defined module object;
