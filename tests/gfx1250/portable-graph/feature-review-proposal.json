@@ -20,8 +20,9 @@
     "84be9d963fd72dd998f6dfef926e16cf23d4735b"
   ],
   "counts": {
-    "native_assertion_candidate": 44,
-    "native_contract_difference_candidate": 15
+    "native_assertion_candidate": 45,
+    "native_contract_difference_candidate": 11,
+    "portable_native_gap": 3
   },
   "rows": [
     {
@@ -372,7 +373,7 @@
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "ended_reader_cannot_publish_its_read_to_a_surviving_wave_write",
-          "source_sha256": "5fc8d5fe8eb5ecb9132908d10a9496ddb9e874f6695fb8042081ed332aa7953d"
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
       "completion": "coordinator_review_required"
@@ -441,7 +442,7 @@
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "ended_writer_marker_requires_explicit_publication_before_exit",
-          "source_sha256": "5fc8d5fe8eb5ecb9132908d10a9496ddb9e874f6695fb8042081ed332aa7953d"
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
       "completion": "coordinator_review_required"
@@ -469,7 +470,7 @@
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "ordinary_eight_byte_metadata_initialization_cannot_race_scratch_store_load",
-          "source_sha256": "5fc8d5fe8eb5ecb9132908d10a9496ddb9e874f6695fb8042081ed332aa7953d"
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
       "completion": "coordinator_review_required"
@@ -575,9 +576,9 @@
       "baseline_golden": null,
       "portable_obligation": "Same PTX object sees conflicting64/32 counts across wait/arrive.",
       "native_scope": "Native expected count is initialized per object; source checks count2 with both waves, count3/arrived2 deadlock with all64 blocked, and a released ordered newcount1 lifetime.",
-      "target_contract_residual": "PTX conflicting64/32 counts supplied to arrivals cannot be represented as per-arrival native expected counts. Native count3/arrived2 is supporting counted-progress evidence, not an encoding of mixed per-arrival counts.",
-      "remaining_gate": "Coordinator review of the source-backed native obligation and precise target residual; no automatic completion or hardware claim.",
-      "proposal": "native_contract_difference_candidate",
+      "target_contract_residual": "Native public hardware supports signal-time expected-count updates in M0 bits22:16; this implementation has not yet modeled that operation. PTX thread counts map separately to native wave-arrival counts.",
+      "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation.",
+      "proposal": "portable_native_gap",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
@@ -588,7 +589,7 @@
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "native_count_changes_require_a_released_ordered_new_initialization_lifetime",
-          "source_sha256": "5fc8d5fe8eb5ecb9132908d10a9496ddb9e874f6695fb8042081ed332aa7953d"
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
       "completion": "coordinator_review_required"
@@ -644,9 +645,9 @@
       "baseline_golden": null,
       "portable_obligation": "PTX allows a new phase count, but the baseline tool rejects its unsupported count change.",
       "native_scope": "Actual complete[7,7] payload, INIT(incarnation0,count2), allLEAVEs and rendezvous, then INIT(incarnation1,count1).",
-      "target_contract_residual": "The native profile changes expected count across fully released initialization lifetimes. This does not claim a PTX per-phase count change in the same lifetime.",
-      "remaining_gate": "Coordinator review of the source-backed native obligation and precise target residual; no automatic completion or hardware claim.",
-      "proposal": "native_contract_difference_candidate",
+      "target_contract_residual": "Native public hardware supports signal-time expected-count updates in M0 bits22:16; this implementation has not yet modeled that operation. PTX thread counts map separately to native wave-arrival counts.",
+      "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation.",
+      "proposal": "portable_native_gap",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
@@ -657,7 +658,7 @@
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "native_count_changes_require_a_released_ordered_new_initialization_lifetime",
-          "source_sha256": "5fc8d5fe8eb5ecb9132908d10a9496ddb9e874f6695fb8042081ed332aa7953d"
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
       "completion": "coordinator_review_required"
@@ -678,9 +679,9 @@
       "baseline_golden": null,
       "portable_obligation": "Conflicting32/64 counts cannot certify Shared word7 transfer.",
       "native_scope": "Actual Sharedword7 producer/consumer requires initialized native count2; count3/arrived2 blocks all64 workitems before any output certificate.",
-      "target_contract_residual": "PTX conflicting32/64 per-instruction counts are not native INIT-bound wave counts. The actual native count mismatch retains the portable counted-progress and word7 roles, but cannot certify the PTX count API.",
-      "remaining_gate": "Coordinator review of the source-backed native obligation and precise target residual; no automatic completion or hardware claim.",
-      "proposal": "native_contract_difference_candidate",
+      "target_contract_residual": "Native public hardware supports signal-time expected-count updates in M0 bits22:16; this implementation has not yet modeled that operation. PTX thread counts map separately to native wave-arrival counts.",
+      "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation.",
+      "proposal": "portable_native_gap",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
@@ -691,7 +692,7 @@
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "native_count_changes_require_a_released_ordered_new_initialization_lifetime",
-          "source_sha256": "5fc8d5fe8eb5ecb9132908d10a9496ddb9e874f6695fb8042081ed332aa7953d"
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
       "completion": "coordinator_review_required"
@@ -914,7 +915,7 @@
       ],
       "baseline_golden": null,
       "portable_obligation": "Initialization must precede other actor arrival; candidate order alone cannot certify word42.",
-      "native_scope": "Allocated native initialization, exact index1 marker42 positive, missing-init error, and actual source with initialization rendezvous removed giving AmdBarrier Unknown.",
+      "native_scope": "Allocated native init and exact index1 marker42 positive; removing only initialization rendezvous retains complete candidate42 but produces typed AmdBarrierViolation.",
       "target_contract_residual": "The native allocated resource does not inherit PTX mbarrier transaction-byte credits or its backing-memory representation.",
       "remaining_gate": "Coordinator review of the source-backed native obligation and precise target residual; no automatic completion or hardware claim.",
       "proposal": "native_assertion_candidate",
@@ -934,7 +935,7 @@
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "allocated_object_initialization_precedes_every_other_wave_use",
-          "source_sha256": "5fc8d5fe8eb5ecb9132908d10a9496ddb9e874f6695fb8042081ed332aa7953d"
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
       "completion": "coordinator_review_required"
@@ -974,7 +975,7 @@
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "a_new_named_object_has_no_implicitly_completed_preinitialization_phase",
-          "source_sha256": "5fc8d5fe8eb5ecb9132908d10a9496ddb9e874f6695fb8042081ed332aa7953d"
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
@@ -999,10 +1000,10 @@
       ],
       "baseline_golden": null,
       "portable_obligation": "Unordered reinitialization must not discard another actor arrival or certify word42.",
-      "native_scope": "Exact index1 marker42 positive without reinit; actual reinit while joins remain live aborts as Unsupported with no symbolic output certificate.",
-      "target_contract_residual": "Reinitialization with outstanding native joins is outside the selected public profile. This is an explicit unsupported protocol boundary, not a proof of every hardware live-reinit behavior.",
+      "native_scope": "Actual old lifetime release followed by reinitialization preserves complete[7,7]; removing only the cross-wave lifetime publication creates a typed reinitialization-order violation despite no live candidate joins. Separate live-join reinit remains Unsupported.",
+      "target_contract_residual": "Native allocated object resources differ from memory-backed PTX mbarriers; typed ordering controls retain the reset-vs-other-wave-use hazard without asserting general live-join reinit support.",
       "remaining_gate": "Coordinator review of the source-backed native obligation and precise target residual; no automatic completion or hardware claim.",
-      "proposal": "native_contract_difference_candidate",
+      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
@@ -1019,7 +1020,12 @@
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "reinitializing_an_object_with_live_joins_stays_explicitly_unsupported",
-          "source_sha256": "5fc8d5fe8eb5ecb9132908d10a9496ddb9e874f6695fb8042081ed332aa7953d"
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "native_count_changes_require_a_released_ordered_new_initialization_lifetime",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
       "completion": "coordinator_review_required"
@@ -1112,7 +1118,7 @@
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "uninitialized_source_lane_does_not_become_a_defined_shuffle_output",
-          "source_sha256": "5fc8d5fe8eb5ecb9132908d10a9496ddb9e874f6695fb8042081ed332aa7953d"
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
       "completion": "coordinator_review_required"

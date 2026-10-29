@@ -350,8 +350,7 @@ named_new_lifetime_count_change:        ; @named_new_lifetime_count_change
 	;;#ASMSTART
 	s_wait_dscnt 0
 	;;#ASMEND
-	s_wait_xcnt 0x0
-	s_mov_b32 s4, exec_lo
+	s_mov_b32 s6, exec_lo
 	s_barrier_signal m0 
 	s_barrier_wait 1
 	v_cmpx_eq_u32_e32 32, v0
@@ -364,29 +363,164 @@ named_new_lifetime_count_change:        ; @named_new_lifetime_count_change
 	global_store_b32 v0, v1, s[2:3]
 .LBB2_6:                                ; %leave
 	s_wait_xcnt 0x0
-	s_or_b32 exec_lo, exec_lo, s4
+	s_or_b32 exec_lo, exec_lo, s6
+	s_load_b32 s1, s[4:5], 0x8
 	s_barrier_leave
+	s_wait_kmcnt 0x0
+	s_cmp_eq_u32 s1, 0
+	s_cbranch_scc1 .LBB2_8
+; %bb.7:                                ; %lifetimegate
 	s_barrier_signal -1
 	s_barrier_wait -1
-	s_wait_kmcnt 0x0
+.LBB2_8:                                ; %dispatchnew
 	s_and_saveexec_b32 s1, s0
-	s_cbranch_execz .LBB2_9
-; %bb.7:                                ; %newinit
+	s_cbranch_execz .LBB2_11
+; %bb.9:                                ; %newinit
 	s_mov_b32 m0, 0x10001
+	;;#ASMSTART
+	s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+s_nop 0
+	;;#ASMEND
 	s_barrier_init m0 
 	s_mov_b32 m0, 1
 	s_barrier_join m0 
 	s_barrier_signal m0 
 	s_barrier_wait 1
 	s_and_b32 exec_lo, exec_lo, vcc_lo
-	s_cbranch_execz .LBB2_9
-; %bb.8:                                ; %marker
+	s_cbranch_execz .LBB2_11
+; %bb.10:                               ; %marker
 	v_dual_mov_b32 v1, 0x40e00000 :: v_dual_mov_b32 v0, 0
 	;;#ASMSTART
 	v_add_f32 v1, 0, v1
 	;;#ASMEND
 	global_store_b32 v0, v1, s[2:3] offset:4
-.LBB2_9:                                ; %end
+.LBB2_11:                               ; %end
 	s_endpgm
 	.section	.rodata,"a",@progbits
 	.p2align	6, 0x0
@@ -411,7 +545,7 @@ named_new_lifetime_count_change:        ; @named_new_lifetime_count_change
 		.amdhsa_system_sgpr_workgroup_info 0
 		.amdhsa_system_vgpr_workitem_id 2
 		.amdhsa_next_free_vgpr 113
-		.amdhsa_next_free_sgpr 6
+		.amdhsa_next_free_sgpr 7
 		.amdhsa_named_barrier_count 1
 		.amdhsa_reserve_vcc 1
 		.amdhsa_float_round_mode_32 0
@@ -421,7 +555,7 @@ named_new_lifetime_count_change:        ; @named_new_lifetime_count_change
 		.amdhsa_fp16_overflow 0
 		.amdhsa_memory_ordered 1
 		.amdhsa_forward_progress 1
-		.amdhsa_inst_pref_size 2
+		.amdhsa_inst_pref_size 3
 		.amdhsa_round_robin_scheduling 0
 		.amdhsa_exception_fp_ieee_invalid_op 0
 		.amdhsa_exception_fp_denorm_src 0
@@ -437,7 +571,7 @@ named_new_lifetime_count_change:        ; @named_new_lifetime_count_change
                                         ; -- End function
 	.set named_new_lifetime_count_change.num_vgpr, 3
 	.set named_new_lifetime_count_change.num_agpr, 0
-	.set named_new_lifetime_count_change.numbered_sgpr, 6
+	.set named_new_lifetime_count_change.numbered_sgpr, 7
 	.set named_new_lifetime_count_change.num_named_barrier, 1
 	.set named_new_lifetime_count_change.private_seg_size, 0
 	.set named_new_lifetime_count_change.uses_vcc, 1
@@ -447,8 +581,8 @@ named_new_lifetime_count_change:        ; @named_new_lifetime_count_change
 	.set named_new_lifetime_count_change.has_indirect_call, 0
 	.section	.AMDGPU.csdata,"",@progbits
 ; Kernel info:
-; codeLenInByte = 256
-; TotalNumSgprs: 8
+; codeLenInByte = 268
+; TotalNumSgprs: 9
 ; NumVgprs: 3
 ; ScratchSize: 0
 ; MemoryBound: 0
@@ -457,7 +591,7 @@ named_new_lifetime_count_change:        ; @named_new_lifetime_count_change
 ; LDSByteSize: 4 bytes/workgroup (compile time only)
 ; SGPRBlocks: 0
 ; VGPRBlocks: 7
-; NumSGPRsForWavesPerEU: 8
+; NumSGPRsForWavesPerEU: 9
 ; NumVGPRsForWavesPerEU: 113
 ; NamedBarCnt: 1
 ; Occupancy: 8
@@ -906,7 +1040,7 @@ amdhsa.kernels:
         .offset:         0
         .size:           8
         .value_kind:     global_buffer
-      - .name:           unused
+      - .name:           ordered
         .offset:         8
         .size:           4
         .value_kind:     by_value
@@ -973,7 +1107,7 @@ amdhsa.kernels:
     .max_flat_workgroup_size: 64
     .name:           named_new_lifetime_count_change
     .private_segment_fixed_size: 0
-    .sgpr_count:     8
+    .sgpr_count:     9
     .sgpr_spill_count: 0
     .symbol:         named_new_lifetime_count_change.kd
     .uses_dynamic_stack: false

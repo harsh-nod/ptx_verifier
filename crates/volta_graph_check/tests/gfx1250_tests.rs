@@ -2796,6 +2796,52 @@ fn named_reinitialization_creates_a_fresh_lifetime_and_stale_records_fail() {
 }
 
 #[test]
+fn named_initialization_and_reinitialization_require_execution_order_with_other_waves() {
+    for reinitialize in [false, true] {
+        for ordered in [false, true] {
+            let mut t = Trace::named(64);
+            let old = named_object(1, 0);
+            t.n_init(0, old, 1);
+            if reinitialize {
+                t.publish_init();
+                t.n_signal(1, old, 0);
+                if ordered {
+                    for wave in 0..2 {
+                        t.signal(wave, 1);
+                    }
+                    for wave in 0..2 {
+                        t.barrier_wait(wave, 1, true);
+                    }
+                }
+                let new = named_object(1, 1);
+                t.n_init(0, new, 1);
+                t.n_join(0, new, 0);
+                t.n_signal(0, new, 0);
+                t.n_wait(0, 1, new, 0, true);
+            } else {
+                if ordered {
+                    t.publish_init();
+                }
+                t.n_join(1, old, 0);
+                t.n_signal(1, old, 0);
+                t.n_wait(1, 1, old, 0, true);
+            }
+            let report = check_graph(&t.finish());
+            assert_eq!(report.verdict(Property::AmdTrace), Verdict::Pass);
+            assert_eq!(
+                report.verdict(Property::AmdBarrier),
+                if ordered {
+                    Verdict::Pass
+                } else {
+                    Verdict::Fail
+                },
+                "reinitialize={reinitialize}, ordered={ordered}: {report:?}"
+            );
+        }
+    }
+}
+
+#[test]
 fn named_null_join_unjoins_without_dropping_and_null_waits_publish_nothing() {
     let mut t = Trace::named(1);
     let o = named_object(1, 0);
@@ -2865,7 +2911,7 @@ fn named_drop_counts_operations_and_can_complete_the_remaining_participants() {
 }
 
 #[test]
-fn named_initialization_without_crosswave_execution_order_is_inconclusive() {
+fn named_initialization_without_crosswave_execution_order_is_a_typed_violation() {
     let mut t = Trace::named(64);
     let o = named_object(1, 0);
     t.n_init(0, o, 2);
@@ -2877,7 +2923,7 @@ fn named_initialization_without_crosswave_execution_order_is_inconclusive() {
     t.n_wait(1, 1, o, 0, true);
     let r = check_graph(&t.finish());
     assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
-    assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Unknown);
+    assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Fail);
 }
 
 #[test]

@@ -496,6 +496,10 @@ native optional trailing commas and either wait-counter separator.
 
 ## Crate: volta_graph_check
 
+Native named initialization and reinitialization must be execution-ordered
+against other-wave uses. Missing order produces a typed potential protocol
+violation; live-join reinit retains its separate unsupported boundary.
+
 Only an already completed, happens-before-ordered gfx1250 Global ReadWrite
 dependency skips cache visibility from the future write. Earlier Write
 ancestors remain checked; incomplete operations and missing publication fail.
@@ -632,6 +636,10 @@ none turns an unsupported case into `Pass`. Depends only on `volta_graph`.
 ## Crate: volta_pipeline
 
 **Path**: `crates/volta_pipeline/`
+
+The named checker reports missing initialization/reinitialization execution
+order as typed potential protocol violations. Live-join reinit remains an
+explicit unsupported boundary; correct candidate payloads certify neither.
 
 `gfx1250_protocol_lifetime_tests` preserves completed ReadWrite/WriteRead exit
 directions, raw 8-byte metadata, all16 shuffle outputs and a genuinely
