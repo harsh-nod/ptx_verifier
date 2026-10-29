@@ -131,6 +131,12 @@ pub enum AmdMemoryClass {
     TensorStoreFromLds,
     /// Selected gfx1250 F32 add RMW: device scope, one active lane, no return.
     GlobalAtomicAddF32NoReturn,
+    /// Genuine gfx1250 FLAT accesses with a resolved segment. Separate domains
+    /// prevent completion/order frontiers from promoting an unrelated aperture.
+    FlatGlobalLoad,
+    FlatGlobalStore,
+    FlatLdsLoad,
+    FlatLdsStore,
 }
 
 /// Encoded S_DELAY_ALU dependency selectors. These refer to prior producer

@@ -231,6 +231,23 @@ is recorded separately in `tests/gfx1250/evidence`; extending a graph profile
 does not establish a hardware result. Numerical agreement remains separate
 from these graph obligations.
 
+Genuine global FLAT accesses use `FlatGlobalLoad/Store`, with strictly matching
+resolved Global effects and `flat memory` provenance. They
+retain every source, including EXEC, and charge Load or Store plus Ds and X.
+Both data counters must drain before a load destination becomes ready. A
+same-wave store/load to the same address retains effect order even while a
+separate conservative counter marker remains; this does not certify data
+completion or cross-wave global cache publication. Global and LDS frontiers
+are separate. `FlatLdsLoad/Store` cannot inherit the GLOBAL replay/counter
+profile and remain inconclusive until their native aperture contract is pinned.
+Nonzero waits with pending FLAT data tokens remain inconclusive
+until mixed-segment completion prefixes have a pinned contract; old CDNA FLAT
+events cannot certify this target. The frontend must reject unresolved apertures.
+These distinctions follow the pinned LLVM
+[FLAT event classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/AMDGPUHWEvents.cpp#L119),
+[address-space classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInstrInfo.cpp#L4765)
+and [GFX125x memory model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.rst#memory-model-gfx125x).
+
 A later VMEM destination that aliases an older VMEM replay source establishes
 that older translation prefix, following LLVM's in-order translation dependency
 rule. This does not complete either operation's data, retire later translations,

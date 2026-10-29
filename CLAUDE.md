@@ -272,6 +272,10 @@ issue; the checker independently establishes readiness/publication.
 Terminal gfx1250 `MSG_DEALLOC_VGPRS` is an X-draining message3 epilogue,
 permitted only with zero scratch and an immediately following `s_endpgm`.
 It never substitutes for a data-completion wait.
+Genuine global FLAT classes use Load/Store+Ds+X and preserve same-wave
+same-address effect order. LDS-aperture class names remain separate and
+inconclusive; unresolved apertures and unpinned partial data waits cannot
+inherit this profile. Global cache publication is independent.
 
 The tested compiler envelope is code-object 6 and metadata 1.2. By-value bytes
 must match argument metadata exactly; unknown ABI bits remain undefined.

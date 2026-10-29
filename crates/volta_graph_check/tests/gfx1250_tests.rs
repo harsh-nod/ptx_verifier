@@ -2,7 +2,7 @@
 use volta_graph::*;
 use volta_graph_check::{GraphConclusion, Property, Verdict, check_graph};
 
-const KINDS: [&str; 16] = [
+const KINDS: [&str; 17] = [
     "vector ALU",
     "vector memory",
     "scalar memory",
@@ -19,6 +19,7 @@ const KINDS: [&str; 16] = [
     "branch",
     "xcnt drain",
     "atomic f32 add no return",
+    "flat memory",
 ];
 fn v(index: u16, lanes: u64) -> AmdRegister {
     AmdRegister {
@@ -151,6 +152,36 @@ impl Trace {
                 Space::Global,
                 true,
             ),
+            AmdMemoryClass::FlatGlobalLoad
+            | AmdMemoryClass::FlatGlobalStore
+            | AmdMemoryClass::FlatLdsLoad
+            | AmdMemoryClass::FlatLdsStore => {
+                let read = matches!(
+                    class,
+                    AmdMemoryClass::FlatGlobalLoad | AmdMemoryClass::FlatLdsLoad
+                );
+                let global = matches!(
+                    class,
+                    AmdMemoryClass::FlatGlobalLoad | AmdMemoryClass::FlatGlobalStore
+                );
+                (
+                    16,
+                    vec![
+                        (
+                            if read {
+                                AmdCounter::Load
+                            } else {
+                                AmdCounter::Store
+                            },
+                            1,
+                        ),
+                        (AmdCounter::Ds, 1),
+                        (AmdCounter::X, 1),
+                    ],
+                    if global { Space::Global } else { Space::Shared },
+                    !read,
+                )
+            }
             AmdMemoryClass::ScalarLoad => (
                 2,
                 vec![(AmdCounter::Km, 1), (AmdCounter::X, 1)],
@@ -1488,4 +1519,226 @@ fn vmem_translation_dependency_never_completes_async_data() {
         check_graph(&t.finish()).verdict(Property::AmdWaitReadiness),
         Verdict::Fail
     );
+}
+
+#[test]
+fn flat_load_requires_both_data_counters_and_holds_all_replay_sources() {
+    let class = AmdMemoryClass::FlatGlobalLoad;
+    for (load, ds, overwrite, expected) in [
+        (false, false, false, Verdict::Fail),
+        (true, false, false, Verdict::Fail),
+        (false, true, false, Verdict::Fail),
+        (true, true, false, Verdict::Pass),
+        (false, false, true, Verdict::Fail),
+    ] {
+        let mut t = Trace::new(1);
+        t.issue(
+            0,
+            class,
+            vec![v(1, 1)],
+            vec![v(0, 1), s(0), s(1), s(126)],
+            0,
+        );
+        if load {
+            t.wait(0, AmdCounter::Load, 0);
+        }
+        if ds {
+            t.wait(0, AmdCounter::Ds, 0);
+        }
+        t.ins(
+            0,
+            0,
+            if overwrite { vec![] } else { vec![v(1, 1)] },
+            if overwrite { vec![s(1)] } else { vec![] },
+        );
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            expected,
+            "{class:?} load{load} ds{ds} overwrite{overwrite}"
+        );
+    }
+}
+
+#[test]
+fn flat_store_then_load_matches_the_native_global_roundtrip_without_a_ds_wait_between() {
+    let mut t = Trace::new(1);
+    t.issue(
+        0,
+        AmdMemoryClass::FlatGlobalStore,
+        vec![],
+        vec![v(0, 1), v(1, 1), s(0), s(1), s(126)],
+        0,
+    );
+    t.wait(0, AmdCounter::Store, 0);
+    t.issue(
+        0,
+        AmdMemoryClass::FlatGlobalLoad,
+        vec![v(1, 1)],
+        vec![v(0, 1), s(0), s(1), s(126)],
+        0,
+    );
+    t.wait(0, AmdCounter::Load, 0);
+    t.wait(0, AmdCounter::Ds, 0);
+    t.ins(0, 0, vec![v(1, 1)], vec![]);
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
+    );
+}
+
+#[test]
+fn flat_publication_keeps_global_and_lds_completion_frontiers_independent() {
+    for (first, second) in [
+        (AmdMemoryClass::FlatGlobalLoad, AmdMemoryClass::Ds),
+        (AmdMemoryClass::Ds, AmdMemoryClass::FlatGlobalStore),
+    ] {
+        for completed in [false, true] {
+            let mut t = Trace::new(64);
+            let mask = u32::MAX as u64;
+            t.issue(0, first, vec![v(1, mask)], vec![s(126)], 0);
+            t.issue(0, second, vec![], vec![s(126)], 0);
+            t.wait(0, AmdCounter::Store, 0);
+            if first == AmdMemoryClass::FlatGlobalLoad {
+                t.wait(0, AmdCounter::Ds, 0);
+            }
+            if completed {
+                t.wait(
+                    0,
+                    if first == AmdMemoryClass::FlatGlobalLoad {
+                        AmdCounter::Load
+                    } else {
+                        AmdCounter::Ds
+                    },
+                    0,
+                );
+            }
+            t.signal(0, 0);
+            t.signal(1, 0);
+            t.barrier_wait(0, 0, true);
+            t.barrier_wait(1, 0, true);
+            let writer = if first == AmdMemoryClass::FlatGlobalLoad {
+                AmdMemoryClass::VectorStore
+            } else {
+                AmdMemoryClass::Ds
+            };
+            t.issue(1, writer, vec![], vec![], 0);
+            let r = check_graph(&t.finish());
+            assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+            assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Pass);
+            assert_eq!(
+                r.verdict(Property::AmdMemoryConflict),
+                if completed && first == AmdMemoryClass::FlatGlobalLoad {
+                    Verdict::Unknown
+                } else if completed {
+                    Verdict::Pass
+                } else {
+                    Verdict::Fail
+                }
+            );
+        }
+    }
+}
+
+#[test]
+fn partial_flat_data_waits_cannot_invent_a_mixed_segment_fifo_prefix() {
+    let mut t = Trace::new(1);
+    t.issue(
+        0,
+        AmdMemoryClass::FlatGlobalLoad,
+        vec![v(1, 1)],
+        vec![s(126)],
+        0,
+    );
+    t.wait(0, AmdCounter::Load, 1);
+    let r = check_graph(&t.finish());
+    assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+    assert_eq!(r.verdict(Property::AmdWaitReadiness), Verdict::Unknown);
+    assert!(matches!(r.conclusion(), GraphConclusion::Unknown { .. }));
+}
+
+#[test]
+fn flat_trace_requires_native_counters_provenance_segment_exec_and_every_lane() {
+    for mutation in 0..9 {
+        let mut t = Trace::new(if mutation == 7 { 2 } else { 1 });
+        let pc = if mutation == 2 { 1 } else { 16 };
+        let mut reads = vec![v(0, t.mask(0)), s(0), s(1), s(126)];
+        if mutation == 4 {
+            reads.pop();
+        }
+        let destinations = vec![if mutation == 6 { s(4) } else { v(1, t.mask(0)) }];
+        t.ins(0, pc, reads.clone(), destinations.clone());
+        let mut counters = vec![
+            (AmdCounter::Load, 1),
+            (AmdCounter::Ds, 1),
+            (AmdCounter::X, 1),
+        ];
+        if mutation == 1 {
+            counters.remove(1);
+        }
+        if mutation == 5 {
+            reads.pop();
+        }
+        let issue = t.b.amd_event(
+            0,
+            ProgramPoint(pc),
+            AmdEventKind::MemoryIssue {
+                class: if mutation == 8 {
+                    AmdMemoryClass::Flat
+                } else {
+                    AmdMemoryClass::FlatGlobalLoad
+                },
+                counters,
+                destinations,
+                held_sources: reads,
+            },
+        );
+        t.effect(
+            issue,
+            0,
+            pc,
+            if mutation == 3 {
+                Space::Shared
+            } else {
+                Space::Global
+            },
+            false,
+            0,
+        );
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdTrace),
+            if mutation == 0 {
+                Verdict::Pass
+            } else {
+                Verdict::Unknown
+            },
+            "mutation{mutation}"
+        );
+    }
+}
+
+#[test]
+fn lds_aperture_flat_classes_cannot_inherit_global_replay_or_counter_semantics() {
+    for class in [AmdMemoryClass::FlatLdsLoad, AmdMemoryClass::FlatLdsStore] {
+        let mut t = Trace::new(1);
+        t.issue(
+            0,
+            class,
+            if class == AmdMemoryClass::FlatLdsLoad {
+                vec![v(1, 1)]
+            } else {
+                vec![]
+            },
+            vec![s(126)],
+            0,
+        );
+        t.wait(0, AmdCounter::Load, 0);
+        t.wait(0, AmdCounter::Store, 0);
+        t.wait(0, AmdCounter::Ds, 0);
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdTrace),
+            Verdict::Unknown
+        );
+    }
 }

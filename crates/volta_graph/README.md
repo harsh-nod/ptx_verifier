@@ -23,6 +23,13 @@ ordering and the same attributed lane/address. It retains every source, includin
 implicit EXEC, through translation completion. This tag grants no publication
 edge for other addresses or other instructions.
 
+The gfx1250 `FlatGlobalLoad/Store` classes retain genuine FLAT provenance and a
+producer-resolved global segment. They charge Load or Store, plus Ds and X;
+instruction sources include implicit EXEC. The distinct `FlatLdsLoad/Store`
+namespace cannot inherit that counter/replay profile and remains inconclusive.
+A producer must resolve the aperture before selecting a class; an unknown
+pointer segment does not become global merely because its address is concrete.
+
 Text dumps without native AMD events retain `volta-graph 1`; graphs with AMD events use
 `volta-graph 2` and include their sidecar associations. The text dump is a diagnostic
 format, not an executable replay input. AMD rendezvous deadlocks use

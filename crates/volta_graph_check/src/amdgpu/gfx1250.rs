@@ -12,6 +12,14 @@ use volta_graph::{AccessMode, AmdWmmaKind, Assumption, ThreadIx};
 
 const WAVE: usize = 32;
 
+fn flat_profile(class: AmdMemoryClass) -> Option<(Space, AccessMode)> {
+    Some(match class {
+        AmdMemoryClass::FlatGlobalLoad => (Space::Global, AccessMode::Read),
+        AmdMemoryClass::FlatGlobalStore => (Space::Global, AccessMode::Write),
+        _ => return None,
+    })
+}
+
 fn maximum(counter: AmdCounter) -> Option<u16> {
     match counter {
         AmdCounter::Load
@@ -33,6 +41,12 @@ fn charges(class: AmdMemoryClass) -> Option<Vec<(AmdCounter, u16)>> {
         AmdMemoryClass::VectorLoad => vec![(Load, 1), (X, 1)],
         AmdMemoryClass::VectorStore => vec![(Store, 1), (X, 1)],
         AmdMemoryClass::GlobalAtomicAddF32NoReturn => vec![(Store, 1), (X, 1)],
+        AmdMemoryClass::FlatGlobalLoad => {
+            vec![(Load, 1), (Ds, 1), (X, 1)]
+        }
+        AmdMemoryClass::FlatGlobalStore => {
+            vec![(Store, 1), (Ds, 1), (X, 1)]
+        }
         AmdMemoryClass::ScalarLoad => vec![(Km, 1), (X, 1)],
         AmdMemoryClass::Ds | AmdMemoryClass::CrossLane => vec![(Ds, 1)],
         AmdMemoryClass::AsyncLoadToLds => vec![(Load, 1), (X, 1), (Async, 1)],
@@ -49,7 +63,9 @@ fn replay_group(class: AmdMemoryClass) -> Option<bool> {
         | AmdMemoryClass::VectorStore
         | AmdMemoryClass::GlobalAtomicAddF32NoReturn
         | AmdMemoryClass::AsyncLoadToLds
-        | AmdMemoryClass::AsyncStoreFromLds => Some(true),
+        | AmdMemoryClass::AsyncStoreFromLds
+        | AmdMemoryClass::FlatGlobalLoad
+        | AmdMemoryClass::FlatGlobalStore => Some(true),
         _ => None,
     }
 }
@@ -57,7 +73,12 @@ fn replay_group(class: AmdMemoryClass) -> Option<bool> {
 fn expected(kind: &str, mask: u64) -> Option<Option<&'static str>> {
     Some(match kind {
         "scalar memory" => Some("memory"),
-        "vector memory" | "LDS" | "async memory" | "tensor memory" | "atomic f32 add no return"
+        "vector memory"
+        | "LDS"
+        | "async memory"
+        | "tensor memory"
+        | "atomic f32 add no return"
+        | "flat memory"
             if mask != 0 =>
         {
             Some("memory")
@@ -80,6 +101,7 @@ fn expected(kind: &str, mask: u64) -> Option<Option<&'static str>> {
         | "LDS"
         | "async memory"
         | "tensor memory"
+        | "flat memory"
         | "atomic f32 add no return" => None,
         _ => return None,
     })
@@ -252,6 +274,15 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                 destinations,
                 held_sources,
             } => {
+                if matches!(
+                    class,
+                    AmdMemoryClass::FlatLdsLoad | AmdMemoryClass::FlatLdsStore
+                ) {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "gfx1250 FLAT LDS-aperture counter and replay-source profile is not pinned",
+                    ));
+                }
                 let instruction =
                     claim(graph, record, &mut instructions, "memory", &mut unresolved);
                 registers(destinations, physical_mask, record.event, &mut unresolved);
@@ -260,7 +291,10 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                     AmdMemoryClass::ScalarLoad => {
                         !destinations.is_empty() && destinations.iter().all(|r| r.is_uniform())
                     }
-                    AmdMemoryClass::VectorLoad | AmdMemoryClass::CrossLane => {
+                    AmdMemoryClass::VectorLoad
+                    | AmdMemoryClass::FlatGlobalLoad
+                    | AmdMemoryClass::FlatLdsLoad
+                    | AmdMemoryClass::CrossLane => {
                         !destinations.is_empty()
                             && destinations
                                 .iter()
@@ -270,6 +304,8 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         .iter()
                         .all(|r| r.file == AmdRegisterFile::Vector),
                     AmdMemoryClass::VectorStore
+                    | AmdMemoryClass::FlatGlobalStore
+                    | AmdMemoryClass::FlatLdsStore
                     | AmdMemoryClass::GlobalAtomicAddF32NoReturn
                     | AmdMemoryClass::AsyncLoadToLds
                     | AmdMemoryClass::AsyncStoreFromLds
@@ -291,6 +327,10 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         AmdMemoryClass::VectorLoad | AmdMemoryClass::VectorStore => {
                             source_kind == "vector memory"
                         }
+                        AmdMemoryClass::FlatGlobalLoad
+                        | AmdMemoryClass::FlatGlobalStore
+                        | AmdMemoryClass::FlatLdsLoad
+                        | AmdMemoryClass::FlatLdsStore => source_kind == "flat memory",
                         AmdMemoryClass::GlobalAtomicAddF32NoReturn => {
                             source_kind == "atomic f32 add no return"
                         }
@@ -330,6 +370,17 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         unresolved.push(Unresolved::at(
                             record.event,
                             "memory held source is missing from its instruction",
+                        ));
+                    }
+                    if flat_profile(*class).is_some()
+                        && !instruction
+                            .reads
+                            .iter()
+                            .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 126)
+                    {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "gfx1250 FLAT requires its implicit EXEC replay source",
                         ));
                     }
                     if *class == AmdMemoryClass::GlobalAtomicAddF32NoReturn
@@ -556,6 +607,10 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                     class,
                     AmdMemoryClass::VectorLoad
                         | AmdMemoryClass::VectorStore
+                        | AmdMemoryClass::FlatGlobalLoad
+                        | AmdMemoryClass::FlatGlobalStore
+                        | AmdMemoryClass::FlatLdsLoad
+                        | AmdMemoryClass::FlatLdsStore
                         | AmdMemoryClass::GlobalAtomicAddF32NoReturn
                         | AmdMemoryClass::Ds
                         | AmdMemoryClass::AsyncLoadToLds
@@ -589,7 +644,8 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                             (Space::Shared, true) | (Space::Global, false)
                         )
                     }
-                    _ => false,
+                    _ => flat_profile(*class)
+                        .is_some_and(|(space, mode)| access.space == space && access.mode == mode),
                 };
                 let atomic = *class == AmdMemoryClass::GlobalAtomicAddF32NoReturn;
                 if !valid
@@ -696,6 +752,10 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
             class,
             AmdMemoryClass::VectorLoad
                 | AmdMemoryClass::VectorStore
+                | AmdMemoryClass::FlatGlobalLoad
+                | AmdMemoryClass::FlatGlobalStore
+                | AmdMemoryClass::FlatLdsLoad
+                | AmdMemoryClass::FlatLdsStore
                 | AmdMemoryClass::GlobalAtomicAddF32NoReturn
                 | AmdMemoryClass::Ds
                 | AmdMemoryClass::AsyncLoadToLds
@@ -1083,25 +1143,30 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                 let slot = wave * CLASSES + class_index(*class);
                 sequences[slot] += 1;
                 let mut clock = clocks[wave].clone();
-                // Same-wave ordinary GLOBAL operations to the same address and
-                // non-async LDS operations are processed in program order. This
-                // is an effect-order edge only; never advance completion clocks.
-                for stream in [
-                    AmdMemoryClass::VectorLoad,
-                    AmdMemoryClass::VectorStore,
-                    AmdMemoryClass::Ds,
-                ] {
-                    if matches!(
-                        class,
-                        AmdMemoryClass::VectorLoad | AmdMemoryClass::VectorStore
-                    ) && matches!(
-                        stream,
-                        AmdMemoryClass::VectorLoad | AmdMemoryClass::VectorStore
-                    ) || *class == AmdMemoryClass::Ds && stream == AmdMemoryClass::Ds
-                    {
-                        let source = wave * CLASSES + class_index(stream);
-                        clock[source] = sequences[source] - u32::from(source == slot);
-                    }
+                // Effect order is within the resolved segment. A GLOBAL prefix
+                // must never publish an incomplete LDS operation, or vice versa.
+                let streams: &[AmdMemoryClass] = match class {
+                    AmdMemoryClass::VectorLoad
+                    | AmdMemoryClass::VectorStore
+                    | AmdMemoryClass::FlatGlobalLoad
+                    | AmdMemoryClass::FlatGlobalStore => &[
+                        AmdMemoryClass::VectorLoad,
+                        AmdMemoryClass::VectorStore,
+                        AmdMemoryClass::FlatGlobalLoad,
+                        AmdMemoryClass::FlatGlobalStore,
+                    ],
+                    AmdMemoryClass::Ds
+                    | AmdMemoryClass::FlatLdsLoad
+                    | AmdMemoryClass::FlatLdsStore => &[
+                        AmdMemoryClass::Ds,
+                        AmdMemoryClass::FlatLdsLoad,
+                        AmdMemoryClass::FlatLdsStore,
+                    ],
+                    _ => &[],
+                };
+                for &stream in streams {
+                    let source = wave * CLASSES + class_index(stream);
+                    clock[source] = sequences[source] - u32::from(source == slot);
                 }
                 issue_index.insert(record.event, operations.len());
                 pending[wave].push(operations.len());
@@ -1120,6 +1185,21 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
             AmdEventKind::WaitCounters { thresholds } => {
                 waits += 1;
                 for &(counter, threshold) in thresholds {
+                    if threshold != 0
+                        && Some(threshold) != maximum(counter)
+                        && matches!(
+                            counter,
+                            AmdCounter::Load | AmdCounter::Store | AmdCounter::Ds
+                        )
+                        && pending[wave].iter().any(|&index| {
+                            flat_profile(operations[index].class).is_some()
+                                && has(&operations[index], counter)
+                        })
+                    {
+                        unresolved.push(Unresolved::at(record.event,
+                            "nonzero wait with pending FLAT requires a pinned mixed-segment completion prefix"));
+                        continue;
+                    }
                     if counter == AmdCounter::Tensor && threshold != 0 {
                         unresolved.push(Unresolved::at(record.event, "nonzero TENSOR_CNT wait requires a pinned hardware counter-width contract"));
                     }
