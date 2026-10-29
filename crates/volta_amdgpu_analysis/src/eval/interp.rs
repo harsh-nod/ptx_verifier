@@ -1471,6 +1471,21 @@ impl<'a> Interpreter<'a> {
             add(&instruction.operands[0], wave.exec, &mut reads);
         }
         if self.architecture == AmdArchitecture::Gfx1250
+            && matches!(
+                mnemonic,
+                "v_add_f16"
+                    | "v_sub_f16"
+                    | "v_mul_f16"
+                    | "v_max_f16"
+                    | "v_min_f16"
+                    | "v_cvt_f16_f32"
+            )
+        {
+            // True16 arithmetic updates low16 and preserves the destination
+            // high16, including any asynchronous producer of that half.
+            add(&instruction.operands[0], wave.exec, &mut reads);
+        }
+        if self.architecture == AmdArchitecture::Gfx1250
             && instruction.opcode == Opcode::VectorMemory
             && wave.exec != 0
         {
@@ -4661,6 +4676,28 @@ impl<'a> Interpreter<'a> {
                     super::scalar::Clamp::Sat,
                     decoded,
                 ))
+            } else {
+                value
+            };
+            let value = if self.architecture == AmdArchitecture::Gfx1250
+                && matches!(
+                    name,
+                    "v_add_f16"
+                        | "v_sub_f16"
+                        | "v_mul_f16"
+                        | "v_max_f16"
+                        | "v_min_f16"
+                        | "v_cvt_f16_f32"
+                        | "v_fmac_f16"
+                ) {
+                let Value::Half(low) = value else {
+                    return Err(self.unsupported(wave, instruction));
+                };
+                // The hardware preserves the old upper half. If that payload
+                // is not representable by the selected packed-data model,
+                // retain it as undefined rather than inventing zero bits.
+                let high = self.half(wave, &o[0], lane, true).ok();
+                Value::PartialHalves(Some(low), high)
             } else {
                 value
             };
