@@ -376,7 +376,7 @@ fn negative_index_wrap_never_escapes_the_configured_array() {
     );
     cfg.arrays[0].base = 0;
     cfg.params[0] = ParamValue::ArrayPtr("x".into());
-    invalid(TRANSFERS, "abi_negative_index", cfg, "out-of-bounds");
+    invalid(TRANSFERS, "abi_negative_index", cfg, "overflow");
 }
 
 #[test]
