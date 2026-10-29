@@ -137,8 +137,8 @@ pub enum AccessMode {
     Write,
 }
 
-/// The memory-model kind of an effect. The analysis rejects atomics and reductions, so it only
-/// records `Ordinary`; checkers must not apply non-atomic rules to the others.
+/// The memory-model kind of an effect. Selected native AMD RMW profiles record
+/// `Atomic`; consumers must validate that profile before applying its rules.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum OrderingKind {
     Ordinary,

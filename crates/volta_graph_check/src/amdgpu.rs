@@ -49,6 +49,8 @@ pub enum AmdRegisterHazardKind {
     ValuReadBeforeReady,
     ValuDestinationBeforeReady,
     ValuScalarReadBeforeReady,
+    /// The atomic's implicit EXEC is unsafe while an older non-RMW translation is pending.
+    AtomicReplayBeforeReady,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1410,7 +1412,19 @@ fn memory_conflicts(
         .filter(|link| single_cu && link.scope == AmdMemoryScope::Workgroup)
         .map(|link| link.effect)
         .collect();
-    let written = written_bytes(graph);
+    let mut written = written_bytes(graph);
+    // Native trace validation admits only the selected RMW profile. Keep its
+    // writes in this domain without changing PTX's ordinary-only domain M.
+    written.extend(
+        graph
+            .accesses()
+            .values()
+            .filter(|a| {
+                a.ordering == OrderingKind::Atomic && a.mode == volta_graph::AccessMode::Write
+            })
+            .flat_map(bytes),
+    );
+    let mut atomic_unresolved = Vec::new();
     let mut roots = HashMap::<ByteLocation, Vec<usize>>::new();
     let mut nodes = Vec::<EffectNode>::new();
     let mut conflicts = Vec::new();
@@ -1426,8 +1440,11 @@ fn memory_conflicts(
         let later_scoped = scoped.contains(&event);
         let mut reaches = |node: &EffectNode, forest: &[EffectNode]| {
             let earlier = &operations[node.operation];
-            let ordered = later.clock[earlier.wave as usize * CLASSES + class_index(earlier.class)]
-                >= earlier.sequence;
+            let atomic_self = node.operation == operation
+                && later.class == AmdMemoryClass::GlobalAtomicAddF32NoReturn;
+            let ordered = atomic_self
+                || later.clock[earlier.wave as usize * CLASSES + class_index(earlier.class)]
+                    >= earlier.sequence;
             if ordered && access.space == Space::Global && unresolved.is_empty() {
                 if let Some(earlier) = missing_global_publication(
                     node,
@@ -1461,7 +1478,16 @@ fn memory_conflicts(
             }
             while let Some(n) = unordered.pop() {
                 if let Some(kind) = ConflictKind::of(nodes[n].mode, access.mode) {
-                    if reported.insert((nodes[n].event, event)) && conflicts.len() < CONFLICT_CAP {
+                    let both_atomic = later.class == AmdMemoryClass::GlobalAtomicAddF32NoReturn
+                        && operations[nodes[n].operation].class
+                            == AmdMemoryClass::GlobalAtomicAddF32NoReturn;
+                    if both_atomic && reported.insert((nodes[n].event, event)) {
+                        atomic_unresolved.push(Unresolved::between(nodes[n].event, event,
+                            "concurrent atomic RMW serialization is outside the selected single-issuer profile"));
+                    } else if !both_atomic
+                        && reported.insert((nodes[n].event, event))
+                        && conflicts.len() < CONFLICT_CAP
+                    {
                         conflicts.push(MemoryConflict {
                             kind,
                             location,
@@ -1502,6 +1528,7 @@ fn memory_conflicts(
         }
     }
     conflicts.sort_by_key(|c| (c.later, c.earlier));
+    unresolved.extend(atomic_unresolved);
     PropertyResult::from_findings(
         MemoryConflictEvidence {
             effects: links.len(),

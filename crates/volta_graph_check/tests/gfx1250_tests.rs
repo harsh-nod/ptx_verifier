@@ -2,7 +2,7 @@
 use volta_graph::*;
 use volta_graph_check::{GraphConclusion, Property, Verdict, check_graph};
 
-const KINDS: [&str; 15] = [
+const KINDS: [&str; 16] = [
     "vector ALU",
     "vector memory",
     "scalar memory",
@@ -18,6 +18,7 @@ const KINDS: [&str; 15] = [
     "s_delay_alu",
     "branch",
     "xcnt drain",
+    "atomic f32 add no return",
 ];
 fn v(index: u16, lanes: u64) -> AmdRegister {
     AmdRegister {
@@ -38,6 +39,47 @@ struct Trace {
     threads: u32,
 }
 impl Trace {
+    fn atomic(&mut self, wave: u32, mask: u64, read_addr: u64, write_addr: u64) -> EventId {
+        let sources = vec![v(0, mask), v(1, mask), s(2), s(3), s(126)];
+        self.ins_mask(wave, 15, mask, sources.clone(), vec![]);
+        let issue = self.b.amd_event(
+            wave,
+            ProgramPoint(15),
+            AmdEventKind::MemoryIssue {
+                class: AmdMemoryClass::GlobalAtomicAddF32NoReturn,
+                counters: vec![(AmdCounter::Store, 1), (AmdCounter::X, 1)],
+                destinations: vec![],
+                held_sources: sources,
+            },
+        );
+        for lane in 0..32 {
+            if mask & (1 << lane) == 0 {
+                continue;
+            }
+            for (mode, addr) in [
+                (AccessMode::Read, read_addr),
+                (AccessMode::Write, write_addr),
+            ] {
+                let value = (mode == AccessMode::Write).then(|| self.b.value(StoredValue::Opaque));
+                let effect = self.b.thread_access(
+                    ThreadIx(wave * 32 + lane),
+                    ProgramPoint(15),
+                    MemAccess {
+                        space: Space::Global,
+                        mode,
+                        ordering: OrderingKind::Atomic,
+                        proxy: Proxy::Generic,
+                        footprint: Footprint::Bytes { addr, width: 4 },
+                        role: OperandRole::Plain,
+                        attributed: ThreadIx(wave * 32 + lane),
+                        value,
+                    },
+                );
+                self.b.amd_memory_effect(issue, effect);
+            }
+        }
+        issue
+    }
     fn new(threads: u32) -> Self {
         Self::with_assumptions(threads, vec![Assumption::UnclusteredWorkgroup])
     }
@@ -282,6 +324,225 @@ impl Trace {
             self.b.exit(ThreadIx(t), ProgramPoint(7));
         }
         self.b.finish(Terminal::Completed)
+    }
+}
+
+#[test]
+fn single_lane_atomic_rmw_pairs_are_not_self_conflicts() {
+    for (threads, wave, mask) in [(1, 0, 1), (32, 0, 1 << 31), (64, 1, 1)] {
+        let mut t = Trace::new(threads);
+        t.atomic(wave, mask, 0x100, 0x100);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.conclusion(), GraphConclusion::Verified);
+        assert!(matches!(r.amd.unwrap().memory_conflict,
+            volta_graph_check::PropertyResult::Pass(evidence) if evidence.written_bytes == 4 && evidence.effects == 2));
+    }
+}
+
+#[test]
+fn atomic_preissue_replay_guard_requires_older_non_rmw_translations_to_drain() {
+    use volta_graph_check::amdgpu::AmdRegisterHazardKind;
+    for (counter, threshold, branch, expected) in [
+        (None, 0, false, Verdict::Fail),
+        (Some(AmdCounter::Store), 0, false, Verdict::Fail),
+        (Some(AmdCounter::X), 63, false, Verdict::Fail),
+        (Some(AmdCounter::X), 0, false, Verdict::Pass),
+        (Some(AmdCounter::Load), 0, false, Verdict::Pass),
+        (None, 0, true, Verdict::Pass),
+    ] {
+        let mut t = Trace::new(1);
+        t.issue(
+            0,
+            AmdMemoryClass::VectorLoad,
+            vec![v(4, 1)],
+            vec![v(10, 1)],
+            0x200,
+        );
+        if let Some(counter) = counter {
+            t.wait(0, counter, threshold);
+        }
+        if branch {
+            t.ins(0, 13, vec![], vec![]);
+        }
+        t.atomic(0, 1, 0x100, 0x100);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.amd.as_ref().unwrap().wait_readiness.verdict(), expected);
+        if expected == Verdict::Fail {
+            assert!(matches!(&r.amd.unwrap().wait_readiness,
+                volta_graph_check::PropertyResult::Fail(hazards) if hazards.iter().any(|h| h.kind == AmdRegisterHazardKind::AtomicReplayBeforeReady)));
+        } else {
+            assert_eq!(r.conclusion(), GraphConclusion::Verified);
+        }
+    }
+}
+
+#[test]
+fn atomic_held_sources_need_translation_completion_independently_of_data() {
+    for (counter, threshold, expected) in [
+        (AmdCounter::Load, 0, Verdict::Fail),
+        (AmdCounter::Store, 1, Verdict::Fail),
+        (AmdCounter::X, 1, Verdict::Fail),
+        (AmdCounter::X, 0, Verdict::Pass),
+        (AmdCounter::Store, 0, Verdict::Pass),
+    ] {
+        let mut t = Trace::new(1);
+        t.atomic(0, 1, 0x100, 0x100);
+        t.wait(0, counter, threshold);
+        t.ins(0, 0, vec![], vec![v(1, 1)]);
+        assert_eq!(
+            check_graph(&t.finish())
+                .amd
+                .unwrap()
+                .wait_readiness
+                .verdict(),
+            expected
+        );
+    }
+}
+
+#[test]
+fn atomic_and_non_atomic_cross_wave_writes_have_typed_conflicts() {
+    for write in [false, true] {
+        let mut t = Trace::new(64);
+        t.atomic(0, 1, 0x100, 0x100);
+        t.issue(
+            1,
+            if write {
+                AmdMemoryClass::VectorStore
+            } else {
+                AmdMemoryClass::VectorLoad
+            },
+            if write {
+                vec![]
+            } else {
+                vec![v(4, u32::MAX as u64)]
+            },
+            vec![],
+            0x100,
+        );
+        let r = check_graph(&t.finish());
+        assert!(matches!(r.conclusion(), GraphConclusion::Rejected { .. }));
+        assert!(
+            matches!(r.amd.unwrap().memory_conflict, volta_graph_check::PropertyResult::Fail(conflicts) if !conflicts.is_empty())
+        );
+    }
+}
+
+#[test]
+fn malformed_or_multi_lane_atomic_profiles_remain_inconclusive() {
+    for (mask, read, write) in [(1, 0x100, 0x104), (1, 0x101, 0x101), (3, 0x100, 0x100)] {
+        let mut t = Trace::new(2);
+        t.atomic(0, mask, read, write);
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdTrace),
+            Verdict::Unknown
+        );
+    }
+}
+
+#[test]
+fn concurrent_atomic_serialization_is_not_mislabeled_as_an_ordinary_race() {
+    let mut t = Trace::new(64);
+    t.atomic(0, 1, 0x100, 0x100);
+    t.atomic(1, 1, 0x100, 0x100);
+    let r = check_graph(&t.finish());
+    assert_eq!(r.amd.as_ref().unwrap().trace.verdict(), Verdict::Pass);
+    assert_eq!(r.amd.unwrap().memory_conflict.verdict(), Verdict::Unknown);
+}
+
+#[test]
+fn atomic_trace_cannot_forge_return_results_counter_classes_or_rmw_effects() {
+    for mutation in 0..8 {
+        let mut t = Trace::new(2);
+        let mut sources = vec![v(0, 1), v(1, 1), s(126)];
+        if mutation == 7 {
+            sources.pop();
+        }
+        let destinations = if mutation == 0 { vec![v(2, 1)] } else { vec![] };
+        t.ins_mask(0, 15, 1, sources.clone(), destinations.clone());
+        let issue = t.b.amd_event(
+            0,
+            ProgramPoint(15),
+            AmdEventKind::MemoryIssue {
+                class: AmdMemoryClass::GlobalAtomicAddF32NoReturn,
+                counters: vec![
+                    (
+                        if mutation == 1 {
+                            AmdCounter::Load
+                        } else {
+                            AmdCounter::Store
+                        },
+                        1,
+                    ),
+                    (AmdCounter::X, 1),
+                ],
+                destinations,
+                held_sources: sources,
+            },
+        );
+        let modes = if mutation == 2 {
+            vec![AccessMode::Write]
+        } else if mutation == 3 {
+            vec![AccessMode::Write, AccessMode::Read]
+        } else {
+            vec![AccessMode::Read, AccessMode::Write]
+        };
+        for mode in modes {
+            let thread = ThreadIx(u32::from(mutation == 6));
+            let value = (mode == AccessMode::Write).then(|| t.b.value(StoredValue::Opaque));
+            let effect = t.b.thread_access(
+                thread,
+                ProgramPoint(15),
+                MemAccess {
+                    space: Space::Global,
+                    mode,
+                    ordering: if mutation == 4 {
+                        OrderingKind::Ordinary
+                    } else {
+                        OrderingKind::Atomic
+                    },
+                    proxy: Proxy::Generic,
+                    footprint: Footprint::Bytes {
+                        addr: 0x100,
+                        width: if mutation == 5 { 8 } else { 4 },
+                    },
+                    role: OperandRole::Plain,
+                    attributed: thread,
+                    value,
+                },
+            );
+            t.b.amd_memory_effect(issue, effect);
+        }
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdTrace),
+            Verdict::Unknown,
+            "mutation {mutation}"
+        );
+    }
+}
+
+#[test]
+fn back_to_back_rmw_replay_exemption_never_fabricates_data_completion() {
+    for wait in [false, true] {
+        let mut t = Trace::new(1);
+        t.atomic(0, 1, 0x100, 0x100);
+        if wait {
+            t.wait(0, AmdCounter::Store, 0);
+        }
+        t.atomic(0, 1, 0x100, 0x100);
+        let r = check_graph(&t.finish());
+        assert_eq!(
+            r.amd.as_ref().unwrap().wait_readiness.verdict(),
+            Verdict::Pass
+        );
+        assert_eq!(
+            r.amd.unwrap().memory_conflict.verdict(),
+            if wait {
+                Verdict::Pass
+            } else {
+                Verdict::Unknown
+            }
+        );
     }
 }
 
