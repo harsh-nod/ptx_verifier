@@ -2,7 +2,6 @@
   "schema": 1,
   "target": "gfx1250",
   "status": "compiled_assembled_linked_only_semantics_pending",
-  "compiler_host": "XSJHARMENON01",
   "tools": [
     {
       "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
