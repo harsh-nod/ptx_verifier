@@ -29,6 +29,9 @@ class MappingControls(unittest.TestCase):
             lambda d: d["rows"].pop(),
             lambda d: next(
                 row for row in d["rows"] if row["kernel"] == "matrix_numeric136"
+            ).update(native_outputs={}),
+            lambda d: next(
+                row for row in d["rows"] if row["kernel"] == "matrix_numeric136"
             )["native_outputs"].update(native=1024),
             lambda d: next(
                 row

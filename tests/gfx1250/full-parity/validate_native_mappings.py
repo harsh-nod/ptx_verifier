@@ -114,7 +114,20 @@ def validate(document, ledger, root=ROOT):
                 row.get("reason", "").strip(), "missing exact domain/storage residual"
             )
         if row["candidate_kind"] == "portable_feature":
-            if row["kernel"] in positive_cases and row["native_outputs"]:
+            outcome = row["expected_native_outcome"]
+            require(
+                outcome in ("complete_outputs", "typed_domain_refusal"),
+                "missing explicit output/refusal contract",
+            )
+            require(
+                bool(row["native_outputs"]) == (outcome == "complete_outputs"),
+                "native output obligation was dropped",
+            )
+            require(
+                outcome != "typed_domain_refusal" or "/failing/" in path,
+                "required positive cannot become a domain refusal",
+            )
+            if row["kernel"] in positive_cases and outcome == "complete_outputs":
                 case = positive_cases[row["kernel"]]
                 require(
                     row["native_outputs"]

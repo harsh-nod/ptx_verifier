@@ -42,7 +42,8 @@
       },
       "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
       "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
-      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics."
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_bar_sync_between_issue_and_commit_orders_nothing.ptx",
@@ -70,7 +71,8 @@
       },
       "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
       "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
-      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics."
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_bar_sync_reader_without_fence_after_thread_sync_is_rejected.ptx",
@@ -98,7 +100,8 @@
       },
       "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
       "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
-      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics."
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_fenced_bar_sync_before_completion_orders_nothing.ptx",
@@ -126,7 +129,8 @@
       },
       "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
       "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
-      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics."
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_operand_write_after_bar_sync_is_an_inflight_hazard.ptx",
@@ -154,7 +158,8 @@
       },
       "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
       "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
-      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics."
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_read_after_commit_without_waiting_is_an_inflight_hazard.ptx",
@@ -182,7 +187,8 @@
       },
       "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
       "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
-      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics."
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_reader_without_fence_after_thread_sync_is_rejected.ptx",
@@ -210,7 +216,8 @@
       },
       "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
       "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
-      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics."
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/misaligned_ldmatrix_row_address.ptx",
@@ -236,7 +243,8 @@
       "native_outputs": {},
       "native_property": "Actual native F16 load/store offset1 fails its halfword alignment contract.",
       "reason": "Actual native F16 load/store offset1 fails its halfword alignment contract.",
-      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required."
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "expected_native_outcome": "typed_domain_refusal"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_disable_output_lane_skips_the_write.ptx",
@@ -269,7 +277,8 @@
       "related_tests": [
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
-      ]
+      ],
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_rejects_unmodeled_idesc_fields.ptx",
@@ -299,7 +308,8 @@
       "related_tests": [
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
-      ]
+      ],
+      "expected_native_outcome": "typed_domain_refusal"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/wgmma_is_not_supported.ptx",
@@ -327,7 +337,8 @@
       },
       "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
       "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
-      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics."
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/wmma_load_base_misaligned.ptx",
@@ -353,7 +364,8 @@
       "native_outputs": {},
       "native_property": "Native load misalignment is checked at the actual memory instruction, not imported PTX collective alignment.",
       "reason": "Native load misalignment is checked at the actual memory instruction, not imported PTX collective alignment.",
-      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required."
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "expected_native_outcome": "typed_domain_refusal"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/wmma_store_base_misaligned.ptx",
@@ -379,7 +391,8 @@
       "native_outputs": {},
       "native_property": "Native store misalignment is checked at the actual memory instruction, not imported PTX collective alignment.",
       "reason": "Native store misalignment is checked at the actual memory instruction, not imported PTX collective alignment.",
-      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required."
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "expected_native_outcome": "typed_domain_refusal"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/wmma_stride_below_default.ptx",
@@ -408,7 +421,8 @@
       },
       "native_property": "The complete candidate has real shared WriteWrite conflicts from overlapping16-byte producer rows.",
       "reason": "The complete candidate has real shared WriteWrite conflicts from overlapping16-byte producer rows.",
-      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required."
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/wmma_stride_misaligned.ptx",
@@ -437,7 +451,8 @@
       },
       "native_property": "Native40-byte pitch is legal for its actual halfword memory operations and checks every gathered half/output.",
       "reason": "Native40-byte pitch is legal for its actual halfword memory operations and checks every gathered half/output.",
-      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required."
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_ldmatrix.ptx",
@@ -468,7 +483,8 @@
       "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
       "golden_path": "crates/volta_pipeline/tests/ptx/success/aligned_ldmatrix.out",
       "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "original_output_coordinates": {}
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_wmma_load_and_store_load.ptx",
@@ -500,7 +516,8 @@
       "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
       "golden_path": "crates/volta_pipeline/tests/ptx/success/aligned_wmma_load_and_store_load.out",
       "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "original_output_coordinates": {}
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_wmma_load_and_store_store.ptx",
@@ -532,7 +549,8 @@
       "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
       "golden_path": "crates/volta_pipeline/tests/ptx/success/aligned_wmma_load_and_store_store.out",
       "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "original_output_coordinates": {}
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/ldmatrix_trans_mapping.ptx",
@@ -630,7 +648,8 @@
           62,
           63
         ]
-      }
+      },
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/mma_accumulator_register_decodes_raw_bits.ptx",
@@ -793,7 +812,8 @@
           126,
           127
         ]
-      }
+      },
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/mma_with_immediate_accumulator.ptx",
@@ -956,7 +976,8 @@
           126,
           127
         ]
-      }
+      },
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/stmatrix_writes_the_expected_byte_per_lane.ptx",
@@ -991,7 +1012,8 @@
         "out": [
           0
         ]
-      }
+      },
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_bar_sync_after_completion_orders_the_read.ptx",
@@ -1029,7 +1051,8 @@
       "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
       "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_bar_sync_after_completion_orders_the_read.out",
       "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "original_output_coordinates": {}
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_decodes_raw_operand_and_accumulator_bits.ptx",
@@ -1069,7 +1092,8 @@
       "related_tests": [
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
-      ]
+      ],
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_every_reader_waiting_is_accepted.ptx",
@@ -1100,7 +1124,8 @@
       "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
       "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_every_reader_waiting_is_accepted.out",
       "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "original_output_coordinates": {}
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_kind_f8f6f4_numeric_correctness.ptx",
@@ -1140,7 +1165,8 @@
       "related_tests": [
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
-      ]
+      ],
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_no_swizzle_mode_runs_to_completion.ptx",
@@ -1176,7 +1202,8 @@
       "related_tests": [
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
-      ]
+      ],
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_numeric_correctness.ptx",
@@ -1216,7 +1243,8 @@
       "related_tests": [
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
-      ]
+      ],
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_real_kernel_descriptors_run_to_completion.ptx",
@@ -1252,7 +1280,8 @@
       "related_tests": [
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
-      ]
+      ],
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_without_an_explicit_disable_output_lane_mask.ptx",
@@ -1292,7 +1321,8 @@
       "related_tests": [
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
         "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
-      ]
+      ],
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/wmma_skewed_stride_is_legal.ptx",
@@ -1324,7 +1354,8 @@
       "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
       "golden_path": "crates/volta_pipeline/tests/ptx/success/wmma_skewed_stride_is_legal.out",
       "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "original_output_coordinates": {}
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/wmma_stride_above_default_is_legal.ptx",
@@ -1356,7 +1387,8 @@
       "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
       "golden_path": "crates/volta_pipeline/tests/ptx/success/wmma_stride_above_default_is_legal.out",
       "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "original_output_coordinates": {}
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
     }
   ],
   "positive_abi_inventory": "tests/gfx1250/fixtures/matrix-positive-cases.json",
