@@ -119,6 +119,11 @@ def expected_dimensions(row: dict) -> dict | None:
         return {"M": original["expected_outputs"], "K": 4096}
     if family == "ReductionSumKernel":
         return {"R": 1, "TILE": original["arrays"][0]["length"]}
+    if row["id"] in {"W27", "W28", "W29", "W30"}:
+        return {"M": 4096, "N": 4096, "K": 4096, "TILE": 256}
+    if row["id"] in {"W31", "W32"}:
+        return {"M": 4096, "N": 4096, "K": 4096, "WORDS": 128,
+                "TILE": original["shape_and_layout"]["tile_N"]}
     # Later native source slices can use named output views in their specs. Their
     # shape/output projections remain mandatory; numerical equivalence proves
     # semantics rather than treating a dimension-label convention as evidence.
@@ -207,8 +212,17 @@ def validate_registry(
             case["expected_outputs"] == original["expected_outputs"],
             f"{identifier}: output count changed",
         )
+        matrix = identifier in {"W27", "W28", "W29", "W30", "W31", "W32"}
+        native_block = [1024 if identifier in {"W27", "W28", "W29", "W30"} else 256, 1, 1]
+        if matrix:
+            require(case.get("launch_mapping") == {
+                "kind": "gfx1250_wave32_wmma_partition",
+                "baseline_block": original["block"], "native_block": native_block,
+                "selected_workgroup": [0, 0, 0],
+            }, f"{identifier}: missing reviewed WMMA launch mapping")
         require(
-            case["block"] == original["block"] and case["grid"] == original["grid"],
+            case["block"] == (native_block if matrix else original["block"])
+            and case["grid"] == original["grid"],
             f"{identifier}: native launch requires an explicitly reviewed mapping, not an implicit override",
         )
         dimensions = expected_dimensions(row)
@@ -218,25 +232,43 @@ def validate_registry(
         )
         native = {a["name"]: a for a in case["arrays"]}
         require(len(native) == len(case["arrays"]), f"{identifier}: duplicate native array")
+        original_names = {a["name"] for a in original["arrays"]}
+        views = set()
+        if matrix:
+            rows_count = original["shape_and_layout"]["tile_M"]
+            columns = original["shape_and_layout"]["tile_N"]
+            views = {f"out{i:03}" for i in range(rows_count)}
+            require(case.get("array_view_mapping") == {
+                "baseline_array": "c", "native_arrays": sorted(views),
+                "row_pitch_elements": 4096, "rows": rows_count, "columns": columns,
+            }, f"{identifier}: missing original sparse row-view mapping")
+        require(set(native) == ((original_names - {"c"}) | views if matrix else original_names),
+                f"{identifier}: missing or extra native arrays")
         for array in original["arrays"]:
-            actual = native.get(array["name"])
-            require(
-                actual is not None,
-                f"{identifier}: missing array; an explicit renamed-view mapping is required",
-            )
-            for field in ("element_size", "length", "kind", "base_address"):
-                require(
-                    actual[field] == array[field], f"{identifier}: {array['name']} {field} changed"
-                )
             dtype = "e4m3" if array["dtype"] == "ocp_e4m3_fp8" else array["dtype"]
-            require(
-                actual.get("dtype") == dtype, f"{identifier}: {array['name']} storage dtype changed"
-            )
-        require(
-            case["params"] == original["params"],
-            f"{identifier}: native ABI requires an explicit reviewed mapping",
-        )
-        expected, covered = output_indices(row), {}
+            if matrix and array["name"] == "c":
+                for i, name in enumerate(sorted(views)):
+                    actual = native[name]
+                    require(actual["element_size"] == array["element_size"]
+                            and actual["dtype"] == dtype
+                            and actual["length"] == columns
+                            and actual["kind"] == array["kind"]
+                            and actual["base_address"] == array["base_address"] + i * 4096 * array["element_size"],
+                            f"{identifier}: {name} sparse original output storage changed")
+                continue
+            actual = native[array["name"]]
+            for field in ("element_size", "length", "kind", "base_address"):
+                require(actual[field] == array[field],
+                        f"{identifier}: {array['name']} {field} changed")
+            require(actual.get("dtype") == dtype,
+                    f"{identifier}: {array['name']} storage dtype changed")
+        params = ["ptr:out000" if matrix and p == "ptr:c" else p for p in original["params"]]
+        require(case["params"] == params,
+                f"{identifier}: native ABI requires an explicit reviewed mapping")
+        if matrix:
+            require(case.get("parameter_mapping") == {"ptr:c": "ptr:out000"},
+                    f"{identifier}: missing same-address output pointer mapping")
+        expected, covered, native_covered = output_indices(row), {}, {}
         for projection in case["output_projection"]:
             name, target = projection["baseline_array"], projection["native_array"]
             count = projection["length"]
@@ -257,6 +289,23 @@ def validate_registry(
                 native_start + count <= native[target]["length"],
                 f"{identifier}: native projection exceeds storage",
             )
+            baseline_array = next(a for a in original["arrays"] if a["name"] == name)
+            width = baseline_array["element_size"]
+            require(
+                native[target]["element_size"] == width,
+                f"{identifier}: projected dtype width changed",
+            )
+            require(
+                native[target]["base_address"] + native_start * width
+                == baseline_array["base_address"] + start * width,
+                f"{identifier}: projected native bytes do not match original coordinates",
+            )
+            native_values = set(range(native_start, native_start + count))
+            require(
+                not native_covered.setdefault(target, set()).intersection(native_values),
+                f"{identifier}: duplicate native output projection",
+            )
+            native_covered[target].update(native_values)
             values = set(range(start, start + count))
             require(
                 not covered.setdefault(name, set()).intersection(values),

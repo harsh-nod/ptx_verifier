@@ -30,10 +30,12 @@ class OriginalShapeContractTests(unittest.TestCase):
         self.assertEqual(4096, len(scan["out"]))
         self.assertNotIn(128, scan["out"])  # untouched head/row gap
 
-    def test_eighteen_registrations_are_consistent_and_fourteen_remain_pending(self):
+    def test_registrations_keep_exact_pending_rows_and_original_total(self):
         pending = self.validate(self.registry)
-        self.assertEqual([f"W{i:02}" for i in range(19, 33)], pending)
-        self.assertEqual(26466, self.registry["registered_original_outputs"])
+        expected = set(self.rows) - {c["baseline_id"] for c in self.registry["cases"]}
+        self.assertEqual(sorted(expected), pending)
+        self.assertEqual(sum(self.rows[c["baseline_id"]]["original"]["expected_outputs"]
+                             for c in self.registry["cases"]), self.registry["registered_original_outputs"])
         with self.assertRaisesRegex(ValueError, "incomplete"):
             self.validate(self.registry, require_all=True)
 
@@ -98,6 +100,23 @@ class OriginalShapeContractTests(unittest.TestCase):
             data = copy.deepcopy(self.registry)
             data["cases"][0][field + "_sha256"] = "0" * 64
             with self.assertRaisesRegex(ValueError, "changed/missing"):
+                self.validate(data)
+
+    def test_matrix_views_launch_mapping_and_arbitrary_packed_dtype_are_required(self):
+        for identifier, mutate in (
+            ("W27", lambda c: c.pop("launch_mapping")),
+            ("W27", lambda c: c.update(block=[256, 1, 1])),
+            ("W27", lambda c: c["dimensions"].update(K=32)),
+            ("W27", lambda c: c["arrays"][-1].update(base_address=0)),
+            ("W27", lambda c: c["arrays"][-1].update(length=128)),
+            ("W27", lambda c: c["parameter_mapping"].update({"ptr:c": "ptr:out001"})),
+            ("W31", lambda c: c["arrays"][1].update(kind="index")),
+            ("W31", lambda c: c["arrays"][1].update(dtype="f32")),
+        ):
+            data = copy.deepcopy(self.registry)
+            case = next(c for c in data["cases"] if c["baseline_id"] == identifier)
+            mutate(case)
+            with self.subTest(identifier=identifier), self.assertRaises(ValueError):
                 self.validate(data)
 
     def test_existing_public_launch_fields_are_forwarded_without_zero_fill(self):
