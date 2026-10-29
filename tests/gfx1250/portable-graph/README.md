@@ -247,3 +247,19 @@ native assertion candidates and 10 contract-difference candidates, and retains
 22 explicit portable gaps. Each row records exact native scope, a mechanism
 residual and its remaining gate. These counts are not acceptance results, and
 the proposal does not change the coordinator's feature or completion ledger.
+
+[`mechanism-review-proposal.json`](mechanism-review-proposal.json) is a separate
+read-only audit of all 82 rows originally labeled as target-mechanism residuals.
+It pins the actual upstream sources and 47 distinct assertion functions, retains
+every positive control, and names the exact target contract per row. Its 65
+precise residual candidates, six native-property candidates and eleven explicit
+portable gaps are proposals for coordinator review, not completed exclusions.
+Repeated native evidence is stored in a source-hashed catalog. The audit changes
+no production code, original workload source, canonical ledger or issue status.
+
+Two names need particular care: `tcgen05_wait_ld_after_bar_sync_is_rejected` and
+`tcgen05_wait_st_after_mbarrier_arrive_is_rejected` actually assert an allocation
+was never freed, rather than a late wait hazard. The transaction-count overflow
+row also retains its successful boundary control. Successful empty fence tests
+do not establish broader memory visibility, and zero-MMA boundary tests retain
+matrix completion/lifetime obligations even though they write no output arrays.
