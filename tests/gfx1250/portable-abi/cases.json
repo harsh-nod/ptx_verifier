@@ -175,7 +175,7 @@
       ],
       "portable_obligation": "Reject a four-byte load at address2 modulo4 despite a valid surrounding array.",
       "native_kernels": [
-        "abi_upper_address"
+        "copy"
       ],
       "native_tests": [
         {
@@ -183,8 +183,17 @@
           "function": "native_word_alignment_is_checked_without_importing_ptx_vector_alignment"
         }
       ],
-      "target_specific_residual": "No NVIDIA-only mechanism.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "target_specific_residual": "The direct VMEM DWORD load rejects misalignment. Native SMEM has a distinct low-bit masking contract, which stays explicitly Unsupported rather than being mislabeled as the PTX-style alignment violation.",
+      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "native_artifacts": [
+        {
+          "assembly": "tests/gfx1250/fixtures/native-copy-add.s",
+          "assembly_sha256": "d24b4c3c354d99405265eccef632e2108e4a5719faed14de2d69e721a1b4aff9",
+          "source": "tests/gfx1250/fixtures/native-copy-add.hip",
+          "source_sha256": "23e509c17429f8a65722928df3271b6102906ae7afc86263cd288fea444cb136",
+          "provenance": "tests/gfx1250/fixtures/compiler-provenance.json"
+        }
+      ]
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/misaligned_scalar_store.ptx",

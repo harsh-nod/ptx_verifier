@@ -63,6 +63,8 @@ Primary source pin: ROCm LLVM
 [`5fd50ec8e07abb94e203933017e8d6e40fb51824`](https://github.com/ROCm/llvm-project/tree/5fd50ec8e07abb94e203933017e8d6e40fb51824).
 See `llvm/lib/Target/AMDGPU/SOPInstructions.td` (`S_GETPC_B64`, `S_ADD_U64`,
 their renamed real forms and SCC definitions), `lld/ELF/Arch/AMDGPU.cpp`
-(`R_AMDGPU_REL64`), and `llvm/docs/AMDGPUUsage.rst` (ELF relocation table and
+(`R_AMDGPU_REL64`), and
+[`llvm/docs/AMDGPUUsage.md`](https://github.com/ROCm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md)
+(ELF relocation table and
 generic address-space apertures). The actual compiler binary and its distinct
 build revision remain recorded in the compiler receipt.

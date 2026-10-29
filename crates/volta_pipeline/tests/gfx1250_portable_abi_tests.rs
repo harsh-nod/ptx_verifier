@@ -14,6 +14,7 @@ const GLOBALS: &str = include_str!("../../../tests/gfx1250/portable-abi/native-m
 const ARGUMENTS: &str = include_str!("../../../tests/gfx1250/portable-abi/native-arguments.s");
 const DYNAMIC: &str = include_str!("../../../tests/gfx1250/portable-abi/native-dynamic-lds.s");
 const TRANSFERS: &str = include_str!("../../../tests/gfx1250/portable-abi/native-transfers.s");
+const COPY: &str = include_str!("../../../tests/gfx1250/fixtures/native-copy-add.s");
 
 fn array(name: &str, base: u64, width: u64, len: u64, kind: ArrayKind) -> ArrayDef {
     ArrayDef {
@@ -492,9 +493,23 @@ fn native_word_alignment_is_checked_without_importing_ptx_vector_alignment() {
     cfg.arrays[0].base += 2;
     assert!(matches!(checked(TRANSFERS, "abi_global_vector_last", cfg),
         Err(AnalysisError::Eval(EvalError::InvalidConfig(what))) if what.contains("align")));
+    let mut cfg = config(4, 4, 4, 4, 4);
+    cfg.params.push(ParamValue::Int(4));
+    equal(&verified(COPY, "copy", cfg.clone()), inputs(&[0, 1, 2, 3]));
+    cfg.params[0] = ParamValue::Int(0x10002);
+    invalid(COPY, "copy", cfg, "align");
+    // Native SMEM masks low address bits. That distinct unmodeled behavior must
+    // not be mislabeled as the VMEM alignment violation established above.
     let mut cfg = config(1, 4, 6, 4, 1);
     cfg.params[0] = ParamValue::Int(0x10002);
-    invalid(TRANSFERS, "abi_upper_address", cfg, "align");
+    let run = checked(TRANSFERS, "abi_upper_address", cfg).unwrap();
+    assert!(matches!(run.analysis.symbolic_outputs(),
+        Err(OutputsUnavailable::Aborted(EvalError::Unsupported { what, .. }))
+            if what.contains("SMEM") && what.contains("low-bit masking")));
+    assert!(matches!(
+        run.checks.conclusion(),
+        GraphConclusion::Unknown { .. }
+    ));
     let mut cfg = config(4, 0, 0, 4, 4);
     cfg.params[0] = ParamValue::Int(0x20002);
     invalid(TRANSFERS, "abi_rank_zero_offsets", cfg, "align");
