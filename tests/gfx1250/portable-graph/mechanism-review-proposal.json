@@ -2625,7 +2625,7 @@
         "review:named_arrival_count_is_not_a_distinct_wave_count"
       ],
       "historical_native_gap": "A dedicated unsupported nonzero native count-update source control may be needed; this row cannot force rejection of legal delta0/NULL.",
-      "current_adjudication": "The baseline rejects an explicit PTX arrive count0. Native M0 expected-count delta0 still performs one arrival, so a false zero-delta native rejection would contradict the actual target contract. Genuine named_two_arrivals_one_wave and NULL controls remain successful; graph count-vs-wave checks preserve two arrivals from one wave. INIT count0 and field-boundary controls are separately implemented in the13-row mechanism-lifetime contract. This row excludes only PTX count syntax, not native progress/count correctness.",
+      "current_adjudication": "The baseline rejects an explicit PTX arrive count0. Native M0 expected-count field0 leaves the expected count unchanged and still performs one arrival, so rejecting that no-update signal would contradict the actual target contract. Genuine named_two_arrivals_one_wave and NULL controls remain successful; graph count-vs-wave checks preserve two arrivals from one wave. INIT count0 and field-boundary controls are separately implemented in the13-row mechanism-lifetime contract. This row excludes only PTX count syntax, not native progress/count correctness.",
       "current_disposition": "exact_native_count_update_contract_difference",
       "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },

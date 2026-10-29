@@ -1615,7 +1615,7 @@
       "baseline_assertion_summary": "Rejected before verdict for explicit PTX arrive count0.",
       "historical_review_gate": "A dedicated unsupported nonzero native count-update source control may be needed; this row cannot force rejection of legal delta0/NULL.",
       "current_disposition": "exact_native_count_update_contract_difference",
-      "current_adjudication": "The baseline rejects an explicit PTX arrive count0. Native M0 expected-count delta0 still performs one arrival, so a false zero-delta native rejection would contradict the actual target contract. Genuine named_two_arrivals_one_wave and NULL controls remain successful; graph count-vs-wave checks preserve two arrivals from one wave. INIT count0 and field-boundary controls are separately implemented in the13-row mechanism-lifetime contract. This row excludes only PTX count syntax, not native progress/count correctness.",
+      "current_adjudication": "The baseline rejects an explicit PTX arrive count0. Native M0 expected-count field0 leaves the expected count unchanged and still performs one arrival, so rejecting that no-update signal would contradict the actual target contract. Genuine named_two_arrivals_one_wave and NULL controls remain successful; graph count-vs-wave checks preserve two arrivals from one wave. INIT count0 and field-boundary controls are separately implemented in the13-row mechanism-lifetime contract. This row excludes only PTX count syntax, not native progress/count correctness.",
       "native_evidence": [
         {
           "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
