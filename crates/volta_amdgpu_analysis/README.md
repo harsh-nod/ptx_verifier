@@ -287,4 +287,8 @@ base2 conversion coefficients. It does not establish IEEE rounding, NaNs or
 denormal behavior. Raw finite F16/BF16 controls test decoding separately from
 symbolic mathematical input identities. See the [detailed contract](../../tests/gfx1250/CONTRACT.md)
 and [reproducible corpus](../../tests/gfx1250/README.md).
-**No gfx1250 hardware execution has been performed.**
+The exact checked-in positive assembly has passed independent execution on real
+gfx1250 hardware, including dense and basis WMMA layouts, staged tensor reuse,
+wave boundaries and all twenty bounded portable families. Reproduction and
+source-pinned receipts are in [the hardware guide](../../tests/gfx1250/hardware/README.md).
+This does not expand the selected instruction or mathematical-model contract.

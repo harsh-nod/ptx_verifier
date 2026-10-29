@@ -1,4 +1,4 @@
-# gfx1250 core hardware replay
+# gfx1250 hardware replay
 
 `run.py` compiles the host-only HIP module driver, assembles the **unchanged**
 checked-in native `.s` files, links code objects, and runs safe positive kernels.
@@ -53,5 +53,53 @@ local changes independently of the fixture commit. An operational failure atomic
 CPU-only failure-provenance regression tests (no ROCm or GPU required):
 
 ```sh
-python3 -m unittest discover -s tests/gfx1250/hardware -p test_runner.py
+python3 -m unittest discover -s tests/gfx1250/hardware -p '*test*.py'
 ```
+
+## Bounded portable workloads
+
+The second host-only driver, `portable.cpp`, evaluates independent CPU formulas
+for all twenty cases in `portable-cases.json`. Its runner pins parameter order,
+array shapes, source revision and artifact hashes before launching the exact
+`native-portable-workloads.s` module. Run it locally on the GPU host with
+`--local`, or use the built-in SSH staging from a clean committed checkout:
+
+```sh
+python3 tests/gfx1250/hardware/portable_run.py --host mi400 --device 2 \
+  --result /tmp/hardware-portable.json
+```
+
+The default seventeen patterns include zeros, signed alternating values and
+bounded asymmetric coordinates. Each pattern checks all 590 outputs, every
+input byte, inter-array gap and 4-KiB edge guard. The receipt records exact
+comparison tolerances and errors per kernel. Nine CPU-only runner controls
+reject incomplete manifests, changed sources, wrong ABI/layout, incomplete
+results, identity overrides and stale PASS receipts. The common discovery
+command above runs these alongside the seven core-runner controls.
+
+## Coordinator acceptance
+
+On `mi400`, four actual gfx1250 devices report wave32 and 256 compute units each.
+The core author ran GPU0 and the portable author ran GPU1. The coordinator
+reviewed both drivers and repeated both complete suites on GPU2 at source
+`97b5df0ab258a3818f41bfc1d2620649185e1384`.
+
+| Independent coordinator replay | Launches | Complete output checks | Receipt |
+| --- | ---: | ---: | --- |
+| Core mechanisms, all WMMA basis and wide integer boundaries | 3,615 | 644,518 | [Core](../evidence/hardware-core-coordinator.json) |
+| Twenty bounded portable families, seventeen patterns each | 340 | 10,030 | [Portable](../evidence/hardware-portable-coordinator.json) |
+
+The core replay checked 1,850,880 output-guard bytes and 1,070,520 input/guard
+bytes. Portable replay checked 135,388 input bytes, 61,139,140 gap bytes and
+2,785,280 edge-guard bytes. The count totals cover repeated checks across
+launches, not unique storage capacity.
+
+These runs use ROCm `10.2.0a20261013+bkc.20261019` and LLVM24 revision
+`c7ceccf9a5789b92fda4056b8501450d0b7a75de` to assemble/link the unchanged
+LLVM22 fixture output. All hardware comparisons pass. Core attention's maximum
+absolute error is `5.89e-8`; the portable maximum is `3.73e-7`, within the
+disclosed tolerances. Exact comparisons cover the dyadic and raw integer cases.
+Supplemental multi-block copy execution does not expand the verifier's
+single-workgroup contract. The author receipts are retained separately as
+[core](../evidence/hardware-core-mi400.json) and
+[portable](../evidence/hardware-portable-mi400.json).

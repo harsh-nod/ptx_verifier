@@ -42,7 +42,7 @@ def main():
                       "expected_outputs": sum(a[1] for a in arrays if a[2] == "out"),
                       "required": True,
                       "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware untested.",
-                      "software_validation": "pending", "hardware_validation": "not_performed_no_gfx1250_device",
+                      "software_validation": "pending", "hardware_validation": "not_performed_by_this_generator",
                       "source_sha256": sha(SOURCE), "assembly_sha256": sha(ASSEMBLY),
                       "spec_sha256": sha(path)})
 

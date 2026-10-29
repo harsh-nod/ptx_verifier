@@ -21,7 +21,8 @@ through genuine gfx1250 assembly while retaining explicit shape/dtype limits.
 
 The preexisting `test_aligned_bar_sync_reached_on_different_iterations` PTX
 failure remains visible and unchanged. No unrelated assertion or golden output
-was weakened. gfx1250 hardware validation remains pending.
+was weakened. Hardware was pending at that audit; the subsequent exact-assembly
+gfx1250 replay is recorded in the [hardware guide](hardware/README.md).
 
 ## AMD frontend integration at `103c082`
 

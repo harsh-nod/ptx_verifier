@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-29T02:31:34.081695+00:00",
+  "source_commit_hardware": "97b5df0ab258a3818f41bfc1d2620649185e1384",
+  "upstream_master": "103c082bf88d2e538bb89f7c4f2e795c408d2339",
+  "review_scope": "Changed upstream API, native function classification, shared frontend regressions, both host-only hardware drivers, operational provenance, public APIs, native safety and viewer regression. Not a formal soundness proof or full ISA review.",
+  "unresolved_critical_or_major_findings": [],
+  "resolved_findings": [
+    {
+      "area": "PTX direct IR API",
+      "finding": "Native AMD shared_allocations bypassed the source-only guard.",
+      "resolution": "Move rejection into the interpreter constructor used by both public entry points; direct-IR negative regression passes."
+    },
+    {
+      "area": "Native frontend",
+      "finding": "Unrelated helper instructions blocked supported entry kernels; naive skipping risks labels, calls and fallthrough.",
+      "resolution": "Classify descriptor/metadata entries before instruction parsing; require explicit bounded helper declarations, retain module validation, reject unsupported entry code and inter-function control flow. Sixteen adversarial regressions pass."
+    },
+    {
+      "area": "Portable oracle",
+      "finding": "size_t multiplication could wrap negative alternating input values to huge positive values.",
+      "resolution": "Use explicit double sign/magnitude, test negative odd coordinates and all generated finite bounded inputs; discard earlier trial evidence and rerun."
+    },
+    {
+      "area": "Hardware evidence",
+      "finding": "Failed preflight could leave an earlier PASS receipt.",
+      "resolution": "Atomic fresh incomplete receipt before operational validation; current-invocation failures never preserve a success."
+    },
+    {
+      "area": "Hardware evidence",
+      "finding": "Requested ROCm library hash could differ from loaded HIP runtime.",
+      "resolution": "Record ldd under the execution environment; hash resolved library; core requires exact requested-runtime match."
+    },
+    {
+      "area": "Hardware identity",
+      "finding": "Inherited HSA architecture overrides could spoof runtime-reported target.",
+      "resolution": "Reject HSA_OVERRIDE_GFX_VERSION variables by presence, including empty and per-node variants; validate actual gfx1250 wave32 identity."
+    },
+    {
+      "area": "Differential tests",
+      "finding": "Comparing only present upstream descriptor keys could miss dropped fields.",
+      "resolution": "Compare complete inline descriptor maps and require byte-identical upstream fixture copies."
+    }
+  ],
+  "validation": {
+    "rust": {
+      "passed": 1575,
+      "failed": 1,
+      "inherited_failure": "test_aligned_bar_sync_reached_on_different_iterations",
+      "unexpected_failures": 0,
+      "tested_source": "114c71a60cd60ac75127e0b7b385605aab3e3cf3",
+      "followup": "The stricter descriptor regression at a574640 separately passed all four shared frontend tests."
+    },
+    "rebuilt_python": {
+      "passed": 89
+    },
+    "external_adapters": {
+      "passed": 18
+    },
+    "hardware_host_controls": {
+      "passed": 16,
+      "gpu_launches": 0
+    },
+    "clippy": "passes with inherited warnings retained",
+    "rustdoc": "strict broken-link and bare-URL checks pass",
+    "format": "new/owned Rust and Python files checked; workspace-wide rustfmt still reports pre-existing formatting differences",
+    "viewer": {
+      "runs": 199,
+      "browser_errors": 0,
+      "receipt": "integration-browser.json"
+    },
+    "hardware": {
+      "core_launches": 3615,
+      "portable_launches": 340,
+      "total_launches": 3955,
+      "core_outputs": 644518,
+      "portable_outputs": 10030,
+      "total_output_checks": 654548,
+      "independent_device": 2,
+      "receipt_core": "hardware-core-coordinator.json",
+      "receipt_portable": "hardware-portable-coordinator.json",
+      "racy_or_deadlocking_mutants_executed": false
+    }
+  },
+  "remaining_scope_limits": [
+    "Selected ISA subset, not full gfx1250 coverage.",
+    "One unclustered workgroup in the analysis model; supplemental multi-block copy hardware tests do not expand that scope.",
+    "Bounded decoded-F32 workload family counterparts, not original PTX shape/dtype/grid parity.",
+    "Mathematical real-number abstraction does not establish IEEE exceptional behavior or physical error bounds."
+  ]
+}

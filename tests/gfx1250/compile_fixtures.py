@@ -60,7 +60,7 @@ def main():
                          "link": link_result})
     result = {"schema_version": 1, "target": "gfx1250", "host": socket.gethostname(),
               "scope": "Genuine native compiler outputs, not edited or retargeted assembly; compilation/assembly alone make no semantic verification claim.",
-              "hardware_validation": "not_performed_no_gfx1250_device",
+              "hardware_validation": "not_performed_by_this_compiler_only_workflow",
               "tools": tools, "fixtures": fixtures}
     output = directory / "compiler-provenance.json"
     output.write_text(json.dumps(result, indent=2) + "\n")

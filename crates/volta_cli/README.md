@@ -65,4 +65,4 @@ must match explicit selection; omitted AMD targets remain gfx950. Native graph
 failures exit 1, inconclusive checks exit 2, and success exits 0. Expression-only
 replay reports equivalence without claiming any graph checks. See the
 [gfx1250 compiler corpus](../../tests/gfx1250/README.md) for the wave32/ABI subset
-and hardware-pending status.
+and source-pinned gfx1250 hardware validation receipts.

@@ -56,7 +56,8 @@ Omitting the AMD target preserves gfx950. `analyze` runs native graph checks;
 `DataRaceError`; incomplete or resource-limited traces stay inconclusive.
 By-value arguments use `Param.bytes(...)`, including descriptor padding checks.
 See [gfx1250 scope and CPU validation](../../tests/gfx1250/README.md).
-gfx1250 hardware validation remains pending. For native source, pass selection
+The documented gfx1250 corpus has passed exact-assembly hardware replay; see
+[the hardware scope and receipts](../../tests/gfx1250/hardware/README.md). For native source, pass selection
 explicitly to the independent syntax check as well:
 
 ```python

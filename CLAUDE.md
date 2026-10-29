@@ -11,7 +11,8 @@ symbolic outputs and a candidate event graph; independent branches check
 mathematical equivalence and target-specific safety. This is an experimental
 best-effort model, not a claim of formal soundness, complete ISA coverage or
 whole-device correctness. gfx1250 software validation is complete for its
-[documented subset](tests/gfx1250/CONTRACT.md); hardware validation is pending.
+[documented subset](tests/gfx1250/CONTRACT.md); exact-assembly hardware validation
+on gfx1250 is recorded in `tests/gfx1250/evidence/hardware-*-coordinator.json`.
 
 ## Coding practices
 
@@ -265,8 +266,9 @@ its tested subset. Advanced unsupported modes remain explicit. See the
 [crate README](crates/volta_amdgpu_analysis/README.md) and
 [gfx1250 contract](tests/gfx1250/CONTRACT.md) before extending the profile.
 Native Rust tests, genuine cross-compiled fixtures, independent oracles and
-hardware-pending evidence are separate categories. Historical gfx942/gfx950
-hardware receipts do not validate gfx1250 execution.
+hardware evidence are separate categories. gfx1250 receipts pin the actual device,
+ROCm/LLVM/runtime, exact assembly and complete output/input/guard checks.
+Historical gfx942/gfx950 receipts do not validate gfx1250 execution.
 
 ## Crate: volta_ptx_analysis
 
