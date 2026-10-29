@@ -93,7 +93,7 @@ Contract & gfx942 & gfx950 & gfx1250 \\
 Wave/registers & Wave64; VGPR/AGPR physical allocation & Wave64; same allocation model & Wave32; no AGPR namespace \\
 LDS capacity & 64 KiB & 160 KiB & 320 KiB \\
 Matrix forms & Selected F32/F16/BF16 MFMA & Adds doubled-K F16/BF16 and selected OCP FP8 MFMA & Separate F32/F16/BF16 WMMA layouts \\
-FP8 boundary & FNUZ decoding unsupported & Selected OCP formats; unit-only scaled MFMA & Selected OCP conversion/transport; no FP8 WMMA claim \\
+FP8 model & FNUZ decoding not modeled & Selected OCP formats; unit-only scaled MFMA & Selected OCP conversions; FP8 WMMA not yet modeled \\
 Completion & VM/LGKM accounting & VM/LGKM accounting & Load, Store, DS, KM, X, Async, Tensor classes \\
 Synchronization & Workgroup barrier generations & Workgroup barrier generations & Unnamed split and allocated named shader barriers \\
 Scalar-base index & Unsigned 32-bit & Unsigned 32-bit & Signed 32-bit before scaling \\
@@ -128,7 +128,9 @@ not measured instruction latencies~\cite{llvmhazard}.
 The profile changes to wave32 and low-32-bit EXEC/VCC masks. Selected WMMA
 forms use F32 16\(\times\)16\(\times\)4 or F16/BF16
 16\(\times\)16\(\times\)32 with F32 accumulators, requiring their own lane/item
-maps and source lifetimes. Separate counters and replay-source retention replace
+maps and source lifetimes. Public gfx1250 sources also include OCP FP8 WMMA;
+this verifier models selected FP8 conversions, but not those matrix
+instructions~\cite{flydsl}. Separate counters and replay-source retention replace
 the CDNA completion contract. Bounded plain 2D tensor transfers capture descriptor
 state and global/LDS footprints. Split and named barriers require explicit
 object lifetimes. None of these semantics follows by renaming a CDNA opcode.
