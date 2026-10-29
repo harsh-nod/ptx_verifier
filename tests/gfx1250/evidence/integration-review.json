@@ -2,14 +2,14 @@
   "schema_version": 1,
   "recorded_utc": "2026-10-29T02:31:34.081695+00:00",
   "source_commit_hardware": "97b5df0ab258a3818f41bfc1d2620649185e1384",
-  "upstream_master": "103c082bf88d2e538bb89f7c4f2e795c408d2339",
+  "upstream_master": "b3a37911b8bd87352996403e8471a1fe18c4e975",
   "review_scope": "Changed upstream API, native function classification, shared frontend regressions, both host-only hardware drivers, operational provenance, public APIs, native safety and viewer regression. Not a formal soundness proof or full ISA review.",
   "unresolved_critical_or_major_findings": [],
   "resolved_findings": [
     {
       "area": "PTX direct IR API",
       "finding": "Native AMD shared_allocations bypassed the source-only guard.",
-      "resolution": "Move rejection into the interpreter constructor used by both public entry points; direct-IR negative regression passes."
+      "resolution": "The temporary API was removed upstream at b3a3791. Its exports, extra tests and guard relocation were retired; the original PTX source-analysis guard is unchanged."
     },
     {
       "area": "Native frontend",
@@ -40,6 +40,11 @@
       "area": "Differential tests",
       "finding": "Comparing only present upstream descriptor keys could miss dropped fields.",
       "resolution": "Compare complete inline descriptor maps and require byte-identical upstream fixture copies."
+    },
+    {
+      "area": "Latest upstream AMD lowering",
+      "finding": "Checking only the target prefix accepted unknown, repeated and conflicting feature suffixes.",
+      "resolution": "Validate complete XNACK/SRAM-ECC suffix grammar, preserve valid selections, reject duplicate/conflicting/unknown features in both AMD paths; fix the upstream positive v7 allocation control to declare eight VGPRs. Descriptor launch eligibility remains explicitly outside this instruction-only lowering API."
     }
   ],
   "validation": {
@@ -49,7 +54,7 @@
       "inherited_failure": "test_aligned_bar_sync_reached_on_different_iterations",
       "unexpected_failures": 0,
       "tested_source": "114c71a60cd60ac75127e0b7b385605aab3e3cf3",
-      "followup": "The stricter descriptor regression at a574640 separately passed all four shared frontend tests."
+      "followup": "Latest upstream integration removed the temporary direct-IR API and adds independent AMD lowering; final workspace results are recorded after that integration."
     },
     "rebuilt_python": {
       "passed": 89

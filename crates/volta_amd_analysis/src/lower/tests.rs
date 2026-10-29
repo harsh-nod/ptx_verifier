@@ -59,6 +59,7 @@ fn preserves_shift_input_and_combined_wait_limits() {
         first: 7,
         last: 7,
     };
+    kernel.descriptor.insert("next_free_vgpr".into(), 8);
     kernel.instructions[2].operands = vec![
         Operand::Wait {
             counter: Counter::Vm,
@@ -160,4 +161,40 @@ fn rejects_other_targets() {
         lower_kernel(&kernel),
         Err(LowerError::UnsupportedTarget { .. })
     ));
+}
+
+#[test]
+fn validates_target_feature_grammar_without_discarding_features() {
+    for suffix in [
+        "",
+        ":xnack-",
+        ":xnack+",
+        ":sramecc-:xnack+",
+        ":xnack-:sramecc+",
+    ] {
+        let mut kernel = parse_kernel(COPY, "copy").unwrap();
+        kernel.target = format!("amdgcn-amd-amdhsa--gfx950{suffix}");
+        assert_eq!(lower_kernel(&kernel).unwrap().target, kernel.target);
+    }
+    for suffix in [
+        ":",
+        "::xnack-",
+        ":banana",
+        ":xnack",
+        ":xnack+:xnack-",
+        ":xnack-:xnack-",
+        ":sramecc+:sramecc-",
+        ":xnack-:",
+    ] {
+        let mut kernel = parse_kernel(COPY, "copy").unwrap();
+        kernel.target = format!("amdgcn-amd-amdhsa--gfx950{suffix}");
+        assert!(
+            matches!(
+                lower_kernel(&kernel),
+                Err(LowerError::UnsupportedTarget { .. })
+            ),
+            "{}",
+            kernel.target
+        );
+    }
 }

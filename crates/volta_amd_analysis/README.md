@@ -9,6 +9,15 @@ from the crate root.
 
 The IR represents AMD instructions for symbolic execution. It preserves
 physical register identities, explicit waits, and launch metadata.
+The implemented stages are parsing and lowering of the selected gfx950 copy
+subset; symbolic execution and verifier dispatch are not implemented here.
+The fork's CLI and Python native backend remains `volta_amdgpu_analysis`.
+Shared pipeline regressions compare syntax, exercise this typed lowering, and
+check complete native outputs plus harmful missing-wait controls.
+Lowering rejects unknown, duplicate and conflicting target-feature suffixes;
+valid XNACK/SRAM-ECC selections are preserved. Descriptor values are retained,
+not validated as a complete launch or register-allocation contract. Successful
+lowering alone does not establish execution completion or graph safety.
 
 Supported operand forms follow the [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
 (§6.2, §12.6, §12.7) and LLVM 21.1.8's

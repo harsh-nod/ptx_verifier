@@ -189,3 +189,20 @@ fn both_frontends_reject_unknown_operands_in_the_selected_kernel() {
     assert!(parse_kernel(&source, "copy").is_err());
     assert!(frontend::parse(&source).is_err());
 }
+
+#[test]
+fn both_amd_paths_reject_invalid_target_features() {
+    for target in [
+        "gfx950:banana",
+        "gfx950:xnack+:xnack-",
+        "gfx950:xnack-:xnack-",
+    ] {
+        let source = COPY.replace("gfx950:xnack-", target);
+        let parsed = parse_kernel(&source, "copy").unwrap();
+        assert!(matches!(
+            lower_kernel(&parsed),
+            Err(volta_amd_analysis::LowerError::UnsupportedTarget { .. })
+        ));
+        assert!(frontend::parse(&source).is_err());
+    }
+}
