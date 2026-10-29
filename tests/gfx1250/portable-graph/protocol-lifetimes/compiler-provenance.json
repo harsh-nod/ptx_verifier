@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Genuine native compiler outputs, not edited or retargeted assembly; compilation/assembly alone make no semantic verification claim.",
+  "hardware_validation": "not_performed_by_this_compiler_only_workflow",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/clang-22",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.0/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.0/lib/llvm/bin/clang++.cfg\n"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n"
+    },
+    "llc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+      "sha256": "88b786477a6f2db121523da927bc176f84f209c2bca2ba2c9e870e2202f0f5f6",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n  Default target: x86_64-unknown-linux-gnu\n  Host CPU: znver5\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    }
+  },
+  "fixtures": [
+    {
+      "source": "native-protocol-lifetimes.hip",
+      "assembly": "native-protocol-lifetimes.s",
+      "source_sha256": "9aeca9f7dc89c4eab50b28073e5819380776ae688374b942e81f35c8d47aa854",
+      "assembly_sha256": "28e89f58a798ae82d3a6295bc717d6fe098ec457bc56df33d60a5a47a010ea35",
+      "object_sha256": "e1930717f057f045ee52b98ddcb3f239cccb71b354bc3d9deb19e498b9caf4cd",
+      "code_object_sha256": "18ec8265743ccfae08cdcee381682d9be1de4d5e3f9d70f952d5fba7c57a6108",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-cuid=ptx_verifier_protocol_lifetimes",
+          "-S",
+          "/home/harsh/ptx_verifier-graph-protocol/tests/gfx1250/portable-graph/protocol-lifetimes/native-protocol-lifetimes.hip",
+          "-o",
+          "/home/harsh/ptx_verifier-graph-protocol/tests/gfx1250/portable-graph/protocol-lifetimes/native-protocol-lifetimes.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx_verifier-graph-protocol/tests/gfx1250/portable-graph/protocol-lifetimes/native-protocol-lifetimes.s",
+          "-o",
+          "/tmp/native-protocol-lifetimes.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/tmp/native-protocol-lifetimes.o",
+          "-o",
+          "/tmp/native-protocol-lifetimes.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-protocol-named.ll",
+      "assembly": "native-protocol-named.s",
+      "source_sha256": "648dbf01ddd1ae04a1de21afaa16f94c77707a4510a0c3a9816fab327cd5ec0a",
+      "assembly_sha256": "0af297927e487b5f0efb45bb33a07ea4b24a12a80b024889d510b790a7ce9ded",
+      "object_sha256": "03d303cd1276661688e6493bb6bbc10eba8fe73f1a672d58808c5ae27f66b6c1",
+      "code_object_sha256": "21410bfd1e78933e0435aa88e5b02037e2670a3a0732d22466a7c9d05129361f",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+          "-mtriple=amdgcn-amd-amdhsa",
+          "-mcpu=gfx1250",
+          "-O2",
+          "/home/harsh/ptx_verifier-graph-protocol/tests/gfx1250/portable-graph/protocol-lifetimes/native-protocol-named.ll",
+          "-o",
+          "/home/harsh/ptx_verifier-graph-protocol/tests/gfx1250/portable-graph/protocol-lifetimes/native-protocol-named.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx_verifier-graph-protocol/tests/gfx1250/portable-graph/protocol-lifetimes/native-protocol-named.s",
+          "-o",
+          "/tmp/native-protocol-named.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/tmp/native-protocol-named.o",
+          "-o",
+          "/tmp/native-protocol-named.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ]
+}

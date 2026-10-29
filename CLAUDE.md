@@ -633,6 +633,13 @@ none turns an unsupported case into `Pass`. Depends only on `volta_graph`.
 
 **Path**: `crates/volta_pipeline/`
 
+`gfx1250_protocol_lifetime_tests` preserves completed ReadWrite/WriteRead exit
+directions, raw 8-byte metadata, all16 shuffle outputs and a genuinely
+uninitialized source lane. Allocated named controls retain init ordering,
+live-reinit Unsupported, fresh count2-to-count1 lifetimes and every blocked
+workitem of missing-arrival controls. PTX per-arrival counts, pre-init prior
+phases and lane-specific END remain explicit target differences.
+
 The allocated LLVM named-barrier corpus has complete native payload and typed
 deadlock/conflict controls in `gfx1250_named_barrier_tests`; harmful assembly
 mutations are CPU-only and separately validated with llvm-mc.
