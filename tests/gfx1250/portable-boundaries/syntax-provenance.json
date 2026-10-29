@@ -1,0 +1,704 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "status": "pass",
+  "hardware_execution": false,
+  "scope": "Assembler syntax evidence only; semantic controls are separate Rust tests.",
+  "trap_limit": "LLVM encodes 16 SOPP immediate bits; verifier supports only IDs0..255 and never assumes a returning trap handler.",
+  "source_sha256": "ea0f99b25ee1282cf885624693f00b574c36feb16b1bf681af1461eeafde6c10",
+  "table_sha256": "ba1efaf4f2c7d5210973e7d587d8ffad5d985287296276c04a542d097e2f26b8",
+  "checker_sha256": "240248676c9848f5f7178f2258e0467f1f081d13d241937d2f5155e9038f64ab",
+  "assembler": {
+    "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+    "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+    "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+  },
+  "controls": [
+    {
+      "id": "canonical_compiler_module",
+      "expected_accepted": true,
+      "accepted": true,
+      "assembly_sha256": "ea0f99b25ee1282cf885624693f00b574c36feb16b1bf681af1461eeafde6c10",
+      "object_sha256": "be9d41d6901c50f15f6fa9b3118d224ae68b7739e005e213ab4b478aa88a5a66",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/canonical_compiler_module.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/canonical_compiler_module.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "end_immediate_0",
+      "expected_accepted": true,
+      "accepted": true,
+      "assembly_sha256": "92bc3f2122431df359e12584c34e4379100ed4cacf2762c0bd6e31a6a176719e",
+      "object_sha256": "be9d41d6901c50f15f6fa9b3118d224ae68b7739e005e213ab4b478aa88a5a66",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_immediate_0.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_immediate_0.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "end_immediate_65535",
+      "expected_accepted": true,
+      "accepted": true,
+      "assembly_sha256": "e4362226f901ef12992beb07bb6147a43bfc44c3fdb75ddf3ceab0fc271075ca",
+      "object_sha256": "856e8ce8ebf885d3812a8ea923bcb9d1a08a69b2dbae8d64568eb4187508325b",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_immediate_65535.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_immediate_65535.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "trap_immediate_0",
+      "expected_accepted": true,
+      "accepted": true,
+      "assembly_sha256": "221450c0bbde1c0e92fdfcdd99e010fabe2445ba308a9a58bc6baec66144c710",
+      "object_sha256": "0e412d6b0102c0524e6bbb74ba58c85af3330c4e852328b2326eae24ae0b88fe",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_immediate_0.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_immediate_0.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "trap_immediate_255",
+      "expected_accepted": true,
+      "accepted": true,
+      "assembly_sha256": "201553e15b9c74df27b8f8278aef454450afc98eb50f1475e87ce2035bbe6fd5",
+      "object_sha256": "b0c0fea63dc9efcaa65913763520c9c1663bcaa8c9ef3e5b075e03a71b28f9fe",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_immediate_255.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_immediate_255.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "trap_immediate_256",
+      "expected_accepted": true,
+      "accepted": true,
+      "assembly_sha256": "2b0178834111f74eaf00e4d6382fb61af73adeb8fe4651caee1a925eb4bdfdc9",
+      "object_sha256": "704c2c57f80ad63bac37509a43595b57a2810c0bd71d2d2a430e89885e168cc4",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_immediate_256.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_immediate_256.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "trap_immediate_65535",
+      "expected_accepted": true,
+      "accepted": true,
+      "assembly_sha256": "c5e86cd9f814fc9f320aec3631c4e4f3bdffc4555258c8b7a352ba7cf7913c29",
+      "object_sha256": "285790f88ea12c4edd5bbd999f8ea898d63a4b1afb22e1862ae1a76a3a7edb79",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_immediate_65535.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_immediate_65535.o"
+      ],
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "id": "end_extra_live",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "01ef59b4abecfe036510ca1938369f4b8ae1b0509aaa47c1a5f13c8c40de78c1",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_extra_live.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_extra_live.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_extra_live.s:10:14: error: invalid operand for instruction\n        s_endpgm 0, 1\n                    ^\n"
+    },
+    {
+      "id": "end_extra_unreachable",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "282668f5035f04a77f21d0b9712d5f23a8ffcef15ac087213c92b5636a08ebcc",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_extra_unreachable.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_extra_unreachable.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_extra_unreachable.s:11:13: error: invalid operand for instruction\ns_endpgm 0, 1\n            ^\n"
+    },
+    {
+      "id": "end_extra_empty_exec",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "669b4db0dc236a59f0bba23c086de94f14a683d45210a1456a4d27f458a78324",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_extra_empty_exec.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_extra_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_extra_empty_exec.s:11:13: error: invalid operand for instruction\ns_endpgm 0, 1\n            ^\n"
+    },
+    {
+      "id": "end_modifier_live",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "44f7c4bba1f5802fc4c77d348fb8cade63acb5e7015939779bcdcb5b73b86c3d",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_modifier_live.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_modifier_live.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_modifier_live.s:10:11: error: expected absolute expression\n        s_endpgm offset:4\n                 ^\n/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_modifier_live.s:10:17: error: unknown token in expression\n        s_endpgm offset:4\n                       ^\n"
+    },
+    {
+      "id": "end_modifier_unreachable",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "c132622801d18cd27dca5f7d2c32db0aa2d49cf49443fcdb861ed4280977bf9c",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_modifier_unreachable.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_modifier_unreachable.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_modifier_unreachable.s:11:10: error: expected absolute expression\ns_endpgm offset:4\n         ^\n/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_modifier_unreachable.s:11:16: error: unknown token in expression\ns_endpgm offset:4\n               ^\n"
+    },
+    {
+      "id": "end_modifier_empty_exec",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "2f4e00cd9415b3b3d6c60a1787fe6756ebcd33660e1f35b3e82f92a9e1ee602e",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_modifier_empty_exec.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_modifier_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_modifier_empty_exec.s:11:10: error: expected absolute expression\ns_endpgm offset:4\n         ^\n/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/end_modifier_empty_exec.s:11:16: error: unknown token in expression\ns_endpgm offset:4\n               ^\n"
+    },
+    {
+      "id": "trap_extra_live",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "22695687e8c02c6117e9c1082d4f9279518c0311d794e11eb2f9aa7ea0389f6b",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_extra_live.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_extra_live.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_extra_live.s:192:12: error: invalid operand for instruction\n        s_trap 7, 8\n                  ^\n"
+    },
+    {
+      "id": "trap_extra_unreachable",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "1b5eb5965cbd0bc785e6698971414223b8923266cb9425d008c341fe116f71e2",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_extra_unreachable.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_extra_unreachable.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_extra_unreachable.s:193:11: error: invalid operand for instruction\ns_trap 7, 8\n          ^\n"
+    },
+    {
+      "id": "trap_extra_empty_exec",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "7b4143dd24dffb904db298ab12d6c0986f9e3c4e072e846a6a3be3203782d8a3",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_extra_empty_exec.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_extra_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_extra_empty_exec.s:193:11: error: invalid operand for instruction\ns_trap 7, 8\n          ^\n"
+    },
+    {
+      "id": "trap_register_live",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "1b77dcd2b2e883566769f3c46725f7873284cbc0cc918661718f2112e11bec65",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_register_live.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_register_live.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_register_live.s:192:9: error: invalid operand for instruction\n        s_trap s0\n               ^\n"
+    },
+    {
+      "id": "trap_register_unreachable",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "82008fd0af19381813b7f16621de190bf9407d35812a2d5c59aa0fc8ab540426",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_register_unreachable.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_register_unreachable.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_register_unreachable.s:193:8: error: invalid operand for instruction\ns_trap s0\n       ^\n"
+    },
+    {
+      "id": "trap_register_empty_exec",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "f71e1668b2082a4ff3f262b98361ba2810b368230ca4a11da52373c58881fe9b",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_register_empty_exec.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_register_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_register_empty_exec.s:193:8: error: invalid operand for instruction\ns_trap s0\n       ^\n"
+    },
+    {
+      "id": "trap_modifier_live",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "479657cc98e3249f50434c77415398dfa19fd262d62ab028ac031f810798e647",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_modifier_live.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_modifier_live.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_modifier_live.s:192:11: error: not a valid operand.\n        s_trap 7 offset:4\n                 ^\n"
+    },
+    {
+      "id": "trap_modifier_unreachable",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "41e232a44dc5d678f85572bf5bfc580d0d3d0350aed2b334f9ed3cf585ac431c",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_modifier_unreachable.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_modifier_unreachable.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_modifier_unreachable.s:193:10: error: not a valid operand.\ns_trap 7 offset:4\n         ^\n"
+    },
+    {
+      "id": "trap_modifier_empty_exec",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "3a7ad374e3eecdabcf79bd06b176361042e21d271dc41e376bef0d12d1121307",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_modifier_empty_exec.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_modifier_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/trap_modifier_empty_exec.s:193:10: error: not a valid operand.\ns_trap 7 offset:4\n         ^\n"
+    },
+    {
+      "id": "wait_missing_live",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "dcd6f90ccf2788042da9a157bf1cb0d43f8e76d48a102818d180d961df99d485",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_missing_live.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_missing_live.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_missing_live.s:100:2: error: too few operands for instruction\n        s_wait_loadcnt\n        ^\n"
+    },
+    {
+      "id": "wait_missing_unreachable",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "4b22180926380a62396eedd3c1f0d93de64bd5e5fd3cbaf8498a9e387ea7c730",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_missing_unreachable.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_missing_unreachable.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_missing_unreachable.s:101:1: error: too few operands for instruction\ns_wait_loadcnt\n^\n"
+    },
+    {
+      "id": "wait_missing_empty_exec",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "2cdc37db8d912980fa6889a81526fb2f6d3a315a5ba3841fa14ff853f530bc7b",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_missing_empty_exec.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_missing_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_missing_empty_exec.s:101:1: error: too few operands for instruction\ns_wait_loadcnt\n^\n"
+    },
+    {
+      "id": "wait_extra_live",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "0a70100d33cdb2583c613add735421fc96d85167ef95cd542f7576c97c1ccc17",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_extra_live.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_extra_live.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_extra_live.s:100:20: error: invalid operand for instruction\n        s_wait_loadcnt 0, 1\n                          ^\n"
+    },
+    {
+      "id": "wait_extra_unreachable",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "163271c325e3b0c162f599b1d32d327703fd468120417905374f2dab37a16de6",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_extra_unreachable.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_extra_unreachable.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_extra_unreachable.s:101:19: error: invalid operand for instruction\ns_wait_loadcnt 0, 1\n                  ^\n"
+    },
+    {
+      "id": "wait_extra_empty_exec",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "acf20241c8dbf9b9892c4ee8e7a8a1b5985fd23374901d67ca2eee2a381a3be6",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_extra_empty_exec.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_extra_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/wait_extra_empty_exec.s:101:19: error: invalid operand for instruction\ns_wait_loadcnt 0, 1\n                  ^\n"
+    },
+    {
+      "id": "vector_extra_live",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "585469ab25c5696b881a28b63d37715fcd3b00745c35d4ad2537c465d9c49725",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_extra_live.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_extra_live.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_extra_live.s:286:37: error: invalid operand for instruction\n        flat_load_b128 v[0:3], v4, s[0:1], 0 scope:SCOPE_SYS\n                                           ^\n"
+    },
+    {
+      "id": "vector_extra_unreachable",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "7cf6120360a83b3a5e7c61be65bf48d8f571a9f2c023e5d039612d81489264da",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_extra_unreachable.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_extra_unreachable.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_extra_unreachable.s:287:36: error: invalid operand for instruction\nflat_load_b128 v[0:3], v4, s[0:1], 0 scope:SCOPE_SYS\n                                   ^\n"
+    },
+    {
+      "id": "vector_extra_empty_exec",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "5b98ba10c6f1a6f73d642f3febfe09183b2511ba44a2e92fdcf415cb3872c10b",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_extra_empty_exec.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_extra_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_extra_empty_exec.s:287:36: error: invalid operand for instruction\nflat_load_b128 v[0:3], v4, s[0:1], 0 scope:SCOPE_SYS\n                                   ^\n"
+    },
+    {
+      "id": "vector_tuple_live",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "ac5ffd767d43b788712d9e3011e8d526f69644a3d82a14625b834170582937f0",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_tuple_live.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_tuple_live.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_tuple_live.s:286:17: error: invalid operand for instruction\n        flat_load_b128 v[0:2], v4, s[0:1] scope:SCOPE_SYS\n                       ^\n"
+    },
+    {
+      "id": "vector_tuple_unreachable",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "50c073297181d4fd7cb81bc04791ddcc6156dc11363169dbdfd84b642d6d3166",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_tuple_unreachable.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_tuple_unreachable.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_tuple_unreachable.s:287:16: error: invalid operand for instruction\nflat_load_b128 v[0:2], v4, s[0:1] scope:SCOPE_SYS\n               ^\n"
+    },
+    {
+      "id": "vector_tuple_empty_exec",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "e9548a74333076261c670ab5a9d5e8dcf6292f1c2656fdf585eb5b72f9b7ffa7",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_tuple_empty_exec.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_tuple_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_tuple_empty_exec.s:287:16: error: invalid operand for instruction\nflat_load_b128 v[0:2], v4, s[0:1] scope:SCOPE_SYS\n               ^\n"
+    },
+    {
+      "id": "vector_missing_live",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "1b65154e9289cbb4bf319d044b83ee6abfa587ec2b8d46d3525dde5ab9adf7a3",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_missing_live.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_missing_live.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_missing_live.s:286:2: error: too few operands for instruction\n        flat_load_b128 v[0:3], v4\n        ^\n"
+    },
+    {
+      "id": "vector_missing_unreachable",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "f1a9a13deb762db75e9aa6c0855dc78669b6f29ac2625a5b9e6bfaf1f3c0ca95",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_missing_unreachable.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_missing_unreachable.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_missing_unreachable.s:287:1: error: too few operands for instruction\nflat_load_b128 v[0:3], v4\n^\n"
+    },
+    {
+      "id": "vector_missing_empty_exec",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "33958bc60949ef452be175adae7756e43269ab521199e6b22bf4029d358de6a0",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_missing_empty_exec.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_missing_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/vector_missing_empty_exec.s:287:1: error: too few operands for instruction\nflat_load_b128 v[0:3], v4\n^\n"
+    },
+    {
+      "id": "unknown_directive",
+      "expected_accepted": false,
+      "accepted": false,
+      "assembly_sha256": "341d9d8d9e50831d059f8aab407f748652e840cd0c317378085f6379fd1ac890",
+      "object_sha256": null,
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/unknown_directive.s",
+        "-o",
+        "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/unknown_directive.o"
+      ],
+      "exit_code": 1,
+      "stderr": "/tmp/ptx-gfx1250-boundary-syntax-f01ul3p3/unknown_directive.s:1:1: error: unknown directive\n.not_a_real_native_directive\n^\n"
+    }
+  ],
+  "positive_controls": 7,
+  "negative_controls": 31
+}

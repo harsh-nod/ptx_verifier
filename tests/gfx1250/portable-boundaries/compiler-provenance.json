@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "host": "XSJHARMENON01",
+  "scope": "Genuine native compiler outputs, not edited or retargeted assembly; compilation/assembly alone make no semantic verification claim.",
+  "hardware_validation": "not_performed_by_this_compiler_only_workflow",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/clang-22",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.0/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.0/lib/llvm/bin/clang++.cfg\n"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n"
+    }
+  },
+  "fixtures": [
+    {
+      "source": "native-controls.hip",
+      "assembly": "native-controls.s",
+      "source_sha256": "18ee959ffb0236b638eb1dea8c1891dd1f2975ca3b2b75083b95f14d8a3daa8f",
+      "assembly_sha256": "ea0f99b25ee1282cf885624693f00b574c36feb16b1bf681af1461eeafde6c10",
+      "object_sha256": "be9d41d6901c50f15f6fa9b3118d224ae68b7739e005e213ab4b478aa88a5a66",
+      "code_object_sha256": "3d9f0135d5288cde52e5602d6ef88b81c7091c397b9c28f9b7dfd8bcae14f789",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-controls.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-controls.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-controls.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-controls.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-controls.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-controls.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-equivalence.hip",
+      "assembly": "native-equivalence.s",
+      "source_sha256": "bc043d569497931a5b49d7871fb6497cafff0bcad2391b7aec27138e77b711de",
+      "assembly_sha256": "d4f0f73675d1895acc0d120c2a852e23e465b1c70652f8062fb182203e748b85",
+      "object_sha256": "d45bfd78cd7c2fdca051042ccd8ee75a8aea03225e15705315cc5ae2f7763265",
+      "code_object_sha256": "03b73324a5370e02b8578e4651165506c2bfea7c5ae37cc3c1ef13ec92eb3aaa",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-equivalence.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-equivalence.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-equivalence.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-equivalence.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-equivalence.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-equivalence.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-model.hip",
+      "assembly": "native-model.s",
+      "source_sha256": "0c295cff85f1e64a929d30a5e0869181b7af09fc166a3e23495c6b16e8645926",
+      "assembly_sha256": "7e8614225e42b25cbe881881ceb706a565881b82d198738e13b1184349ddc97a",
+      "object_sha256": "05c7885452823984229a3dd8cb820a28528bab449179f4ca040ac7b602996026",
+      "code_object_sha256": "8171ee6b365d698370d1ad3468a285cb2390cb973adf09f865c8ced4e1417d6d",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-model.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-model.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-model.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-model.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-model.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-model.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-signed-byte.hip",
+      "assembly": "native-signed-byte.s",
+      "source_sha256": "b16c5dc7e12619987e7584bb65f6f8a85045b5a72ff187044a8330567f289507",
+      "assembly_sha256": "287b2da6ceac040fbd93276d5384360bfaa1a554d99cc4439928e124f3582eb5",
+      "object_sha256": "32b8ce3cebc53673d26160e4ba0ba52ce82a816a7ea72efb5ec52cc6420e027c",
+      "code_object_sha256": "15a053d8ffed2e9e3cb15bf0c042f77132c90ecbbc59dc6ed828dbbb922ea8ab",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-signed-byte.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-signed-byte.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-signed-byte.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-signed-byte.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-signed-byte.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-signed-byte.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ]
+}
