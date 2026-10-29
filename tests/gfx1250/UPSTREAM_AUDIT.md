@@ -22,3 +22,30 @@ through genuine gfx1250 assembly while retaining explicit shape/dtype limits.
 The preexisting `test_aligned_bar_sync_reached_on_different_iterations` PTX
 failure remains visible and unchanged. No unrelated assertion or golden output
 was weakened. gfx1250 hardware validation remains pending.
+
+## AMD frontend integration at `103c082`
+
+The next upstream merge adds `eedab43` (AMD stage layout), `7824998` (compiled
+gfx950 copy parsing), `ce1dca8` (typed syntax operands), and `85495ca` (public
+PTX IR execution), merged by `103c082bf88d2e538bb89f7c4f2e795c408d2339`.
+These changes add no AMD execution semantics. The experimental
+`volta_amd_analysis` parser and the implemented `volta_amdgpu_analysis` backend
+remain distinct workspace members.
+
+The unchanged upstream copy assembly includes an unrelated OpenCL helper using
+`s_setpc_b64`. Native parsing must distinguish descriptor-backed kernel entries
+from non-entry functions while continuing to reject unsupported instructions
+inside an entry and all unmodeled calls or inter-function branches. Stripping
+helper code from a fixture is only a diagnostic control, not acceptance evidence.
+
+`amd_frontend_compatibility_tests.rs` compares target, descriptor values, exact
+mnemonics and supported typed operands across the two frontends. It also checks
+the unchanged copy kernel's entire output at wave64 boundaries and rejects
+missing memory waits through native graph readiness. This provides a common
+regression contract for incremental upstream convergence without replacing
+target-specific AMD execution with the PTX interpreter's semantics.
+
+The public PTX `analyze_lowered` entry point receives the same native-LDS-layout
+configuration rejection as parsed PTX execution. Its callers still own IR
+well-formedness, provenance and preservation of the source semantics; exporting
+the entry point does not validate a translation or alter the native AMD model.

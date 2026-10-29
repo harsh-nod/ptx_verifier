@@ -159,11 +159,6 @@ pub fn analyze(
     kernel: Option<&str>,
     config: AnalysisConfig,
 ) -> Result<AnalysisResult, AnalysisError> {
-    if !config.shared_allocations.is_empty() {
-        return Err(AnalysisError::Eval(EvalError::Config {
-            message: "shared_allocations is a native AMD layout premise; PTX declares its own shared objects".into(),
-        }));
-    }
     let func = find_kernel(module, kernel)?;
     let vars = module_vars(module);
     let program = lower_function(func, &vars)?;

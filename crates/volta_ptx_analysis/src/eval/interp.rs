@@ -250,6 +250,11 @@ impl<'p> Interpreter<'p> {
         config: AnalysisConfig,
         provenance: Provenance,
     ) -> EvalResult<Self> {
+        if !config.shared_allocations.is_empty() {
+            return Err(EvalError::Config {
+                message: "shared_allocations is a native AMD layout premise; PTX declares its own shared objects".into(),
+            });
+        }
         let n_threads = config.num_threads();
         if n_threads == 0 {
             return Err(EvalError::Config {

@@ -347,7 +347,7 @@ pub enum LoweredInstr {
     // =========================================================================
     // Data Movement
     // =========================================================================
-    /// Load from parameter space: dst = params[param_id]
+    /// Load from parameter space: `dst = params[param_id]`.
     LoadParam { dst: RegId, param_id: ParamId },
 
     /// Load from memory: dst = mem[base + offset]

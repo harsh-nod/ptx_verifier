@@ -53,7 +53,7 @@ Direct dependencies of each crate:
 volta_cli             → volta_amdgpu_analysis, volta_common, volta_equivalence, volta_expr, volta_graph, volta_graph_check, volta_pipeline, volta_ptx_analysis, volta_spec, volta_viz
 volta_py              → volta_amdgpu_analysis, volta_common, volta_equivalence, volta_expr, volta_graph_check, volta_pipeline, volta_ptx_analysis, volta_spec
 volta_viz             → volta_expr, volta_graph, volta_graph_check
-volta_pipeline        → volta_amdgpu_analysis, volta_equivalence, volta_expr, volta_graph, volta_graph_check, volta_ptx_analysis (+ dev: volta_viz)
+volta_pipeline        → volta_amdgpu_analysis, volta_equivalence, volta_expr, volta_graph, volta_graph_check, volta_ptx_analysis (+ dev: volta_amd_analysis, volta_viz)
 volta_amd_analysis    → (no workspace crate)
 volta_amdgpu_analysis → volta_common, volta_expr, volta_graph (+ dev: volta_equivalence, volta_spec)
 volta_ptx_analysis    → volta_common, volta_expr, volta_graph
@@ -432,13 +432,18 @@ verdict, duration) in `check_graph`. `cargo run -p volta_cli
 
 **Path**: `crates/volta_amd_analysis/`
 
-AMD assembly analysis, parallel to `volta_ptx_analysis`: parsing (`frontend`),
-lowering (`lower`, `ir`), and symbolic execution (`eval`). The frontend is public;
-the other stages are private.
+The upstream experimental AMD syntax frontend. Its public API parses a selected
+straight-line kernel; the private `lower`, `ir` and `eval` modules declare stage
+boundaries but contain no executable implementation. CLI and Python AMD analysis
+continue through `volta_amdgpu_analysis` and its target-specific graph checks.
 `frontend::parse::parse_kernel(source, name)` extracts a kernel's target,
 instructions with typed operands, and numeric launch settings. It parses operand
 syntax without validating instruction semantics. Tests use the compiled gfx950
 copy kernel; see the crate README for supported forms and build commands.
+The pipeline's `amd_frontend_compatibility_tests.rs` compares both parsers on
+that unchanged input, then checks its complete native outputs and missing-wait
+mutations. The PTX `analyze_lowered` API does not validate an AMD translation
+or supply native wave, register, replay or synchronization semantics.
 
 ## Crate: volta_graph_check
 

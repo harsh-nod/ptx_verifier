@@ -3,14 +3,13 @@
 use volta_graph::{Assumption, InstructionInfo, Provenance};
 use volta_graph_check::{GraphConclusion, check_graph};
 use volta_ptx_analysis::{
-    AnalysisConfig, ArrayDef, ArrayKind, InstrId, LoweredInstr, LoweredProgram, MemSpace, Operand,
-    ScalarType, SourceMap, SymbolTable, analyze_lowered,
+    AnalysisConfig, ArrayDef, ArrayKind, EvalError, InstrId, LoweredInstr, LoweredProgram,
+    MemSpace, Operand, ScalarType, SharedAllocation, SourceMap, SymbolTable, analyze_lowered,
 };
 
-#[test]
-fn executes_a_lowered_store() {
-    const OUTPUT_BASE: u64 = 0x20000;
+const OUTPUT_BASE: u64 = 0x20000;
 
+fn store_program() -> LoweredProgram {
     // Direct callers must finalize the layout even when no shared memory is declared.
     let mut symbols = SymbolTable::new();
     symbols.finalize_shared_layout().unwrap();
@@ -37,7 +36,10 @@ fn executes_a_lowered_store() {
         let _ = program.predicates.push(None);
     }
 
-    // One thread and one output element suffice to exercise result extraction.
+    program
+}
+
+fn store_config() -> AnalysisConfig {
     let mut config = AnalysisConfig::new((1, 1, 1));
     config.arrays = vec![ArrayDef {
         name: "out".into(),
@@ -46,6 +48,13 @@ fn executes_a_lowered_store() {
         len: 1,
         kind: ArrayKind::Output,
     }];
+    config
+}
+
+#[test]
+fn executes_a_lowered_store() {
+    let program = store_program();
+    let config = store_config();
     let provenance = provenance(&program, &config);
     let result = analyze_lowered(&program, config, provenance).unwrap();
 
@@ -61,6 +70,34 @@ fn executes_a_lowered_store() {
             .display_expr(outputs.element("out", 0).unwrap()),
         "42"
     );
+}
+
+#[test]
+fn direct_ir_execution_rejects_native_amd_layout_premises() {
+    let program = store_program();
+    let mut config = store_config();
+    config.shared_allocations.push(SharedAllocation {
+        name: "native_tile".into(),
+        offset: 0,
+        size: 4,
+    });
+    let provenance = provenance(&program, &config);
+    let error = analyze_lowered(&program, config, provenance).unwrap_err();
+    assert!(
+        matches!(error, EvalError::Config { ref message } if message.contains("shared_allocations"))
+    );
+}
+
+#[test]
+fn direct_ir_execution_validates_the_launch_configuration() {
+    let program = store_program();
+    let mut config = store_config();
+    config.arrays[0].base += 1;
+    let provenance = provenance(&program, &config);
+    assert!(matches!(
+        analyze_lowered(&program, config, provenance),
+        Err(EvalError::Config { .. })
+    ));
 }
 
 /// Record the interpreter's assumptions and the supplied program and launch configuration.
