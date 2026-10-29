@@ -165,6 +165,24 @@ class CoordinatorFeatureReviewTests(unittest.TestCase):
             self.assertIn(detail, row["portable_obligation"])
         self.assertEqual(row["coordinator_status"], "pending")
 
+    def test_baseline_assertion_and_golden_sources_are_bound(self):
+        (self.root / "baseline.rs").write_text("fn original_assertion() {}\n")
+        (self.root / "golden.out").write_text("out[0] = 1\n")
+        self.ledger["rows"][0]["baseline_assertions"] = [
+            {"path": "baseline.rs", "function": "original_assertion"}
+        ]
+        self.manifests[0][1]["rows"][0]["golden_path"] = "golden.out"
+        decisions = self.decisions()
+        (self.root / "golden.out").write_text("out[0] = 2\n")
+        with self.assertRaisesRegex(ValueError, "stale coordinator"):
+            self.candidate(decisions=decisions)
+        decisions = self.decisions()
+        (self.root / "baseline.rs").write_text(
+            "fn original_assertion() { panic!(); }\n"
+        )
+        with self.assertRaisesRegex(ValueError, "stale coordinator"):
+            self.candidate(decisions=decisions)
+
     def test_changed_current_adjudication_invalidates_the_previous_decision(self):
         reviews = {
             "rows": [
@@ -172,6 +190,9 @@ class CoordinatorFeatureReviewTests(unittest.TestCase):
                     "path": self.positive,
                     "upstream_sha256": self.positive,
                     "status": "resolved_candidate",
+                    "native_evidence": [
+                        {"path": "native.rs", "function": "actual_control"}
+                    ],
                     "completion": "coordinator_review_required",
                     "current_observation": "Actual typed negative and complete positive",
                 }
