@@ -152,3 +152,46 @@ four actual new traces. It attests rendering only; symbolic/math and independent
 physical hardware receipts are separate. The first18 native hardware workload
 slice has its own coordinator validation; neither that numeric slice nor these
 workflow tests closes the other original families or issue #21.
+
+## Reviewed feature references
+
+`feature-review.json` decomposes the 520 pinned upstream reference files into
+35 stable obligation groups. These are **365 PTX fixtures, 136 shared equivalence
+specifications, one CLI reference spec and 18 aggregate Rust source files**,
+not 520 separate native acceptance cases. Each fixture links its actual baseline
+Rust assertion and complete golden-output coordinates where present. The ledger
+preserves prior gfx950 review details as historical candidates; it inherits none
+of that target's completion statuses or wave64 assumptions.
+
+The proposed dispositions retain 283 references requiring an exact native
+counterpart or explicit native semantics/alignment mapping. The complete
+64-element packed transpose has an exact native candidate. The 136 vendor-neutral
+specifications use the shared formula/equivalence engine; their unit tests do not
+prove native kernel decoding. The 82 narrow NVIDIA grammar, TMEM resource and
+cluster-scheduler residual candidates require coordinator review and do not
+exclude separately asserted arithmetic, memory layout or synchronization.
+Aggregate Rust sources link their child fixtures rather than claiming one runtime
+acceptance case per file.
+
+Important remaining obligations include BF16 logical M16/N8/K16 padding and
+fragment projection, exact high64 magic-division consumers, noncontiguous
+48/64-byte matrix packing, raw accumulator seeds, numeric136/raw17/mixed408
+matrix payloads, tensor edge zero fill and descriptor lifetime, sparse memory/race
+payloads, scalar source-format/bit patterns, module-global/dynamic-LDS/by-value
+ABI cases and native split-barrier generations. Dense WMMA, bounded workload
+family names and shared source code do not replace these exact properties.
+The old gfx950 assertion that AMD barriers have no split signal/wait operation
+is specifically **not** applicable to gfx1250.
+
+```bash
+python3 tests/gfx1250/full-parity/feature_contract.py
+python3 tests/gfx1250/full-parity/test_feature_contract.py -v
+cargo test --release -p volta_equivalence \
+  --test spec_identity_tests --test spec_equivalence_tests
+```
+
+The contract checks all pinned source/assertion/golden hashes and native candidate
+function references, refuses dropped or duplicate rows, and prevents an output
+obligation from becoming an automatic target-only residual. It reports metadata
+consistency only. Even an exact native candidate remains subject to the
+coordinator's source-pinned software/hardware review before acceptance.
