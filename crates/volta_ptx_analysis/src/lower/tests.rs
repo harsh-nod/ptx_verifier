@@ -1041,7 +1041,7 @@ fn test_cp_async_lowering() {
         .instructions
         .values()
         .find_map(|i| match i {
-            LoweredInstr::CpAsync { src_size, .. } => Some(src_size.clone()),
+            LoweredInstr::CpAsync { src_size, .. } => Some(*src_size),
             _ => None,
         })
         .expect("expected a lowered CpAsync instruction");
@@ -1058,7 +1058,7 @@ fn test_cp_async_lowering() {
         .instructions
         .values()
         .find_map(|i| match i {
-            LoweredInstr::CpAsync { src_size, .. } => Some(src_size.clone()),
+            LoweredInstr::CpAsync { src_size, .. } => Some(*src_size),
             _ => None,
         })
         .expect("expected a lowered CpAsync instruction");
@@ -1112,7 +1112,7 @@ fn test_cp_async_shared_cta_qualifier() {
                     dst_base,
                     dst_offset,
                     ..
-                } => Some((dst_base.clone(), *dst_offset)),
+                } => Some((*dst_base, *dst_offset)),
                 _ => None,
             })
             .expect("expected a lowered CpAsync instruction")

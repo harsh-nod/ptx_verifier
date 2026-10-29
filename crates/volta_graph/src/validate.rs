@@ -89,14 +89,13 @@ impl EventGraph {
             }
         }
         for (id, event) in self.events.iter() {
-            if let EventKind::Amd(index) = event.kind {
-                if self
+            if let EventKind::Amd(index) = event.kind
+                && self
                     .amd_events
                     .get(index as usize)
                     .is_none_or(|r| r.event != id)
-                {
-                    d.at(id, "AMD event has no matching record".into());
-                }
+            {
+                d.at(id, "AMD event has no matching record".into());
             }
         }
         let mut linked = std::collections::HashSet::new();

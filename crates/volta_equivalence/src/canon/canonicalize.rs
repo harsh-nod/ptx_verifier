@@ -248,12 +248,11 @@ impl Session {
         while let Some(expression) = pending.pop() {
             if !self.is_shared(side, expression)
                 && !self.expr_memo.contains_key(&(side, expression))
+                && let ExprNode::Add(a, b) = arena.node(expression)
             {
-                if let ExprNode::Add(a, b) = arena.node(expression) {
-                    pending.push(*b);
-                    pending.push(*a);
-                    continue;
-                }
+                pending.push(*b);
+                pending.push(*a);
+                continue;
             }
             values.push(self.canon_value(side, arena, expression)?);
         }
