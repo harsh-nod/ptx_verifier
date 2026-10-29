@@ -1,0 +1,1396 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Exact finite matrix feature mapping candidates only; no software run receipt or coordinator/hardware acceptance. Native partition/projections are explicit and target mechanisms retain narrow residuals.",
+  "reference_groups": [
+    "MATRIX-LDS-LAYOUT",
+    "MATRIX-NUMERIC-LAYOUT",
+    "MATRIX-PUBLICATION",
+    "MATRIX-RAW-C",
+    "MATRIX-STRIDED48-64"
+  ],
+  "test_sources": [
+    "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs",
+    "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs",
+    "crates/volta_pipeline/tests/gfx1250_matrix_publication.rs",
+    "crates/volta_pipeline/tests/gfx1250_compiler_tests.rs"
+  ],
+  "rows": [
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_bar_sync_before_completion_orders_nothing.ptx",
+      "baseline_sha256": "6f34c6d76539146e1e8eb5383d4b152719c48ff5bb7e5b3a92373ec8d6f022e1",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/tensor_order_tests.rs",
+          "function": "test_tcgen05_mma_bar_sync_before_completion_orders_nothing",
+          "line": 64,
+          "function_region_sha256": "7f42dac004ebcb94cf609c4b08fa0c0dfdceff414e4a94a866925e6625414d30",
+          "source_sha256": "5604195e4700728b3ac2dc44c46d93c55c78a8b136c332154e07ff35279d8b1a"
+        }
+      ],
+      "group": "MATRIX-PUBLICATION",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_publication.rs::a_barrier_without_lds_completion_cannot_publish_the_wmma_result",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-publication.hip",
+      "native_source_sha256": "3385cb4ed8ad2ae4faf046dc9b45857733056d1714495bcb472554b3fed0b3a9",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-publication.s",
+      "native_assembly_sha256": "1c5b38f00224e10a2b3a5329b46c67b1f22b13c8fe8103dd0a950410bdb3439d",
+      "kernel": "matrix_cross_wave_publication",
+      "native_outputs": {
+        "out": 256
+      },
+      "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_bar_sync_between_issue_and_commit_orders_nothing.ptx",
+      "baseline_sha256": "d4d5eca8581456d673bd7c9ea7400c4e442906a33d71148f2258d532a2b52636",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/tensor_order_tests.rs",
+          "function": "test_tcgen05_mma_bar_sync_between_issue_and_commit_orders_nothing",
+          "line": 127,
+          "function_region_sha256": "5ce555092b1b7c394dda0142b7b4225290b6d48d9601ca3a6c209f32cdd1f6bf",
+          "source_sha256": "5604195e4700728b3ac2dc44c46d93c55c78a8b136c332154e07ff35279d8b1a"
+        }
+      ],
+      "group": "MATRIX-PUBLICATION",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_publication.rs::a_barrier_without_lds_completion_cannot_publish_the_wmma_result",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-publication.hip",
+      "native_source_sha256": "3385cb4ed8ad2ae4faf046dc9b45857733056d1714495bcb472554b3fed0b3a9",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-publication.s",
+      "native_assembly_sha256": "1c5b38f00224e10a2b3a5329b46c67b1f22b13c8fe8103dd0a950410bdb3439d",
+      "kernel": "matrix_cross_wave_publication",
+      "native_outputs": {
+        "out": 256
+      },
+      "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_bar_sync_reader_without_fence_after_thread_sync_is_rejected.ptx",
+      "baseline_sha256": "94b88305c8a858b6a10ad1bc70a8d8fdd40c5e38f4a35067dd74b19ee2a385a8",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/tensor_order_tests.rs",
+          "function": "test_tcgen05_mma_bar_sync_reader_without_fence_after_thread_sync_is_rejected",
+          "line": 170,
+          "function_region_sha256": "ef54a1d9472a5dc02c316b8dfb6865d2226dacec786f330678fe125ff7fa1264",
+          "source_sha256": "5604195e4700728b3ac2dc44c46d93c55c78a8b136c332154e07ff35279d8b1a"
+        }
+      ],
+      "group": "MATRIX-PUBLICATION",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_publication.rs::completed_wmma_stores_still_need_cross_wave_publication",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-publication.hip",
+      "native_source_sha256": "3385cb4ed8ad2ae4faf046dc9b45857733056d1714495bcb472554b3fed0b3a9",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-publication.s",
+      "native_assembly_sha256": "1c5b38f00224e10a2b3a5329b46c67b1f22b13c8fe8103dd0a950410bdb3439d",
+      "kernel": "matrix_cross_wave_publication",
+      "native_outputs": {
+        "out": 256
+      },
+      "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_fenced_bar_sync_before_completion_orders_nothing.ptx",
+      "baseline_sha256": "167038cbbd29f563a9a9648b4b49e1fe47b78f04a87cb5def215690064f917f9",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/tensor_order_tests.rs",
+          "function": "test_tcgen05_mma_fenced_bar_sync_before_completion_orders_nothing",
+          "line": 87,
+          "function_region_sha256": "2b2cc297181a03301196c8a4c9d7bac89d7803c6f01e8e3e87f8d637b6b7309b",
+          "source_sha256": "5604195e4700728b3ac2dc44c46d93c55c78a8b136c332154e07ff35279d8b1a"
+        }
+      ],
+      "group": "MATRIX-PUBLICATION",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_publication.rs::a_barrier_without_lds_completion_cannot_publish_the_wmma_result",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-publication.hip",
+      "native_source_sha256": "3385cb4ed8ad2ae4faf046dc9b45857733056d1714495bcb472554b3fed0b3a9",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-publication.s",
+      "native_assembly_sha256": "1c5b38f00224e10a2b3a5329b46c67b1f22b13c8fe8103dd0a950410bdb3439d",
+      "kernel": "matrix_cross_wave_publication",
+      "native_outputs": {
+        "out": 256
+      },
+      "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_operand_write_after_bar_sync_is_an_inflight_hazard.ptx",
+      "baseline_sha256": "2f1869601c0f7e601601e25e7b3dd6cdc01e92e6c87458e5fc9ff463f200e2bf",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_tcgen05_mma_operand_write_after_bar_sync_is_an_inflight_hazard",
+          "line": 194,
+          "function_region_sha256": "53d1057db029b7dd861ddd8a4968947b09d98848be2be3b2fc6c6953fa4210e9",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "group": "MATRIX-PUBLICATION",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_publication.rs::wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-publication.hip",
+      "native_source_sha256": "3385cb4ed8ad2ae4faf046dc9b45857733056d1714495bcb472554b3fed0b3a9",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-publication.s",
+      "native_assembly_sha256": "1c5b38f00224e10a2b3a5329b46c67b1f22b13c8fe8103dd0a950410bdb3439d",
+      "kernel": "matrix_cross_wave_publication",
+      "native_outputs": {
+        "out": 256
+      },
+      "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_read_after_commit_without_waiting_is_an_inflight_hazard.ptx",
+      "baseline_sha256": "9b455fc8eb0de799df39456071dd29eca58e3802177b35ee64bb53e1e1a52e2c",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/tensor_order_tests.rs",
+          "function": "test_tcgen05_mma_read_after_commit_without_waiting_is_an_inflight_hazard",
+          "line": 110,
+          "function_region_sha256": "b02f4c16d2f6d462264dc37b9999b9f34caabf788e19be644bdbb2700195da97",
+          "source_sha256": "5604195e4700728b3ac2dc44c46d93c55c78a8b136c332154e07ff35279d8b1a"
+        }
+      ],
+      "group": "MATRIX-PUBLICATION",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_publication.rs::wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-publication.hip",
+      "native_source_sha256": "3385cb4ed8ad2ae4faf046dc9b45857733056d1714495bcb472554b3fed0b3a9",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-publication.s",
+      "native_assembly_sha256": "1c5b38f00224e10a2b3a5329b46c67b1f22b13c8fe8103dd0a950410bdb3439d",
+      "kernel": "matrix_cross_wave_publication",
+      "native_outputs": {
+        "out": 256
+      },
+      "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_reader_without_fence_after_thread_sync_is_rejected.ptx",
+      "baseline_sha256": "86de880448966bd4c9995f0c4f5a31a14f84a20e7077259e73c3f8fc2ff68813",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/tensor_order_tests.rs",
+          "function": "test_tcgen05_mma_reader_without_fence_after_thread_sync_is_rejected",
+          "line": 147,
+          "function_region_sha256": "525c6aa62afdde6cf31f55b8f107a3233b2402330ac15b6d3a363d48db550dd5",
+          "source_sha256": "5604195e4700728b3ac2dc44c46d93c55c78a8b136c332154e07ff35279d8b1a"
+        }
+      ],
+      "group": "MATRIX-PUBLICATION",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_publication.rs::completed_wmma_stores_still_need_cross_wave_publication",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-publication.hip",
+      "native_source_sha256": "3385cb4ed8ad2ae4faf046dc9b45857733056d1714495bcb472554b3fed0b3a9",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-publication.s",
+      "native_assembly_sha256": "1c5b38f00224e10a2b3a5329b46c67b1f22b13c8fe8103dd0a950410bdb3439d",
+      "kernel": "matrix_cross_wave_publication",
+      "native_outputs": {
+        "out": 256
+      },
+      "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/misaligned_ldmatrix_row_address.ptx",
+      "baseline_sha256": "20b7a3b317305180dce010a6668e1cae8b404e9a0c9c1c87ec3d2124f0308024",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_misaligned_ldmatrix_row_address",
+          "line": 956,
+          "function_region_sha256": "bec96144d27d47110edcb4659ce24da8a9ddb87169d5ed0874edfd794b6eb1db",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "group": "MATRIX-LDS-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::native_halfword_alignment_is_checked_at_actual_flat_read_and_write",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_stride32",
+      "native_outputs": {},
+      "native_property": "Actual native F16 load/store offset1 fails its halfword alignment contract.",
+      "reason": "Actual native F16 load/store offset1 fails its halfword alignment contract.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "expected_native_outcome": "typed_domain_refusal"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_disable_output_lane_skips_the_write.ptx",
+      "baseline_sha256": "ca342ad7624c29b57e7ba9f23a80cbc63b5d959b4dde2d0d02c6a95846e217b8",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_disable_output_lane_skips_the_write",
+          "line": 530,
+          "function_region_sha256": "5eec3eb97b365f9e0eb342324afe13494c3dfce3914e46eccd2b9daafc4a7408",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "group": "MATRIX-NUMERIC-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabling_the_first_logical_output_cannot_satisfy_the_complete_footprint",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "native_assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "kernel": "matrix_disabled_first_output",
+      "native_outputs": {
+        "out": 1023,
+        "native": 2048
+      },
+      "native_property": "Exactly logical output0 is absent; every other logical/native coordinate is checked; a separate LDS consumer requires the typed uninitialized cell0 failure.",
+      "reason": "Exactly logical output0 is absent; every other logical/native coordinate is checked; a separate LDS consumer requires the typed uninitialized cell0 failure.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "related_tests": [
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
+      ],
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_rejects_unmodeled_idesc_fields.ptx",
+      "baseline_sha256": "845e1a90db58e2f8493b20c6e5afa23eac8a303c00061cc530aa140db275d15b",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_unmodeled_idesc_fields",
+          "line": 585,
+          "function_region_sha256": "5dbd62429b559db6cb1b40e6a7a6dabf5562b8e3d326fc00abea8c6d8d023157",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "group": "MATRIX-NUMERIC-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-unmodeled.hip",
+      "native_source_sha256": "ae109cdb08b7fd5be850672b7083a11a908ea24e17805c497ffd490abc485a0f",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-unmodeled.s",
+      "native_assembly_sha256": "ff81fcbc2997987c7474628d54d0bd9a8885b0c913fcbce1faed5432d4860042",
+      "kernel": "matrix_b_reuse_boundary",
+      "native_outputs": {},
+      "native_property": "A legal extra native WMMA mode is explicitly rejected, while default WMMA positives separately preserve the arithmetic.",
+      "reason": "A legal extra native WMMA mode is explicitly rejected, while default WMMA positives separately preserve the arithmetic.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "related_tests": [
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
+      ],
+      "expected_native_outcome": "typed_domain_refusal"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/wgmma_is_not_supported.ptx",
+      "baseline_sha256": "e621a8fff8ab1ecb53f52c749e2cc429edb813c7a5bca62061c70bebfd9fce47",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_wgmma_is_not_supported",
+          "line": 822,
+          "function_region_sha256": "0128b95b6920b337afe641d6b7e12fb403ce637b15bd76d93520a493fa8b3cea",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "group": "MATRIX-PUBLICATION",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_publication.rs::completed_wmma_result_is_published_to_the_second_wave_with_all256_outputs",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-publication.hip",
+      "native_source_sha256": "3385cb4ed8ad2ae4faf046dc9b45857733056d1714495bcb472554b3fed0b3a9",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-publication.s",
+      "native_assembly_sha256": "1c5b38f00224e10a2b3a5329b46c67b1f22b13c8fe8103dd0a950410bdb3439d",
+      "kernel": "matrix_cross_wave_publication",
+      "native_outputs": {
+        "out": 256
+      },
+      "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/wmma_load_base_misaligned.ptx",
+      "baseline_sha256": "a1e5c72f8e2360f3d73439d8844590985c139d18bfc94a9d8ad7ad230732b2f8",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_wmma_load_base_misaligned",
+          "line": 972,
+          "function_region_sha256": "5e5a7e482940e02f27826d66d90217b341ee3e2adc1949fa0bcbad8552977863",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "group": "MATRIX-LDS-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::native_halfword_alignment_is_checked_at_actual_flat_read_and_write",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_stride32",
+      "native_outputs": {},
+      "native_property": "Native load misalignment is checked at the actual memory instruction, not imported PTX collective alignment.",
+      "reason": "Native load misalignment is checked at the actual memory instruction, not imported PTX collective alignment.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "expected_native_outcome": "typed_domain_refusal"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/wmma_store_base_misaligned.ptx",
+      "baseline_sha256": "7181b96416184016b19aa3f7260cc2a947805e2084d1c4064a0390de07ef2bea",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_wmma_store_base_misaligned",
+          "line": 987,
+          "function_region_sha256": "b4f48adf4f1bb6eed9c80df6bbdd7564133198651d71fdecd3e7746cf3e5b55c",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "group": "MATRIX-LDS-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::native_halfword_alignment_is_checked_at_actual_flat_read_and_write",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_stride32",
+      "native_outputs": {},
+      "native_property": "Native store misalignment is checked at the actual memory instruction, not imported PTX collective alignment.",
+      "reason": "Native store misalignment is checked at the actual memory instruction, not imported PTX collective alignment.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "expected_native_outcome": "typed_domain_refusal"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/wmma_stride_below_default.ptx",
+      "baseline_sha256": "f39da5dbbc96e09a6f403ab56caf3d1ce0415fe3fa9639bea0639d0df01d0d58",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_wmma_stride_below_default",
+          "line": 1003,
+          "function_region_sha256": "47cf2a5950e95e142a3fa2bddf31417ccffae5f79a45aa7af50bb59451c368bb",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "group": "MATRIX-STRIDED48-64",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::overlapping_16_byte_producer_rows_complete_but_report_real_shared_write_conflicts",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_stride16",
+      "native_outputs": {
+        "out": 256,
+        "fragment": 256
+      },
+      "native_property": "The complete candidate has real shared WriteWrite conflicts from overlapping16-byte producer rows.",
+      "reason": "The complete candidate has real shared WriteWrite conflicts from overlapping16-byte producer rows.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/wmma_stride_misaligned.ptx",
+      "baseline_sha256": "ba0002756a13fbaa14965c074d752976b82ad804c591b0322370e1a0f1cc9cea",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_wmma_stride_misaligned",
+          "line": 1024,
+          "function_region_sha256": "4b04fc136d50f8934ae47803f4c5591664fcf84bc1c33119e7c67b5744e30ec1",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "group": "MATRIX-STRIDED48-64",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::native_40_byte_halfword_pitch_does_not_import_ptx_collective_stride_alignment",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_stride40",
+      "native_outputs": {
+        "out": 256,
+        "fragment": 256
+      },
+      "native_property": "Native40-byte pitch is legal for its actual halfword memory operations and checks every gathered half/output.",
+      "reason": "Native40-byte pitch is legal for its actual halfword memory operations and checks every gathered half/output.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_ldmatrix.ptx",
+      "baseline_sha256": "065cc25fd125592a5310841ca86d8467ccc5fd06678c729dc7ef565cc40f9466",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_aligned_ldmatrix",
+          "line": 628,
+          "function_region_sha256": "5c8b1736c6dc0151bc369a06732eafa1a01356a0ff71b406c51d96b8546e428c",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-LDS-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::four_ldmatrix_fragment_pairs_preserve_every_source_half",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_four_fragment_pairs",
+      "native_outputs": {
+        "out": 256
+      },
+      "native_property": "All256 independent gathered halves are exposed; the original initialized aligned load has no exported outputs.",
+      "reason": "All256 independent gathered halves are exposed; the original initialized aligned load has no exported outputs.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/aligned_ldmatrix.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_wmma_load_and_store_load.ptx",
+      "baseline_sha256": "8cac73fc9d2d1637afc4c578841a14be342178234ce3a816d210393f87412053",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_aligned_wmma_load_and_store",
+          "line": 746,
+          "function_region_sha256": "af2ad13aeec2781a500e17efb4b345f64ba00f541e5b6e9607936b9e90f0dd93",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-LDS-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::contiguous_32_byte_rows_preserve_all_gathered_halves_and_256_products",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_stride32",
+      "native_outputs": {
+        "out": 256,
+        "fragment": 256
+      },
+      "native_property": "Every gathered F16 half and full256 weighted WMMA outputs at contiguous32-byte row pitch.",
+      "reason": "Every gathered F16 half and full256 weighted WMMA outputs at contiguous32-byte row pitch.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/aligned_wmma_load_and_store_load.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/aligned_wmma_load_and_store_store.ptx",
+      "baseline_sha256": "cc95a9380f42908d85a6b1084f6dba3543c92198d5e3ab0cf99e9dc0988ef7d8",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_aligned_wmma_load_and_store",
+          "line": 746,
+          "function_region_sha256": "af2ad13aeec2781a500e17efb4b345f64ba00f541e5b6e9607936b9e90f0dd93",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-LDS-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::contiguous_32_byte_rows_preserve_all_gathered_halves_and_256_products",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_stride32",
+      "native_outputs": {
+        "out": 256,
+        "fragment": 256
+      },
+      "native_property": "Full native matrix result placement and independent gathered-half reference; original has LDS stores without exported outputs.",
+      "reason": "Full native matrix result placement and independent gathered-half reference; original has LDS stores without exported outputs.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/aligned_wmma_load_and_store_store.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/ldmatrix_trans_mapping.ptx",
+      "baseline_sha256": "8da8846b0aad113f413557dd814e7f53ae8af2ef2adaa5b0650d56515eee42a9",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_ldmatrix_trans_mapping",
+          "line": 635,
+          "function_region_sha256": "47c5f3981d90587f5c5a47ce4a9ea5fd0942909ff06250d95d4e8e83223da4e2",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-LDS-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_compiler_tests.rs::real_gfx1250_packed16_transpose_preserves_all_64_elements",
+      "native_source": "tests/gfx1250/fixtures/native-transpose-high64.hip",
+      "native_source_sha256": "e6ce43b03bd3c7532960ff8065625cf4191b2fb6047d8b5acd2a7f68ac17e059",
+      "native_assembly": "tests/gfx1250/fixtures/native-transpose-high64.s",
+      "native_assembly_sha256": "34e66779492f5474dd3e412a44d4d81e82ebf51909943c8c87255672ea9adaa3",
+      "kernel": "transpose_8x8_b16",
+      "native_outputs": {
+        "out": 64
+      },
+      "native_property": "Complete original64-element packed16 transpose with independent source-coordinate reference.",
+      "reason": "Complete original64-element packed16 transpose with independent source-coordinate reference.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/ldmatrix_trans_mapping.out",
+      "golden_sha256": "5d40aca74f8c9270e5119806878314dc74428dd67f31bf4905a28aec6d820c1a",
+      "original_output_coordinates": {
+        "out": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63
+        ]
+      },
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mma_accumulator_register_decodes_raw_bits.ptx",
+      "baseline_sha256": "e4594590e23bf1593480a7236a559af807b5a285deecbb19d56ebb02c1cf2d71",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_mma_accumulator_register_decodes_raw_bits",
+          "line": 727,
+          "function_region_sha256": "a3b229167fbc31ab2efbc6f2cf384f859e57f36f4389e4e2699243a83a4f045f",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-RAW-C",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::raw_accumulator_decodes_f32_bits_and_preserves_all_128_original_fragments",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_raw_accumulator",
+      "native_outputs": {
+        "out": 128,
+        "native": 256
+      },
+      "native_property": "Exact raw F32 seed preserves all128 original fragment coordinates and256 native outputs.",
+      "reason": "Exact raw F32 seed preserves all128 original fragment coordinates and256 native outputs.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/mma_accumulator_register_decodes_raw_bits.out",
+      "golden_sha256": "569de7b8ac488653791a2c88f352dbe4dc8f105559567eb6e2b400dd7438fc1b",
+      "original_output_coordinates": {
+        "out": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127
+        ]
+      },
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mma_with_immediate_accumulator.ptx",
+      "baseline_sha256": "52eded8b3bec83a08bb7a4f37086c3daa6a6aafacb77130b101888b2767b085b",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_mma_with_immediate_accumulator",
+          "line": 711,
+          "function_region_sha256": "fcd2780591cbb5ac6dfe557c98fd7f8481951edc65707a5eda634bd3f7d5178a",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-RAW-C",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::materialized_immediate_c_preserves_all_128_original_fragments",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_immediate_accumulator",
+      "native_outputs": {
+        "out": 128,
+        "native": 256
+      },
+      "native_property": "Materialized native immediate C retains the128 original outputs and complete256 native tile.",
+      "reason": "Materialized native immediate C retains the128 original outputs and complete256 native tile.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/mma_with_immediate_accumulator.out",
+      "golden_sha256": "569de7b8ac488653791a2c88f352dbe4dc8f105559567eb6e2b400dd7438fc1b",
+      "original_output_coordinates": {
+        "out": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127
+        ]
+      },
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/stmatrix_writes_the_expected_byte_per_lane.ptx",
+      "baseline_sha256": "782e8e2ad7f0a4c6a913821f040557b3c37cbbd0f0404baf62cba9dcee2dbd39",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_stmatrix_writes_the_expected_byte_per_lane",
+          "line": 1460,
+          "function_region_sha256": "c8e813ecaf6ac323315e739d8da191909020fb0a25838a2f41fcb8c6ae724144",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-LDS-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::stmatrix_lane_word_placement_checks_the_original_byte20_and_all_32_words",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_lane_word_placement",
+      "native_outputs": {
+        "out": 33
+      },
+      "native_property": "Original byte20 projection out0=1005 is compared directly to original PTX/golden, plus all32 lane words.",
+      "reason": "Original byte20 projection out0=1005 is compared directly to original PTX/golden, plus all32 lane words.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/stmatrix_writes_the_expected_byte_per_lane.out",
+      "golden_sha256": "f6aec098491acbcbd8b4b673d26400dc6b03b0eb33e45eb5e156bcfccc834b7a",
+      "original_output_coordinates": {
+        "out": [
+          0
+        ]
+      },
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_bar_sync_after_completion_orders_the_read.ptx",
+      "baseline_sha256": "514f54ab56363ef851bd59e236f90104ed55095b0622533c8c95888ca4bce32e",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_bar_sync_after_completion_orders_the_read",
+          "line": 530,
+          "function_region_sha256": "0b0cbe9399f081ff86860679ff036453bd5d18ad4ee643521a2453da1d75990f",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/graph_tests.rs",
+          "function": "tcgen05_mma_is_tracked_by_its_commit_phase",
+          "line": 197,
+          "function_region_sha256": "6a38f6a934ac713207526c8e363341de943c28406b4ff17316643c1d4b3c2248",
+          "source_sha256": "ce18495ecaccc15c9672e47f93f16e2b974fbf56bb958c6712b3ebf4e829ad3f"
+        }
+      ],
+      "group": "MATRIX-PUBLICATION",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_publication.rs::completed_wmma_result_is_published_to_the_second_wave_with_all256_outputs",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-publication.hip",
+      "native_source_sha256": "3385cb4ed8ad2ae4faf046dc9b45857733056d1714495bcb472554b3fed0b3a9",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-publication.s",
+      "native_assembly_sha256": "1c5b38f00224e10a2b3a5329b46c67b1f22b13c8fe8103dd0a950410bdb3439d",
+      "kernel": "matrix_cross_wave_publication",
+      "native_outputs": {
+        "out": 256
+      },
+      "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_bar_sync_after_completion_orders_the_read.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_decodes_raw_operand_and_accumulator_bits.ptx",
+      "baseline_sha256": "fc6241d1ff003485fef1a4d9e6520ab36a1a7708ebe50988a1960ff3cff295f9",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_decodes_raw_operand_and_accumulator_bits",
+          "line": 494,
+          "function_region_sha256": "e2181b0dea0dff4b1e3317b0f1f681af36e6fbb767bbe650a5bbce2c2ac28139",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-NUMERIC-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::raw_half_operand_and_f32_c_seed_retain_17_and_every_logical_c_cell",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "native_assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "kernel": "matrix_raw17",
+      "native_outputs": {
+        "out": 1024,
+        "native": 2048
+      },
+      "native_property": "Raw F16 operands and F32 C decode to17; all logical/native seeded outputs are checked.",
+      "reason": "Raw F16 operands and F32 C decode to17; all logical/native seeded outputs are checked.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_decodes_raw_operand_and_accumulator_bits.out",
+      "golden_sha256": "172ec690b68596ff9da89da70a8275bc528c5e71d79665f2a19d8917c170e8d7",
+      "original_output_coordinates": {
+        "out": [
+          0
+        ]
+      },
+      "related_tests": [
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
+      ],
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_every_reader_waiting_is_accepted.ptx",
+      "baseline_sha256": "5490bed0b9f816cc7a6b484e802f1896467c80198209376f042e39c359ec4c44",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_every_reader_waiting_is_accepted",
+          "line": 541,
+          "function_region_sha256": "3b8ef7a123bb0775ddaea324436c258c091bcb56566b183291b8a2fb1a8c3800",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-PUBLICATION",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_publication.rs::completed_wmma_result_is_published_to_the_second_wave_with_all256_outputs",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-publication.hip",
+      "native_source_sha256": "3385cb4ed8ad2ae4faf046dc9b45857733056d1714495bcb472554b3fed0b3a9",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-publication.s",
+      "native_assembly_sha256": "1c5b38f00224e10a2b3a5329b46c67b1f22b13c8fe8103dd0a950410bdb3439d",
+      "kernel": "matrix_cross_wave_publication",
+      "native_outputs": {
+        "out": 256
+      },
+      "native_property": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "reason": "Two native waves preserve256 complete weighted WMMA outputs. Result readiness, operand leases, LDS completion and cross-wave publication are distinct obligations; harmful mutations retain complete candidate coordinates.",
+      "target_residual": "PTX TMEM allocation, TCGEN commit/fence spelling and counted thread participants differ from native WMMA/LDS. The native mapping uses64 threads in two wave32 groups and256 outputs; it does not claim equal TMEM/CTA footprints or inherit PTX proxy-fence semantics.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_every_reader_waiting_is_accepted.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_kind_f8f6f4_numeric_correctness.ptx",
+      "baseline_sha256": "4229646d0638698828979a4bad3fcb2dc91374fdaa98bf9767d54f7d6f9ed71e",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_kind_f8f6f4_numeric_correctness",
+          "line": 561,
+          "function_region_sha256": "a8b8978b4d7191251b30cf1b9dce462c2a7b96c006e091eb98af641bd0aa6c53",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-NUMERIC-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::mixed_e4m3_e5m2_m128n8k32_keeps_original_core_gap_and_408",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "native_assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "kernel": "matrix_mixed408",
+      "native_outputs": {
+        "out": 1024,
+        "native": 2048
+      },
+      "native_property": "Original mixed E4M3/E5M2 bytes retain the128-byte core gap and408 cell; all logical/padded native cells are checked.",
+      "reason": "Original mixed E4M3/E5M2 bytes retain the128-byte core gap and408 cell; all logical/padded native cells are checked.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_kind_f8f6f4_numeric_correctness.out",
+      "golden_sha256": "316b45590844cb07b9b6977555a61b0ead2683a030c7d8308634b3e646a41931",
+      "original_output_coordinates": {
+        "out": [
+          0
+        ]
+      },
+      "related_tests": [
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
+      ],
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_no_swizzle_mode_runs_to_completion.ptx",
+      "baseline_sha256": "c827ed27f5fbed0e813ad8c468762a606e7a6098ccc31256b95d6f1cc9882883",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_no_swizzle_mode_runs_to_completion",
+          "line": 463,
+          "function_region_sha256": "87113873fc65006f5f78df197807c702664fce6a7ceed665dba7a81e52462fd6",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-NUMERIC-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::explicit_unswizzled_m128n8_zero_payload_completes_all_native_coordinates",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "native_assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "kernel": "matrix_zero_128x8",
+      "native_outputs": {
+        "out": 1024,
+        "native": 2048
+      },
+      "native_property": "Explicit unswizzled logical M128N8 geometry with full native zero-output coordinates.",
+      "reason": "Explicit unswizzled logical M128N8 geometry with full native zero-output coordinates.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_no_swizzle_mode_runs_to_completion.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {},
+      "related_tests": [
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
+      ],
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_numeric_correctness.ptx",
+      "baseline_sha256": "121fd9857349a657df31220ef6521b7d1c5beb6d71c068ac694eb4632a743518",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_numeric_correctness",
+          "line": 514,
+          "function_region_sha256": "52a1839df869469baec10428520adb425ccb69af29e371781bb1ce308db70f26",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-NUMERIC-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::native_numeric_projections_retain_all_four_original_single_cell_goldens",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "native_assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "kernel": "matrix_numeric136",
+      "native_outputs": {
+        "out": 1024,
+        "native": 2048
+      },
+      "native_property": "Original cell136 is compared directly to its PTX/golden; independent checks cover all logical1024 and padded2048 outputs.",
+      "reason": "Original cell136 is compared directly to its PTX/golden; independent checks cover all logical1024 and padded2048 outputs.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_numeric_correctness.out",
+      "golden_sha256": "e821936d9a688642b1542b98e67dc6865017ae69cc01a4884bd9a47785dd7543",
+      "original_output_coordinates": {
+        "out": [
+          0
+        ]
+      },
+      "related_tests": [
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
+      ],
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_real_kernel_descriptors_run_to_completion.ptx",
+      "baseline_sha256": "eb47b0288cd5cfd8d7e874918a936e2451076013f91a1fb3ef81df8345ac0959",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_real_kernel_descriptors_run_to_completion",
+          "line": 452,
+          "function_region_sha256": "4707b337d4e3420b8af57ce28913e9872594f615742f88b9b9934367dbf56dfa",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-NUMERIC-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::real_descriptor_logical_m128n256_shape_keeps_all_32768_zero_outputs",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "native_assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "kernel": "matrix_zero_128x256",
+      "native_outputs": {
+        "out": 32768,
+        "native": 32768
+      },
+      "native_property": "Original logical M128N256 shape retains all32768 outputs in each independent native view.",
+      "reason": "Original logical M128N256 shape retains all32768 outputs in each independent native view.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_real_kernel_descriptors_run_to_completion.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {},
+      "related_tests": [
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
+      ],
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_without_an_explicit_disable_output_lane_mask.ptx",
+      "baseline_sha256": "83e6ef448e7f10130b310ee2f4165cb1f77daa19eb32c32ea84c7749fe4bb7cf",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_without_an_explicit_disable_output_lane_mask",
+          "line": 474,
+          "function_region_sha256": "51ff424a35f24c5562350924e6b9835a4f3007597f40a19593066417a549455d",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-NUMERIC-LAYOUT",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::native_numeric_projections_retain_all_four_original_single_cell_goldens",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "native_assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "kernel": "matrix_numeric136",
+      "native_outputs": {
+        "out": 1024,
+        "native": 2048
+      },
+      "native_property": "The default enabled output retains original136 and all logical/padded native coordinates.",
+      "reason": "The default enabled output retains original136 and all logical/padded native coordinates.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_without_an_explicit_disable_output_lane_mask.out",
+      "golden_sha256": "e821936d9a688642b1542b98e67dc6865017ae69cc01a4884bd9a47785dd7543",
+      "original_output_coordinates": {
+        "out": [
+          0
+        ]
+      },
+      "related_tests": [
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::decoding_the_same_b_bytes_as_e4m3_changes_only_the_actual_408_cell_to_476",
+        "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs::disabled_lds_producer_leaves_the_exact_consumer_cell_uninitialized"
+      ],
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/wmma_skewed_stride_is_legal.ptx",
+      "baseline_sha256": "1b3b65d3f4f404978b723e55bd582585f166484a308d96dca0fedbb383f756e1",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_wmma_skewed_stride_is_legal",
+          "line": 772,
+          "function_region_sha256": "5c81057bdad9d97978cf93ef2da5cf452fac9ac81fb1d140a4ace2d1a92aa066",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-STRIDED48-64",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::skewed_48_byte_rows_preserve_all_gathered_halves_and_256_products",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_stride48",
+      "native_outputs": {
+        "out": 256,
+        "fragment": 256
+      },
+      "native_property": "Noncontiguous48-byte rows retain every source half and weighted output.",
+      "reason": "Noncontiguous48-byte rows retain every source half and weighted output.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/wmma_skewed_stride_is_legal.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/wmma_stride_above_default_is_legal.ptx",
+      "baseline_sha256": "fc919f4076ab62c70e50f392a2928532760a697466f282b4657a57672059a82e",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_wmma_stride_above_default_is_legal",
+          "line": 761,
+          "function_region_sha256": "7bdbe0d5d01c8617e5357386da9506626821b291172303b3d7396259541c1d81",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "MATRIX-STRIDED48-64",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_matrix_layout_parity.rs::padded_64_byte_rows_preserve_all_gathered_halves_and_256_products",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-layout.hip",
+      "native_source_sha256": "a2d6a97dd49f13cab2918ea5f66a82ad304068bf95b39918f1a0c6428f7e6a06",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-layout.s",
+      "native_assembly_sha256": "4dd48a4fbc51aceb84cee2b85f1af153726b4527dd358759fc3d6f3689ddb982",
+      "kernel": "matrix_stride64",
+      "native_outputs": {
+        "out": 256,
+        "fragment": 256
+      },
+      "native_property": "Noncontiguous64-byte rows retain every source half and weighted output.",
+      "reason": "Noncontiguous64-byte rows retain every source half and weighted output.",
+      "target_residual": "PTX fragment names, collective alignment/stride encodings and TCGEN descriptors are target-specific. Native LDS lane/byte placement, actual transfer alignment, matrix arithmetic, source/result readiness and complete output projections remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/wmma_stride_above_default_is_legal.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {},
+      "expected_native_outcome": "complete_outputs"
+    }
+  ],
+  "positive_abi_inventory": "tests/gfx1250/fixtures/matrix-positive-cases.json",
+  "positive_abi_inventory_sha256": "1f8319a3287a74c5c844695ad6ad3048a1404f84461c8120e39b3f1b0199af22"
+}

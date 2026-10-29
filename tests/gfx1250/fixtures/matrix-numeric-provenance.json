@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Actual HIP compiler, MC and linker provenance only. Native graph/math and hardware acceptance are separate. Harmful source mutations and domain-refusal entries are CPU-only.",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)"
+    }
+  },
+  "fixtures": [
+    {
+      "source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "object_sha256": "fc5e37f53556ba08165b54e51c64d5ab666adcd3b6d7783adfd14801ef2ce33f",
+      "code_object_sha256": "834bc104fbe125d26b9c1a18c5b056e2db09ed714c7b9f40ce2a7c9da9db800f",
+      "commands": [
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+            "-x",
+            "hip",
+            "--offload-device-only",
+            "--offload-arch=gfx1250",
+            "--rocm-path=/opt/rocm-7.2.0",
+            "-O2",
+            "-std=c++17",
+            "-S",
+            "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+            "-o",
+            "tests/gfx1250/fixtures/native-matrix-numeric.s"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx1250",
+            "-filetype=obj",
+            "tests/gfx1250/fixtures/native-matrix-numeric.s",
+            "-o",
+            "/tmp/ptx-matrix-numeric-compile-75nq47i6/native-matrix-numeric.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+            "-shared",
+            "/tmp/ptx-matrix-numeric-compile-75nq47i6/native-matrix-numeric.o",
+            "-o",
+            "/tmp/ptx-matrix-numeric-compile-75nq47i6/native-matrix-numeric.hsaco"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "source": "tests/gfx1250/fixtures/native-matrix-unmodeled.hip",
+      "source_sha256": "ae109cdb08b7fd5be850672b7083a11a908ea24e17805c497ffd490abc485a0f",
+      "assembly": "tests/gfx1250/fixtures/native-matrix-unmodeled.s",
+      "assembly_sha256": "ff81fcbc2997987c7474628d54d0bd9a8885b0c913fcbce1faed5432d4860042",
+      "object_sha256": "4aeb987c566337d5bbbd70241549c1af9089c6f612d7bfda0160710b801e6ca2",
+      "code_object_sha256": "eabc26129a12cc51adff5219840742af73d81a24a663bc39dca26fe0574f0cca",
+      "commands": [
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+            "-x",
+            "hip",
+            "--offload-device-only",
+            "--offload-arch=gfx1250",
+            "--rocm-path=/opt/rocm-7.2.0",
+            "-O2",
+            "-std=c++17",
+            "-S",
+            "tests/gfx1250/fixtures/native-matrix-unmodeled.hip",
+            "-o",
+            "tests/gfx1250/fixtures/native-matrix-unmodeled.s"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx1250",
+            "-filetype=obj",
+            "tests/gfx1250/fixtures/native-matrix-unmodeled.s",
+            "-o",
+            "/tmp/ptx-matrix-numeric-compile-75nq47i6/native-matrix-unmodeled.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+            "-shared",
+            "/tmp/ptx-matrix-numeric-compile-75nq47i6/native-matrix-unmodeled.o",
+            "-o",
+            "/tmp/ptx-matrix-numeric-compile-75nq47i6/native-matrix-unmodeled.hsaco"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}
