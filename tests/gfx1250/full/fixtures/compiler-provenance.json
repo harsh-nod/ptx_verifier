@@ -163,6 +163,120 @@
           "private_bytes": 0
         }
       }
+    },
+    {
+      "source": "original-attention.hip",
+      "assembly": "original-attention.s",
+      "compile": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-attention.hip",
+        "-o",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-attention.s"
+      ],
+      "assemble": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-attention.s",
+        "-o",
+        "/tmp/ptx-gfx1250-original-attention.o"
+      ],
+      "link": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-original-attention.o",
+        "-o",
+        "/tmp/ptx-gfx1250-original-attention.hsaco"
+      ],
+      "source_sha256": "9ceb3b697516e2a306dd32752b6e8c67de5a1854474c396ac63c8a5efa770765",
+      "assembly_sha256": "2cbd4714e00c51eed4cce55ca6f8c448fd8cd4809474fef406cb8188a13f74f1",
+      "object_sha256": "0ace24b1253e21d75b86141ad75d10a7bf61f5b216ea02721a97a0d85346a1ec",
+      "code_object_sha256": "f9351cf4fb466fcd481d67e88217500e1aff8a11397f97536e97240e53ada8c1"
+    },
+    {
+      "source": "original-sinkhorn.hip",
+      "assembly": "original-sinkhorn.s",
+      "compile": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-sinkhorn.hip",
+        "-o",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-sinkhorn.s"
+      ],
+      "assemble": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-sinkhorn.s",
+        "-o",
+        "/tmp/ptx-gfx1250-original-sinkhorn.o"
+      ],
+      "link": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-original-sinkhorn.o",
+        "-o",
+        "/tmp/ptx-gfx1250-original-sinkhorn.hsaco"
+      ],
+      "source_sha256": "20266853dcdef64e15b37a9fed5de8fe99ef30a21bacc8e0000468531946a0b6",
+      "assembly_sha256": "ebb24ab3d1b6afe29c4d85f1528da6fca005d250d0abb2242c68fa9f295e1761",
+      "object_sha256": "52b2da58ac892a1af15565ef6197870dbc674e399c4688f172c0701eace01c9d",
+      "code_object_sha256": "fa115992e756f5adc70939689e9fb18c2f8d4e522c5d675a6d60a84374c5ee47"
+    },
+    {
+      "source": "original-mamba.hip",
+      "assembly": "original-mamba.s",
+      "compile": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-mamba.hip",
+        "-o",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-mamba.s"
+      ],
+      "assemble": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-mamba.s",
+        "-o",
+        "/tmp/ptx-gfx1250-original-mamba.o"
+      ],
+      "link": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-original-mamba.o",
+        "-o",
+        "/tmp/ptx-gfx1250-original-mamba.hsaco"
+      ],
+      "source_sha256": "81fee6a9b4830fb2ce091eee9b32319f9c7c5ff5ea02e713fbc1d60b97ff6cc9",
+      "assembly_sha256": "4ecfaa2c02825b4db0caab6c02e7d96555a44ade43d76b32e574b08db87cfbf2",
+      "object_sha256": "af7d7e2f87c2d1ecb2752a3000c3b4159e29dd7d3f2998a568e29c94fdd658d9",
+      "code_object_sha256": "5ff71b28118c494f925a9f62385d4cab1b05fccb63673b69882668c603888b86"
     }
   ]
 }
