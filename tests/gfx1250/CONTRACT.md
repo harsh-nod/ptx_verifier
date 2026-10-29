@@ -37,12 +37,19 @@ them. Argument count/layout, required dimensions, descriptor resources and
 static/dynamic LDS bounds are checked before acceptance.
 
 Unsupported or inconclusive modes include clusters/multiple workgroups,
-`tg_split`, expert scheduling, named-barrier signal-time count updates and `_isfirst`, privileged barriers, arbitrary raw symbolic format
+`tg_split`, expert scheduling, `_isfirst`, reinitialization with live named joins,
+privileged barriers, arbitrary raw symbolic format
 reinterpretation, legacy CDNA cache visibility certificates, advanced tensor
 padding/multicast/gather/iteration/atomic-barrier modes and nonzero tensor waits.
 They are not projected into a weaker workgroup-zero safety claim. A required
 positive becoming unsupported fails acceptance; deliberate unsupported controls
 remain a distinct corpus category.
+
+The signal-time count field supports explicit M0 bits22:16 with nonzero values
+1–127; zero preserves the current count and NULL remains a no-op. Equality
+between a new expected count and existing arrivals remains inconclusive because
+the pinned public rules disagree. Unordered conflicting setters and setter/drop
+pairs also remain inconclusive; identical explicit setters may commute.
 
 Each instruction records target-selected source spans, physical masks and
 register accesses. Semantic records identify exact counter charges, memory
