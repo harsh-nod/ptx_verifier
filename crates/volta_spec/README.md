@@ -52,6 +52,12 @@ Each spec output must be declared `out` or `inout` in the kernel's launch
 config. The unfolded spec then plays the role of the reference kernel in the
 equivalence check.
 
+An output array has exactly one equation. Array shape products must fit the
+64-bit flat index domain; overflow is an error before any output is unfolded.
+`output_index_mismatch` checks complete written indices against the dense spec
+shape before either interface samples expressions. Sampling preserves the full
+required element count.
+
 Depends on `volta_common` (spans, errors) and `volta_expr`.
 
 ## Packed integer words

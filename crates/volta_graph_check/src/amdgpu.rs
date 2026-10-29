@@ -527,6 +527,12 @@ fn trace_contract(graph: &EventGraph, architecture: AmdArchitecture) -> AmdTrace
             | AmdEventKind::SplitBarrierSignal { .. }
             | AmdEventKind::SplitBarrierWait { .. }
             | AmdEventKind::SplitBarrierRelease { .. }
+            | AmdEventKind::NamedBarrierInit { .. }
+            | AmdEventKind::NamedBarrierJoin { .. }
+            | AmdEventKind::NamedBarrierSignal { .. }
+            | AmdEventKind::NamedBarrierWait { .. }
+            | AmdEventKind::NamedBarrierRelease { .. }
+            | AmdEventKind::NamedBarrierLeave { .. }
             | AmdEventKind::NamedBarrierSignalWithCount { .. } => unresolved.push(Unresolved::at(
                 record.event,
                 "GFX12 event cannot use a legacy CDNA target contract",

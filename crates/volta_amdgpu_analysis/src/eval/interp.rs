@@ -1039,18 +1039,18 @@ impl<'a> Interpreter<'a> {
         }
         let mut sgpr = 0usize;
         let descriptor = &self.program.descriptor;
+        // Reserve every enabled ABI slot, leaving unavailable runtime inputs
+        // undefined. Unused slots are allowed; consuming one fails at its read.
+        // Workgroup zero does not determine Dispatch ID, and the static private
+        // segment size does not determine the runtime allocation size.
         for (field, count, value) in [
             ("user_sgpr_private_segment_buffer", 4, None),
             ("user_sgpr_dispatch_ptr", 2, Some(DISPATCH_BASE)),
             ("user_sgpr_queue_ptr", 2, None),
             ("user_sgpr_kernarg_segment_ptr", 2, Some(KERNARG_BASE)),
-            ("user_sgpr_dispatch_id", 2, Some(0)),
+            ("user_sgpr_dispatch_id", 2, None),
             ("user_sgpr_flat_scratch_init", 2, None),
-            (
-                "user_sgpr_private_segment_size",
-                1,
-                Some(descriptor.value("private_segment_fixed_size", 0)),
-            ),
+            ("user_sgpr_private_segment_size", 1, None),
         ] {
             if descriptor.flag(field) {
                 if let Some(value) = value {
@@ -3151,8 +3151,6 @@ impl<'a> Interpreter<'a> {
                     | "s_max_u32"
                     | "s_min_i32"
                     | "s_max_i32"
-                    | "s_add_nc_u32"
-                    | "s_sub_nc_u32"
                     | "s_and_saveexec_b32"
                     | "s_andn2_saveexec_b32"
                     | "s_or_saveexec_b32"
@@ -3174,8 +3172,6 @@ impl<'a> Interpreter<'a> {
                     | "s_sub_i32"
                     | "s_add_u32"
                     | "s_sub_u32"
-                    | "s_add_nc_u32"
-                    | "s_sub_nc_u32"
                     | "s_mul_i32"
                     | "s_xor_b32"
                     | "s_and_b32"
@@ -3219,7 +3215,7 @@ impl<'a> Interpreter<'a> {
                     wave.clear_scc();
                     wave.scc_condition = Some(nonzero);
                 }
-            } else if !matches!(name, "s_mul_i32" | "s_add_nc_u32" | "s_sub_nc_u32") {
+            } else if name != "s_mul_i32" {
                 wave.clear_scc();
             }
             return wave.put_value(&o[0], 0, Value::IntExpr(value));
@@ -3586,8 +3582,6 @@ impl<'a> Interpreter<'a> {
                 let (v, d) = v.overflowing_sub(wave.read_scc()? as u32);
                 (v, c || d)
             }
-            "s_add_nc_u32" => (a.wrapping_add(b), wave.scc),
-            "s_sub_nc_u32" => (a.wrapping_sub(b), wave.scc),
             "s_mul_i32" => (a.wrapping_mul(b), wave.scc),
             "s_mul_hi_u32" => (((a as u64 * b as u64) >> 32) as u32, wave.scc),
             "s_and_b32" => (a & b, a & b != 0),
@@ -3623,10 +3617,7 @@ impl<'a> Interpreter<'a> {
             }
             _ => return Err(self.unsupported(wave, instruction)),
         };
-        if !matches!(
-            name,
-            "s_mul_i32" | "s_mul_hi_u32" | "s_add_nc_u32" | "s_sub_nc_u32"
-        ) {
+        if !matches!(name, "s_mul_i32" | "s_mul_hi_u32") {
             wave.set_scc(scc);
         }
         wave.put_value(
@@ -5994,15 +5985,8 @@ impl<'a> Interpreter<'a> {
         } else {
             1
         };
-        let address = (wave.bits(&operands[0], lane)? as u64)
-            .checked_mul(scale)
-            .and_then(|offset| wave.wide(&operands[2], lane).ok()?.checked_add(offset))
-            .ok_or_else(|| {
-                wave.fail(
-                    Some(lane),
-                    "native atomic address overflow or invalid scalar base",
-                )
-            })?;
+        let address =
+            self.global_memory_address(wave, &operands[0], Some(&operands[2]), lane, 0, scale)?;
         self.validate_address(wave, lane, false, address, 4, true)?;
         let previous = self
             .global
@@ -6415,49 +6399,24 @@ impl<'a> Interpreter<'a> {
                 };
                 effective_lds = shared;
                 (address, if store { &o[1] } else { &o[0] })
-            } else if store {
-                (
-                    wave.wide(&o[0], lane)?
-                        .wrapping_mul(
-                            if instruction
-                                .modifiers
-                                .iter()
-                                .any(|m| m.name == "scale_offset")
-                            {
-                                width * registers as u64
-                            } else {
-                                1
-                            },
-                        )
-                        .wrapping_add(if o.len() > 2 {
-                            wave.wide(&o[2], lane)?
-                        } else {
-                            0
-                        })
-                        .wrapping_add(offset as u64),
-                    &o[1],
-                )
             } else {
+                let (vector, data) = if store {
+                    (&o[0], &o[1])
+                } else {
+                    (&o[1], &o[0])
+                };
+                let scale = if instruction
+                    .modifiers
+                    .iter()
+                    .any(|modifier| modifier.name == "scale_offset")
+                {
+                    width * registers as u64
+                } else {
+                    1
+                };
                 (
-                    wave.wide(&o[1], lane)?
-                        .wrapping_mul(
-                            if instruction
-                                .modifiers
-                                .iter()
-                                .any(|m| m.name == "scale_offset")
-                            {
-                                width * registers as u64
-                            } else {
-                                1
-                            },
-                        )
-                        .wrapping_add(if o.len() > 2 {
-                            wave.wide(&o[2], lane)?
-                        } else {
-                            0
-                        })
-                        .wrapping_add(offset as u64),
-                    &o[0],
+                    self.global_memory_address(wave, vector, o.get(2), lane, offset, scale)?,
+                    data,
                 )
             };
             let register = wave.destination(data_operand)?;
@@ -6751,6 +6710,34 @@ impl<'a> Interpreter<'a> {
         }
         Ok(())
     }
+    /// A gfx1250 scalar-base vector offset is signed i32 before scaling;
+    /// legacy CDNA offsets are unsigned. The `off` vector-pair form retains
+    /// all 64 address bits. Address addition wraps at the native 64-bit width.
+    fn global_memory_address(
+        &self,
+        wave: &Wave,
+        vector: &Operand,
+        scalar: Option<&Operand>,
+        lane: u8,
+        offset: i64,
+        scale: u64,
+    ) -> Result<u64, EvalError> {
+        let index = if self.architecture == AmdArchitecture::Gfx1250
+            && matches!(scalar, Some(Operand::Register(_)))
+        {
+            i64::from(wave.bits(vector, lane)? as i32) as u64
+        } else {
+            wave.wide(vector, lane)?
+        };
+        let base = scalar
+            .map(|operand| wave.wide(operand, lane))
+            .transpose()?
+            .unwrap_or(0);
+        Ok(base
+            .wrapping_add(index.wrapping_mul(scale))
+            .wrapping_add_signed(offset))
+    }
+
     fn flat_memory_address(
         &self,
         wave: &Wave,
@@ -6800,8 +6787,8 @@ impl<'a> Interpreter<'a> {
     ) -> Result<(u64, bool), EvalError> {
         let base = scalar.unwrap_or(vector);
         let vector_offset = if scalar.is_some() {
-            u64::from(wave.bits(vector, lane)?)
-                .checked_mul(scale)
+            i64::from(wave.bits(vector, lane)? as i32)
+                .checked_mul(scale as i64)
                 .ok_or_else(|| wave.fail(Some(lane), "scaled FLAT index overflow"))?
         } else {
             0
@@ -6812,9 +6799,11 @@ impl<'a> Interpreter<'a> {
                     .reg(*register, lane, 0)?
                     .bits()
                     .map_err(|error| wave.fail(Some(lane), error))?;
+                let displacement = vector_offset
+                    .checked_add(offset)
+                    .ok_or_else(|| wave.fail(Some(lane), "scaled FLAT offset overflow"))?;
                 let address = u64::from(low)
-                    .checked_add(vector_offset)
-                    .and_then(|value| value.checked_add_signed(offset))
+                    .checked_add_signed(displacement)
                     .filter(|value| *value <= u64::from(u32::MAX))
                     .ok_or_else(|| {
                         wave.fail(Some(lane), "FLAT offset escapes the shared aperture")
@@ -6823,9 +6812,7 @@ impl<'a> Interpreter<'a> {
             }
         }
         Ok((
-            wave.wide(base, lane)?
-                .wrapping_add(vector_offset)
-                .wrapping_add_signed(offset),
+            self.global_memory_address(wave, vector, scalar, lane, offset, scale)?,
             false,
         ))
     }
@@ -7042,6 +7029,7 @@ fn canonical_alu(name: &str) -> &str {
         "s_sub_co_i32" => "s_sub_i32",
         "s_addk_co_i32" => "s_addk_i32",
         "s_add_co_u32" => "s_add_u32",
+        "s_sub_co_u32" => "s_sub_u32",
         "s_add_co_ci_u32" => "s_addc_u32",
         "s_and_not1_b32" => "s_andn2_b32",
         "s_and_not1_saveexec_b32" => "s_andn2_saveexec_b32",

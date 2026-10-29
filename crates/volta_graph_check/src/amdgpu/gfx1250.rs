@@ -1064,6 +1064,19 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     let mut blocked = vec![None; waves];
     let mut released = HashSet::new();
     let mut barrier_violations = Vec::new();
+    let mut barrier_unresolved = Vec::new();
+    let waited_phases: HashSet<_> = graph
+        .amd_events()
+        .iter()
+        .filter_map(|record| match record.kind {
+            AmdEventKind::SplitBarrierWait {
+                barrier,
+                generation,
+            } => Some((barrier, generation)),
+            _ => None,
+        })
+        .collect();
+    let mut completed_waits = HashMap::<(i16, u32), Vec<(usize, u32)>>::new();
     let mut arrivals = 0;
     let mut waits = 0;
     let mut next_generation = vec![0; waves];
@@ -1122,6 +1135,23 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                     .pc
                     .map(|pc| graph.provenance().instructions[pc.0 as usize].kind)
                     .unwrap();
+                // END drops the unnamed object. An arrival participating in a
+                // wait needs that wait execution-before its same-wave drop
+                // (public execution model, "Barrier drop races").
+                if kind == "s_endpgm"
+                    && let Some(phase) = signals[wave]
+                    && waited_phases.contains(&phase)
+                    && !completed_waits.get(&phase).is_some_and(|waits| {
+                        waits.iter().any(|&(waiting_wave, tick)| {
+                            execution_clocks[wave][waiting_wave] >= tick
+                        })
+                    })
+                {
+                    barrier_unresolved.push(Unresolved::at(
+                        record.event,
+                        "unnamed barrier arrival participates in a wait without a completing wait execution-before END's implicit drop",
+                    ));
+                }
                 let is_valu = matches!(kind, "vector ALU" | "trans ALU" | "shifted ALU" | "WMMA");
                 let next_wmma = wmma_at.get(&record.event);
                 if is_valu {
@@ -1485,6 +1515,10 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                             join(&mut execution_clocks[wave], &frontier);
                         }
                     }
+                    completed_waits
+                        .entry((*barrier, *generation))
+                        .or_default()
+                        .push((wave, execution_clocks[wave][wave]));
                     blocked[wave] = None;
                     signals[wave] = None;
                     next_generation[wave] += 1;
@@ -1576,6 +1610,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     );
     named.finish(graph);
     barrier_violations.extend(named.violations);
+    barrier_unresolved.extend(named.unresolved);
     let barrier = PropertyResult::from_findings(
         AmdBarrierEvidence {
             generations: barriers.len() + named.phases,
@@ -1583,7 +1618,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
             releases: released.len() + named.releases,
         },
         barrier_violations,
-        named.unresolved,
+        barrier_unresolved,
     );
     let memory_conflict = if barrier.verdict() == Verdict::Pass
         && wait_readiness.verdict() != Verdict::Unknown

@@ -88,6 +88,19 @@ pub fn verify(
     let mut kernel_output = check_kernel(py, &module, kernel, config.0.clone())?;
     let race_verified = kernel_output.unresolved.is_empty();
 
+    if let Some(mismatch) = volta_spec::output_index_mismatch(&kernel_output.exprs, &specs)
+        .map_err(other_error_to_py)?
+    {
+        return Err(VoltaError::new_err(mismatch.to_string()));
+    }
+    let untruncated: u64 = kernel_output
+        .exprs
+        .outputs
+        .iter()
+        .filter(|(name, _)| check_arrays.contains(name))
+        .map(|(_, elems)| elems.len() as u64)
+        .sum();
+
     // `sample` also caps generation: truncate the kernel's elements to the
     // ascending prefix `unfold` builds, so both sides pair (as in `cmd_verify`).
     if sample > 0 {
@@ -127,7 +140,7 @@ pub fn verify(
         equivalent,
         mismatches,
         elements_checked: report.elements_checked,
-        elements_total: report.elements_total,
+        elements_total: untruncated,
         stats: StatsPy {
             instructions: kernel_output.stats.instructions,
             block_syncs: kernel_output.stats.block_syncs,

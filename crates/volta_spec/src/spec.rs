@@ -28,8 +28,24 @@ impl Shape {
     }
 
     /// Total element count (product of dims; 1 for a rank-0 shape).
+    ///
+    /// # Panics
+    /// Panics when the product exceeds `u64`; use [`Self::checked_size`]
+    /// for shapes that have not passed specification validation.
     pub fn size(&self) -> u64 {
-        self.0.iter().product()
+        self.checked_size()
+            .expect("shape size must be validated before indexing")
+    }
+
+    /// Total elements when the shape fits the flat index domain.
+    pub fn checked_size(&self) -> Option<u64> {
+        if self.0.contains(&0) {
+            Some(0)
+        } else {
+            self.0
+                .iter()
+                .try_fold(1u64, |size, &dim| size.checked_mul(dim))
+        }
     }
 
     /// Flatten a multi-dim index (same rank as the shape, each component
@@ -308,6 +324,11 @@ pub struct SpecEnv {
 /// mismatch) or in a float literal (see `NanError`).
 #[derive(Debug)]
 pub enum SpecError {
+    DuplicateOutput(String),
+    ShapeOverflow {
+        array: String,
+        shape: Vec<u64>,
+    },
     UnboundVar(String),
     UnknownDim(String),
     UnknownArray(String),
@@ -334,6 +355,14 @@ pub enum SpecError {
 impl fmt::Display for SpecError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::DuplicateOutput(array) => {
+                write!(f, "output '{}' has more than one equation", array)
+            }
+            Self::ShapeOverflow { array, shape } => write!(
+                f,
+                "array '{}' shape {:?} overflows the flat index domain",
+                array, shape
+            ),
             Self::UnboundVar(name) => write!(f, "unbound variable '{}'", name),
             Self::UnknownDim(name) => write!(f, "unknown named bound '{}'", name),
             Self::UnknownArray(name) => write!(f, "unknown array '{}'", name),
@@ -389,6 +418,26 @@ pub fn unfold(
     env: &SpecEnv,
     sample: u64,
 ) -> Result<SymbolicOutputs, SpecError> {
+    for (array, shape) in &env.arrays {
+        if shape.checked_size().is_none() {
+            return Err(SpecError::ShapeOverflow {
+                array: array.clone(),
+                shape: shape.dims().to_vec(),
+            });
+        }
+    }
+    let mut names = HashSet::new();
+    for spec in specs {
+        if !names.insert(&spec.array) {
+            return Err(SpecError::DuplicateOutput(spec.array.clone()));
+        }
+        if spec.shape.checked_size().is_none() {
+            return Err(SpecError::ShapeOverflow {
+                array: spec.array.clone(),
+                shape: spec.shape.dims().to_vec(),
+            });
+        }
+    }
     let mut arena = ExprArena::new();
     let mut array_ids: HashMap<String, StringId> = HashMap::new();
     let mut memo: ReduceMemo = HashMap::new();
