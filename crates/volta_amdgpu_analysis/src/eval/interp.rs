@@ -5776,7 +5776,6 @@ impl<'a> Interpreter<'a> {
                 "tensor footprint crosses shared allocation boundaries",
             ));
         }
-        let (reads, _) = self.instruction_registers(instruction, wave);
         let issue = self.builder.amd_event(
             wave.id,
             ProgramPoint(wave.pc as u32),
@@ -5788,10 +5787,10 @@ impl<'a> Interpreter<'a> {
                 },
                 counters: vec![(AmdCounter::Tensor, 1)],
                 destinations: vec![],
-                held_sources: reads
-                    .into_iter()
-                    .filter(|r| r.file != AmdRegisterFile::Scalar || r.index != 126)
-                    .collect(),
+                // Native TDM captures uniform descriptors at issue. Keep their
+                // Instruction reads for pending-KM readiness, without inventing
+                // an X/EXP source lease for the Tensor completion counter.
+                held_sources: vec![],
             },
         );
         let lane = wave.exec.trailing_zeros() as u8;
