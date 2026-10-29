@@ -949,7 +949,7 @@ pub(super) fn parse_instruction(
                 "glc" | "slc" | "dlc" | "sc0" | "sc1" | "nt"
             )
         } else {
-            m.name == "scale_offset"
+            matches!(m.name.as_str(), "scale_offset" | "scope")
         }
     }) {
         return Err(fail(

@@ -262,3 +262,24 @@ fn scalar_signed_subtract_alias_uses_signed_overflow_and_keeps_original_result_b
         );
     }
 }
+
+#[test]
+fn scope_modifier_does_not_escape_into_legacy_flat_mnemonics_or_unknown_target_features() {
+    for target in ["gfx942", "gfx950", "gfx950:xnack-"] {
+        let ordinary = format!(
+            ".amdgcn_target \"amdgcn-amd-amdhsa--{target}\"\nk:\nflat_load_dword v0,v[2:3]\n"
+        );
+        assert!(frontend::parse(&ordinary).is_ok(), "{ordinary}");
+        let scoped = ordinary.replace("v[2:3]", "v[2:3] scope:SCOPE_SYS");
+        let error = frontend::parse(&scoped).unwrap_err().to_string();
+        assert!(error.contains("modifier"), "{error}");
+    }
+    for suffix in ["xnack+", "xnack-", "sramecc+", "sramecc-"] {
+        let src = source("flat_load_u8 v1,v0,s[4:5]")
+            .replace("--gfx1250\"", &format!("--gfx1250:{suffix}\""));
+        assert!(
+            frontend::parse(&src).is_err(),
+            "gfx1250:{suffix} is outside bare-target envelope"
+        );
+    }
+}

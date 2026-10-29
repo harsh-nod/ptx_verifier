@@ -123,7 +123,11 @@ pub fn analyze(
             .map(|instruction| InstructionInfo {
                 kind: if instruction.mnemonic == "global_atomic_add_f32" {
                     "atomic f32 add no return"
-                } else if module.target.as_deref() == Some("gfx1250")
+                } else if module
+                    .target
+                    .as_deref()
+                    .and_then(crate::target::Architecture::from_target)
+                    == Some(crate::target::Architecture::Gfx1250)
                     && instruction.mnemonic.starts_with("flat_")
                 {
                     "flat memory"
@@ -133,7 +137,11 @@ pub fn analyze(
                     "vector ALU"
                 } else if instruction.mnemonic == "s_getreg_b32"
                     || (instruction.mnemonic == "s_sendmsg"
-                        && module.target.as_deref() == Some("gfx1250"))
+                        && module
+                            .target
+                            .as_deref()
+                            .and_then(crate::target::Architecture::from_target)
+                            == Some(crate::target::Architecture::Gfx1250))
                 {
                     "xcnt drain"
                 } else if instruction.mnemonic.starts_with("v_wmma_") {
