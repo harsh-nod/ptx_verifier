@@ -3614,7 +3614,10 @@ impl<'a> Interpreter<'a> {
                     return Err(self.unsupported(wave, instruction));
                 }
                 for lane in wave.active().collect::<Vec<_>>() {
-                    let shift = wave.bits(&o[1], lane)? & 15;
+                    let shift = wave
+                        .value(&o[1], lane)?
+                        .selected_bits(0, 4)
+                        .map_err(|e| wave.fail(Some(lane), e))?;
                     let source = wave
                         .value(&o[2], lane)?
                         .selected_bits(0, 16)
@@ -3664,9 +3667,11 @@ impl<'a> Interpreter<'a> {
         if self.architecture == AmdArchitecture::Gfx1250
             && matches!(
                 name,
-                "v_lshlrev_b16" | "v_sub_u16" | "v_mul_lo_u16" | "v_bitop3_b16"
+                "v_lshlrev_b16" | "v_lshrrev_b16" | "v_sub_u16" | "v_mul_lo_u16" | "v_bitop3_b16"
             )
         {
+            // True16 shifts observe low16 data and low4 count bits. The
+            // remaining destination bits stay undefined in this profile.
             if (name != "v_bitop3_b16" && !instruction.modifiers.is_empty())
                 || (name == "v_bitop3_b16"
                     && (instruction.modifiers.len() != 1
@@ -3677,7 +3682,14 @@ impl<'a> Interpreter<'a> {
             for lane in wave.active().collect::<Vec<_>>() {
                 let a = wave
                     .value(&o[1], lane)?
-                    .selected_bits(0, 16)
+                    .selected_bits(
+                        0,
+                        if matches!(name, "v_lshlrev_b16" | "v_lshrrev_b16") {
+                            4
+                        } else {
+                            16
+                        },
+                    )
                     .map_err(|e| wave.fail(Some(lane), e))?;
                 let b = wave
                     .value(&o[2], lane)?
@@ -3685,6 +3697,7 @@ impl<'a> Interpreter<'a> {
                     .map_err(|e| wave.fail(Some(lane), e))?;
                 let value = match name {
                     "v_lshlrev_b16" => b.wrapping_shl(a & 15),
+                    "v_lshrrev_b16" => b >> a,
                     "v_sub_u16" => a.wrapping_sub(b),
                     "v_mul_lo_u16" => a.wrapping_mul(b),
                     _ => {
