@@ -1,0 +1,683 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "invocation_id": "b6f7e231-b691-431e-b7ad-93c60f1cad2b",
+  "timestamp_utc": "2026-10-29T08:58:26.653819+00:00",
+  "commands": [
+    {
+      "argv": [
+        "hostname"
+      ],
+      "cwd": null,
+      "timeout_seconds": 10,
+      "exit_code": 0,
+      "stdout": "ctheliosr-rck-g02-e15-04\n",
+      "stderr": "",
+      "seconds": 0.0004434220027178526
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/llvm-mc",
+        "--version"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "AMD LLVM version 24.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn  - legacy name for amdgpu\n    amdgpu  - AMDGPU gfx6+\n    r600    - AMD GPUs HD2XXX-HD6XXX\n    spirv   - SPIR-V Logical\n    spirv32 - SPIR-V 32-bit\n    spirv64 - SPIR-V 64-bit\n    x86     - 32-bit X86: Pentium-Pro and above\n    x86-64  - 64-bit X86: EM64T and AMD64\n",
+      "stderr": "",
+      "seconds": 0.004606690024957061
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/ld.lld",
+        "--version"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "AMD LLD 24.0.0 (https://github.com/ROCm/llvm-project.git c7ceccf9a5789b92fda4056b8501450d0b7a75de) (compatible with GNU linkers)\n",
+      "stderr": "",
+      "seconds": 0.002980893012136221
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/clang++",
+        "--version"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "AMD clang version 24.0.0git (https://github.com/ROCm/llvm-project.git c7ceccf9a5789b92fda4056b8501450d0b7a75de)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin\nConfiguration file: /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/clang++.cfg\n",
+      "stderr": "",
+      "seconds": 0.004671789996791631
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "--filetype=obj",
+        "/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s",
+        "-o",
+        "/tmp/ptx-gfx1250-original.EPPvHF/original-build-2nekmdxm/exact-integer.o"
+      ],
+      "cwd": null,
+      "timeout_seconds": 60,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:8:1: warning: kernel 'exact_b16_shift_count_u32' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_b16_shift_count_u32:              ; @exact_b16_shift_count_u32\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:134:1: warning: kernel 'exact_b64_shift_u32' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_b64_shift_u32:                    ; @exact_b64_shift_u32\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:235:1: warning: kernel 'exact_bfe_clipping' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_bfe_clipping:                     ; @exact_bfe_clipping\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:457:1: warning: kernel 'exact_bfi_clipping' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_bfi_clipping:                     ; @exact_bfi_clipping\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:702:1: warning: kernel 'exact_declined_cancel_one_pass' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_declined_cancel_one_pass:         ; @exact_declined_cancel_one_pass\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:811:1: warning: kernel 'exact_int_abs_signed_width' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_int_abs_signed_width:             ; @exact_int_abs_signed_width\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:921:1: warning: kernel 'exact_load_s8_sign_extends' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_load_s8_sign_extends:             ; @exact_load_s8_sign_extends\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:1023:1: warning: kernel 'exact_load_s8_direct_minus_one' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_load_s8_direct_minus_one:         ; @exact_load_s8_direct_minus_one\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:1121:1: warning: kernel 'exact_mov_minus_one' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_mov_minus_one:                    ; @exact_mov_minus_one\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:1219:1: warning: kernel 'exact_not_zero' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_not_zero:                         ; @exact_not_zero\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:1319:1: warning: kernel 'exact_mul_high_u32' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_mul_high_u32:                     ; @exact_mul_high_u32\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:1422:1: warning: kernel 'exact_mul_wide_u16' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_mul_wide_u16:                     ; @exact_mul_wide_u16\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:1535:1: warning: kernel 'exact_ring_add_s32_neg1' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_ring_add_s32_neg1:                ; @exact_ring_add_s32_neg1\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:1636:1: warning: kernel 'exact_ring_add_u32_neg1' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_ring_add_u32_neg1:                ; @exact_ring_add_u32_neg1\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:1737:1: warning: kernel 'exact_ring_sub_s32_neg7' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_ring_sub_s32_neg7:                ; @exact_ring_sub_s32_neg7\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:1838:1: warning: kernel 'exact_ring_sub_u32_neg7' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_ring_sub_u32_neg7:                ; @exact_ring_sub_u32_neg7\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:1939:1: warning: kernel 'exact_ring_sub_u32_1' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_ring_sub_u32_1:                   ; @exact_ring_sub_u32_1\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:2040:1: warning: kernel 'exact_ring_mul_s32_neg3' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_ring_mul_s32_neg3:                ; @exact_ring_mul_s32_neg3\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:2141:1: warning: kernel 'exact_ring_mul_u32_neg3' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_ring_mul_u32_neg3:                ; @exact_ring_mul_u32_neg3\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:2242:1: warning: kernel 'exact_select_minus_one' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_select_minus_one:                 ; @exact_select_minus_one\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:2344:1: warning: kernel 'exact_select_complement' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_select_complement:                ; @exact_select_complement\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:2448:1: warning: kernel 'exact_funnel_clamp_wrap' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_funnel_clamp_wrap:                ; @exact_funnel_clamp_wrap\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:2574:1: warning: kernel 'exact_store_u8_truncates' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_store_u8_truncates:               ; @exact_store_u8_truncates\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:2676:1: warning: kernel 'exact_unsigned_byte_identity' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_unsigned_byte_identity:           ; @exact_unsigned_byte_identity\n^\n/tmp/ptx-gfx1250-original.EPPvHF/fixtures/native-exact-integer.s:2775:1: warning: kernel 'exact_vector_immediates' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nexact_vector_immediates:                ; @exact_vector_immediates\n^\n",
+      "seconds": 0.004624178982339799
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-original.EPPvHF/original-build-2nekmdxm/exact-integer.o",
+        "-o",
+        "/tmp/ptx-gfx1250-original.EPPvHF/original-build-2nekmdxm/exact-integer.hsaco"
+      ],
+      "cwd": null,
+      "timeout_seconds": 60,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.004074148018844426
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/clang++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-D__HIP_PLATFORM_AMD__",
+        "-I/opt/rocm-10.2.0a20261013+bkc.20261019/include",
+        "/tmp/ptx-gfx1250-original.EPPvHF/full/hardware/exact_integer.cpp",
+        "-L/opt/rocm-10.2.0a20261013+bkc.20261019/lib",
+        "-lamdhip64",
+        "-Wl,-rpath,/opt/rocm-10.2.0a20261013+bkc.20261019/lib",
+        "-o",
+        "/tmp/ptx-gfx1250-original.EPPvHF/original-build-2nekmdxm/original_driver"
+      ],
+      "cwd": null,
+      "timeout_seconds": 120,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.3555881659849547
+    },
+    {
+      "argv": [
+        "ldd",
+        "/tmp/ptx-gfx1250-original.EPPvHF/original-build-2nekmdxm/original_driver"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x00007d77f8795000)\n\tlibamdhip64.so.7 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/libamdhip64.so.7 (0x00007d77f8000000)\n\tlibstdc++.so.6 => /usr/lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007d77f7c00000)\n\tlibm.so.6 => /usr/lib/x86_64-linux-gnu/libm.so.6 (0x00007d77f7eda000)\n\tlibgcc_s.so.1 => /usr/lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007d77f8749000)\n\tlibc.so.6 => /usr/lib/x86_64-linux-gnu/libc.so.6 (0x00007d77f7800000)\n\tlibdl.so.2 => /usr/lib/x86_64-linux-gnu/libdl.so.2 (0x00007d77f8742000)\n\tlibrocm_kpack.so.0 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/librocm_kpack.so.0 (0x00007d77f86fd000)\n\tlibrocprofiler-register.so.0 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/librocprofiler-register.so.0 (0x00007d77f7b22000)\n\tlibrt.so.1 => /usr/lib/x86_64-linux-gnu/librt.so.1 (0x00007d77f86f8000)\n\tlibamd_comgr.so.3 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/libamd_comgr.so.3 (0x00007d77f6a00000)\n\tlibhsa-runtime64.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/libhsa-runtime64.so.1 (0x00007d77f6400000)\n\tlibpthread.so.0 => /usr/lib/x86_64-linux-gnu/libpthread.so.0 (0x00007d77f86f1000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007d77f8797000)\n\tlibrocm_sysdeps_zstd.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_zstd.so.1 (0x00007d77f7a53000)\n\tlibclang-cpp.so.24.0git => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/lib/libclang-cpp.so.24.0git (0x00007d77f1c00000)\n\tlibrocm_sysdeps_z.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_z.so.1 (0x00007d77f86d3000)\n\tlibLLVM.so.24.0git => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/lib/libLLVM.so.24.0git (0x00007d77eaa00000)\n\tlibrocm_sysdeps_elf.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_elf.so.1 (0x00007d77f7ebe000)\n\tlibrocm_sysdeps_drm.so.2 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_drm.so.2 (0x00007d77f7ea9000)\n\tlibrocm_sysdeps_drm_amdgpu.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_drm_amdgpu.so.1 (0x00007d77f7a3e000)\n\tlibrocm_sysdeps_numa.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_numa.so.1 (0x00007d77f7a2f000)\n\tlibrocm_sysdeps_liblzma.so.5 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_liblzma.so.5 (0x00007d77f77cf000)\n\tlibrocm_sysdeps_bz2.so => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_bz2.so (0x00007d77f77b6000)\n",
+      "stderr": "",
+      "seconds": 0.0037567659746855497
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/clang++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-D__HIP_PLATFORM_AMD__",
+        "-I/opt/rocm-10.2.0a20261013+bkc.20261019/include",
+        "-I/tmp/ptx-gfx1250-original.EPPvHF/full/hardware",
+        "/tmp/ptx-gfx1250-original.EPPvHF/original-build-2nekmdxm/device_identity.cpp",
+        "-L/opt/rocm-10.2.0a20261013+bkc.20261019/lib",
+        "-lamdhip64",
+        "-Wl,-rpath,/opt/rocm-10.2.0a20261013+bkc.20261019/lib",
+        "-o",
+        "/tmp/ptx-gfx1250-original.EPPvHF/original-build-2nekmdxm/device_identity"
+      ],
+      "cwd": null,
+      "timeout_seconds": 120,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.2424121709773317
+    },
+    {
+      "argv": [
+        "/tmp/ptx-gfx1250-original.EPPvHF/original-build-2nekmdxm/device_identity"
+      ],
+      "cwd": null,
+      "timeout_seconds": 30,
+      "exit_code": 0,
+      "stdout": "{\"logical_ordinal\":0,\"visible_device_count\":1,\"name\":\"AMD Radeon Graphics\",\"architecture\":\"gfx1250\",\"wave_size\":32,\"pci_bus_id\":\"0004:01:00.0\",\"uuid_status\":\"available\",\"uuid_hex\":\"32653636653233663339393732656339\",\"uuid_hip_error\":0,\"hip_runtime_version\":71726405,\"hip_driver_version\":71726405}\n",
+      "stderr": "",
+      "seconds": 0.056674248015042394
+    },
+    {
+      "argv": [
+        "/tmp/ptx-gfx1250-original.EPPvHF/original-build-2nekmdxm/original_driver",
+        "--cpu-only"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.016211448004469275
+    },
+    {
+      "argv": [
+        "/tmp/ptx-gfx1250-original.EPPvHF/original-build-2nekmdxm/original_driver",
+        "/tmp/ptx-gfx1250-original.EPPvHF/original-build-2nekmdxm/exact-integer.hsaco",
+        "8"
+      ],
+      "cwd": null,
+      "timeout_seconds": 180,
+      "exit_code": 0,
+      "stdout": "{\"status\":\"pass\",\"architecture\":\"gfx1250\",\"wave_size\":32,\"reference_controls\":\"pass\",\"patterns\":8,\"cases\":[{\"kernel\":\"exact_b16_shift_count_u32\",\"outputs\":24,\"original_outputs\":24,\"launches\":8,\"unchanged_input_bytes\":96,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_b64_shift_u32\",\"outputs\":32,\"original_outputs\":16,\"launches\":8,\"unchanged_input_bytes\":128,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_bfe_clipping\",\"outputs\":32,\"original_outputs\":32,\"launches\":8,\"unchanged_input_bytes\":0,\"unchanged_guard_bytes\":65536,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_bfi_clipping\",\"outputs\":32,\"original_outputs\":32,\"launches\":8,\"unchanged_input_bytes\":0,\"unchanged_guard_bytes\":65536,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_declined_cancel_one_pass\",\"outputs\":512,\"original_outputs\":512,\"launches\":8,\"unchanged_input_bytes\":2048,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_int_abs_signed_width\",\"outputs\":16,\"original_outputs\":16,\"launches\":8,\"unchanged_input_bytes\":64,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_load_s8_sign_extends\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":0,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":32,\"max_absolute_error\":0},{\"kernel\":\"exact_load_s8_direct_minus_one\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":64,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":32,\"max_absolute_error\":0},{\"kernel\":\"exact_mov_minus_one\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":0,\"unchanged_guard_bytes\":65536,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_not_zero\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":0,\"unchanged_guard_bytes\":65536,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_mul_high_u32\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":32,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_mul_wide_u16\",\"outputs\":16,\"original_outputs\":16,\"launches\":8,\"unchanged_input_bytes\":64,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_ring_add_s32_neg1\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":32,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_ring_add_u32_neg1\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":32,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_ring_sub_s32_neg7\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":32,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_ring_sub_u32_neg7\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":32,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_ring_sub_u32_1\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":32,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_ring_mul_s32_neg3\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":32,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_ring_mul_u32_neg3\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":32,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_select_minus_one\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":32,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_select_complement\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":32,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_funnel_clamp_wrap\",\"outputs\":32,\"original_outputs\":32,\"launches\":8,\"unchanged_input_bytes\":128,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0},{\"kernel\":\"exact_store_u8_truncates\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":0,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":32,\"max_absolute_error\":0},{\"kernel\":\"exact_unsigned_byte_identity\",\"outputs\":8,\"original_outputs\":8,\"launches\":8,\"unchanged_input_bytes\":64,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":32,\"max_absolute_error\":0},{\"kernel\":\"exact_vector_immediates\",\"outputs\":32,\"original_outputs\":32,\"launches\":8,\"unchanged_input_bytes\":128,\"unchanged_guard_bytes\":131072,\"unchanged_gap_bytes\":0,\"max_absolute_error\":0}]}\n",
+      "stderr": "",
+      "seconds": 0.11447024199878797
+    }
+  ],
+  "scope": "All25 genuine fixed-width counterparts and all105 original written coordinates per pattern, with eight boundary input patterns. U64 results compare both raw words. Scratch byte0 writes are intentional and checked exactly; all other scratch bytes, output gaps and allocation guards must remain unchanged. The cancellation example retains the original never-steal premise; it claims no native cancellation mechanism. Separate from symbolic graph/equivalence proofs and the original32 workload gate.",
+  "source_revision": "b867222b03b18d9277732162ee8b0c2c37858c18",
+  "input_artifacts": {
+    "hardware/portable_run.py": "821f96ca50eb2e0adf7ef7e28729851af7564fe8640f3ce2b838b1b5ca672749",
+    "full/hardware/original_run.py": "4757ccb6df5c97db6f0ddd34d193a81940dce1e53703aeef1d857f91314a6004",
+    "full/hardware/original_common.hpp": "d5db21e2563323c3ec24e976180cda08e79751babd0ba4d6b0348b953a89e2cf",
+    "full/hardware/exact_integer.cpp": "de454f35be4c23e0af3ddbace86377f83a3d099a21f4929b9e26756116e2d0d9",
+    "full/hardware/exact_integer_run.py": "214828282d8df9d65045fbb30246182b898386fda9ec2a7301dcc1fbc1613d61",
+    "fixtures/native-exact-integer.hip": "5a7f1487944b2fddf83f15e2fb078bb9eb4b96a280b6d9ac58bdb4b34cb54b14",
+    "fixtures/native-exact-integer.s": "d2baa07cca9fae93972c124a70f76aba3038d7a4f3bed9988666e28336d4855b",
+    "fixtures/exact-integer-provenance.json": "2338e04c95d97773a504693ed8719ed48f927e20334790638b9bd398bc303d88"
+  },
+  "selected_physical_device": 3,
+  "native_validation_contract": {
+    "exact_b16_shift_count_u32": [
+      3,
+      12,
+      2
+    ],
+    "exact_b64_shift_u32": [
+      4,
+      16,
+      2
+    ],
+    "exact_bfe_clipping": [
+      4,
+      0,
+      1
+    ],
+    "exact_bfi_clipping": [
+      4,
+      0,
+      1
+    ],
+    "exact_declined_cancel_one_pass": [
+      64,
+      256,
+      2
+    ],
+    "exact_int_abs_signed_width": [
+      2,
+      8,
+      2
+    ],
+    "exact_load_s8_sign_extends": [
+      1,
+      0,
+      2
+    ],
+    "exact_load_s8_direct_minus_one": [
+      1,
+      8,
+      2
+    ],
+    "exact_mov_minus_one": [
+      1,
+      0,
+      1
+    ],
+    "exact_not_zero": [
+      1,
+      0,
+      1
+    ],
+    "exact_mul_high_u32": [
+      1,
+      4,
+      2
+    ],
+    "exact_mul_wide_u16": [
+      2,
+      8,
+      2
+    ],
+    "exact_ring_add_s32_neg1": [
+      1,
+      4,
+      2
+    ],
+    "exact_ring_add_u32_neg1": [
+      1,
+      4,
+      2
+    ],
+    "exact_ring_sub_s32_neg7": [
+      1,
+      4,
+      2
+    ],
+    "exact_ring_sub_u32_neg7": [
+      1,
+      4,
+      2
+    ],
+    "exact_ring_sub_u32_1": [
+      1,
+      4,
+      2
+    ],
+    "exact_ring_mul_s32_neg3": [
+      1,
+      4,
+      2
+    ],
+    "exact_ring_mul_u32_neg3": [
+      1,
+      4,
+      2
+    ],
+    "exact_select_minus_one": [
+      1,
+      4,
+      2
+    ],
+    "exact_select_complement": [
+      1,
+      4,
+      2
+    ],
+    "exact_funnel_clamp_wrap": [
+      4,
+      16,
+      2
+    ],
+    "exact_store_u8_truncates": [
+      1,
+      0,
+      2
+    ],
+    "exact_unsigned_byte_identity": [
+      1,
+      8,
+      2
+    ],
+    "exact_vector_immediates": [
+      4,
+      16,
+      2
+    ]
+  },
+  "original_output_projection": {
+    "exact_b16_shift_count_u32": 3,
+    "exact_b64_shift_u32": 2,
+    "exact_bfe_clipping": 4,
+    "exact_bfi_clipping": 4,
+    "exact_declined_cancel_one_pass": 64,
+    "exact_int_abs_signed_width": 2,
+    "exact_load_s8_sign_extends": 1,
+    "exact_load_s8_direct_minus_one": 1,
+    "exact_mov_minus_one": 1,
+    "exact_not_zero": 1,
+    "exact_mul_high_u32": 1,
+    "exact_mul_wide_u16": 2,
+    "exact_ring_add_s32_neg1": 1,
+    "exact_ring_add_u32_neg1": 1,
+    "exact_ring_sub_s32_neg7": 1,
+    "exact_ring_sub_u32_neg7": 1,
+    "exact_ring_sub_u32_1": 1,
+    "exact_ring_mul_s32_neg3": 1,
+    "exact_ring_mul_u32_neg3": 1,
+    "exact_select_minus_one": 1,
+    "exact_select_complement": 1,
+    "exact_funnel_clamp_wrap": 4,
+    "exact_store_u8_truncates": 1,
+    "exact_unsigned_byte_identity": 1,
+    "exact_vector_immediates": 4
+  },
+  "build_directory": "/tmp/ptx-gfx1250-original.EPPvHF/original-build-2nekmdxm",
+  "rocm_directory": "/opt/rocm-10.2.0a20261013+bkc.20261019",
+  "device_environment": {
+    "HIP_VISIBLE_DEVICES": "3"
+  },
+  "host": "ctheliosr-rck-g02-e15-04",
+  "toolchains": {
+    "llvm-mc": {
+      "path": "/opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/llvm-mc",
+      "sha256": "fd4483b0ad14a76beb97aad0b5015ad5ac0ca744ad70a638cb0c3480b1f98ca9",
+      "version": "AMD LLVM version 24.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn  - legacy name for amdgpu\n    amdgpu  - AMDGPU gfx6+\n    r600    - AMD GPUs HD2XXX-HD6XXX\n    spirv   - SPIR-V Logical\n    spirv32 - SPIR-V 32-bit\n    spirv64 - SPIR-V 64-bit\n    x86     - 32-bit X86: Pentium-Pro and above\n    x86-64  - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/lld",
+      "sha256": "646487af07dcdf9d3263849db8833136dfc10817e1fc8f61ae6daf93b1305cbe",
+      "version": "AMD LLD 24.0.0 (https://github.com/ROCm/llvm-project.git c7ceccf9a5789b92fda4056b8501450d0b7a75de) (compatible with GNU linkers)\n"
+    },
+    "clang++": {
+      "path": "/opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/clang-24",
+      "sha256": "7c0bca5771a9a9748ccf22aece01169f5e2dacbd64e9e4c2cfbe6678a6b405d5",
+      "version": "AMD clang version 24.0.0git (https://github.com/ROCm/llvm-project.git c7ceccf9a5789b92fda4056b8501450d0b7a75de)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin\nConfiguration file: /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/clang++.cfg\n"
+    },
+    "HIP_runtime_library": {
+      "path": "/opt/rocm-10.2.0a20261013+bkc.20261019/lib/libamdhip64.so.7.17.26405-0000000",
+      "sha256": "6875790c48db4405a7fdc5ad68acf8ea2ee139d12d2155a9e04f74045af02a72"
+    }
+  },
+  "device_identity": {
+    "logical_ordinal": 0,
+    "visible_device_count": 1,
+    "name": "AMD Radeon Graphics",
+    "architecture": "gfx1250",
+    "wave_size": 32,
+    "pci_bus_id": "0004:01:00.0",
+    "uuid_status": "available",
+    "uuid_hex": "32653636653233663339393732656339",
+    "uuid_hip_error": 0,
+    "hip_runtime_version": 71726405,
+    "hip_driver_version": 71726405
+  },
+  "built_artifacts": {
+    "original_driver": "331d3f51f1e489c2b53a8fc054bddc1939dc43e9b15afa1ddbc66bfd6f230a3f",
+    "exact-integer.o": "8f6d898bbd9793610964733bcfe2d69f0d7e3358a260c2881ca71188da3ab5fd",
+    "exact-integer.hsaco": "c04f526040f871c940144250296eb679c12b66a8f48ef6b3c98a72b0f141c174",
+    "device_identity.cpp": "a26606dd40a134309c28ccce34e8d102e69184a835684968a758d40021ac1b0a",
+    "device_identity": "d5def70bd3d0b1dad6f334c58971e8ef3e3d1299b162fe71c5f9125940823575"
+  },
+  "validation": {
+    "status": "pass",
+    "architecture": "gfx1250",
+    "wave_size": 32,
+    "reference_controls": "pass",
+    "patterns": 8,
+    "cases": [
+      {
+        "kernel": "exact_b16_shift_count_u32",
+        "outputs": 24,
+        "original_outputs": 24,
+        "launches": 8,
+        "unchanged_input_bytes": 96,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_b64_shift_u32",
+        "outputs": 32,
+        "original_outputs": 16,
+        "launches": 8,
+        "unchanged_input_bytes": 128,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_bfe_clipping",
+        "outputs": 32,
+        "original_outputs": 32,
+        "launches": 8,
+        "unchanged_input_bytes": 0,
+        "unchanged_guard_bytes": 65536,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_bfi_clipping",
+        "outputs": 32,
+        "original_outputs": 32,
+        "launches": 8,
+        "unchanged_input_bytes": 0,
+        "unchanged_guard_bytes": 65536,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_declined_cancel_one_pass",
+        "outputs": 512,
+        "original_outputs": 512,
+        "launches": 8,
+        "unchanged_input_bytes": 2048,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_int_abs_signed_width",
+        "outputs": 16,
+        "original_outputs": 16,
+        "launches": 8,
+        "unchanged_input_bytes": 64,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_load_s8_sign_extends",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 0,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 32,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_load_s8_direct_minus_one",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 64,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 32,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_mov_minus_one",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 0,
+        "unchanged_guard_bytes": 65536,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_not_zero",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 0,
+        "unchanged_guard_bytes": 65536,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_mul_high_u32",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 32,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_mul_wide_u16",
+        "outputs": 16,
+        "original_outputs": 16,
+        "launches": 8,
+        "unchanged_input_bytes": 64,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_ring_add_s32_neg1",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 32,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_ring_add_u32_neg1",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 32,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_ring_sub_s32_neg7",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 32,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_ring_sub_u32_neg7",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 32,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_ring_sub_u32_1",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 32,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_ring_mul_s32_neg3",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 32,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_ring_mul_u32_neg3",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 32,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_select_minus_one",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 32,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_select_complement",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 32,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_funnel_clamp_wrap",
+        "outputs": 32,
+        "original_outputs": 32,
+        "launches": 8,
+        "unchanged_input_bytes": 128,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_store_u8_truncates",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 0,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 32,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_unsigned_byte_identity",
+        "outputs": 8,
+        "original_outputs": 8,
+        "launches": 8,
+        "unchanged_input_bytes": 64,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 32,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "exact_vector_immediates",
+        "outputs": 32,
+        "original_outputs": 32,
+        "launches": 8,
+        "unchanged_input_bytes": 128,
+        "unchanged_guard_bytes": 131072,
+        "unchanged_gap_bytes": 0,
+        "max_absolute_error": 0
+      }
+    ]
+  },
+  "remote_execution": {
+    "ssh_host": "mi400",
+    "directory": "/tmp/ptx-gfx1250-original.EPPvHF",
+    "argv": [
+      "python3",
+      "/tmp/ptx-gfx1250-original.EPPvHF/full/hardware/exact_integer_run.py",
+      "--local",
+      "--fixture-directory",
+      "/tmp/ptx-gfx1250-original.EPPvHF",
+      "--device",
+      "3",
+      "--patterns",
+      "8",
+      "--timeout",
+      "180",
+      "--rocm",
+      "/opt/rocm",
+      "--revision",
+      "b867222b03b18d9277732162ee8b0c2c37858c18",
+      "--result",
+      "/tmp/ptx-gfx1250-original.EPPvHF/result.json",
+      "--invocation-id",
+      "b6f7e231-b691-431e-b7ad-93c60f1cad2b"
+    ],
+    "staging_archive_sha256": "87424a284749b2b5cc4c919818d48a2875707cdb0e5c798991d8ff3b2c17a28b"
+  }
+}
