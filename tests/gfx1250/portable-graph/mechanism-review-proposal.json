@@ -1,0 +1,2703 @@
+{
+  "schema_version": 1,
+  "scope": "Read-only audit of82 mechanism-residual candidates, each actual source/assertion pinned. This is a proposal, not completion or an exclusion of portable computation.",
+  "upstream_commit": "b3a37911b8bd87352996403e8471a1fe18c4e975",
+  "input_ledger_commit": "061c846743f33c7f12f96668c725338110a62fb0",
+  "input_ledger_sha256": "cb183efe4f65ae65f42263e1ee669b0ace6a1859206e89405142d4b30573a2ce",
+  "policy": {
+    "coordinator_only_completion": true,
+    "positive_unsupported_stays_gap": true,
+    "no_original32_or_production_edits": true,
+    "no_new_test_or_hardware_execution_claimed": true,
+    "exact_encoding_exception_does_not_exclude_mathematics": true
+  },
+  "primary_references": [
+    "https://docs.nvidia.com/cuda/parallel-thread-execution/index.html",
+    "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md",
+    "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md"
+  ],
+  "review_findings": [
+    {
+      "priority": "classification",
+      "rows": [
+        "tcgen05_wait_ld_after_bar_sync_is_rejected",
+        "tcgen05_wait_st_after_mbarrier_arrive_is_rejected"
+      ],
+      "finding": "Actual assertion is NeverFreed[(0,32)], not a late-wait hazard."
+    },
+    {
+      "priority": "portable_boundary",
+      "rows": [
+        "mbarrier_tx_count_out_of_range"
+      ],
+      "finding": "Retain hidden GraphVerified2^20\u22121 positive before exact2^20 overflow; manual byte-credit encoding alone is a residual."
+    },
+    {
+      "priority": "positive_scope",
+      "rows": [
+        "tcgen05_mma_encoding_d_lane0_col8",
+        "tcgen05_mma_encoding_idesc_max_shift_ws",
+        "tcgen05_mma_encoding_shape_ws_m32_n64"
+      ],
+      "finding": "Successful zero-MMA/completion/lifetime assertions remain; no numerical output does not mean no matrix obligation."
+    },
+    {
+      "priority": "scope",
+      "rows": [
+        "membar_levels_cta",
+        "membar_levels_gl",
+        "membar_levels_sys"
+      ],
+      "finding": "Baseline positives have no memory accesses; successful lowering is not a proof of broader memory visibility."
+    }
+  ],
+  "native_evidence_catalog": {
+    "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
+      "function": "named_objects_require_real_allocation_and_cannot_bypass_target_validation",
+      "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "a:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_portable_abi_tests.rs",
+      "function": "whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects",
+      "source_sha256": "807170ea9e218affa0ad588e8d221697e1ae94e24dcbfb9ded426348c63454db",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:wmma_ab_hazards_and_accumulator_forwarding_use_different_rules": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "wmma_ab_hazards_and_accumulator_forwarding_use_different_rules",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:wmma_coexecution_counts_intervening_valu_instructions_with_target_specific_windows": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "wmma_coexecution_counts_intervening_valu_instructions_with_target_specific_windows",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "d:deallocation_cannot_enable_other_messages_scratch_or_post_release_register_use": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_amdgpu_analysis/tests/gfx1250_deallocation.rs",
+      "function": "deallocation_cannot_enable_other_messages_scratch_or_post_release_register_use",
+      "source_sha256": "586f306cfd51bb8050c22d6a23ad77c3da61916825d457fb9e9b0f7f5c9c54f1",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "c:all_32_lane_ids_return_through_the_real_lds_dependency_and_no_tail_is_written": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
+      "function": "all_32_lane_ids_return_through_the_real_lds_dependency_and_no_tail_is_written",
+      "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "d:native_symbolic_and_encoded_deallocation_spellings_share_the_epilogue": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_amdgpu_analysis/tests/gfx1250_deallocation.rs",
+      "function": "native_symbolic_and_encoded_deallocation_spellings_share_the_epilogue",
+      "source_sha256": "586f306cfd51bb8050c22d6a23ad77c3da61916825d457fb9e9b0f7f5c9c54f1",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "split_barrier_publishes_only_completed_effects_and_needs_all_live_waves",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "e:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_amdgpu_analysis/tests/gfx1250_execution.rs",
+      "function": "native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations",
+      "source_sha256": "4cd9ccc8f346d4fc00153911b7f9881165966498b997cabde8451f078ef0fe5a",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:empty_incomplete_and_replay_disabled_envelopes_never_accept": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "empty_incomplete_and_replay_disabled_envelopes_never_accept",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_portable_abi_tests.rs",
+      "function": "ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+      "source_sha256": "807170ea9e218affa0ad588e8d221697e1ae94e24dcbfb9ded426348c63454db",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "a:genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_portable_abi_tests.rs",
+      "function": "genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums",
+      "source_sha256": "807170ea9e218affa0ad588e8d221697e1ae94e24dcbfb9ded426348c63454db",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "a:extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_portable_abi_tests.rs",
+      "function": "extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls",
+      "source_sha256": "807170ea9e218affa0ad588e8d221697e1ae94e24dcbfb9ded426348c63454db",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_native_flat_tests.rs",
+      "function": "new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+      "source_sha256": "3fdb9bac559f3a1f634d647cfec8a7be9c5d5a8d58601ff2d332ee0532908922",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "n:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
+      "function": "genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes",
+      "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:named_reinitialization_creates_a_fresh_lifetime_and_stale_records_fail": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "named_reinitialization_creates_a_fresh_lifetime_and_stale_records_fail",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "l:consumer_only_wait_cannot_replace_actual_lds_completion": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
+      "function": "consumer_only_wait_cannot_replace_actual_lds_completion",
+      "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:named_publication_needs_the_actual_data_wait_and_matching_object_phase": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "named_publication_needs_the_actual_data_wait_and_matching_object_phase",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "e:typed_modules_cannot_retarget_native_scalar_and_vopd_semantics_to_cdna": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_amdgpu_analysis/tests/gfx1250_execution.rs",
+      "function": "typed_modules_cannot_retarget_native_scalar_and_vopd_semantics_to_cdna",
+      "source_sha256": "4cd9ccc8f346d4fc00153911b7f9881165966498b997cabde8451f078ef0fe5a",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_compiler_tests.rs",
+      "function": "real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+      "source_sha256": "0be8d137f14012d317b40a96771797f698f9af6629bba9143fc70883d5ec1c08",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_compiler_tests.rs",
+      "function": "real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+      "source_sha256": "0be8d137f14012d317b40a96771797f698f9af6629bba9143fc70883d5ec1c08",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:invalid_masks_register_namespaces_and_missing_semantic_records_fail_closed": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "invalid_masks_register_namespaces_and_missing_semantic_records_fail_closed",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:named_init_resource_and_m0_roles_cannot_be_fabricated": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "named_init_resource_and_m0_roles_cannot_be_fabricated",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:named_arrival_count_is_not_a_distinct_wave_count": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "named_arrival_count_is_not_a_distinct_wave_count",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "f:scope_modifier_does_not_escape_into_legacy_flat_mnemonics_or_unknown_target_features": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_native_flat_tests.rs",
+      "function": "scope_modifier_does_not_escape_into_legacy_flat_mnemonics_or_unknown_target_features",
+      "source_sha256": "3fdb9bac559f3a1f634d647cfec8a7be9c5d5a8d58601ff2d332ee0532908922",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:maximal_wait_threshold_never_retires_a_logically_overfull_stream": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "maximal_wait_threshold_never_retires_a_logically_overfull_stream",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:malformed_thresholds_and_unknown_tensor_width_do_not_establish_acceptance": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "malformed_thresholds_and_unknown_tensor_width_do_not_establish_acceptance",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "l:completed_single_arrival_preserves_the_only_marker_one": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
+      "function": "completed_single_arrival_preserves_the_only_marker_one",
+      "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "g:separate_data_counters_and_thresholds_control_register_readiness": {
+      "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "separate_data_counters_and_thresholds_control_register_readiness",
+      "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "m:real_gfx1250_two_wave_two_stage_gemm_preserves_all_512_outputs_and_k64": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_pipeline/tests/gfx1250_compiler_tests.rs",
+      "function": "real_gfx1250_two_wave_two_stage_gemm_preserves_all_512_outputs_and_k64",
+      "source_sha256": "0be8d137f14012d317b40a96771797f698f9af6629bba9143fc70883d5ec1c08",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    },
+    "d:genuine_full_matrix_compiler_epilogues_retain_all_six_entries": {
+      "commit": "061c846743f33c7f12f96668c725338110a62fb0",
+      "path": "crates/volta_amdgpu_analysis/tests/gfx1250_deallocation.rs",
+      "function": "genuine_full_matrix_compiler_epilogues_retain_all_six_entries",
+      "source_sha256": "586f306cfd51bb8050c22d6a23ad77c3da61916825d457fb9e9b0f7f5c9c54f1",
+      "audit_replay": "read_only_reference_to_existing_validation; no new execution by this audit"
+    }
+  },
+  "counts": {
+    "precise_target_contract_residual_candidate": 65,
+    "portable_property_gap_with_target_residual": 11,
+    "native_property_candidate_with_target_residual": 6
+  },
+  "rows": [
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_alloc_sizes_unordered.ptx",
+      "upstream_sha256": "04560582b7b18d2486e585f8915efb94bfebe2c48e2a5b3b5c0b8b8eac19c503",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/allocation_order_tests.rs",
+          "function": "test_tcgen05_alloc_sizes_unordered",
+          "line": 15,
+          "function_region_sha256": "040c5b65f7c0f33b7934c4d4bdd9a72b6a7e31974b8512c32f8360419df135f6",
+          "source_sha256": "543300cbf57678674d8b020471ca2cfea6d45d1ba54b9d073fb88ecea11d9a2f"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 15,
+      "baseline_assertion_summary": "AllocationOrderViolation::Unordered exact actor pair(0,32), not a numerical failure.",
+      "exact_target_contract": "NVIDIA per-CTA Tensor Memory allocation sizes must have descending allocation order across participating warps. Native VGPR/LDS allocation is descriptor-backed and has no corresponding dynamic column-allocation opcode.",
+      "remaining_portable_obligation": "Keep native descriptor/allocation bounds and actual publication of any returned handles separate from this ordering-only rule. No mathematical output is omitted by this source.",
+      "native_property_scope": "Named allocation requires real descriptors and native configured LDS object boundaries are checked. These are supporting native resource properties, not an emulation of descending TMEM columns.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation",
+        "a:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_dealloc_with_an_mma_in_flight_is_rejected.ptx",
+      "upstream_sha256": "d1239220e92bcbcf7f57c495f7e68b67659ebb742740541919d70b80a37abb11",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/resource_lifetime_tests.rs",
+          "function": "test_tcgen05_dealloc_with_an_mma_in_flight_is_rejected",
+          "line": 96,
+          "function_region_sha256": "221748ecb99252ad9de89425c9c7eb28fbdac9a23126ebb57adeded385314fda",
+          "source_sha256": "08388ca6c403bddbdd0435f01ad2c2b353cdbdfe0b55578f83f5ee9c077d33bb"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 25,
+      "baseline_assertion_summary": "FreedWhileInUse must contain Tcgen05Mma Write effect0 on D after issue/commit without observing completion.",
+      "exact_target_contract": "NVIDIA MMA writes user-allocated Tensor Memory D; native WMMA writes VGPR fragments under different operand/interlock rules, with no TMEM dealloc.",
+      "remaining_portable_obligation": "Keep matrix result/source lifetime and target completion correct before target storage reuse/release.",
+      "native_property_scope": "Native source leases, accumulator forwarding and terminal release guards are established. No PTX dealloc event is fabricated on LDS or VGPRs.",
+      "actual_native_gap": "Root matrix owner must map exact native WMMA storage lifetime; generic Tensor copy or register namespace rejection alone is not the baseline MMA-write witness.",
+      "proposal": "portable_property_gap_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:wmma_ab_hazards_and_accumulator_forwarding_use_different_rules",
+        "g:wmma_coexecution_counts_intervening_valu_instructions_with_target_specific_windows",
+        "d:deallocation_cannot_enable_other_messages_scratch_or_post_release_register_use"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_dealloc_with_an_unwaited_ld_or_st_is_rejected_ld.ptx",
+      "upstream_sha256": "d4f6b56990bd951c0d2fd7e4f46609dcc7edede8cb116ea035710e0ca6d242ba",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/resource_lifetime_tests.rs",
+          "function": "test_tcgen05_dealloc_with_an_unwaited_ld_or_st_is_rejected",
+          "line": 72,
+          "function_region_sha256": "3dde0854c25fd4030479ee11f6f1a934627f252803365558e5dbdf31814ba523",
+          "source_sha256": "08388ca6c403bddbdd0435f01ad2c2b353cdbdfe0b55578f83f5ee9c077d33bb"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "ResourceLifetime FreedWhileInUse includes pending Tcgen05 Read effect, block32.",
+      "exact_target_contract": "Explicit freeing of NVIDIA Tensor Memory columns differs from native static LDS lifetime and terminal VGPR release.",
+      "remaining_portable_obligation": "Storage may not be reused/released while the target-specific asynchronous operation still accesses it.",
+      "native_property_scope": "Independent native Tensor buffer-borrow rule plus actual128-byte LDS ID data path exist; they are not yet one exact128-byte source-level reuse/release counterexample.",
+      "actual_native_gap": "Add a genuine128-byte native asynchronous buffer-lifetime safe/unsafe pair with the same read/write role; retain exact TMEM dealloc spelling as the narrow residual.",
+      "proposal": "portable_property_gap_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
+        "c:all_32_lane_ids_return_through_the_real_lds_dependency_and_no_tail_is_written"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_dealloc_with_an_unwaited_ld_or_st_is_rejected_st.ptx",
+      "upstream_sha256": "06fbee9d28f5a7924d5996aa0714f50c07503353d3ce3da74d7ad8e73751597e",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/resource_lifetime_tests.rs",
+          "function": "test_tcgen05_dealloc_with_an_unwaited_ld_or_st_is_rejected",
+          "line": 72,
+          "function_region_sha256": "3dde0854c25fd4030479ee11f6f1a934627f252803365558e5dbdf31814ba523",
+          "source_sha256": "08388ca6c403bddbdd0435f01ad2c2b353cdbdfe0b55578f83f5ee9c077d33bb"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "ResourceLifetime FreedWhileInUse includes pending Tcgen05 Write effect, block32.",
+      "exact_target_contract": "Explicit freeing of NVIDIA Tensor Memory columns differs from native static LDS lifetime and terminal VGPR release.",
+      "remaining_portable_obligation": "Storage may not be reused/released while the target-specific asynchronous operation still accesses it.",
+      "native_property_scope": "Independent native Tensor buffer-borrow rule plus actual128-byte LDS ID data path exist; they are not yet one exact128-byte source-level reuse/release counterexample.",
+      "actual_native_gap": "Add a genuine128-byte native asynchronous buffer-lifetime safe/unsafe pair with the same read/write role; retain exact TMEM dealloc spelling as the narrow residual.",
+      "proposal": "portable_property_gap_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
+        "c:all_32_lane_ids_return_through_the_real_lds_dependency_and_no_tail_is_written"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_relinquish_unordered_with_other_warps_alloc.ptx",
+      "upstream_sha256": "8e0892bc2157d9c28339c6353819f27d2fd56ff28e310cd5d8ed132ace5edeac",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/allocation_permit_tests.rs",
+          "function": "test_tcgen05_relinquish_unordered_with_other_warps_alloc",
+          "line": 14,
+          "function_region_sha256": "d551207202c8ec61b73978ae08fd675aa214c3500923fb2e59317a52947f25fc",
+          "source_sha256": "a31ed7dbd078a865c7e4d62400ec7835cd207f6864134e308306617cba9a3f8c"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 11,
+      "baseline_assertion_summary": "AllocationPermitViolation exact allocation/relinquish actor pair(0,32).",
+      "exact_target_contract": "NVIDIA relinquish_alloc_permit changes a CTA Tensor Memory allocation capability. The native selected model has no equivalent per-CTA allocation-permit object.",
+      "remaining_portable_obligation": "Ordinary memory synchronization and native resource bounds remain required; this source has no arithmetic output.",
+      "native_property_scope": "Native named capacity and strict terminal VGPR release are independently guarded. Neither is falsely called the NVIDIA allocation permit.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation",
+        "d:deallocation_cannot_enable_other_messages_scratch_or_post_release_register_use"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_wait_ld_after_bar_sync_is_rejected.ptx",
+      "upstream_sha256": "cd2cef4e1d9ecc751c554654e9778eb2f676c71eb631a1f9bd490fab97337a22",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/resource_lifetime_tests.rs",
+          "function": "test_tcgen05_wait_ld_after_bar_sync_is_rejected",
+          "line": 113,
+          "function_region_sha256": "7e625d6cdf06d802cd3445fbf9ca29169b88ee49ab5746f1ea40b5cca2c4eb1a",
+          "source_sha256": "08388ca6c403bddbdd0435f01ad2c2b353cdbdfe0b55578f83f5ee9c077d33bb"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 15,
+      "baseline_assertion_summary": "The actual assertion is NeverFreed allocation[(0,32)]; no dealloc instruction appears. It does not assert that a late wait is itself a hazard.",
+      "exact_target_contract": "NVIDIA explicit TMEM allocation must eventually be freed; native static LDS/VGPR allocation does not require a matching user TMEM-free instruction.",
+      "remaining_portable_obligation": "Data readiness/publication remain independent portable obligations; do not misclassify this row as a generic late-wait failure.",
+      "native_property_scope": "Selected native terminal release has strict adjacency/no-post-release-register-use, and barriers cannot fabricate data completion. These do not impose a nonexistent native dynamic-TMEM leak rule.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "d:native_symbolic_and_encoded_deallocation_spellings_share_the_epilogue",
+        "d:deallocation_cannot_enable_other_messages_scratch_or_post_release_register_use",
+        "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_wait_st_after_mbarrier_arrive_is_rejected.ptx",
+      "upstream_sha256": "ae071c05d3f5501572213cda27fd95e2e24650a7e06b49db53b555942a2798dd",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/resource_lifetime_tests.rs",
+          "function": "test_tcgen05_wait_st_after_mbarrier_arrive_is_rejected",
+          "line": 129,
+          "function_region_sha256": "50b1aebf0616b1a96056648b02abdad999ee48991db17007e539dc2543dd4a92",
+          "source_sha256": "08388ca6c403bddbdd0435f01ad2c2b353cdbdfe0b55578f83f5ee9c077d33bb"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 13,
+      "baseline_assertion_summary": "The actual assertion is NeverFreed allocation[(0,32)]; no dealloc instruction appears. It does not assert that a late wait is itself a hazard.",
+      "exact_target_contract": "NVIDIA explicit TMEM allocation must eventually be freed; native static LDS/VGPR allocation does not require a matching user TMEM-free instruction.",
+      "remaining_portable_obligation": "Data readiness/publication remain independent portable obligations; do not misclassify this row as a generic late-wait failure.",
+      "native_property_scope": "Selected native terminal release has strict adjacency/no-post-release-register-use, and barriers cannot fabricate data completion. These do not impose a nonexistent native dynamic-TMEM leak rule.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "d:native_symbolic_and_encoded_deallocation_spellings_share_the_epilogue",
+        "d:deallocation_cannot_enable_other_messages_scratch_or_post_release_register_use",
+        "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/bar_and_barrier_reject_a_missing_operation_bar.ptx",
+      "upstream_sha256": "5b1c438636aa7d53d3357e0fcfd79c71150bcfa742400afc5c9b314fc1294b37",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_bar_and_barrier_reject_a_missing_operation",
+          "line": 330,
+          "function_region_sha256": "dfc550fbec5e3c481d523b5f9a9874b4db170263b66c0e9f4faacb4d1964f479",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "UnsupportedInstruction name=Bar and reason contains MissingModifier.",
+      "exact_target_contract": "Bare PTX bar/barrier has no implicit sync operation. Native barrier operations have separate explicit mnemonics.",
+      "remaining_portable_obligation": "Invalid native instructions/extra operands must never be silently ignored.",
+      "native_property_scope": "Native encoding/target validation and descriptor bypass controls are established. Exact PTX missing-modifier diagnostic is not a native syntax contract.",
+      "actual_native_gap": "Dedicated native missing/extra barrier operand negative is a useful validation gap; existing count/protocol controls are not falsely said to test this lexical case.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "e:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations",
+        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/bar_and_barrier_reject_a_missing_operation_barrier.ptx",
+      "upstream_sha256": "1f02749c759480fcc9432517e3299e4461911c3d7d7ca7f79c64ab1f5e7d565f",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_bar_and_barrier_reject_a_missing_operation",
+          "line": 330,
+          "function_region_sha256": "dfc550fbec5e3c481d523b5f9a9874b4db170263b66c0e9f4faacb4d1964f479",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "UnsupportedInstruction name=Barrier and reason contains MissingModifier.",
+      "exact_target_contract": "Bare PTX bar/barrier has no implicit sync operation. Native barrier operations have separate explicit mnemonics.",
+      "remaining_portable_obligation": "Invalid native instructions/extra operands must never be silently ignored.",
+      "native_property_scope": "Native encoding/target validation and descriptor bypass controls are established. Exact PTX missing-modifier diagnostic is not a native syntax contract.",
+      "actual_native_gap": "Dedicated native missing/extra barrier operand negative is a useful validation gap; existing count/protocol controls are not falsely said to test this lexical case.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "e:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations",
+        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_multicast_try_cancel_is_rejected.ptx",
+      "upstream_sha256": "526b9b47c6027ebedcc5606daaaae0a4adbfd171a4332f8d28fa14471ff62d99",
+      "original_group": "NVIDIA-CLUSTER-SCHEDULER",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_clusterlaunchcontrol_multicast_try_cancel_is_rejected",
+          "line": 1531,
+          "function_region_sha256": "4be2f5c0d31caab8fdcd75a424471042544de2db237481e69ba3ff22e01a76f3",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 5,
+      "baseline_assertion_summary": "Lowering must name unsupported multicast::cluster::all.",
+      "exact_target_contract": "Cluster-wide asynchronous cancellation writes every CTA response; selected native scope is one unclustered analyzed WG.",
+      "remaining_portable_obligation": "No arithmetic or output values are asserted. Keep native selected-WG geometry, concrete address provenance and unsupported-cluster rejection explicit; do not synthesize a successful scheduler response.",
+      "native_property_scope": "Native logical launch geometry is retained while proofs require UnclusteredWorkgroup/SingleWorkgroupAnalyzed. No other-WG/cancellation behavior is inferred.",
+      "actual_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+        "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
+        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_query_of_a_fabricated_response_is_rejected.ptx",
+      "upstream_sha256": "837f84bd6ee192ca7b96489b8fcbf1ee48718cd32e651b07a1eff9b74328fdfb",
+      "original_group": "NVIDIA-CLUSTER-SCHEDULER",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_clusterlaunchcontrol_query_of_a_fabricated_response_is_rejected",
+          "line": 1514,
+          "function_region_sha256": "af33bdbb4f303eeeadeb21a52dc923fcea6794e574a37432e8e9427a6973981e",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 5,
+      "baseline_assertion_summary": "Eval Unsupported must say response was not a declined try_cancel response.",
+      "exact_target_contract": "NVIDIA scheduler-response provenance cannot be manufactured from an arbitrary b128 word.",
+      "remaining_portable_obligation": "No arithmetic or output values are asserted. Keep native selected-WG geometry, concrete address provenance and unsupported-cluster rejection explicit; do not synthesize a successful scheduler response.",
+      "native_property_scope": "Native logical launch geometry is retained while proofs require UnclusteredWorkgroup/SingleWorkgroupAnalyzed. No other-WG/cancellation behavior is inferred.",
+      "actual_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+        "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
+        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_try_cancel_after_observed_decline_is_rejected.ptx",
+      "upstream_sha256": "47354f7973fe162cf4be29e14bb9ea8ed1b51fb88b437280bab3002feaf210f4",
+      "original_group": "NVIDIA-CLUSTER-SCHEDULER",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_clusterlaunchcontrol_try_cancel_after_observed_decline_is_rejected",
+          "line": 1491,
+          "function_region_sha256": "9390a92608a4b9c2cb87df37e285c4adcd2cb81cff80e160f61b9332f4170808",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "ClusterLaunchControlMisuse::RequestAfterObservedDecline must identify observer thread0.",
+      "exact_target_contract": "NVIDIA cancellation request protocol forbids a new request after the actor observes decline.",
+      "remaining_portable_obligation": "No arithmetic or output values are asserted. Keep native selected-WG geometry, concrete address provenance and unsupported-cluster rejection explicit; do not synthesize a successful scheduler response.",
+      "native_property_scope": "Native logical launch geometry is retained while proofs require UnclusteredWorkgroup/SingleWorkgroupAnalyzed. No other-WG/cancellation behavior is inferred.",
+      "actual_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+        "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
+        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_unguarded_get_first_ctaid_is_rejected.ptx",
+      "upstream_sha256": "183878e5c3b119acd364da9df920333115d57d44933404270d4bd11131f8e8b5",
+      "original_group": "NVIDIA-CLUSTER-SCHEDULER",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_clusterlaunchcontrol_unguarded_get_first_ctaid_is_rejected",
+          "line": 1478,
+          "function_region_sha256": "a3601abea4264b47a306ae0f9bdab016d794e17475a49bf0c61c1a46400a86fd",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 10,
+      "baseline_assertion_summary": "ClusterLaunchControlMisuse::CtaidOfDeclinedResponse is required.",
+      "exact_target_contract": "Decoding a canceled CTA identifier out of a declined NVIDIA scheduler response is forbidden.",
+      "remaining_portable_obligation": "No arithmetic or output values are asserted. Keep native selected-WG geometry, concrete address provenance and unsupported-cluster rejection explicit; do not synthesize a successful scheduler response.",
+      "native_property_scope": "Native logical launch geometry is retained while proofs require UnclusteredWorkgroup/SingleWorkgroupAnalyzed. No other-WG/cancellation behavior is inferred.",
+      "actual_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+        "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
+        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/cvta_other_forms_rejected_global.ptx",
+      "upstream_sha256": "1f5f16e439c577ba5c104a3bb0d4c75e935854792c852442a5d8445253391cdd",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_cvta_other_forms_rejected",
+          "line": 1400,
+          "function_region_sha256": "eb9797e9e142382eb98fd698d0d7b3bbff354baf8ac9137cb1a6d87f0ac1b00f",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 5,
+      "baseline_assertion_summary": "Lowering Unsupported must name cvta form and its corpus/per-space-window reason.",
+      "exact_target_contract": "These rejected PTX address-space conversion spellings are restrictions of the baseline frontend/model, not universally invalid pointer arithmetic.",
+      "remaining_portable_obligation": "Native conversion/resolution must preserve concrete Global versus opaque Shared address domain, bounds and symbolic data.",
+      "native_property_scope": "Actual native src_shared_base/FLAT domain controls and bounds preserve symbolic values. PTX rejection is not imported onto valid native Shared addressing.",
+      "actual_native_gap": "Coordinator should replay the latest peer ABI checkpoint; no native source/path is invented by this audit.",
+      "proposal": "native_property_candidate_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "a:genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums",
+        "a:extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls",
+        "a:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects",
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/cvta_other_forms_rejected_shared.ptx",
+      "upstream_sha256": "eb53b3392a2f692fa92c71ca6fb61feb1bffe3899d2cfab85574de2041552b49",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_cvta_other_forms_rejected",
+          "line": 1400,
+          "function_region_sha256": "eb9797e9e142382eb98fd698d0d7b3bbff354baf8ac9137cb1a6d87f0ac1b00f",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 5,
+      "baseline_assertion_summary": "Lowering Unsupported must name cvta form and its corpus/per-space-window reason.",
+      "exact_target_contract": "These rejected PTX address-space conversion spellings are restrictions of the baseline frontend/model, not universally invalid pointer arithmetic.",
+      "remaining_portable_obligation": "Native conversion/resolution must preserve concrete Global versus opaque Shared address domain, bounds and symbolic data.",
+      "native_property_scope": "Actual native src_shared_base/FLAT domain controls and bounds preserve symbolic values. PTX rejection is not imported onto valid native Shared addressing.",
+      "actual_native_gap": "Coordinator should replay the latest peer ABI checkpoint; no native source/path is invented by this audit.",
+      "proposal": "native_property_candidate_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "a:genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums",
+        "a:extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls",
+        "a:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects",
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/cvta_other_forms_rejected_to_shared.ptx",
+      "upstream_sha256": "1b13727424b316b14b20a5927d8d13f7560057bdd7c269410c456d1e3f8bbe59",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_cvta_other_forms_rejected",
+          "line": 1400,
+          "function_region_sha256": "eb9797e9e142382eb98fd698d0d7b3bbff354baf8ac9137cb1a6d87f0ac1b00f",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 5,
+      "baseline_assertion_summary": "Lowering Unsupported must name cvta form and its corpus/per-space-window reason.",
+      "exact_target_contract": "These rejected PTX address-space conversion spellings are restrictions of the baseline frontend/model, not universally invalid pointer arithmetic.",
+      "remaining_portable_obligation": "Native conversion/resolution must preserve concrete Global versus opaque Shared address domain, bounds and symbolic data.",
+      "native_property_scope": "Actual native src_shared_base/FLAT domain controls and bounds preserve symbolic values. PTX rejection is not imported onto valid native Shared addressing.",
+      "actual_native_gap": "Coordinator should replay the latest peer ABI checkpoint; no native source/path is invented by this audit.",
+      "proposal": "native_property_candidate_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "a:genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums",
+        "a:extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls",
+        "a:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects",
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mapa_generic_is_rejected.ptx",
+      "upstream_sha256": "417c3189f1a84c86298f528cabc825f4579a39a66c84de8fcba97912a183a2b9",
+      "original_group": "NVIDIA-CLUSTER-SCHEDULER",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_mapa_generic_is_rejected",
+          "line": 1555,
+          "function_region_sha256": "f41d84bae5c56097ef1c502060666b3790c019ae892b02195951807c3a52b6c8",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "Lowering Unsupported must name generic addressing.",
+      "exact_target_contract": "PTX generic mapa lacks model per-space windows for distributed shared addressing.",
+      "remaining_portable_obligation": "No arithmetic or output values are asserted. Keep native selected-WG geometry, concrete address provenance and unsupported-cluster rejection explicit; do not synthesize a successful scheduler response.",
+      "native_property_scope": "Native logical launch geometry is retained while proofs require UnclusteredWorkgroup/SingleWorkgroupAnalyzed. No other-WG/cancellation behavior is inferred.",
+      "actual_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+        "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
+        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mapa_nonzero_rank_is_rejected.ptx",
+      "upstream_sha256": "c4b6fa9b6bd56a0752618e46ea612f0aba8877fd292639ffcf8592907c6d910e",
+      "original_group": "NVIDIA-CLUSTER-SCHEDULER",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_mapa_nonzero_rank_is_rejected",
+          "line": 1545,
+          "function_region_sha256": "641f438a83b16d5dc4ea316d2f26bf3dc08a9383ca971dc0e224db746a19af88",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 4,
+      "baseline_assertion_summary": "Eval MapaRankOutsideCluster must retain rank1.",
+      "exact_target_contract": "PTX distributed-shared mapping names a CTA beyond the selected single-CTA cluster.",
+      "remaining_portable_obligation": "No arithmetic or output values are asserted. Keep native selected-WG geometry, concrete address provenance and unsupported-cluster rejection explicit; do not synthesize a successful scheduler response.",
+      "native_property_scope": "Native logical launch geometry is retained while proofs require UnclusteredWorkgroup/SingleWorkgroupAnalyzed. No other-WG/cancellation behavior is inferred.",
+      "actual_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+        "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
+        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_inval_is_not_implemented.ptx",
+      "upstream_sha256": "3cc5db737cb63ee1a750ee508e971d1bf7b2a8010eb9a51de6defe038eaf46ea",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_mbarrier_inval_is_not_implemented",
+          "line": 772,
+          "function_region_sha256": "7f14900ca55b3d8b0ccba9d8b62e2b0d6a85bd6d73bbbf3608094d0ea009af87",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 4,
+      "baseline_assertion_summary": "Lowering Unsupported must contain mbarrier.inval and not implemented.",
+      "exact_target_contract": "NVIDIA explicit invalidation before reusing LDS-backed mbarrier bytes is unimplemented in the baseline. Native named objects use leave/reinit/incarnation identities.",
+      "remaining_portable_obligation": "Safe native object reuse must preserve outstanding-use and incarnation constraints.",
+      "native_property_scope": "Actual ordered native reinit after all leaves preserves two outputs; stale object/phase records fail.",
+      "actual_native_gap": "Unordered/outstanding native reinit source negatives are explicitly pending in the separate59-row proposal; they are not closed by this spelling-only unsupported test.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "n:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes",
+        "g:named_reinitialization_creates_a_fresh_lifetime_and_stale_records_fail"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_relaxed_semantics_rejected_arrive.ptx",
+      "upstream_sha256": "181b6ad07e62f3ff12494543044bc677f69d3a8a195af4612f5826b0d83ea533",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_mbarrier_relaxed_semantics_rejected",
+          "line": 262,
+          "function_region_sha256": "64a9dea465eec2f2fe6635c2309f8236ae95511c99ab6e86a9c4e9dae01e3d5e",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 5,
+      "baseline_assertion_summary": "Lowering UnsupportedInstruction name=mbarrier.arrive; no numerical output.",
+      "exact_target_contract": "Baseline excludes the PTX relaxed semantics qualifier even where another ISA/profile may allow it. Native named signal/wait has its own pinned ordering contract.",
+      "remaining_portable_obligation": "A native barrier may publish only its completed-effect frontier; target semantics must never default to PTX release/acquire.",
+      "native_property_scope": "Actual consumer-only wait requires real DS completion; independent native object/phase association is validated. Exact PTX qualifier is not a native feature.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "l:consumer_only_wait_cannot_replace_actual_lds_completion",
+        "g:named_publication_needs_the_actual_data_wait_and_matching_object_phase"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_relaxed_semantics_rejected_try_wait.ptx",
+      "upstream_sha256": "dd5cf1be34a07a8359c542f6ffde8ad83e3cbf1d075283fd1443d98432c9bfc8",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_mbarrier_relaxed_semantics_rejected",
+          "line": 262,
+          "function_region_sha256": "64a9dea465eec2f2fe6635c2309f8236ae95511c99ab6e86a9c4e9dae01e3d5e",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 6,
+      "baseline_assertion_summary": "Lowering UnsupportedInstruction name=mbarrier.try_wait; no numerical output.",
+      "exact_target_contract": "Baseline excludes the PTX relaxed semantics qualifier even where another ISA/profile may allow it. Native named signal/wait has its own pinned ordering contract.",
+      "remaining_portable_obligation": "A native barrier may publish only its completed-effect frontier; target semantics must never default to PTX release/acquire.",
+      "native_property_scope": "Actual consumer-only wait requires real DS completion; independent native object/phase association is validated. Exact PTX qualifier is not a native feature.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "l:consumer_only_wait_cannot_replace_actual_lds_completion",
+        "g:named_publication_needs_the_actual_data_wait_and_matching_object_phase"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_arrive.ptx",
+      "upstream_sha256": "1b21a2eec25cb71d747d0c936d80181c151fc863de9be2619ce793c6d2d7255d",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_mbarrier_shared_cluster_validity",
+          "line": 843,
+          "function_region_sha256": "d8251a3a6156174cb978bd089b6cb94b65546fb2ac26ca0c1d0cebef24c622fd",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "UnsupportedInstruction names single-CTA analysis only.",
+      "exact_target_contract": "PTX arrive shared::cluster spelling has the exact validity/model distinction asserted by this row. Native unclustered shader objects do not acquire remote-cluster semantics from it.",
+      "remaining_portable_obligation": "Retain native unclustered premise and forbid unsupported multi-WG effects.",
+      "native_property_scope": "Independent native geometry controls require the unclustered/selected-WG premises; logical grid does not prove other workgroups.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
+        "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_init.ptx",
+      "upstream_sha256": "bcb85d929dc4edd35dd61095385dd4ec4bafd3e11dac8ef34d90b1d499c8a1be",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_mbarrier_shared_cluster_validity",
+          "line": 843,
+          "function_region_sha256": "d8251a3a6156174cb978bd089b6cb94b65546fb2ac26ca0c1d0cebef24c622fd",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "Invalid instruction must say has no .shared::cluster form.",
+      "exact_target_contract": "PTX init shared::cluster spelling has the exact validity/model distinction asserted by this row. Native unclustered shader objects do not acquire remote-cluster semantics from it.",
+      "remaining_portable_obligation": "Retain native unclustered premise and forbid unsupported multi-WG effects.",
+      "native_property_scope": "Independent native geometry controls require the unclustered/selected-WG premises; logical grid does not prove other workgroups.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
+        "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_inval.ptx",
+      "upstream_sha256": "d31146ef8d7860ea5093c076982b521734f39908bb9b7cc471abdb0aae1ddf43",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_mbarrier_shared_cluster_validity",
+          "line": 843,
+          "function_region_sha256": "d8251a3a6156174cb978bd089b6cb94b65546fb2ac26ca0c1d0cebef24c622fd",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "Invalid instruction must say has no .shared::cluster form.",
+      "exact_target_contract": "PTX inval shared::cluster spelling has the exact validity/model distinction asserted by this row. Native unclustered shader objects do not acquire remote-cluster semantics from it.",
+      "remaining_portable_obligation": "Retain native unclustered premise and forbid unsupported multi-WG effects.",
+      "native_property_scope": "Independent native geometry controls require the unclustered/selected-WG premises; logical grid does not prove other workgroups.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
+        "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_test_wait.ptx",
+      "upstream_sha256": "324047710efe2ba39601cb847f01a205640253224f106f97d4673d9a311837bd",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_mbarrier_shared_cluster_validity",
+          "line": 843,
+          "function_region_sha256": "d8251a3a6156174cb978bd089b6cb94b65546fb2ac26ca0c1d0cebef24c622fd",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "Invalid instruction must say has no .shared::cluster form.",
+      "exact_target_contract": "PTX test_wait shared::cluster spelling has the exact validity/model distinction asserted by this row. Native unclustered shader objects do not acquire remote-cluster semantics from it.",
+      "remaining_portable_obligation": "Retain native unclustered premise and forbid unsupported multi-WG effects.",
+      "native_property_scope": "Independent native geometry controls require the unclustered/selected-WG premises; logical grid does not prove other workgroups.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
+        "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_shared_cluster_validity_try_wait.ptx",
+      "upstream_sha256": "5c2f4256d921e4cb06bb9b5b0e76348cebedc44daa5a9f526dd3a2d9a25351e8",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_mbarrier_shared_cluster_validity",
+          "line": 843,
+          "function_region_sha256": "d8251a3a6156174cb978bd089b6cb94b65546fb2ac26ca0c1d0cebef24c622fd",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "Invalid instruction must say has no .shared::cluster form.",
+      "exact_target_contract": "PTX try_wait shared::cluster spelling has the exact validity/model distinction asserted by this row. Native unclustered shader objects do not acquire remote-cluster semantics from it.",
+      "remaining_portable_obligation": "Retain native unclustered premise and forbid unsupported multi-WG effects.",
+      "native_property_scope": "Independent native geometry controls require the unclustered/selected-WG premises; logical grid does not prove other workgroups.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
+        "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/membar_levels_cluster.ptx",
+      "upstream_sha256": "97b9d4458f041f4e1fdc47291f57f8467dabe930a8cc5fe860962815baf5f454",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_membar_levels",
+          "line": 740,
+          "function_region_sha256": "166c6dfb8196318428484f61d9e101c8370a643f1b277d2bfd5442bc7b4e687c",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "Lowering Unsupported reason must mention parsing failed.",
+      "exact_target_contract": "PTX membar cluster spelling/alias/proxy form is distinct from native counter/cache instructions.",
+      "remaining_portable_obligation": "Do not infer native cross-proxy or cross-agent publication from unrelated completion.",
+      "native_property_scope": "Native completed-effect publication and X/data distinction are independently checked; no proxy alias certificate is imported.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves",
+        "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/membar_levels_gpu.ptx",
+      "upstream_sha256": "935036ee193498b4be6a7e6e4b48da013faa60cd939a68245ba5002b776a5891",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_membar_levels",
+          "line": 740,
+          "function_region_sha256": "166c6dfb8196318428484f61d9e101c8370a643f1b277d2bfd5442bc7b4e687c",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "Lowering Unsupported reason must mention parsing failed.",
+      "exact_target_contract": "PTX membar gpu spelling/alias/proxy form is distinct from native counter/cache instructions.",
+      "remaining_portable_obligation": "Do not infer native cross-proxy or cross-agent publication from unrelated completion.",
+      "native_property_scope": "Native completed-effect publication and X/data distinction are independently checked; no proxy alias certificate is imported.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves",
+        "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/membar_levels_proxy_alias.ptx",
+      "upstream_sha256": "6f171ff917eab6957375bfb9a0d7b79b4584e19457a12e144fb9908865438e25",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_membar_levels",
+          "line": 740,
+          "function_region_sha256": "166c6dfb8196318428484f61d9e101c8370a643f1b277d2bfd5442bc7b4e687c",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "Lowering Unsupported reason is not implemented yet.",
+      "exact_target_contract": "PTX membar proxy_alias spelling/alias/proxy form is distinct from native counter/cache instructions.",
+      "remaining_portable_obligation": "Do not infer native cross-proxy or cross-agent publication from unrelated completion.",
+      "native_property_scope": "Native completed-effect publication and X/data distinction are independently checked; no proxy alias certificate is imported.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves",
+        "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/membar_levels_proxy_async.ptx",
+      "upstream_sha256": "258eb1c1822cce91c20a037739c61cf1467b94233840cd4293efef91ba942617",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_membar_levels",
+          "line": 740,
+          "function_region_sha256": "166c6dfb8196318428484f61d9e101c8370a643f1b277d2bfd5442bc7b4e687c",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "Lowering Unsupported reason is not implemented yet.",
+      "exact_target_contract": "PTX membar proxy_async spelling/alias/proxy form is distinct from native counter/cache instructions.",
+      "remaining_portable_obligation": "Do not infer native cross-proxy or cross-agent publication from unrelated completion.",
+      "native_property_scope": "Native completed-effect publication and X/data distinction are independently checked; no proxy alias certificate is imported.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves",
+        "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_alloc_rejects_invalid_sizes_and_order_16.ptx",
+      "upstream_sha256": "7305d951131c2cd1ed38ffbae3c6e608399b6e33d46fdeb84561d27704699382",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_alloc_rejects_invalid_sizes_and_order",
+          "line": 362,
+          "function_region_sha256": "60c839ee38752cb9581ad06569dd590f088c1dcf0fb345bd80c200513d4ff6b6",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "Eval Tcgen05InvalidColumnCount must report16.",
+      "exact_target_contract": "NVIDIA non-exclusive Tensor Memory allocations require the32-column unit.",
+      "remaining_portable_obligation": "Native resource bounds/encodings must be validated, without copying TMEM-specific power-of-two/descending rules onto unrelated LDS objects.",
+      "native_property_scope": "Real native descriptor capacity and per-object byte bounds are separately checked; no mathematical operation/output is asserted by these rejected encodings.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation",
+        "a:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_alloc_rejects_invalid_sizes_and_order_32_then_64.ptx",
+      "upstream_sha256": "774e400a5f72692456301f4ac5531f403938d3687311c7e8185b2e0adf660108",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_alloc_rejects_invalid_sizes_and_order",
+          "line": 362,
+          "function_region_sha256": "60c839ee38752cb9581ad06569dd590f088c1dcf0fb345bd80c200513d4ff6b6",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 4,
+      "baseline_assertion_summary": "Eval Tcgen05IncreasingColumnCount must retain previous32/requested64.",
+      "exact_target_contract": "NVIDIA allocation sequence size must not increase, even within one warp.",
+      "remaining_portable_obligation": "Native resource bounds/encodings must be validated, without copying TMEM-specific power-of-two/descending rules onto unrelated LDS objects.",
+      "native_property_scope": "Real native descriptor capacity and per-object byte bounds are separately checked; no mathematical operation/output is asserted by these rejected encodings.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation",
+        "a:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_exclusive_alloc_and_dealloc_are_not_implemented_alloc.ptx",
+      "upstream_sha256": "2aa9adcd00b9569ac9120afaa4511f394e3df381bd1e033c2f8c5e16621129c6",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_exclusive_alloc_and_dealloc_are_not_implemented",
+          "line": 403,
+          "function_region_sha256": "213d4f4f3a384e076c2648ec158b6530ee3df341d1db6abcc292a8819e4ea5ed",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "Lowering rejects .exclusive alloc, naming .exclusive/not implemented;96 columns is not evaluated under non-exclusive power-of-two rules.",
+      "exact_target_contract": "NVIDIA .exclusive TMEM allocation/deallocation mode is a distinct unsupported encoding/protocol.",
+      "remaining_portable_obligation": "Native unsupported modes must remain explicit and may not fall back to another resource mode. No formula/output is asserted.",
+      "native_property_scope": "Typed native retarget bypass and unsupported release messages are rejected; no exclusive-allocation implementation is inferred.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "e:typed_modules_cannot_retarget_native_scalar_and_vopd_semantics_to_cdna",
+        "d:deallocation_cannot_enable_other_messages_scratch_or_post_release_register_use"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_exclusive_alloc_and_dealloc_are_not_implemented_dealloc.ptx",
+      "upstream_sha256": "124596dc9c53feb3c5b582dfa7a8599e9e173da13dbec18b99e3c1ea414e76cd",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_exclusive_alloc_and_dealloc_are_not_implemented",
+          "line": 403,
+          "function_region_sha256": "213d4f4f3a384e076c2648ec158b6530ee3df341d1db6abcc292a8819e4ea5ed",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "Lowering rejects .exclusive dealloc, naming .exclusive/not implemented;96 columns is not evaluated under non-exclusive power-of-two rules.",
+      "exact_target_contract": "NVIDIA .exclusive TMEM allocation/deallocation mode is a distinct unsupported encoding/protocol.",
+      "remaining_portable_obligation": "Native unsupported modes must remain explicit and may not fall back to another resource mode. No formula/output is asserted.",
+      "native_property_scope": "Typed native retarget bypass and unsupported release messages are rejected; no exclusive-allocation implementation is inferred.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "e:typed_modules_cannot_retarget_native_scalar_and_vopd_semantics_to_cdna",
+        "d:deallocation_cannot_enable_other_messages_scratch_or_post_release_register_use"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_a_desc_bit15.ptx",
+      "upstream_sha256": "8aa018595dc97ea6e8e64fc6c5503c26a6079c1ba060e7ec0773102fdb78331a",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_malformed_descriptors",
+          "line": 694,
+          "function_region_sha256": "26ac27827446b31b70d88cd90d91bd38af18fa8abcf671cecd3a34708fe284bb",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name a-desc. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 A descriptor reserved bit15 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_b_desc_no_bit46.ptx",
+      "upstream_sha256": "120268d50ed6297e72fab8218c8cdf7b171fe058df0401e2a29e8f0ce006bea0",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_malformed_descriptors",
+          "line": 694,
+          "function_region_sha256": "26ac27827446b31b70d88cd90d91bd38af18fa8abcf671cecd3a34708fe284bb",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name fixed-constant field at bit46. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 B descriptor mandatory fixed field is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_b_swizzle128b_atom32.ptx",
+      "upstream_sha256": "36c64f388b6a199a6ec88c5bf0e1c25c86c46217b56e0da10e13d2bd13585e9d",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_invalid_layout_combinations",
+          "line": 728,
+          "function_region_sha256": "cc94b50fdb8f0f0710589329ea508655d470e7d7b0448e6b4fb5736b0c53f548",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name transposed B with128B swizzle/32B atomicity. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 transposed B/swizzle/atomicity combination is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_d_lane128.ptx",
+      "upstream_sha256": "d731cae903a6cbe7e42cbf778b356f4c71789b88d4d9cf6d7fb9674f5a1a9ab3",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_a_d_address_off_lane_0",
+          "line": 709,
+          "function_region_sha256": "07d4726f0fc7c5dd8c7fe33f3b437f485823e5d8365a5bd5c357edbcc7bf2bcc",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name Unsupported [d-tmem] at lane128. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 nonzero D Tensor Memory lane field128 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_d_lane32.ptx",
+      "upstream_sha256": "5b7c7c4c45faa69967d9c2604412b672c7f5787a5e3e368b45e54e2d1e41d39a",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_a_d_address_off_lane_0",
+          "line": 709,
+          "function_region_sha256": "07d4726f0fc7c5dd8c7fe33f3b437f485823e5d8365a5bd5c357edbcc7bf2bcc",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name Unsupported [d-tmem] at lane32. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 nonzero D Tensor Memory lane field32 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_dtype2.ptx",
+      "upstream_sha256": "e734917af09d9fc0ab49762fc5856b7c552230c311469aa97c04a29ac1ae168e",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_invalid_idesc_fields",
+          "line": 664,
+          "function_region_sha256": "a882fd91a0e854b19ebf0319ebb591e1adcdd91fb20d06fc577384f4ace58e9c",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name D type field. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 D type2 on selected floating .kind::f16 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_dtype3.ptx",
+      "upstream_sha256": "62b8efc00f83c45804324aabbf180c3dc77d392162641f017bcd448ec94ec082",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_invalid_idesc_fields",
+          "line": 664,
+          "function_region_sha256": "a882fd91a0e854b19ebf0319ebb591e1adcdd91fb20d06fc577384f4ace58e9c",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name D type field. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 D type3 on selected floating .kind::f16 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_max_shift.ptx",
+      "upstream_sha256": "acc0f89e65dca74a212a96ee899629d68f1035bf8d79c4f98a91c4cc2c66a87b",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_invalid_idesc_fields",
+          "line": 664,
+          "function_region_sha256": "a882fd91a0e854b19ebf0319ebb591e1adcdd91fb20d06fc577384f4ace58e9c",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name maximum shift. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 B reuse-shift bits on non-.ws instruction is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_reserved_bit23.ptx",
+      "upstream_sha256": "fcfaafd3517dd0353249f6863896d974f4c6398bd24c9c417a150f372fded3a3",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_invalid_idesc_fields",
+          "line": 664,
+          "function_region_sha256": "a882fd91a0e854b19ebf0319ebb591e1adcdd91fb20d06fc577384f4ace58e9c",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name reserved bit23. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 instruction descriptor reserved bit23 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_reserved_bit6.ptx",
+      "upstream_sha256": "16f12987bc50a6d19adf70197af4ab2bfcd253e6a17460b9b186f41f698c4d75",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_invalid_idesc_fields",
+          "line": 664,
+          "function_region_sha256": "a882fd91a0e854b19ebf0319ebb591e1adcdd91fb20d06fc577384f4ace58e9c",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name reserved bit6. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 instruction descriptor reserved bit6 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_saturate.ptx",
+      "upstream_sha256": "29ecf2e64adf5672b5e12c526c9606b09046d516f8605c0457b89be77b2d50ab",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_invalid_idesc_fields",
+          "line": 664,
+          "function_region_sha256": "a882fd91a0e854b19ebf0319ebb591e1adcdd91fb20d06fc577384f4ace58e9c",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name saturate. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 integer-only saturation flag on floating instruction is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_fp8_n8.ptx",
+      "upstream_sha256": "91b10357dde1063c0cd5512312d836ed9424c5e7dddc7251c492132e31104656",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_invalid_shapes",
+          "line": 623,
+          "function_region_sha256": "e2dfeecf433f127932c819ccd24b143beeb5d00fd4c954bb98030af75d6a1a9a",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name steps of16. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 transposed8-bit B with N8 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_m128_n264.ptx",
+      "upstream_sha256": "9eb17c4c1134ab819bb5fde136b2ae006ffe392f4f04de461f5dd37032cb23e0",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_invalid_shapes",
+          "line": 623,
+          "function_region_sha256": "e2dfeecf433f127932c819ccd24b143beeb5d00fd4c954bb98030af75d6a1a9a",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name not a valid .cta_group::1 dense shape. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 M128 N264 beyond N256 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_m32_n64.ptx",
+      "upstream_sha256": "61008a9cf77042a78a8cc5d596572d3a3977af584321cffca864303028d6dcf2",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_invalid_shapes",
+          "line": 623,
+          "function_region_sha256": "e2dfeecf433f127932c819ccd24b143beeb5d00fd4c954bb98030af75d6a1a9a",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name not a valid .cta_group::1 dense shape. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 non-.ws M32 N64 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_ws_m128_n0.ptx",
+      "upstream_sha256": "0a07528b97493c5960e6b067611ad94d8f9ce14337ae7b7bf211bed9c8f35f2e",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_invalid_shapes",
+          "line": 623,
+          "function_region_sha256": "e2dfeecf433f127932c819ccd24b143beeb5d00fd4c954bb98030af75d6a1a9a",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name not a valid .cta_group::1 dense shape. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 .ws M128 N0 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_ws_m128_n16.ptx",
+      "upstream_sha256": "9c6a33f96e491b14eeaf62a9758ef3845cab4417dc137d95b54f148ea7094cc7",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_invalid_shapes",
+          "line": 623,
+          "function_region_sha256": "e2dfeecf433f127932c819ccd24b143beeb5d00fd4c954bb98030af75d6a1a9a",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "The exact rejection must name not a valid .cta_group::1 dense shape. No arithmetic output is asserted.",
+      "exact_target_contract": "NVIDIA tcgen05 .ws M128 N16 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
+      "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
+      "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
+      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_rejects_k_dimension_bit.ptx",
+      "upstream_sha256": "b849fe8a9c2dd35925ad7709b630b2589b6e4c038dec197c621ce5ec8573dccf",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_k_dimension_bit",
+          "line": 604,
+          "function_region_sha256": "56646e9384d13d60383d257e3e964c08be8d989cf266f1382cef1aef79372530",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 7,
+      "baseline_assertion_summary": "Eval Unsupported must identify K Dimension bit29 and K16.",
+      "exact_target_contract": "Baseline rejects a legal/unmodeled NVIDIA K16 descriptor mode, not every smaller matrix computation.",
+      "remaining_portable_obligation": "A required native supported formula may not be dropped merely because one NVIDIA opcode mode is unsupported. Validate native selected kinds/shapes and preserve unsupported diagnostics.",
+      "native_property_scope": "Complete native F32/F16/BF16 dot products are established under explicit native dimensions; no TF32 rounding emulation or unsupported source acceptance is claimed.",
+      "actual_native_gap": "Root matrix owner reviews any remaining native dtype/dimension counterpart; this negative has no successful output formula to omit.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_rejects_unmodeled_kind.ptx",
+      "upstream_sha256": "d83f730894e94285879033a1b246fd0521d4075de12362b1f4bef437315cdafe",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_mma_rejects_unmodeled_kind",
+          "line": 560,
+          "function_region_sha256": "6079c870113c7b8cd30e5cfd96636299dcd11281b637e2e82c963e68124bc0ad",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 7,
+      "baseline_assertion_summary": "Lower Unsupported tcgen05.mma reason must mention kind::tf32 and the supported f16/f8f6f4 kinds.",
+      "exact_target_contract": "NVIDIA unsupported TF32 source opcode form is outside the baseline selected kind subset.",
+      "remaining_portable_obligation": "A required native supported formula may not be dropped merely because one NVIDIA opcode mode is unsupported. Validate native selected kinds/shapes and preserve unsupported diagnostics.",
+      "native_property_scope": "Complete native F32/F16/BF16 dot products are established under explicit native dimensions; no TF32 rounding emulation or unsupported source acceptance is claimed.",
+      "actual_native_gap": "Root matrix owner reviews any remaining native dtype/dimension counterpart; this negative has no successful output formula to omit.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_alloc_aligned.ptx",
+      "upstream_sha256": "193236147cbd70c3e4a1721b911d4c0d0ba53422d45170491d0a5d71788c3616",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "function_region_sha256": "0272d03c80d54f6ec1bfb3ac1265d3f5db36162fc2672fbb6ca701a8a0ebf14b",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "InvalidInstruction must name mandatory .aligned qualifier before execution.",
+      "exact_target_contract": "NVIDIA warp-collective tcgen05 spelling requires this specific qualifier; native scalar shader control and full-wave WMMA have different encoding contracts.",
+      "remaining_portable_obligation": "Native cooperative operations must retain full-wave/register-role validation; valid native scalar instructions must not inherit a PTX per-lane alignment restriction.",
+      "native_property_scope": "Native partial/malformed WMMA records and invalid target encoding suffixes are rejected. No NVIDIA qualifier grammar is silently accepted or translated.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "e:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_alloc_sync.ptx",
+      "upstream_sha256": "706e2202b519d0d83506b80360228755dbe997c51fac2fa6d8d80d458d8423bf",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "function_region_sha256": "0272d03c80d54f6ec1bfb3ac1265d3f5db36162fc2672fbb6ca701a8a0ebf14b",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "InvalidInstruction must name mandatory .sync qualifier before execution.",
+      "exact_target_contract": "NVIDIA warp-collective tcgen05 spelling requires this specific qualifier; native scalar shader control and full-wave WMMA have different encoding contracts.",
+      "remaining_portable_obligation": "Native cooperative operations must retain full-wave/register-role validation; valid native scalar instructions must not inherit a PTX per-lane alignment restriction.",
+      "native_property_scope": "Native partial/malformed WMMA records and invalid target encoding suffixes are rejected. No NVIDIA qualifier grammar is silently accepted or translated.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "e:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_dealloc.ptx",
+      "upstream_sha256": "e159172eacca1ee6aecee61c9deb78fed549d146c3c1f343d7f815dbd4e91a4f",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "function_region_sha256": "0272d03c80d54f6ec1bfb3ac1265d3f5db36162fc2672fbb6ca701a8a0ebf14b",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "InvalidInstruction must name mandatory .aligned qualifier before execution.",
+      "exact_target_contract": "NVIDIA warp-collective tcgen05 spelling requires this specific qualifier; native scalar shader control and full-wave WMMA have different encoding contracts.",
+      "remaining_portable_obligation": "Native cooperative operations must retain full-wave/register-role validation; valid native scalar instructions must not inherit a PTX per-lane alignment restriction.",
+      "native_property_scope": "Native partial/malformed WMMA records and invalid target encoding suffixes are rejected. No NVIDIA qualifier grammar is silently accepted or translated.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "e:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_ld.ptx",
+      "upstream_sha256": "b5c374c772862f178b7a4c6635a8da50cdc8f1cfaa37cf1de01847b5e34ca609",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "function_region_sha256": "0272d03c80d54f6ec1bfb3ac1265d3f5db36162fc2672fbb6ca701a8a0ebf14b",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "InvalidInstruction must name mandatory .sync qualifier before execution.",
+      "exact_target_contract": "NVIDIA warp-collective tcgen05 spelling requires this specific qualifier; native scalar shader control and full-wave WMMA have different encoding contracts.",
+      "remaining_portable_obligation": "Native cooperative operations must retain full-wave/register-role validation; valid native scalar instructions must not inherit a PTX per-lane alignment restriction.",
+      "native_property_scope": "Native partial/malformed WMMA records and invalid target encoding suffixes are rejected. No NVIDIA qualifier grammar is silently accepted or translated.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "e:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_relinquish.ptx",
+      "upstream_sha256": "d5dd23f936dfb4ab4b5f589b05f025fd29d958cdc3446574740d38edffd736fb",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "function_region_sha256": "0272d03c80d54f6ec1bfb3ac1265d3f5db36162fc2672fbb6ca701a8a0ebf14b",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "InvalidInstruction must name mandatory .aligned qualifier before execution.",
+      "exact_target_contract": "NVIDIA warp-collective tcgen05 spelling requires this specific qualifier; native scalar shader control and full-wave WMMA have different encoding contracts.",
+      "remaining_portable_obligation": "Native cooperative operations must retain full-wave/register-role validation; valid native scalar instructions must not inherit a PTX per-lane alignment restriction.",
+      "native_property_scope": "Native partial/malformed WMMA records and invalid target encoding suffixes are rejected. No NVIDIA qualifier grammar is silently accepted or translated.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "e:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_st.ptx",
+      "upstream_sha256": "636ff304a777598f1368efdec176c1b2e567f6b4019212df043cc5ab0e87a002",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "function_region_sha256": "0272d03c80d54f6ec1bfb3ac1265d3f5db36162fc2672fbb6ca701a8a0ebf14b",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "InvalidInstruction must name mandatory .aligned qualifier before execution.",
+      "exact_target_contract": "NVIDIA warp-collective tcgen05 spelling requires this specific qualifier; native scalar shader control and full-wave WMMA have different encoding contracts.",
+      "remaining_portable_obligation": "Native cooperative operations must retain full-wave/register-role validation; valid native scalar instructions must not inherit a PTX per-lane alignment restriction.",
+      "native_property_scope": "Native partial/malformed WMMA records and invalid target encoding suffixes are rejected. No NVIDIA qualifier grammar is silently accepted or translated.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "e:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_wait_ld.ptx",
+      "upstream_sha256": "1df5d62b414e51480f0f25e5c2ea6f173cac3536c8a9334852a6f5446a4773b4",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_rejects_missing_sync_aligned",
+          "line": 291,
+          "function_region_sha256": "0272d03c80d54f6ec1bfb3ac1265d3f5db36162fc2672fbb6ca701a8a0ebf14b",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 3,
+      "baseline_assertion_summary": "InvalidInstruction must name mandatory .sync qualifier before execution.",
+      "exact_target_contract": "NVIDIA warp-collective tcgen05 spelling requires this specific qualifier; native scalar shader control and full-wave WMMA have different encoding contracts.",
+      "remaining_portable_obligation": "Native cooperative operations must retain full-wave/register-role validation; valid native scalar instructions must not inherit a PTX per-lane alignment restriction.",
+      "native_property_scope": "Native partial/malformed WMMA records and invalid target encoding suffixes are rejected. No NVIDIA qualifier grammar is silently accepted or translated.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "e:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_st_rejects_wrong_quadrant_address.ptx",
+      "upstream_sha256": "2ddcb2a2938fd8b691a38ad4256977c30f4b2eb7cd0448955162d8a6fc224810",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_tcgen05_st_rejects_wrong_quadrant_address",
+          "line": 448,
+          "function_region_sha256": "fc92cfb5196adee50b6d973c8b27699caa7798317c3180625531b9dd227a0e49",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 9,
+      "baseline_assertion_summary": "Tcgen05LaneRestrictionViolation must retain lane_base32 and expected_quadrant_base0.",
+      "exact_target_contract": "NVIDIA32x32b TMEM lane/quadrant address encoding restricts which warp owns the store.",
+      "remaining_portable_obligation": "Native physical lane masks, register slices and storage addresses must stay in their own correct domains.",
+      "native_property_scope": "Native forged masks/register namespaces fail closed; all WMMA operand basis coordinates validate native lane layout. No NVIDIA Tensor Memory lane address is interpreted as a native byte address.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:invalid_masks_register_namespaces_and_missing_semantic_records_fail_closed",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_arrive_extra_operand.ptx",
+      "upstream_sha256": "c903f8433b35b3d9f333f52386697ca791799925a74e6948d6d8ef6843e1c6af",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_arrive_must_reject_a_trailing_operand",
+          "line": 201,
+          "function_region_sha256": "1996798e8734a32d24e4223685ff74b1b8b430af9287797deef832780fa4d186",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 5,
+      "baseline_assertion_summary": "Rejected during static validation before a verdict.",
+      "exact_target_contract": "A fourth PTX arrive.expect_tx operand is invalid.",
+      "remaining_portable_obligation": "Native selected instructions must validate exact argument counts and must not ignore extra operands.",
+      "native_property_scope": "Native wrong-register/modifier/target and named M0/source-association validation exist; they are not dedicated malformed barrier-arity tests.",
+      "actual_native_gap": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "g:named_init_resource_and_m0_roles_cannot_be_fabricated"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_arrive_zero_count.ptx",
+      "upstream_sha256": "b68110e3c4e4797f5786d37820a97f5f914c236561ffe40d54c0146d0c4c583c",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_arrive_must_reject_a_zero_count",
+          "line": 192,
+          "function_region_sha256": "2aac108281b250bef2a79d3df1b6203c6a5f9571917b352b6729c3abac1c18d7",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 4,
+      "baseline_assertion_summary": "Rejected before verdict for explicit PTX arrive count0.",
+      "exact_target_contract": "PTX arrive count0 is not the native M0 signal expected-count delta0. Native delta0 still performs one arrival, and NULL ID0 operations can be valid.",
+      "remaining_portable_obligation": "Validate the actual native count/update contract without manufacturing a false zero-delta rejection.",
+      "native_property_scope": "Actual scalar native signal operations and NULL cases are tested. Native nonzero expected-count updates remain outside the selected model.",
+      "actual_native_gap": "A dedicated unsupported nonzero native count-update source control may be needed; this row cannot force rejection of legal delta0/NULL.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "n:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes",
+        "g:named_arrival_count_is_not_a_distinct_wave_count"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_complete_tx_invalid_scope.ptx",
+      "upstream_sha256": "106c83e84dc54bb7eceafb6011131f3d13015a630d08b8339321a4dd689a0677",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_complete_tx_must_reject_invalid_scope",
+          "line": 439,
+          "function_region_sha256": "df98de7da45538cc0c13b796d44f894aa2fb693a603122bb2accc4210136c268",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 5,
+      "baseline_assertion_summary": "Rejected during static validation before a verdict.",
+      "exact_target_contract": "PTX complete_tx scope=gpu is invalid in this specific object operation; native data-memory scope syntax has different legal values.",
+      "remaining_portable_obligation": "Reject unsupported native modifiers and retain actual completion/publication semantics; do not blanket-reject valid native SCOPE_DEV memory operations.",
+      "native_property_scope": "Actual selected native memory modifier/target validation and completion-aware publication are tested; no NVIDIA byte-credit operation is fabricated.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "f:scope_modifier_does_not_escape_into_legacy_flat_mnemonics_or_unknown_target_features",
+        "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_complete_tx_invalid_semantics.ptx",
+      "upstream_sha256": "38a579f5058f9f94d2ad08714ca315c72f523ae9ff1a0c0e5abdd3e8f2bb10cb",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_complete_tx_must_reject_invalid_semantics",
+          "line": 430,
+          "function_region_sha256": "e32ea8a9a60e33021acf61397cc440af6879d792e870784bb1ddcaa3757d9353",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 5,
+      "baseline_assertion_summary": "Rejected during static validation before a verdict.",
+      "exact_target_contract": "PTX complete_tx semantics=acquire is invalid in this specific object operation; native data-memory scope syntax has different legal values.",
+      "remaining_portable_obligation": "Reject unsupported native modifiers and retain actual completion/publication semantics; do not blanket-reject valid native SCOPE_DEV memory operations.",
+      "native_property_scope": "Actual selected native memory modifier/target validation and completion-aware publication are tested; no NVIDIA byte-credit operation is fabricated.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "f:scope_modifier_does_not_escape_into_legacy_flat_mnemonics_or_unknown_target_features",
+        "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_expect_tx_invalid_scope.ptx",
+      "upstream_sha256": "58b2518232a6605d31b63257a9f50c0b35f3d7ee304c26953dd62c038eb1461a",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_expect_tx_must_reject_invalid_scope",
+          "line": 421,
+          "function_region_sha256": "7e414d453ac1080b91441083798b5cae54ef9fd11e4de260d8484d1500cb620a",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 6,
+      "baseline_assertion_summary": "Rejected during static validation before a verdict.",
+      "exact_target_contract": "PTX expect_tx scope=gpu is invalid in this specific object operation; native data-memory scope syntax has different legal values.",
+      "remaining_portable_obligation": "Reject unsupported native modifiers and retain actual completion/publication semantics; do not blanket-reject valid native SCOPE_DEV memory operations.",
+      "native_property_scope": "Actual selected native memory modifier/target validation and completion-aware publication are tested; no NVIDIA byte-credit operation is fabricated.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "f:scope_modifier_does_not_escape_into_legacy_flat_mnemonics_or_unknown_target_features",
+        "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_expect_tx_invalid_semantics.ptx",
+      "upstream_sha256": "a22178563c2cdf94a9ef598b8d3c9504888d1caf5f468c82ec81d40354b0ecfa",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_expect_tx_must_reject_invalid_semantics",
+          "line": 412,
+          "function_region_sha256": "331b2a1cd275499130b83ec2ad287ad883f2e0cbca7b27feca22d766c6b6c672",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 6,
+      "baseline_assertion_summary": "Rejected during static validation before a verdict.",
+      "exact_target_contract": "PTX expect_tx semantics=acquire is invalid in this specific object operation; native data-memory scope syntax has different legal values.",
+      "remaining_portable_obligation": "Reject unsupported native modifiers and retain actual completion/publication semantics; do not blanket-reject valid native SCOPE_DEV memory operations.",
+      "native_property_scope": "Actual selected native memory modifier/target validation and completion-aware publication are tested; no NVIDIA byte-credit operation is fabricated.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "f:scope_modifier_does_not_escape_into_legacy_flat_mnemonics_or_unknown_target_features",
+        "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_init_count_out_of_range.ptx",
+      "upstream_sha256": "b325cad7ca4699fe924635006d46f6edc6a3782d3c3271f6055248141798a7c3",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_init_must_reject_a_count_above_the_ptx_limit",
+          "line": 183,
+          "function_region_sha256": "07a9e79984fb2190995d3b7ed0c623d5cc1a4018d54770ef1c6e7ec61545d6fc",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "Rejected before verdict for PTX init count 2^20.",
+      "exact_target_contract": "PTX20-bit count range differs from native16-bit M0 expected-count field. NULL init is a no-op; it must not be treated as non-NULL count0.",
+      "remaining_portable_obligation": "Native non-NULL init must reject expected0 and preserve its own exact encoded field/resource boundaries.",
+      "native_property_scope": "Native allocation ID17/missing M0/invalid descriptor capacity controls exist; no dedicated non-NULL count0/boundary source test is claimed.",
+      "actual_native_gap": "Add native non-NULL count0 and exact M0 field-boundary controls. Do not import the numeric PTX2^20 limit or invalidate NULL no-op semantics.",
+      "proposal": "portable_property_gap_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:named_init_resource_and_m0_roles_cannot_be_fabricated",
+        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_init_zero_count.ptx",
+      "upstream_sha256": "c3114f576d0d893e577b2a38c65d43775dfb31fe4492915cbd5fc6e433a0f2c8",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_init_must_reject_a_zero_count",
+          "line": 174,
+          "function_region_sha256": "48f47527fa3f3a2b6216c7ad9618ac70ab2d42fc2400130ad80cf3fe373d0dce",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "Rejected before verdict for PTX init count zero.",
+      "exact_target_contract": "PTX20-bit count range differs from native16-bit M0 expected-count field. NULL init is a no-op; it must not be treated as non-NULL count0.",
+      "remaining_portable_obligation": "Native non-NULL init must reject expected0 and preserve its own exact encoded field/resource boundaries.",
+      "native_property_scope": "Native allocation ID17/missing M0/invalid descriptor capacity controls exist; no dedicated non-NULL count0/boundary source test is claimed.",
+      "actual_native_gap": "Add native non-NULL count0 and exact M0 field-boundary controls. Do not import the numeric PTX2^20 limit or invalidate NULL no-op semantics.",
+      "proposal": "portable_property_gap_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:named_init_resource_and_m0_roles_cannot_be_fabricated",
+        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_test_wait_extra_operand.ptx",
+      "upstream_sha256": "4a13675e1897550233e8371e287f7464995efb8158fe315abede465d828211f6",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_test_wait_must_reject_an_extra_operand",
+          "line": 457,
+          "function_region_sha256": "1038a92c7bf3e9372f3d2581e428248ec5da8fe680e1b8d31e6606bcd696011e",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 6,
+      "baseline_assertion_summary": "Rejected during static validation before a verdict.",
+      "exact_target_contract": "An extra PTX test_wait operand is invalid.",
+      "remaining_portable_obligation": "Native selected instructions must validate exact argument counts and must not ignore extra operands.",
+      "native_property_scope": "Native wrong-register/modifier/target and named M0/source-association validation exist; they are not dedicated malformed barrier-arity tests.",
+      "actual_native_gap": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "g:named_init_resource_and_m0_roles_cannot_be_fabricated"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_try_wait_extra_operand.ptx",
+      "upstream_sha256": "a17c8778c62cc28369f9964a4d25a47bc23c20c509c32f15b00ed199ec78800f",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_try_wait_must_reject_an_operand_after_the_suspend_hint",
+          "line": 466,
+          "function_region_sha256": "fbc419b25970a6d3871d19049381490b97505204614049c731c7545afa76c531",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 6,
+      "baseline_assertion_summary": "Rejected during static validation before a verdict.",
+      "exact_target_contract": "An operand after the optional PTX suspend hint is invalid.",
+      "remaining_portable_obligation": "Native selected instructions must validate exact argument counts and must not ignore extra operands.",
+      "native_property_scope": "Native wrong-register/modifier/target and named M0/source-association validation exist; they are not dedicated malformed barrier-arity tests.",
+      "actual_native_gap": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping.",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "g:named_init_resource_and_m0_roles_cannot_be_fabricated"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_try_wait_invalid_scope.ptx",
+      "upstream_sha256": "404241682cd489a7d8fa2b2d147d2949dcb6a0a4d5a1e1d6fd019974236d2879",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_try_wait_must_reject_invalid_scope",
+          "line": 448,
+          "function_region_sha256": "2813dba95c575bd33d1ea44f97bfac4544897d309378a247e1df18beab472e89",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 7,
+      "baseline_assertion_summary": "Rejected during static validation for acquire.sys wait on shared::cta object.",
+      "exact_target_contract": "PTX shared::cta try_wait has a restricted synchronization-scope qualifier; native named WAIT uses the joined shader object.",
+      "remaining_portable_obligation": "Unsupported native barrier/scope combinations must stay explicit; no broader-scope publication may be inferred.",
+      "native_property_scope": "Native object/phase and unclustered premises govern publication; this is not NVIDIA .sys scope emulation.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:named_publication_needs_the_actual_data_wait_and_matching_object_phase",
+        "g:empty_incomplete_and_replay_disabled_envelopes_never_accept"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_tx_count_out_of_range.ptx",
+      "upstream_sha256": "1c916ba56a64a91cc6d5e931ef81b9d685657895ceff53f3e51fcdfed2002a3c",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_tx_count_must_stay_in_the_isa_range",
+          "line": 475,
+          "function_region_sha256": "338353fc340e6b12da302ce6e6835be1115fb5df7d5a337f33087c713e4c1ee8",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "baseline_golden": null,
+      "reviewed_instruction_count": 10,
+      "baseline_assertion_summary": "Hidden positive: cumulative2^20\u22121 credits GraphVerified. Then cumulative2^20 passes parsing but aborts with exact tx_count1048576.",
+      "exact_target_contract": "Manual NVIDIA transaction-byte-credit arithmetic is absent from native named objects and native Tensor counters. This row is not merely syntax.",
+      "remaining_portable_obligation": "Selected native counter/footprint arithmetic must not wrap or manufacture completion beyond its actual representable/pinned domain.",
+      "native_property_scope": "Independent native counter-overfull and unpinned Tensor-threshold tests fail closed. They do not claim a2^20 native transaction limit.",
+      "actual_native_gap": "Coordinator must review the exact byte-credit mechanism residual plus native positive/negative field/capacity boundary evidence. Required numeric-boundary positive is not silently relabeled syntax-only.",
+      "proposal": "portable_property_gap_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "g:maximal_wait_threshold_never_retires_a_logically_overfull_stream",
+        "g:malformed_thresholds_and_unknown_tensor_width_do_not_establish_acceptance"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/membar_levels_cta.ptx",
+      "upstream_sha256": "7ac23b6bd1ffce47e49f75dd8ffeecdb13808eeade1b57a0cfc829deebd4c375",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_membar_valid_levels_lower",
+          "line": 1757,
+          "function_region_sha256": "e91c9960d8ed8052331781f203cb31fedf32d9b498feaef62ec84bf5ddc40c30",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/membar_levels_cta.out",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "output_coordinates": {}
+      },
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "analyze_case requires GraphVerified and exactly empty golden output for a kernel containing only the valid membar.cta.",
+      "exact_target_contract": "The baseline positive tests valid fence lowering/progress with no memory accesses; it does not demonstrate CTA/device/system publication.",
+      "remaining_portable_obligation": "Preserve valid native control progress; actual memory visibility at every claimed scope needs its separate native proof.",
+      "native_property_scope": "Actual native satisfied WAIT completes and retains marker1; selected native counter classes are validated. This is a control-progress counterpart, not a cache-fence equivalence.",
+      "actual_native_gap": "Coordinator must retain native global cache/publication limits. No whole-device visibility is claimed from an empty positive.",
+      "proposal": "native_property_candidate_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "l:completed_single_arrival_preserves_the_only_marker_one",
+        "g:separate_data_counters_and_thresholds_control_register_readiness"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/membar_levels_gl.ptx",
+      "upstream_sha256": "24c598e1e67b8adebabbc700261b3f0a11fee38403850d26aeda6eb150d3d9dc",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_membar_valid_levels_lower",
+          "line": 1757,
+          "function_region_sha256": "e91c9960d8ed8052331781f203cb31fedf32d9b498feaef62ec84bf5ddc40c30",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/membar_levels_gl.out",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "output_coordinates": {}
+      },
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "analyze_case requires GraphVerified and exactly empty golden output for a kernel containing only the valid membar.gl.",
+      "exact_target_contract": "The baseline positive tests valid fence lowering/progress with no memory accesses; it does not demonstrate CTA/device/system publication.",
+      "remaining_portable_obligation": "Preserve valid native control progress; actual memory visibility at every claimed scope needs its separate native proof.",
+      "native_property_scope": "Actual native satisfied WAIT completes and retains marker1; selected native counter classes are validated. This is a control-progress counterpart, not a cache-fence equivalence.",
+      "actual_native_gap": "Coordinator must retain native global cache/publication limits. No whole-device visibility is claimed from an empty positive.",
+      "proposal": "native_property_candidate_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "l:completed_single_arrival_preserves_the_only_marker_one",
+        "g:separate_data_counters_and_thresholds_control_register_readiness"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/membar_levels_sys.ptx",
+      "upstream_sha256": "76dd8cd51917cac4575a937ab5067ee8126e01175737380c7ea1a19c537e4f81",
+      "original_group": "PTX-SYNTAX",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_membar_valid_levels_lower",
+          "line": 1757,
+          "function_region_sha256": "e91c9960d8ed8052331781f203cb31fedf32d9b498feaef62ec84bf5ddc40c30",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/membar_levels_sys.out",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "output_coordinates": {}
+      },
+      "reviewed_instruction_count": 2,
+      "baseline_assertion_summary": "analyze_case requires GraphVerified and exactly empty golden output for a kernel containing only the valid membar.sys.",
+      "exact_target_contract": "The baseline positive tests valid fence lowering/progress with no memory accesses; it does not demonstrate CTA/device/system publication.",
+      "remaining_portable_obligation": "Preserve valid native control progress; actual memory visibility at every claimed scope needs its separate native proof.",
+      "native_property_scope": "Actual native satisfied WAIT completes and retains marker1; selected native counter classes are validated. This is a control-progress counterpart, not a cache-fence equivalence.",
+      "actual_native_gap": "Coordinator must retain native global cache/publication limits. No whole-device visibility is claimed from an empty positive.",
+      "proposal": "native_property_candidate_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "l:completed_single_arrival_preserves_the_only_marker_one",
+        "g:separate_data_counters_and_thresholds_control_register_readiness"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_alloc_sizes_ordered_by_bar_sync_is_accepted.ptx",
+      "upstream_sha256": "04d9a21061e8983e12c16f67896cba0a4d775ca84009d191db7cd6f737ceb1bc",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_alloc_sizes_ordered_by_bar_sync_is_accepted",
+          "line": 334,
+          "function_region_sha256": "88c99795388a3237feb08263da47f028ae5d6f7c6bbdb6c91fbfe918dfeed0f2",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_alloc_sizes_ordered_by_bar_sync_is_accepted.out",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "output_coordinates": {}
+      },
+      "reviewed_instruction_count": 16,
+      "baseline_assertion_summary": "GraphVerified/empty outputs after ordered64-column then32-column allocation.",
+      "exact_target_contract": "NVIDIA per-CTA Tensor Memory allocation sizes must have descending allocation order across participating warps. Native VGPR/LDS allocation is descriptor-backed and has no corresponding dynamic column-allocation opcode.",
+      "remaining_portable_obligation": "Keep native descriptor/allocation bounds and actual publication of any returned handles separate from this ordering-only rule. No mathematical output is omitted by this source.",
+      "native_property_scope": "Named allocation requires real descriptors and native configured LDS object boundaries are checked. These are supporting native resource properties, not an emulation of descending TMEM columns.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation",
+        "a:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_dealloc_after_the_mma_completed_is_accepted.ptx",
+      "upstream_sha256": "e9d5f6dd6ad2cb5673c80b339bd45fe0484399ad04cacfd49aedb22472c377e4",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_dealloc_after_the_mma_completed_is_accepted",
+          "line": 550,
+          "function_region_sha256": "b6b3f0eec8704f60204af6749611e33350780db7f2c4c9c40e7ca8a5abd6202f",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_dealloc_after_the_mma_completed_is_accepted.out",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "output_coordinates": {}
+      },
+      "reviewed_instruction_count": 44,
+      "baseline_assertion_summary": "GraphVerified/empty outputs: zero-filled A4096bytes/B1024bytes, MMA, observed completion then deallocation.",
+      "exact_target_contract": "NVIDIA TMEM result allocation and commit-to-mbarrier completion are not native WMMA resource APIs.",
+      "remaining_portable_obligation": "A successful matrix computation must finish with valid native operand/result lifetime and storage-release rules.",
+      "native_property_scope": "Native complete256/512-output formulas and real terminal release epilogues exist; source test explicitly says no numerical output, not no mathematical operation.",
+      "actual_native_gap": "Root matrix owner must bind an exact zero-MMA/lifetime counterpart to this positive source; no new fixture is duplicated by this audit.",
+      "proposal": "portable_property_gap_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_two_wave_two_stage_gemm_preserves_all_512_outputs_and_k64",
+        "d:genuine_full_matrix_compiler_epilogues_retain_all_six_entries"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_dealloc_after_waiting_is_accepted.ptx",
+      "upstream_sha256": "901c2570d0ef11eac3490f8fbc25577171b9d6aed78a4a6f3224a9e5e0340d0e",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_dealloc_after_waiting_is_accepted",
+          "line": 374,
+          "function_region_sha256": "566e0a58ef8f95d3d0e82e9f55d6272f13268bfbaf1c2a647859d02361f57903",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_dealloc_after_waiting_is_accepted.out",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "output_coordinates": {}
+      },
+      "reviewed_instruction_count": 15,
+      "baseline_assertion_summary": "GraphVerified/empty outputs after32-lane TMEM store and load both explicitly waited before dealloc.",
+      "exact_target_contract": "NVIDIA32-column TMEM allocation/free spelling and thread-sync qualifiers are target-specific.",
+      "remaining_portable_obligation": "Successful128-byte storage data path must preserve target read/write completion and safe storage reuse/release.",
+      "native_property_scope": "Actual native128-byte read/write path checks all32 IDs/tail; independent Tensor borrow checks counter class.",
+      "actual_native_gap": "A distinct source-level128-byte native reuse/release pair is still required; do not call the portable positive covered solely by an encoding residual.",
+      "proposal": "portable_property_gap_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "c:all_32_lane_ids_return_through_the_real_lds_dependency_and_no_tail_is_written",
+        "g:tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_d_lane0_col8.ptx",
+      "upstream_sha256": "fd9f56e62941bc9320f0622ba1fcd396229ccc11b751e481ab5a058fda2d6ad4",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_accepts_boundary_encodings",
+          "line": 1799,
+          "function_region_sha256": "203721a02d16f19a1b1f447baf0430af8ed028b495c8e0144fdf34a77038b067",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_d_lane0_col8.out",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "output_coordinates": {}
+      },
+      "reviewed_instruction_count": 30,
+      "baseline_assertion_summary": "GraphVerified/empty outputs after zeroing32768 operand bytes, issuing a valid boundary MMA, observing completion and freeing512 columns.",
+      "exact_target_contract": "Valid NVIDIA D lane0 with nonzero Tensor Memory column8 is accepted by baseline; the positive cannot disappear merely because its raw encoding is target-specific.",
+      "remaining_portable_obligation": "Preserve successful matrix operation, correct native lane/operand addressing and result/storage lifetime; no numerical output is asserted by this particular baseline.",
+      "native_property_scope": "Native nonzero destination/source VGPR bases, all256 dot products, all operand basis outputs and512 staged outputs exist. This audit does not equate a VGPR index with Tensor Memory column8 or invent .ws shift bits.",
+      "actual_native_gap": "Root matrix22 owner must attach exact native boundary/layout/computation mapping or retain an explicit native-positive gap. No generic mathematical exclusion is proposed.",
+      "proposal": "portable_property_gap_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "m:real_gfx1250_two_wave_two_stage_gemm_preserves_all_512_outputs_and_k64"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_idesc_max_shift_ws.ptx",
+      "upstream_sha256": "c11c217a1cc84019c4385b8203433f4d9fe13811465dbd7494a865fad5f541d4",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_accepts_boundary_encodings",
+          "line": 1799,
+          "function_region_sha256": "203721a02d16f19a1b1f447baf0430af8ed028b495c8e0144fdf34a77038b067",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_idesc_max_shift_ws.out",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "output_coordinates": {}
+      },
+      "reviewed_instruction_count": 30,
+      "baseline_assertion_summary": "GraphVerified/empty outputs after zeroing32768 operand bytes, issuing a valid boundary MMA, observing completion and freeing512 columns.",
+      "exact_target_contract": "Valid maximum B-reuse shift with NVIDIA .ws is accepted by baseline; the positive cannot disappear merely because its raw encoding is target-specific.",
+      "remaining_portable_obligation": "Preserve successful matrix operation, correct native lane/operand addressing and result/storage lifetime; no numerical output is asserted by this particular baseline.",
+      "native_property_scope": "Native nonzero destination/source VGPR bases, all256 dot products, all operand basis outputs and512 staged outputs exist. This audit does not equate a VGPR index with Tensor Memory column8 or invent .ws shift bits.",
+      "actual_native_gap": "Root matrix22 owner must attach exact native boundary/layout/computation mapping or retain an explicit native-positive gap. No generic mathematical exclusion is proposed.",
+      "proposal": "portable_property_gap_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "m:real_gfx1250_two_wave_two_stage_gemm_preserves_all_512_outputs_and_k64"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_shape_ws_m32_n64.ptx",
+      "upstream_sha256": "ec2baf4a60f993450748f16148d850a6b6b4989893f77ce6eca9e617bfb7fbad",
+      "original_group": "NVIDIA-TMEM-ENCODING",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_accepts_boundary_encodings",
+          "line": 1799,
+          "function_region_sha256": "203721a02d16f19a1b1f447baf0430af8ed028b495c8e0144fdf34a77038b067",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_shape_ws_m32_n64.out",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "output_coordinates": {}
+      },
+      "reviewed_instruction_count": 30,
+      "baseline_assertion_summary": "GraphVerified/empty outputs after zeroing32768 operand bytes, issuing a valid boundary MMA, observing completion and freeing512 columns.",
+      "exact_target_contract": "Valid NVIDIA .ws M32 N64 shape is accepted by baseline; the positive cannot disappear merely because its raw encoding is target-specific.",
+      "remaining_portable_obligation": "Preserve successful matrix operation, correct native lane/operand addressing and result/storage lifetime; no numerical output is asserted by this particular baseline.",
+      "native_property_scope": "Native nonzero destination/source VGPR bases, all256 dot products, all operand basis outputs and512 staged outputs exist. This audit does not equate a VGPR index with Tensor Memory column8 or invent .ws shift bits.",
+      "actual_native_gap": "Root matrix22 owner must attach exact native boundary/layout/computation mapping or retain an explicit native-positive gap. No generic mathematical exclusion is proposed.",
+      "proposal": "portable_property_gap_with_target_residual",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "m:real_gfx1250_two_wave_two_stage_gemm_preserves_all_512_outputs_and_k64"
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_relinquish_ordered_by_bar_sync_is_accepted.ptx",
+      "upstream_sha256": "ce251aab4d9189bf7203a1f3fbf30b0dda662ff3217944869a24ec9a10cbd598",
+      "original_group": "NVIDIA-TMEM-RESOURCE",
+      "original_proposal": "target_mechanism_residual_candidate",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_relinquish_ordered_by_bar_sync_is_accepted",
+          "line": 355,
+          "function_region_sha256": "b62aecced0f09944d0d1b07255923fee7b7aa3486cad1a45fcc8f8882a0e0e5a",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_relinquish_ordered_by_bar_sync_is_accepted.out",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "output_coordinates": {}
+      },
+      "reviewed_instruction_count": 12,
+      "baseline_assertion_summary": "GraphVerified/empty outputs for allocation-before-relinquish.",
+      "exact_target_contract": "NVIDIA relinquish_alloc_permit changes a CTA Tensor Memory allocation capability. The native selected model has no equivalent per-CTA allocation-permit object.",
+      "remaining_portable_obligation": "Ordinary memory synchronization and native resource bounds remain required; this source has no arithmetic output.",
+      "native_property_scope": "Native named capacity and strict terminal VGPR release are independently guarded. Neither is falsely called the NVIDIA allocation permit.",
+      "actual_native_gap": "",
+      "proposal": "precise_target_contract_residual_candidate",
+      "completion": "coordinator_review_required",
+      "native_evidence": [
+        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation",
+        "d:deallocation_cannot_enable_other_messages_scratch_or_post_release_register_use"
+      ]
+    }
+  ],
+  "cross_owner_followups": [
+    {
+      "owner": "coordinator matrix-layout tranche",
+      "scope": "Native matrix boundary/layout/computation/result-lifetime mappings remain with the existing22-row owner; this audit adds no duplicate fixture."
+    },
+    {
+      "owner": "frontend tensor18 tranche",
+      "scope": "Actual128-byte metadata copy and publication controls remain with the tensor owner. Peer reports16/17 pass; genuine scope:SCOPE_SYS crosswave Global positive remainsMemoryUnknown under legacySingleCu requirement. No legacy certificate or source workaround is authorized by this audit."
+    }
+  ]
+}

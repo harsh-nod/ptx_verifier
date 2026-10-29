@@ -22,15 +22,17 @@ def command(argv):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--llvm", type=Path, default=Path("/opt/rocm-7.2.0/lib/llvm/bin"))
-    parser.add_argument("--module", choices=["native-named-barriers", "native-named-phases"],
+    parser.add_argument("--module", choices=["native-named-barriers", "native-named-phases", "native-named-lifecycle", "native-named-consumers"],
                         default="native-named-barriers")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     directory = Path(__file__).resolve().parent
     source = directory / (args.module + ".ll")
     if args.output is None:
-        args.output = directory / ("named-profile-evidence.json" if args.module == "native-named-barriers"
-                                   else "named-phases-profile-evidence.json")
+        args.output = directory / {"native-named-barriers": "named-profile-evidence.json",
+                                   "native-named-phases": "named-phases-profile-evidence.json",
+                                   "native-named-lifecycle": "named-lifecycle-profile-evidence.json",
+                                   "native-named-consumers": "named-consumers-profile-evidence.json"}[args.module]
     assembly = source.with_suffix(".s")
     llc, mc, linker = [args.llvm / name for name in ("llc", "llvm-mc", "ld.lld")]
     receipt = {"schema_version": 1, "target": "gfx1250", "hardware_execution": False,
@@ -67,6 +69,30 @@ def main():
         receipt["runtime_control"] = {"kernel": "named_selected_object_copy",
             "scalar_parameter": "different", "positive": 0, "cpu_only_deadlock": 1,
             "scope": "Same actual assembly; flag 1 makes the two waves join different allocated objects"}
+    if args.module == "native-named-lifecycle":
+        mutations = [
+            ("consumer_only_wait_does_not_complete_lds", "named_wait_only_consumer_42",
+             "s_wait_dscnt 0\n", "s_wait_loadcnt 0\n",
+             "Shared conflict: arrival/wait cannot replace actual LDS completion"),
+            ("earlier_phase_cannot_release_metadata_phase", "named_copy_then_metadata_phase_7",
+             "s_barrier_signal m0 \n\ts_endpgm", "s_nop 0\n\ts_endpgm",
+             "named deadlock: consumer phase 1 expected 1, arrived 0, after phase 0 completed"),
+            ("marker_needs_actual_arrival", "named_one_arrival_marker",
+             "s_barrier_signal m0", "s_nop 0",
+             "named deadlock: count-1 wait cannot fall through without arrival"),
+            ("first_free_buffer_still_needs_later_handshake", "named_producer_first_buffer_is_free",
+             "s_barrier_wait 1", "s_nop 0",
+             "Shared conflict: an initially free buffer cannot be reused before its consumer releases it"),
+        ]
+        receipt["runtime_control"] = {"kernel": "named_two_marker_ones",
+            "scalar_parameter": "skip", "positive": 0, "cpu_only_deadlock": 1,
+            "scope": "Same actual assembly; skip 1 suppresses only wave 1 arrival, leaving expected 2 and arrived 1"}
+    if args.module == "native-named-consumers":
+        mutations = []
+        receipt["runtime_control"] = {"kernel": "named_independent_consumers",
+            "scalar_parameter": "skip_consumer", "positive": 0,
+            "cpu_only_deadlocks": [1, 2],
+            "scope": "Same actual assembly; each bad input suppresses exactly one consumer's count-2 empty arrival"}
     with tempfile.TemporaryDirectory(prefix="gfx1250-named-profile-") as temp:
         temp = Path(temp)
         regenerated = temp / assembly.name
@@ -75,7 +101,8 @@ def main():
         if regenerated.read_bytes() != assembly.read_bytes():
             raise RuntimeError("compiler output differs from the frozen assembly")
         text = assembly.read_text()
-        kernels = 6 if args.module == "native-named-barriers" else 4
+        kernels = {"native-named-barriers": 6, "native-named-phases": 4,
+                   "native-named-lifecycle": 6, "native-named-consumers": 1}[args.module]
         if text.count(".amdhsa_named_barrier_count 1") != kernels:
             raise RuntimeError("each genuine kernel must allocate four named objects")
         obj, code = temp / "native.o", temp / "native.hsaco"

@@ -172,3 +172,94 @@ graph property. Independent scalar NOPs in the last mutation keep its candidate
 execution complete; they do not establish memory ordering. The mutations are
 CPU-only. Compiler and mutation receipts record source/tool/object hashes; no
 hardware result or completion of the entire portable feature group is claimed.
+
+## Named lifecycle markers
+
+`native-named-lifecycle.ll` adds six allocated named-object kernels with exact
+portable output markers. Each logical participant maps to one native wave.
+For crosswave payload controls, initialization and joins precede a rendezvous; the payload stores being tested
+occur afterward, so that rendezvous cannot publish them.
+
+| Kernel | Tested launch and arguments | Full assertion |
+| --- | --- | --- |
+| `named_wait_only_consumer_42` | block 64, `out[2]` | Only the producer arrives at count 1; only the consumer waits; four LDS bytes publish to lane 32; only `out[1] = 42` is written |
+| `named_two_marker_ones` | block 64, `out[2], skip:u32=0` | Both waves arrive/wait; `out = [1,1]`; CPU-only `skip=1` leaves expected 2/arrived 1 and records all 64 blocked workitems |
+| `named_one_arrival_marker` | block 1, `out[1]` | A count-1 arrival and actual hardware WAIT precede the only marker `out[0] = 1`; no memory transfer is invented |
+| `named_wait_then_copy_exit` | block 1, `in[1], out[1]` | Actual WAIT then completed scalar input load and copy; `out[0] = in[0]` |
+| `named_copy_then_metadata_phase_7` | block 64, `in[8], out[8]` | A 16-byte copy completes in phase 0; the consumer observes it before phase 1; a distinct four-byte LDS metadata word is published in phase 1; only `out[0] = 7` is written |
+| `named_producer_first_buffer_is_free` | block 64, `in[2], out[2]` | Full and empty objects both count 1; producer skips a nonexistent initial empty wait, then waits on the real consumer release before reuse; `out = [in[0], in[1]]` |
+
+The two block-1 controls compile for a 1..64 workitem range to retain the actual
+hardware WAIT rather than LLVM's wave-only replacement. They are tested only
+with one workitem. Explicit native F32 add-zero identities give the finite
+markers 42, 1 and 7 a typed arithmetic role without changing their bits or adding
+synchronization. The model cannot infer an output type from arbitrary raw
+MOV/store bits: direct store-only F32/U32 constants remain ambiguous under the
+untyped `ArrayDef` API. These fixtures do not add that support.
+
+```sh
+python3 tests/gfx1250/portable-graph/validate_named_profile.py --module native-named-lifecycle
+cargo test -p volta_pipeline --test gfx1250_named_lifecycle_tests
+```
+
+The eleven CPU tests preserve exact output indices/tails and global write bytes,
+participant counts, phases and memory footprints. Four MC-accepted CPU-only
+mutations expose a missing LDS completion, a phase-1 wait unsatisfied by a
+completed phase 0, a count-1 wait with no arrival and missing consumer release
+before buffer reuse. The same-source scalar
+skip control is also CPU-only. No hardware outcome is claimed. Hardware WAIT
+does not reproduce PTX scoped polling-loop grammar; AMD count-1 completion does
+not emulate manual NVIDIA transaction-byte credits or tensor-engine commits.
+Those mechanism residuals remain separate from the native marker assertions.
+
+## Independent consumers
+
+`native-named-consumers.ll` preserves the full-count-1/empty-count-2 roles of
+the baseline two-consumer loop. Its actual block-96 kernel
+`named_independent_consumers(in[2], out[4], skip_consumer:u32=0)` returns exactly
+`[in[0], in[1], in[0], in[1]]`. Only the producer arrives on `full`; each consumer
+waits on both full generations and separately arrives on `empty`. The producer
+waits for both releases before reusing the four-byte shared slot. Consumers join
+the next full phase before releasing the producer, so a fast producer cannot
+overtake their waits. No payload-phase workgroup barrier synchronizes consumers
+with one another; the two automatic rendezvous are initialization/join setup.
+
+```sh
+python3 tests/gfx1250/portable-graph/validate_named_profile.py --module native-named-consumers
+cargo test -p volta_pipeline --test gfx1250_named_consumer_tests
+```
+
+The two CPU tests check all four outputs, all eight input bytes, every shared
+read/write byte, actual reader IDs 32 and 64, full/empty counts and every native
+arrival/wait role. **Inputs `skip_consumer=1` and `2` are CPU-only**: each leaves
+one empty arrival missing, blocks the producer and both next-phase waiters, and
+records all 96 blocked workitems with their distinct object/phase/count reasons.
+These use the same unchanged MC-accepted assembly; the receipt claims no edited
+MC mutants or hardware execution. PTX parity pre-init polling is represented by
+an initially free buffer and explicit subsequent native handshakes.
+
+## Individual feature review proposal
+
+[`feature-review-proposal.json`](feature-review-proposal.json) separately reviews
+all 59 assigned barrier/exit/copy rows from upstream `b3a3791`. Source, assertion
+function and golden hashes were checked against that revision. It proposes 27
+native assertion candidates and 10 contract-difference candidates, and retains
+22 explicit portable gaps. Each row records exact native scope, a mechanism
+residual and its remaining gate. These counts are not acceptance results, and
+the proposal does not change the coordinator's feature or completion ledger.
+
+[`mechanism-review-proposal.json`](mechanism-review-proposal.json) is a separate
+read-only audit of all 82 rows originally labeled as target-mechanism residuals.
+It pins the actual upstream sources and 47 distinct assertion functions, retains
+every positive control, and names the exact target contract per row. Its 65
+precise residual candidates, six native-property candidates and eleven explicit
+portable gaps are proposals for coordinator review, not completed exclusions.
+Repeated native evidence is stored in a source-hashed catalog. The audit changes
+no production code, original workload source, canonical ledger or issue status.
+
+Two names need particular care: `tcgen05_wait_ld_after_bar_sync_is_rejected` and
+`tcgen05_wait_st_after_mbarrier_arrive_is_rejected` actually assert an allocation
+was never freed, rather than a late wait hazard. The transaction-count overflow
+row also retains its successful boundary control. Successful empty fence tests
+do not establish broader memory visibility, and zero-MMA boundary tests retain
+matrix completion/lifetime obligations even though they write no output arrays.
