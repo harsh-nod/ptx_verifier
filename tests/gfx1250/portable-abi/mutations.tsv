@@ -1,0 +1,7 @@
+id	source	kernel	old	new
+extern_does_not_initialize_static	native-dynamic-lds.s	abi_static_dynamic_disjoint	flat_store_b32 v1, v2, s[2:3] scope:SCOPE_SYS	s_nop 0
+undefined_nested_output	native-dynamic-lds.s	abi_dynamic_static	flat_store_b32 v[2:3], v1 scope:SCOPE_SYS	s_nop 0
+missing_fourth_word	native-transfers.s	abi_shared_words	flat_store_b32 v4, v3, s[12:13] scope:SCOPE_SYS	s_nop 0
+subword_past_six_byte_end	native-transfers.s	abi_pair_truncation	s_mov_b32 s6, 4	s_mov_b32 s6, 6
+padding_is_not_zero	native-arguments.s	abi_mixed_byvalue	v_cvt_f32_ubyte2_e32 v2, s6	v_cvt_f32_ubyte3_e32 v2, s6
+undefined_low_half	native-transfers.s	abi_scalar_granule	flat_store_b32 v0, v0, s[4:5] scope:SCOPE_SYS	s_nop 0

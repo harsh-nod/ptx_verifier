@@ -11,7 +11,18 @@ Regenerate from the repository root with:
 
 ```sh
 python3 tests/gfx1250/compile_fixtures.py tests/gfx1250/portable-abi
+python3 tests/gfx1250/portable-abi/assemble_mutations.py --check
+python3 -m unittest discover -s tests/gfx1250/portable-abi -p 'test_*.py'
+CARGO_HTTP_CAINFO=/home/harsh/.codex-openai/ca-combined.pem \
+  cargo test --release -p volta_pipeline --test gfx1250_portable_abi_tests
 ```
+
+`cases.json` preserves all thirty-one original reference paths and their source
+hashes, explicit output obligations and target-specific residuals. The native
+test mapping awaits end-to-end validation and coordinator review; its presence
+does not close a parity gate. `mutations.tsv` defines six single-instruction
+CPU-only controls. The assembler receipt pins their exact expanded assembly and
+objects. A missing control or a stale source hash is a host validation failure.
 
 `native-module-globals` has bounded writable scalars and a read-only initialized
 constant table. Its native relocation is the contiguous

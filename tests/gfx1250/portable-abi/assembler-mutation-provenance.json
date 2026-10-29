@@ -1,0 +1,109 @@
+{
+  "scope": "Exact assembly-valid CPU-only ABI negative controls; no GPU execution or semantic acceptance claim",
+  "target": "gfx1250",
+  "hardware_execution": false,
+  "assembler": {
+    "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+    "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+    "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+  },
+  "table_sha256": "0f03f1cf9a3a89dcaec480b7c50ba0890cc45132d78881a5d7a311a739169a1d",
+  "controls": [
+    {
+      "id": "extern_does_not_initialize_static",
+      "source": "native-dynamic-lds.s",
+      "kernel": "abi_static_dynamic_disjoint",
+      "old": "flat_store_b32 v1, v2, s[2:3] scope:SCOPE_SYS",
+      "new": "s_nop 0",
+      "source_sha256": "e82bbddb6c069cc1e84d4f764d61305e5cee2375501f238fc17abc155b466314",
+      "mutated_assembly_sha256": "2ca6eab04ad7534d84434aff9625030f02c992e31620c415e0304a75febf0036",
+      "object_sha256": "78265f04f087a3fdbb7bc0cd8474b23731a8fe8948c2be1e9fdf735fbbdbe64d",
+      "assembler_exit": 0,
+      "flags": [
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj"
+      ]
+    },
+    {
+      "id": "undefined_nested_output",
+      "source": "native-dynamic-lds.s",
+      "kernel": "abi_dynamic_static",
+      "old": "flat_store_b32 v[2:3], v1 scope:SCOPE_SYS",
+      "new": "s_nop 0",
+      "source_sha256": "e82bbddb6c069cc1e84d4f764d61305e5cee2375501f238fc17abc155b466314",
+      "mutated_assembly_sha256": "b90dc0dd73abdf37b90c2f03115057ff63b9c84d7e18ac3f1073cb98c0dea0ea",
+      "object_sha256": "eaaf0ca0d63efa5b5fc178387f65a5a76dec1cc411863ae3f366c245933344ae",
+      "assembler_exit": 0,
+      "flags": [
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj"
+      ]
+    },
+    {
+      "id": "missing_fourth_word",
+      "source": "native-transfers.s",
+      "kernel": "abi_shared_words",
+      "old": "flat_store_b32 v4, v3, s[12:13] scope:SCOPE_SYS",
+      "new": "s_nop 0",
+      "source_sha256": "997e09e0bf3f48729b436abbd85f3e5bdabb714c5ca2dd881a257fd86321a848",
+      "mutated_assembly_sha256": "a7151bbb152fe19ba1c7a3ec17bce13f132ac30536521ddd2479cf4bb938b006",
+      "object_sha256": "db8b06fec3ff62bba979aa229bf5011b69180e7f0ad6a814ced8b376e9422b91",
+      "assembler_exit": 0,
+      "flags": [
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj"
+      ]
+    },
+    {
+      "id": "subword_past_six_byte_end",
+      "source": "native-transfers.s",
+      "kernel": "abi_pair_truncation",
+      "old": "s_mov_b32 s6, 4",
+      "new": "s_mov_b32 s6, 6",
+      "source_sha256": "997e09e0bf3f48729b436abbd85f3e5bdabb714c5ca2dd881a257fd86321a848",
+      "mutated_assembly_sha256": "f36af0da96f096cb64c438fbee7058a8eddd6f70583d721e5a9624f1a4d846d1",
+      "object_sha256": "ac96ff2183c9926fb39cb3cf3d8c4498d57efc18bad2aa6623f1c5cb6c0390dd",
+      "assembler_exit": 0,
+      "flags": [
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj"
+      ]
+    },
+    {
+      "id": "padding_is_not_zero",
+      "source": "native-arguments.s",
+      "kernel": "abi_mixed_byvalue",
+      "old": "v_cvt_f32_ubyte2_e32 v2, s6",
+      "new": "v_cvt_f32_ubyte3_e32 v2, s6",
+      "source_sha256": "83bf55c862fbf9de28a7d1e6373cbf412f09ec19033ca760f606b7ea00873549",
+      "mutated_assembly_sha256": "30c67314469ef4fdad4aa2fe3f54511257d3b3f06a47a6b2d9733a860fdbd649",
+      "object_sha256": "7ee80349e056bfe1b191a351ef0b75c9a7004972fc99eb0fb25f6630e0411e44",
+      "assembler_exit": 0,
+      "flags": [
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj"
+      ]
+    },
+    {
+      "id": "undefined_low_half",
+      "source": "native-transfers.s",
+      "kernel": "abi_scalar_granule",
+      "old": "flat_store_b32 v0, v0, s[4:5] scope:SCOPE_SYS",
+      "new": "s_nop 0",
+      "source_sha256": "997e09e0bf3f48729b436abbd85f3e5bdabb714c5ca2dd881a257fd86321a848",
+      "mutated_assembly_sha256": "aa5b9069353cb847febcd715c0c5c075903040b60046e24ab45304f4a9c68b6b",
+      "object_sha256": "d95e3d7413211bcbe1c10b64ae96b66871784fb074e020ae61d2c486b291448d",
+      "assembler_exit": 0,
+      "flags": [
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj"
+      ]
+    }
+  ]
+}
