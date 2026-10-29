@@ -99,6 +99,70 @@
       "assembly_sha256": "5842efd29619494f51e164178af79dfb8440c29dcc1d7b6ebaa4232db812cdd6",
       "object_sha256": "1fd43fabfeb7b1215f399cc61beea6f587ea09fc637e1a09b2c7292764e6ac2b",
       "code_object_sha256": "0b65647d5e1eab94da52248738370470ef7e2dde921fc3ccf75ea5a78a658c4a"
+    },
+    {
+      "source": "original-convolution.hip",
+      "assembly": "original-convolution.s",
+      "compile": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-convolution.hip",
+        "-o",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-convolution.s"
+      ],
+      "assemble": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-convolution.s",
+        "-o",
+        "/tmp/ptx-gfx1250-original-convolution.o"
+      ],
+      "link": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-original-convolution.o",
+        "-o",
+        "/tmp/ptx-gfx1250-original-convolution.hsaco"
+      ],
+      "source_sha256": "0577b7187fa9c176c65ac10dcfe41ce91eef8c6bc25d87bcd4dcd32b5c3bfcda",
+      "assembly_sha256": "57ce53c898c4dcde8db7388c81a887fa72bb9dbec1469d5b732c256259268962",
+      "object_sha256": "8ebaef55cba8e0a01a24b1bba3d03bf653d537d02ddd4b92cbf75cb6b20d9bcc",
+      "code_object_sha256": "39f001156ff8d12861279c69d0118a814c46efbee4da05e0d3e2c4ac77b5d8a3",
+      "native_scope": {
+        "convolution_f16_original": {
+          "spatial": 128,
+          "channels": 128,
+          "K": 576,
+          "block": [
+            128,
+            1,
+            1
+          ],
+          "output_channel_stride": 2916,
+          "private_bytes": 0
+        },
+        "convolution_f8_original": {
+          "spatial": 64,
+          "channels": 128,
+          "K": 576,
+          "block": [
+            128,
+            1,
+            1
+          ],
+          "output_channel_stride": 2916,
+          "private_bytes": 0
+        }
+      }
     }
   ]
 }
