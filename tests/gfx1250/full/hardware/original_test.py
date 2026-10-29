@@ -45,6 +45,18 @@ def identity():
 
 
 class ReceiptControls(unittest.TestCase):
+    def test_explicit_native_module_paths_still_require_pinned_complete_inputs(self):
+        from dataclasses import replace
+
+        self.assertEqual(("full/fixtures/original-f16.s", "full/fixtures/original-f8.s"),
+                         runner.module_assemblies(runner.BASIC))
+        mapped = replace(runner.BASIC, modules=("adapter",), assemblies=("fixtures/adapter.s",),
+                         files=("fixtures/adapter.s",))
+        self.assertEqual(mapped.assemblies, runner.module_assemblies(mapped))
+        for profile in [replace(mapped, files=()), replace(mapped, modules=("a", "b"))]:
+            with self.assertRaises(ValueError):
+                runner.module_assemblies(profile)
+
     def test_staging_bundle_retains_exact_files_and_rejects_ambiguous_paths(self):
         from dataclasses import replace
 
