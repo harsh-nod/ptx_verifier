@@ -230,6 +230,10 @@ cannot inherit gfx942/gfx950 certificates. Independent gfx1250 hardware evidence
 is recorded separately in `tests/gfx1250/evidence`; extending a graph profile
 does not establish a hardware result. Numerical agreement remains separate
 from these graph obligations.
+The logical launch grid is preserved in provenance. A grid larger than one
+requires `SingleWorkgroupAnalyzed`: the result covers only the selected workgroup,
+including its launch-coordinate inputs, and makes no claim about other groups.
+The unclustered premise and full selected-block trace remain required.
 
 An exiting wave drops its automatic workgroup-barrier participation, so an
 otherwise independent surviving wave can still finish. The pinned LLVM

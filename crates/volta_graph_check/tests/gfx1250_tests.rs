@@ -85,12 +85,19 @@ impl Trace {
         Self::with_assumptions(threads, vec![Assumption::UnclusteredWorkgroup])
     }
     fn with_assumptions(threads: u32, assumptions: Vec<Assumption>) -> Self {
+        Self::with_geometry(threads, (1, 1, 1), assumptions)
+    }
+    fn with_geometry(
+        threads: u32,
+        grid_dim: (u32, u32, u32),
+        assumptions: Vec<Assumption>,
+    ) -> Self {
         Self {
             threads,
             b: GraphBuilder::new(Provenance {
                 kernel: "independent_gfx1250_graph".into(),
                 block_dim: (threads, 1, 1),
-                grid_dim: (1, 1, 1),
+                grid_dim,
                 targets: vec!["gfx1250".into()],
                 assumptions,
                 instructions: KINDS
@@ -355,6 +362,26 @@ impl Trace {
             self.b.exit(ThreadIx(t), ProgramPoint(7));
         }
         self.b.finish(Terminal::Completed)
+    }
+}
+
+#[test]
+fn a_logical_grid_retains_its_geometry_without_certifying_other_workgroups() {
+    for (grid, premise, expected) in [
+        ((1, 1, 1), false, Verdict::Pass),
+        ((2, 3, 4), false, Verdict::Unknown),
+        ((2, 3, 4), true, Verdict::Pass),
+        ((16, 1, 1), true, Verdict::Pass),
+    ] {
+        let mut assumptions = vec![Assumption::UnclusteredWorkgroup];
+        if premise {
+            assumptions.push(Assumption::SingleWorkgroupAnalyzed);
+        }
+        let mut t = Trace::with_geometry(1, grid, assumptions);
+        t.ins(0, 0, vec![], vec![]);
+        let graph = t.finish();
+        assert_eq!(graph.provenance().grid_dim, grid);
+        assert_eq!(check_graph(&graph).verdict(Property::AmdTrace), expected);
     }
 }
 

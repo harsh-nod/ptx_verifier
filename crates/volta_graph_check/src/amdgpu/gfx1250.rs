@@ -200,9 +200,13 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
             "configured LDS layout and its provenance premise disagree",
         ));
     }
-    if graph.provenance().grid_dim != (1, 1, 1) {
+    if graph.provenance().grid_dim != (1, 1, 1)
+        && !graph
+            .provenance()
+            .assumes(Assumption::SingleWorkgroupAnalyzed)
+    {
         unresolved.push(Unresolved::global(
-            "gfx1250 graph contract analyzes exactly one workgroup",
+            "a multi-workgroup logical grid requires the explicit single analyzed workgroup premise",
         ));
     }
     let waves = (graph.threads() as usize).div_ceil(WAVE);
