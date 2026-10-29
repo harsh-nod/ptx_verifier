@@ -16,6 +16,7 @@ ADAPTERS = original_run.Profile(
     patterns=34, minimum_patterns=34, maximum_patterns=34,
     original_outputs={"bf16_m16n8k16_fragment_adapter": 4,
                       "high64_division_projection": 1},
+    scope="Exact upstream BF16 fragment/padding and high64 division hardware counterparts. Original logical projections and complete native supersets are checked separately. This does not certify original32 workload or graph/equivalence acceptance.",
 )
 
 if __name__ == "__main__":

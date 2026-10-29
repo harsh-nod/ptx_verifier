@@ -16,6 +16,7 @@ F64 = original_run.Profile(
            "fixtures/native-exact-f64.s", "fixtures/exact-f64-provenance.json"),
     patterns=1, minimum_patterns=1, maximum_patterns=1,
     original_outputs={kernel: 1 for kernel in KERNELS},
+    scope="Four genuine gfx1250 binary64 compiler cases: compare every raw output bit with physical IEEE FMA/multiply/add reference results. This is distinct from Volta's mathematical-real equivalence model and from the original32 workload gate.",
 )
 
 if __name__ == "__main__":
