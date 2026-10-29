@@ -6228,8 +6228,8 @@
       "mapping": "Original selectedCTA0 complete mathematical problem, input/output storage dtypes, masks/scales/null arguments, block/grid and source pitches are preserved. Native wave32 WMMA uses fixedLDS staging. The original232448-byte dynamic budget is not a physical native allocation. Full output coordinates are mandatory; smaller shapes, dropped outputs or decoded-F32 substitutes cannot close this case.",
       "validation_scope": "Registration only. Required graph/full mathematical/public workflow/independent numeric hardware gates remain separate; Unsupported/Unknown/error is not acceptance.",
       "max_instructions": 2000000000,
-      "source_sha256": "9ceb3b697516e2a306dd32752b6e8c67de5a1854474c396ac63c8a5efa770765",
-      "assembly_sha256": "2cbd4714e00c51eed4cce55ca6f8c448fd8cd4809474fef406cb8188a13f74f1",
+      "source_sha256": "a6f79415b4677af7b7d1d425661227682ddf03ebcac58ca8ea18f348e0443de3",
+      "assembly_sha256": "51772854ca74693443f17d7c3f382e5f1b65d6705f2b1fdb003216cf04b7c314",
       "spec_sha256": "ba2ff5ea1263e6683cb2e452efdedd655e5c7dea8a813467806f67b4d0c6ffd1",
       "launch_config_sha256": "a7978a5d4529eb19d2ea615187d04f55aaf03fdb68aa51f165fcc4fd69a0ff30"
     },
@@ -6365,8 +6365,8 @@
         "logical_sequence_length": 1024,
         "odd_x_workgroups": "return without writes"
       },
-      "source_sha256": "9ceb3b697516e2a306dd32752b6e8c67de5a1854474c396ac63c8a5efa770765",
-      "assembly_sha256": "2cbd4714e00c51eed4cce55ca6f8c448fd8cd4809474fef406cb8188a13f74f1",
+      "source_sha256": "a6f79415b4677af7b7d1d425661227682ddf03ebcac58ca8ea18f348e0443de3",
+      "assembly_sha256": "51772854ca74693443f17d7c3f382e5f1b65d6705f2b1fdb003216cf04b7c314",
       "spec_sha256": "88336371d83bc5056dd2f3733228c1aa600798dc57c5920ff012fe0151a4d63f",
       "launch_config_sha256": "76c91dadfcc63ef35633c9576d02fbf7863e7a8923fb35cf3e840cc2921ff16c"
     },
@@ -6494,8 +6494,8 @@
       "mapping": "Original selectedCTA0 complete mathematical problem, input/output storage dtypes, masks/scales/null arguments, block/grid and source pitches are preserved. Native wave32 WMMA uses fixedLDS staging. The original232448-byte dynamic budget is not a physical native allocation. Full output coordinates are mandatory; smaller shapes, dropped outputs or decoded-F32 substitutes cannot close this case.",
       "validation_scope": "Registration only. Required graph/full mathematical/public workflow/independent numeric hardware gates remain separate; Unsupported/Unknown/error is not acceptance.",
       "max_instructions": 2000000000,
-      "source_sha256": "9ceb3b697516e2a306dd32752b6e8c67de5a1854474c396ac63c8a5efa770765",
-      "assembly_sha256": "2cbd4714e00c51eed4cce55ca6f8c448fd8cd4809474fef406cb8188a13f74f1",
+      "source_sha256": "a6f79415b4677af7b7d1d425661227682ddf03ebcac58ca8ea18f348e0443de3",
+      "assembly_sha256": "51772854ca74693443f17d7c3f382e5f1b65d6705f2b1fdb003216cf04b7c314",
       "spec_sha256": "d4d52f428fb06492d2bf88246a334543df0d9539abaa73e36feb171aaaa8e335",
       "launch_config_sha256": "e16598348381e614ff7b59d9bdba74593a4754834f17931f0389c74c8b85cd88"
     },
