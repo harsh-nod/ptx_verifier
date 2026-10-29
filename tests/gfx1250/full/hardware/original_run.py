@@ -57,6 +57,7 @@ class Profile:
     maximum_patterns: int = 64
     gaps: dict[str, int] | None = None
     original_outputs: dict[str, int] | None = None
+    assemblies: tuple[str, ...] | None = None
 
 
 BASIC = Profile(CONTRACT, ("f16", "f8"), "full/hardware/original.cpp",
@@ -204,6 +205,17 @@ def artifact_hashes(directory: Path, profile: Profile = BASIC) -> dict:
     return {p: sha256(directory / p) for p in profile.files}
 
 
+def module_assemblies(profile: Profile) -> tuple[str, ...]:
+    sources = profile.assemblies or tuple(
+        f"full/fixtures/original-{module}.s" for module in profile.modules
+    )
+    if len(sources) != len(profile.modules) or not sources:
+        raise ValueError("each native module requires one exact assembly input")
+    if any(source not in profile.files for source in sources):
+        raise ValueError("assembly input is missing from the source-pinned profile")
+    return sources
+
+
 def validate_revision(directory: Path, revision: str, profile: Profile = BASIC) -> None:
     repository = Path(checked_run(
         ["git", "rev-parse", "--show-toplevel"], cwd=directory, timeout=10
@@ -234,10 +246,10 @@ def run_local(args: argparse.Namespace, directory: Path, receipt: dict) -> None:
             "version": checked_run([str(tool), "--version"], timeout=15, records=records).stdout,
         }
     objects = []
-    for dtype in args.profile.modules:
+    for dtype, assembly in zip(args.profile.modules, module_assemblies(args.profile)):
         obj, module = build / f"{dtype}.o", build / f"{dtype}.hsaco"
         checked_run([str(tools["llvm-mc"]), "--triple=amdgcn-amd-amdhsa", "--mcpu=gfx1250",
-                     "--filetype=obj", str(directory / f"full/fixtures/original-{dtype}.s"),
+                     "--filetype=obj", str(directory / assembly),
                      "-o", str(obj)], timeout=60, records=records)
         checked_run([str(tools["ld.lld"]), "-shared", str(obj), "-o", str(module)], timeout=60, records=records)
         objects.append(module)
