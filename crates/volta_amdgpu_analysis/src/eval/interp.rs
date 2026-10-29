@@ -405,6 +405,12 @@ impl Wave {
     }
 }
 
+#[derive(Clone)]
+struct FloatBitPattern {
+    decoded: ExprId,
+    input_words: Vec<ExprId>,
+}
+
 pub(crate) struct Interpreter<'a> {
     program: &'a LoweredKernel,
     config: AnalysisConfig,
@@ -422,6 +428,9 @@ pub(crate) struct Interpreter<'a> {
     byte_formats: BTreeMap<volta_expr::StringId, ByteFormat>,
     word_formats: BTreeMap<volta_expr::StringId, WordFormat>,
     predicate_masks: Vec<[ExprId; 64]>,
+    // Only exact F32 sign/magnitude transport can defer its interpretation.
+    // Actual integer consumers and observable raw outputs commit Integer32.
+    float_bit_patterns: BTreeMap<ExprId, FloatBitPattern>,
     xnack_replay_enabled: bool,
     module_globals: BTreeMap<String, GlobalAllocation>,
 }
@@ -700,6 +709,7 @@ impl<'a> Interpreter<'a> {
             byte_formats: BTreeMap::new(),
             word_formats: BTreeMap::new(),
             predicate_masks: Vec::new(),
+            float_bit_patterns: BTreeMap::new(),
             xnack_replay_enabled,
             module_globals,
         };
@@ -1154,6 +1164,27 @@ impl<'a> Interpreter<'a> {
                 }
             }
             outputs.push((array.name.clone(), elements));
+        }
+        if !self.float_bit_patterns.is_empty() {
+            let wave = Wave::new(0, 1, self.architecture.wave_size());
+            let mut pending = outputs
+                .iter()
+                .flat_map(|(_, xs)| xs.iter().map(|(_, id)| *id))
+                .collect::<Vec<_>>();
+            let mut visited = std::collections::BTreeSet::new();
+            while let Some(id) = pending.pop() {
+                if !visited.insert(id) {
+                    continue;
+                }
+                if let Some(pattern) = self.float_bit_patterns.get(&id).cloned() {
+                    for input in pattern.input_words {
+                        self.claim_word_format(&wave, input, WordFormat::Integer32)?;
+                    }
+                }
+                self.arena
+                    .node(id)
+                    .for_each_child(|child| pending.push(child));
+            }
         }
         Ok(outputs)
     }
@@ -1915,6 +1946,14 @@ impl<'a> Interpreter<'a> {
             self.claim_word_format(wave, expr, WordFormat::Float32)?;
             return Ok(expr);
         }
+        if let Value::IntExpr(expr) = value {
+            if let Some(pattern) = self.float_bit_patterns.get(&expr).cloned() {
+                for input in pattern.input_words {
+                    self.claim_word_format(wave, input, WordFormat::Float32)?;
+                }
+                return Ok(pattern.decoded);
+            }
+        }
         value
             .real(&mut self.arena)
             .map_err(|e| wave.fail(Some(lane), e))
@@ -1987,7 +2026,31 @@ impl<'a> Interpreter<'a> {
                 self.claim_byte_format(wave, expr, ByteFormat::UnsignedU8)?;
                 Ok(expr)
             }
-            Value::IntExpr(expr) | Value::NarrowInt { expr, .. } => Ok(expr),
+            Value::IntExpr(expr) => {
+                if let Some(pattern) = self.float_bit_patterns.get(&expr).cloned() {
+                    for input in pattern.input_words {
+                        self.claim_word_format(wave, input, WordFormat::Integer32)?;
+                    }
+                }
+                Ok(expr)
+            }
+            Value::WidePart {
+                expr,
+                high: true,
+                kind: WideKind::Integer,
+            } => {
+                let value = self
+                    .arena
+                    .as_int_const(expr)
+                    .ok_or_else(|| self.unsupported(wave, &self.program.instructions[wave.pc]))?;
+                let high = ((value as u64) >> 32) as u32;
+                Ok(self.arena.int(if ty.signed {
+                    high as i32 as i64
+                } else {
+                    high as i64
+                }))
+            }
+            Value::NarrowInt { expr, .. } => Ok(expr),
             Value::SignedInteger(value) => Ok(self.arena.int(value as i64)),
             Value::Bits(value) | Value::Integer(value) => Ok(self.arena.int(if ty.signed {
                 value as i32 as i64
@@ -2369,6 +2432,136 @@ impl<'a> Interpreter<'a> {
         } else {
             wave.value(operand, lane)
         }
+    }
+    fn float_bit_source(
+        &mut self,
+        value: Value,
+    ) -> Result<Option<(ExprId, FloatBitPattern)>, String> {
+        if let Some(bits) = super::float_bits::exact_word(&self.arena, value) {
+            let decoded = super::scalar::decode_float(
+                &mut self.arena,
+                super::scalar::FloatType::F32,
+                u64::from(bits),
+            )?;
+            let raw = self.arena.int(i64::from(bits));
+            return Ok(Some((
+                raw,
+                FloatBitPattern {
+                    decoded,
+                    input_words: Vec::new(),
+                },
+            )));
+        }
+        Ok(match value {
+            Value::Input(expr) => Some((
+                expr,
+                FloatBitPattern {
+                    decoded: expr,
+                    input_words: vec![expr],
+                },
+            )),
+            Value::IntExpr(expr) => self
+                .float_bit_patterns
+                .get(&expr)
+                .cloned()
+                .map(|pattern| (expr, pattern)),
+            _ => None,
+        })
+    }
+    fn float_bit_logic(
+        &mut self,
+        wave: &Wave,
+        instruction: &Instruction,
+        name: &str,
+        lane: u8,
+    ) -> Result<Option<Value>, EvalError> {
+        if self.architecture != AmdArchitecture::Gfx1250
+            || !instruction.modifiers.is_empty()
+            || instruction
+                .operands
+                .iter()
+                .any(|op| matches!(op, Operand::Modified { .. }))
+        {
+            return Ok(None);
+        }
+        let o = &instruction.operands;
+        if matches!(name, "v_and_b32" | "v_xor_b32") {
+            let mask = if name == "v_and_b32" {
+                0x7fff_ffff
+            } else {
+                0x8000_0000
+            };
+            let a = wave.value(&o[1], lane)?;
+            let b = wave.value(&o[2], lane)?;
+            let source = if super::float_bits::exact_word(&self.arena, a) == Some(mask) {
+                b
+            } else if super::float_bits::exact_word(&self.arena, b) == Some(mask) {
+                a
+            } else {
+                return Ok(None);
+            };
+            // Concrete bit operations keep their ordinary typed integer path.
+            if !matches!(source, Value::Input(_) | Value::IntExpr(_)) {
+                return Ok(None);
+            }
+            if let Some((source, mut pattern)) = self
+                .float_bit_source(source)
+                .map_err(|e| wave.fail(Some(lane), e))?
+            {
+                let mask = self.arena.int(i64::from(mask));
+                let raw = if name == "v_and_b32" {
+                    self.arena.bit_and(source, mask)
+                } else {
+                    self.arena.bit_xor(source, mask)
+                };
+                pattern.decoded = if name == "v_and_b32" {
+                    self.arena.abs(pattern.decoded)
+                } else {
+                    self.arena.neg(pattern.decoded)
+                };
+                self.float_bit_patterns.insert(raw, pattern);
+                return Ok(Some(Value::IntExpr(raw)));
+            }
+        }
+        if name == "v_bfi_b32" {
+            let values = [
+                wave.value(&o[1], lane)?,
+                wave.value(&o[2], lane)?,
+                wave.value(&o[3], lane)?,
+            ];
+            let words = values.map(|v| super::float_bits::exact_word(&self.arena, v));
+            if let [Some(mask), Some(insert), Some(base)] = words {
+                return Ok(Some(Value::Bits(super::scalar::bfi32(mask, insert, base))));
+            }
+            if let Some(mask @ (0x7fff_ffff | 0x8000_0000)) = words[0] {
+                let insert = self
+                    .float_bit_source(values[1])
+                    .map_err(|e| wave.fail(Some(lane), e))?;
+                let base = self
+                    .float_bit_source(values[2])
+                    .map_err(|e| wave.fail(Some(lane), e))?;
+                if let (Some((insert, mut insert_pattern)), Some((base, base_pattern))) =
+                    (insert, base)
+                {
+                    let constant = self.arena.int(i64::from(mask));
+                    let inverted = self.arena.int(i64::from(!mask));
+                    let left = self.arena.bit_and(insert, constant);
+                    let right = self.arena.bit_and(base, inverted);
+                    let raw = self.arena.bit_or(left, right);
+                    let (sign, magnitude) = if mask == 0x7fff_ffff {
+                        (base_pattern.decoded, insert_pattern.decoded)
+                    } else {
+                        (insert_pattern.decoded, base_pattern.decoded)
+                    };
+                    insert_pattern.decoded =
+                        super::scalar::copysign(&mut self.arena, sign, magnitude);
+                    insert_pattern.input_words.extend(base_pattern.input_words);
+                    self.float_bit_patterns.insert(raw, insert_pattern);
+                    return Ok(Some(Value::IntExpr(raw)));
+                }
+            }
+        }
+        Ok(None)
     }
     /// Exact encoded byte transport only. Unknown bytes stay absent; no array
     /// interpretation is claimed until a numeric decoder actually consumes one.
@@ -4421,6 +4614,12 @@ impl<'a> Interpreter<'a> {
             return wave.put_wide(&o[1], 0, mask);
         }
         for lane in lanes {
+            if matches!(name, "v_and_b32" | "v_xor_b32" | "v_bfi_b32") {
+                if let Some(value) = self.float_bit_logic(wave, instruction, name, lane)? {
+                    wave.put_value(&o[0], lane, value)?;
+                    continue;
+                }
+            }
             let value = match name {
                 "v_perm_b32" => {
                     let selector = wave.bits(&o[3], lane)?;
@@ -4897,12 +5096,22 @@ impl<'a> Interpreter<'a> {
                     };
                     Value::Real(result)
                 }
-                "v_cvt_f32_ubyte2" | "v_cvt_f32_ubyte3" => {
-                    let byte = if name == "v_cvt_f32_ubyte2" { 2 } else { 3 };
+                "v_cvt_f32_ubyte0" | "v_cvt_f32_ubyte2" | "v_cvt_f32_ubyte3" => {
+                    let byte = match name {
+                        "v_cvt_f32_ubyte0" => 0,
+                        "v_cvt_f32_ubyte2" => 2,
+                        _ => 3,
+                    };
                     let value = wave.value(&o[1], lane)?;
-                    let expr = if let Value::Bytes(bytes) = value {
-                        self.claim_byte_format(wave, bytes[byte], ByteFormat::UnsignedU8)?;
-                        bytes[byte]
+                    let expr = if let Some(bytes) = self.encoded_bytes(value) {
+                        let selected = bytes[byte].ok_or_else(|| {
+                            wave.fail(
+                                Some(lane),
+                                "selected undefined upper byte from true16 result",
+                            )
+                        })?;
+                        self.claim_byte_format(wave, selected, ByteFormat::UnsignedU8)?;
+                        selected
                     } else {
                         let byte = value
                             .selected_bits(byte as u32 * 8, 8)
@@ -5053,7 +5262,35 @@ impl<'a> Interpreter<'a> {
                         let result =
                             super::scalar::int_binary(&mut self.arena, ty, operation, a, b)
                                 .map_err(|what| EvalError::Unsupported { pc: wave.pc, what })?;
-                        let value = self.integer_result(result, ty.signed);
+                        let mut value = self.integer_result(result, ty.signed);
+                        // A concrete ASHR31 into the adjacent odd word is an
+                        // exact signed-widening witness. Keep its low source
+                        // unchanged; extraction rechecks that word so later
+                        // clobbers cannot resurrect the old mathematical value.
+                        if self.architecture == AmdArchitecture::Gfx1250
+                            && name == "v_ashrrev_i32"
+                            && wave.bits(&o[1], lane).is_ok_and(|count| count & 31 == 31)
+                        {
+                            if let (Operand::Register(dest), Operand::Register(source)) =
+                                (&o[0], &o[2])
+                            {
+                                if dest.class == RegisterClass::Vector
+                                    && source.class == RegisterClass::Vector
+                                    && dest.count == 1
+                                    && source.count == 1
+                                    && dest.index % 2 == 1
+                                    && source.index + 1 == dest.index
+                                {
+                                    if let Ok(bits) = wave.bits(&o[2], lane) {
+                                        value = Value::WidePart {
+                                            expr: self.arena.int(bits as i32 as i64),
+                                            high: true,
+                                            kind: WideKind::Integer,
+                                        };
+                                    }
+                                }
+                            }
+                        }
                         wave.put_value(&o[0], lane, value)?;
                         continue;
                     }

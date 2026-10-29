@@ -1,4 +1,5 @@
 //! One candidate wave64 execution; semantic checking consumes its recorded graph.
+mod float_bits;
 mod interp;
 mod matrix;
 mod memory;

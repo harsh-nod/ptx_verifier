@@ -330,6 +330,22 @@ impl Memory {
     ) -> Result<ExprId, String> {
         if width == 8 {
             return match (self.read(addr, 4)?, self.read(addr + 4, 4)?) {
+                // Explicit integer low-word arithmetic plus a known zero high
+                // word witnesses zero extension; arbitrary raw pairs do not.
+                (Value::Integer(lo), Value::Bits(0)) => Ok(arena.int(i64::from(lo))),
+                (
+                    lo,
+                    Value::WidePart {
+                        expr,
+                        high: true,
+                        kind: super::value::WideKind::Integer,
+                    },
+                ) if arena
+                    .as_int_const(expr)
+                    .is_some_and(|whole| lo.bits() == Ok(whole as u32)) =>
+                {
+                    Ok(expr)
+                }
                 (Value::Integer(lo), Value::Integer(hi)) => {
                     let value = lo as u64 | ((hi as u64) << 32);
                     // IntConst's arithmetic deliberately wraps at i64. Values

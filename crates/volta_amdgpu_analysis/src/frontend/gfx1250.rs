@@ -293,7 +293,7 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
             "s_add_f32" | "s_sub_f32" | "s_mul_f32" | "s_min_num_f32" => (ScalarAlu, 3, 3),
             "s_ctz_i32_b32" | "s_addk_co_i32" => (ScalarAlu, 2, 2),
             "v_fmac_f16" => (VectorAlu, 3, 3),
-            "v_s_exp_f32" | "v_cvt_f32_ubyte3" => (VectorAlu, 2, 2),
+            "v_s_exp_f32" | "v_cvt_f32_ubyte0" | "v_cvt_f32_ubyte3" => (VectorAlu, 2, 2),
             "v_pk_max_num_f16" | "v_max_num_f16" | "v_pk_mul_lo_u16" | "v_pk_sub_i16" => {
                 (VectorAlu, 3, 3)
             }

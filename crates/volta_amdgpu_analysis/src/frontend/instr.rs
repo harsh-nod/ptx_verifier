@@ -1459,14 +1459,15 @@ pub(super) fn validate_registers(
             }
         }
         Opcode::VectorAlu => {
-            if architecture == crate::target::Architecture::Gfx1250 && stem == "v_cvt_f32_ubyte3" {
+            if architecture == crate::target::Architecture::Gfx1250
+                && matches!(stem, "v_cvt_f32_ubyte0" | "v_cvt_f32_ubyte3")
+            {
                 if !modifiers.is_empty()
                     || !matches!(operands.get(1),Some(Operand::Register(r)) if matches!(r.class,Scalar|Vector) && r.count==1)
                         && !matches!(operands.get(1),Some(Operand::Integer(v)) if (i32::MIN as i64..=u32::MAX as i64).contains(v))
                 {
                     return Err(
-                        "selected UBYTE3 conversion needs one unmodified encoded32bit source"
-                            .into(),
+                        "selected UBYTE conversion needs one unmodified encoded32bit source".into(),
                     );
                 }
             }

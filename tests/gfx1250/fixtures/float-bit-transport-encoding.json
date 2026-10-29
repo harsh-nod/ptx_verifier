@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "compiler_revision": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+  "assembler_path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+  "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "assembler_version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n",
+  "command_template": [
+    "llvm-mc",
+    "--triple=amdgcn-amd-amdhsa",
+    "--mcpu=gfx1250",
+    "-filetype=obj",
+    "<source>",
+    "-o",
+    "<object>"
+  ],
+  "reference": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/VOP1Instructions.td",
+  "note": "Actual assembler observations are separate from the intentionally narrower model operand profile. Semantic negative mutations are CPU-only; no GPU mutants were launched.",
+  "cases": [
+    {
+      "name": "ubyte0_vgpr",
+      "instruction": "v_cvt_f32_ubyte0_e32 v3,v1",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "8a810bbe982181524add95d02c7dafdcad96b81d765036c3ad927642edc06a58",
+      "diagnostic": ""
+    },
+    {
+      "name": "ubyte0_sgpr",
+      "instruction": "v_cvt_f32_ubyte0_e32 v3,s8",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "36ca1390a8336a25fb8dbe1d28737283a1b5b6e6646093beb75774e18452dd66",
+      "diagnostic": ""
+    },
+    {
+      "name": "ubyte0_literal",
+      "instruction": "v_cvt_f32_ubyte0_e32 v3,0xabcdefe7",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "27641e771293875a95916c85748aa615388e6e2007f1756b0386b6cc7d453880",
+      "diagnostic": ""
+    },
+    {
+      "name": "ubyte0_oversized",
+      "instruction": "v_cvt_f32_ubyte0_e32 v3,0x100000000",
+      "supported_model_profile": false,
+      "assembler_accepted": false,
+      "assembly_sha256": "1dcdea1b66d727ec223ead44d8e1142e398c8999b99e3ed62f2796b91f5a1bd7",
+      "diagnostic": "<source>:3:25: error: invalid operand for instruction\nv_cvt_f32_ubyte0_e32 v3,0x100000000\n                        ^"
+    },
+    {
+      "name": "ubyte0_modified",
+      "instruction": "v_cvt_f32_ubyte0_e32 v3,-v1",
+      "supported_model_profile": false,
+      "assembler_accepted": false,
+      "assembly_sha256": "48d3996e59404400e3d5b91ec30224d504cd58608b8ef9e4c02da4f85a9d8794",
+      "diagnostic": "<source>:3:25: error: not a valid operand.\nv_cvt_f32_ubyte0_e32 v3,-v1\n                        ^"
+    },
+    {
+      "name": "ubyte0_clamp",
+      "instruction": "v_cvt_f32_ubyte0_e32 v3,v1 clamp",
+      "supported_model_profile": false,
+      "assembler_accepted": false,
+      "assembly_sha256": "6cd71f10f65256ab6bbea7b2392c35a115a906a9de6935813c43a1743dc4c6ed",
+      "diagnostic": "<source>:3:28: error: invalid operand for instruction\nv_cvt_f32_ubyte0_e32 v3,v1 clamp\n                           ^"
+    },
+    {
+      "name": "ubyte0_tuple",
+      "instruction": "v_cvt_f32_ubyte0_e32 v3,v[1:2]",
+      "supported_model_profile": false,
+      "assembler_accepted": false,
+      "assembly_sha256": "2e9cd947334232b6f8dd447a6c1fc5a236a4a0c6ec632ce19887ac6258f14f73",
+      "diagnostic": "<source>:3:25: error: invalid operand for instruction\nv_cvt_f32_ubyte0_e32 v3,v[1:2]\n                        ^"
+    },
+    {
+      "name": "sign_xor",
+      "instruction": "v_xor_b32 v2,0x80000000,v1",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "a63725445918a1f3a697ca1e82cabf2a9e355a203721b3456f63dece887a0132",
+      "diagnostic": ""
+    },
+    {
+      "name": "magnitude_mask",
+      "instruction": "v_and_b32 v3,0x7fffffff,v3",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "f6563a39e5d738f906f89e58a5d1ec247c2fd7176363e2a92497f37837a549c1",
+      "diagnostic": ""
+    },
+    {
+      "name": "sign_insert",
+      "instruction": "v_bfi_b32 v4,0x80000000,v2,v3",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "108565c8fe9b5b5d6c45e42f0c408ced5891e3dee44732b9c5b285d7f9faf988",
+      "diagnostic": ""
+    },
+    {
+      "name": "modified_xor",
+      "instruction": "v_xor_b32_e64 v2,0x80000000,-v1",
+      "supported_model_profile": false,
+      "assembler_accepted": false,
+      "assembly_sha256": "a427800ce7528c176d14449df6776e309c73cbbfed577fc5d447bc2428720810",
+      "diagnostic": "<source>:3:29: error: not a valid operand.\nv_xor_b32_e64 v2,0x80000000,-v1\n                            ^"
+    },
+    {
+      "name": "sign_extension",
+      "instruction": "v_ashrrev_i32 v3,31,v2",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "5bff8abea838be2ecc60abf33c6291b661b18ec5020c9e3562b790e47abe6659",
+      "diagnostic": ""
+    },
+    {
+      "name": "widened_store",
+      "instruction": "global_store_b64 v0,v[2:3],s[6:7]",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "00a928b770c7a1b17f2411db598a9fc7188f91ebee85d9e88e6ad8d287056681",
+      "diagnostic": ""
+    },
+    {
+      "name": "negation",
+      "instruction": "v_mul_f32_e64 v2,-1.0,v1",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "853d0888f5835a1eab9274600328ad29240130b26d20abfcfd19abddacae5e9e",
+      "diagnostic": ""
+    },
+    {
+      "name": "float_identity",
+      "instruction": "v_add_f32 v2,0,v2",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "a5e22de24d9860f8c87791e9ddb4052d410379cdcc1140a4e5cf2d411c635725",
+      "diagnostic": ""
+    }
+  ]
+}

@@ -160,6 +160,48 @@ fn upper_byte_conversion_selects_only_encoded_bits_and_keeps_format_alias_guards
 }
 
 #[test]
+fn byte_zero_conversion_consumes_only_its_selected_encoded_byte() {
+    for (prelude, expected) in [
+        ("v_mov_b32 v1,0xabcdefe7", "231"),
+        (
+            "global_load_u8 v1,v0,s[4:5]\ns_wait_loadcnt 0",
+            "scratch[0]",
+        ),
+        (PACK, "scratch[0]"),
+    ] {
+        let run = run_with(
+            &format!("{prelude}\nv_cvt_f32_ubyte0_e32 v3,v1\nglobal_store_b32 v0,v3,s[6:7]"),
+            4,
+            1,
+        );
+        assert_eq!(run.checks.conclusion(), GraphConclusion::Verified);
+        let out = run.analysis.symbolic_outputs().unwrap();
+        assert_eq!(out.outputs[0].1.len(), 1);
+        assert_eq!(out.outputs[0].1[0].0, 0);
+        assert_eq!(out.arena.display_expr(out.outputs[0].1[0].1), expected);
+    }
+}
+
+#[test]
+fn byte_zero_conversion_does_not_expand_target_or_source_profiles() {
+    for instruction in [
+        "v_cvt_f32_ubyte0_e32 v3,-v1",
+        "v_cvt_f32_ubyte0_e32 v3,v1 clamp",
+        "v_cvt_f32_ubyte0_e32 v3,0x100000000",
+        "v_cvt_f32_ubyte0_e32 v3,v[1:2]",
+    ] {
+        assert!(
+            frontend::parse(&source(instruction)).is_err(),
+            "{instruction}"
+        );
+    }
+    for target in ["gfx942", "gfx950"] {
+        let source = source("v_cvt_f32_ubyte0_e32 v3,v1").replace("gfx1250", target);
+        assert!(frontend::parse(&source).is_err(), "{target}");
+    }
+}
+
+#[test]
 fn real_flat_abi_mutations_retain_typed_source_and_partial_wait_failures() {
     const TRANSFERS: &str = include_str!("../../../tests/gfx1250/portable-abi/native-transfers.s");
     for (kernel, original, replacement, hazard) in [
