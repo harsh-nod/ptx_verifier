@@ -75,9 +75,10 @@ struct Buffer {
     static const uint8_t magnitudes[] = {0x00, 0x10, 0x20, 0x28, 0x30, 0x38, 0x3c, 0x40};
     for (size_t i = 0; i < count; ++i) {
       if (type == Type::E4M3) {
-        const size_t coordinate = i * (2 * salt + 1) + pattern * 7 + salt;
+        const size_t coordinate = i * (2 * salt + 1) + (i / 7) * 5 +
+                                  (i / 4096) * 3 + pattern * 7 + salt;
         uint8_t value = magnitudes[coordinate % 8];
-        if ((i + salt + pattern) & 1) value |= 128;
+        if ((i + i / 13 + i / 4096 + salt + pattern) & 1) value |= 128;
         before[guard + i] = pattern == 0 ? 0 : value;
       } else {
         // Convert the modular coordinate to signed BEFORE subtraction.
