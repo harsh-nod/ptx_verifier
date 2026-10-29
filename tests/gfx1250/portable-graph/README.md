@@ -1,5 +1,9 @@
 # Native portable graph controls
 
+The [protocol lifetime corpus](protocol-lifetimes/README.md) adds genuine
+source controls for exited readers and writers, ordinary 8-byte metadata,
+uninitialized shuffle sources and allocated initialization/count lifetimes.
+
 `native-barriers.hip` is compiled unchanged for gfx1250 by the pinned ROCm clang
 22 toolchain. `compiler-provenance.json` records the source, assembly, object,
 code-object and tool hashes plus the exact successful compiler/MC/link commands.

@@ -148,6 +148,12 @@ source/destination borrows, a complete two-region 32-byte copy and no-output
 CPU-only mutation findings are required separately; see the
 [native asynchronous memory controls](../../tests/gfx1250/portable-graph/async-memory/README.md).
 
+`gfx1250_protocol_lifetime_tests` checks completed reads/writes before wave exit,
+ordinary 8-byte metadata conflicts, genuine uninitialized shuffle sources and
+allocated named-object initialization/reinitialization/count lifetimes. Exact
+markers and full payloads remain distinct from target mechanism differences;
+see the [protocol lifetime controls](../../tests/gfx1250/portable-graph/protocol-lifetimes/README.md).
+
 `gfx1250_original_matrix_tests` separately checks parsing/lowering of the exact
 full K4096 six-kernel matrix corpus and its zero-scratch native descriptors.
 That frontend gate does not claim execution, equivalence, or graph acceptance.
