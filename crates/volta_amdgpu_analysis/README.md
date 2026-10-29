@@ -275,6 +275,12 @@ from load/store/DS/KM/async/tensor completion. Signals publish only completed
 effects; issue order and execution synchronization do not invent data waits.
 Legacy CDNA cache-scope annotations cannot certify gfx1250 publication.
 
+The compiler epilogue `s_sendmsg sendmsg(MSG_DEALLOC_VGPRS)` (immediate3)
+is supported only with zero scratch and an immediately following `s_endpgm`.
+It drains X replay leases, without inventing load/store completion. Other
+messages and any instruction after release before `s_endpgm` are rejected.
+This follows LLVM's pinned [X-drain classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInstrInfo.cpp).
+
 Selected WMMA forms cover F32 16x16x4 and F16/BF16 16x16x32 with F32
 accumulators, full-wave legality, separately derived lane layouts and dependency
 rules. TDM covers bounded plain 2D global-to-LDS and LDS-to-global transfers,

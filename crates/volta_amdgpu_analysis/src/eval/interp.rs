@@ -1731,6 +1731,9 @@ impl<'a> Interpreter<'a> {
             }
             Opcode::Control => match name {
                 "v_nop" => {}
+                "s_sendmsg"
+                    if self.architecture == AmdArchitecture::Gfx1250
+                        && instruction.operands == [Operand::Integer(3)] => {}
                 "s_endpgm" => {
                     // CDNA4 S_ENDPGM drains all memory counters before the wave
                     // terminates and ceases participating in workgroup barriers.

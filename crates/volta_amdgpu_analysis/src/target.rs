@@ -75,13 +75,24 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
     }
     if architecture == Architecture::Gfx1250 {
         for kernel in &module.kernels {
-            for instruction in &kernel.instructions {
+            for (index, instruction) in kernel.instructions.iter().enumerate() {
                 crate::frontend::gfx1250::validate_typed_profile(instruction).map_err(
                     |message| ParseError {
                         message,
                         span: instruction.span,
                     },
                 )?;
+                if instruction.mnemonic == "s_sendmsg"
+                    && (kernel.descriptor.value("private_segment_fixed_size", 0) != 0
+                        || !kernel.instructions.get(index + 1).is_some_and(|next| {
+                            next.opcode == Opcode::Control && next.mnemonic == "s_endpgm"
+                        }))
+                {
+                    return Err(ParseError {
+                        message: "MSG_DEALLOC_VGPRS requires zero scratch and an immediately following s_endpgm".into(),
+                        span: instruction.span,
+                    });
+                }
                 fn registers(
                     operand: &crate::frontend::Operand,
                     out: &mut Vec<crate::frontend::Register>,
