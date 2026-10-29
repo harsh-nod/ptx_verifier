@@ -13,6 +13,19 @@ under `src/frontend/fixtures`; gfx1250 fixtures live under
 [`tests/gfx1250`](../../tests/gfx1250). CPU analysis of checked-in assembly
 requires no ROCm installation or GPU.
 
+`frontend::parse` and `parse_module` preserve the original source, instruction
+spans, globals, descriptors and argument metadata. Descriptors and AMDHSA metadata
+identify the entry kernels in compiler modules. Unrelated functions are excluded
+only when declared with `.type ...,@function` and closed by a matching `.size`;
+overlapping function definitions and entry fallthrough are rejected when excluding
+helpers. Module directives, metadata and global objects are still validated.
+Every entry instruction is checked, including unreachable instructions. Calls and
+computed jumps remain unsupported; lowering rejects branches outside the entry
+body. Descriptor-free, metadata-free handwritten modules retain strict parsing of
+all functions. This frontend does not analyze helper call graphs or synthesize
+returns. Select an entry through `lower::lower_module_kernel(&module, name)` after
+parsing, so target information and module globals remain available.
+
 Select gfx942 explicitly with CLI `--backend amdgpu --target gfx942` or Python
 `Config(..., backend="amdgpu", target="gfx942")`. The source target must match
 that selection; omitted API targets retain gfx950 as the default. Direct Rust
