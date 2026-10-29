@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Compiler-generated CPU-analysis harmful control: original logical leaders0/16 issue differing writes to one output address in one native instruction. Never launched on hardware.",
+  "hardware_execution": false,
+  "source_sha256": "9bb03548383975f89a164f73bb787ff613f55cc8c3c112a4a69fe50920848e47",
+  "assembly_sha256": "435ab7feeab24be99af9815a3e9a9f63d232b5b31e8f2f42a6dbb42969eba2e2",
+  "object_sha256": "b27712af4a8b136e743399161a90bdc8d3b1cf1291405806e669940d9840f4c3",
+  "code_object_sha256": "31b4f0daea277e71e9cf5e9840845ccfcd952c771fa4981fe19ee87bf8bed83a",
+  "commands": [
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "tests/gfx1250/fixtures/native-wave-leader-conflict.hip",
+        "-o",
+        "tests/gfx1250/fixtures/native-wave-leader-conflict.s"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "tests/gfx1250/fixtures/native-wave-leader-conflict.s",
+        "-o",
+        "/tmp/native-wave-leader-conflict.o"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/native-wave-leader-conflict.o",
+        "-o",
+        "/tmp/native-wave-leader-conflict.hsaco"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "tools": {
+    "clang++": {
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)"
+    },
+    "llvm-mc": {
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git"
+    },
+    "ld.lld": {
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)"
+    }
+  },
+  "tests": [
+    "crates/volta_pipeline/tests/gfx1250_exact_wave_parity.rs::same_instruction_logical_leaders_keep_the_original_unordered_writer_conflict",
+    "crates/volta_pipeline/tests/gfx1250_exact_wave_parity.rs::same_address_divergent_native_stores_keep_the_public_wave_instruction_order"
+  ],
+  "public_ordering_reference": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md#memory-model-gfx125x",
+  "completion": "coordinator_review_required"
+}

@@ -163,6 +163,85 @@ fn divergent_native_exec_selects_two_actual_leaders() {
 }
 
 #[test]
+fn same_address_divergent_native_stores_keep_the_public_wave_instruction_order() {
+    // LLVM AMDGPUUsage.md at 5fd50ec8: consecutive same-address loads/stores
+    // within one wavefront are processed in program order. PTX's independent
+    // lane PCs are a distinct mechanism; their unsupported negative stays intact.
+    let original = "global_store_b32 v0, v1, s[0:1] offset:4";
+    assert_eq!(SOURCE.matches(original).count(), 1);
+    let alias = SOURCE.replace(original, "global_store_b32 v0, v1, s[0:1]");
+    let result = run(&alias, "exact_wave_divergent_leaders", config(32, 0, 1));
+    assert_eq!(result.checks.conclusion(), GraphConclusion::Verified);
+    let outputs = result.analysis.symbolic_outputs().unwrap();
+    assert_eq!(outputs.outputs[0].1.len(), 1);
+    assert_eq!(
+        outputs
+            .arena
+            .display_expr(outputs.element("out", 0).unwrap()),
+        "1"
+    );
+}
+
+#[test]
+fn same_instruction_logical_leaders_keep_the_original_unordered_writer_conflict() {
+    const CONFLICT: &str =
+        include_str!("../../../tests/gfx1250/fixtures/native-wave-leader-conflict.s");
+    let result = run(CONFLICT, "exact_wave_leader_conflict", config(32, 0, 1));
+    let outputs = result
+        .analysis
+        .symbolic_outputs()
+        .expect("complete race candidate");
+    assert_eq!(outputs.outputs.len(), 1);
+    assert_eq!(outputs.outputs[0].1.len(), 1);
+    assert_eq!(outputs.outputs[0].1[0].0, 0);
+    for property in [
+        Property::AmdTrace,
+        Property::AmdWaitReadiness,
+        Property::AmdBarrier,
+    ] {
+        assert_eq!(result.checks.verdict(property), Verdict::Pass);
+    }
+    let graph = &result.analysis.graph;
+    let witnesses = result
+        .checks
+        .amd
+        .as_ref()
+        .unwrap()
+        .memory_conflict
+        .violations();
+    assert_eq!(witnesses.len(), 1, "{witnesses:?}");
+    let witness = &witnesses[0];
+    assert_eq!(
+        witness.kind,
+        volta_graph_check::domain::ConflictKind::WriteWrite
+    );
+    assert_eq!(witness.location.space, volta_graph::Space::Global);
+    assert_eq!(witness.location.addr, 0x20000);
+    assert_eq!(graph.acting_thread(witness.earlier).unwrap().0, 0);
+    assert_eq!(graph.acting_thread(witness.later).unwrap().0, 16);
+    assert_eq!(
+        graph.event(witness.earlier).pc,
+        graph.event(witness.later).pc
+    );
+    assert!(matches!(
+        result.checks.conclusion(),
+        GraphConclusion::Rejected { .. }
+    ));
+
+    // With only the low half present, the same compiled instruction has one
+    // writer; this identifies the second leader as the cause of the conflict.
+    let control = run(CONFLICT, "exact_wave_leader_conflict", config(16, 0, 1));
+    assert_eq!(control.checks.conclusion(), GraphConclusion::Verified);
+    let outputs = control.analysis.symbolic_outputs().unwrap();
+    assert_eq!(
+        outputs
+            .arena
+            .display_expr(outputs.element("out", 0).unwrap()),
+        "1"
+    );
+}
+
+#[test]
 fn native_crosslane_completion_does_not_publish_payload_between_waves() {
     let result = run(SOURCE, "exact_wave_memory_exchange", config(64, 64, 64));
     assert_eq!(
