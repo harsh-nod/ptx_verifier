@@ -14,6 +14,27 @@ from audit_feature_union import ROOT, SOURCES, audit, candidate_status, proposal
 HERE = Path(__file__).resolve().parent
 
 
+def validate_inventory(ledger, inventory, expected_count=520):
+    originals = {
+        row["path"]: row for row in inventory["upstream_feature_reference_rows"]
+    }
+    rows = {row["path"]: row for row in ledger["rows"]}
+    if (
+        len(originals) != expected_count
+        or len(ledger["rows"]) != expected_count
+        or rows.keys() != originals.keys()
+    ):
+        raise ValueError("historical reference inventory is incomplete or duplicated")
+    if ledger["upstream_commit"] != inventory["upstream_commit"]:
+        raise ValueError("historical baseline revision changed")
+    for path, row in rows.items():
+        if (
+            row["upstream_sha256"] != originals[path]["upstream_sha256"]
+            or row["group"] != originals[path]["review_group"]
+        ):
+            raise ValueError(f"historical reference identity changed: {path}")
+
+
 def digest(value):
     return hashlib.sha256(
         json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
@@ -229,6 +250,7 @@ def main():
             "output must be separate from historical/source/decision inputs"
         )
     ledger = json.loads((HERE / "feature-review.json").read_text())
+    validate_inventory(ledger, json.loads((HERE / "gaps.json").read_text()))
     manifests = [
         (source, json.loads((ROOT / source).read_text())) for source in SOURCES
     ]

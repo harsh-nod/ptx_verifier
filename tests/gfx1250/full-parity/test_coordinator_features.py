@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from coordinator_features import prepare
+from coordinator_features import prepare, validate_inventory
 
 
 class CoordinatorFeatureReviewTests(unittest.TestCase):
@@ -149,6 +149,41 @@ class CoordinatorFeatureReviewTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "native source pin changed"):
             self.candidate()
+
+    def test_coordinated_row_deletion_cannot_shrink_the_finite_original_inventory(self):
+        ledger = {**self.ledger, "upstream_commit": "original"}
+        inventory = {
+            "upstream_commit": "original",
+            "upstream_feature_reference_rows": [
+                {
+                    "path": row["path"],
+                    "upstream_sha256": row["upstream_sha256"],
+                    "review_group": row["group"],
+                }
+                for row in ledger["rows"]
+            ],
+        }
+        validate_inventory(ledger, inventory, expected_count=2)
+        ledger["rows"] = ledger["rows"][:1]
+        with self.assertRaisesRegex(ValueError, "incomplete"):
+            validate_inventory(ledger, inventory, expected_count=2)
+
+    def test_historical_source_hash_cannot_be_replaced_with_a_current_native_hash(self):
+        ledger = {**deepcopy(self.ledger), "upstream_commit": "original"}
+        inventory = {
+            "upstream_commit": "original",
+            "upstream_feature_reference_rows": [
+                {
+                    "path": row["path"],
+                    "upstream_sha256": row["upstream_sha256"],
+                    "review_group": row["group"],
+                }
+                for row in ledger["rows"]
+            ],
+        }
+        ledger["rows"][0]["upstream_sha256"] = "new-native-source"
+        with self.assertRaisesRegex(ValueError, "historical reference identity"):
+            validate_inventory(ledger, inventory, expected_count=2)
 
 
 if __name__ == "__main__":
