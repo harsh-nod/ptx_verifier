@@ -2769,6 +2769,7 @@ impl<'a> Interpreter<'a> {
                     | "s_mul_hi_u32"
                     | "s_and_b32"
                     | "s_or_b32"
+                    | "s_nor_b32"
                     | "s_xor_b32"
                     | "s_andn2_b32"
                     | "s_not_b32"
@@ -3002,7 +3003,7 @@ impl<'a> Interpreter<'a> {
         if self.architecture == AmdArchitecture::Gfx1250
             && matches!(
                 name,
-                "s_and_b32" | "s_andn2_b32" | "s_or_b32" | "s_xor_b32" | "s_not_b32"
+                "s_and_b32" | "s_andn2_b32" | "s_or_b32" | "s_nor_b32" | "s_xor_b32" | "s_not_b32"
             )
         {
             fn partial(wave: &Wave, operand: &Operand) -> Result<(u32, u32), EvalError> {
@@ -3035,6 +3036,7 @@ impl<'a> Interpreter<'a> {
             let (bits, defined) = match name {
                 "s_and_b32" | "s_andn2_b32" => (a & b, (da & db) | (da & !a) | (db & !b)),
                 "s_or_b32" => (a | b, (da & db) | (da & a) | (db & b)),
+                "s_nor_b32" => (!(a | b), (da & db) | (da & a) | (db & b)),
                 "s_xor_b32" => (a ^ b, da & db),
                 _ => (!a, da),
             };
@@ -3093,6 +3095,7 @@ impl<'a> Interpreter<'a> {
             "s_mul_hi_u32" => (((a as u64 * b as u64) >> 32) as u32, wave.scc),
             "s_and_b32" => (a & b, a & b != 0),
             "s_or_b32" => (a | b, a | b != 0),
+            "s_nor_b32" => (!(a | b), !(a | b) != 0),
             "s_xor_b32" => (a ^ b, a ^ b != 0),
             "s_andn2_b32" => (a & !b, a & !b != 0),
             "s_not_b32" => (!a, !a != 0),
