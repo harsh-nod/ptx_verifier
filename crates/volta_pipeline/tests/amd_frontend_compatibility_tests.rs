@@ -3,6 +3,7 @@
 mod native_common;
 
 use volta_amd_analysis::frontend::{ast as upstream, parse::parse_kernel};
+use volta_amd_analysis::{LoweredInstr, lower_kernel};
 use volta_amdgpu_analysis::frontend::{self, Operand, RegisterClass};
 use volta_equivalence::{EquivOutcome, check_output_equivalence};
 use volta_expr::{ExprArena, SymbolicOutputs};
@@ -104,9 +105,13 @@ fn config(block: u32) -> AnalysisConfig {
 
 #[test]
 fn unchanged_upstream_copy_verifies_all_outputs_across_wave64_boundaries() {
-    let module = frontend::parse(COPY).unwrap();
-    for block in [1, 63, 64, 65, 128, 256] {
-        let checked = native_common::check(COPY, &module, Some("copy"), config(block)).unwrap();
+    verify_copy(COPY, &[1, 63, 64, 65, 128, 256]);
+}
+
+fn verify_copy(source: &str, blocks: &[u32]) {
+    let module = frontend::parse(source).unwrap();
+    for &block in blocks {
+        let checked = native_common::check(source, &module, Some("copy"), config(block)).unwrap();
         assert_eq!(checked.checks.conclusion(), GraphConclusion::Verified);
         let actual = checked.analysis.symbolic_outputs().unwrap();
         let mut arena = ExprArena::new();
@@ -128,11 +133,41 @@ fn unchanged_upstream_copy_verifies_all_outputs_across_wave64_boundaries() {
 }
 
 #[test]
+fn upstream_amd_lowering_retains_shift_inputs_and_wait_classes() {
+    let source = COPY.replacen(
+        "v_lshlrev_b32_e32 v0, 2, v0",
+        "v_lshlrev_b32_e32 v0, 34, v0",
+        1,
+    );
+    assert_ne!(source, COPY);
+    let parsed = parse_kernel(&source, "copy").unwrap();
+    let lowered = lower_kernel(&parsed).unwrap();
+    assert_eq!(lowered.name, parsed.name);
+    assert_eq!(lowered.target, parsed.target);
+    assert_eq!(lowered.descriptor, parsed.descriptor);
+    assert_eq!(lowered.instructions.len(), parsed.instructions.len());
+    assert!(matches!(
+        lowered.instructions[1],
+        LoweredInstr::Shl32 { shift: 34, .. }
+    ));
+    let waits = lowered
+        .instructions
+        .iter()
+        .filter_map(|instruction| match instruction {
+            LoweredInstr::WaitCnt { vmcnt, lgkmcnt } => Some((*vmcnt, *lgkmcnt)),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(waits, [(None, Some(0)), (Some(0), None)]);
+    verify_copy(&source, &[65]);
+}
+
+#[test]
 fn parsing_the_kernel_does_not_certify_its_memory_readiness() {
     for wait in ["\ts_waitcnt lgkmcnt(0)\n", "\ts_waitcnt vmcnt(0)\n"] {
         let source = COPY.replacen(wait, "", 1);
         assert_ne!(source, COPY);
-        parse_kernel(&source, "copy").unwrap();
+        lower_kernel(&parse_kernel(&source, "copy").unwrap()).unwrap();
         let module = frontend::parse(&source).unwrap();
         let checked = native_common::check(&source, &module, Some("copy"), config(65)).unwrap();
         assert!(matches!(

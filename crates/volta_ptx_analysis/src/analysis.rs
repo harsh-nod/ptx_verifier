@@ -159,6 +159,11 @@ pub fn analyze(
     kernel: Option<&str>,
     config: AnalysisConfig,
 ) -> Result<AnalysisResult, AnalysisError> {
+    if !config.shared_allocations.is_empty() {
+        return Err(AnalysisError::Eval(EvalError::Config {
+            message: "shared_allocations is a native AMD layout premise; PTX declares its own shared objects".into(),
+        }));
+    }
     let func = find_kernel(module, kernel)?;
     let vars = module_vars(module);
     let program = lower_function(func, &vars)?;
@@ -167,18 +172,7 @@ pub fn analyze(
         kernel, config.block_dim, config.grid_dim
     );
     let provenance = provenance(module, func, &config, &program);
-    analyze_lowered(&program, config, provenance).map_err(AnalysisError::from)
-}
-
-/// Run one candidate execution of an already-lowered program. The caller supplies
-/// well-formed IR that preserves the source semantics, a `provenance` describing this
-/// program and `config`, and a symbol table whose `finalize_shared_layout` has run.
-pub fn analyze_lowered(
-    program: &LoweredProgram,
-    config: AnalysisConfig,
-    provenance: Provenance,
-) -> Result<AnalysisResult, EvalError> {
-    let mut interp = Interpreter::new(program, config, provenance)?;
+    let mut interp = Interpreter::new(&program, config, provenance)?;
     let end = interp.run();
     Ok(AnalysisResult::from_run(interp.finish(end)))
 }

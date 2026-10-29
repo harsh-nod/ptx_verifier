@@ -38,7 +38,7 @@ crates/
 ├── volta_graph_check/ # Ten PTX or four native AMD properties, selected from target provenance
 ├── volta_ptx_analysis/ # PTX frontend (lexer, parser) and abstract interpreter (PTX -> expressions + event graph)
 ├── volta_amdgpu_analysis/ # Native AMD frontend, target/ABI validation, interpreter and event producer
-├── volta_amd_analysis/ # Upstream experimental selected-kernel AMD syntax parser
+├── volta_amd_analysis/ # Upstream experimental AMD parser and typed lowering
 ├── volta_equivalence/ # Equivalence checking of expressions (decision procedure, VC dumps)
 ├── volta_pipeline/   # Analysis -> {equivalence, graph} branches -> ACCEPT/REJECT/UNKNOWN; every end-to-end PTX test
 ├── volta_viz/        # Event-graph viewer (run store -> one self-contained HTML page)
@@ -275,11 +275,10 @@ Historical gfx942/gfx950 receipts do not validate gfx1250 execution.
 **Path**: `crates/volta_ptx_analysis/`
 
 Every module but `frontend` is private: `lib.rs` re-exports the whole API (`analyze`,
-`analyze_lowered`, `AnalysisResult`, `AnalysisParts`, `AnalysisError`, `write_op_counts`,
-the `AnalysisConfig` types, `EvalError`, `ClcMisuse`, `OutputsUnavailable`,
-`Stats`, `ThreadId`, `LowerError`, and the IR types `LoweredProgram`, `LoweredInstr`,
-`Operand`, `SymbolTable`, `SourceMap`, and supporting types), so rustc flags any code
-it does not reach. Other crates import from the root (`volta_ptx_analysis::AnalysisConfig`).
+`AnalysisResult`, `AnalysisParts`, `AnalysisError`, `write_op_counts`, the
+`AnalysisConfig` types, `EvalError`, `ClcMisuse`, `OutputsUnavailable`,
+`Stats`, `ThreadId`, `LowerError`), so rustc flags any code it does not
+reach. Other crates import from the root (`volta_ptx_analysis::AnalysisConfig`).
 
 ### Frontend (`frontend/`)
 
@@ -402,10 +401,7 @@ racing another thread's use of the object keeps its witness.
   graph's `Provenance` only): every kernel is analyzed and checked as on
   Blackwell, so the proxy-order check always runs
 - `analyze(module, kernel_name, config) -> Result<AnalysisResult, AnalysisError>`:
-  lowers PTX and calls `analyze_lowered(program, config, provenance)`, which runs
-  one candidate execution and returns `Result<AnalysisResult, EvalError>`, no
-  verdict. Direct callers supply well-formed IR that preserves the source
-  semantics and provenance matching the program and config. `AnalysisResult` holds
+  lowering plus one candidate execution, no verdict. `AnalysisResult` holds
   the arena, the event graph (always; partial on abort), stats, op counts,
   and the symbolic outputs only when the execution completed and its outputs
   read back (`symbolic_outputs()` / `into_parts()`; else `OutputsUnavailable`:
@@ -434,18 +430,18 @@ verdict, duration) in `check_graph`. `cargo run -p volta_cli
 
 **Path**: `crates/volta_amd_analysis/`
 
-The upstream experimental AMD syntax frontend. Its public API parses a selected
-straight-line kernel; the private `lower`, `ir` and `eval` modules declare stage
-boundaries but contain no executable implementation. CLI and Python AMD analysis
-continue through `volta_amdgpu_analysis` and its target-specific graph checks.
-`frontend::parse::parse_kernel(source, name)` extracts a kernel's target,
-instructions with typed operands, and numeric launch settings. It parses operand
-syntax without validating instruction semantics. Tests use the compiled gfx950
-copy kernel; see the crate README for supported forms and build commands.
-The pipeline's `amd_frontend_compatibility_tests.rs` compares both parsers on
-that unchanged input, then checks its complete native outputs and missing-wait
-mutations. The PTX `analyze_lowered` API does not validate an AMD translation
-or supply native wave, register, replay or synchronization semantics.
+The upstream experimental AMD parser and typed lowering. The public
+`frontend::parse::parse_kernel(source, name)` extracts a selected straight-line
+kernel. `lower_kernel` produces the separate AMD `LoweredKernel` IR for the
+supported gfx950 copy subset, preserving physical registers, waits and descriptor
+values. The crate has no symbolic executor or verifier dispatch yet.
+
+CLI and Python AMD analysis continue through `volta_amdgpu_analysis` and its
+target-specific graph checks. The pipeline's
+`amd_frontend_compatibility_tests.rs` compares both parsers on the unchanged
+upstream fixture, checks the upstream typed lowering, and verifies complete
+native outputs and missing-wait mutations. No AMD instructions are translated
+through PTX execution semantics.
 
 ## Crate: volta_graph_check
 
@@ -600,8 +596,6 @@ PTX kernels from `tests/ptx/` through `verify_kernel` (`common::check` /
   `Verified`, then the rendered
   symbolic outputs must match the kernel's `.out` file exactly
   (`VOLTA_BLESS=1` rewrites them).
-- `lowered_program_tests.rs` - constructs IR through the public API, without
-  parsing PTX, and checks the resulting symbolic output and event graph.
 - one suite per check whose witnesses PTX kernels exercise, each asserting on
   that check's typed witness only: `mbarrier_epoch_tests.rs` (Algorithm 1 over
   mbarrier phases: the unseparated synchronization and operation),
