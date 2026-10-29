@@ -36,7 +36,7 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
                     || instruction
                         .modifiers
                         .iter()
-                        .any(|m| m.name == "scale_offset")
+                        .any(|m| matches!(m.name.as_str(), "scale_offset" | "byte_sel" | "scope"))
                 {
                     return Err(ParseError {
                         message: format!(

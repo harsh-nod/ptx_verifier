@@ -27,6 +27,8 @@ pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
                     | "v_s_exp_f32"
                     | "v_bitop3_b16"
                     | "v_max3_num_f32"
+                    | "v_max3_num_f16"
+                    | "v_pk_max_num_f16"
                     | "v_mad_u32"
                     | "v_bitop2_b32"
             ))
@@ -49,6 +51,28 @@ pub(crate) fn validate_typed_profile(instruction: &Instruction) -> Result<(), St
         return Ok(());
     }
     validate_encoding(&instruction.mnemonic)?;
+    let byte_selectors = instruction
+        .modifiers
+        .iter()
+        .filter(|modifier| modifier.name == "byte_sel")
+        .collect::<Vec<_>>();
+    if !byte_selectors.is_empty() {
+        let stem = instruction
+            .mnemonic
+            .trim_end_matches("_e32")
+            .trim_end_matches("_e64");
+        if stem != "v_cvt_f32_fp8"
+            || instruction.mnemonic.ends_with("_e32")
+            || byte_selectors.len() != 1
+            || !byte_selectors[0]
+                .value
+                .as_deref()
+                .and_then(super::instr::integer)
+                .is_some_and(|byte| (0..=3).contains(&byte))
+        {
+            return Err("gfx1250 FP8 byte_sel requires one selector 0..3 and VOP3 encoding".into());
+        }
+    }
     super::instr::validate_control(instruction).map_err(|e| e.message)?;
     let (opcode, mut min, mut max) = match instruction.mnemonic.as_str() {
         "s_getreg_b32" => (Opcode::ScalarAlu, 2, 2),
@@ -115,8 +139,12 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
             "s_and_saveexec_b32" | "s_andn2_saveexec_b32" | "s_or_saveexec_b32" => {
                 (ScalarAlu, 2, 2)
             }
-            "s_sub_f32" | "s_mul_f32" | "s_min_num_f32" => (ScalarAlu, 3, 3),
+            "s_add_f32" | "s_sub_f32" | "s_mul_f32" | "s_min_num_f32" => (ScalarAlu, 3, 3),
+            "s_ctz_i32_b32" => (ScalarAlu, 2, 2),
+            "v_fmac_f16" => (VectorAlu, 3, 3),
             "v_s_exp_f32" => (VectorAlu, 2, 2),
+            "v_pk_max_num_f16" | "v_max_num_f16" => (VectorAlu, 3, 3),
+            "v_max3_num_f16" => (VectorAlu, 4, 4),
             "v_cmp_ne_u16" | "v_cmp_u_f32" | "v_min_num_f32" | "v_max_num_f32"
             | "v_lshlrev_b16" | "v_sub_nc_u16" => (VectorAlu, 3, 3),
             "v_bitop3_b16" | "v_max3_num_f32" | "v_fmaak_f32" => (VectorAlu, 4, 4),
@@ -178,6 +206,7 @@ pub(super) fn parse_special(
                 "cndmask_b32",
                 "fmac_f32",
                 "add_nc_u32",
+                "sub_nc_u32",
                 "sub_f32",
                 "max_num_f32",
             ]

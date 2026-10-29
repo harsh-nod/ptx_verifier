@@ -330,7 +330,46 @@ pub(crate) fn select(
     }
     let a = canonical_operand(arena, ty, a)?;
     let b = canonical_operand(arena, ty, b)?;
+
     Ok(arena.select(condition, a, b))
+}
+
+/// Decode one half of an encoded-word select. Preserve the existing generic
+/// scalar-select representation; this packed path additionally canonicalizes
+/// ordered compare/select to its exact real min/max identity.
+pub(crate) fn select_packed_half(
+    arena: &mut ExprArena,
+    condition: ExprId,
+    a: ExprId,
+    b: ExprId,
+) -> Result<ExprId, String> {
+    let result = select(arena, ScalarType::Float(FloatType::F32), condition, a, b)?;
+    let ExprNode::Select(_, a, b) = *arena.node(result) else {
+        return Ok(result);
+    };
+    {
+        // Ordered compare/select is min/max over the mathematical-real model.
+        // Match both exact data arms: a predicate about one packed half must
+        // never rewrite the other half merely because they share a word.
+        let ordered = match *arena.node(condition) {
+            ExprNode::Lt(left, right) | ExprNode::Le(left, right) => Some((left, right, false)),
+            ExprNode::Gt(left, right) | ExprNode::Ge(left, right) => Some((left, right, true)),
+            _ => None,
+        };
+        if let Some((left, right, greater)) = ordered {
+            let same = |x, y| volta_expr::structurally_equal(arena, x, arena, y);
+            let normal = same(a, left) && same(b, right);
+            let reversed = same(a, right) && same(b, left);
+            if normal || reversed {
+                return Ok(if greater == normal {
+                    arena.max(left, right)
+                } else {
+                    arena.min(left, right)
+                });
+            }
+        }
+    }
+    Ok(result)
 }
 
 /// Decode a concrete register bit pattern at its actual format. F64 must use
