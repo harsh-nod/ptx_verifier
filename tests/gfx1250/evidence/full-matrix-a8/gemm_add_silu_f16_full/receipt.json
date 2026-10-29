@@ -1,0 +1,129 @@
+{
+  "status": "partial",
+  "hardware_execution": false,
+  "sampling": false,
+  "required_kernels": [
+    "gemm_f16_full",
+    "gemm_f8_full",
+    "gemm_add_silu_f16_full",
+    "gemm_add_silu_f8_full",
+    "bitdelta_full",
+    "bitdelta_batched_full"
+  ],
+  "results": [
+    {
+      "kernel": "gemm_add_silu_f16_full",
+      "expected_outputs": 65536,
+      "passed": true,
+      "argv": [
+        "/tmp/ptx-gfx1250-matrix-cpu-a8e8e227-1793258639548420200/retry64-gemm_add_silu_f16_full/snapshot-1793260003636182754/volta",
+        "--no-log-file",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx1250",
+        "verify",
+        "/tmp/ptx-gfx1250-matrix-cpu-a8e8e227-1793258639548420200/retry64-gemm_add_silu_f16_full/snapshot-1793260003636182754/fixtures/original-matrix.s",
+        "/tmp/ptx-gfx1250-matrix-cpu-a8e8e227-1793258639548420200/retry64-gemm_add_silu_f16_full/snapshot-1793260003636182754/specs/gemm_add_silu_f16_full.spec",
+        "--kernel",
+        "gemm_add_silu_f16_full",
+        "--config",
+        "/tmp/ptx-gfx1250-matrix-cpu-a8e8e227-1793258639548420200/retry64-gemm_add_silu_f16_full/snapshot-1793260003636182754/launch/gemm_add_silu_f16_full.json",
+        "--sample",
+        "0",
+        "--verify-numeric",
+        "--dim",
+        "K=4096",
+        "--dim",
+        "M=4096",
+        "--dim",
+        "N=4096",
+        "--dim",
+        "TILE=256"
+      ],
+      "measured_argv": [
+        "/usr/bin/time",
+        "-f",
+        "user=%U system=%S peak_rss_kib=%M wall=%e exit=%x",
+        "-o",
+        "/tmp/ptx-gfx1250-matrix-cpu-a8e8e227-1793258639548420200/retry64-gemm_add_silu_f16_full/gemm_add_silu_f16_full/resources.txt",
+        "/tmp/ptx-gfx1250-matrix-cpu-a8e8e227-1793258639548420200/retry64-gemm_add_silu_f16_full/snapshot-1793260003636182754/volta",
+        "--no-log-file",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx1250",
+        "verify",
+        "/tmp/ptx-gfx1250-matrix-cpu-a8e8e227-1793258639548420200/retry64-gemm_add_silu_f16_full/snapshot-1793260003636182754/fixtures/original-matrix.s",
+        "/tmp/ptx-gfx1250-matrix-cpu-a8e8e227-1793258639548420200/retry64-gemm_add_silu_f16_full/snapshot-1793260003636182754/specs/gemm_add_silu_f16_full.spec",
+        "--kernel",
+        "gemm_add_silu_f16_full",
+        "--config",
+        "/tmp/ptx-gfx1250-matrix-cpu-a8e8e227-1793258639548420200/retry64-gemm_add_silu_f16_full/snapshot-1793260003636182754/launch/gemm_add_silu_f16_full.json",
+        "--sample",
+        "0",
+        "--verify-numeric",
+        "--dim",
+        "K=4096",
+        "--dim",
+        "M=4096",
+        "--dim",
+        "N=4096",
+        "--dim",
+        "TILE=256"
+      ],
+      "exit_code": 0,
+      "termination": null,
+      "elapsed_seconds": 1802.327,
+      "monitored_peak_rss_bytes": 54254870528,
+      "resources": "user=1767.68 system=34.14 peak_rss_kib=52989224 wall=1802.07 exit=0\n",
+      "stdout_sha256": "9d539d9533255bbd3dbcc11e85bff5ec3d9b8631194de8e0d06c8e4ed0624f68",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "host": "ctheliosr-rck-g02-e15-04",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+  "revision_supplied_by_builder": "a8e8e2275c8f5eeb7c2ad2f9e388b99e15341d7d",
+  "mode": "default",
+  "driver_sha256": "d0a992589c43e97cd8089fb55c1311c41b09c82201b9f1a3c6b24ea25b90e8d9",
+  "started_unix": 1793260003.6343296,
+  "selected_kernels": [
+    "gemm_add_silu_f16_full"
+  ],
+  "binary_sha256": "f5c4296ccf41459c77dd5f18a4c1d62cccdc33f7e9505a2b74fdb167358a8aae",
+  "input_sha256": {
+    "cases.json": "e578f97d218ca01e88b137fd00beebebb5705a1570b5df65541115c620914616",
+    "fixtures/original-matrix.hip": "368a885723768ab307972894a553c6af792d81085bb01faf191046a1744f0b09",
+    "fixtures/original-matrix.s": "7f776b18fdc5b7ae94c74456b61e7d15de53315b537d5eeb9b7f9620fd0e29a3",
+    "specs/gemm_add_silu_f16_full.spec": "7a86767a2257738bc256063c45148e411d5a3aac0226244311674eebdd0c41af",
+    "launch/gemm_add_silu_f16_full.json": "041397ee44b866ffb5eb6b6eba6d5850edb13256f5b41f71366da3222e40500c"
+  },
+  "snapshot": "/tmp/ptx-gfx1250-matrix-cpu-a8e8e227-1793258639548420200/retry64-gemm_add_silu_f16_full/snapshot-1793260003636182754",
+  "ldd": {
+    "exit_code": 0,
+    "stdout": "\tlinux-vdso.so.1 (0x0000775c75252000)\n\tlibgcc_s.so.1 => /usr/lib/x86_64-linux-gnu/libgcc_s.so.1 (0x0000775c74d3d000)\n\tlibm.so.6 => /usr/lib/x86_64-linux-gnu/libm.so.6 (0x0000775c74c17000)\n\tlibc.so.6 => /usr/lib/x86_64-linux-gnu/libc.so.6 (0x0000775c74800000)\n\t/lib64/ld-linux-x86-64.so.2 (0x0000775c75254000)\n",
+    "stderr": ""
+  },
+  "runtime_sha256": {
+    "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1": "9d339ecb409578d6a5d587e6c537a8f9589b8a13fefba30d167433a4b5758bee",
+    "/usr/lib/x86_64-linux-gnu/libm.so.6": "1c488db6f4fe8cecb72456bc018de000b7a9b539c2994864b0416b5e8371b3d8",
+    "/usr/lib/x86_64-linux-gnu/libc.so.6": "85e64f97e348786a8fb4d9f3d52fec289e2fb86bba20f0731dfe61990525e0f7",
+    "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2": "bda779ea9e9ad234f60315477d7cfd0bdde861cd8ddd9df8cdaf62f18c4cec14"
+  },
+  "capability_probe": {
+    "argv": [
+      "/tmp/ptx-gfx1250-matrix-cpu-a8e8e227-1793258639548420200/retry64-gemm_add_silu_f16_full/snapshot-1793260003636182754/volta",
+      "--help"
+    ],
+    "exit_code": 0,
+    "stdout_sha256": "1bc24a55ee1b9be1f175600ad7adbc99263ff6c0e43fc33d32258ed7bfbc437d"
+  },
+  "limits": {
+    "wall_seconds": 7200,
+    "cpu_seconds": 6900,
+    "rss_bytes": 68719476736,
+    "address_space_bytes": 137438953472
+  },
+  "all_required_complete": false,
+  "finished_unix": 1793261805.979817
+}
