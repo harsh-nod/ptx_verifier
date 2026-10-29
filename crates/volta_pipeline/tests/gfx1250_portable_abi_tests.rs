@@ -216,13 +216,27 @@ fn mixed_positional_arguments_preserve_symbolic_float_f64_signed16_and_unsigned8
 
 #[test]
 fn ordinary_grid_group_and_block_fields_retain_all_nine_native_values() {
-    let mut cfg = config(4, 0, 0, 4, 9);
-    cfg.block_dim = (4, 3, 2);
-    cfg.grid_dim = (2, 3, 4);
-    equal(
-        &verified(ARGUMENTS, "abi_grid_dimensions", cfg),
-        constants(&[2, 3, 4, 0, 0, 0, 4, 3, 2]),
-    );
+    // The original cluster-reference fixture uses one workitem. Its ordinary
+    // grid/group projection is retained, with a separate XYZ block control.
+    for block in [(1, 1, 1), (4, 3, 2)] {
+        let mut cfg = config(block.0, 0, 0, 4, 9);
+        cfg.block_dim = block;
+        cfg.grid_dim = (2, 3, 4);
+        equal(
+            &verified(ARGUMENTS, "abi_grid_dimensions", cfg),
+            constants(&[
+                2,
+                3,
+                4,
+                0,
+                0,
+                0,
+                block.0 as i64,
+                block.1 as i64,
+                block.2 as i64,
+            ]),
+        );
+    }
 }
 
 #[test]

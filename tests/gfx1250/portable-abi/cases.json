@@ -608,7 +608,7 @@
           "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
         }
       ],
-      "portable_obligation": "Retain ordinary grid(2,3,4), selected group(0,0,0), and block(4,3,2), all nine fields.",
+      "portable_obligation": "At original block(1,1,1), retain selected group(0,0,0) and grid(2,3,4): baseline out[8..10] maps to native out[3..5], and baseline out[11..13] maps to native out[0..2]. A separate block(4,3,2) native control checks all nine ordinary XYZ values.",
       "native_kernels": [
         "abi_grid_dimensions"
       ],
@@ -618,7 +618,7 @@
           "function": "ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
         }
       ],
-      "target_specific_residual": "PTX cluster counts, rank and cluster-grid register conventions remain explicit NVIDIA-only mechanisms; native tests make no clustered launch claim.",
+      "target_specific_residual": "The nine cluster-local CTA coordinates, member counts/ranks and explicit-cluster flag outputs at baseline indices0..7,14 describe NVIDIA cluster mechanisms. No native clustered launch is claimed; only the six ordinary grid/group values receive a direct projection.",
       "validation": "pending_native_end_to_end_and_coordinator_review",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/cluster_special_registers_describe_a_single_cta_cluster.out",
@@ -643,6 +643,14 @@
             14
           ]
         }
+      },
+      "original_to_native_output_projection": {
+        "8": 3,
+        "9": 4,
+        "10": 5,
+        "11": 0,
+        "12": 1,
+        "13": 2
       }
     },
     {
