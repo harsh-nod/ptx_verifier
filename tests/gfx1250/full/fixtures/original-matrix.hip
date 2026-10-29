@@ -6,6 +6,18 @@
 typedef _Float16 half16v __attribute__((ext_vector_type(16)));
 typedef float float8v __attribute__((ext_vector_type(8)));
 
+// The pinned gfx1250 LLVM hazard model requires four unrelated VALUs between
+// this F16 WMMA and a VALU that reads its result or overwrites any fragment.
+// Keep all fragments live through the explicit spacing; scalar instructions,
+// waits and split barriers do not contribute to this VALU distance.
+__device__ __forceinline__ void matrix_wmma_spacing(float8v &acc, half16v av,
+                                                    half16v bv) {
+  asm volatile("v_nop\n\tv_nop\n\tv_nop\n\tv_nop"
+               : "+v"(acc)
+               : "v"(av), "v"(bv)
+               : "memory");
+}
+
 template <class T> __device__ __forceinline__ _Float16 matrix_half(T value) {
   return value;
 }
@@ -52,6 +64,7 @@ __device__ __forceinline__ void matrix_gemm(const T *a, const T *b,
         }
         acc[column] = __builtin_amdgcn_wmma_f32_16x16x32_f16(
             false, av, false, bv, 0, acc[column], false, false);
+        matrix_wmma_spacing(acc[column], av, bv);
       }
       if (kbase + 32 < 4096) {
         for (unsigned j = t; j < 256 * 32; j += 1024) {
@@ -137,6 +150,7 @@ matrix_bitdelta(const _Float16 *a, const unsigned *packed, _Float16 *out) {
         }
         acc[column] = __builtin_amdgcn_wmma_f32_16x16x32_f16(
             false, av, false, bv, 0, acc[column], false, false);
+        matrix_wmma_spacing(acc[column], av, bv);
       }
       if (kbase + 32 < 4096) {
         for (unsigned j = t; j < Rows * 32; j += 256)

@@ -21,6 +21,17 @@ GEMM has 32 wave32s, each responsible for 16x128 outputs. Two full K4096 passes
 compute 16x64 each, limiting live accumulators without private spills. Two LDS
 buffers for each 256x32 A/B panel total 64 KiB. Each K32 stage consumes the
 current panel before the next split-barrier publication and buffer reuse.
+Each native F16 WMMA is followed by four explicit `v_nop` instructions. A
+volatile source asm ties its accumulator and retains both input fragments
+through that spacing, with a memory clobber. This addresses the pinned LLVM
+[`checkWMMACoexecutionHazards` contract](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNHazardRecognizer.cpp):
+category-0 F16 WMMA requires four intervening unrelated VALUs before a VALU
+reads its result or overwrites a source/result register. Scalar instructions,
+memory waits and split barriers do not count. The compile uses the default
+gfx1250 wave32 mode without feature overrides or source mode-register writes;
+the spacing does not depend on an unverified mode exemption. The exact-assembly
+frontend test checks all WMMA sites retain it. Regenerated assembly and code
+object hashes invalidate earlier numerical receipts for these kernels.
 `ctaid.x/y` select 256-row/column tiles. A selected CTA0 launch uses grid1x1x1;
 the source has no dependency on grid extent. Grid16x16 covers the full matrix.
 
@@ -40,7 +51,7 @@ The original grouped `ctaid.x` mappings remain:
 The batched kernel uses `ctaid.y` and the original strides: A/output advance
 4096x4096 elements per batch; packed B advances 128x4096 u32 words per batch.
 The selected original CTA0 uses grid1x1x1 and batch0. All six native descriptors
-declare zero private scratch. Row-view GEMM specs bind every output row
-`out000`…`out255` at its original byte offset. The public spec grammar currently
-cannot express arbitrary packed-word bit selection; that BitDelta obligation
-requires an integer-aware expression oracle and remains pending.
+declare zero private scratch. Row-view specs bind every output row at its
+original byte offset. BitDelta specs use the integer-aware `bit_sign` builtin
+for arbitrary packed-word selection. Compiler, frontend, numerical execution
+and complete symbolic/graph verification remain separate evidence obligations.

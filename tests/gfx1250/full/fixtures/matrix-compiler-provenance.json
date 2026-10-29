@@ -26,10 +26,10 @@
   "fixture": {
     "source": "original-matrix.hip",
     "assembly": "original-matrix.s",
-    "source_sha256": "2bdddc88f94ce173b0ac758b2c754b5c77017fdef4a1279750c0850c9c802a78",
-    "assembly_sha256": "fd8ce2a98a1bc707da75b8bd50b8f68eecd5a642a84c739b53fa6a3b025fca43",
-    "object_sha256": "81cd04112044688b8eca81b922718b2643c7e8817231d265afa9e952167e6ce6",
-    "code_object_sha256": "66037289435d3d0c5af80a4ad26d904b1b4baa7113b3d1628ee08e86e3edd1a3",
+    "source_sha256": "368a885723768ab307972894a553c6af792d81085bb01faf191046a1744f0b09",
+    "assembly_sha256": "7f776b18fdc5b7ae94c74456b61e7d15de53315b537d5eeb9b7f9620fd0e29a3",
+    "object_sha256": "74c6a08b784eae22b24e44687bcfb629b0976f4fa015a41bf2f29ef35d423917",
+    "code_object_sha256": "f573096c45448d1d0097bec70d14aae23fa136d306c0e121222edaa02f766793",
     "compile": [
       "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
       "-x",
@@ -60,5 +60,19 @@
       "-o",
       "/tmp/ptx-gfx1250-original-matrix.hsaco"
     ]
+  },
+  "wmma_spacing": {
+    "status": "explicit_source_spacing_compiled_assembled_linked_only",
+    "instruction": "v_wmma_f32_16x16x32_f16",
+    "following_valu_noops": 4,
+    "inline_asm_constraints": "accumulator read-write; A/B fragment inputs; volatile; memory clobber",
+    "compiler_mode": "-O2 --offload-arch=gfx1250; default wave32; no target feature overrides; no source mode-register changes",
+    "reference": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNHazardRecognizer.cpp",
+    "reference_functions": [
+      "checkWMMACoexecutionHazards",
+      "hasWMMAToVALURegOverlap",
+      "getMaxVALUWindowDeficit"
+    ],
+    "reason": "F16 WMMA category 0 requires four intervening unrelated VALUs before dependent VALU reads or fragment overwrites. SALU, memory waits and split barriers do not count."
   }
 }
