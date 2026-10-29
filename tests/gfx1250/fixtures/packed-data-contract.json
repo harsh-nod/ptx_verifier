@@ -1,0 +1,1149 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Source-pinned mapping candidates for15 packed-F32 and9 FP8 original reference rows. This contract is not an execution receipt or coordinator acceptance.",
+  "reference_groups": [
+    "PACKED-F32-TYPING",
+    "FP8-BYTES-PACKING"
+  ],
+  "test_source": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs",
+  "compiler_provenance": "tests/gfx1250/fixtures/packed-data-compiler-provenance.json",
+  "rows": [
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/e4m3x2_rejects_the_concrete_nan_byte_pattern.ptx",
+      "baseline_sha256": "facf94c374122d2649a80ec4ca722b75bae8fb81a3df90d62cb26b176e813521",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_e4m3x2_rejects_the_concrete_nan_byte_pattern",
+          "line": 1460,
+          "function_region_sha256": "867df7a2253168f676fc3a91b63823cc4b125cbe2036634a35a1f66c6917139c",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "group": "FP8-BYTES-PACKING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::concrete_ocp_nan_is_rejected_by_the_actual_native_decoder",
+      "native_source": "tests/gfx1250/fixtures/native-fp8-packing.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "kernel": "fp8_nan_decode",
+      "reason": "Actual native decoder observes concrete OCP E4M3 byte0x7f, explicitly outside the mathematical real model; graph cannot be Verified. CPU-only negative, excluded from hardware.",
+      "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
+      "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
+      "candidate_kind": "model_domain_refusal",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/failing/e4m3x2_scalar_source_high_lane_is_undefined_not_fabricated.ptx",
+      "baseline_sha256": "66d687b02ef036db591863b2556b02a487b7ea1c041c55498221224d79ce2982",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_e4m3x2_scalar_source_high_lane_is_undefined_not_fabricated",
+          "line": 1132,
+          "function_region_sha256": "963a69b1c0b505620a7a620d1751748f5c69c64324974e4c3d2d6e6a6e87f22e",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "group": "FP8-BYTES-PACKING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::native_ubyte_zero_extension_defines_high_byte_without_fabricating_ptx_storage",
+      "native_source": "tests/gfx1250/fixtures/native-fp8-packing.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "kernel": "fp8_byte_low_and_high",
+      "reason": "The original PTX scalar16 register has undefined byte1 and is independently asserted Undefined. Genuine native GLOBAL_LOAD_U8 explicitly zero-extends the register, so native outputs are exactly x[0],0; rejecting the defined native byte1 would invent an AMD undefinedness rule. The source storage rule remains target-specific.",
+      "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
+      "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
+      "candidate_kind": "target_storage_residual_with_native_payload",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvt_pack_halves_values.ptx",
+      "baseline_sha256": "da22611303840aa029831ec3f8c3d68d5d5121d32c96388c2ead307cfb6f927e",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_cvt_pack_halves_values",
+          "line": 927,
+          "function_region_sha256": "7c53865f3e172614cf3d947da4b3c511501736f37a31525514ad2fed01fc727d",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "FP8-BYTES-PACKING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::half_pack_values",
+      "native_source": "tests/gfx1250/fixtures/native-fp8-packing.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "kernel": "fp8_pack_half_values",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": null,
+      "output": {
+        "name": "out",
+        "element_width": 2,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/cvt_pack_halves_values.out",
+      "golden_sha256": "994c6dfdfbdeffebfc43ffdf9613156c5e99fa44aa1fe50416817c8f153bc64f",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
+      "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvt_relu_symbolic_is_max.ptx",
+      "baseline_sha256": "a5e6dae51c93d336b25e2b055ad78509a1c867e9af7641c2f0e4d9fc1f72e37c",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_cvt_relu_symbolic_is_max",
+          "line": 1156,
+          "function_region_sha256": "56f96132ebe0b058077f4ad738712729499c8c8c32ec88e44a0d4c0ece91279d",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "FP8-BYTES-PACKING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::half_relu",
+      "native_source": "tests/gfx1250/fixtures/native-fp8-packing.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "kernel": "fp8_relu_to_half",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 1,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 2,
+        "elements": 1,
+        "written_indices": [
+          0
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/cvt_relu_symbolic_is_max.out",
+      "golden_sha256": "897ca73681342877583efd7a1860623a0f652e0df3af5eb7498e0f5910e2b935",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
+      "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_decodes_a_concrete_scalar_bit_pattern.ptx",
+      "baseline_sha256": "d012832ec82eca8c92f48090edd5959c3514238f428278beeece89a1ffb7f1eb",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_e4m3x2_decodes_a_concrete_scalar_bit_pattern",
+          "line": 1700,
+          "function_region_sha256": "a6abd9340066e27a6fcf1b9f421475736f1376f3cb03d51191b78230876434a9",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "FP8-BYTES-PACKING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::fp8_concrete_pair",
+      "native_source": "tests/gfx1250/fixtures/native-fp8-packing.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "kernel": "fp8_concrete_pair",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": null,
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_decodes_a_concrete_scalar_bit_pattern.out",
+      "golden_sha256": "9bf83eba31337ce63e88e9b0a288aec0cb3e2a86479053643838db870700d3b7",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
+      "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_low_half_extracted_via_cvt_u16_u32_truncation_of_a_quad.ptx",
+      "baseline_sha256": "0762344ccdf0869a59e6825b08a1f42c98b635a62af5e4c7acf9f4ea4869d723",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_e4m3x2_low_half_extracted_via_cvt_u16_u32_truncation_of_a_quad",
+          "line": 1635,
+          "function_region_sha256": "08955b84cc5214009eccf6e9465faf149af0b67533e0d39387e83b5ee90495fb",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "FP8-BYTES-PACKING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::fp8_selected_halves",
+      "native_source": "tests/gfx1250/fixtures/native-fp8-packing.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "kernel": "fp8_selected_halves",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "x",
+        "element_width": 1,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_low_half_extracted_via_cvt_u16_u32_truncation_of_a_quad.out",
+      "golden_sha256": "1df529d25b49966fb8214dbf265882407e3c79ac9179e664acdd53d62d4ef1ba",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
+      "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_relu_clamps_a_negative_decoded_lane_to_zero.ptx",
+      "baseline_sha256": "3a391d0e2e65fe61cb45502d99f5ad303a18eb8e4028e8c670600bc683ae3d5c",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_e4m3x2_relu_clamps_a_negative_decoded_lane_to_zero",
+          "line": 1720,
+          "function_region_sha256": "7d82c5dbbdaccbdfb83c6070b43885cc60b3c06e8f85d7c1ea0f91bfc72d0212",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "FP8-BYTES-PACKING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::fp8_concrete_relu",
+      "native_source": "tests/gfx1250/fixtures/native-fp8-packing.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "kernel": "fp8_concrete_relu",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": null,
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_relu_clamps_a_negative_decoded_lane_to_zero.out",
+      "golden_sha256": "64c6c943ea2b0ff8e2d88a9f5d47ac95790e49187ceca03e4c0ad94d7dad6791",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
+      "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_scalar_source_from_a_zero_extended_byte_load.ptx",
+      "baseline_sha256": "231351fdc0c0531a9d83408c00e6291d70e72553e4e594827af92434c48d67e1",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_e4m3x2_scalar_source_from_a_zero_extended_byte_load",
+          "line": 1075,
+          "function_region_sha256": "133ab3605de516da0617b0261ec8003c28550a9fcd63e315fe5fa6b5663340b3",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "FP8-BYTES-PACKING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::fp8_zero_extended_byte",
+      "native_source": "tests/gfx1250/fixtures/native-fp8-packing.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "kernel": "fp8_zero_extended_byte",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "x",
+        "element_width": 1,
+        "elements": 1,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 1,
+        "written_indices": [
+          0
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_scalar_source_from_a_zero_extended_byte_load.out",
+      "golden_sha256": "7fc65182c09e8548593e4d38c6da3d258ca280c902db1b931b0d33e4855a08dc",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
+      "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_vector_load_keeps_four_symbolic_bytes_independent.ptx",
+      "baseline_sha256": "1c31b2fa0d12e82ee27c31f91a64d5eedb4ac0b79698884c1c9fd4b93f38f8af",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_e4m3x2_vector_load_keeps_four_symbolic_bytes_independent",
+          "line": 1603,
+          "function_region_sha256": "144dbc8d00d2c07adcd5d83d2fc17895a49c8529c1bb53bba87ecf179827fb1f",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "FP8-BYTES-PACKING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::fp8_vector_bytes",
+      "native_source": "tests/gfx1250/fixtures/native-fp8-packing.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-fp8-packing.s",
+      "kernel": "fp8_vector_bytes",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "x",
+        "element_width": 1,
+        "elements": 8,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_vector_load_keeps_four_symbolic_bytes_independent.out",
+      "golden_sha256": "eb4c4debe88e2eb691359f969a5ceb632d7b05fdc31c65cb83b0ca58bbcbe067",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
+      "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_constant_bit_pattern_operand.ptx",
+      "baseline_sha256": "79fff3937789d297ee2947cda1f86f741d6a3b53f50cde28a376af0d2d3c853b",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_f32x2_constant_bit_pattern_operand",
+          "line": 1509,
+          "function_region_sha256": "0bbf7982c7a22831234ff025fc1a44e0a2b09712e3bd8f6083ffb539ccaf3b7d",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_constant_operand",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_constant_operand",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/f32x2_constant_bit_pattern_operand.out",
+      "golden_sha256": "3a3ee4327ffcf729558a1749b8cff17d33b33d7c652bb066c21a4726998d83ac",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_fma_via_64bit_memory_access.ptx",
+      "baseline_sha256": "4626eae4bb124e63beeded201b79ef0cd14467a48df99d37ca13638f525ae8f0",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_f32x2_fma_via_64bit_memory_access",
+          "line": 1499,
+          "function_region_sha256": "9f340b3b718feecf84ce09cbae003177da2894eadcc1733a937699797da44e02",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_memory_fma",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_memory_fma",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/f32x2_fma_via_64bit_memory_access.out",
+      "golden_sha256": "7e95178912b3a6a38c381989838787ac11d7559f1312e60d657396a9623af514",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_fma_via_register_pack.ptx",
+      "baseline_sha256": "7ddadae40b53e47e9775e12f7a4b4fabd57ff2131fe119e18b587daa56ea5400",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_f32x2_fma_via_register_pack",
+          "line": 1483,
+          "function_region_sha256": "e2dd65d1208c4f4d16aed9420c2ab5e53d294d482d5376c77112e1cadb659c03",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_register_fma",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_register_fma",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/f32x2_fma_via_register_pack.out",
+      "golden_sha256": "7e95178912b3a6a38c381989838787ac11d7559f1312e60d657396a9623af514",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_lane_extracted_with_shift.ptx",
+      "baseline_sha256": "a52172caa34b88b514b32aca344a091a618b50da23e8f9d3abe92fbed14e73bc",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_f32x2_lane_extracted_with_shift",
+          "line": 1551,
+          "function_region_sha256": "4e8896bd99f9feeb623cba1f149c39977660b29a8df4ad000ed3f6ae1769c9d2",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_high_shift",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_high_shift",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/f32x2_lane_extracted_with_shift.out",
+      "golden_sha256": "7e95178912b3a6a38c381989838787ac11d7559f1312e60d657396a9623af514",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_mul_add_via_register_pack.ptx",
+      "baseline_sha256": "2eddbfcd768653c63a023b106b30b2139ce58b36a430f2c15f15b9cc636cc09c",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_f32x2_mul_add_via_register_pack",
+          "line": 1489,
+          "function_region_sha256": "585136720a22b5e26b669b7f86538a2d6a23f7776aeec802cfad82e81d573856",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_unfused",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_unfused",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/f32x2_mul_add_via_register_pack.out",
+      "golden_sha256": "cb743c5bdd69373bef7fcc69f876363d41ec01befb8c4c99a5c1e41fc6b9dec3",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_operand_assembled_with_cvt_zero_extension.ptx",
+      "baseline_sha256": "5898b58979e01ed64456e0999751a2396aed2e3822b87614dd5ada4881e418b3",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_f32x2_operand_assembled_with_cvt_zero_extension",
+          "line": 1561,
+          "function_region_sha256": "26a4e477b58adf73bc1298bb6ce4e9f5eec5a6b3eb2f4f11fdcf4c78db92fa4f",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_zero_extend",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_zero_extend",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/f32x2_operand_assembled_with_cvt_zero_extension.out",
+      "golden_sha256": "7e95178912b3a6a38c381989838787ac11d7559f1312e60d657396a9623af514",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_operand_assembled_with_shift_and_or.ptx",
+      "baseline_sha256": "79a7c862db76ac826012039318db6c141dc89b4039a95e55d5f32320f9065c9a",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_f32x2_operand_assembled_with_shift_and_or",
+          "line": 1541,
+          "function_region_sha256": "6eff6f371c5492a03d91d7dea5453f54207553dfa163f55afde348d4a5f20be7",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_shift_or",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_shift_or",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/f32x2_operand_assembled_with_shift_and_or.out",
+      "golden_sha256": "7e95178912b3a6a38c381989838787ac11d7559f1312e60d657396a9623af514",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_scalar_reference.ptx",
+      "baseline_sha256": "bbdd760cadbab5214537ca62283b214b10acb6ecc5a6ff57317f2581f095cc38",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_f32x2_scalar_reference",
+          "line": 1476,
+          "function_region_sha256": "8a22e931cdb1cbf98a87066614da8a3f1b88576bab07c0bf13c370cd376466a6",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_scalar_reference",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_scalar_reference",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/f32x2_scalar_reference.out",
+      "golden_sha256": "7e95178912b3a6a38c381989838787ac11d7559f1312e60d657396a9623af514",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_wrong_lane_math.ptx",
+      "baseline_sha256": "585619aeaa13884f7363931f7304754a295416eda531a55b12c6f5af87ff933c",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_f32x2_wrong_lane_math",
+          "line": 1518,
+          "function_region_sha256": "a57c8d610b3d24563a39c4a1de150e92f115fe46def1f8b7567a7791ca2ce083",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_wrong_math",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_wrong_math",
+      "block": [
+        2,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/f32x2_wrong_lane_math.out",
+      "golden_sha256": "7351d63f7bd43954dd7089b9a57a99edbb6ae1939e4038e232cb05d42548576c",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_b64_integer_pack_recombines_as_scalar_direct.ptx",
+      "baseline_sha256": "192f3021f61dfbf275300ccdcf07afcece4e2f9967ec23ca1bd6343b223a9d27",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_mov_b64_integer_pack_recombines_as_scalar",
+          "line": 1525,
+          "function_region_sha256": "1539307e4cdf2f9a631612b221ae056c87565519118918d3ce7e762236a18b08",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_pointer_direct",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_pointer_direct",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          2
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/mov_b64_integer_pack_recombines_as_scalar_direct.out",
+      "golden_sha256": "09937361bbe14ed7e223529b19fc9702a01cb25e03fee7f6318a78a56e9b1e36",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_b64_integer_pack_recombines_as_scalar_packed.ptx",
+      "baseline_sha256": "c5e8fd342d1912e83574de05dcdc552621554bfe53dc48c5c1226116eb6066d2",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_mov_b64_integer_pack_recombines_as_scalar",
+          "line": 1525,
+          "function_region_sha256": "1539307e4cdf2f9a631612b221ae056c87565519118918d3ce7e762236a18b08",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_pointer_reassembled",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_pointer_reassembled",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 4,
+        "elements": 4,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 4,
+        "elements": 4,
+        "written_indices": [
+          2
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/mov_b64_integer_pack_recombines_as_scalar_packed.out",
+      "golden_sha256": "09937361bbe14ed7e223529b19fc9702a01cb25e03fee7f6318a78a56e9b1e36",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_pack_b32_always_builds_pair.ptx",
+      "baseline_sha256": "c6cd22068fc06462bdecd415c740c0cef3fe2711284e22eea2a01dd25f27b8c4",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_mov_pack_b32_always_builds_pair",
+          "line": 964,
+          "function_region_sha256": "e98c9e03327d563f1aa0854f916e47d68ef286d818781da511d467c237899dd2",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_half_pack",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_half_pack",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 2,
+        "elements": 2,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 2,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/mov_pack_b32_always_builds_pair.out",
+      "golden_sha256": "137b161bdc665ea611157466234f5253d5e565ec0030031f5725e6bce6bb1819",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_pack_b64_integer_halves_recombine.ptx",
+      "baseline_sha256": "6e314b83a598166a1553b6d6eba2549f6632eaffcc2f6d9a87baa4946726aa84",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_mov_pack_b64_integer_halves_recombine",
+          "line": 996,
+          "function_region_sha256": "2bd91cd55f0fd57a5837edf9b889003a8a69f653ace3046c2c0448d8b27d9497",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_integer_halves",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_integer_halves",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": null,
+      "output": {
+        "name": "out",
+        "element_width": 8,
+        "elements": 1,
+        "written_indices": [
+          0
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/mov_pack_b64_integer_halves_recombine.out",
+      "golden_sha256": "9306bc320078ee164c51c032127f8a42e4c36c8494ecff664b38756498daab8e",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_unpack_native_pair_source.ptx",
+      "baseline_sha256": "8a2e9b9386de7568e659671cbd1e8328fbb111a2bdadb5a3318111fcad78138e",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_mov_unpack_native_pair_source",
+          "line": 935,
+          "function_region_sha256": "25cc26971b4fcc3c9c98ea88cc36e93102c621483f920e2518c7896e367d31c7",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_half_unpack",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_half_unpack",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": {
+        "name": "in",
+        "element_width": 2,
+        "elements": 2,
+        "kind": "Input"
+      },
+      "output": {
+        "name": "out",
+        "element_width": 2,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/mov_unpack_native_pair_source.out",
+      "golden_sha256": "137b161bdc665ea611157466234f5253d5e565ec0030031f5725e6bce6bb1819",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_vector_destination_unpack_values.ptx",
+      "baseline_sha256": "3438b596828bcc8f0fca597997b70ff5560238517d9aef9f8f30e5478b54f1ab",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_mov_vector_destination_unpack_values",
+          "line": 919,
+          "function_region_sha256": "f65f87d15be76e27f8b573769ccb43f31ffbd1593f0a3f1182432de6a7ccf7d6",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "PACKED-F32-TYPING",
+      "test": "crates/volta_pipeline/tests/gfx1250_packed_data_parity_tests.rs::packed_raw_halfwords",
+      "native_source": "tests/gfx1250/fixtures/native-packed-data.hip",
+      "native_assembly": "tests/gfx1250/fixtures/native-packed-data.s",
+      "kernel": "packed_raw_halfwords",
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "input": null,
+      "output": {
+        "name": "out",
+        "element_width": 2,
+        "elements": 2,
+        "written_indices": [
+          0,
+          1
+        ]
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/mov_vector_destination_unpack_values.out",
+      "golden_sha256": "27983bf1d290fa01c28547e131e0920919b5f8d0f587ebb456e8ccf4c93c2008",
+      "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
+      "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
+      "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
+      "candidate_kind": "positive_computation",
+      "coordinator_acceptance": "pending"
+    }
+  ]
+}
