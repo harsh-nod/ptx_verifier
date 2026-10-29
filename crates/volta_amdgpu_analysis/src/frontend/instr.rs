@@ -276,6 +276,31 @@ fn operand(text: &str, architecture: crate::target::Architecture) -> Result<Oper
     if let Some(register) = register(text, architecture)? {
         return Ok(Operand::Register(register));
     }
+    if let Some((symbol, addend)) = text.split_once("@rel64") {
+        if architecture != crate::target::Architecture::Gfx1250
+            || symbol.is_empty()
+            || symbol.starts_with(|c: char| c.is_ascii_digit())
+            || !symbol
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || "_.$".contains(c))
+        {
+            return Err(format!(
+                "unsupported or malformed REL64 relocation `{text}`"
+            ));
+        }
+        let addend = if addend.is_empty() {
+            0
+        } else if addend.starts_with(['+', '-']) {
+            integer(addend).ok_or_else(|| format!("invalid REL64 addend `{text}`"))?
+        } else {
+            return Err(format!("invalid REL64 suffix `{text}`"));
+        };
+        return Ok(Operand::Relocation(Relocation {
+            symbol: symbol.into(),
+            kind: RelocationKind::Rel64,
+            addend,
+        }));
+    }
     if let Some((symbol, suffix)) = text.split_once("@rel32@") {
         if symbol.is_empty()
             || symbol.starts_with(|c: char| c.is_ascii_digit())
@@ -677,7 +702,7 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
         "bitop3" => matches!(mnemonic, "v_bitop3_b32" | "v_bitop2_b32" | "v_bitop3_b16"),
         "scale_offset" => matches!(opcode, Opcode::ScalarMemory | Opcode::VectorMemory),
         "byte_sel" => mnemonic.trim_end_matches("_e64") == "v_cvt_f32_fp8",
-        "scope" => mnemonic == "global_atomic_add_f32",
+        "scope" => mnemonic == "global_atomic_add_f32" || mnemonic.starts_with("flat_"),
         "dst_sel" | "dst_unused" | "src0_sel" | "src1_sel" => mnemonic.ends_with("_sdwa"),
         _ => false,
     };
@@ -700,8 +725,15 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
     if numeric && value.and_then(integer).is_none() {
         return Err(format!("modifier `{name}` requires an integer"));
     }
-    if name == "scope" && value != Some("SCOPE_DEV") {
-        return Err("native atomic profile requires scope:SCOPE_DEV".into());
+    if name == "scope"
+        && value
+            != Some(if mnemonic.starts_with("flat_") {
+                "SCOPE_SYS"
+            } else {
+                "SCOPE_DEV"
+            })
+    {
+        return Err("native atomic requires SCOPE_DEV; selected FLAT requires SCOPE_SYS".into());
     }
     if name == "byte_sel"
         && !value
@@ -1294,7 +1326,22 @@ pub(super) fn validate_registers(
                     }
                 }
             } else if stem.starts_with("flat_") {
-                require(address, &[Vector], 2)?;
+                if architecture == crate::target::Architecture::Gfx1250 && operands.len() == 3 {
+                    require(address, &[Vector], 1)?;
+                    require(2, &[Scalar], 2)?;
+                } else {
+                    require(address, &[Vector], 2)?;
+                }
+                if architecture == crate::target::Architecture::Gfx1250
+                    && modifiers.iter().any(|m| {
+                        !matches!(m.name.as_str(), "offset" | "scope")
+                            || (m.name == "scope" && m.value.as_deref() != Some("SCOPE_SYS"))
+                    })
+                {
+                    return Err(
+                        "selected gfx1250 FLAT supports only byte offset and SCOPE_SYS".into(),
+                    );
+                }
             } else if buffer {
                 require(2, &[Scalar], 4)?;
                 source_width(3, 1)?;
@@ -1655,6 +1702,8 @@ pub(super) fn validate_vop_literal_positions(
         .or_else(|| mnemonic.strip_suffix("_e64"))
         .unwrap_or(mnemonic);
     if ![
+        "s_sub_co_i32",
+        "s_cvt_f32_i32",
         "s_add_f32",
         "s_sub_f32",
         "s_mul_f32",

@@ -123,6 +123,10 @@ pub fn analyze(
             .map(|instruction| InstructionInfo {
                 kind: if instruction.mnemonic == "global_atomic_add_f32" {
                     "atomic f32 add no return"
+                } else if module.target.as_deref() == Some("gfx1250")
+                    && instruction.mnemonic.starts_with("flat_")
+                {
+                    "flat memory"
                 } else if instruction.mnemonic.starts_with("tensor_") {
                     "tensor memory"
                 } else if instruction.mnemonic == "v_nop" {

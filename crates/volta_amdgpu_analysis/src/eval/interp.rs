@@ -2693,6 +2693,9 @@ impl<'a> Interpreter<'a> {
         instruction: &Instruction,
         name: &str,
     ) -> Result<(), EvalError> {
+        if self.module_address_scalar(wave, instruction)? {
+            return Ok(());
+        }
         if matches!(name, "s_add_nc_u64" | "s_mul_u64") {
             let a = wave.wide(&instruction.operands[1], 0)?;
             let b = wave.wide(&instruction.operands[2], 0)?;
@@ -2722,6 +2725,23 @@ impl<'a> Interpreter<'a> {
             };
             return wave.put_value(&instruction.operands[0], 0, Value::Real(value));
         }
+        if name == "s_cvt_f32_i32" {
+            if self.architecture != AmdArchitecture::Gfx1250 || !instruction.modifiers.is_empty() {
+                return Err(self.unsupported(wave, instruction));
+            }
+            let ty = super::scalar::IntType {
+                bits: 32,
+                signed: true,
+            };
+            let expr = self.integer_expression(wave, &instruction.operands[1], 0, ty)?;
+            let expr = if let Some(value) = self.arena.as_int_const(expr) {
+                self.arena
+                    .int(super::scalar::canonical_int(value, ty).map_err(|e| wave.fail(None, e))?)
+            } else {
+                expr
+            };
+            return wave.put_value(&instruction.operands[0], 0, Value::Real(expr));
+        }
         if name == "s_getreg_b32" {
             if self.architecture != AmdArchitecture::Gfx1250
                 || !matches!(&instruction.operands[1],Operand::HardwareRegister{name,offset:6,width:4} if name=="HW_REG_IB_STS2")
@@ -2729,9 +2749,6 @@ impl<'a> Interpreter<'a> {
                 return Err(self.unsupported(wave, instruction));
             }
             return wave.put_value(&instruction.operands[0], 0, Value::Integer(0));
-        }
-        if self.module_address_scalar(wave, instruction)? {
-            return Ok(());
         }
         if !name.starts_with("s_cmp_")
             && !name.starts_with("s_cmpk_")
@@ -5403,6 +5420,13 @@ impl<'a> Interpreter<'a> {
                         .and_then(|value| parse_i64(value))
                         .ok_or_else(|| self.unsupported(wave, instruction)),
                     "glc" | "slc" | "dlc" | "sc0" | "sc1" | "scale_offset" => Ok(offset),
+                    "scope"
+                        if self.architecture == AmdArchitecture::Gfx1250
+                            && flat
+                            && modifier.value.as_deref() == Some("SCOPE_SYS") =>
+                    {
+                        Ok(offset)
+                    }
                     "offset0" | "offset1" if dual => {
                         let index = if modifier.name == "offset0" { 0 } else { 1 };
                         dual_offsets[index] = modifier
@@ -5416,6 +5440,10 @@ impl<'a> Interpreter<'a> {
                 })?;
         let offset_valid = if lds {
             (0..=65535).contains(&offset)
+        } else if flat && self.architecture == AmdArchitecture::Gfx1250 {
+            // Native VFLAT_Real carries a signed24 byte displacement in bits95:72,
+            // including the generic-aperture encoding and the scalar-base form.
+            (-8_388_608..=8_388_607).contains(&offset)
         } else if flat {
             (0..=4095).contains(&offset)
         } else if scalar {
@@ -5495,11 +5523,37 @@ impl<'a> Interpreter<'a> {
                     .into(),
             });
         }
+        let native_flat_shared = if self.architecture == AmdArchitecture::Gfx1250 && flat {
+            let mut shared = None;
+            for lane in wave.active() {
+                let (_, is_shared) = self.flat_memory_address_with_saddr(
+                    wave,
+                    if store { &o[0] } else { &o[1] },
+                    o.get(2),
+                    lane,
+                    offset,
+                )?;
+                if shared.is_some_and(|old| old != is_shared) {
+                    return Err(wave.fail(
+                        Some(lane),
+                        "FLAT instruction mixes Global and Shared apertures",
+                    ));
+                }
+                shared = Some(is_shared);
+            }
+            shared.unwrap_or(false)
+        } else {
+            false
+        };
         let class = if self.architecture == AmdArchitecture::Gfx1250 {
             if flat {
-                return Err(self.unsupported(wave, instruction));
-            }
-            if scalar {
+                match (native_flat_shared, store) {
+                    (false, false) => AmdMemoryClass::FlatGlobalLoad,
+                    (false, true) => AmdMemoryClass::FlatGlobalStore,
+                    (true, false) => AmdMemoryClass::FlatLdsLoad,
+                    (true, true) => AmdMemoryClass::FlatLdsStore,
+                }
+            } else if scalar {
                 AmdMemoryClass::ScalarLoad
             } else if lds {
                 AmdMemoryClass::Ds
@@ -5526,6 +5580,19 @@ impl<'a> Interpreter<'a> {
                 vec![(AmdCounter::Km, 1), (AmdCounter::X, 1)]
             } else if lds {
                 vec![(AmdCounter::Ds, 1)]
+            } else if flat {
+                vec![
+                    (
+                        if store {
+                            AmdCounter::Store
+                        } else {
+                            AmdCounter::Load
+                        },
+                        1,
+                    ),
+                    (AmdCounter::Ds, 1),
+                    (AmdCounter::X, 1),
+                ]
             } else if store {
                 vec![(AmdCounter::Store, 1), (AmdCounter::X, 1)]
             } else {
@@ -5600,8 +5667,11 @@ impl<'a> Interpreter<'a> {
                 }
             } else if flat {
                 let operand = if store { &o[0] } else { &o[1] };
-                let (address, shared) =
-                    self.flat_memory_address(wave, operand, lane, offset as u64)?;
+                let (address, shared) = if self.architecture == AmdArchitecture::Gfx1250 {
+                    self.flat_memory_address_with_saddr(wave, operand, o.get(2), lane, offset)?
+                } else {
+                    self.flat_memory_address(wave, operand, lane, offset as u64)?
+                };
                 effective_lds = shared;
                 (address, if store { &o[1] } else { &o[0] })
             } else if store {
@@ -6178,6 +6248,7 @@ fn selectors(
 fn canonical_alu(name: &str) -> &str {
     match name {
         "s_add_co_i32" => "s_add_i32",
+        "s_sub_co_i32" => "s_sub_i32",
         "s_addk_co_i32" => "s_addk_i32",
         "s_add_co_u32" => "s_add_u32",
         "s_add_co_ci_u32" => "s_addc_u32",

@@ -12,6 +12,7 @@ pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
     if name.starts_with("s_")
         || name.starts_with("ds_")
         || name.starts_with("global_")
+        || name.starts_with("flat_")
         || name.starts_with("tensor_")
     {
         return Err(format!(
@@ -235,11 +236,17 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
     Some(
         match name.trim_end_matches("_e32").trim_end_matches("_e64") {
             "s_load_b32" | "s_load_b64" | "s_load_b96" | "s_load_b128" | "s_load_b256"
-            | "s_load_b512" => (ScalarMemory, 3, 3),
+            | "s_load_b512" | "s_load_u8" => (ScalarMemory, 3, 3),
+            "s_get_pc_i64" => (ScalarAlu, 1, 1),
+            "s_cvt_f32_i32" => (ScalarAlu, 2, 2),
+            "flat_load_u8" | "flat_load_i8" | "flat_load_u16" | "flat_load_i16"
+            | "flat_load_b32" | "flat_load_b64" | "flat_load_b96" | "flat_load_b128"
+            | "flat_store_b8" | "flat_store_b16" | "flat_store_b32" | "flat_store_b64"
+            | "flat_store_b128" => (VectorMemory, 2, 3),
             "global_load_u16" | "global_load_u8" | "global_load_i8" | "global_load_i16"
             | "global_store_b16" | "global_store_b8" | "global_load_b32" | "global_load_b64"
             | "global_load_b96" | "global_load_b128" | "global_store_b32" | "global_store_b64"
-            | "global_store_b128" => (VectorMemory, 3, 3),
+            | "global_store_b96" | "global_store_b128" => (VectorMemory, 3, 3),
             "ds_load_u16"
             | "ds_load_i16"
             | "ds_load_u8"
@@ -268,9 +275,8 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
             "v_nop" => (Control, 0, 0),
             "tensor_load_to_lds" | "tensor_store_from_lds" => (VectorMemory, 4, 4),
             "s_add_co_u32" | "s_add_co_ci_u32" | "s_mul_u64" | "s_add_nc_u64"
-            | "s_and_not1_b32" | "s_add_co_i32" | "s_add_nc_u32" | "s_sub_nc_u32" => {
-                (ScalarAlu, 3, 3)
-            }
+            | "s_and_not1_b32" | "s_add_co_i32" | "s_sub_co_i32" | "s_add_nc_u32"
+            | "s_sub_nc_u32" => (ScalarAlu, 3, 3),
             "s_and_saveexec_b32"
             | "s_andn2_saveexec_b32"
             | "s_and_not1_saveexec_b32"
