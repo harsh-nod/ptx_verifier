@@ -1719,26 +1719,177 @@ fn flat_trace_requires_native_counters_provenance_segment_exec_and_every_lane() 
 }
 
 #[test]
-fn lds_aperture_flat_classes_cannot_inherit_global_replay_or_counter_semantics() {
-    for class in [AmdMemoryClass::FlatLdsLoad, AmdMemoryClass::FlatLdsStore] {
+fn resolved_lds_flat_load_still_requires_both_data_counters() {
+    for (load, ds, expected) in [
+        (false, false, Verdict::Fail),
+        (true, false, Verdict::Fail),
+        (false, true, Verdict::Fail),
+        (true, true, Verdict::Pass),
+    ] {
         let mut t = Trace::new(1);
         t.issue(
             0,
-            class,
-            if class == AmdMemoryClass::FlatLdsLoad {
-                vec![v(1, 1)]
-            } else {
-                vec![]
-            },
-            vec![s(126)],
+            AmdMemoryClass::FlatLdsLoad,
+            vec![v(1, 1)],
+            vec![v(0, 1), s(126)],
             0,
         );
-        t.wait(0, AmdCounter::Load, 0);
-        t.wait(0, AmdCounter::Store, 0);
-        t.wait(0, AmdCounter::Ds, 0);
+        if load {
+            t.wait(0, AmdCounter::Load, 0);
+        }
+        if ds {
+            t.wait(0, AmdCounter::Ds, 0);
+        }
+        t.ins(0, 0, vec![v(1, 1)], vec![]);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            expected,
+            "load{load} ds{ds}"
+        );
+    }
+}
+
+#[test]
+fn resolved_lds_flat_does_not_acquire_implicit_global_source_drains() {
+    for (retire, next, expected) in [
+        (None, None, Verdict::Fail),
+        (None, Some(AmdMemoryClass::ScalarLoad), Verdict::Fail),
+        (None, Some(AmdMemoryClass::VectorLoad), Verdict::Fail),
+        (Some(AmdCounter::Load), None, Verdict::Fail),
+        (Some(AmdCounter::Ds), None, Verdict::Fail),
+        (Some(AmdCounter::Store), None, Verdict::Pass),
+        (Some(AmdCounter::X), None, Verdict::Pass),
+    ] {
+        let mut t = Trace::new(1);
+        t.issue(
+            0,
+            AmdMemoryClass::FlatLdsStore,
+            vec![],
+            vec![v(0, 1), v(1, 1), s(126)],
+            0,
+        );
+        if let Some(counter) = retire {
+            t.wait(0, counter, 0);
+        }
+        match next {
+            Some(AmdMemoryClass::ScalarLoad) => {
+                t.issue(0, AmdMemoryClass::ScalarLoad, vec![s(4)], vec![], 0x1000);
+                t.ins(0, 0, vec![], vec![v(0, 1)]);
+            }
+            Some(AmdMemoryClass::VectorLoad) => {
+                // A GLOBAL load destination cannot consume the older LDS
+                // aperture's source lease through the VMEM alias optimization.
+                t.issue(
+                    0,
+                    AmdMemoryClass::VectorLoad,
+                    vec![v(0, 1)],
+                    vec![s(126)],
+                    0x1000,
+                );
+            }
+            None => {
+                t.ins(0, 0, vec![], vec![v(0, 1)]);
+            }
+            _ => unreachable!(),
+        }
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            expected,
+            "retire{retire:?} next{next:?}"
+        );
+    }
+}
+
+#[test]
+fn resolved_lds_flat_completion_and_publication_are_separate_from_source_retirement() {
+    for (store, ds, expected) in [
+        (false, false, Verdict::Fail),
+        (true, false, Verdict::Fail),
+        (false, true, Verdict::Fail),
+        (true, true, Verdict::Pass),
+    ] {
+        let mut t = Trace::new(64);
+        t.issue(0, AmdMemoryClass::FlatLdsStore, vec![], vec![s(126)], 0);
+        if store {
+            t.wait(0, AmdCounter::Store, 0);
+        }
+        if ds {
+            t.wait(0, AmdCounter::Ds, 0);
+        }
+        t.signal(0, 0);
+        t.signal(1, 0);
+        t.barrier_wait(0, 0, true);
+        t.barrier_wait(1, 0, true);
+        t.issue(
+            1,
+            AmdMemoryClass::Ds,
+            vec![v(1, u32::MAX as u64)],
+            vec![],
+            0,
+        );
+        t.wait(1, AmdCounter::Ds, 0);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Pass);
+        assert_eq!(
+            r.verdict(Property::AmdMemoryConflict),
+            expected,
+            "store{store} ds{ds}"
+        );
+    }
+}
+
+#[test]
+fn resolved_lds_flat_cannot_drop_source_roles_or_claim_global_effects() {
+    for mutation in 0..4 {
+        let mut t = Trace::new(1);
+        let reads = vec![v(0, 1), s(0), s(1), s(126)];
+        t.ins(0, 16, reads.clone(), vec![v(1, 1)]);
+        let mut held = reads;
+        if mutation == 1 {
+            held.remove(1);
+        }
+        if mutation == 2 {
+            held.pop();
+        }
+        let issue = t.b.amd_event(
+            0,
+            ProgramPoint(16),
+            AmdEventKind::MemoryIssue {
+                class: AmdMemoryClass::FlatLdsLoad,
+                counters: vec![
+                    (AmdCounter::Load, 1),
+                    (AmdCounter::Ds, 1),
+                    (AmdCounter::X, 1),
+                ],
+                destinations: vec![v(1, 1)],
+                held_sources: held,
+            },
+        );
+        t.effect(
+            issue,
+            0,
+            16,
+            if mutation == 3 {
+                Space::Global
+            } else {
+                Space::Shared
+            },
+            false,
+            0,
+        );
         assert_eq!(
             check_graph(&t.finish()).verdict(Property::AmdTrace),
-            Verdict::Unknown
+            if mutation == 0 {
+                Verdict::Pass
+            } else {
+                Verdict::Unknown
+            },
+            "mutation{mutation}"
         );
     }
 }

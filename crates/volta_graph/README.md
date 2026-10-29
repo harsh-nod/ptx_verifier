@@ -23,10 +23,13 @@ ordering and the same attributed lane/address. It retains every source, includin
 implicit EXEC, through translation completion. This tag grants no publication
 edge for other addresses or other instructions.
 
-The gfx1250 `FlatGlobalLoad/Store` classes retain genuine FLAT provenance and a
-producer-resolved global segment. They charge Load or Store, plus Ds and X;
-instruction sources include implicit EXEC. The distinct `FlatLdsLoad/Store`
-namespace cannot inherit that counter/replay profile and remains inconclusive.
+The gfx1250 `FlatGlobalLoad/Store` and `FlatLdsLoad/Store` classes retain genuine
+FLAT provenance and a producer-resolved segment. They conservatively charge Load
+or Store, plus Ds and X; instruction sources include implicit EXEC. The LDS
+classes remain outside the GLOBAL replay group: group switches and later GLOBAL
+destination aliases cannot retire their source leases. Explicit waits retain
+their own counter meanings, and both data tokens must complete for readiness
+and publication.
 A producer must resolve the aperture before selecting a class; an unknown
 pointer segment does not become global merely because its address is concrete.
 

@@ -16,6 +16,8 @@ fn flat_profile(class: AmdMemoryClass) -> Option<(Space, AccessMode)> {
     Some(match class {
         AmdMemoryClass::FlatGlobalLoad => (Space::Global, AccessMode::Read),
         AmdMemoryClass::FlatGlobalStore => (Space::Global, AccessMode::Write),
+        AmdMemoryClass::FlatLdsLoad => (Space::Shared, AccessMode::Read),
+        AmdMemoryClass::FlatLdsStore => (Space::Shared, AccessMode::Write),
         _ => return None,
     })
 }
@@ -41,10 +43,10 @@ fn charges(class: AmdMemoryClass) -> Option<Vec<(AmdCounter, u16)>> {
         AmdMemoryClass::VectorLoad => vec![(Load, 1), (X, 1)],
         AmdMemoryClass::VectorStore => vec![(Store, 1), (X, 1)],
         AmdMemoryClass::GlobalAtomicAddF32NoReturn => vec![(Store, 1), (X, 1)],
-        AmdMemoryClass::FlatGlobalLoad => {
+        AmdMemoryClass::FlatGlobalLoad | AmdMemoryClass::FlatLdsLoad => {
             vec![(Load, 1), (Ds, 1), (X, 1)]
         }
-        AmdMemoryClass::FlatGlobalStore => {
+        AmdMemoryClass::FlatGlobalStore | AmdMemoryClass::FlatLdsStore => {
             vec![(Store, 1), (Ds, 1), (X, 1)]
         }
         AmdMemoryClass::ScalarLoad => vec![(Km, 1), (X, 1)],
@@ -57,6 +59,9 @@ fn charges(class: AmdMemoryClass) -> Option<Vec<(AmdCounter, u16)>> {
 }
 
 fn replay_group(class: AmdMemoryClass) -> Option<bool> {
+    // A resolved LDS aperture is not VMEM_GROUP (AMDGPUHWEvents.cpp and
+    // SIInstrInfo::mayAccessVMEMThroughFlat). Its conservative X/source token
+    // must not acquire GLOBAL's group-switch or destination-alias drains.
     match class {
         AmdMemoryClass::ScalarLoad => Some(false),
         AmdMemoryClass::VectorLoad
@@ -274,15 +279,6 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                 destinations,
                 held_sources,
             } => {
-                if matches!(
-                    class,
-                    AmdMemoryClass::FlatLdsLoad | AmdMemoryClass::FlatLdsStore
-                ) {
-                    unresolved.push(Unresolved::at(
-                        record.event,
-                        "gfx1250 FLAT LDS-aperture counter and replay-source profile is not pinned",
-                    ));
-                }
                 let instruction =
                     claim(graph, record, &mut instructions, "memory", &mut unresolved);
                 registers(destinations, physical_mask, record.event, &mut unresolved);
@@ -357,7 +353,7 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                             "memory destinations differ from the instruction's writes",
                         ));
                     }
-                    if replay_group(*class).is_some()
+                    if (replay_group(*class).is_some() || flat_profile(*class).is_some())
                         && (held_sources.len() != instruction.reads.len()
                             || !instruction.reads.iter().all(|r| held_sources.contains(r)))
                     {
@@ -1089,7 +1085,9 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                                 kind: AmdRegisterHazardKind::DestinationReuse,
                             });
                         }
-                        let held = if replay_group(op.class).is_some() {
+                        let held = if replay_group(op.class).is_some()
+                            || flat_profile(op.class).is_some()
+                        {
                             has(op, AmdCounter::X)
                         } else {
                             true

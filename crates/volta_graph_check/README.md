@@ -252,15 +252,28 @@ Both data counters must drain before a load destination becomes ready. A
 same-wave store/load to the same address retains effect order even while a
 separate conservative counter marker remains; this does not certify data
 completion or cross-wave global cache publication. Global and LDS frontiers
-are separate. `FlatLdsLoad/Store` cannot inherit the GLOBAL replay/counter
-profile and remain inconclusive until their native aperture contract is pinned.
+are separate. `FlatLdsLoad/Store` require resolved Shared effects and the same
+conservative dual data completion. They hold every source through their own
+X token, but remain outside both scalar and GLOBAL replay groups: group changes
+and later GLOBAL destination aliases cannot release their source leases.
+An explicit own Load0/Store0 releases that operation's source token while its
+independent Ds token remains. Explicit X0 releases sources without completing
+either data token. Ds0 alone does not release this conservative source token.
 Nonzero waits with pending FLAT data tokens remain inconclusive
 until mixed-segment completion prefixes have a pinned contract; old CDNA FLAT
 events cannot certify this target. The frontend must reject unresolved apertures.
 These distinctions follow the pinned LLVM
 [FLAT event classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/AMDGPUHWEvents.cpp#L119),
 [address-space classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInstrInfo.cpp#L4765)
-and [GFX125x memory model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.rst#memory-model-gfx125x).
+and [FLAT counter definition](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/FLATInstructions.td#L76),
+with explicit Load/Store waits and their X relationship from the
+[GFX125x memory model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md#memory-model-gfx125x).
+The dual data tokens and retained LDS source token are conservative model
+requirements; they do not assert that a resolved LDS access uses VMEM_GROUP.
+Actual compiled static/dynamic LDS controls use Store0, then Ds0 before
+publication, and Load0/X0, then Ds0 before result consumption. Opaque or mixed
+apertures, arbitrary numeric shared-base values and unpinned partial waits cannot
+be promoted into this concrete-aperture profile.
 
 A later VMEM destination that aliases an older VMEM replay source establishes
 that older translation prefix, following LLVM's in-order translation dependency

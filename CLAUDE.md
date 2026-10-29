@@ -272,10 +272,13 @@ issue; the checker independently establishes readiness/publication.
 Terminal gfx1250 `MSG_DEALLOC_VGPRS` is an X-draining message3 epilogue,
 permitted only with zero scratch and an immediately following `s_endpgm`.
 It never substitutes for a data-completion wait.
-Genuine global FLAT classes use Load/Store+Ds+X and preserve same-wave
-same-address effect order. LDS-aperture class names remain separate and
-inconclusive; unresolved apertures and unpinned partial data waits cannot
-inherit this profile. Global cache publication is independent.
+Genuine resolved FLAT classes use conservative Load/Store+Ds+X and preserve
+same-wave same-address effect order within their Global or Shared segment.
+LDS-aperture classes stay outside the scalar/VMEM replay groups; neither group
+switching nor GLOBAL destination aliases retire their held sources. Explicit
+source retirement remains separate from both-data completion/publication.
+Unresolved apertures and unpinned partial data waits remain inconclusive. Global
+cache publication is independent.
 Automatic-barrier drops on wave exit preserve execution progress, but completed
 memory publication through an implicit drop is unpinned. gfx1250 reports Unknown
 only for a conflicting memory dependency needing that edge; actual explicit
