@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "scope": "Source-backed asynchronous-memory counterpart candidates; no issue or parent completion change and no hardware claim.",
+  "upstream_commit": "b3a37911b8bd87352996403e8471a1fe18c4e975",
+  "public_semantic_reference": "tests/gfx1250/fixtures/semantic-references.json",
+  "artifacts": {
+    "tests/gfx1250/portable-graph/async-memory/native-async-memory.hip": "91e4f42be452b4012b07bc2b8e021df00e623208b291c4a44d67daac39029aeb",
+    "tests/gfx1250/portable-graph/async-memory/native-async-memory.s": "d29023ac7e0256323fe026ac102838b9e93921d82efd120a2ed7b2d618116fe4",
+    "tests/gfx1250/portable-graph/async-memory/compiler-provenance.json": "92d862b5c6d96680951445531cf9fdb79ce275dc34fb1445b71a89f1a74eef5d",
+    "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs": "cba80da7fcc2b24dc309b7b511750dd4a64e0c32bbaac5340b640d2bd36e430f"
+  },
+  "rows": [
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/clusterlaunchcontrol_response_read_without_waiting_is_an_inflight_hazard.ptx",
+      "upstream_sha256": "a1343c78d13fd482cc0b04f115e130a211f3c76a20c7c70a482e298974d137ca",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_clusterlaunchcontrol_response_read_without_waiting_is_an_inflight_hazard",
+          "line": 485,
+          "function_region_sha256": "6255c6830e7e40903c26a768495616b64ab0137a1302ddc28418d90143982c24",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "An asynchronous16-byte response must not be read by another wave before completion.",
+      "target_contract_residual": "NVIDIA cluster scheduler cancellation response is not a native gfx1250 scheduler API.",
+      "native_test": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::same_actor_and_cross_wave_reads_require_actual_copy_completion",
+      "status": "native_assertion_candidate",
+      "completion": "coordinator_review_required"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_bulk_bar_sync_before_completion_orders_nothing.ptx",
+      "upstream_sha256": "13f2644d4f5ed9410bd35e0e02fe9d059118fff61e9c78007fc4798a99fd30e0",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_cp_async_bulk_bar_sync_before_completion_orders_nothing",
+          "line": 322,
+          "function_region_sha256": "59fc675d55c57ae101578bf2c19a8b9d034ab40cafc4d21e92752aee5262c1bf",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "A pre-completion WG barrier cannot let an unrelated gate publish16-byte copy destination.",
+      "target_contract_residual": "Native Tensor/Async data completion and source/destination lifetime are distinct from NVIDIA cp.async groups. Ordinary returned-register readiness is not this memory borrow.",
+      "native_test": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::same_actor_and_cross_wave_reads_require_actual_copy_completion",
+      "status": "native_assertion_candidate",
+      "completion": "coordinator_review_required"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_bulk_read_after_bar_sync_is_an_inflight_hazard.ptx",
+      "upstream_sha256": "1267b202614bfd1cf519c96b9a13c89289615af22c5547425554a11c6aa73d1f",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_cp_async_bulk_read_after_bar_sync_is_an_inflight_hazard",
+          "line": 341,
+          "function_region_sha256": "fda09f8265754b9a4682cc13c5ca99331e812a1816177e124b8fdf9ffefbcdcd",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "Crosswave read of a16-byte copy destination remains unsafe after barrier without actual copy completion.",
+      "target_contract_residual": "Native Tensor/Async data completion and source/destination lifetime are distinct from NVIDIA cp.async groups. Ordinary returned-register readiness is not this memory borrow.",
+      "native_test": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::same_actor_and_cross_wave_reads_require_actual_copy_completion",
+      "status": "native_assertion_candidate",
+      "completion": "coordinator_review_required"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_cross_thread_read_of_locked_destination_is_hazard.ptx",
+      "upstream_sha256": "ce11792343cd12925405e5ace40e435f5261dac3876dafe351ce821bedd4eace",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_cp_async_cross_thread_read_of_locked_destination_is_hazard",
+          "line": 243,
+          "function_region_sha256": "387da2a907b0876b51014da1a40f1b8f5e441d278598b95be23080ac4d468dcf",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "Another actor cannot read4-byte copy destination while its asynchronous write remains outstanding.",
+      "target_contract_residual": "Native Tensor/Async data completion and source/destination lifetime are distinct from NVIDIA cp.async groups. Ordinary returned-register readiness is not this memory borrow.",
+      "native_test": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::same_actor_and_cross_wave_reads_require_actual_copy_completion",
+      "status": "native_assertion_candidate",
+      "completion": "coordinator_review_required"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_cross_thread_write_of_locked_source_is_hazard.ptx",
+      "upstream_sha256": "cdc0ebb4696bd1cd07e6b2c6b6acb50208c64e352cdafa9d13341811cb9517c2",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_cp_async_cross_thread_write_of_locked_source_is_hazard",
+          "line": 258,
+          "function_region_sha256": "a5d2c93ac1260421827d7d94ba00b62f524d4462fca4e4ea1d823da8c2c032d8",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "Another actor cannot overwrite4-byte Global source while its asynchronous read remains outstanding.",
+      "target_contract_residual": "Native Tensor/Async data completion and source/destination lifetime are distinct from NVIDIA cp.async groups. Ordinary returned-register readiness is not this memory borrow.",
+      "native_test": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::completed_global_source_read_precedes_later_cross_wave_overwrite",
+      "status": "native_assertion_candidate",
+      "completion": "coordinator_review_required"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_same_thread_peek_before_wait_is_hazard.ptx",
+      "upstream_sha256": "3755c1eb1eb85187bea108b3bba643a46861dbf5346195ebed79ddd06fb9f615",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_cp_async_same_thread_peek_before_wait_is_hazard",
+          "line": 211,
+          "function_region_sha256": "48653038a5f35be4912c00da4b7f6ba179fdd52ca520f36247d682afa9692e52",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "Same actor cannot read4-byte copied destination before copy completion.",
+      "target_contract_residual": "Native Tensor/Async data completion and source/destination lifetime are distinct from NVIDIA cp.async groups. Ordinary returned-register readiness is not this memory borrow.",
+      "native_test": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::same_actor_and_cross_wave_reads_require_actual_copy_completion",
+      "status": "native_assertion_candidate",
+      "completion": "coordinator_review_required"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_same_thread_store_before_wait_is_hazard.ptx",
+      "upstream_sha256": "4fd4ad16a6abc7ed2f4c3a975a24794dd7f48003365ea59d0690d6eac2dc8375",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_cp_async_same_thread_store_before_wait_is_hazard",
+          "line": 227,
+          "function_region_sha256": "c2fb9f6f85c83dde9bc44578a9a1347672949ef54463b17dd5298aaa6d6dc5b1",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "Same actor cannot overwrite4-byte copy destination before its asynchronous write completes.",
+      "target_contract_residual": "Native Tensor/Async data completion and source/destination lifetime are distinct from NVIDIA cp.async groups. Ordinary returned-register readiness is not this memory borrow.",
+      "native_test": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::destination_reuse_and_source_reuse_wait_for_their_actual_memory_borrows",
+      "status": "native_assertion_candidate",
+      "completion": "coordinator_review_required"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_announcement_unordered_before_another_threads_arrival.ptx",
+      "upstream_sha256": "7790357b4ffec1ebdecacc10f9977c09a118fb6bd4607c41c8555e6ae15b4191",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/mbarrier_ordering_tests.rs",
+          "function": "test_announcements_unordered_before_another_threads_arrival_are_inconclusive",
+          "line": 58,
+          "function_region_sha256": "2ac85c5b689bd051987e6dcca5e05e78307fdb5ddb12b0470e69208f56948505",
+          "source_sha256": "2bf1141535c4f7986a21f20fd806cdf753a4581c65df4ad4af8a80eeaaa88f5a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "Another actor cannot complete an announcement phase before both16-byte copies are accounted, even if candidate output happens correct.",
+      "target_contract_residual": "Manual expect_tx/complete_tx announcements are NVIDIA object state; native issuer completion/publication is separate.",
+      "native_test": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::both_sixteen_byte_transfers_complete_before_all_sixty_four_consumers",
+      "status": "native_assertion_candidate",
+      "completion": "coordinator_review_required"
+    }
+  ],
+  "additional_partial_control": {
+    "native_test": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::no_output_does_not_remove_the_full_128_byte_destination_lifetime",
+    "scope": "128-byte destination/write-side lifetime only; no read-side lifetime or explicit Tensor Memory deallocation claim.",
+    "completion": "coordinator_review_required"
+  }
+}

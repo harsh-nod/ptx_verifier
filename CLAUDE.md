@@ -496,6 +496,10 @@ native optional trailing commas and either wait-counter separator.
 
 ## Crate: volta_graph_check
 
+Only an already completed, happens-before-ordered gfx1250 Global ReadWrite
+dependency skips cache visibility from the future write. Earlier Write
+ancestors remain checked; incomplete operations and missing publication fail.
+
 The appended `Gfx1250System` memory-scope variant retains explicit ordinary GLOBAL/resolved-global FLAT `SCOPE_SYS`. Both endpoints and actual completion/publication are required within the selected workgroup; the legacy cache-scope contract stays separate.
 
 **Path**: `crates/volta_graph_check/`

@@ -236,6 +236,9 @@ Completed effects and a validated publication path remain required. Missing
 either scope stays inconclusive; a missing completion or rendezvous remains a
 conflict. The target-specific annotation cannot certify legacy AMD targets,
 scalar caches, LDS, atomics, tensor effects or another workgroup.
+A completed Global read that happens before a later overwrite needs no cache
+visibility from that future write. Earlier writes hidden beneath read nodes in
+the overlap forest still require the original visibility contract.
 The logical launch grid is preserved in provenance. A grid larger than one
 requires `SingleWorkgroupAnalyzed`: the result covers only the selected workgroup,
 including its launch-coordinate inputs, and makes no claim about other groups.

@@ -1821,6 +1821,117 @@ fn system_scope_does_not_expand_the_selected_workgroup_contract() {
 }
 
 #[test]
+fn completed_global_reads_need_order_before_overwrite_but_no_future_write_visibility() {
+    for future_scoped in [false, true] {
+        for (complete, publish, expected) in [
+            (true, true, Verdict::Pass),
+            (false, true, Verdict::Fail),
+            (true, false, Verdict::Fail),
+        ] {
+            let mut t = Trace::new(64);
+            t.issue(
+                0,
+                AmdMemoryClass::VectorLoad,
+                vec![v(4, t.mask(0))],
+                vec![],
+                0,
+            );
+            if complete {
+                t.wait(0, AmdCounter::Load, 0);
+            }
+            if publish {
+                t.publish_init();
+            }
+            t.issue_scoped(
+                1,
+                AmdMemoryClass::VectorStore,
+                vec![],
+                vec![],
+                0,
+                if future_scoped {
+                    AmdMemoryScope::Gfx1250System
+                } else {
+                    AmdMemoryScope::Unspecified
+                },
+            );
+            t.wait(1, AmdCounter::Store, 0);
+            let report = check_graph(&t.finish());
+            assert_eq!(
+                report.verdict(Property::AmdMemoryConflict),
+                expected,
+                "{report:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn a_completed_read_cannot_hide_an_older_unscoped_global_write() {
+    for old_write_scoped in [false, true] {
+        let mut t = Trace::new(64);
+        let old_write = t.issue_scoped(
+            0,
+            AmdMemoryClass::VectorStore,
+            vec![],
+            vec![],
+            0,
+            if old_write_scoped {
+                AmdMemoryScope::Gfx1250System
+            } else {
+                AmdMemoryScope::Unspecified
+            },
+        );
+        t.wait(0, AmdCounter::Store, 0);
+        t.issue_scoped(
+            0,
+            AmdMemoryClass::VectorLoad,
+            vec![v(4, t.mask(0))],
+            vec![],
+            0,
+            AmdMemoryScope::Gfx1250System,
+        );
+        t.wait(0, AmdCounter::Load, 0);
+        t.publish_init();
+        t.issue_scoped(
+            1,
+            AmdMemoryClass::VectorStore,
+            vec![],
+            vec![],
+            0,
+            AmdMemoryScope::Gfx1250System,
+        );
+        t.wait(1, AmdCounter::Store, 0);
+        let graph = t.finish();
+        let old_effect = graph
+            .amd_memory_effects()
+            .iter()
+            .find(|link| link.issue == old_write)
+            .unwrap()
+            .effect;
+        let report = check_graph(&graph);
+        if old_write_scoped {
+            assert_eq!(report.conclusion(), GraphConclusion::Verified, "{report:?}");
+        } else {
+            assert_eq!(
+                report.verdict(Property::AmdMemoryConflict),
+                Verdict::Unknown,
+                "{report:?}"
+            );
+            assert!(
+                report
+                    .amd
+                    .as_ref()
+                    .unwrap()
+                    .memory_conflict
+                    .unresolved()
+                    .iter()
+                    .any(|u| u.events.contains(&old_effect))
+            );
+        }
+    }
+}
+
+#[test]
 fn memory_operation_cannot_forge_a_destination_register_namespace() {
     for (class, destination) in [
         (AmdMemoryClass::VectorLoad, s(4)),
@@ -2037,9 +2148,7 @@ fn flat_publication_keeps_global_and_lds_completion_frontiers_independent() {
             assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Pass);
             assert_eq!(
                 r.verdict(Property::AmdMemoryConflict),
-                if completed && first == AmdMemoryClass::FlatGlobalLoad {
-                    Verdict::Unknown
-                } else if completed {
+                if completed {
                     Verdict::Pass
                 } else {
                     Verdict::Fail
