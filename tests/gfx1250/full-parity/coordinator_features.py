@@ -21,6 +21,7 @@ def validate_inventory(ledger, inventory, expected_count=520):
     rows = {row["path"]: row for row in ledger["rows"]}
     if (
         len(originals) != expected_count
+        or len(inventory["upstream_feature_reference_rows"]) != expected_count
         or len(ledger["rows"]) != expected_count
         or rows.keys() != originals.keys()
     ):
@@ -239,6 +240,7 @@ def main():
     parser.add_argument("--require-all-reviewed", action="store_true")
     args = parser.parse_args()
     protected = {
+        HERE / "gaps.json",
         HERE / "feature-review.json",
         HERE / "portable-review-blockers.json",
         *(ROOT / source for source in SOURCES),
@@ -257,6 +259,14 @@ def main():
     reviews = json.loads((HERE / "portable-review-blockers.json").read_text())
     decisions = json.loads(args.decisions.read_text()) if args.decisions else None
     result = prepare(ledger, manifests, reviews, decisions)
+    for row in result["rows"]:
+        protected.add(ROOT / row["path"])
+        for source in (
+            row["current_native_or_shared_references"] + row["native_source_pins"]
+        ):
+            protected.add(ROOT / source["path"])
+    if args.output.resolve() in {path.resolve() for path in protected}:
+        raise SystemExit("output must be separate from reviewed source inputs")
     args.output.write_text(json.dumps(result, indent=2) + "\n")
     print(
         f"{result['reference_count']} exact reference rows; {result['reviewed_reference_count']} explicitly coordinator-reviewed, {result['pending_reference_count']} pending. Historical planning is unchanged."
