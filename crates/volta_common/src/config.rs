@@ -138,6 +138,7 @@ impl AnalysisConfig {
         }
     }
 
+    /// Total threads in a block. Call `validate()` first for untrusted dimensions.
     pub fn num_threads(&self) -> u32 {
         self.block_dim.0 * self.block_dim.1 * self.block_dim.2
     }
@@ -146,10 +147,22 @@ impl AnalysisConfig {
         self.arrays.iter().find(|a| a.name == name)
     }
 
-    /// Reject configs whose identities are ambiguous: duplicate array/`sym:`
+    /// Reject invalid launch geometry and ambiguous identities: duplicate array/`sym:`
     /// names or overlapping ranges would silently conflate distinct values.
     /// Overlap with the module-global window is checked in `Interpreter::new`.
     pub fn validate(&self) -> Result<(), String> {
+        let threads = self
+            .block_dim
+            .0
+            .checked_mul(self.block_dim.1)
+            .and_then(|n| n.checked_mul(self.block_dim.2))
+            .ok_or("block dimension overflow")?;
+        if threads == 0 {
+            return Err("block has zero threads".into());
+        }
+        if self.grid_dim.0 == 0 || self.grid_dim.1 == 0 || self.grid_dim.2 == 0 {
+            return Err("grid dimensions must be nonzero".into());
+        }
         validate_shared_allocations(&self.shared_allocations)?;
         // Per-array checks first, so the pairwise pass below may safely
         // form `base + size_bytes()` for every array.
@@ -247,6 +260,28 @@ impl AnalysisConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn launch_geometry_requires_positive_dimensions_and_a_representable_thread_count() {
+        for block in [
+            (0, 1, 1),
+            (1, 0, 1),
+            (1, 1, 0),
+            (65_536, 65_536, 1),
+            (65_536, 1, 65_536),
+            (u32::MAX, 2, 1),
+        ] {
+            assert!(AnalysisConfig::new(block).validate().is_err(), "{block:?}");
+        }
+        let mut config = AnalysisConfig::new((8, 4, 2));
+        for grid in [(0, 1, 1), (1, 0, 1), (1, 1, 0)] {
+            config.grid_dim = grid;
+            assert!(config.validate().is_err(), "{grid:?}");
+        }
+        config.grid_dim = (2, 3, 4);
+        assert_eq!(config.validate(), Ok(()));
+        assert_eq!(config.num_threads(), 64);
+    }
 
     #[test]
     fn shared_layout_preserves_separate_adjacent_objects_and_rejects_ambiguous_ranges() {

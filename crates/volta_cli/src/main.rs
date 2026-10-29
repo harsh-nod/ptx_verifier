@@ -362,23 +362,14 @@ fn main() -> ExitCode {
 
 /// Parse `x[,y[,z]]` dimensions.
 fn parse_dims(s: &str) -> Result<(u32, u32, u32), String> {
-    let mut parts = s.split(',').map(|p| p.trim().parse::<u32>());
-    let x = parts
-        .next()
-        .transpose()
-        .map_err(|e| e.to_string())?
-        .unwrap_or(1);
-    let y = parts
-        .next()
-        .transpose()
-        .map_err(|e| e.to_string())?
-        .unwrap_or(1);
-    let z = parts
-        .next()
-        .transpose()
-        .map_err(|e| e.to_string())?
-        .unwrap_or(1);
-    Ok((x, y, z))
+    let mut dims = [1; 3];
+    for (axis, part) in s.split(',').enumerate() {
+        let dim = dims
+            .get_mut(axis)
+            .ok_or("expected one to three comma-separated dimensions")?;
+        *dim = part.trim().parse::<u32>().map_err(|e| e.to_string())?;
+    }
+    Ok((dims[0], dims[1], dims[2]))
 }
 
 fn parse_u64_value(s: &str) -> Result<u64, String> {
@@ -1461,6 +1452,30 @@ fn print_module_summary(module: &Module) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn launch_dimensions_accept_one_to_three_components() {
+        for (input, expected) in [
+            ("64", (64, 1, 1)),
+            ("8,4", (8, 4, 1)),
+            (" 8 , 4 , 2 ", (8, 4, 2)),
+        ] {
+            assert_eq!(parse_dims(input), Ok(expected));
+        }
+        for input in [
+            "",
+            "1,",
+            "1,,3",
+            "-1",
+            "4294967296",
+            "1,2,3,4",
+            "1,2,3,",
+            "1,2,3,x",
+        ] {
+            assert!(parse_dims(input).is_err(), "{input:?}");
+        }
+    }
+
     #[test]
     fn unique_check_arrays_validate() {
         // Membership is deliberately not checked here: the declared-config
