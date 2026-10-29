@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Genuine compiler sources for exact memory payload and publication controls. Harmful kernels and all mutations are CPU-analysis negatives only.",
+  "hardware_execution": false,
+  "source_sha256": "1178a7fad1a943a3991d466e7986f8197fb57501b4b9f31f87040bae967fd9c3",
+  "assembly_sha256": "0bb6d0af7c3326f974ab9d8c22647f15a8fa6abfba30036b60f4d82afbf220fc",
+  "object_sha256": "636e8715fbd63038b1d2f01d1316eec7025b744dfc3785be38416e056d0c38ad",
+  "code_object_sha256": "5cf9519c54dc2e5d56914beed05be05169bd942b22deb67c4d0095c10a65a9dc",
+  "commands": [
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "tests/gfx1250/fixtures/native-memory-payload.hip",
+        "-o",
+        "tests/gfx1250/fixtures/native-memory-payload.s"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "tests/gfx1250/fixtures/native-memory-payload.s",
+        "-o",
+        "/tmp/native-memory-payload.o"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/native-memory-payload.o",
+        "-o",
+        "/tmp/native-memory-payload.hsaco"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "mutations": [
+    {
+      "kernel": "payload_neighbor_exchange",
+      "remove_publication_phase": 1,
+      "source_sha256": "10bf976e162a3edb670800b0122eec58bb6e1103cb861d527d3fc9d61b604248",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/payload_neighbor_exchange-missing-publication.s",
+        "-o",
+        "/tmp/payload_neighbor_exchange-missing-publication.o"
+      ],
+      "exit_code": 0,
+      "execution": "CPU analysis only; never launched on hardware"
+    },
+    {
+      "kernel": "payload_ordered_equal_values",
+      "remove_publication_phase": 0,
+      "source_sha256": "361c3e7d2f159b4b6ebbbe7ad5e69d7cac6c1dc07b4197a6b1c07f07bb33352f",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/payload_ordered_equal_values-missing-publication.s",
+        "-o",
+        "/tmp/payload_ordered_equal_values-missing-publication.o"
+      ],
+      "exit_code": 0,
+      "execution": "CPU analysis only; never launched on hardware"
+    },
+    {
+      "kernel": "payload_publish_42",
+      "remove_publication_phase": 0,
+      "source_sha256": "ccbb6301963c35e43ccb3f89125e835f22c5c6f2ad69f8009cd437166a117b36",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/payload_publish_42-missing-publication.s",
+        "-o",
+        "/tmp/payload_publish_42-missing-publication.o"
+      ],
+      "exit_code": 0,
+      "execution": "CPU analysis only; never launched on hardware"
+    },
+    {
+      "kernel": "payload_address_broadcast",
+      "remove_publication_phase": 0,
+      "source_sha256": "517f0ee92106059b6e11cfd3860a2bdda768518406aeef7ee02fe7bbd0463c96",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/payload_address_broadcast-missing-publication.s",
+        "-o",
+        "/tmp/payload_address_broadcast-missing-publication.o"
+      ],
+      "exit_code": 0,
+      "execution": "CPU analysis only; never launched on hardware"
+    },
+    {
+      "kernel": "payload_collective_then_publish",
+      "remove_publication_phase": 0,
+      "source_sha256": "86326aab476b6c25457053858f242804d6ba2a2f172d02e38673ce8665d5565d",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/payload_collective_then_publish-missing-publication.s",
+        "-o",
+        "/tmp/payload_collective_then_publish-missing-publication.o"
+      ],
+      "exit_code": 0,
+      "execution": "CPU analysis only; never launched on hardware"
+    }
+  ],
+  "tools": {
+    "clang++": {
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)"
+    },
+    "llvm-mc": {
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git"
+    },
+    "ld.lld": {
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)"
+    }
+  },
+  "completion": "coordinator_review_required"
+}
