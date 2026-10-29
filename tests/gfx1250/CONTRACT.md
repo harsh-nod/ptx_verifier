@@ -17,7 +17,7 @@ separate numerical checks.
 | LDS | Aggregate static plus dynamic capacity up to 327,680 bytes; explicit subobjects optional |
 | Inputs | Concrete addresses/control, symbolic mathematical data, exact by-value metadata bytes |
 | Replay | Hardwired XNACK; independent X-count address-source leases and data completion |
-| Global visibility | Ordered cross-wave write dependencies require explicit `SCOPE_SYS` at both endpoints; completed read-before-write needs completion and publication; no cross-workgroup claim |
+| Global visibility | Ordered cross-wave write dependencies require explicit `SCOPE_SYS` at both endpoints, exposed by the source profile for resolved-global FLAT; ordinary GLOBAL scope modifiers are unsupported. Completed read-before-write needs completion and publication; no cross-workgroup claim |
 | Completion | Load/store/DS/KM/X/async/tensor classes; tensor threshold 0 only |
 | Barriers | Unnamed shader split signal/wait/release; selected allocated named shader INIT/JOIN/SIGNAL/WAIT/LEAVE with explicit M0 7-bit signal-time count updates, object/phase/incarnation and completed-effect publication |
 | Matrices | WMMA F32 16x16x4, F16/BF16 16x16x32; F32 accumulation, complete wave32 |

@@ -62,6 +62,12 @@ Descriptor/configuration mismatches, uninitialized reads and out-of-bounds
 accesses are errors. Scratch/private execution and kernarg preloading are
 outside the selected profile.
 
+Reading Dispatch ID or Private Segment Size user SGPR inputs is unsupported:
+their runtime values are not supplied by the launch configuration. Enabling
+unused inputs is allowed and reserves their ABI register slots. Workgroup zero
+does not imply dispatch ID zero, and the descriptor's fixed private size does
+not determine the dispatch's runtime allocation.
+
 Global allocations are byte-addressed, bounded and disjoint. Wide transfers
 retain each register-sized granule and its exact footprint. Optional
 `shared_allocations` supply named LDS subobject bounds; a complete DS or
@@ -134,9 +140,11 @@ GLOBAL/scalar/LDS memory, and resolved-global or opaque-shared-aperture FLAT
 accesses. The selected scalar-base scaled FLAT form is B32. A single-lane,
 no-return, device-scoped `global_atomic_add_f32` is modeled separately;
 returning, multi-lane and general unordered atomic serialization are outside
-that profile. Ordinary GLOBAL and resolved-global FLAT accesses retain explicit
-`SCOPE_SYS`; that annotation does not apply to scalar, LDS, atomic or tensor
-effects and does not create a completion or synchronization edge.
+that profile. Resolved-global FLAT accesses retain explicit `SCOPE_SYS`.
+Ordinary GLOBAL source forms do not accept that scope modifier in this profile;
+the graph contract also handles appropriately scoped ordinary GLOBAL events.
+The annotation does not apply to scalar, LDS, atomic or tensor effects and does
+not create a completion or synchronization edge.
 
 Selected WMMA forms retain native lane layouts, operand roles and source
 leases. TDM supports bounded plain 2D global-to-LDS and LDS-to-global transfers,

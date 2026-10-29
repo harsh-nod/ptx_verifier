@@ -39,7 +39,10 @@ failures raise `VoltaError`; graph findings raise `DataRaceError` or
 for the reasons. Mathematical equivalence and graph verification are separate
 result fields: both are needed to establish the combined property. Use
 `sample=0` for a complete equivalence check; a positive sample bounds the
-checked output prefix.
+checked output prefix. `equivalent=True` describes the checked elements; require
+`elements_checked == elements_total` as well for a complete comparison. Full
+output index sets are validated before sampling, so missing or extra writes
+remain errors even when the sampled values match.
 
 `AnalyzeResult.outputs` returns ordinary Python lists of
 `(array_name, [(index, expression_string), ...])`. Expressions are formatted

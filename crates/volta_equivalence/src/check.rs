@@ -149,6 +149,13 @@ pub fn paired_elements(
             message: "no arrays specified to check".to_string(),
         });
     }
+    for (label, outputs) in [("reference", reference), ("optimized", optimized)] {
+        outputs
+            .validate_footprints()
+            .map_err(|reason| EquivCheckError::ShapeMismatch {
+                message: format!("{label}: {reason}"),
+            })?;
+    }
     let mut result = Vec::with_capacity(arrays.len());
     for name in arrays {
         let Some((_, ref_elems)) = reference.outputs.iter().find(|(n, _)| n == name) else {
@@ -393,6 +400,19 @@ mod tests {
         // Differing footprints for a named array are an error.
         let narrower = output_with(&[("out", &[0])]);
         assert!(paired_elements(&reference, &narrower, &names(&["out"])).is_err());
+    }
+
+    #[test]
+    fn ambiguous_or_unsorted_output_footprints_never_compare_equivalent() {
+        let valid = output_with(&[("out", &[0, 1])]);
+        for invalid in [
+            output_with(&[("out", &[0, 1]), ("out", &[0, 1])]),
+            output_with(&[("out", &[0, 0])]),
+            output_with(&[("out", &[1, 0])]),
+        ] {
+            assert!(check_output_equivalence(&valid, &invalid, &names(&["out"])).is_err());
+            assert!(check_output_equivalence(&invalid, &valid, &names(&["out"])).is_err());
+        }
     }
 
     /// `iterations = N` re-solves the same elements N times: the report

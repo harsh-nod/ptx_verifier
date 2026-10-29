@@ -205,6 +205,44 @@ mod tests {
         }
     }
 
+    #[test]
+    fn read_vc_dump_rejects_ambiguous_output_identities_and_indices() {
+        let mut arena = ExprArena::new();
+        let zero = arena.int(0);
+        for (tag, outputs, message) in [
+            (
+                "duplicate_array",
+                vec![
+                    ("out".into(), vec![(0, zero)]),
+                    ("out".into(), vec![(1, zero)]),
+                ],
+                "duplicate output array",
+            ),
+            (
+                "duplicate_index",
+                vec![("out".into(), vec![(0, zero), (0, zero)])],
+                "strictly ascending",
+            ),
+            (
+                "unsorted_index",
+                vec![("out".into(), vec![(1, zero), (0, zero)])],
+                "strictly ascending",
+            ),
+        ] {
+            let side = SymbolicOutputs {
+                arena: arena.clone(),
+                outputs,
+            };
+            let dump = VcDump {
+                reference: side.clone(),
+                optimized: side,
+            };
+            let mut bytes = Vec::new();
+            write_vc_dump_to(&mut bytes, &dump).unwrap();
+            assert_load_rejects(&bytes, tag, message);
+        }
+    }
+
     /// A file without the magic header is rejected cleanly (not decoded).
     #[test]
     fn read_vc_dump_rejects_bad_magic() {

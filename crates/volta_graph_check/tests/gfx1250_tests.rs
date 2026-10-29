@@ -927,6 +927,9 @@ fn split_barrier_publishes_only_completed_effects_and_needs_all_live_waves() {
             t.signal(1, 0);
             t.barrier_wait(1, 0, true);
             t.issue(1, AmdMemoryClass::Ds, vec![v(2, 1)], vec![], 0);
+            if signalled {
+                t.barrier_wait(0, 0, true);
+            }
             let r = check_graph(&t.finish());
             assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
             assert_eq!(

@@ -18,6 +18,8 @@ pub enum InstantiateErrorKind {
     DuplicateDim(String),
     DuplicateParam(String),
     DuplicateArray(String),
+    DuplicateOutput(String),
+    ShapeOverflow(String),
     /// An output equation's LHS array was never declared via `array`.
     UnknownArray(String),
 }
@@ -40,6 +42,12 @@ impl fmt::Display for InstantiateErrorKind {
                 )
             }
             Self::DuplicateArray(name) => write!(f, "array '{}' declared more than once", name),
+            Self::DuplicateOutput(name) => {
+                write!(f, "output '{}' has more than one equation", name)
+            }
+            Self::ShapeOverflow(name) => {
+                write!(f, "array '{}' shape overflows the flat index domain", name)
+            }
             Self::UnknownArray(name) => write!(
                 f,
                 "output equation for '{}', which was never declared as an array",
@@ -90,13 +98,21 @@ pub fn instantiate(
                     .ok_or_else(|| InstantiateErrorKind::UnknownDim(d.clone()))
             })
             .collect::<Result<_, _>>()?;
-        arrays.insert(a.name.clone(), Shape::new(resolved_dims));
+        let shape = Shape::new(resolved_dims);
+        if shape.checked_size().is_none() {
+            return Err(InstantiateErrorKind::ShapeOverflow(a.name.clone()));
+        }
+        arrays.insert(a.name.clone(), shape);
     }
 
+    let mut output_names = HashSet::new();
     let outputs = spec
         .outputs
         .iter()
         .map(|o| {
+            if !output_names.insert(&o.array) {
+                return Err(InstantiateErrorKind::DuplicateOutput(o.array.clone()));
+            }
             let shape = arrays
                 .get(&o.array)
                 .cloned()

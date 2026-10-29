@@ -312,9 +312,8 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
             "s_clause" => (Control, 1, 1),
             "v_nop" => (Control, 0, 0),
             "tensor_load_to_lds" | "tensor_store_from_lds" => (VectorMemory, 4, 4),
-            "s_add_co_u32" | "s_add_co_ci_u32" | "s_mul_u64" | "s_add_nc_u64"
-            | "s_and_not1_b32" | "s_add_co_i32" | "s_sub_co_i32" | "s_add_nc_u32"
-            | "s_sub_nc_u32" => (ScalarAlu, 3, 3),
+            "s_add_co_u32" | "s_sub_co_u32" | "s_add_co_ci_u32" | "s_mul_u64" | "s_add_nc_u64"
+            | "s_and_not1_b32" | "s_add_co_i32" | "s_sub_co_i32" => (ScalarAlu, 3, 3),
             "s_and_saveexec_b32"
             | "s_andn2_saveexec_b32"
             | "s_and_not1_saveexec_b32"

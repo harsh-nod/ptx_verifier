@@ -24,10 +24,43 @@ static uint32_t division(uint64_t a, uint64_t b) {
   return uint32_t(uint64_t(product >> 64) >> 1);
 }
 
+static std::pair<uint64_t, uint64_t> division_inputs(unsigned pattern) {
+  static const uint64_t dividends[] = {10, 0, 1, 2, 3, 9, 11, UINT32_MAX, UINT64_C(0x100000000),
+      UINT64_C(0x100000001), UINT64_C(0x7fffffffffffffff), UINT64_C(0x8000000000000000),
+      UINT64_C(0x8000000000000001), UINT64_MAX - 2, UINT64_MAX - 1, UINT64_MAX, 17};
+  return {dividends[pattern % 17], pattern < 17 ? UINT64_C(0xaaaaaaaaaaaaaaab) : UINT64_MAX};
+}
+
+static void prepare_division_output(Buffer &out, uint32_t expected) {
+  // An all-ones allocation sentinel is a valid U32 result for some inputs.
+  // Complementing this pattern's reference makes every missing write visible.
+  out.set(0, expected ^ UINT32_MAX);
+}
+
+static void division_output_controls() {
+  Buffer out(Type::U32, 1, true, true);
+  for (unsigned pattern = 0; pattern < 34; ++pattern) {
+    const auto [a, b] = division_inputs(pattern);
+    const uint32_t expected = division(a, b);
+    prepare_division_output(out, expected);
+    require(out.get(0) != double(expected), "unwritten U32 output aliases its reference");
+    out.after = out.before;
+    Row row;
+    bool rejected = false;
+    try { compare("unwritten division output", out, {double(expected)}, row, 0, 0); }
+    catch (const std::runtime_error &) { rejected = true; }
+    require(rejected && row.outputs == 0, "division checker accepted an unwritten output");
+    std::memcpy(out.after.data() + Buffer::guard, &expected, sizeof(expected));
+    compare("written division output", out, {double(expected)}, row, 0, 0);
+    require(row.outputs == 1, "division checker missed a written U32 output");
+  }
+}
+
 static void controls() {
   validate_reference_controls();
   require(division(10, UINT64_C(0xaaaaaaaaaaaaaaab)) == 3, "original division golden");
   require(division(UINT64_MAX, UINT64_MAX) == UINT32_MAX, "high-product/truncation golden");
+  division_output_controls();
 }
 
 static Row matrix(hipModule_t module, unsigned patterns) {
@@ -82,14 +115,12 @@ static Row matrix(hipModule_t module, unsigned patterns) {
 static Row high64(hipModule_t module, unsigned patterns) {
   Row row{"high64_division_projection"};
   Buffer out(Type::U32, 1, true);
-  const uint64_t dividends[] = {10, 0, 1, 2, 3, 9, 11, UINT32_MAX, UINT64_C(0x100000000),
-      UINT64_C(0x100000001), UINT64_C(0x7fffffffffffffff), UINT64_C(0x8000000000000000),
-      UINT64_C(0x8000000000000001), UINT64_MAX - 2, UINT64_MAX - 1, UINT64_MAX, 17};
   for (unsigned pattern = 0; pattern < patterns; ++pattern) {
-    uint64_t a = dividends[pattern % 17];
-    uint64_t b = pattern < 17 ? UINT64_C(0xaaaaaaaaaaaaaaab) : UINT64_MAX;
+    auto [a, b] = division_inputs(pattern);
+    const uint32_t expected = division(a, b);
+    prepare_division_output(out, expected);
     run(module, row.kernel, dim3(1), {&a, &b, &out.pointer}, {&out},
-        out, {double(division(a, b))}, row, 0., 0.);
+        out, {double(expected)}, row, 0., 0.);
     row.original_outputs += 1;
   }
   return row;
