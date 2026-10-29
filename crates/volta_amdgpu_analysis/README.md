@@ -100,7 +100,9 @@ words; the accumulator offset is a multiple of four in4..256. Every explicit
 register must fit its allocation, and overlapping VGPR/AGPR names are rejected.
 
 Defined module globals have bounded, aligned storage with their exact initialized
-bytes. `global_values` can override a writable scalar object of one, two, four,
+bytes. Integer data directives and a single plain printable `.ascii` literal
+preserve exact bytes; escaped strings, implicit terminators and non-ASCII text
+remain outside the supported data profile. `global_values` can override a writable scalar object of one, two, four,
 or eight bytes. Read-only objects cannot be rebound or written. The native
 contiguous `s_getpc_b64` / `s_add_u32 symbol@rel32@lo+4` /
 `s_addc_u32 symbol@rel32@hi+12` relocation sequence resolves an object address.
@@ -222,7 +224,7 @@ required, except explicitly supported FP8 format and unit-scale selectors.
 | Area | Supported behavior | Limits |
 | --- | --- | --- |
 | Integer/address ALU | Concrete fixed-width arithmetic, carry masks, bitfields, address packing; symbolic32 add/sub/mullo, bit operations, native shifts, min/max | Symbolic integer division/control and general64-bit integer data remain unsupported; data expressions cannot become address bits |
-| Floating data | Mathematical f32/f64 arithmetic, selected conversions/transcendentals, packed f32/f16 operations, partial-half preservation, OCP E4M3 decoding; f32 clamp for arithmetic, trans, mov and cndmask VOP3 forms | No IEEE rounding/NaN claim; ordered whole-value F64 storage only; symbolic BF16/E5M2 storage remains unsupported; clamp with explicit e32/SDWA, integer/compare/conversion clamp meanings and output scaling remain unsupported |
+| Floating data | Mathematical f32/f64 arithmetic, selected conversions/transcendentals, packed f32/f16 operations, partial-half preservation, OCP E4M3 decoding, finite concrete gfx1250 E5M2 byte0 decoding; f32 clamp for arithmetic, trans, mov and cndmask VOP3 forms | No IEEE rounding/NaN claim; ordered whole-value F64 storage only; symbolic BF16/E5M2 storage remains unsupported; E5M2 wider byte selectors remain outside the modeled profile; clamp with explicit e32/SDWA, integer/compare/conversion clamp meanings and output scaling remain unsupported |
 | Global and LDS memory | Byte/short/dword and wide transfers, sign extension, narrow-store truncation, dual-offset LDS, static/dynamic LDS bounds, exact opaque shared-aperture FLAT accesses, bounded module globals and scalar bindings | Equal-offset dual LDS operations, scratch/private apertures, arbitrary PC/GOT relocations, buffer addressing, direct-to-LDS, and atomics remain unsupported |
 | Control and synchronization | Scalar branches, concrete EXEC/VCC/SCC, symbolic lane comparison masks and cndmask data selection, save/restore EXEC, memory waits, surviving-wave barriers after whole-wave termination | One workgroup; symbolic control/EXEC/carry/address masks remain unsupported; live-wave loops remain inconclusive on budget exhaustion; partial graph on abort |
 | Cross-lane | DS permute/bpermute with source snapshots and LGKM readiness | DPP and ordinary readlane/readfirstlane/writelane require further software hazard checks |
