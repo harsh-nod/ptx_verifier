@@ -103,8 +103,9 @@ Each crate has a README explaining its public entry points and internal modules.
 Start with `volta_pipeline/src/backend.rs` for backend dispatch and
 `volta_pipeline/src/aggregate.rs` for verdict rules.
 
-The [AMD technical report](docs/paper/amd-volta.pdf) explains the changes from
-Volta's PTX implementation, the native execution and safety models, and their
+The [AMD technical report](docs/paper/amd-volta.pdf) compares gfx942, gfx950 and
+gfx1250, explains which parts of Volta's approach are reused, and describes the
+native execution and safety models required by each target. It includes
 validation and limits. Its [LaTeX source](docs/paper/amd-volta.tex) builds with
 `make -C docs/paper` using PDFLaTeX.
 
