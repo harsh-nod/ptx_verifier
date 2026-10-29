@@ -37,12 +37,20 @@
 //! The payload must exactly match the argument's metadata size; all bytes,
 //! including ABI padding and pointer values, are supplied explicitly. PTX
 //! rejects this form.
+//!
+//! Native AMD launches may also provide `shared_allocations`, a list of
+//! `{"name": "tile", "offset": 0, "size": 256}` byte ranges. These optional
+//! caller-supplied LDS subobject boundaries have the same meaning as the CLI's
+//! `--shared-allocation` and Python's `Config.add_shared_allocation`. Names must
+//! be nonempty and unique; ranges must be nonempty, disjoint and fit the native
+//! kernel's LDS allocation. PTX rejects this native-only premise.
 
 use std::collections::BTreeMap;
 
 use serde::Deserialize;
 
 use crate::config::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue};
+use volta_common::config::SharedAllocation;
 
 /// Where the first array without a `base` starts, and the alignment of every such array.
 const ARRAY_ALIGN: u64 = 0x10000;
@@ -63,6 +71,15 @@ impl LaunchFile {
             config.grid_dim = grid.resolve("grid")?;
         }
         config.dynamic_shared_bytes = raw.dynamic_shared_bytes;
+        config.shared_allocations = raw
+            .shared_allocations
+            .into_iter()
+            .map(|region| SharedAllocation {
+                name: region.name,
+                offset: region.offset,
+                size: region.size,
+            })
+            .collect();
         if let Some(max) = raw.max_instructions {
             config.max_instructions = max;
         }
@@ -101,6 +118,8 @@ struct RawLaunch {
     #[serde(default)]
     dynamic_shared_bytes: u64,
     #[serde(default)]
+    shared_allocations: Vec<RawSharedAllocation>,
+    #[serde(default)]
     max_instructions: Option<u64>,
     #[serde(default)]
     arrays: Vec<RawArray>,
@@ -108,6 +127,14 @@ struct RawLaunch {
     params: Vec<RawParam>,
     #[serde(default)]
     globals: BTreeMap<String, i64>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawSharedAllocation {
+    name: String,
+    offset: u64,
+    size: u64,
 }
 
 #[derive(Deserialize)]
@@ -346,5 +373,54 @@ mod tests {
             {"name": "b", "kind": "out", "dtype": "f32", "len": 64, "base": 65600}
         ]}"#;
         assert!(LaunchFile::from_json(overlapping).is_err());
+    }
+
+    #[test]
+    fn reads_native_shared_subobjects_without_discarding_other_launch_fields() {
+        let launch = LaunchFile::from_json(
+            r#"{"block": [32, 2], "grid": [16, 1, 1], "dynamic_shared_bytes": 512,
+                "max_instructions": 1234,
+                "shared_allocations": [
+                    {"name": "producer", "offset": 0, "size": 128},
+                    {"name": "consumer", "offset": 128, "size": 256}
+                ]}"#,
+        )
+        .unwrap();
+        assert_eq!(launch.config.block_dim, (32, 2, 1));
+        assert_eq!(launch.config.grid_dim, (16, 1, 1));
+        assert_eq!(launch.config.dynamic_shared_bytes, 512);
+        assert_eq!(launch.config.max_instructions, 1234);
+        assert_eq!(
+            launch.config.shared_allocations,
+            [
+                SharedAllocation {
+                    name: "producer".into(),
+                    offset: 0,
+                    size: 128,
+                },
+                SharedAllocation {
+                    name: "consumer".into(),
+                    offset: 128,
+                    size: 256,
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn rejects_malformed_or_conflicting_native_shared_subobjects() {
+        for regions in [
+            r#"[{"name":"tile","offset":0,"size":0}]"#,
+            r#"[{"name":" ","offset":0,"size":4}]"#,
+            r#"[{"name":"tile","offset":18446744073709551615,"size":4}]"#,
+            r#"[{"name":"tile","offset":0,"size":8},{"name":"other","offset":4,"size":8}]"#,
+            r#"[{"name":"tile","offset":0,"size":4},{"name":"tile","offset":4,"size":4}]"#,
+            r#"[{"name":"tile","offset":-1,"size":4}]"#,
+            r#"[{"name":"tile","offset":0,"sizes":4}]"#,
+            r#"[{"name":"tile","size":4}]"#,
+        ] {
+            let text = format!(r#"{{"block":32,"shared_allocations":{regions}}}"#);
+            assert!(LaunchFile::from_json(&text).is_err(), "{regions}");
+        }
     }
 }
