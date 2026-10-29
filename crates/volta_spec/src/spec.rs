@@ -80,7 +80,7 @@ pub enum ReduceOp {
     Max,
 }
 
-/// An index expression: the small affine sublanguage allowed in array index position.
+/// An index expression: the small integer sublanguage allowed in array index position.
 /// Deliberately not full `SpecExpr` - an index must resolve to one concrete `u64` per
 /// element, as a kernel's own addresses must.
 #[derive(Debug, Clone)]
@@ -90,6 +90,8 @@ pub enum IndexExpr {
     Add(Box<IndexExpr>, Box<IndexExpr>),
     Sub(Box<IndexExpr>, Box<IndexExpr>),
     Mul(Box<IndexExpr>, Box<IndexExpr>),
+    Div(Box<IndexExpr>, Box<IndexExpr>),
+    Rem(Box<IndexExpr>, Box<IndexExpr>),
 }
 
 impl IndexExpr {
@@ -151,6 +153,11 @@ pub enum SpecExpr {
     Sqrt(Box<SpecExpr>),
     Abs(Box<SpecExpr>),
     Sign(Box<SpecExpr>),
+    /// +1 if the selected low-32 bit of an integer word is set, otherwise -1.
+    BitSign {
+        word: Box<SpecExpr>,
+        bit: IndexExpr,
+    },
     /// `op_{var=0}^{bound-1} body`, unrolled into `bound` terms combined by `op` (empty-range
     /// identity: `0` for `Sum`, `-infinity` for `Max`, as in `ExprArena::max` chains).
     Reduce {
@@ -207,6 +214,13 @@ impl SpecExpr {
 
     pub fn sign(self) -> Self {
         SpecExpr::Sign(Box::new(self))
+    }
+
+    pub fn bit_sign(self, bit: IndexExpr) -> Self {
+        SpecExpr::BitSign {
+            word: Box::new(self),
+            bit,
+        }
     }
 
     pub fn reduce(
@@ -312,6 +326,8 @@ pub enum SpecError {
         index: Vec<i64>,
         shape: Vec<u64>,
     },
+    BitIndexOutOfBounds(i64),
+    IndexArithmetic,
     Nan(NanError),
 }
 
@@ -348,6 +364,10 @@ impl fmt::Display for SpecError {
                 "array '{}': index {:?} out of bounds for shape {:?}",
                 array, index, shape
             ),
+            Self::BitIndexOutOfBounds(bit) => {
+                write!(f, "bit_sign bit index {bit} is outside 0..32")
+            }
+            Self::IndexArithmetic => write!(f, "invalid or overflowing integer index arithmetic"),
             Self::Nan(_) => write!(f, "spec contains a NaN float literal"),
         }
     }
@@ -439,11 +459,25 @@ fn eval_index(
     bindings: &HashMap<String, u64>,
 ) -> Result<i64, SpecError> {
     match expr {
-        IndexExpr::Int(v) => Ok(*v as i64),
-        IndexExpr::Var(name) => resolve_var(name, env, bindings).map(|v| v as i64),
-        IndexExpr::Add(a, b) => Ok(eval_index(a, env, bindings)? + eval_index(b, env, bindings)?),
-        IndexExpr::Sub(a, b) => Ok(eval_index(a, env, bindings)? - eval_index(b, env, bindings)?),
-        IndexExpr::Mul(a, b) => Ok(eval_index(a, env, bindings)? * eval_index(b, env, bindings)?),
+        IndexExpr::Int(v) => i64::try_from(*v).map_err(|_| SpecError::IndexArithmetic),
+        IndexExpr::Var(name) => {
+            i64::try_from(resolve_var(name, env, bindings)?).map_err(|_| SpecError::IndexArithmetic)
+        }
+        IndexExpr::Add(a, b) => eval_index(a, env, bindings)?
+            .checked_add(eval_index(b, env, bindings)?)
+            .ok_or(SpecError::IndexArithmetic),
+        IndexExpr::Sub(a, b) => eval_index(a, env, bindings)?
+            .checked_sub(eval_index(b, env, bindings)?)
+            .ok_or(SpecError::IndexArithmetic),
+        IndexExpr::Mul(a, b) => eval_index(a, env, bindings)?
+            .checked_mul(eval_index(b, env, bindings)?)
+            .ok_or(SpecError::IndexArithmetic),
+        IndexExpr::Div(a, b) => eval_index(a, env, bindings)?
+            .checked_div(eval_index(b, env, bindings)?)
+            .ok_or(SpecError::IndexArithmetic),
+        IndexExpr::Rem(a, b) => eval_index(a, env, bindings)?
+            .checked_rem(eval_index(b, env, bindings)?)
+            .ok_or(SpecError::IndexArithmetic),
     }
 }
 
@@ -493,6 +527,10 @@ fn free_vars(expr: &SpecExpr, out: &mut std::collections::HashSet<String>) {
         | SpecExpr::Sign(a) => {
             free_vars(a, out);
         }
+        SpecExpr::BitSign { word, bit } => {
+            free_vars(word, out);
+            index_free_vars(bit, out);
+        }
         SpecExpr::Reduce { var, body, .. } => {
             let mut inner = std::collections::HashSet::new();
             free_vars(body, &mut inner);
@@ -508,7 +546,11 @@ fn index_free_vars(expr: &IndexExpr, out: &mut std::collections::HashSet<String>
         IndexExpr::Var(name) => {
             out.insert(name.clone());
         }
-        IndexExpr::Add(a, b) | IndexExpr::Sub(a, b) | IndexExpr::Mul(a, b) => {
+        IndexExpr::Add(a, b)
+        | IndexExpr::Sub(a, b)
+        | IndexExpr::Mul(a, b)
+        | IndexExpr::Div(a, b)
+        | IndexExpr::Rem(a, b) => {
             index_free_vars(a, out);
             index_free_vars(b, out);
         }
@@ -687,6 +729,21 @@ fn eval(
         SpecExpr::Sign(a) => {
             let a = eval(a, env, bindings, arena, array_ids, memo)?;
             Ok(arena.sign(a))
+        }
+        SpecExpr::BitSign { word, bit } => {
+            let bit = eval_index(bit, env, bindings)?;
+            if !(0..32).contains(&bit) {
+                return Err(SpecError::BitIndexOutOfBounds(bit));
+            }
+            let word = eval(word, env, bindings, arena, array_ids, memo)?;
+            let shift = arena.int(bit);
+            let shifted = arena.lshr(word, shift);
+            let one = arena.int(1);
+            let selected = arena.bit_and(shifted, one);
+            let zero = arena.int(0);
+            let set = arena.ne(selected, zero);
+            let minus_one = arena.int(-1);
+            Ok(arena.select(set, one, minus_one))
         }
         SpecExpr::Reduce {
             op,

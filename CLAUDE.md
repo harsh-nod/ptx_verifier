@@ -189,6 +189,12 @@ Mathematical specs: an output array as a formula over other arrays
 `SymbolicOutputs` with the arena's own constructors, so a kernel checks
 against a spec exactly like against a second kernel (`volta verify`).
 
+`bit_sign(word, bit_index)` preserves arbitrary integer input words and selects
+one low-32 bit into +/-1 through logical-shift/AND/NE/Select arena nodes. Its
+concrete index accepts integer quotient/remainder; invalid bit positions, zero
+divisors and integer-index overflow are unfold errors. This is vendor-neutral
+spec syntax, with no implicit float bitcast or index-input substitution.
+
 ## Crate: volta_graph
 
 **Path**: `crates/volta_graph/`
