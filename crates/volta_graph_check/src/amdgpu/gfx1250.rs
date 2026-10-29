@@ -32,6 +32,7 @@ fn charges(class: AmdMemoryClass) -> Option<Vec<(AmdCounter, u16)>> {
     Some(match class {
         AmdMemoryClass::VectorLoad => vec![(Load, 1), (X, 1)],
         AmdMemoryClass::VectorStore => vec![(Store, 1), (X, 1)],
+        AmdMemoryClass::GlobalAtomicAddF32NoReturn => vec![(Store, 1), (X, 1)],
         AmdMemoryClass::ScalarLoad => vec![(Km, 1), (X, 1)],
         AmdMemoryClass::Ds | AmdMemoryClass::CrossLane => vec![(Ds, 1)],
         AmdMemoryClass::AsyncLoadToLds => vec![(Load, 1), (X, 1), (Async, 1)],
@@ -46,6 +47,7 @@ fn replay_group(class: AmdMemoryClass) -> Option<bool> {
         AmdMemoryClass::ScalarLoad => Some(false),
         AmdMemoryClass::VectorLoad
         | AmdMemoryClass::VectorStore
+        | AmdMemoryClass::GlobalAtomicAddF32NoReturn
         | AmdMemoryClass::AsyncLoadToLds
         | AmdMemoryClass::AsyncStoreFromLds => Some(true),
         _ => None,
@@ -55,16 +57,30 @@ fn replay_group(class: AmdMemoryClass) -> Option<bool> {
 fn expected(kind: &str, mask: u64) -> Option<Option<&'static str>> {
     Some(match kind {
         "scalar memory" => Some("memory"),
-        "vector memory" | "LDS" | "async memory" | "tensor memory" if mask != 0 => Some("memory"),
+        "vector memory" | "LDS" | "async memory" | "tensor memory" | "atomic f32 add no return"
+            if mask != 0 =>
+        {
+            Some("memory")
+        }
         "wait" => Some("wait"),
         "s_nop" => Some("delay"),
         "s_delay_alu" => Some("delay alu"),
         "barrier signal" => Some("signal"),
         "barrier wait" => Some("barrier wait"),
         "WMMA" => Some("wmma"),
-        "scalar ALU" | "vector ALU" | "trans ALU" | "shifted ALU" | "branch" | "control"
-        | "xcnt drain" | "s_endpgm" | "vector memory" | "LDS" | "async memory"
-        | "tensor memory" => None,
+        "scalar ALU"
+        | "vector ALU"
+        | "trans ALU"
+        | "shifted ALU"
+        | "branch"
+        | "control"
+        | "xcnt drain"
+        | "s_endpgm"
+        | "vector memory"
+        | "LDS"
+        | "async memory"
+        | "tensor memory"
+        | "atomic f32 add no return" => None,
         _ => return None,
     })
 }
@@ -136,6 +152,8 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
         );
     }
     let mut unresolved = Vec::new();
+    let mut atomic_pairs =
+        HashMap::<(EventId, ThreadIx), (Option<(EventId, u64)>, Option<(EventId, u64)>)>::new();
     if graph.provenance().assumes(Assumption::XnackReplayDisabled) {
         unresolved.push(Unresolved::global(
             "gfx1250 XNACK is hardwired on; a replay-disabled premise is invalid",
@@ -252,6 +270,7 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         .iter()
                         .all(|r| r.file == AmdRegisterFile::Vector),
                     AmdMemoryClass::VectorStore
+                    | AmdMemoryClass::GlobalAtomicAddF32NoReturn
                     | AmdMemoryClass::AsyncLoadToLds
                     | AmdMemoryClass::AsyncStoreFromLds
                     | AmdMemoryClass::TensorLoadToLds
@@ -271,6 +290,9 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         AmdMemoryClass::ScalarLoad => source_kind == "scalar memory",
                         AmdMemoryClass::VectorLoad | AmdMemoryClass::VectorStore => {
                             source_kind == "vector memory"
+                        }
+                        AmdMemoryClass::GlobalAtomicAddF32NoReturn => {
+                            source_kind == "atomic f32 add no return"
                         }
                         AmdMemoryClass::Ds | AmdMemoryClass::CrossLane => source_kind == "LDS",
                         AmdMemoryClass::AsyncLoadToLds | AmdMemoryClass::AsyncStoreFromLds => {
@@ -309,6 +331,15 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                             record.event,
                             "memory held source is missing from its instruction",
                         ));
+                    }
+                    if *class == AmdMemoryClass::GlobalAtomicAddF32NoReturn
+                        && (instruction.exec_mask.count_ones() != 1
+                            || !held_sources
+                                .iter()
+                                .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 126))
+                    {
+                        unresolved.push(Unresolved::at(record.event,
+                            "selected atomic RMW requires one active lane and its implicit EXEC source"));
                     }
                 }
                 if !charges(*class).is_some_and(|expected| {
@@ -525,6 +556,7 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                     class,
                     AmdMemoryClass::VectorLoad
                         | AmdMemoryClass::VectorStore
+                        | AmdMemoryClass::GlobalAtomicAddF32NoReturn
                         | AmdMemoryClass::Ds
                         | AmdMemoryClass::AsyncLoadToLds
                         | AmdMemoryClass::AsyncStoreFromLds
@@ -543,6 +575,7 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         access.space == Space::Global && read
                     }
                     AmdMemoryClass::VectorStore => access.space == Space::Global && !read,
+                    AmdMemoryClass::GlobalAtomicAddF32NoReturn => access.space == Space::Global,
                     AmdMemoryClass::Ds => {
                         access.space == Space::Shared && (read != destinations.is_empty())
                     }
@@ -558,8 +591,14 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                     }
                     _ => false,
                 };
+                let atomic = *class == AmdMemoryClass::GlobalAtomicAddF32NoReturn;
                 if !valid
-                    || access.ordering != OrderingKind::Ordinary
+                    || access.ordering
+                        != if atomic {
+                            OrderingKind::Atomic
+                        } else {
+                            OrderingKind::Ordinary
+                        }
                     || access.proxy != Proxy::Generic
                 {
                     unresolved.push(Unresolved::at(
@@ -575,6 +614,16 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         "legacy CDNA workgroup visibility does not certify gfx1250 SCOPE/cache publication"));
                 }
                 if let Footprint::Bytes { addr, width } = access.footprint {
+                    if atomic {
+                        let pair = atomic_pairs
+                            .entry((link.issue, access.attributed))
+                            .or_default();
+                        let part = if read { &mut pair.0 } else { &mut pair.1 };
+                        if width != 4 || addr % 4 != 0 || part.replace((event_id, addr)).is_some() {
+                            unresolved.push(Unresolved::at(event_id,
+                                "atomic F32 RMW requires exactly one aligned 4-byte read and write per active lane"));
+                        }
+                    }
                     let count = transferred
                         .entry(link.issue)
                         .or_default()
@@ -647,6 +696,7 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
             class,
             AmdMemoryClass::VectorLoad
                 | AmdMemoryClass::VectorStore
+                | AmdMemoryClass::GlobalAtomicAddF32NoReturn
                 | AmdMemoryClass::Ds
                 | AmdMemoryClass::AsyncLoadToLds
                 | AmdMemoryClass::AsyncStoreFromLds
@@ -657,6 +707,14 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                 id,
                 "memory instruction omits an active lane's effects",
             ));
+        }
+        if *class == AmdMemoryClass::GlobalAtomicAddF32NoReturn
+            && atomic_pairs.iter().filter(|((issue, _), _)| *issue == id).any(|(_, (read, write))| {
+                !matches!((read, write), (Some((r, a)), Some((w, b))) if r < w && a == b)
+            })
+        {
+            unresolved.push(Unresolved::at(id,
+                "atomic RMW effects must read then write the same 4-byte location"));
         }
         if matches!(
             class,
@@ -973,6 +1031,26 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                         let op = &mut operations[index];
                         if replay_group(op.class).is_some_and(|old| old != group) {
                             op.remaining.retain(|&(c, _)| c != AmdCounter::X);
+                        }
+                    }
+                }
+                if *class == AmdMemoryClass::GlobalAtomicAddF32NoReturn {
+                    for &index in &pending[wave] {
+                        let old = &operations[index];
+                        if has(old, AmdCounter::X)
+                            && old.class != AmdMemoryClass::GlobalAtomicAddF32NoReturn
+                        {
+                            hazards.push(AmdRegisterHazard {
+                                issue: old.event,
+                                use_event: record.event,
+                                wave: record.wave,
+                                register: AmdRegister {
+                                    file: AmdRegisterFile::Scalar,
+                                    index: 126,
+                                    lanes: 0,
+                                },
+                                kind: AmdRegisterHazardKind::AtomicReplayBeforeReady,
+                            });
                         }
                     }
                 }

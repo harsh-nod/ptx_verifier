@@ -16,6 +16,13 @@ registers with no fabricated LDS footprint. Legacy MFMA uses `MatrixIssue`;
 gfx1250 WMMA uses `WmmaIssue`. Register ranges use one entry per 32-bit register;
 u64 lane masks use 64 physical bits on gfx942/gfx950 and only 32 on gfx1250.
 
+The selected gfx1250 `GlobalAtomicAddF32NoReturn` profile records device-scoped
+F32 RMWs with one active lane, no destination register, and Store/X charges.
+Its read then write use paired aligned 4-byte Global effects with `Atomic`
+ordering and the same attributed lane/address. It retains every source, including
+implicit EXEC, through translation completion. This tag grants no publication
+edge for other addresses or other instructions.
+
 Text dumps without native AMD events retain `volta-graph 1`; graphs with AMD events use
 `volta-graph 2` and include their sidecar associations. The text dump is a diagnostic
 format, not an executable replay input. AMD rendezvous deadlocks use
@@ -92,7 +99,7 @@ An `Access(AccessId)` event points to a `MemAccess`:
 |--------------|---------------------------------------------------------------------------|
 | `space`      | `Global`, `Shared` or `Tensor` (local memory is thread-private and never recorded) |
 | `mode`       | `Read` / `Write`                                                          |
-| `ordering`   | `Ordinary` (the analysis rejects atomics, so it records nothing else)     |
+| `ordering`   | `Ordinary`, or `Atomic` for the selected native no-return F32 add profile |
 | `proxy`      | `Generic`, `Async` (TMA, `cp.async.bulk`, `tcgen05`) or `TensorMap`       |
 | `footprint`  | `Bytes { addr, width }` or a Tensor Memory `lane x column` rectangle      |
 | `role`       | which operand: `Plain`, `Source`, `Destination`, `MmaA`, `MmaB`, `Accumulator`, ... |

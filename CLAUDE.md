@@ -208,9 +208,12 @@ crate-level docs in `lib.rs` are the contract.
   `ObjectInit`/`ObjectInval`, `TmemAlloc`/`TmemDealloc`/`TmemRelinquish`,
   `Exit`.
 - `MemAccess`: space (`Global`/`Shared`/`Tensor`; local memory is not
-  recorded), mode, `OrderingKind` (only `Ordinary` produced), proxy, canonical
+  recorded), mode, `OrderingKind` (`Ordinary`, or the selected native Atomic
+  profile), proxy, canonical
   `Footprint` (byte range, or TMEM lane x column rectangle), attributed
-  thread, stored value for writes.
+  thread, stored value for writes. Selected gfx1250 no-return F32 atomic adds
+  use paired Atomic effects, one active lane, and independent Store/X readiness;
+  they do not certify general atomic serialization or cache publication.
 - Sync objects (named barrier, mbarrier lifetime, warp/warpgroup collective,
   a thread's cp.async group waits) with logical `Generation`s: typed
   `Contribution`s (`Blocking`, `Arrival`, `Exited`, `AsyncCompletion`,

@@ -229,3 +229,15 @@ obligation. Advanced barrier/cache/tensor modes outside the documented subset
 cannot inherit gfx942/gfx950 certificates. The documented positive corpus has
 passed independent gfx1250 hardware replay; numerical agreement remains separate
 from these graph obligations.
+
+The initial atomic profile is device-scoped `global_atomic_add_f32`, no return,
+one active lane. It requires an exact paired 4-byte Atomic read/write and retains
+all sources through X completion. Older non-RMW memory translations must drain
+before issuance; explicit X0, completing data waits, and architectural drains
+can establish this. Back-to-back RMWs do not create that earlier-translation
+prerequisite. Only a validated RMW's own read/write pair avoids self-conflict;
+atomic overlap with ordinary accesses retains typed conflict checks. Unordered
+atomic/atomic serialization and returning/multi-lane profiles remain inconclusive.
+These rules follow LLVM's [hardware-event classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/AMDGPUHWEvents.cpp),
+[wait insertion](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInsertWaitcnts.cpp),
+and GFX125x memory-model replay requirements in AMDGPUUsage.md at that revision.
