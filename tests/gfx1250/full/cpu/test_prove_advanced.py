@@ -87,6 +87,18 @@ class Controls(unittest.TestCase):
             with self.assertRaises(ValueError):
                 driver.check_stdout(output, 8192)
 
+    def test_shared_compiler_sources_are_snapshotted_once_and_hash_checked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, target = root / "source", root / "snapshot/source"
+            source.write_text("compiler source")
+            expected = driver.sha(source)
+            driver.snapshot_input(source, target, expected)
+            driver.snapshot_input(source, target, expected)
+            self.assertEqual(expected, driver.sha(target))
+            with self.assertRaisesRegex(ValueError, "stale snapshot"):
+                driver.snapshot_input(source, target, "0" * 64)
+
     def test_preflight_failure_cannot_leave_stale_success(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp)

@@ -53,6 +53,14 @@ def atomic_json(path, value):
     temporary.replace(path)
 
 
+def snapshot_input(source, target, expected):
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if not target.exists():
+        shutil.copy2(source, target)
+    require(sha(target) == expected, f"stale snapshot input: {source}")
+    target.chmod(0o444)
+
+
 def checked_cases(document, selected):
     candidates = [case for case in document["cases"] if case["kernel"] in REQUIRED]
     cases = {case["kernel"]: case for case in candidates}
@@ -262,14 +270,8 @@ def main():
                     "snapshot path must be relative",
                 )
                 source, target = full / relative, snapshot / relative
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source, target)
-                require(
-                    sha(target) == case[key + "_sha256"],
-                    f"stale {key}: {case['kernel']}",
-                )
+                snapshot_input(source, target, case[key + "_sha256"])
                 files[str(relative)] = sha(target)
-                target.chmod(0o444)
         receipt.update(
             binary_sha256=sha(binary), input_sha256=files, snapshot=str(snapshot)
         )
