@@ -3068,6 +3068,7 @@ impl<'a> Interpreter<'a> {
                     | "s_add_nc_u32"
                     | "s_sub_nc_u32"
                     | "s_mul_i32"
+                    | "s_xor_b32"
             )
             && [1, 2].into_iter().any(|i| {
                 matches!(
@@ -3083,7 +3084,9 @@ impl<'a> Interpreter<'a> {
             };
             let a = self.integer_expression(wave, &o[1], 0, ty)?;
             let b = self.integer_expression(wave, &o[2], 0, ty)?;
-            let op = if name.starts_with("s_mul") {
+            let op = if name == "s_xor_b32" {
+                IntBinOp::Xor
+            } else if name.starts_with("s_mul") {
                 IntBinOp::MulLo
             } else if name.starts_with("s_sub") {
                 IntBinOp::Sub
@@ -3092,7 +3095,16 @@ impl<'a> Interpreter<'a> {
             };
             let value = super::scalar::int_binary(&mut self.arena, ty, op, a, b)
                 .map_err(|e| wave.fail(None, e))?;
-            if !matches!(name, "s_mul_i32" | "s_add_nc_u32" | "s_sub_nc_u32") {
+            if name == "s_xor_b32" {
+                let zero = self.arena.int(0);
+                let nonzero = self.arena.ne(value, zero);
+                if let Some(nonzero) = self.arena.as_bool(nonzero) {
+                    wave.set_scc(nonzero);
+                } else {
+                    wave.clear_scc();
+                    wave.scc_condition = Some(nonzero);
+                }
+            } else if !matches!(name, "s_mul_i32" | "s_add_nc_u32" | "s_sub_nc_u32") {
                 wave.clear_scc();
             }
             return wave.put_value(&o[0], 0, Value::IntExpr(value));

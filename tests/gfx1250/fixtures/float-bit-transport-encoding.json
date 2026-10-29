@@ -135,6 +135,22 @@
       "assembler_accepted": true,
       "assembly_sha256": "a5e22de24d9860f8c87791e9ddb4052d410379cdcc1140a4e5cf2d411c635725",
       "diagnostic": ""
+    },
+    {
+      "name": "scalar_sign_xor",
+      "instruction": "s_xor_b32 s8,s8,0x80000000",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "a7de3b790125705754c01501dfef29c955125bf8325f90954908c03754f3a9a4",
+      "diagnostic": ""
+    },
+    {
+      "name": "scalar_scc_data_select",
+      "instruction": "s_cselect_b32 s9,7,11",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "03cddf7c7a777010f40a44749726af658354723255e9c6f452c5b2a5c05ad620",
+      "diagnostic": ""
     }
   ]
 }

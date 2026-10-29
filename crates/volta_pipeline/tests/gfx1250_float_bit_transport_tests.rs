@@ -203,3 +203,76 @@ fn widened_integer_pairs_require_the_low_word_to_match_the_saved_sign_extension(
     );
     assert!(checked.analysis.symbolic_outputs().is_err());
 }
+
+const SCALAR_XOR: &str = "s_load_b32 s8,s[4:5],0\ns_wait_kmcnt 0\ns_xor_b32 s8,s8,0x80000000";
+
+#[test]
+fn scalar_loaded_sign_xor_stays_integer_and_scc_can_only_select_data() {
+    let checked = run(
+        &format!(
+            "{SCALAR_XOR}\ns_cselect_b32 s9,7,11\nv_mov_b32 v2,s8\nv_mov_b32 v3,s9\nglobal_store_b64 v0,v[2:3],s[6:7]"
+        ),
+        4,
+        2,
+    );
+    assert_eq!(checked.checks.conclusion(), GraphConclusion::Verified);
+    let actual = checked.analysis.symbolic_outputs().unwrap();
+    assert_eq!(actual.outputs[0].1.len(), 2);
+    let mut expected = actual.clone();
+    let input = expected.arena.intern_string("input");
+    let input = expected.arena.input_element(input, 0);
+    let sign = expected.arena.int(0x80000000);
+    let result = expected.arena.bit_xor(input, sign);
+    let mask = expected.arena.int(u32::MAX as i64);
+    let result = expected.arena.bit_and(result, mask);
+    let zero = expected.arena.int(0);
+    let nonzero = expected.arena.ne(result, zero);
+    let seven = expected.arena.int(7);
+    let eleven = expected.arena.int(11);
+    let selected = expected.arena.select(nonzero, seven, eleven);
+    expected.outputs[0].1 = vec![(0, result), (1, selected)];
+    assert!(matches!(
+        check_output_equivalence(actual, &expected, &["out".into()]).unwrap(),
+        EquivOutcome::Equivalent
+    ));
+    for consumer in [
+        "s_cbranch_scc1 done\nv_mov_b32 v2,0\ndone:",
+        "s_addc_u32 s9,s8,1",
+        "s_mov_b32 exec_lo,s8",
+    ] {
+        let checked = run(&format!("{SCALAR_XOR}\n{consumer}\n{STORE}"), 4, 1);
+        assert!(checked.analysis.symbolic_outputs().is_err(), "{consumer}");
+    }
+}
+
+#[test]
+fn scalar_raw_sign_xor_never_becomes_float_negation_or_decodes_a_real_result() {
+    let raw = run(
+        &format!("{SCALAR_XOR}\nv_mov_b32 v2,s8\nv_add_nc_u32 v2,0,v2\n{STORE}"),
+        4,
+        1,
+    );
+    let reference = run(&format!("{INPUT}\nv_mul_f32_e64 v2,-1.0,v1\n{STORE}"), 4, 1);
+    assert_eq!(raw.checks.conclusion(), GraphConclusion::Verified);
+    assert!(matches!(
+        check_output_equivalence(
+            raw.analysis.symbolic_outputs().unwrap(),
+            reference.analysis.symbolic_outputs().unwrap(),
+            &["out".into()]
+        )
+        .unwrap(),
+        EquivOutcome::NotEquivalent { .. }
+    ));
+    let undefined = run(
+        &format!("s_xor_b32 s8,s9,0x80000000\nv_mov_b32 v2,s8\n{STORE}"),
+        4,
+        1,
+    );
+    assert!(undefined.analysis.symbolic_outputs().is_err());
+    let mixed = run(
+        &format!("{SCALAR_XOR}\nv_mov_b32 v2,s8\nv_add_f32 v2,0,v2\n{STORE}"),
+        4,
+        1,
+    );
+    assert!(mixed.analysis.symbolic_outputs().is_err());
+}
