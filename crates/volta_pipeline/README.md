@@ -142,6 +142,12 @@ independent native-superset checks and typed adverse controls. The
 [tensor reference inventory](../../tests/gfx1250/portable-tensor/README.md)
 keeps encoding residuals separate from portable payload and lifetime obligations.
 
+`gfx1250_async_memory_tests` checks actual 4/16-byte asynchronous copies,
+source/destination borrows, a complete two-region 32-byte copy and no-output
+128-byte destination reuse. Complete payloads, exact byte footprints and typed
+CPU-only mutation findings are required separately; see the
+[native asynchronous memory controls](../../tests/gfx1250/portable-graph/async-memory/README.md).
+
 `gfx1250_original_matrix_tests` separately checks parsing/lowering of the exact
 full K4096 six-kernel matrix corpus and its zero-scratch native descriptors.
 That frontend gate does not claim execution, equivalence, or graph acceptance.

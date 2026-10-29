@@ -1388,6 +1388,7 @@ fn missing_global_publication(
     later_wave: u32,
     later_mode: volta_graph::AccessMode,
     later_scoped: bool,
+    completed_read_before_write: bool,
 ) -> Option<EventId> {
     let mut pending = vec![root];
     while let Some(node) = pending.pop() {
@@ -1399,6 +1400,7 @@ fn missing_global_publication(
         }
         if operations[node.operation].wave != later_wave
             && ConflictKind::of(node.mode, later_mode).is_some()
+            && !(completed_read_before_write && node.mode == volta_graph::AccessMode::Read)
             && (!later_scoped || !node.scoped)
         {
             return Some(node.event);
@@ -1502,6 +1504,7 @@ fn memory_conflicts_with_clock(
                     later.wave,
                     access.mode,
                     later_scoped,
+                    gfx1250 && access.mode == volta_graph::AccessMode::Write,
                 ) {
                     unresolved.push(Unresolved::between(earlier, event,
                         if gfx1250 {
