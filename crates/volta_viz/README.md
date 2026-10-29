@@ -128,3 +128,17 @@ unsupported outcomes. It displays target-specific wait counters, WMMA/tensor
 issues, split signal/wait/release events and typed findings with source links.
 The mixed-target Chromium harness covers PTX, gfx942, gfx950 and gfx1250;
 rendering a run is separate from successful proof or hardware validation.
+
+The full-size matrix Chromium harness requires all six W27–W32 records and
+both typed shared-memory mutation controls. It checks complete source hashes
+against the registration, wave32 geometry, disclosed omissions, original IDs
+outside the display row range, omitted-ID rejection and finding/source links.
+The shared harness also accepts legacy identity-mapped records in the same page.
+
+```sh
+PLAYWRIGHT_MODULE=/path/to/playwright node tests/gfx1250/full-parity/browser.cjs mixed/index.html browser-evidence
+PLAYWRIGHT_MODULE=/path/to/playwright node tests/gfx1250/full-parity/matrix_browser.cjs mixed/index.html matrix-browser-evidence tests/gfx1250/full/cases.json
+```
+
+Both commands write browser receipts and screenshots. They require actual
+recorded native graphs; no sampled computation substitutes for a full-size run.

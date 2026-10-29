@@ -759,6 +759,9 @@ selected finding witnesses, preserves actual async completion endpoints, and
 does not alter graph construction, checks, provenance or verdicts. Small records
 keep their existing representation. `write_complete_run` is the unbounded
 archival writer. Browser source/event navigation uses original event IDs.
+The shared Chromium harness accepts both legacy and projected IDs. The full
+matrix harness checks six original K4096 records, two typed memory failures,
+source hashes, explicit omissions and navigation to retained/omitted IDs.
 
 The event-graph viewer; depends only on `volta_graph`, `volta_graph_check`
 (findings, pipeline edges) and `volta_expr` (stored values). `write_run(dir,

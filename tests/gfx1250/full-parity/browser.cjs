@@ -57,7 +57,7 @@ const errors = [];
       });
       if (event < 0) return { event };
       const line = data.instructions[data.events[event][1]].line;
-      return { event, line, instruction: source[line - 1], label: data.strings[data.events[event][3]],
+      return { event, original_event: data.eventIds?.[event] ?? event, line, instruction: source[line - 1], label: data.strings[data.events[event][3]],
         target: data.launch.targets, wave: data.launch.wave_size, kernel: data.meta.kernel,
         terminal: data.terminal, source_sha256_input: data.source };
     }, { ordinal, instruction: control.instruction });
@@ -66,10 +66,10 @@ const errors = [];
     assert.equal(details.wave, 32);
     assert.equal(details.kernel, control.kernel);
     const goto = page.getByRole('textbox', { name: 'Go to event', exact: true });
-    await goto.fill('e' + details.event);
+    await goto.fill('e' + details.original_event);
     await goto.press('Enter');
     await page.locator('[data-tab="event"]').click();
-    assert.equal(await page.locator('#tab-event .event-id').textContent(), 'e' + details.event);
+    assert.equal(await page.locator('#tab-event .event-id').textContent(), 'e' + details.original_event);
     assert.equal(await page.locator('#tab-event .event-label').textContent(), details.label);
     await page.locator('[data-tab="source"]').click();
     const current = page.locator('#tab-source .src-line.current');

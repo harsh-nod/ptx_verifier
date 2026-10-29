@@ -46,7 +46,7 @@ let activeBrowser;
       const featureEvents = {};
       for (const [name, pattern] of Object.entries({ wait: /^native wait /, wmma: / WMMA /, tensor: /Tensor(LoadToLds|StoreFromLds)/, delay: /^s_delay_alu /, signal: /^s_barrier_signal -1 /, barrier_wait: /^s_barrier_wait -1 /, release: /^barrier -1 phase .* released$/ })) {
         const id = (d.events || []).findIndex(e => pattern.test(d.strings[e[3]]));
-        if (id >= 0) { const e = d.events[id]; featureEvents[name] = { event: id, label: d.strings[e[3]], line: d.instructions[e[1]]?.line }; }
+        if (id >= 0) { const e = d.events[id]; featureEvents[name] = { event: d.eventIds?.[id] ?? id, label: d.strings[e[3]], line: d.instructions[e[1]]?.line }; }
       }
       return { target: d.launch?.targets || (d.source_target ? [d.source_target] : []),
         wave: d.launch?.wave_size || d.source_wave_size, wave_kind: d.launch?.wave_kind || d.source_wave_kind || ((d.source_language || d.launch?.source_language) === 'amdgpu' ? 'wave' : 'warp'),
@@ -55,12 +55,19 @@ let activeBrowser;
         lane_labels: (d.lanes || []).filter(l => l.kind === 'thread').map(l => l.label),
         feature_events: featureEvents,
         drawn_groups: [...new Set((window.__voltaCanvasText || []).filter(t => /^(wave|warp) \d+$/.test(t)))],
-        events: d.events?.length || 0, checks: d.checks?.length || 0, source_lines: (d.source || '').split('\n').length };
+        first_event_id: d.eventIds?.[0] ?? 0, display: d.display || null, full_events: d.meta.events, events: d.events?.length || 0, checks: d.checks?.length || 0, source_lines: (d.source || '').split('\n').length };
     }, i);
   }
   for (let i = 0; i < index.length; ++i) {
     const info = await open(i);
     const target = info.target.join(',');
+    if (info.display) {
+      assert.equal(info.display.totalEvents, index[i].events);
+      assert.equal(info.display.includedEvents, info.events);
+      assert(info.events <= info.display.eventLimit);
+      assert.equal(info.display.includedEvents + info.display.omittedEvents, info.display.totalEvents);
+      assert((await page.locator('#run-header .display-note').textContent()).includes('Checks use the complete graph'));
+    }
     if (/gfx942|gfx950|gfx1250/.test(target)) {
       const width = target.startsWith('gfx1250') ? 32 : 64;
       assert.equal(info.wave, width, index[i].key + ': native geometry');
@@ -81,10 +88,10 @@ let activeBrowser;
     }
     if (info.events) {
       const goto = page.getByRole('textbox', { name: 'Go to event', exact: true });
-      await goto.fill('e0');
+      await goto.fill('e' + info.first_event_id);
       await goto.press('Enter');
       await page.locator('[data-tab="event"]').click();
-      assert.equal(await page.locator('#tab-event .event-id').textContent(), 'e0');
+      assert.equal(await page.locator('#tab-event .event-id').textContent(), 'e' + info.first_event_id);
       await page.locator('[data-tab="source"]').click();
       const mapped = page.locator('#tab-source .src-line.has-events');
       if (await mapped.count()) {
@@ -148,10 +155,10 @@ let activeBrowser;
   await filter.fill('');
   await page.waitForTimeout(200);
   const goto = page.getByRole('textbox', { name: 'Go to event', exact: true });
-  await goto.fill('e0');
+  await goto.fill('e' + opened[native].first_event_id);
   await goto.press('Enter');
   await page.locator('[data-tab="event"]').click();
-  assert.equal(await page.locator('#tab-event .event-id').textContent(), 'e0', 'event navigation recovers after empty lane filters');
+  assert.equal(await page.locator('#tab-event .event-id').textContent(), 'e' + opened[native].first_event_id, 'event navigation recovers after empty lane filters');
   await page.locator('[data-tab="checks"]').click();
   const finding = page.locator('#tab-checks .event-chip').first();
   if (await finding.count()) {
@@ -182,7 +189,7 @@ let activeBrowser;
   assert.deepEqual(errors, [], 'no browser exceptions or console errors');
   const sha256 = value => crypto.createHash('sha256').update(value).digest('hex');
   const documents = await page.evaluate(() => [...document.querySelectorAll('script[id^="run-"]')].map(e => ({ id: e.id, text: e.textContent })));
-  const receipt = { scope: 'Rendering and interaction only; hardware validation pending',
+  const receipt = { scope: 'Rendering and interaction only; mathematical and hardware receipts are separate',
     browser: browser.version(), html, html_sha256: sha256(fs.readFileSync(html)), script_sha256: sha256(fs.readFileSync(__filename)),
     documents: documents.map(d => ({ id: d.id, sha256: sha256(d.text) })), runs: index.length, opened, assertions: 'all runs rendered; PTX/gfx942/gfx950/gfx1250; actual canvas wave/warp grouping; four native checks; source mapping/selection; typed failures; partial waves; filters; eventless unsupported source; theme/help', browser_errors: errors };
   fs.writeFileSync(path.join(output, 'browser-review.json'), JSON.stringify(receipt, null, 2) + '\n');

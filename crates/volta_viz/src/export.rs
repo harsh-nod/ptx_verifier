@@ -162,7 +162,7 @@ pub fn summary(run: &Run) -> Json {
     ])
 }
 
-/// The run's full document.
+/// The run's browser document, with a bounded display selection for large graphs.
 pub fn document(run: &Run) -> Json {
     document_with_limit(run, Some(display::EVENT_LIMIT))
 }
