@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "scope": "Explicit current coordinator review blockers that remain even when every reference row has a candidate owner. This overlay adds no duplicate ownership or acceptance.",
+  "completion": "coordinator_review_required",
+  "rows": [
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/bar_arrive_register_id_count_mismatch.ptx",
+      "upstream_sha256": "f7f001c17f91d9b005a09c36861e5cb6d4365b8adb8edc517b9663e521f853f9",
+      "group": "BARRIER-SPLIT-PHASE",
+      "status": "pending",
+      "completion": "coordinator_review_required",
+      "current_observation": "Native fresh initialization lifetimes do not yet implement the required signal-time expected-count update counterpart. Target-specific spelling alone does not close this portable progress/count obligation.",
+      "required_gate": "Pinned public M0 signal-time count-update semantics, typed producer/event/checker support and actual native matching safe/count-mismatch/count-change controls."
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_changes_between_phases.ptx",
+      "upstream_sha256": "2de9110a2941b27da9c2e9c5c76a6f319a897bc253314be3d1403c829ad5dd81",
+      "group": "BARRIER-SPLIT-PHASE",
+      "status": "pending",
+      "completion": "coordinator_review_required",
+      "current_observation": "Native fresh initialization lifetimes do not yet implement the required signal-time expected-count update counterpart. Target-specific spelling alone does not close this portable progress/count obligation.",
+      "required_gate": "Pinned public M0 signal-time count-update semantics, typed producer/event/checker support and actual native matching safe/count-mismatch/count-change controls."
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_mismatch.ptx",
+      "upstream_sha256": "5d3e556415aa56d7eae93e382cf0a0753111b8ef518ff8c4d13c2a85896f0dbd",
+      "group": "BARRIER-SPLIT-PHASE",
+      "status": "pending",
+      "completion": "coordinator_review_required",
+      "current_observation": "Native fresh initialization lifetimes do not yet implement the required signal-time expected-count update counterpart. Target-specific spelling alone does not close this portable progress/count obligation.",
+      "required_gate": "Pinned public M0 signal-time count-update semantics, typed producer/event/checker support and actual native matching safe/count-mismatch/count-change controls."
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_init_unordered_with_other_threads_arrive.ptx",
+      "upstream_sha256": "e0f4f0f6866f9a5354efa760fe2246661c982c1a05396a1247f302a622f6ed7a",
+      "group": "BARRIER-OBJECT-LIFECYCLE",
+      "status": "pending",
+      "completion": "coordinator_review_required",
+      "current_observation": "Actual allocated source currently returns AmdBarrier Unknown for unordered initialization, which does not satisfy this intended harmful negative.",
+      "required_gate": "Actual native source safe/unsafe pair with documented typed AmdBarrier violation; Unknown is not a caught harmful outcome."
+    }
+  ]
+}

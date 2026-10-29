@@ -347,6 +347,190 @@
       "function": "original_zero_boundary_math_has_explicit_complete_native_projections_and_superset",
       "source_sha256": "341aec349a62faffad1b887c0f01f5c372ff195efa1eeb8a6fd65b2d0e03e1c1",
       "evidence_scope": "Source-pinned executable native positive/negative assertions; candidate mapping, not coordinator acceptance or hardware execution."
+    },
+    "review:actual_named_barrier_missing_and_extra_operands_reject_before_reachability": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_mechanism_boundary_tests.rs",
+      "function": "actual_named_barrier_missing_and_extra_operands_reject_before_reachability",
+      "line": 22,
+      "source_sha256": "139f1077f7928274576b837c0ce2478a1342a52a31ac4b0038d89dee252c4cce",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:canonical_native_termination_wait_and_complete_vector_load_controls_are_legal": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs",
+      "function": "canonical_native_termination_wait_and_complete_vector_load_controls_are_legal",
+      "line": 363,
+      "source_sha256": "c23635c671317eccfaea7af97d10f25131e6505dc055a7483fb0c8c6d45cc649",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_portable_abi_tests.rs",
+      "function": "genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums",
+      "line": 244,
+      "source_sha256": "807170ea9e218affa0ad588e8d221697e1ae94e24dcbfb9ded426348c63454db",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_portable_abi_tests.rs",
+      "function": "extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls",
+      "line": 271,
+      "source_sha256": "807170ea9e218affa0ad588e8d221697e1ae94e24dcbfb9ded426348c63454db",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_portable_abi_tests.rs",
+      "function": "whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects",
+      "line": 471,
+      "source_sha256": "807170ea9e218affa0ad588e8d221697e1ae94e24dcbfb9ded426348c63454db",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_native_flat_tests.rs",
+      "function": "new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+      "line": 165,
+      "source_sha256": "16bfdd2d9fa5642d22b9eaf1ddb0aa23cbf54091d9a9a09132d04061292f2e53",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:wide_shared_address_does_not_define_uninitialized_lds_or_numeric_aperture_bits": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_flat_scaled_index_tests.rs",
+      "function": "wide_shared_address_does_not_define_uninitialized_lds_or_numeric_aperture_bits",
+      "line": 167,
+      "source_sha256": "81cadbd7f87a01df0ae46b408f1818b5b5a66bca0a5e109e40fbd128b3863ac4",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:system_scope_visibility_requires_both_endpoints_completion_and_publication": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "system_scope_visibility_requires_both_endpoints_completion_and_publication",
+      "line": 1698,
+      "source_sha256": "5ea46852f55d2b1603202d44241234805cf50571811c7afc2f55b1f30e8fd930",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:system_scope_does_not_expand_the_selected_workgroup_contract": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "system_scope_does_not_expand_the_selected_workgroup_contract",
+      "line": 1797,
+      "source_sha256": "5ea46852f55d2b1603202d44241234805cf50571811c7afc2f55b1f30e8fd930",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:system_scope_cannot_certify_scalar_or_resolved_shared_effects": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "system_scope_cannot_certify_scalar_or_resolved_shared_effects",
+      "line": 1769,
+      "source_sha256": "5ea46852f55d2b1603202d44241234805cf50571811c7afc2f55b1f30e8fd930",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication",
+      "line": 1636,
+      "source_sha256": "5ea46852f55d2b1603202d44241234805cf50571811c7afc2f55b1f30e8fd930",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+      "line": 520,
+      "source_sha256": "5ea46852f55d2b1603202d44241234805cf50571811c7afc2f55b1f30e8fd930",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:ordinary_grid_group_and_block_fields_retain_all_nine_native_values": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_portable_abi_tests.rs",
+      "function": "ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+      "line": 219,
+      "source_sha256": "807170ea9e218affa0ad588e8d221697e1ae94e24dcbfb9ded426348c63454db",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_amdgpu_analysis/tests/gfx1250_execution.rs",
+      "function": "native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations",
+      "line": 441,
+      "source_sha256": "4cd9ccc8f346d4fc00153911b7f9881165966498b997cabde8451f078ef0fe5a",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_compiler_tests.rs",
+      "function": "real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+      "line": 216,
+      "source_sha256": "0be8d137f14012d317b40a96771797f698f9af6629bba9143fc70883d5ec1c08",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_compiler_tests.rs",
+      "function": "real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+      "line": 473,
+      "source_sha256": "0be8d137f14012d317b40a96771797f698f9af6629bba9143fc70883d5ec1c08",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+      "line": 1363,
+      "source_sha256": "5ea46852f55d2b1603202d44241234805cf50571811c7afc2f55b1f30e8fd930",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_matrix_numeric_parity.rs",
+      "function": "assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma",
+      "line": 227,
+      "source_sha256": "d003df40192e067be2657cf91770befa3255876128eff1bf537a5c8139290286",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_matrix_publication.rs",
+      "function": "wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+      "line": 168,
+      "source_sha256": "d089ae24044ea74db01db37e1c4f092c679a27976d7c8409d98fd5bc79d2007c",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
+      "function": "genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes",
+      "line": 92,
+      "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:named_arrival_count_is_not_a_distinct_wave_count": {
+      "commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+      "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+      "function": "named_arrival_count_is_not_a_distinct_wave_count",
+      "line": 2907,
+      "source_sha256": "5ea46852f55d2b1603202d44241234805cf50571811c7afc2f55b1f30e8fd930",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:reinitializing_an_object_with_live_joins_stays_explicitly_unsupported": {
+      "commit": "162884b68c30893a754515407b30c83c909fe3f9",
+      "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+      "function": "reinitializing_an_object_with_live_joins_stays_explicitly_unsupported",
+      "line": 195,
+      "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
+    },
+    "review:native_count_changes_require_a_released_ordered_new_initialization_lifetime": {
+      "commit": "162884b68c30893a754515407b30c83c909fe3f9",
+      "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+      "function": "native_count_changes_require_a_released_ordered_new_initialization_lifetime",
+      "line": 208,
+      "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee",
+      "audit_replay": "Current source/test adjudication; final integrated replay and acceptance remain coordinator-owned."
     }
   },
   "counts": {
@@ -603,13 +787,19 @@
       "exact_target_contract": "Bare PTX bar/barrier has no implicit sync operation. Native barrier operations have separate explicit mnemonics.",
       "remaining_portable_obligation": "Invalid native instructions/extra operands must never be silently ignored.",
       "native_property_scope": "Native encoding/target validation and descriptor bypass controls are established. Exact PTX missing-modifier diagnostic is not a native syntax contract.",
-      "actual_native_gap": "Dedicated native missing/extra barrier operand negative is a useful validation gap; existing count/protocol controls are not falsely said to test this lexical case.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "e:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations",
-        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation"
-      ]
+        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation",
+        "review:actual_named_barrier_missing_and_extra_operands_reject_before_reachability",
+        "review:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes"
+      ],
+      "historical_native_gap": "Dedicated native missing/extra barrier operand negative is a useful validation gap; existing count/protocol controls are not falsely said to test this lexical case.",
+      "current_adjudication": "The PTX operation/modifier spelling stays target-specific. Actual native INIT/JOIN/SIGNAL/WAIT/LEAVE forms now have nine exact missing/extra-operand controls in live, unreachable and EXEC-zero placements. LLVM MC accepts the genuine allocated compiler module and rejects all27 mutants; the native frontend rejects all27 before execution. No malformed native operand is accepted through a dead path.",
+      "current_disposition": "exact_grammar_residual_with_native_static_operand_counterpart",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_and_barrier_reject_a_missing_operation_barrier.ptx",
@@ -631,13 +821,19 @@
       "exact_target_contract": "Bare PTX bar/barrier has no implicit sync operation. Native barrier operations have separate explicit mnemonics.",
       "remaining_portable_obligation": "Invalid native instructions/extra operands must never be silently ignored.",
       "native_property_scope": "Native encoding/target validation and descriptor bypass controls are established. Exact PTX missing-modifier diagnostic is not a native syntax contract.",
-      "actual_native_gap": "Dedicated native missing/extra barrier operand negative is a useful validation gap; existing count/protocol controls are not falsely said to test this lexical case.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "e:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations",
-        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation"
-      ]
+        "n:named_objects_require_real_allocation_and_cannot_bypass_target_validation",
+        "review:actual_named_barrier_missing_and_extra_operands_reject_before_reachability",
+        "review:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes"
+      ],
+      "historical_native_gap": "Dedicated native missing/extra barrier operand negative is a useful validation gap; existing count/protocol controls are not falsely said to test this lexical case.",
+      "current_adjudication": "The PTX operation/modifier spelling stays target-specific. Actual native INIT/JOIN/SIGNAL/WAIT/LEAVE forms now have nine exact missing/extra-operand controls in live, unreachable and EXEC-zero placements. LLVM MC accepts the genuine allocated compiler module and rejects all27 mutants; the native frontend rejects all27 before execution. No malformed native operand is accepted through a dead path.",
+      "current_disposition": "exact_grammar_residual_with_native_static_operand_counterpart",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_multicast_try_cancel_is_rejected.ptx",
@@ -659,14 +855,21 @@
       "exact_target_contract": "Cluster-wide asynchronous cancellation writes every CTA response; selected native scope is one unclustered analyzed WG.",
       "remaining_portable_obligation": "No arithmetic or output values are asserted. Keep native selected-WG geometry, concrete address provenance and unsupported-cluster rejection explicit; do not synthesize a successful scheduler response.",
       "native_property_scope": "Native logical launch geometry is retained while proofs require UnclusteredWorkgroup/SingleWorkgroupAnalyzed. No other-WG/cancellation behavior is inferred.",
-      "actual_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
         "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
-        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
-      ]
+        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+        "review:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+        "review:ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+        "review:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ],
+      "historical_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "current_adjudication": "The actual baseline assertion is a rejected NVIDIA scheduler-response/protocol or distributed-shared mapping operation, with no successful arithmetic/output formula. Native analysis retains the selected unclustered workgroup geometry and ordinary grid values, refuses an unsupported whole-grid proof without an explicit selected-workgroup premise, and never manufactures a scheduler response or remote shared mapping. The asynchronous16-byte response memory lifetime is a separate portable row with actual native TDM controls.",
+      "current_disposition": "exact_scheduler_or_distributed_shared_api_residual",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_query_of_a_fabricated_response_is_rejected.ptx",
@@ -688,14 +891,21 @@
       "exact_target_contract": "NVIDIA scheduler-response provenance cannot be manufactured from an arbitrary b128 word.",
       "remaining_portable_obligation": "No arithmetic or output values are asserted. Keep native selected-WG geometry, concrete address provenance and unsupported-cluster rejection explicit; do not synthesize a successful scheduler response.",
       "native_property_scope": "Native logical launch geometry is retained while proofs require UnclusteredWorkgroup/SingleWorkgroupAnalyzed. No other-WG/cancellation behavior is inferred.",
-      "actual_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
         "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
-        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
-      ]
+        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+        "review:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+        "review:ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+        "review:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ],
+      "historical_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "current_adjudication": "The actual baseline assertion is a rejected NVIDIA scheduler-response/protocol or distributed-shared mapping operation, with no successful arithmetic/output formula. Native analysis retains the selected unclustered workgroup geometry and ordinary grid values, refuses an unsupported whole-grid proof without an explicit selected-workgroup premise, and never manufactures a scheduler response or remote shared mapping. The asynchronous16-byte response memory lifetime is a separate portable row with actual native TDM controls.",
+      "current_disposition": "exact_scheduler_or_distributed_shared_api_residual",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_try_cancel_after_observed_decline_is_rejected.ptx",
@@ -717,14 +927,21 @@
       "exact_target_contract": "NVIDIA cancellation request protocol forbids a new request after the actor observes decline.",
       "remaining_portable_obligation": "No arithmetic or output values are asserted. Keep native selected-WG geometry, concrete address provenance and unsupported-cluster rejection explicit; do not synthesize a successful scheduler response.",
       "native_property_scope": "Native logical launch geometry is retained while proofs require UnclusteredWorkgroup/SingleWorkgroupAnalyzed. No other-WG/cancellation behavior is inferred.",
-      "actual_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
         "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
-        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
-      ]
+        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+        "review:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+        "review:ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+        "review:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ],
+      "historical_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "current_adjudication": "The actual baseline assertion is a rejected NVIDIA scheduler-response/protocol or distributed-shared mapping operation, with no successful arithmetic/output formula. Native analysis retains the selected unclustered workgroup geometry and ordinary grid values, refuses an unsupported whole-grid proof without an explicit selected-workgroup premise, and never manufactures a scheduler response or remote shared mapping. The asynchronous16-byte response memory lifetime is a separate portable row with actual native TDM controls.",
+      "current_disposition": "exact_scheduler_or_distributed_shared_api_residual",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_unguarded_get_first_ctaid_is_rejected.ptx",
@@ -746,14 +963,21 @@
       "exact_target_contract": "Decoding a canceled CTA identifier out of a declined NVIDIA scheduler response is forbidden.",
       "remaining_portable_obligation": "No arithmetic or output values are asserted. Keep native selected-WG geometry, concrete address provenance and unsupported-cluster rejection explicit; do not synthesize a successful scheduler response.",
       "native_property_scope": "Native logical launch geometry is retained while proofs require UnclusteredWorkgroup/SingleWorkgroupAnalyzed. No other-WG/cancellation behavior is inferred.",
-      "actual_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
         "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
-        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
-      ]
+        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+        "review:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+        "review:ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+        "review:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ],
+      "historical_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "current_adjudication": "The actual baseline assertion is a rejected NVIDIA scheduler-response/protocol or distributed-shared mapping operation, with no successful arithmetic/output formula. Native analysis retains the selected unclustered workgroup geometry and ordinary grid values, refuses an unsupported whole-grid proof without an explicit selected-workgroup premise, and never manufactures a scheduler response or remote shared mapping. The asynchronous16-byte response memory lifetime is a separate portable row with actual native TDM controls.",
+      "current_disposition": "exact_scheduler_or_distributed_shared_api_residual",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/cvta_other_forms_rejected_global.ptx",
@@ -775,15 +999,24 @@
       "exact_target_contract": "These rejected PTX address-space conversion spellings are restrictions of the baseline frontend/model, not universally invalid pointer arithmetic.",
       "remaining_portable_obligation": "Native conversion/resolution must preserve concrete Global versus opaque Shared address domain, bounds and symbolic data.",
       "native_property_scope": "Actual native src_shared_base/FLAT domain controls and bounds preserve symbolic values. PTX rejection is not imported onto valid native Shared addressing.",
-      "actual_native_gap": "Coordinator should replay the latest peer ABI checkpoint; no native source/path is invented by this audit.",
+      "actual_native_gap": "",
       "proposal": "native_property_candidate_with_target_residual",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "a:genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums",
         "a:extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls",
         "a:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects",
-        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting"
-      ]
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "review:genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums",
+        "review:extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls",
+        "review:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects",
+        "review:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "review:wide_shared_address_does_not_define_uninitialized_lds_or_numeric_aperture_bits"
+      ],
+      "historical_native_gap": "Coordinator should replay the latest peer ABI checkpoint; no native source/path is invented by this audit.",
+      "current_adjudication": "The original rejected PTX conversion spelling is a baseline frontend/per-space-window restriction, not a ban on portable address resolution. Genuine native static/dynamic Shared pointers retain an opaque shared aperture, alignment/padding and complete symbolic payloads; exact missing capacity and adjacent-subobject boundaries reject. FLAT operand/target profiles reject statically, and unknown numeric aperture bits or uninitialized LDS never become defined output. No numeric Shared-base value or arbitrary per-space window is invented.",
+      "current_disposition": "exact_ptx_conversion_form_residual_with_native_address_domain_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/cvta_other_forms_rejected_shared.ptx",
@@ -805,15 +1038,24 @@
       "exact_target_contract": "These rejected PTX address-space conversion spellings are restrictions of the baseline frontend/model, not universally invalid pointer arithmetic.",
       "remaining_portable_obligation": "Native conversion/resolution must preserve concrete Global versus opaque Shared address domain, bounds and symbolic data.",
       "native_property_scope": "Actual native src_shared_base/FLAT domain controls and bounds preserve symbolic values. PTX rejection is not imported onto valid native Shared addressing.",
-      "actual_native_gap": "Coordinator should replay the latest peer ABI checkpoint; no native source/path is invented by this audit.",
+      "actual_native_gap": "",
       "proposal": "native_property_candidate_with_target_residual",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "a:genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums",
         "a:extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls",
         "a:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects",
-        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting"
-      ]
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "review:genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums",
+        "review:extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls",
+        "review:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects",
+        "review:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "review:wide_shared_address_does_not_define_uninitialized_lds_or_numeric_aperture_bits"
+      ],
+      "historical_native_gap": "Coordinator should replay the latest peer ABI checkpoint; no native source/path is invented by this audit.",
+      "current_adjudication": "The original rejected PTX conversion spelling is a baseline frontend/per-space-window restriction, not a ban on portable address resolution. Genuine native static/dynamic Shared pointers retain an opaque shared aperture, alignment/padding and complete symbolic payloads; exact missing capacity and adjacent-subobject boundaries reject. FLAT operand/target profiles reject statically, and unknown numeric aperture bits or uninitialized LDS never become defined output. No numeric Shared-base value or arbitrary per-space window is invented.",
+      "current_disposition": "exact_ptx_conversion_form_residual_with_native_address_domain_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/cvta_other_forms_rejected_to_shared.ptx",
@@ -835,15 +1077,24 @@
       "exact_target_contract": "These rejected PTX address-space conversion spellings are restrictions of the baseline frontend/model, not universally invalid pointer arithmetic.",
       "remaining_portable_obligation": "Native conversion/resolution must preserve concrete Global versus opaque Shared address domain, bounds and symbolic data.",
       "native_property_scope": "Actual native src_shared_base/FLAT domain controls and bounds preserve symbolic values. PTX rejection is not imported onto valid native Shared addressing.",
-      "actual_native_gap": "Coordinator should replay the latest peer ABI checkpoint; no native source/path is invented by this audit.",
+      "actual_native_gap": "",
       "proposal": "native_property_candidate_with_target_residual",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "a:genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums",
         "a:extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls",
         "a:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects",
-        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting"
-      ]
+        "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "review:genuine_static_dynamic_lds_preserves_alignment_padding_and_both_symbolic_sums",
+        "review:extern_only_dynamic_window_has_exact_end_and_missing_capacity_controls",
+        "review:whole_vector_transfer_cannot_straddle_adjacent_configured_lds_objects",
+        "review:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
+        "review:wide_shared_address_does_not_define_uninitialized_lds_or_numeric_aperture_bits"
+      ],
+      "historical_native_gap": "Coordinator should replay the latest peer ABI checkpoint; no native source/path is invented by this audit.",
+      "current_adjudication": "The original rejected PTX conversion spelling is a baseline frontend/per-space-window restriction, not a ban on portable address resolution. Genuine native static/dynamic Shared pointers retain an opaque shared aperture, alignment/padding and complete symbolic payloads; exact missing capacity and adjacent-subobject boundaries reject. FLAT operand/target profiles reject statically, and unknown numeric aperture bits or uninitialized LDS never become defined output. No numeric Shared-base value or arbitrary per-space window is invented.",
+      "current_disposition": "exact_ptx_conversion_form_residual_with_native_address_domain_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/mapa_generic_is_rejected.ptx",
@@ -865,14 +1116,21 @@
       "exact_target_contract": "PTX generic mapa lacks model per-space windows for distributed shared addressing.",
       "remaining_portable_obligation": "No arithmetic or output values are asserted. Keep native selected-WG geometry, concrete address provenance and unsupported-cluster rejection explicit; do not synthesize a successful scheduler response.",
       "native_property_scope": "Native logical launch geometry is retained while proofs require UnclusteredWorkgroup/SingleWorkgroupAnalyzed. No other-WG/cancellation behavior is inferred.",
-      "actual_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
         "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
-        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
-      ]
+        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+        "review:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+        "review:ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+        "review:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ],
+      "historical_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "current_adjudication": "The actual baseline assertion is a rejected NVIDIA scheduler-response/protocol or distributed-shared mapping operation, with no successful arithmetic/output formula. Native analysis retains the selected unclustered workgroup geometry and ordinary grid values, refuses an unsupported whole-grid proof without an explicit selected-workgroup premise, and never manufactures a scheduler response or remote shared mapping. The asynchronous16-byte response memory lifetime is a separate portable row with actual native TDM controls.",
+      "current_disposition": "exact_scheduler_or_distributed_shared_api_residual",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/mapa_nonzero_rank_is_rejected.ptx",
@@ -894,14 +1152,21 @@
       "exact_target_contract": "PTX distributed-shared mapping names a CTA beyond the selected single-CTA cluster.",
       "remaining_portable_obligation": "No arithmetic or output values are asserted. Keep native selected-WG geometry, concrete address provenance and unsupported-cluster rejection explicit; do not synthesize a successful scheduler response.",
       "native_property_scope": "Native logical launch geometry is retained while proofs require UnclusteredWorkgroup/SingleWorkgroupAnalyzed. No other-WG/cancellation behavior is inferred.",
-      "actual_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
         "g:empty_incomplete_and_replay_disabled_envelopes_never_accept",
-        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values"
-      ]
+        "a:ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+        "review:a_logical_grid_retains_its_geometry_without_certifying_other_workgroups",
+        "review:ordinary_grid_group_and_block_fields_retain_all_nine_native_values",
+        "review:native_encoding_suffixes_and_workgroup_premises_do_not_cross_generations"
+      ],
+      "historical_native_gap": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload.",
+      "current_adjudication": "The actual baseline assertion is a rejected NVIDIA scheduler-response/protocol or distributed-shared mapping operation, with no successful arithmetic/output formula. Native analysis retains the selected unclustered workgroup geometry and ordinary grid values, refuses an unsupported whole-grid proof without an explicit selected-workgroup premise, and never manufactures a scheduler response or remote shared mapping. The asynchronous16-byte response memory lifetime is a separate portable row with actual native TDM controls.",
+      "current_disposition": "exact_scheduler_or_distributed_shared_api_residual",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_inval_is_not_implemented.ptx",
@@ -923,13 +1188,20 @@
       "exact_target_contract": "NVIDIA explicit invalidation before reusing LDS-backed mbarrier bytes is unimplemented in the baseline. Native named objects use leave/reinit/incarnation identities.",
       "remaining_portable_obligation": "Safe native object reuse must preserve outstanding-use and incarnation constraints.",
       "native_property_scope": "Actual ordered native reinit after all leaves preserves two outputs; stale object/phase records fail.",
-      "actual_native_gap": "Unordered/outstanding native reinit source negatives are explicitly pending in the separate59-row proposal; they are not closed by this spelling-only unsupported test.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "n:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes",
-        "g:named_reinitialization_creates_a_fresh_lifetime_and_stale_records_fail"
-      ]
+        "g:named_reinitialization_creates_a_fresh_lifetime_and_stale_records_fail",
+        "review:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes",
+        "review:native_count_changes_require_a_released_ordered_new_initialization_lifetime",
+        "review:reinitializing_an_object_with_live_joins_stays_explicitly_unsupported"
+      ],
+      "historical_native_gap": "Unordered/outstanding native reinit source negatives are explicitly pending in the separate59-row proposal; they are not closed by this spelling-only unsupported test.",
+      "current_adjudication": "The original test asserts the baseline unsupported mbarrier.inval spelling and has no successful data result. Genuine native ordered leave/reinit preserves all outputs, a fresh count2-to1 initialization uses a new released lifetime, and actual source reinitializing outstanding named joins aborts Unsupported with no output or positive verdict. That Unsupported is the intended negative control, never a substitute for a required positive. The related unordered-init/live-reinit graph rows retain their own exact actor/phase mappings.",
+      "current_disposition": "exact_invalidation_spelling_residual_with_native_lifetime_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_relaxed_semantics_rejected_arrive.ptx",
@@ -1152,8 +1424,16 @@
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves",
-        "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data"
-      ]
+        "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data",
+        "review:system_scope_visibility_requires_both_endpoints_completion_and_publication",
+        "review:system_scope_does_not_expand_the_selected_workgroup_contract",
+        "review:system_scope_cannot_certify_scalar_or_resolved_shared_effects",
+        "review:legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication"
+      ],
+      "historical_native_gap": "",
+      "current_adjudication": "These original rows assert rejected PTX scope/alias/proxy spelling, with no successful mathematical payload. Native completion, source retention and visibility remain separate obligations. The exact supported native SYS endpoint/completion/publication controls and forbidden legacy cache/proxy substitutions are tested; no broader cluster, proxy-alias or cross-agent certificate is synthesized.",
+      "current_disposition": "exact_fence_alias_or_proxy_spelling_residual_with_native_visibility_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/membar_levels_gpu.ptx",
@@ -1180,8 +1460,16 @@
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves",
-        "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data"
-      ]
+        "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data",
+        "review:system_scope_visibility_requires_both_endpoints_completion_and_publication",
+        "review:system_scope_does_not_expand_the_selected_workgroup_contract",
+        "review:system_scope_cannot_certify_scalar_or_resolved_shared_effects",
+        "review:legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication"
+      ],
+      "historical_native_gap": "",
+      "current_adjudication": "These original rows assert rejected PTX scope/alias/proxy spelling, with no successful mathematical payload. Native completion, source retention and visibility remain separate obligations. The exact supported native SYS endpoint/completion/publication controls and forbidden legacy cache/proxy substitutions are tested; no broader cluster, proxy-alias or cross-agent certificate is synthesized.",
+      "current_disposition": "exact_fence_alias_or_proxy_spelling_residual_with_native_visibility_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/membar_levels_proxy_alias.ptx",
@@ -1208,8 +1496,16 @@
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves",
-        "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data"
-      ]
+        "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data",
+        "review:system_scope_visibility_requires_both_endpoints_completion_and_publication",
+        "review:system_scope_does_not_expand_the_selected_workgroup_contract",
+        "review:system_scope_cannot_certify_scalar_or_resolved_shared_effects",
+        "review:legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication"
+      ],
+      "historical_native_gap": "",
+      "current_adjudication": "These original rows assert rejected PTX scope/alias/proxy spelling, with no successful mathematical payload. Native completion, source retention and visibility remain separate obligations. The exact supported native SYS endpoint/completion/publication controls and forbidden legacy cache/proxy substitutions are tested; no broader cluster, proxy-alias or cross-agent certificate is synthesized.",
+      "current_disposition": "exact_fence_alias_or_proxy_spelling_residual_with_native_visibility_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/membar_levels_proxy_async.ptx",
@@ -1236,8 +1532,16 @@
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:split_barrier_publishes_only_completed_effects_and_needs_all_live_waves",
-        "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data"
-      ]
+        "g:replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data",
+        "review:system_scope_visibility_requires_both_endpoints_completion_and_publication",
+        "review:system_scope_does_not_expand_the_selected_workgroup_contract",
+        "review:system_scope_cannot_certify_scalar_or_resolved_shared_effects",
+        "review:legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication"
+      ],
+      "historical_native_gap": "",
+      "current_adjudication": "These original rows assert rejected PTX scope/alias/proxy spelling, with no successful mathematical payload. Native completion, source retention and visibility remain separate obligations. The exact supported native SYS endpoint/completion/publication controls and forbidden legacy cache/proxy substitutions are tested; no broader cluster, proxy-alias or cross-agent certificate is synthesized.",
+      "current_disposition": "exact_fence_alias_or_proxy_spelling_residual_with_native_visibility_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_alloc_rejects_invalid_sizes_and_order_16.ptx",
@@ -1371,14 +1675,23 @@
       "exact_target_contract": "NVIDIA tcgen05 A descriptor reserved bit15 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_b_desc_no_bit46.ptx",
@@ -1400,14 +1713,23 @@
       "exact_target_contract": "NVIDIA tcgen05 B descriptor mandatory fixed field is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_b_swizzle128b_atom32.ptx",
@@ -1429,14 +1751,23 @@
       "exact_target_contract": "NVIDIA tcgen05 transposed B/swizzle/atomicity combination is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_d_lane128.ptx",
@@ -1458,14 +1789,23 @@
       "exact_target_contract": "NVIDIA tcgen05 nonzero D Tensor Memory lane field128 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_d_lane32.ptx",
@@ -1487,14 +1827,23 @@
       "exact_target_contract": "NVIDIA tcgen05 nonzero D Tensor Memory lane field32 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_dtype2.ptx",
@@ -1516,14 +1865,23 @@
       "exact_target_contract": "NVIDIA tcgen05 D type2 on selected floating .kind::f16 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_dtype3.ptx",
@@ -1545,14 +1903,23 @@
       "exact_target_contract": "NVIDIA tcgen05 D type3 on selected floating .kind::f16 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_max_shift.ptx",
@@ -1574,14 +1941,23 @@
       "exact_target_contract": "NVIDIA tcgen05 B reuse-shift bits on non-.ws instruction is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_reserved_bit23.ptx",
@@ -1603,14 +1979,23 @@
       "exact_target_contract": "NVIDIA tcgen05 instruction descriptor reserved bit23 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_reserved_bit6.ptx",
@@ -1632,14 +2017,23 @@
       "exact_target_contract": "NVIDIA tcgen05 instruction descriptor reserved bit6 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_saturate.ptx",
@@ -1661,14 +2055,23 @@
       "exact_target_contract": "NVIDIA tcgen05 integer-only saturation flag on floating instruction is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_fp8_n8.ptx",
@@ -1690,14 +2093,23 @@
       "exact_target_contract": "NVIDIA tcgen05 transposed8-bit B with N8 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_m128_n264.ptx",
@@ -1719,14 +2131,23 @@
       "exact_target_contract": "NVIDIA tcgen05 M128 N264 beyond N256 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_m32_n64.ptx",
@@ -1748,14 +2169,23 @@
       "exact_target_contract": "NVIDIA tcgen05 non-.ws M32 N64 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_ws_m128_n0.ptx",
@@ -1777,14 +2207,23 @@
       "exact_target_contract": "NVIDIA tcgen05 .ws M128 N0 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_ws_m128_n16.ptx",
@@ -1806,14 +2245,23 @@
       "exact_target_contract": "NVIDIA tcgen05 .ws M128 N16 is the rejected binary/virtual-ISA encoding. Native WMMA has explicit register fragments and its own legal shapes/types.",
       "remaining_portable_obligation": "Keep native operand geometry, supported types, lane ownership and actual mathematical lane mapping correct; this residual excludes only the NVIDIA encoding.",
       "native_property_scope": "Native malformed roles/partial waves fail closed, while full256-output F32/F16/BF16 formulas and2176 operand-basis cases check every result. Native tests do not validate NVIDIA raw descriptor bits.",
-      "actual_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
         "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
-        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
-      ]
+        "m:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_rejects_k_dimension_bit.ptx",
@@ -1835,13 +2283,22 @@
       "exact_target_contract": "Baseline rejects a legal/unmodeled NVIDIA K16 descriptor mode, not every smaller matrix computation.",
       "remaining_portable_obligation": "A required native supported formula may not be dropped merely because one NVIDIA opcode mode is unsupported. Validate native selected kinds/shapes and preserve unsupported diagnostics.",
       "native_property_scope": "Complete native F32/F16/BF16 dot products are established under explicit native dimensions; no TF32 rounding emulation or unsupported source acceptance is claimed.",
-      "actual_native_gap": "Root matrix owner reviews any remaining native dtype/dimension counterpart; this negative has no successful output formula to omit.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
-        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product"
-      ]
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix owner reviews any remaining native dtype/dimension counterpart; this negative has no successful output formula to omit.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_rejects_unmodeled_kind.ptx",
@@ -1863,13 +2320,22 @@
       "exact_target_contract": "NVIDIA unsupported TF32 source opcode form is outside the baseline selected kind subset.",
       "remaining_portable_obligation": "A required native supported formula may not be dropped merely because one NVIDIA opcode mode is unsupported. Validate native selected kinds/shapes and preserve unsupported diagnostics.",
       "native_property_scope": "Complete native F32/F16/BF16 dot products are established under explicit native dimensions; no TF32 rounding emulation or unsupported source acceptance is claimed.",
-      "actual_native_gap": "Root matrix owner reviews any remaining native dtype/dimension counterpart; this negative has no successful output formula to omit.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "g:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
-        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product"
-      ]
+        "m:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_f32_f16_bf16_wmma_match_every_independent_dot_product",
+        "review:real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
+        "review:malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
+        "review:wmma_result_read_and_source_reuse_need_their_actual_readiness_window",
+        "review:assembler_legal_unmodeled_matrix_b_reuse_never_becomes_a_default_wmma"
+      ],
+      "historical_native_gap": "Root matrix owner reviews any remaining native dtype/dimension counterpart; this negative has no successful output formula to omit.",
+      "current_adjudication": "This baseline source is an invalid or intentionally unmodeled NVIDIA descriptor/type/shape/bit encoding and asserts its specific rejection; it has no omitted successful output formula. Native WMMA uses explicit fragments and its own selected shapes. Complete F32/F16/BF16 dense/basis checks, exact malformed role/partial-wave/implicit-EXEC controls, native readiness mutations and an actual assembler-legal unmodeled B-reuse source refusal preserve the portable geometry/data/lifetime obligations. Valid native arithmetic is not excluded by the NVIDIA encoding residual. The three successful zero-MMA descriptor-boundary rows are separately mapped by the13-row mechanism-lifetime contract.",
+      "current_disposition": "exact_nvidia_matrix_encoding_residual_with_native_role_math_controls",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_rejects_missing_sync_aligned_alloc_aligned.ptx",
@@ -2115,13 +2581,19 @@
       "exact_target_contract": "A fourth PTX arrive.expect_tx operand is invalid.",
       "remaining_portable_obligation": "Native selected instructions must validate exact argument counts and must not ignore extra operands.",
       "native_property_scope": "Native wrong-register/modifier/target and named M0/source-association validation exist; they are not dedicated malformed barrier-arity tests.",
-      "actual_native_gap": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
-        "g:named_init_resource_and_m0_roles_cannot_be_fabricated"
-      ]
+        "g:named_init_resource_and_m0_roles_cannot_be_fabricated",
+        "review:actual_named_barrier_missing_and_extra_operands_reject_before_reachability",
+        "review:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes"
+      ],
+      "historical_native_gap": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping.",
+      "current_adjudication": "The PTX operation/modifier spelling stays target-specific. Actual native INIT/JOIN/SIGNAL/WAIT/LEAVE forms now have nine exact missing/extra-operand controls in live, unreachable and EXEC-zero placements. LLVM MC accepts the genuine allocated compiler module and rejects all27 mutants; the native frontend rejects all27 before execution. No malformed native operand is accepted through a dead path.",
+      "current_disposition": "exact_grammar_residual_with_native_static_operand_counterpart",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_arrive_zero_count.ptx",
@@ -2143,13 +2615,19 @@
       "exact_target_contract": "PTX arrive count0 is not the native M0 signal expected-count delta0. Native delta0 still performs one arrival, and NULL ID0 operations can be valid.",
       "remaining_portable_obligation": "Validate the actual native count/update contract without manufacturing a false zero-delta rejection.",
       "native_property_scope": "Actual scalar native signal operations and NULL cases are tested. Native nonzero expected-count updates remain outside the selected model.",
-      "actual_native_gap": "A dedicated unsupported nonzero native count-update source control may be needed; this row cannot force rejection of legal delta0/NULL.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "n:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes",
-        "g:named_arrival_count_is_not_a_distinct_wave_count"
-      ]
+        "g:named_arrival_count_is_not_a_distinct_wave_count",
+        "review:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes",
+        "review:named_arrival_count_is_not_a_distinct_wave_count"
+      ],
+      "historical_native_gap": "A dedicated unsupported nonzero native count-update source control may be needed; this row cannot force rejection of legal delta0/NULL.",
+      "current_adjudication": "The baseline rejects an explicit PTX arrive count0. Native M0 expected-count delta0 still performs one arrival, so a false zero-delta native rejection would contradict the actual target contract. Genuine named_two_arrivals_one_wave and NULL controls remain successful; graph count-vs-wave checks preserve two arrivals from one wave. INIT count0 and field-boundary controls are separately implemented in the13-row mechanism-lifetime contract. This row excludes only PTX count syntax, not native progress/count correctness.",
+      "current_disposition": "exact_native_count_update_contract_difference",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_complete_tx_invalid_scope.ptx",
@@ -2364,13 +2842,19 @@
       "exact_target_contract": "An extra PTX test_wait operand is invalid.",
       "remaining_portable_obligation": "Native selected instructions must validate exact argument counts and must not ignore extra operands.",
       "native_property_scope": "Native wrong-register/modifier/target and named M0/source-association validation exist; they are not dedicated malformed barrier-arity tests.",
-      "actual_native_gap": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
-        "g:named_init_resource_and_m0_roles_cannot_be_fabricated"
-      ]
+        "g:named_init_resource_and_m0_roles_cannot_be_fabricated",
+        "review:actual_named_barrier_missing_and_extra_operands_reject_before_reachability",
+        "review:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes"
+      ],
+      "historical_native_gap": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping.",
+      "current_adjudication": "The PTX operation/modifier spelling stays target-specific. Actual native INIT/JOIN/SIGNAL/WAIT/LEAVE forms now have nine exact missing/extra-operand controls in live, unreachable and EXEC-zero placements. LLVM MC accepts the genuine allocated compiler module and rejects all27 mutants; the native frontend rejects all27 before execution. No malformed native operand is accepted through a dead path.",
+      "current_disposition": "exact_grammar_residual_with_native_static_operand_counterpart",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_try_wait_extra_operand.ptx",
@@ -2392,13 +2876,19 @@
       "exact_target_contract": "An operand after the optional PTX suspend hint is invalid.",
       "remaining_portable_obligation": "Native selected instructions must validate exact argument counts and must not ignore extra operands.",
       "native_property_scope": "Native wrong-register/modifier/target and named M0/source-association validation exist; they are not dedicated malformed barrier-arity tests.",
-      "actual_native_gap": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping.",
+      "actual_native_gap": "",
       "proposal": "precise_target_contract_residual_candidate",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "f:new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting",
-        "g:named_init_resource_and_m0_roles_cannot_be_fabricated"
-      ]
+        "g:named_init_resource_and_m0_roles_cannot_be_fabricated",
+        "review:actual_named_barrier_missing_and_extra_operands_reject_before_reachability",
+        "review:genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes"
+      ],
+      "historical_native_gap": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping.",
+      "current_adjudication": "The PTX operation/modifier spelling stays target-specific. Actual native INIT/JOIN/SIGNAL/WAIT/LEAVE forms now have nine exact missing/extra-operand controls in live, unreachable and EXEC-zero placements. LLVM MC accepts the genuine allocated compiler module and rejects all27 mutants; the native frontend rejects all27 before execution. No malformed native operand is accepted through a dead path.",
+      "current_disposition": "exact_grammar_residual_with_native_static_operand_counterpart",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_try_wait_invalid_scope.ptx",
@@ -2491,14 +2981,23 @@
       "baseline_assertion_summary": "analyze_case requires GraphVerified and exactly empty golden output for a kernel containing only the valid membar.cta.",
       "exact_target_contract": "The baseline positive tests valid fence lowering/progress with no memory accesses; it does not demonstrate CTA/device/system publication.",
       "remaining_portable_obligation": "Preserve valid native control progress; actual memory visibility at every claimed scope needs its separate native proof.",
-      "native_property_scope": "Actual native satisfied WAIT completes and retains marker1; selected native counter classes are validated. This is a control-progress counterpart, not a cache-fence equivalence.",
-      "actual_native_gap": "Coordinator must retain native global cache/publication limits. No whole-device visibility is claimed from an empty positive.",
+      "native_property_scope": "Genuine native control_wait is Verified with exactly empty output. Cache visibility is checked separately with the exact selected SYS/completion/publication limits.",
+      "actual_native_gap": "",
       "proposal": "native_property_candidate_with_target_residual",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "l:completed_single_arrival_preserves_the_only_marker_one",
-        "g:separate_data_counters_and_thresholds_control_register_readiness"
-      ]
+        "g:separate_data_counters_and_thresholds_control_register_readiness",
+        "review:canonical_native_termination_wait_and_complete_vector_load_controls_are_legal",
+        "review:system_scope_visibility_requires_both_endpoints_completion_and_publication",
+        "review:system_scope_does_not_expand_the_selected_workgroup_contract",
+        "review:system_scope_cannot_certify_scalar_or_resolved_shared_effects",
+        "review:legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication"
+      ],
+      "historical_native_gap": "Coordinator must retain native global cache/publication limits. No whole-device visibility is claimed from an empty positive.",
+      "current_adjudication": "The original successful kernel contains only the valid membar and termination, has no memory accesses and asserts exactly an empty golden output. Genuine native control_wait completes with a Verified graph and exactly empty outputs. It is only a lowering/progress counterpart. Actual cross-wave GLOBAL or resolved-global FLAT write dependencies separately require explicit SCOPE_SYS at both endpoints, actual completion and publication; missing scope is Unknown and missing completion/publication fails. No whole-device or cross-workgroup fence claim follows from the empty positive.",
+      "current_disposition": "native_empty_progress_counterpart_with_separate_visibility_contract",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/membar_levels_gl.ptx",
@@ -2524,14 +3023,23 @@
       "baseline_assertion_summary": "analyze_case requires GraphVerified and exactly empty golden output for a kernel containing only the valid membar.gl.",
       "exact_target_contract": "The baseline positive tests valid fence lowering/progress with no memory accesses; it does not demonstrate CTA/device/system publication.",
       "remaining_portable_obligation": "Preserve valid native control progress; actual memory visibility at every claimed scope needs its separate native proof.",
-      "native_property_scope": "Actual native satisfied WAIT completes and retains marker1; selected native counter classes are validated. This is a control-progress counterpart, not a cache-fence equivalence.",
-      "actual_native_gap": "Coordinator must retain native global cache/publication limits. No whole-device visibility is claimed from an empty positive.",
+      "native_property_scope": "Genuine native control_wait is Verified with exactly empty output. Cache visibility is checked separately with the exact selected SYS/completion/publication limits.",
+      "actual_native_gap": "",
       "proposal": "native_property_candidate_with_target_residual",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "l:completed_single_arrival_preserves_the_only_marker_one",
-        "g:separate_data_counters_and_thresholds_control_register_readiness"
-      ]
+        "g:separate_data_counters_and_thresholds_control_register_readiness",
+        "review:canonical_native_termination_wait_and_complete_vector_load_controls_are_legal",
+        "review:system_scope_visibility_requires_both_endpoints_completion_and_publication",
+        "review:system_scope_does_not_expand_the_selected_workgroup_contract",
+        "review:system_scope_cannot_certify_scalar_or_resolved_shared_effects",
+        "review:legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication"
+      ],
+      "historical_native_gap": "Coordinator must retain native global cache/publication limits. No whole-device visibility is claimed from an empty positive.",
+      "current_adjudication": "The original successful kernel contains only the valid membar and termination, has no memory accesses and asserts exactly an empty golden output. Genuine native control_wait completes with a Verified graph and exactly empty outputs. It is only a lowering/progress counterpart. Actual cross-wave GLOBAL or resolved-global FLAT write dependencies separately require explicit SCOPE_SYS at both endpoints, actual completion and publication; missing scope is Unknown and missing completion/publication fails. No whole-device or cross-workgroup fence claim follows from the empty positive.",
+      "current_disposition": "native_empty_progress_counterpart_with_separate_visibility_contract",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/membar_levels_sys.ptx",
@@ -2557,14 +3065,23 @@
       "baseline_assertion_summary": "analyze_case requires GraphVerified and exactly empty golden output for a kernel containing only the valid membar.sys.",
       "exact_target_contract": "The baseline positive tests valid fence lowering/progress with no memory accesses; it does not demonstrate CTA/device/system publication.",
       "remaining_portable_obligation": "Preserve valid native control progress; actual memory visibility at every claimed scope needs its separate native proof.",
-      "native_property_scope": "Actual native satisfied WAIT completes and retains marker1; selected native counter classes are validated. This is a control-progress counterpart, not a cache-fence equivalence.",
-      "actual_native_gap": "Coordinator must retain native global cache/publication limits. No whole-device visibility is claimed from an empty positive.",
+      "native_property_scope": "Genuine native control_wait is Verified with exactly empty output. Cache visibility is checked separately with the exact selected SYS/completion/publication limits.",
+      "actual_native_gap": "",
       "proposal": "native_property_candidate_with_target_residual",
       "completion": "coordinator_review_required",
       "native_evidence": [
         "l:completed_single_arrival_preserves_the_only_marker_one",
-        "g:separate_data_counters_and_thresholds_control_register_readiness"
-      ]
+        "g:separate_data_counters_and_thresholds_control_register_readiness",
+        "review:canonical_native_termination_wait_and_complete_vector_load_controls_are_legal",
+        "review:system_scope_visibility_requires_both_endpoints_completion_and_publication",
+        "review:system_scope_does_not_expand_the_selected_workgroup_contract",
+        "review:system_scope_cannot_certify_scalar_or_resolved_shared_effects",
+        "review:legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication"
+      ],
+      "historical_native_gap": "Coordinator must retain native global cache/publication limits. No whole-device visibility is claimed from an empty positive.",
+      "current_adjudication": "The original successful kernel contains only the valid membar and termination, has no memory accesses and asserts exactly an empty golden output. Genuine native control_wait completes with a Verified graph and exactly empty outputs. It is only a lowering/progress counterpart. Actual cross-wave GLOBAL or resolved-global FLAT write dependencies separately require explicit SCOPE_SYS at both endpoints, actual completion and publication; missing scope is Unknown and missing completion/publication fails. No whole-device or cross-workgroup fence claim follows from the empty positive.",
+      "current_disposition": "native_empty_progress_counterpart_with_separate_visibility_contract",
+      "coordinator_gate": "Replay the named actual native controls on final integrated main and review this exact mechanism boundary; completion remains coordinator_review_required."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_alloc_sizes_ordered_by_bar_sync_is_accepted.ptx",
@@ -2868,5 +3385,11 @@
     "mapping_contract": "tests/gfx1250/fixtures/mechanism-lifetime-contract.json",
     "source_test_commit": "e2241ef8aec5ccc586d7c0a5abe8848128cef180",
     "coordinator_acceptance": "pending"
+  },
+  "current_residual_review": {
+    "review_source_commit": "1982ac2e7013e099d1daa1bb81249105c72f001a",
+    "rows": 41,
+    "scope": "Finite current source/test adjudication of31 prior residual review gates plus3 CVTA and7 membar rows. Historical strings remain inspectable. This is not coordinator acceptance.",
+    "completion": "coordinator_review_required"
   }
 }

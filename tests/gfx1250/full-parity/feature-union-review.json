@@ -10,592 +10,52 @@
   "duplicate_rows_within_manifest": [],
   "unexpected_rows": [],
   "policy_violations": [],
-  "explicit_portable_native_gaps": [
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/clusterlaunchcontrol_response_read_without_waiting_is_an_inflight_hazard.ptx",
-      "group": "ASYNC-COPY-ORDER",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Keep exact scheduler operation residual narrow; add actual native16-byte asynchronous destination-read hazard to retain the portable memory obligation. No fake cancellation response is produced."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_bulk_bar_sync_before_completion_orders_nothing.ptx",
-      "group": "ASYNC-COPY-ORDER",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Need actual native source with exact4/16-byte transfer and matching typed memory conflict, paired with safe full-payload control; existing independent graph async/Tensor checks are supporting only."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_bulk_read_after_bar_sync_is_an_inflight_hazard.ptx",
-      "group": "ASYNC-COPY-ORDER",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Need actual native source with exact4/16-byte transfer and matching typed memory conflict, paired with safe full-payload control; existing independent graph async/Tensor checks are supporting only."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_cross_thread_read_of_locked_destination_is_hazard.ptx",
-      "group": "ASYNC-COPY-ORDER",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Need actual native source with exact4/16-byte transfer and matching typed memory conflict, paired with safe full-payload control; existing independent graph async/Tensor checks are supporting only."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_cross_thread_write_of_locked_source_is_hazard.ptx",
-      "group": "ASYNC-COPY-ORDER",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Need actual native source with exact4/16-byte transfer and matching typed memory conflict, paired with safe full-payload control; existing independent graph async/Tensor checks are supporting only."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_mbarrier_arrive_does_not_release_the_threads_earlier_store.ptx",
-      "group": "ASYNC-COPY-ORDER",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Frontend peer exact unrelated-store control reported PASS; root must integrate/replay its frozen checkpoint before candidate status changes."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_same_thread_peek_before_wait_is_hazard.ptx",
-      "group": "ASYNC-COPY-ORDER",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Need actual native source with exact4/16-byte transfer and matching typed memory conflict, paired with safe full-payload control; existing independent graph async/Tensor checks are supporting only."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_same_thread_store_before_wait_is_hazard.ptx",
-      "group": "ASYNC-COPY-ORDER",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Need actual native source with exact4/16-byte transfer and matching typed memory conflict, paired with safe full-payload control; existing independent graph async/Tensor checks are supporting only."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/exited_reader_unordered_by_bar_warp_sync.ptx",
-      "group": "PARTICIPANT-EXIT",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Need genuine4-byte native completed-read then END versus surviving overwrite control; do not treat writer-only exit test as this reversed ReadWrite pair."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/exited_writer_unordered_by_bar_warp_sync.ptx",
-      "group": "PARTICIPANT-EXIT",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Coordinator must review lane-granularity residual and retain actual native4-byte exited-writer publication Unknown/explicit-arrival controls, with42 payload if exact marker required."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/mbarrier_init_write_races_plain_store_load.ptx",
-      "group": "BARRIER-OBJECT-LIFECYCLE",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Need actual ordinary8-byte metadata store/load conflict counterpart, preserving both accesses and value role. A disjoint hardware-resource init alone is not evidence."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_commit_does_not_release_the_threads_earlier_store.ptx",
-      "group": "ASYNC-COPY-ORDER",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Frontend peer exact unrelated-store control reported PASS; root must integrate/replay its frozen checkpoint before candidate status changes."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_dealloc_with_an_mma_in_flight_is_rejected.ptx",
-      "group": "NVIDIA-TMEM-RESOURCE",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_property_gap_with_target_residual",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Root matrix owner must map exact native WMMA storage lifetime; generic Tensor copy or register namespace rejection alone is not the baseline MMA-write witness."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_dealloc_with_an_unwaited_ld_or_st_is_rejected_ld.ptx",
-      "group": "NVIDIA-TMEM-RESOURCE",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_property_gap_with_target_residual",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Add a genuine128-byte native asynchronous buffer-lifetime safe/unsafe pair with the same read/write role; retain exact TMEM dealloc spelling as the narrow residual."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_dealloc_with_an_unwaited_ld_or_st_is_rejected_st.ptx",
-      "group": "NVIDIA-TMEM-RESOURCE",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_property_gap_with_target_residual",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Add a genuine128-byte native asynchronous buffer-lifetime safe/unsafe pair with the same read/write role; retain exact TMEM dealloc spelling as the narrow residual."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_st_then_mma_without_thread_sync_fences_is_rejected.ptx",
-      "group": "ASYNC-COPY-ORDER",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Root owns exact matrix-layout counterpart audit: cite actual matching native source/wait/publication negative after its review, rather than substitute unrelated WMMA source-reuse failure."
-    },
+  "explicit_portable_native_gaps": [],
+  "target_residual_review_gates": [],
+  "pending_current_portable_reviews": [
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_arrive_register_id_count_mismatch.ptx",
+      "upstream_sha256": "f7f001c17f91d9b005a09c36861e5cb6d4365b8adb8edc517b9663e521f853f9",
       "group": "BARRIER-SPLIT-PHASE",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
+      "status": "pending",
       "completion": "coordinator_review_required",
-      "remaining_gate": "Need an explicit native count-change/conflict mapping and actual source control; never substitute unrelated count-mismatch deadlock."
+      "current_observation": "Native fresh initialization lifetimes do not yet implement the required signal-time expected-count update counterpart. Target-specific spelling alone does not close this portable progress/count obligation.",
+      "required_gate": "Pinned public M0 signal-time count-update semantics, typed producer/event/checker support and actual native matching safe/count-mismatch/count-change controls."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_changes_between_phases.ptx",
+      "upstream_sha256": "2de9110a2941b27da9c2e9c5c76a6f319a897bc253314be3d1403c829ad5dd81",
       "group": "BARRIER-SPLIT-PHASE",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
+      "status": "pending",
       "completion": "coordinator_review_required",
-      "remaining_gate": "Need an explicit native count-change/conflict mapping and actual source control; never substitute unrelated count-mismatch deadlock."
+      "current_observation": "Native fresh initialization lifetimes do not yet implement the required signal-time expected-count update counterpart. Target-specific spelling alone does not close this portable progress/count obligation.",
+      "required_gate": "Pinned public M0 signal-time count-update semantics, typed producer/event/checker support and actual native matching safe/count-mismatch/count-change controls."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_mismatch.ptx",
+      "upstream_sha256": "5d3e556415aa56d7eae93e382cf0a0753111b8ef518ff8c4d13c2a85896f0dbd",
       "group": "BARRIER-SPLIT-PHASE",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
+      "status": "pending",
       "completion": "coordinator_review_required",
-      "remaining_gate": "Need an explicit native count-change/conflict mapping and actual source control; never substitute unrelated count-mismatch deadlock."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_announcement_unordered_before_another_threads_arrival.ptx",
-      "group": "BARRIER-OBJECT-LIFECYCLE",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Need a distinct32-byte native incomplete-publication negative paired with existing all64-output positive. Four-byte readiness controls alone do not cover this row."
+      "current_observation": "Native fresh initialization lifetimes do not yet implement the required signal-time expected-count update counterpart. Target-specific spelling alone does not close this portable progress/count obligation.",
+      "required_gate": "Pinned public M0 signal-time count-update semantics, typed producer/event/checker support and actual native matching safe/count-mismatch/count-change controls."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_init_unordered_with_other_threads_arrive.ptx",
+      "upstream_sha256": "e0f4f0f6866f9a5354efa760fe2246661c982c1a05396a1247f302a622f6ed7a",
       "group": "BARRIER-OBJECT-LIFECYCLE",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
+      "status": "pending",
       "completion": "coordinator_review_required",
-      "remaining_gate": "Need genuine allocated native unordered-init/reinit source negative, with exact payload/lifetime roles; independent checker control is supporting evidence only."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_pre_init_wait_unseparated_from_the_first_arrival.ptx",
-      "group": "BARRIER-OBJECT-LIFECYCLE",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Coordinator must review exact native initial-free-buffer mapping and whether additional stale-join source negative is needed."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_reinit_of_live_object_races_arrive.ptx",
-      "group": "BARRIER-OBJECT-LIFECYCLE",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Need genuine allocated native unordered-init/reinit source negative, with exact payload/lifetime roles; independent checker control is supporting evidence only."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/shfl_from_exited_lane_is_undefined.ptx",
-      "group": "PARTICIPANT-EXIT",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Need genuine native read from an uninitialized source lane with typed Undefined result; keep per-lane-END mechanism residual explicit. No substitution of inactive initialized source data."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_init_count_out_of_range.ptx",
-      "group": "PTX-SYNTAX",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_property_gap_with_target_residual",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Add native non-NULL count0 and exact M0 field-boundary controls. Do not import the numeric PTX2^20 limit or invalidate NULL no-op semantics."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_init_zero_count.ptx",
-      "group": "PTX-SYNTAX",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_property_gap_with_target_residual",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Add native non-NULL count0 and exact M0 field-boundary controls. Do not import the numeric PTX2^20 limit or invalidate NULL no-op semantics."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_tx_count_out_of_range.ptx",
-      "group": "PTX-SYNTAX",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_property_gap_with_target_residual",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Coordinator must review the exact byte-credit mechanism residual plus native positive/negative field/capacity boundary evidence. Required numeric-boundary positive is not silently relabeled syntax-only."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_dealloc_after_the_mma_completed_is_accepted.ptx",
-      "group": "NVIDIA-TMEM-RESOURCE",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_property_gap_with_target_residual",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Root matrix owner must bind an exact zero-MMA/lifetime counterpart to this positive source; no new fixture is duplicated by this audit."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_dealloc_after_waiting_is_accepted.ptx",
-      "group": "NVIDIA-TMEM-RESOURCE",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_property_gap_with_target_residual",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "A distinct source-level128-byte native reuse/release pair is still required; do not call the portable positive covered solely by an encoding residual."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_d_lane0_col8.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_property_gap_with_target_residual",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Root matrix22 owner must attach exact native boundary/layout/computation mapping or retain an explicit native-positive gap. No generic mathematical exclusion is proposed."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_idesc_max_shift_ws.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_property_gap_with_target_residual",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Root matrix22 owner must attach exact native boundary/layout/computation mapping or retain an explicit native-positive gap. No generic mathematical exclusion is proposed."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_shape_ws_m32_n64.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_property_gap_with_target_residual",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Root matrix22 owner must attach exact native boundary/layout/computation mapping or retain an explicit native-positive gap. No generic mathematical exclusion is proposed."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_wait_before_sync_is_accepted.ptx",
-      "group": "ASYNC-COPY-ORDER",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Need genuine no-output native128-byte completed storage then reuse control, with missing-read/write-completion negatives."
+      "current_observation": "Actual allocated source currently returns AmdBarrier Unknown for unordered initialization, which does not satisfy this intended harmful negative.",
+      "required_gate": "Actual native source safe/unsafe pair with documented typed AmdBarrier violation; Unknown is not a caught harmful outcome."
     }
   ],
-  "target_residual_review_gates": [
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/bar_and_barrier_reject_a_missing_operation_bar.ptx",
-      "group": "PTX-SYNTAX",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Dedicated native missing/extra barrier operand negative is a useful validation gap; existing count/protocol controls are not falsely said to test this lexical case."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/bar_and_barrier_reject_a_missing_operation_barrier.ptx",
-      "group": "PTX-SYNTAX",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Dedicated native missing/extra barrier operand negative is a useful validation gap; existing count/protocol controls are not falsely said to test this lexical case."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_multicast_try_cancel_is_rejected.ptx",
-      "group": "NVIDIA-CLUSTER-SCHEDULER",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_query_of_a_fabricated_response_is_rejected.ptx",
-      "group": "NVIDIA-CLUSTER-SCHEDULER",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_try_cancel_after_observed_decline_is_rejected.ptx",
-      "group": "NVIDIA-CLUSTER-SCHEDULER",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/clusterlaunchcontrol_unguarded_get_first_ctaid_is_rejected.ptx",
-      "group": "NVIDIA-CLUSTER-SCHEDULER",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/mapa_generic_is_rejected.ptx",
-      "group": "NVIDIA-CLUSTER-SCHEDULER",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/mapa_nonzero_rank_is_rejected.ptx",
-      "group": "NVIDIA-CLUSTER-SCHEDULER",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_inval_is_not_implemented.ptx",
-      "group": "PTX-SYNTAX",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Unordered/outstanding native reinit source negatives are explicitly pending in the separate59-row proposal; they are not closed by this spelling-only unsupported test."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_a_desc_bit15.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_b_desc_no_bit46.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_b_swizzle128b_atom32.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_d_lane128.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_d_lane32.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_dtype2.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_dtype3.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_max_shift.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_reserved_bit23.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_reserved_bit6.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_idesc_saturate.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_fp8_n8.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_m128_n264.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_m32_n64.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_ws_m128_n0.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_encoding_shape_ws_m128_n16.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_rejects_k_dimension_bit.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix owner reviews any remaining native dtype/dimension counterpart; this negative has no successful output formula to omit."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_mma_rejects_unmodeled_kind.ptx",
-      "group": "NVIDIA-TMEM-ENCODING",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Root matrix owner reviews any remaining native dtype/dimension counterpart; this negative has no successful output formula to omit."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_arrive_extra_operand.ptx",
-      "group": "PTX-SYNTAX",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_arrive_zero_count.ptx",
-      "group": "PTX-SYNTAX",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "A dedicated unsupported nonzero native count-update source control may be needed; this row cannot force rejection of legal delta0/NULL."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_test_wait_extra_operand.ptx",
-      "group": "PTX-SYNTAX",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_try_wait_extra_operand.ptx",
-      "group": "PTX-SYNTAX",
-      "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "candidate_status": "precise_target_residual_candidate",
-      "proposal": "precise_target_contract_residual_candidate",
-      "completion": "coordinator_review_required",
-      "residual_review_gate": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping."
-    }
-  ],
+  "known_current_review_blockers_resolved": false,
   "candidate_status_counts": {
     "completed_typed_native_negative_candidate": 8,
-    "explicit_portable_native_gap": 33,
     "intentional_negative_model_control": 1,
-    "native_target_contract_difference_candidate": 11,
-    "native_test_candidate_requires_coordinator_review": 248,
+    "native_target_contract_difference_candidate": 16,
+    "native_test_candidate_requires_coordinator_review": 276,
     "precise_target_residual_candidate": 65,
     "retained_shared_source_guard": 154
   },
@@ -2772,10 +2232,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Keep exact scheduler operation residual narrow; add actual native16-byte asynchronous destination-read hazard to retain the portable memory obligation. No fake cancellation response is produced."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -2786,10 +2245,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need actual native source with exact4/16-byte transfer and matching typed memory conflict, paired with safe full-payload control; existing independent graph async/Tensor checks are supporting only."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -2800,10 +2258,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need actual native source with exact4/16-byte transfer and matching typed memory conflict, paired with safe full-payload control; existing independent graph async/Tensor checks are supporting only."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -2827,10 +2284,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need actual native source with exact4/16-byte transfer and matching typed memory conflict, paired with safe full-payload control; existing independent graph async/Tensor checks are supporting only."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -2841,10 +2297,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need actual native source with exact4/16-byte transfer and matching typed memory conflict, paired with safe full-payload control; existing independent graph async/Tensor checks are supporting only."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -2855,10 +2310,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Frontend peer exact unrelated-store control reported PASS; root must integrate/replay its frozen checkpoint before candidate status changes."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -2882,10 +2336,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need actual native source with exact4/16-byte transfer and matching typed memory conflict, paired with safe full-payload control; existing independent graph async/Tensor checks are supporting only."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -2896,10 +2349,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need actual native source with exact4/16-byte transfer and matching typed memory conflict, paired with safe full-payload control; existing independent graph async/Tensor checks are supporting only."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -2923,10 +2375,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need genuine4-byte native completed-read then END versus surviving overwrite control; do not treat writer-only exit test as this reversed ReadWrite pair."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -2950,10 +2401,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Coordinator must review lane-granularity residual and retain actual native4-byte exited-writer publication Unknown/explicit-arrival controls, with42 payload if exact marker required."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -2964,10 +2414,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need actual ordinary8-byte metadata store/load conflict counterpart, preserving both accesses and value role. A disjoint hardware-resource init alone is not evidence."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3095,10 +2544,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Frontend peer exact unrelated-store control reported PASS; root must integrate/replay its frozen checkpoint before candidate status changes."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3109,10 +2557,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_property_gap_with_target_residual",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Root matrix owner must map exact native WMMA storage lifetime; generic Tensor copy or register namespace rejection alone is not the baseline MMA-write witness."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_property_candidate_with_target_residual",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3123,10 +2570,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_property_gap_with_target_residual",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Add a genuine128-byte native asynchronous buffer-lifetime safe/unsafe pair with the same read/write role; retain exact TMEM dealloc spelling as the narrow residual."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_property_candidate_with_target_residual",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3137,10 +2583,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_property_gap_with_target_residual",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Add a genuine128-byte native asynchronous buffer-lifetime safe/unsafe pair with the same read/write role; retain exact TMEM dealloc spelling as the narrow residual."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_property_candidate_with_target_residual",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3255,10 +2700,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Root owns exact matrix-layout counterpart audit: cite actual matching native source/wait/publication negative after its review, rather than substitute unrelated WMMA source-reuse failure."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3427,8 +2871,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Dedicated native missing/extra barrier operand negative is a useful validation gap; existing count/protocol controls are not falsely said to test this lexical case."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3441,8 +2884,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Dedicated native missing/extra barrier operand negative is a useful validation gap; existing count/protocol controls are not falsely said to test this lexical case."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3466,10 +2908,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need an explicit native count-change/conflict mapping and actual source control; never substitute unrelated count-mismatch deadlock."
+          "candidate_status": "native_target_contract_difference_candidate",
+          "proposal": "native_contract_difference_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3493,10 +2934,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need an explicit native count-change/conflict mapping and actual source control; never substitute unrelated count-mismatch deadlock."
+          "candidate_status": "native_target_contract_difference_candidate",
+          "proposal": "native_contract_difference_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3507,10 +2947,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need an explicit native count-change/conflict mapping and actual source control; never substitute unrelated count-mismatch deadlock."
+          "candidate_status": "native_target_contract_difference_candidate",
+          "proposal": "native_contract_difference_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3549,8 +2988,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3563,8 +3001,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3577,8 +3014,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3591,8 +3027,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3813,8 +3248,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3827,8 +3261,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "A native scheduler API would require a separately pinned implementation; it is outside the selected native contract, not a skipped numerical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3839,10 +3272,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need a distinct32-byte native incomplete-publication negative paired with existing all64-output positive. Four-byte readiness controls alone do not cover this row."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3866,10 +3298,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need genuine allocated native unordered-init/reinit source negative, with exact payload/lifetime roles; independent checker control is supporting evidence only."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3882,8 +3313,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Unordered/outstanding native reinit source negatives are explicitly pending in the separate59-row proposal; they are not closed by this spelling-only unsupported test."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3894,10 +3324,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Coordinator must review exact native initial-free-buffer mapping and whether additional stale-join source negative is needed."
+          "candidate_status": "native_target_contract_difference_candidate",
+          "proposal": "native_contract_difference_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -3908,10 +3337,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need genuine allocated native unordered-init/reinit source negative, with exact payload/lifetime roles; independent checker control is supporting evidence only."
+          "candidate_status": "native_target_contract_difference_candidate",
+          "proposal": "native_contract_difference_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4234,10 +3662,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need genuine native read from an uninitialized source lane with typed Undefined result; keep per-lane-END mechanism residual explicit. No substitution of inactive initialized source data."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4380,8 +3807,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4394,8 +3820,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4408,8 +3833,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4422,8 +3846,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4436,8 +3859,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4450,8 +3872,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4464,8 +3885,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4478,8 +3898,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4492,8 +3911,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4506,8 +3924,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4520,8 +3937,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4534,8 +3950,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4548,8 +3963,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4562,8 +3976,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4576,8 +3989,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4590,8 +4002,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix22 owner supplies any additional exact layout/shape counterpart; no invalid NVIDIA descriptor creates a missing successful mathematical workload."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4604,8 +4015,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix owner reviews any remaining native dtype/dimension counterpart; this negative has no successful output formula to omit."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -4631,8 +4041,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Root matrix owner reviews any remaining native dtype/dimension counterpart; this negative has no successful output formula to omit."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -5282,8 +4691,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -5296,8 +4704,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "A dedicated unsupported nonzero native count-update source control may be needed; this row cannot force rejection of legal delta0/NULL."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -5360,10 +4767,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_property_gap_with_target_residual",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Add native non-NULL count0 and exact M0 field-boundary controls. Do not import the numeric PTX2^20 limit or invalidate NULL no-op semantics."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_property_candidate_with_target_residual",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -5374,10 +4780,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_property_gap_with_target_residual",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Add native non-NULL count0 and exact M0 field-boundary controls. Do not import the numeric PTX2^20 limit or invalidate NULL no-op semantics."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_property_candidate_with_target_residual",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -5390,8 +4795,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -5404,8 +4808,7 @@
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
           "candidate_status": "precise_target_residual_candidate",
           "proposal": "precise_target_contract_residual_candidate",
-          "completion": "coordinator_review_required",
-          "residual_review_gate": "Add exact native barrier-extra-operand static rejection controls if the coordinator retains this portable parser-validation mapping."
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -5429,10 +4832,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_property_gap_with_target_residual",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Coordinator must review the exact byte-credit mechanism residual plus native positive/negative field/capacity boundary evidence. Required numeric-boundary positive is not silently relabeled syntax-only."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_property_candidate_with_target_residual",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -7185,10 +6587,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_property_gap_with_target_residual",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Root matrix owner must bind an exact zero-MMA/lifetime counterpart to this positive source; no new fixture is duplicated by this audit."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_property_candidate_with_target_residual",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -7199,10 +6600,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_property_gap_with_target_residual",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "A distinct source-level128-byte native reuse/release pair is still required; do not call the portable positive covered solely by an encoding residual."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_property_candidate_with_target_residual",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -7265,10 +6665,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_property_gap_with_target_residual",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Root matrix22 owner must attach exact native boundary/layout/computation mapping or retain an explicit native-positive gap. No generic mathematical exclusion is proposed."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_property_candidate_with_target_residual",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -7279,10 +6678,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_property_gap_with_target_residual",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Root matrix22 owner must attach exact native boundary/layout/computation mapping or retain an explicit native-positive gap. No generic mathematical exclusion is proposed."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_property_candidate_with_target_residual",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -7293,10 +6691,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_property_gap_with_target_residual",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Root matrix22 owner must attach exact native boundary/layout/computation mapping or retain an explicit native-positive gap. No generic mathematical exclusion is proposed."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_property_candidate_with_target_residual",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -7424,10 +6821,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Need genuine no-output native128-byte completed storage then reuse control, with missing-read/write-completion negatives."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -7610,12 +7006,12 @@
     },
     {
       "path": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "sha256": "58593918ab4f69e0f176cb15bbf92fa17d47d3b9b8fbcfb920482cc104ff5ff9",
+      "sha256": "eff097dae740afbc1e10cea8ba74d7fb2030c3828c926789c9c979e23c05fab7",
       "state": "repository_contract"
     },
     {
       "path": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "sha256": "e4cd5fad6325eea41630232272fd88a2765af1fa48ec40f914ec40cff15b760d",
+      "sha256": "37067a94b0540eb9d4173375379a26bc0b785b2cc20e2f804909e31c14cc12c0",
       "state": "repository_contract"
     },
     {
@@ -7637,6 +7033,11 @@
       "path": "tests/gfx1250/full-parity/memory-payload-feature-review.json",
       "sha256": "221effb56056edf3a1fe8eb2f44d91dd99950819c7402f2faf9ff874edf12c6f",
       "state": "repository_contract"
+    },
+    {
+      "path": "tests/gfx1250/full-parity/portable-review-blockers.json",
+      "sha256": "7edb5a67e60fbf63e019c99d1d942d3ba04a9041d0ae00f536ce9121b5bce09a",
+      "state": "current_review_overlay_not_duplicate_ownership"
     }
   ]
 }
