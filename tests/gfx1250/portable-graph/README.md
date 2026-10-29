@@ -96,10 +96,14 @@ The checker follows the pinned LLVM
 [execution model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md).
 Arrivals are wave-uniform operations, not distinct waves or PTX per-lane counts.
 INIT reads its expected count from M0, and each reinitialization receives a fresh
-trace incarnation. END does not implicitly drop a named object. This selected
-slice does not cover signal-time count changes, `_isfirst`, clustered objects,
-or reinitialization with outstanding joins, and does not complete every portable
-barrier, lifetime or asynchronous-copy obligation. No hardware result is claimed.
+trace incarnation. END does not implicitly drop a named object. This initial
+fixture corpus uses initialization-bound counts. The separate
+[signal-count corpus](signal-counts/README.md) checks signal-time updates,
+including the disputed equality boundary and unordered conflicting setter/drop
+operations that remain inconclusive. `_isfirst`, clustered objects and
+reinitialization with outstanding joins remain outside the selected profile.
+This corpus does not complete every portable barrier, lifetime or
+asynchronous-copy obligation. No hardware result is claimed.
 NULL waits require an explicit NULL join; an unbound initial last-joined selector
 is not inferred from the encoded operand and remains Unknown.
 
