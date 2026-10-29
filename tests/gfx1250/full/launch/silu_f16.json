@@ -1,0 +1,39 @@
+{
+  "description": "Original external arrays/widths/indices and original block/grid are unchanged. Native wave32 arithmetic maps the original mathematical computation; only two unused trailing PTX dummy pointers are omitted. Original storage conversions remain in source.",
+  "kernel": "silu_f16",
+  "block": [
+    128,
+    1,
+    1
+  ],
+  "grid": [
+    1,
+    1,
+    1
+  ],
+  "dynamic_shared_bytes": 0,
+  "arrays": [
+    {
+      "name": "x",
+      "base": 65536,
+      "elem_width": 2,
+      "len": 512,
+      "kind": "in"
+    },
+    {
+      "name": "output",
+      "base": 131072,
+      "elem_width": 2,
+      "len": 512,
+      "kind": "out"
+    }
+  ],
+  "params": [
+    {
+      "ptr": "x"
+    },
+    {
+      "ptr": "output"
+    }
+  ]
+}

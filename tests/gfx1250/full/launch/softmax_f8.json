@@ -1,0 +1,51 @@
+{
+  "description": "Original external arrays/widths/indices and original block/grid are unchanged. Native wave32 arithmetic maps the original mathematical computation; only two unused trailing PTX dummy pointers are omitted. Original storage conversions remain in source.",
+  "kernel": "softmax_f8",
+  "block": [
+    32,
+    4,
+    1
+  ],
+  "grid": [
+    1,
+    1,
+    1
+  ],
+  "dynamic_shared_bytes": 0,
+  "arrays": [
+    {
+      "name": "output",
+      "base": 65536,
+      "elem_width": 2,
+      "len": 4096,
+      "kind": "out"
+    },
+    {
+      "name": "input",
+      "base": 131072,
+      "elem_width": 1,
+      "len": 4096,
+      "kind": "in"
+    }
+  ],
+  "params": [
+    {
+      "ptr": "output"
+    },
+    {
+      "ptr": "input"
+    },
+    {
+      "int": 256
+    },
+    {
+      "int": 256
+    },
+    {
+      "int": 16
+    },
+    {
+      "int": 256
+    }
+  ]
+}
