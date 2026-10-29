@@ -254,30 +254,41 @@
         "-O2",
         "-std=c++17",
         "-S",
-        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-mamba.hip",
+        "/home/harsh/ptx-verifier-gfx1250-exact-scalar-parity/tests/gfx1250/full/fixtures/original-mamba.hip",
         "-o",
-        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-mamba.s"
+        "/home/harsh/ptx-verifier-gfx1250-exact-scalar-parity/tests/gfx1250/full/fixtures/original-mamba.s"
       ],
       "assemble": [
         "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
         "--triple=amdgcn-amd-amdhsa",
         "--mcpu=gfx1250",
         "-filetype=obj",
-        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-mamba.s",
+        "/home/harsh/ptx-verifier-gfx1250-exact-scalar-parity/tests/gfx1250/full/fixtures/original-mamba.s",
         "-o",
-        "/tmp/ptx-gfx1250-original-mamba.o"
+        "/tmp/gfx1250-mamba-spaced.o"
       ],
       "link": [
         "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
         "-shared",
-        "/tmp/ptx-gfx1250-original-mamba.o",
+        "/tmp/gfx1250-mamba-spaced.o",
         "-o",
-        "/tmp/ptx-gfx1250-original-mamba.hsaco"
+        "/tmp/gfx1250-mamba-spaced.hsaco"
       ],
-      "source_sha256": "81fee6a9b4830fb2ce091eee9b32319f9c7c5ff5ea02e713fbc1d60b97ff6cc9",
-      "assembly_sha256": "4ecfaa2c02825b4db0caab6c02e7d96555a44ade43d76b32e574b08db87cfbf2",
-      "object_sha256": "af7d7e2f87c2d1ecb2752a3000c3b4159e29dd7d3f2998a568e29c94fdd658d9",
-      "code_object_sha256": "5ff71b28118c494f925a9f62385d4cab1b05fccb63673b69882668c603888b86"
+      "source_sha256": "636f017a58e3bf49e528fa02a52c9204c4a8e978e2291841c0fed7d04a388cb7",
+      "assembly_sha256": "73a008917d2c76d59ac1e488c6169296a2019bc6969fbf70d5d00eb3c6903748",
+      "object_sha256": "28ace5aa808048683089d7c7a85e6317889ab1bbde357f8f6ddb02eb4f07c312",
+      "code_object_sha256": "2b257630b473adf44884fd19690a1b1d1e972f35083ac3546769f546e5e4d8ad",
+      "wmma_source_spacing": {
+        "policy": "four immediate v_nop VALU instructions after every WMMA, tied accumulator and both input fragments with volatile asm memory clobber",
+        "static_wmma_sites": 32,
+        "checked_immediate_v_nop_per_site": 4,
+        "private_segment_bytes": [
+          0,
+          0
+        ],
+        "reason": "The unchanged mathematical model and full native hardware computations do not waive LLVM checkWMMAHazards source reuse obligations. Source scheduling is made explicit without weakening the graph checker.",
+        "primary": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNHazardRecognizer.cpp"
+      }
     }
   ]
 }
