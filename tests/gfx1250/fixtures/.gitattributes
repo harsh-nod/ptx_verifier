@@ -1,0 +1,2 @@
+# Preserve LLVM's unchanged named-barrier assembly, including printer whitespace.
+native-named-count-boundaries.s whitespace=-blank-at-eol
