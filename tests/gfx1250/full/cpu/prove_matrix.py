@@ -88,7 +88,7 @@ def check_stdout(stdout, expected):
     require(re.findall(r"^VERDICT: (\w+)\s*$", stdout, re.M) == ["ACCEPT"], "missing final acceptance")
     require(re.findall(r"^EQUIVALENT \(matches spec\)\s*$", stdout, re.M) == ["EQUIVALENT (matches spec)"], "missing equivalence")
     for prop in PROPERTIES:
-        require(re.search(r"^\s+" + re.escape(prop) + r" \([^\n]+\)\s+PASS\s*$", stdout, re.M), prop)
+        require(re.findall(r"^\s+" + re.escape(prop) + r" \([^\n]+\)\s+(\w+)\s*$", stdout, re.M) == ["PASS"], prop)
 
 
 def process_rss(pid):
