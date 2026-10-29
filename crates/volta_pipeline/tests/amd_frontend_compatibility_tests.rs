@@ -13,6 +13,10 @@ const COPY: &str = include_str!("../../volta_amd_analysis/tests/fixtures/copy.s"
 
 #[test]
 fn frontends_agree_on_the_upstream_compiler_kernel() {
+    assert_eq!(
+        COPY,
+        include_str!("../../volta_amdgpu_analysis/tests/fixtures/upstream-copy.s")
+    );
     let upstream = parse_kernel(COPY, "copy").unwrap();
     let module = frontend::parse(COPY).unwrap();
     assert_eq!(module.kernels.len(), 1);
@@ -22,9 +26,20 @@ fn frontends_agree_on_the_upstream_compiler_kernel() {
         module.target.as_deref(),
         upstream.target.strip_prefix("amdgcn-amd-amdhsa--")
     );
-    for (name, value) in &upstream.descriptor {
-        assert_eq!(native.descriptor.get(name), Some(*value), "{name}");
-    }
+    // The native metadata reader adds these three settings to the inline descriptor.
+    let native_inline_descriptor = native
+        .descriptor
+        .fields
+        .iter()
+        .filter(|(name, _)| {
+            !matches!(
+                name.as_str(),
+                "kernarg_segment_align" | "max_flat_workgroup_size" | "uniform_work_group_size"
+            )
+        })
+        .map(|(name, value)| (name.clone(), *value))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    assert_eq!(native_inline_descriptor, upstream.descriptor);
     assert_eq!(native.instructions.len(), upstream.instructions.len());
     for (native, upstream) in native.instructions.iter().zip(&upstream.instructions) {
         assert_eq!(native.mnemonic, upstream.opcode);
