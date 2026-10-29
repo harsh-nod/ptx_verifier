@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "host": "XSJHARMENON01",
+  "scope": "Genuine native compiler outputs, not edited or retargeted assembly; compilation/assembly alone make no semantic verification claim.",
+  "hardware_validation": "not_performed_by_this_compiler_only_workflow",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/clang-22",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.0/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.0/lib/llvm/bin/clang++.cfg\n"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n"
+    }
+  },
+  "fixtures": [
+    {
+      "source": "native-tensor-edge.hip",
+      "assembly": "native-tensor-edge.s",
+      "source_sha256": "978074a1cec058a7fec9c8a14156cfa391e7f30dd3d33f40fff4220047cb063c",
+      "assembly_sha256": "2ed3809b7bc1a9a7d862041ff5374944eede92439070587688c620b5c7a235ec",
+      "object_sha256": "c6eda7aeccf1fc27f43770d9936b90025dd2051f03f12b7650b7ee4e75694b05",
+      "code_object_sha256": "61ac480abc685bf0e4ba9fc66f66d9baab071ea18aa398e4e7eaf51cfd13e7be",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-edge.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-edge.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-edge.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-edge.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-edge.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-edge.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-tensor-metadata.hip",
+      "assembly": "native-tensor-metadata.s",
+      "source_sha256": "a1d18353fd0c3183fea8f4adc47b70bafec4bf7e3041e0f6720a963f17bd7066",
+      "assembly_sha256": "47b07da2ebc20e6fb47301adc7143911d90317d7f25cb77b09c59501a88b9bf7",
+      "object_sha256": "1521c5f0302e5b1e716d8ebd658b9bef5d830d556a9f7b7767afc2eb07e47c71",
+      "code_object_sha256": "4f744d8616f134aa9fa9822c888952534613e49b2e6de14bcea1c63959a65927",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-metadata.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-metadata.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-metadata.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-metadata.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-metadata.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-metadata.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-tensor-publication.hip",
+      "assembly": "native-tensor-publication.s",
+      "source_sha256": "462a5e205bb9182390695fdf86807ecc07b0d4d8e61008e6c9a6b5c8516845b6",
+      "assembly_sha256": "c1cd868abf53ddb2ab51f3b6dcd94acde60a9c8c8ac7d17112c307e6b0045aac",
+      "object_sha256": "1c564292a254417abdc6253afcceb519e754e3d3857dbf037f39a8a627321556",
+      "code_object_sha256": "5fb062e7c7b461254a746184133bf3e1321a8f852bb9684d4c8f0150ef507c2f",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-publication.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-publication.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-publication.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-publication.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-publication.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-publication.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ]
+}
