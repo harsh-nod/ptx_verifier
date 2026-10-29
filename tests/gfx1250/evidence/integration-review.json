@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_utc": "2026-10-29T02:31:34.081695+00:00",
+  "recorded_utc": "2026-10-29T02:40:23.788790+00:00",
   "source_commit_hardware": "97b5df0ab258a3818f41bfc1d2620649185e1384",
   "upstream_master": "b3a37911b8bd87352996403e8471a1fe18c4e975",
   "review_scope": "Changed upstream API, native function classification, shared frontend regressions, both host-only hardware drivers, operational provenance, public APIs, native safety and viewer regression. Not a formal soundness proof or full ISA review.",
@@ -49,12 +49,12 @@
   ],
   "validation": {
     "rust": {
-      "passed": 1575,
+      "passed": 1580,
       "failed": 1,
       "inherited_failure": "test_aligned_bar_sync_reached_on_different_iterations",
       "unexpected_failures": 0,
-      "tested_source": "114c71a60cd60ac75127e0b7b385605aab3e3cf3",
-      "followup": "Latest upstream integration removed the temporary direct-IR API and adds independent AMD lowering; final workspace results are recorded after that integration."
+      "tested_source": "ff5a1d8745c70e67a6bd622ad827841b730a07b0",
+      "followup": "Final whole-workspace run includes latest upstream independent AMD lowering, strict target features and six shared frontend/lowering tests; obsolete public PTX IR API is absent."
     },
     "rebuilt_python": {
       "passed": 89
@@ -66,13 +66,14 @@
       "passed": 16,
       "gpu_launches": 0
     },
-    "clippy": "passes with inherited warnings retained",
+    "clippy": "cargo clippy --workspace --all-targets passes with inherited warnings retained",
     "rustdoc": "strict broken-link and bare-URL checks pass",
     "format": "new/owned Rust and Python files checked; workspace-wide rustfmt still reports pre-existing formatting differences",
     "viewer": {
-      "runs": 199,
+      "runs": 200,
       "browser_errors": 0,
-      "receipt": "integration-browser.json"
+      "receipt": "integration-browser.json",
+      "tested_code_commit": "ff5a1d8745c70e67a6bd622ad827841b730a07b0"
     },
     "hardware": {
       "core_launches": 3615,
@@ -85,6 +86,11 @@
       "receipt_core": "hardware-core-coordinator.json",
       "receipt_portable": "hardware-portable-coordinator.json",
       "racy_or_deadlocking_mutants_executed": false
+    },
+    "documentation": {
+      "first_party_markdown_files": 30,
+      "local_references": 397,
+      "broken_local_references": 0
     }
   },
   "remaining_scope_limits": [
@@ -92,5 +98,21 @@
     "One unclustered workgroup in the analysis model; supplemental multi-block copy hardware tests do not expand that scope.",
     "Bounded decoded-F32 workload family counterparts, not original PTX shape/dtype/grid parity.",
     "Mathematical real-number abstraction does not establish IEEE exceptional behavior or physical error bounds."
-  ]
+  ],
+  "reviewed_code_commit": "ff5a1d8745c70e67a6bd622ad827841b730a07b0",
+  "hardware_execution_path_unchanged_since_replay": {
+    "source_commit": "97b5df0ab258a3818f41bfc1d2620649185e1384",
+    "final_reviewed_code_commit": "ff5a1d8745c70e67a6bd622ad827841b730a07b0",
+    "identical_component_trees": {
+      "crates/volta_amdgpu_analysis/src": "ba233d9bc5fac8aa91c5855c5cabbe4023b7684b",
+      "crates/volta_graph/src": "91b67d00ebd2ce823f21f251e8ce00a402cf8e51",
+      "crates/volta_graph_check/src": "78842a87770d7680de34a4855fde4d31c0e0c88c",
+      "crates/volta_common/src": "e819439653935d10340c8287141103ea978d0f8e",
+      "crates/volta_expr/src": "8ef9d84eb5246177925ad3b5158059651f52fd5e",
+      "crates/volta_equivalence/src": "392164dd7db4c05a64a3de71d502be592bcc5046",
+      "crates/volta_pipeline/src": "8def8ce25cb6c93c8262ea23165d2c41e2504d9d"
+    },
+    "meaning": "Latest upstream changes affect the experimental parser/lowering and remove temporary PTX APIs; the native AMD execution, graph and equivalence path tested on hardware is byte-identical.",
+    "launch_manifests": "cases.json and portable-cases.json match replayed launch data and source/spec hashes exactly after ignoring only status/scope/evidence annotations"
+  }
 }
