@@ -16,15 +16,19 @@ sys.modules[SPEC.name] = runner
 SPEC.loader.exec_module(runner)
 
 
-def result():
+def result(patterns=runner.BASIC.patterns, profile=runner.BASIC):
     return {
         "status": "pass", "architecture": "gfx1250", "wave_size": 32,
-        "reference_controls": "pass", "patterns": 3,
-        "cases": [{"kernel": name, "outputs": outputs * 3, "launches": 3,
-                   "unchanged_input_bytes": inputs * 3,
-                   "unchanged_guard_bytes": buffers * 8192 * 3,
+        "reference_controls": "pass", "patterns": patterns,
+        "cases": [{"kernel": name, "outputs": outputs * patterns, "launches": patterns,
+                   "unchanged_input_bytes": inputs * patterns,
+                   "unchanged_guard_bytes": buffers * 8192 * patterns,
+                   **({"unchanged_gap_bytes": profile.gaps[name] * patterns}
+                      if profile.gaps is not None else {}),
+                   **({"original_outputs": profile.original_outputs[name] * patterns}
+                      if profile.original_outputs is not None else {}),
                    "max_absolute_error": 0.0}
-                  for name, (outputs, inputs, buffers) in runner.CONTRACT.items()],
+                  for name, (outputs, inputs, buffers) in profile.contract.items()],
     }
 
 
@@ -139,27 +143,29 @@ class ReceiptControls(unittest.TestCase):
     def test_matrix_gate_rejects_missing_padding_accounting(self):
         from original_matrix_run import MATRIX
 
-        report = {**result(), "patterns": 4, "cases": []}
-        for name, (outputs, inputs, buffers) in MATRIX.contract.items():
-            report["cases"].append(
-                {
-                    "kernel": name,
-                    "outputs": outputs * 4,
-                    "launches": 4,
-                    "unchanged_input_bytes": inputs * 4,
-                    "unchanged_guard_bytes": buffers * 8192 * 4,
-                    "unchanged_gap_bytes": MATRIX.gaps[name] * 4,
-                    "max_absolute_error": 0,
-                }
-            )
-        runner.validate_result(report, 4, MATRIX)
+        report = result(MATRIX.patterns, MATRIX)
+        runner.validate_result(report, MATRIX.patterns, MATRIX)
         report["cases"][0]["unchanged_gap_bytes"] -= 2
         with self.assertRaises(ValueError):
-            runner.validate_result(report, 4, MATRIX)
+            runner.validate_result(report, MATRIX.patterns, MATRIX)
+
+    def test_original32_profiles_require_the_explicit_basis_patterns(self):
+        from original_advanced_run import ADVANCED
+        from original_convolution_run import CONVOLUTION
+        from original_matrix_run import MATRIX
+
+        for profile, count in ((runner.BASIC, 10), (CONVOLUTION, 5), (MATRIX, 6), (ADVANCED, 6)):
+            with self.subTest(profile=profile.runner):
+                self.assertEqual((profile.patterns, profile.minimum_patterns), (count, count))
+                runner.validate_result(result(count, profile), count, profile)
+                # Complete old-size reports remain historical; they cannot pass the new gate.
+                for missing in (count - 1, 1):
+                    with self.assertRaisesRegex(ValueError, "input-pattern coverage"):
+                        runner.validate_result(result(missing, profile), missing, profile)
 
     def test_rejects_incomplete_or_invalid_execution(self):
         baseline = result()
-        runner.validate_result(baseline, 3)
+        runner.validate_result(baseline, runner.BASIC.patterns)
         variants = []
         for key, value in [("status", "unsupported"), ("architecture", "gfx950"),
                            ("wave_size", 64), ("patterns", 2), ("reference_controls", "fail")]:
@@ -178,7 +184,7 @@ class ReceiptControls(unittest.TestCase):
             variants.append(changed)
         for changed in variants:
             with self.subTest(changed=changed), self.assertRaises(ValueError):
-                runner.validate_result(changed, 3)
+                runner.validate_result(changed, runner.BASIC.patterns)
 
     def test_failed_preflight_invalidates_previous_success(self):
         with tempfile.TemporaryDirectory() as temporary:

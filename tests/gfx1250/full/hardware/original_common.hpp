@@ -132,10 +132,12 @@ struct Buffer {
   std::vector<uint8_t> before, after;
   uint8_t *allocation{};
   void *pointer{};
-  Buffer(Type t, size_t n, bool out = false)
+  Buffer(Type t, size_t n, bool out = false, bool host_only = false)
       : type(t), count(n), output(out), before(guard * 2 + width(t) * n, 0xa5), after(before.size()) {
-    hip_check(hipMalloc(&allocation, before.size()), "allocate guarded buffer");
-    pointer = allocation + guard;
+    if (!host_only) {
+      hip_check(hipMalloc(&allocation, before.size()), "allocate guarded buffer");
+      pointer = allocation + guard;
+    }
     if (out) std::fill(before.begin() + guard, before.end() - guard, 0xff);
   }
   Buffer(const Buffer &) = delete;
@@ -175,13 +177,43 @@ struct Buffer {
       }
     }
   }
-  void upload() { hip_check(hipMemcpy(allocation, before.data(), before.size(), hipMemcpyHostToDevice), "upload"); }
-  void download() { hip_check(hipMemcpy(after.data(), allocation, after.size(), hipMemcpyDeviceToHost), "download"); }
+  void basis(size_t index) {
+    require(index < count, "basis input index out of bounds");
+    std::fill(before.begin() + guard, before.end() - guard, 0);
+    if (type == Type::E4M3) before[guard + index] = 0x38; // Exact OCP E4M3 +1.
+    else set(index, 1.);
+  }
+  void upload() {
+    require(allocation, "host-only reference buffer cannot be launched");
+    hip_check(hipMemcpy(allocation, before.data(), before.size(), hipMemcpyHostToDevice), "upload");
+  }
+  void download() {
+    require(allocation, "host-only reference buffer cannot be downloaded");
+    hip_check(hipMemcpy(after.data(), allocation, after.size(), hipMemcpyDeviceToHost), "download");
+  }
   size_t check_unchanged() const {
     check_preserved(before, after, output, guard);
     return output ? guard * 2 : before.size();
   }
 };
+
+inline void validate_basis_controls() {
+  for (Type type : {Type::Half, Type::Float, Type::E4M3, Type::I8, Type::U32}) {
+    Buffer input(type, 4096, false, true);
+    for (size_t active : {size_t(0), size_t(4095)}) {
+      input.basis(active);
+      for (size_t i = 0; i < input.count; ++i)
+        require(input.get(i) == (i == active ? 1. : 0.), "basis coordinate or dtype changed");
+      for (size_t i = 0; i < Buffer::guard; ++i)
+        require(input.before[i] == 0xa5 && input.before[input.before.size() - 1 - i] == 0xa5,
+                "basis initialization changed an allocation guard");
+    }
+    bool rejected = false;
+    try { input.basis(input.count); }
+    catch (const std::runtime_error &) { rejected = true; }
+    require(rejected, "basis initialization accepted an out-of-bounds coordinate");
+  }
+}
 
 struct Row {
   std::string kernel;

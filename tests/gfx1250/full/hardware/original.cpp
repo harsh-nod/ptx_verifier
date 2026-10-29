@@ -16,6 +16,7 @@ static std::vector<Row> validate(hipModule_t f16, hipModule_t f8, unsigned patte
                                      : operation == "sigmoid" ? 256 : 128;
           Buffer x(input, n), value(input, n), out(Type::Half, n, true);
           x.fill(pattern, 3); value.fill(pattern, 7);
+          if (pattern == 9) { x.basis(n - 1); value.basis(n - 1); }
           std::vector<double> expected(n);
           for (size_t i = 0; i < n; ++i) {
             const double a = x.get(i);
@@ -29,6 +30,7 @@ static std::vector<Row> validate(hipModule_t f16, hipModule_t f8, unsigned patte
         } else if (operation == "rope") {
           Buffer x(input, 128), cosine(input, 128), sine(input, 128), out(Type::Half, 128, true);
           x.fill(pattern, 3); cosine.fill(pattern + 1, 7); sine.fill(pattern + 2, 11);
+          if (pattern == 9) x.basis(127); // Both original RoPE partner positions remain checked.
           std::vector<double> expected(128);
           for (size_t i = 0; i < 128; ++i) {
             const double a = x.get(i), partner = (i < 64 ? -1. : 1.) * x.get(i ^ 64);
@@ -42,6 +44,7 @@ static std::vector<Row> validate(hipModule_t f16, hipModule_t f8, unsigned patte
         } else if (operation == "rmsnorm") {
           Buffer x(input, 4096), weight(input, 4096), out(Type::Half, 4096, true);
           x.fill(pattern, 3); weight.fill(pattern + 1, 7);
+          if (pattern == 9) x.basis(4095);
           double square_sum = 0;
           for (size_t i = 0; i < 4096; ++i) square_sum += x.get(i) * x.get(i);
           const double scale = 1. / std::sqrt(square_sum / 4096 + double(1.e-6f));
@@ -51,6 +54,7 @@ static std::vector<Row> validate(hipModule_t f16, hipModule_t f8, unsigned patte
         } else if (operation == "softmax") {
           Buffer x(input, 4096), out(Type::Half, 4096, true);
           x.fill(pattern, 3);
+          if (pattern == 9) x.basis(4095);
           std::vector<double> expected(4096);
           for (size_t row_index = 0; row_index < 16; ++row_index) {
             double maximum = -INFINITY, total = 0;
@@ -68,6 +72,7 @@ static std::vector<Row> validate(hipModule_t f16, hipModule_t f8, unsigned patte
           const size_t n = fp8 ? 64 : 32;
           Buffer a(input, n * 4096), x(input, 4096), out(Type::Half, n, true);
           a.fill(pattern, 3); x.fill(pattern + 1, 7);
+          if (pattern == 9) a.basis(n * 4096 - 1); // Last row and full K4095.
           std::vector<double> expected(n, 0);
           for (size_t r = 0; r < n; ++r) for (size_t k = 0; k < 4096; ++k) expected[r] += a.get(r * 4096 + k) * x.get(k);
           if (pattern > 0)
@@ -77,6 +82,7 @@ static std::vector<Row> validate(hipModule_t f16, hipModule_t f8, unsigned patte
           const size_t n = fp8 ? 2048 : 256;
           Buffer x(input, n), out(Type::Float, 1, true);
           x.fill(pattern, 3); out.set(0, 1.25);
+          if (pattern == 9) x.basis(n - 1);
           double expected = out.get(0);
           for (size_t i = 0; i < n; ++i) expected += x.get(i);
           run(module, row.kernel, dim3(fp8 ? 256 : 128), {&x.pointer, &out.pointer}, {&x, &out}, out, {expected}, row, 0, 0);
@@ -91,15 +97,16 @@ static std::vector<Row> validate(hipModule_t f16, hipModule_t f8, unsigned patte
 int main(int argc, char **argv) {
   try {
     validate_reference_controls();
+    validate_basis_controls();
     if (argc == 2 && std::string(argv[1]) == "--cpu-only") {
-      std::puts("PASS independent OCP E4M3 and zero-activation reference controls; GPU launches=0");
+      std::puts("PASS independent OCP E4M3 and zero-activation reference and basis byte/guard controls; GPU launches=0");
       return 0;
     }
     require(argc == 4, "usage: original_driver f16.hsaco f8.hsaco patterns");
     const std::string pattern_text = argv[3];
     size_t consumed = 0;
     const unsigned long count = std::stoul(pattern_text, &consumed);
-    require(consumed == pattern_text.size() && count >= 1 && count <= 64, "patterns must be 1..64");
+    require(consumed == pattern_text.size() && count >= 10 && count <= 64, "patterns must be 10..64, including tail basis9");
     hipDeviceProp_t device{};
     hip_check(hipGetDeviceProperties(&device, 0), "device properties");
     const std::string architecture = device.gcnArchName;

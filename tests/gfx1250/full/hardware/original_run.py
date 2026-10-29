@@ -62,10 +62,12 @@ class Profile:
 
 
 BASIC = Profile(CONTRACT, ("f16", "f8"), "full/hardware/original.cpp",
-                "full/hardware/original_run.py", INPUTS, 9)
+                "full/hardware/original_run.py", INPUTS, 10, minimum_patterns=10)
 
 
 def validate_result(result: dict, patterns: int, profile: Profile = BASIC) -> None:
+    if type(patterns) is not int or not profile.minimum_patterns <= patterns <= profile.maximum_patterns:
+        raise ValueError("required input-pattern coverage is incomplete")
     if (result.get("status"), result.get("architecture"), result.get("wave_size"),
             result.get("patterns")) != ("pass", "gfx1250", 32, patterns):
         raise ValueError("driver did not report complete real gfx1250 execution")

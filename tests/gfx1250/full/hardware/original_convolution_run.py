@@ -12,7 +12,7 @@ CONVOLUTION = Profile(
            "full/hardware/original_convolution_run.py", "full/hardware/original_common.hpp",
            "full/hardware/original_convolution.cpp", "full/fixtures/original-convolution.hip",
            "full/fixtures/original-convolution.s"),
-    patterns=4, minimum_patterns=2, maximum_patterns=16,
+    patterns=5, minimum_patterns=5, maximum_patterns=16,
     gaps={"convolution_f16_original": 713728, "convolution_f8_original": 730112},
 )
 
