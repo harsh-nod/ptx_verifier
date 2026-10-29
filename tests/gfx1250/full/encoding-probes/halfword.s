@@ -14,17 +14,21 @@ halfword_policy:                        ; @halfword_policy
 	s_load_b64 s[0:1], s[0:1], 0x0
 	v_dual_mov_b32 v0, 0 :: v_dual_mov_b32 v1, 0x2aaa4000
 	v_dual_mov_b32 v3, 0x35553c00 :: v_dual_mov_b32 v4, 0x35553c00
-	v_dual_mov_b32 v5, 0x35553c00 :: v_dual_mov_b32 v6, 0x35553c00
-	v_dual_mov_b32 v7, 0x35553c00 :: v_dual_mov_b32 v8, 0x35553c00
 	v_mov_b32_e32 v2, 0x2aaa4200
+	v_dual_mov_b32 v5, 0x35553c00 :: v_dual_mov_b32 v6, 0x35553c00
 	;;#ASMSTART
 	v_fmac_f16_e32 v4, v1, v2
 	;;#ASMEND
+	v_dual_mov_b32 v7, 0x35553c00 :: v_dual_mov_b32 v8, 0x35553c00
+	v_dual_mov_b32 v9, 0x35553c00 :: v_dual_mov_b32 v10, 0x35553c00
+	v_mov_b32_e32 v11, 0x35553c00
 	s_wait_kmcnt 0x0
 	global_store_b32 v0, v4, s[0:1]
 	;;#ASMSTART
 	v_add_f16_e32 v5, v1, v2
 	;;#ASMEND
+	s_wait_xcnt 0x0
+	v_mov_b32_e32 v4, 0x35553c00
 	global_store_b32 v0, v5, s[0:1] offset:4
 	;;#ASMSTART
 	v_mul_f16_e32 v6, v1, v2
@@ -39,9 +43,49 @@ halfword_policy:                        ; @halfword_policy
 	;;#ASMEND
 	global_store_b32 v0, v8, s[0:1] offset:16
 	;;#ASMSTART
-	v_mul_f16_e64 v3, v1, v2
+	v_mul_f16_e64 v9, v1, v2
 	;;#ASMEND
-	global_store_b32 v0, v3, s[0:1] offset:20
+	global_store_b32 v0, v9, s[0:1] offset:20
+	;;#ASMSTART
+	v_sub_f16_e32 v10, v1, v2
+	;;#ASMEND
+	global_store_b32 v0, v10, s[0:1] offset:24
+	s_wait_xcnt 0x5
+	v_mov_b32_e32 v5, 0x35553c00
+	;;#ASMSTART
+	v_sub_f16_e64 v11, v1, v2
+	;;#ASMEND
+	global_store_b32 v0, v11, s[0:1] offset:28
+	;;#ASMSTART
+	v_max_num_f16_e32 v4, v1, v2
+	;;#ASMEND
+	global_store_b32 v0, v4, s[0:1] offset:32
+	s_wait_xcnt 0x0
+	v_mov_b32_e32 v4, 0x35553c00
+	;;#ASMSTART
+	v_max_num_f16_e64 v5, v1, v2
+	;;#ASMEND
+	global_store_b32 v0, v5, s[0:1] offset:36
+	s_wait_xcnt 0x0
+	v_mov_b32_e32 v5, 0x35553c00
+	v_mov_b32_e32 v7, 0x35553c00
+	v_mov_b32_e32 v6, 0x3faaaaab
+	;;#ASMSTART
+	v_min_num_f16_e32 v4, v1, v2
+	;;#ASMEND
+	global_store_b32 v0, v4, s[0:1] offset:40
+	;;#ASMSTART
+	v_min_num_f16_e64 v5, v1, v2
+	;;#ASMEND
+	global_store_b32 v0, v5, s[0:1] offset:44
+	;;#ASMSTART
+	v_cvt_f16_f32_e32 v7, v6
+	;;#ASMEND
+	global_store_b32 v0, v7, s[0:1] offset:48
+	;;#ASMSTART
+	v_cvt_f16_f32_e64 v3, v6
+	;;#ASMEND
+	global_store_b32 v0, v3, s[0:1] offset:52
 .LBB0_2:
 	s_endpgm
 	.section	.rodata,"a",@progbits
@@ -66,7 +110,7 @@ halfword_policy:                        ; @halfword_policy
 		.amdhsa_system_sgpr_workgroup_id_z 0
 		.amdhsa_system_sgpr_workgroup_info 0
 		.amdhsa_system_vgpr_workitem_id 0
-		.amdhsa_next_free_vgpr 9
+		.amdhsa_next_free_vgpr 12
 		.amdhsa_next_free_sgpr 3
 		.amdhsa_named_barrier_count 0
 		.amdhsa_reserve_vcc 0
@@ -77,7 +121,7 @@ halfword_policy:                        ; @halfword_policy
 		.amdhsa_fp16_overflow 0
 		.amdhsa_memory_ordered 1
 		.amdhsa_forward_progress 1
-		.amdhsa_inst_pref_size 2
+		.amdhsa_inst_pref_size 3
 		.amdhsa_round_robin_scheduling 0
 		.amdhsa_exception_fp_ieee_invalid_op 0
 		.amdhsa_exception_fp_denorm_src 0
@@ -91,7 +135,7 @@ halfword_policy:                        ; @halfword_policy
 .Lfunc_end0:
 	.size	halfword_policy, .Lfunc_end0-halfword_policy
                                         ; -- End function
-	.set halfword_policy.num_vgpr, 9
+	.set halfword_policy.num_vgpr, 12
 	.set halfword_policy.num_agpr, 0
 	.set halfword_policy.numbered_sgpr, 3
 	.set halfword_policy.num_named_barrier, 0
@@ -103,9 +147,9 @@ halfword_policy:                        ; @halfword_policy
 	.set halfword_policy.has_indirect_call, 0
 	.section	.AMDGPU.csdata,"",@progbits
 ; Kernel info:
-; codeLenInByte = 156
+; codeLenInByte = 336
 ; TotalNumSgprs: 3
-; NumVgprs: 9
+; NumVgprs: 12
 ; ScratchSize: 0
 ; MemoryBound: 0
 ; FloatMode: 240
@@ -114,7 +158,7 @@ halfword_policy:                        ; @halfword_policy
 ; SGPRBlocks: 0
 ; VGPRBlocks: 0
 ; NumSGPRsForWavesPerEU: 3
-; NumVGPRsForWavesPerEU: 9
+; NumVGPRsForWavesPerEU: 12
 ; NamedBarCnt: 0
 ; Occupancy: 16
 ; WaveLimiterHint : 0
@@ -167,7 +211,7 @@ amdhsa.kernels:
     .symbol:         halfword_policy.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count:     9
+    .vgpr_count:     12
     .vgpr_spill_count: 0
     .wavefront_size: 32
 amdhsa.target:   amdgcn-amd-amdhsa--gfx1250
