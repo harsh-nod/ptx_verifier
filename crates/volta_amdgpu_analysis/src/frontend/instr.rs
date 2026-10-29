@@ -676,6 +676,8 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
         "cbsz" | "abid" | "blgp" => opcode == Opcode::Matrix,
         "bitop3" => matches!(mnemonic, "v_bitop3_b32" | "v_bitop2_b32" | "v_bitop3_b16"),
         "scale_offset" => matches!(opcode, Opcode::ScalarMemory | Opcode::VectorMemory),
+        "byte_sel" => mnemonic.trim_end_matches("_e64") == "v_cvt_f32_fp8",
+        "scope" => mnemonic == "global_atomic_add_f32",
         "dst_sel" | "dst_unused" | "src0_sel" | "src1_sel" => mnemonic.ends_with("_sdwa"),
         _ => false,
     };
@@ -684,10 +686,29 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
     }
     let numeric = matches!(
         name,
-        "offset" | "offset0" | "offset1" | "mul" | "div" | "cbsz" | "abid" | "blgp" | "bitop3"
+        "offset"
+            | "offset0"
+            | "offset1"
+            | "mul"
+            | "div"
+            | "cbsz"
+            | "abid"
+            | "blgp"
+            | "bitop3"
+            | "byte_sel"
     );
     if numeric && value.and_then(integer).is_none() {
         return Err(format!("modifier `{name}` requires an integer"));
+    }
+    if name == "scope" && value != Some("SCOPE_DEV") {
+        return Err("native atomic profile requires scope:SCOPE_DEV".into());
+    }
+    if name == "byte_sel"
+        && !value
+            .and_then(integer)
+            .is_some_and(|n| (0..=3).contains(&n))
+    {
+        return Err("FP8 byte_sel must be in 0..3".into());
     }
     if matches!(name, "offset0" | "offset1" | "bitop3")
         && !value
@@ -732,7 +753,8 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
     if !numeric
         && !matches!(
             name,
-            "op_sel"
+            "scope"
+                | "op_sel"
                 | "op_sel_hi"
                 | "neg_lo"
                 | "neg_hi"
@@ -1551,6 +1573,7 @@ pub(super) fn validate_vop_literal_positions(
         .or_else(|| mnemonic.strip_suffix("_e64"))
         .unwrap_or(mnemonic);
     if ![
+        "s_add_f32",
         "s_sub_f32",
         "s_mul_f32",
         "s_min_num_f32",
@@ -1568,6 +1591,7 @@ pub(super) fn validate_vop_literal_positions(
         "v_fmac_f32",
         "v_min_f16",
         "v_max_f16",
+        "v_max_num_f16",
         "v_add_f64",
         "v_mul_f64",
         "v_min_f64",

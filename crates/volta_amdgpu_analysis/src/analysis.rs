@@ -121,7 +121,9 @@ pub fn analyze(
             .instructions
             .iter()
             .map(|instruction| InstructionInfo {
-                kind: if instruction.mnemonic.starts_with("tensor_") {
+                kind: if instruction.mnemonic == "global_atomic_add_f32" {
+                    "atomic f32 add no return"
+                } else if instruction.mnemonic.starts_with("tensor_") {
                     "tensor memory"
                 } else if instruction.mnemonic == "v_nop" {
                     "vector ALU"
