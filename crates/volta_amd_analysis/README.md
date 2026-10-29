@@ -19,6 +19,10 @@ valid XNACK/SRAM-ECC selections are preserved. Descriptor values are retained,
 not validated as a complete launch or register-allocation contract. Successful
 lowering alone does not establish execution completion or graph safety.
 
+Parsing rejects malformed target quoting, duplicate selected kernel definitions,
+repeated descriptor settings, and missing operands. Native optional trailing
+commas and both wait-counter separators remain accepted.
+
 Supported operand forms follow the [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
 (§6.2, §12.6, §12.7) and LLVM 21.1.8's
 [operand validation](https://github.com/llvm/llvm-project/blob/llvmorg-21.1.8/llvm/lib/Target/AMDGPU/AsmParser/AMDGPUAsmParser.cpp)

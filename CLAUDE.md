@@ -442,6 +442,9 @@ target-specific graph checks. The pipeline's
 upstream fixture, checks the upstream typed lowering, and verifies complete
 native outputs and missing-wait mutations. No AMD instructions are translated
 through PTX execution semantics.
+The upstream parser rejects malformed target quoting, ambiguous selected kernel
+definitions, duplicate descriptor settings, and empty operands, while retaining
+native optional trailing commas and either wait-counter separator.
 
 ## Crate: volta_graph_check
 
