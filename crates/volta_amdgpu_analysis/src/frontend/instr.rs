@@ -1724,6 +1724,7 @@ pub(super) fn validate_vop_literal_positions(
     if ![
         "s_sub_co_i32",
         "s_cvt_f32_i32",
+        "s_cvt_f32_u32",
         "s_add_f32",
         "s_sub_f32",
         "s_mul_f32",

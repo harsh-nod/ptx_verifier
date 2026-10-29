@@ -2774,13 +2774,13 @@ impl<'a> Interpreter<'a> {
             };
             return wave.put_value(&instruction.operands[0], 0, Value::Real(value));
         }
-        if name == "s_cvt_f32_i32" {
+        if matches!(name, "s_cvt_f32_i32" | "s_cvt_f32_u32") {
             if self.architecture != AmdArchitecture::Gfx1250 || !instruction.modifiers.is_empty() {
                 return Err(self.unsupported(wave, instruction));
             }
             let ty = super::scalar::IntType {
                 bits: 32,
-                signed: true,
+                signed: name == "s_cvt_f32_i32",
             };
             let expr = self.integer_expression(wave, &instruction.operands[1], 0, ty)?;
             let expr = if let Some(value) = self.arena.as_int_const(expr) {

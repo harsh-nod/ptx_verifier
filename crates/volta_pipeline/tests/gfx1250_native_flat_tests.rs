@@ -283,3 +283,26 @@ fn scope_modifier_does_not_escape_into_legacy_flat_mnemonics_or_unknown_target_f
         );
     }
 }
+
+#[test]
+fn scalar_unsigned_conversion_keeps_unsigned32_boundary_and_preserves_scc() {
+    for input in [0u32, 1000, 0x80000000, u32::MAX] {
+        let run = checked(&format!(
+            "s_cmp_eq_u32 1,1\ns_mov_b32 s9,{input}\ns_cvt_f32_u32 s9,s9\ns_cselect_b32 s10,1,0\nv_mov_b32 v1,s9\nglobal_store_b32 v0,v1,s[6:7]\nv_mov_b32 v2,s10\nv_add_nc_u32 v2,0,v2\nglobal_store_b32 v0,v2,s[6:7] offset:4"
+        ));
+        assert_eq!(
+            run.checks.conclusion(),
+            GraphConclusion::Verified,
+            "{:#?}",
+            run.checks
+        );
+        let out = run.analysis.symbolic_outputs().unwrap();
+        assert_eq!(out.outputs[0].1.len(), 2);
+        assert_eq!(
+            out.arena.as_int_const(out.outputs[0].1[0].1),
+            Some(i64::from(input))
+        );
+        assert_eq!(out.arena.as_int_const(out.outputs[0].1[1].1), Some(1));
+    }
+    assert!(frontend::parse(&source("s_cvt_f32_u32 s8,0x100000000")).is_err());
+}
