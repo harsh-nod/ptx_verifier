@@ -144,3 +144,56 @@ fn scaled_flat_profile_does_not_widen_encodings_or_older_targets() {
         );
     }
 }
+
+const SHARED_BASE: &str =
+    "s_mov_b64 s[8:9],src_shared_base\nv_mov_b64 v[4:5],s[8:9]\nv_mov_b32 v2,1\nv_mov_b32 v3,0";
+#[test]
+fn wide_shift_add_preserves_exact_opaque_shared_base_under_destination_alias() {
+    let result = run(&format!(
+        "{SHARED_BASE}\nv_lshl_add_u64 v[4:5],v[2:3],2,v[4:5]\nv_mov_b32 v0,4\nv_add_f32 v1,0,2.5\nds_store_b32 v0,v1\ns_wait_dscnt 0\nflat_load_b32 v1,v[4:5] scope:SCOPE_SYS\ns_wait_loadcnt_dscnt 0\nv_mov_b32 v0,0\nglobal_store_b32 v0,v1,s[6:7]"
+    ));
+    assert_eq!(
+        result.checks.conclusion(),
+        GraphConclusion::Verified,
+        "{:?}",
+        result.checks
+    );
+    let outputs = result.analysis.symbolic_outputs().unwrap();
+    assert_eq!(outputs.outputs[0].1.len(), 1);
+    assert_eq!(outputs.outputs[0].1[0].0, 0);
+    assert_eq!(outputs.arena.as_f64(outputs.outputs[0].1[0].1), Some(2.5));
+}
+#[test]
+fn wide_shared_address_does_not_define_uninitialized_lds_or_numeric_aperture_bits() {
+    for (consumer, expected) in [
+        ("flat_load_b32 v1,v[4:5] scope:SCOPE_SYS", "uninitialized"),
+        ("v_add_nc_u32 v1,0,v5", "opaque shared aperture"),
+    ] {
+        let result = run(&format!(
+            "{SHARED_BASE}\nv_lshl_add_u64 v[4:5],v[2:3],2,v[4:5]\n{consumer}"
+        ));
+        let error = result.analysis.symbolic_outputs().unwrap_err().to_string();
+        assert!(error.contains(expected), "{error}");
+        assert_ne!(result.checks.conclusion(), GraphConclusion::Verified);
+    }
+}
+#[test]
+fn wide_shared_address_refuses_carry_and_unknown_or_data_dependent_indices() {
+    for (prepare, shift, expected) in [
+        ("v_mov_b32 v2,0x40000000", 2, "escapes the shared aperture"),
+        ("v_mov_b32 v2,2", 63, "escapes the shared aperture"),
+        (
+            "v_mov_b32 v0,0\nglobal_load_b64 v[2:3],v0,s[4:5]\ns_wait_loadcnt 0",
+            2,
+            "symbolic mathematical data",
+        ),
+        ("v_mov_b32 v2,v12", 2, "uninitialized"),
+    ] {
+        let result = run(&format!(
+            "{SHARED_BASE}\n{prepare}\nv_lshl_add_u64 v[4:5],v[2:3],{shift},v[4:5]"
+        ));
+        let error = result.analysis.symbolic_outputs().unwrap_err().to_string();
+        assert!(error.contains(expected), "{error}");
+        assert_ne!(result.checks.conclusion(), GraphConclusion::Verified);
+    }
+}

@@ -5226,6 +5226,35 @@ impl<'a> Interpreter<'a> {
                 "v_lshl_add_u64" => {
                     let base = wave.wide(&o[1], lane)?;
                     let shift = wave.bits(&o[2], lane)? & 63;
+                    if self.architecture == AmdArchitecture::Gfx1250 {
+                        if let Operand::Register(addend) = &o[3] {
+                            if addend.count == 2
+                                && wave.reg(*addend, lane, 1)? == Value::SharedApertureHi
+                            {
+                                let low = wave
+                                    .reg(*addend, lane, 0)?
+                                    .bits()
+                                    .map_err(|error| wave.fail(Some(lane), error))?;
+                                // Preserve the opaque aperture, rather than assigning
+                                // it numeric bits. Only a provably non-wrapping low32
+                                // offset is supported by this exact address idiom.
+                                let offset = base
+                                    .checked_mul(1u64 << shift)
+                                    .and_then(|index| index.checked_add(u64::from(low)))
+                                    .filter(|offset| *offset <= u64::from(u32::MAX))
+                                    .ok_or_else(|| {
+                                        wave.fail(
+                                            Some(lane),
+                                            "scaled offset escapes the shared aperture",
+                                        )
+                                    })?;
+                                let destination = wave.destination(&o[0])?;
+                                wave.put(destination, lane, 0, Value::Bits(offset as u32))?;
+                                wave.put(destination, lane, 1, Value::SharedApertureHi)?;
+                                continue;
+                            }
+                        }
+                    }
                     let addend = wave.wide(&o[3], lane)?;
                     wave.put_wide(&o[0], lane, base.wrapping_shl(shift).wrapping_add(addend))?;
                     continue;
