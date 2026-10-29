@@ -42,6 +42,14 @@ artifacts and never call each other or the stage.
 
 ## Tests
 
+`gfx1250_named_barrier_tests` checks genuine compiler-allocated objects, complete
+symbolic payloads, repeated initialization, subset drops and NULL joins. Its
+assemble-valid CPU-only mutations distinguish count deadlocks, missing joins,
+END without a named drop, and LDS completion from arrival/publication.
+Its separate phases module checks two-object handshakes, independent counts,
+the complete three-arrival arithmetic expression, and runtime-selected ID
+deadlocks with a passing native control first.
+
 Every PTX-driven test in the workspace lives here, end to end: each runs real
 kernels from `tests/ptx/` through `verify_kernel` and asserts on the outcome.
 
@@ -125,6 +133,14 @@ PTX/gfx942/gfx950. Source and selected target must agree. The AMD default stays
 gfx950. Native fixtures under `tests/gfx1250` exercise complete graph acceptance,
 independent matrix/arithmetic oracles, and typed safety rejections. Expression
 and VC replay checks equivalence only: those formats carry no event graph and
-cannot reestablish race freedom. Independent execution of the exact positive
-gfx1250 assembly is recorded in the [hardware receipts](../../tests/gfx1250/hardware/README.md);
-that supporting numerical evidence does not replace graph checks.
+cannot reestablish race freedom. The [hardware workflows](../../tests/gfx1250/hardware/README.md)
+check exact positive assembly separately; local device-run records are not retained.
+
+`gfx1250_original_matrix_tests` separately checks parsing/lowering of the exact
+full K4096 six-kernel matrix corpus and its zero-scratch native descriptors.
+That frontend gate does not claim execution, equivalence, or graph acceptance.
+
+The CPU-only `measure_native_export` example accepts native source, launch JSON
+and an output directory. It requires a completed, graph-verified run, prints
+full event/output counts and export/page sizes, and records the viewer's display
+selection. It does not compare a mathematical specification or execute on a GPU.

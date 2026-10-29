@@ -36,7 +36,7 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
                     || instruction
                         .modifiers
                         .iter()
-                        .any(|m| m.name == "scale_offset")
+                        .any(|m| matches!(m.name.as_str(), "scale_offset" | "byte_sel" | "scope"))
                 {
                     return Err(ParseError {
                         message: format!(
@@ -50,6 +50,18 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
         }
     }
     for kernel in &module.kernels {
+        if kernel.descriptor.value("named_barrier_count", 0)
+            > if architecture == Architecture::Gfx1250 {
+                4
+            } else {
+                0
+            }
+        {
+            return Err(ParseError {
+                message: "named barrier allocation exceeds the target descriptor profile".into(),
+                span: SourceSpan::default(),
+            });
+        }
         let wave32 = architecture == Architecture::Gfx1250;
         if kernel.descriptor.flag("wavefront_size32") != wave32 {
             return Err(ParseError {
@@ -75,13 +87,24 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
     }
     if architecture == Architecture::Gfx1250 {
         for kernel in &module.kernels {
-            for instruction in &kernel.instructions {
+            for (index, instruction) in kernel.instructions.iter().enumerate() {
                 crate::frontend::gfx1250::validate_typed_profile(instruction).map_err(
                     |message| ParseError {
                         message,
                         span: instruction.span,
                     },
                 )?;
+                if instruction.mnemonic == "s_sendmsg"
+                    && (kernel.descriptor.value("private_segment_fixed_size", 0) != 0
+                        || !kernel.instructions.get(index + 1).is_some_and(|next| {
+                            next.opcode == Opcode::Control && next.mnemonic == "s_endpgm"
+                        }))
+                {
+                    return Err(ParseError {
+                        message: "MSG_DEALLOC_VGPRS requires zero scratch and an immediately following s_endpgm".into(),
+                        span: instruction.span,
+                    });
+                }
                 fn registers(
                     operand: &crate::frontend::Operand,
                     out: &mut Vec<crate::frontend::Register>,

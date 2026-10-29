@@ -42,6 +42,9 @@ pub(super) enum Value {
         bits: u8,
         signed: bool,
     },
+    /// Signed integer in low16 only; the upper half has no modeled value.
+    /// Only a selected-low16 consumer may read this tag.
+    Low16Integer(ExprId),
     Real(ExprId),
     /// One ordered word of a whole mathematical 64-bit value. These tags are
     /// data, never concrete register/address bits or packed independent f32s.
@@ -58,16 +61,58 @@ pub(super) enum Value {
     Byte(ExprId),
     /// Two encoded bytes in low16, with a zero-filled upper half.
     BytePair(ExprId, ExprId),
+    /// Two exact encoded low bytes. High16 is undefined, as for a true16
+    /// integer result: selected-byte/low16 consumers may use it, full words may not.
+    PartialBytePair(ExprId, ExprId),
     Bytes([ExprId; 4]),
 }
 
 impl Value {
+    /// Exact full-word AND with 0xffff. Encoded low halves retain their format
+    /// identity and the cleared upper half becomes known zero. This performs
+    /// no numeric conversion and never reads unknown discarded bits.
+    pub fn mask_low16(self) -> Result<Option<Self>, String> {
+        Ok(match self {
+            Self::Half(_) | Self::Byte(_) | Self::BytePair(..) => Some(self),
+            Self::Halves(low, _) | Self::PartialHalves(Some(low), _) => Some(Self::Half(low)),
+            Self::PartialHalves(None, _) => return Err("AND observes an undefined low half".into()),
+            Self::PartialBytePair(low, high) => Some(Self::BytePair(low, high)),
+            Self::Bytes(bytes) => Some(Self::BytePair(bytes[0], bytes[1])),
+            Self::PartialBits { bits, defined } if defined & 0xffff == 0xffff => {
+                Some(Self::Integer(bits & 0xffff))
+            }
+            Self::PartialBits { .. } => return Err("AND observes undefined low16 bits".into()),
+            _ => None,
+        })
+    }
+
+    /// Encoded bits31:16 selected by the native high-half store. The result
+    /// remains raw or typed exactly as its source; no F32-to-F16 bitcast occurs.
+    pub fn high16(self) -> Result<Self, String> {
+        match self {
+            Self::Halves(_, high) | Self::PartialHalves(_, Some(high)) => Ok(Self::Half(high)),
+            Self::Half(_) | Self::Byte(_) | Self::BytePair(..) => Ok(Self::Bits(0)),
+            Self::Bytes(bytes) => Ok(Self::BytePair(bytes[2], bytes[3])),
+            Self::Integer(word) => Ok(Self::Integer(word >> 16)),
+            Self::SignedInteger(word) => Ok(Self::Integer(word as u32 >> 16)),
+            Self::Bits(word) => Ok(Self::Bits(word >> 16)),
+            value @ Self::PartialBits { .. } => Ok(Self::Bits(value.selected_bits(16, 16)?)),
+            Self::PartialHalves(_, None) | Self::PartialBytePair(..) | Self::Low16Integer(_) => {
+                Err("high-half store observes undefined upper16 bits".into())
+            }
+            _ => Err("unsupported high16 reinterpretation of mathematical data".into()),
+        }
+    }
+
     pub fn bits(self) -> Result<u32, String> {
         match self {
             Self::Bits(bits) | Self::Integer(bits) => Ok(bits),
             Self::SignedInteger(bits) => Ok(bits as u32),
             Self::PartialBits { .. } => {
                 Err("undefined bits in a partially initialized ABI word".into())
+            }
+            Self::PartialBytePair(..) => {
+                Err("undefined upper bytes in a true16 packed-byte word".into())
             }
             Self::PredicateWord { .. } => {
                 Err("symbolic predicate mask used as concrete integer/address bits".into())
@@ -118,12 +163,14 @@ impl Value {
             | Self::RelocationWord { .. }
             | Self::SharedApertureHi
             | Self::NarrowInt { .. }
+            | Self::Low16Integer(_)
             | Self::WidePart { .. }
             | Self::Half(..)
             | Self::Halves(..)
             | Self::PartialHalves(..)
             | Self::Byte(..)
             | Self::BytePair(..)
+            | Self::PartialBytePair(..)
             | Self::Bytes(..) => Err("encoded packed data used as one f32 value".into()),
         }
     }

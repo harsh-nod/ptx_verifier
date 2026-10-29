@@ -9,7 +9,7 @@ GPU Kernel Verifier checks NVIDIA PTX and native AMD gfx942/gfx950/gfx1250 assem
 > [!CAUTION]
 > **This project is not intended to be a sound verifier, and we do not claim that it is a formal verifier. It is a best-effort verifier for catching bugs in generated kernels; a successful check does not guarantee correctness.**
 >
-> Results depend on the implemented instruction subset, concrete launch configuration and recorded modeling assumptions. Independent numerical and hardware checks remain necessary; the documented gfx1250 corpus has passed execution on real gfx1250 hardware.
+> Results depend on the implemented instruction subset, concrete launch configuration and recorded modeling assumptions. Independent numerical and hardware checks remain necessary.
 
 Kernels must have statically known sizes, and their addresses and branches must resolve from thread indices and concrete parameters, not from input values. The analyzers execute workgroup zero. An AMD result covers that workgroup under its recorded assumptions; it does not prove the whole grid.
 
@@ -25,8 +25,7 @@ Examples below use `volta`; substitute `target/release/volta` for a local build.
 The recorded workspace baseline includes the failing PTX regression
 `test_aligned_bar_sync_reached_on_different_iterations`; a full `just test` run
 therefore exits nonzero at its Rust step. Run `just test-python` separately to
-rebuild and test Python. See the [validation receipt](tests/gfx1250/evidence/coordinator-software.json)
-for the reviewed source revision, passing tests and unchanged baseline failure.
+rebuild and test Python. Validation run artifacts are local and are not retained in this repository.
 
 Generate the Rust library reference with:
 
@@ -85,9 +84,7 @@ gfx1250 uses a separate **wave32** model with WMMA, split workgroup barriers,
 replay-source dependencies and bounded tensor transfers. Select it explicitly
 with `--backend amdgpu --target gfx1250` or Python
 `volta.Config(..., backend="amdgpu", target="gfx1250")`.
-**Software and hardware validated for the documented subset.** The exact checked-in
-assembly passed independent replay on `mi400`; receipts pin source, tools, runtime,
-all outputs, input preservation and guards. The analysis envelope remains a single
+The analysis envelope is a single
 unclustered workgroup, code-object 6,
 metadata 1.2, and the selected compiler instruction subset. Strict/neighbor
 targets, named/cluster barriers and advanced tensor modes remain unsupported.
@@ -101,7 +98,7 @@ volta verify tests/gfx1250/fixtures/native-copy-add.s tests/gfx1250/specs/copy.s
 
 See the [gfx1250 contract and validation corpus](tests/gfx1250/README.md) for
 complete configured matrix/tensor checks, bounded ports of twenty workload
-families, independent mutation/oracle evidence and the hardware replay receipts.
+families, independent mutation/oracle controls and hardware reproduction commands.
 These ports preserve each documented mathematical computation at bounded sizes;
 they do not claim all original PTX shapes, dtypes or device execution behavior.
 

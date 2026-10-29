@@ -12,6 +12,7 @@ pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
     if name.starts_with("s_")
         || name.starts_with("ds_")
         || name.starts_with("global_")
+        || name.starts_with("flat_")
         || name.starts_with("tensor_")
     {
         return Err(format!(
@@ -24,10 +25,16 @@ pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
                 stem,
                 "v_lshlrev_b16"
                     | "v_sub_nc_u16"
+                    | "v_ashrrev_i16"
                     | "v_s_exp_f32"
                     | "v_bitop3_b16"
                     | "v_max3_num_f32"
+                    | "v_max3_num_f16"
+                    | "v_pk_max_num_f16"
+                    | "v_pk_mul_lo_u16"
+                    | "v_pk_sub_i16"
                     | "v_mad_u32"
+                    | "v_xad_u32"
                     | "v_bitop2_b32"
             ))
     {
@@ -38,17 +45,182 @@ pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn validate_dual_pair(x: &Instruction, y: &Instruction) -> Result<(), String> {
+    if x.mnemonic == "v_max_i32" {
+        return Err("gfx1250 signed MAX is supported only in the VOPD Y slot".into());
+    }
+    if y.mnemonic == "v_max_i32" && (!y.modifiers.is_empty()
+        || y.operands.len()!=3
+        || y.operands.iter().any(|op| !matches!(op,Operand::Register(r) if r.class==RegisterClass::Vector && r.count==1)))
+    {
+        return Err("selected VOPD signed MAX requires three plain VGPR operands".into());
+    }
+    for operation in [x, y] {
+        if operation.mnemonic == "v_ashrrev_i32" {
+            let count = match operation.operands.get(1) {
+                Some(Operand::Integer(value)) => (-16..=64).contains(value),
+                Some(Operand::Register(r)) => r.count == 1,
+                _ => false,
+            };
+            if operation.operands.len() != 3
+                || !operation.modifiers.is_empty()
+                || !count
+                || !matches!(operation.operands.first(),Some(Operand::Register(r)) if r.class == RegisterClass::Vector && r.count == 1)
+                || !matches!(operation.operands.get(2),Some(Operand::Register(r)) if r.class == RegisterClass::Vector && r.count == 1)
+            {
+                return Err("selected VOPD ASHR requires a plain VGPR destination/data and an inline or register count".into());
+            }
+        }
+    }
+    if matches!(x.mnemonic.as_str(), "v_add_f64" | "v_mul_f64")
+        || matches!(y.mnemonic.as_str(), "v_add_f64" | "v_mul_f64")
+    {
+        // LLVM VOPD3XPseudosExtraGFX1250 adds F64 only in the X slot.
+        // This selected profile covers the compiler's paired zero-address
+        // initialization, with aligned VGPR pairs and disjoint destinations.
+        if !matches!(x.mnemonic.as_str(), "v_add_f64" | "v_mul_f64")
+            || y.mnemonic != "v_mov_b32"
+            || x.operands.len() != 3
+            || y.operands.len() != 2
+            || y.operands.get(1) != Some(&Operand::Integer(0))
+            || !x.modifiers.is_empty()
+            || !y.modifiers.is_empty()
+        {
+            return Err("selected F64 VOPD3 requires an X-slot add/mul and Y-slot MOV zero".into());
+        }
+        for operand in &x.operands {
+            if !matches!(operand, Operand::Register(r) if r.class == RegisterClass::Vector && r.count == 2 && r.index % 2 == 0)
+            {
+                return Err("selected F64 VOPD3 requires aligned two-VGPR operands".into());
+            }
+        }
+        let (Some(Operand::Register(xd)), Some(Operand::Register(yd))) =
+            (x.operands.first(), y.operands.first())
+        else {
+            return Err("F64 VOPD3 requires physical VGPR destinations".into());
+        };
+        if yd.class != RegisterClass::Vector
+            || yd.count != 1
+            || (u32::from(xd.index)..u32::from(xd.index) + u32::from(xd.count))
+                .contains(&u32::from(yd.index))
+        {
+            return Err("F64 VOPD3 destinations must be disjoint".into());
+        }
+    }
+    if x.mnemonic == "v_fmamk_f32" || y.mnemonic == "v_fmamk_f32" {
+        // VOPD MADK carries one shared mandatory literal, unlike VOPD3.
+        fn bits(operand: &Operand) -> Option<u32> {
+            match operand {
+                Operand::Integer(value) if (i32::MIN as i64..=u32::MAX as i64).contains(value) => {
+                    Some(*value as u32)
+                }
+                Operand::Float(value) => Some((*value as f32).to_bits()),
+                Operand::Modified { value, .. } => bits(value),
+                _ => None,
+            }
+        }
+        let mut shared_literal = None;
+        for instruction in [x, y] {
+            if instruction.mnemonic == "v_fmamk_f32" {
+                let literal = instruction
+                    .operands
+                    .get(2)
+                    .and_then(bits)
+                    .ok_or("VOPD FMAMK requires its encoded K literal")?;
+                if shared_literal.is_some_and(|old| old != literal) {
+                    return Err("VOPD FMAMK halves require the same shared literal".into());
+                }
+                shared_literal = Some(literal);
+            } else if matches!(
+                instruction.mnemonic.as_str(),
+                "v_fma_f32" | "v_cndmask_b32_e64"
+            ) {
+                return Err("selected VOPD FMAMK cannot pair with VOPD3 sources".into());
+            }
+        }
+        let literal = shared_literal.expect("at least one FMAMK");
+        let inline = |word: u32| {
+            word <= 64
+                || word >= (-16i32 as u32)
+                || [
+                    0x3f000000, 0xbf000000, 0x3f800000, 0xbf800000, 0x40000000, 0xc0000000,
+                    0x40800000, 0xc0800000, 0x3e22f983,
+                ]
+                .contains(&word)
+        };
+        for instruction in [x, y] {
+            for (index, operand) in instruction.operands.iter().enumerate().skip(1) {
+                if instruction.mnemonic == "v_fmamk_f32" && index == 2 {
+                    continue;
+                }
+                if bits(operand).is_some_and(|word| !inline(word) && word != literal) {
+                    return Err("VOPD source conflicts with the shared FMAMK literal".into());
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Apply the same selected instruction contract to caller-built typed modules.
 pub(crate) fn validate_typed_profile(instruction: &Instruction) -> Result<(), String> {
     if let [Operand::Dual(x, y)] = instruction.operands.as_slice() {
         if instruction.opcode != Opcode::VectorAlu || !instruction.mnemonic.starts_with("v_dual_") {
             return Err("typed dual operands require a native VOPD vector instruction".into());
         }
+        validate_dual_pair(x, y)?;
         validate_typed_profile(x)?;
         validate_typed_profile(y)?;
         return Ok(());
     }
     validate_encoding(&instruction.mnemonic)?;
+    if instruction.mnemonic == "s_sendmsg"
+        && (instruction.operands != [Operand::Integer(3)] || !instruction.modifiers.is_empty())
+    {
+        return Err("gfx1250 only supports terminal MSG_DEALLOC_VGPRS (message3)".into());
+    }
+    if instruction.mnemonic == "s_addk_co_i32"
+        && !matches!(instruction.operands.get(1), Some(Operand::Integer(value)) if (-32768..=65535).contains(value))
+    {
+        return Err("s_addk_co_i32 requires one native 16-bit immediate".into());
+    }
+    if instruction.mnemonic.starts_with("v_cvt_f32_bf8") {
+        let source_is_word = match instruction.operands.get(1) {
+            Some(Operand::Register(register)) => register.count == 1,
+            Some(Operand::Integer(value)) => (i32::MIN as i64..=u32::MAX as i64).contains(value),
+            _ => false,
+        };
+        if !matches!(
+            instruction.mnemonic.as_str(),
+            "v_cvt_f32_bf8" | "v_cvt_f32_bf8_e32"
+        ) || !instruction.modifiers.is_empty()
+            || !source_is_word
+        {
+            return Err("selected gfx1250 E5M2 decoder requires a plain word source and byte0 VOP1 encoding".into());
+        }
+    }
+    let byte_selectors = instruction
+        .modifiers
+        .iter()
+        .filter(|modifier| modifier.name == "byte_sel")
+        .collect::<Vec<_>>();
+    if !byte_selectors.is_empty() {
+        let stem = instruction
+            .mnemonic
+            .trim_end_matches("_e32")
+            .trim_end_matches("_e64");
+        if stem != "v_cvt_f32_fp8"
+            || instruction.mnemonic.ends_with("_e32")
+            || byte_selectors.len() != 1
+            || !byte_selectors[0]
+                .value
+                .as_deref()
+                .and_then(super::instr::integer)
+                .is_some_and(|byte| (0..=3).contains(&byte))
+        {
+            return Err("gfx1250 FP8 byte_sel requires one selector 0..3 and VOP3 encoding".into());
+        }
+    }
     super::instr::validate_control(instruction).map_err(|e| e.message)?;
     let (opcode, mut min, mut max) = match instruction.mnemonic.as_str() {
         "s_getreg_b32" => (Opcode::ScalarAlu, 2, 2),
@@ -88,13 +260,42 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
     Some(
         match name.trim_end_matches("_e32").trim_end_matches("_e64") {
             "s_load_b32" | "s_load_b64" | "s_load_b96" | "s_load_b128" | "s_load_b256"
-            | "s_load_b512" => (ScalarMemory, 3, 3),
-            "global_load_u16" | "global_load_u8" | "global_store_b16" | "global_store_b8"
-            | "global_load_b32" | "global_load_b64" | "global_load_b128" | "global_store_b32"
-            | "global_store_b64" | "global_store_b128" => (VectorMemory, 3, 3),
-            "ds_load_u16" | "ds_load_i16" | "ds_load_u8" | "ds_load_i8" | "ds_store_b16"
-            | "ds_store_b8" | "ds_load_b32" | "ds_load_b64" | "ds_load_b128" | "ds_store_b32"
-            | "ds_store_b64" | "ds_store_b128" => (Lds, 2, 2),
+            | "s_load_b512" | "s_load_u8" | "s_load_u16" => (ScalarMemory, 3, 3),
+            "s_get_pc_i64" => (ScalarAlu, 1, 1),
+            "s_cvt_f32_i32" | "s_cvt_f32_u32" => (ScalarAlu, 2, 2),
+            "flat_load_u8"
+            | "flat_load_i8"
+            | "flat_load_u16"
+            | "flat_load_i16"
+            | "flat_load_b32"
+            | "flat_load_b64"
+            | "flat_load_b96"
+            | "flat_load_b128"
+            | "flat_store_b8"
+            | "flat_store_b16"
+            | "flat_store_b32"
+            | "flat_store_b64"
+            | "flat_store_b128"
+            | "flat_store_d16_hi_b16" => (VectorMemory, 2, 3),
+            "global_load_u16" | "global_load_u8" | "global_load_i8" | "global_load_i16"
+            | "global_store_b16" | "global_store_b8" | "global_load_b32" | "global_load_b64"
+            | "global_load_b96" | "global_load_b128" | "global_store_b32" | "global_store_b64"
+            | "global_store_b96" | "global_store_b128" => (VectorMemory, 3, 3),
+            "ds_load_2addr_b32" => (Lds, 2, 2),
+            "ds_load_u16"
+            | "ds_load_i16"
+            | "ds_load_u8"
+            | "ds_load_i8"
+            | "ds_store_b16"
+            | "ds_store_b16_d16_hi"
+            | "ds_store_b8"
+            | "ds_load_b96"
+            | "ds_load_b32"
+            | "ds_load_b64"
+            | "ds_load_b128"
+            | "ds_store_b32"
+            | "ds_store_b64"
+            | "ds_store_b128" => (Lds, 2, 2),
             "s_wait_loadcnt_dscnt"
             | "s_wait_storecnt_dscnt"
             | "s_wait_loadcnt"
@@ -104,25 +305,35 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
             | "s_wait_xcnt"
             | "s_wait_asynccnt"
             | "s_wait_tensorcnt" => (Wait, 1, 1),
-            "s_barrier_signal" | "s_barrier_wait" => (Barrier, 1, 1),
+            "s_barrier_signal" | "s_barrier_wait" | "s_barrier_init" | "s_barrier_join" => {
+                (Barrier, 1, 1)
+            }
+            "s_barrier_leave" => (Barrier, 0, 0),
             "s_clause" => (Control, 1, 1),
             "v_nop" => (Control, 0, 0),
             "tensor_load_to_lds" | "tensor_store_from_lds" => (VectorMemory, 4, 4),
             "s_add_co_u32" | "s_add_co_ci_u32" | "s_mul_u64" | "s_add_nc_u64"
-            | "s_and_not1_b32" | "s_add_co_i32" | "s_add_nc_u32" | "s_sub_nc_u32" => {
-                (ScalarAlu, 3, 3)
+            | "s_and_not1_b32" | "s_add_co_i32" | "s_sub_co_i32" | "s_add_nc_u32"
+            | "s_sub_nc_u32" => (ScalarAlu, 3, 3),
+            "s_and_saveexec_b32"
+            | "s_andn2_saveexec_b32"
+            | "s_and_not1_saveexec_b32"
+            | "s_or_saveexec_b32" => (ScalarAlu, 2, 2),
+            "s_add_f32" | "s_sub_f32" | "s_mul_f32" | "s_min_num_f32" => (ScalarAlu, 3, 3),
+            "s_ctz_i32_b32" | "s_addk_co_i32" => (ScalarAlu, 2, 2),
+            "v_fmac_f16" => (VectorAlu, 3, 3),
+            "v_s_exp_f32" | "v_cvt_f32_ubyte0" | "v_cvt_f32_ubyte3" => (VectorAlu, 2, 2),
+            "v_pk_max_num_f16" | "v_max_num_f16" | "v_pk_mul_lo_u16" | "v_pk_sub_i16" => {
+                (VectorAlu, 3, 3)
             }
-            "s_and_saveexec_b32" | "s_andn2_saveexec_b32" | "s_or_saveexec_b32" => {
-                (ScalarAlu, 2, 2)
-            }
-            "s_sub_f32" | "s_mul_f32" | "s_min_num_f32" => (ScalarAlu, 3, 3),
-            "v_s_exp_f32" => (VectorAlu, 2, 2),
+            "v_max3_num_f16" => (VectorAlu, 4, 4),
             "v_cmp_ne_u16" | "v_cmp_u_f32" | "v_min_num_f32" | "v_max_num_f32"
-            | "v_lshlrev_b16" | "v_sub_nc_u16" => (VectorAlu, 3, 3),
+            | "v_lshlrev_b16" | "v_sub_nc_u16" | "v_ashrrev_i16" => (VectorAlu, 3, 3),
             "v_bitop3_b16" | "v_max3_num_f32" | "v_fmaak_f32" => (VectorAlu, 4, 4),
-            "v_mad_u32" => (VectorAlu, 4, 4),
+            "v_mad_u32" | "v_xad_u32" => (VectorAlu, 4, 4),
             "v_add_co_ci_u32" => (VectorAlu, 5, 5),
-            "v_add_nc_u64" | "v_add_nc_u32" | "v_sub_nc_u32" | "v_bitop2_b32" => (VectorAlu, 3, 3),
+            "v_add_nc_u64" | "v_add_nc_u32" | "v_sub_nc_u32" | "v_subrev_nc_u32"
+            | "v_bitop2_b32" => (VectorAlu, 3, 3),
             "v_wmma_f32_16x16x4_f32" | "v_wmma_f32_16x16x32_f16" | "v_wmma_f32_16x16x32_bf16" => {
                 (Matrix, 4, 4)
             }
@@ -139,6 +350,17 @@ pub(super) fn parse_special(
         message: message.into(),
         span,
     };
+    if let Some(("s_sendmsg", rest)) = text.split_once(char::is_whitespace)
+        && rest.trim() == "sendmsg(MSG_DEALLOC_VGPRS)"
+    {
+        return Ok(Some(Instruction {
+            mnemonic: "s_sendmsg".into(),
+            opcode: Opcode::Control,
+            operands: vec![Operand::Integer(3)],
+            modifiers: vec![],
+            span,
+        }));
+    }
     if let Some((x, y)) = text.split_once("::") {
         if y.contains("::") {
             return Err(fail("VOPD requires exactly two operations"));
@@ -168,16 +390,22 @@ pub(super) fn parse_special(
                 span,
             })?;
             if ![
+                "add_f64",
+                "mul_f64",
                 "add_f32",
                 "mul_f32",
                 "fma_f32",
+                "fmamk_f32",
                 "lshlrev_b32",
                 "lshrrev_b32",
+                "ashrrev_i32",
+                "max_i32",
                 "mov_b32",
                 "bitop2_b32",
                 "cndmask_b32",
                 "fmac_f32",
                 "add_nc_u32",
+                "sub_nc_u32",
                 "sub_f32",
                 "max_num_f32",
             ]
@@ -202,6 +430,7 @@ pub(super) fn parse_special(
         }
         let x = half(x, span)?;
         let y = half(y, span)?;
+        validate_dual_pair(&x, &y).map_err(|message| ParseError { message, span })?;
         if x.operands[0] == y.operands[0] {
             return Err(fail("VOPD destinations must be distinct"));
         }

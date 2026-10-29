@@ -1,5 +1,7 @@
 # Specific matrix, LDS layout, and dtype contracts
 
+Local validation run artifacts are not retained. Source fixtures and reproduction workflows remain available; removed observations do not establish current acceptance.
+
 The 19 positive native gfx950 sources map 20 original success rows. A legal
 wrong-format control brings the total to 20 assembly sources. `cases.json` records each actual PTX
 source hash, Rust assertion, expected output, native configuration, and scope
@@ -8,12 +10,6 @@ changes. The coordinator owns parity dispositions.
 ```sh
 cargo test -p volta_pipeline --test gfx950_matrix_parity_tests
 ```
-
-The 22 pipeline tests check complete output footprints, AMD graph safety, and
-independently constructed expected expressions. The shared viewer recorder is
-used when `VOLTA_VIZ_DIR` is set. `assembler-provenance.json` records successful
-assembly of every exact source, source/object hashes, commands, and the pinned
-LLVM22 binary hash. These assembler receipts establish assembly legality. The pipeline tests establish symbolic behavior under the recorded assumptions. Independent physical execution of all20 exact sources is recorded in ../evidence/hardware-portable-matrix-2026-10-27.json; numerical agreement remains separate from symbolic proof.
 
 | Original property | Native observable counterpart |
 | --- | --- |

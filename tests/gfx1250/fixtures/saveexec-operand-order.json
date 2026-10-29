@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "claim": "Exact SAVEEXEC operand-order correction and native encoding observations; no hardware launch claim.",
+  "semantics": {
+    "saved_mask": "old_EXEC",
+    "new_mask": "source & ~old_EXEC",
+    "SCC": "new_EXEC != 0",
+    "widths": [
+      32,
+      64
+    ]
+  },
+  "primary_references": [
+    {
+      "url": "https://www.amd.com/content/dam/amd/en/documents/radeon-tech-docs/instruction-set-architectures/rdna4-instruction-set-architecture.pdf",
+      "section": "16.3 SOP1, S_AND_NOT1_SAVEEXEC_B32/B64, printed page244"
+    },
+    {
+      "document": "CDNA4 Instruction Set Architecture",
+      "section": "12.3 SOP1, S_ANDN2_SAVEEXEC_B64, printed page129"
+    },
+    {
+      "repository": "llvm/llvm-project",
+      "revision": "f13414fb26b92bdbbfdf4b2b5401117936da84af",
+      "path": "llvm/lib/Target/AMDGPU/SOPInstructions.td",
+      "section": "S_ANDN2_SAVEEXEC_B32 is renamed s_and_not1_saveexec_b32 in gfx11/gfx12"
+    }
+  ],
+  "assembler": {
+    "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+    "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771"
+  },
+  "observations": [
+    {
+      "case": "asymmetric_saveexec_masks_preserve_old_mask_new_mask_and_scc_on_both_targets",
+      "target": "gfx1250",
+      "source_sha256": "c5840429e14cb5dfa1d671eb41b86387ed1ca653fde1d264cdeedc2156993e23",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "case": "asymmetric_saveexec_masks_preserve_old_mask_new_mask_and_scc_on_both_targets~10",
+      "target": "gfx950",
+      "source_sha256": "73ebb7a5e343221bc5fc4d0790c12e463379e4a617dfda57444eb41549210946",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "case": "asymmetric_saveexec_masks_preserve_old_mask_new_mask_and_scc_on_both_targets~2",
+      "target": "gfx1250",
+      "source_sha256": "bd4dc85fa912528a36548dd39df731d354b3e8ecb12a8b61b485ae7d69ea67f9",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "case": "asymmetric_saveexec_masks_preserve_old_mask_new_mask_and_scc_on_both_targets~3",
+      "target": "gfx1250",
+      "source_sha256": "bb39cdc485f762196c8906cc5c9fc804f896a3f5cbd5a7084c60e1b7d9b257fd",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "case": "asymmetric_saveexec_masks_preserve_old_mask_new_mask_and_scc_on_both_targets~4",
+      "target": "gfx1250",
+      "source_sha256": "de77a43fa6a6edd3ce98e0647a1e938693bb549db58d474c9e02dd92cfddc33d",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "case": "asymmetric_saveexec_masks_preserve_old_mask_new_mask_and_scc_on_both_targets~5",
+      "target": "gfx1250",
+      "source_sha256": "f2d6e5993ecbe80e53996f5a7c5a086a230c8b4bce9e0997ef49027309ddfd98",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "case": "asymmetric_saveexec_masks_preserve_old_mask_new_mask_and_scc_on_both_targets~6",
+      "target": "gfx950",
+      "source_sha256": "7e7427bed3f75a93259546eb373a00f89a5db3861ea1dc94613360b8c73749aa",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "case": "asymmetric_saveexec_masks_preserve_old_mask_new_mask_and_scc_on_both_targets~7",
+      "target": "gfx950",
+      "source_sha256": "927ca9a674cf26ac97ff2fcd074fa26b377170857cb265ba4b653d717653f109",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "case": "asymmetric_saveexec_masks_preserve_old_mask_new_mask_and_scc_on_both_targets~8",
+      "target": "gfx950",
+      "source_sha256": "58a3d8bc740ed17ee43682e8c6363d0f84ccb53ff86eb82b733a01e4416e0286",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "case": "asymmetric_saveexec_masks_preserve_old_mask_new_mask_and_scc_on_both_targets~9",
+      "target": "gfx950",
+      "source_sha256": "626a2f9317b0068781db5f0751a2d9ce2ac49f589423dc6a1dac823e43d3e2da",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "case": "undefined_saveexec_source_masks_remain_unobservable",
+      "target": "gfx1250",
+      "source_sha256": "6bb604f05fb4e4ff0abc91fa975783f32e0e4d107d6762de412095476934824e",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "case": "undefined_saveexec_source_masks_remain_unobservable~2",
+      "target": "gfx950",
+      "source_sha256": "2a5ee379a8e89f1f0919866c3ea89c8217170a1f627b7aa7b8350db54c3f416d",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    }
+  ]
+}

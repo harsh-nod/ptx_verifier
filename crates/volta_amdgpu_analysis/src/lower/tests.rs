@@ -124,3 +124,113 @@ fn only_complete_matching_unbranched_address_sequences_can_resolve_objects() {
         }
     }
 }
+
+/// Build the typed form independently of instruction-parser availability. The
+/// native compiler corpus separately pins the actual spelling and encoding.
+fn rel64_module() -> Module {
+    let pair = Register {
+        class: RegisterClass::Scalar,
+        index: 2,
+        count: 2,
+        special: None,
+    };
+    let instruction = |mnemonic: &str, operands: Vec<Operand>| crate::ir::Instruction {
+        mnemonic: mnemonic.into(),
+        opcode: Opcode::ScalarAlu,
+        operands,
+        modifiers: Vec::new(),
+        span: SourceSpan::default(),
+    };
+    Module {
+        target: Some("gfx1250".into()),
+        globals: vec![Global {
+            symbol: "object".into(),
+            size: 4,
+            alignment: 4,
+            initial_bytes: vec![3, 0, 0, 0],
+            read_only: false,
+            span: SourceSpan::default(),
+        }],
+        kernels: vec![Kernel {
+            name: "address".into(),
+            descriptor: crate::ir::KernelDescriptor {
+                fields: [("wavefront_size32".into(), 1)].into(),
+            },
+            instructions: vec![
+                instruction("s_get_pc_i64", vec![Operand::Register(pair)]),
+                instruction(
+                    "s_add_nc_u64",
+                    vec![
+                        Operand::Register(pair),
+                        Operand::Register(pair),
+                        Operand::Relocation(crate::ir::Relocation {
+                            symbol: "object".into(),
+                            kind: RelocationKind::Rel64,
+                            addend: 4,
+                        }),
+                    ],
+                ),
+                instruction("s_endpgm", vec![]),
+            ],
+            ..Kernel::default()
+        }],
+        ..Module::default()
+    }
+}
+
+#[test]
+fn native_rel64_preserves_source_pcs_and_requires_module_globals_and_target_gate() {
+    let module = rel64_module();
+    let kernel = &module.kernels[0];
+    let lowered = lower_with_globals(kernel, &module.globals, true).unwrap();
+    assert_eq!(lowered.instructions, kernel.instructions);
+    let sequence = &lowered.global_address_sequences[&0];
+    assert_eq!(sequence.form, GlobalAddressForm::Rel64);
+    assert_eq!(sequence.symbol, "object");
+    assert_eq!(sequence.form.mnemonics().len(), 2);
+    assert!(lower_kernel(kernel).is_err());
+    assert!(lower_with_globals(kernel, &module.globals, false).is_err());
+}
+
+#[test]
+fn native_rel64_rejects_unbounded_mismatched_and_branch_entered_profiles() {
+    let base = rel64_module();
+    for mutation in 0..8 {
+        let mut module = base.clone();
+        match mutation {
+            0 => {
+                let Operand::Relocation(relocation) =
+                    &mut module.kernels[0].instructions[1].operands[2]
+                else {
+                    unreachable!()
+                };
+                relocation.addend = 8;
+            }
+            1 => module.globals.clear(),
+            2 => module.globals[0].initial_bytes.pop().map(|_| ()).unwrap(),
+            3 => {
+                let Operand::Register(pair) = &mut module.kernels[0].instructions[1].operands[0]
+                else {
+                    unreachable!()
+                };
+                pair.index += 2;
+            }
+            4 => module.kernels[0].instructions[0].mnemonic = "s_mov_b64".into(),
+            5 => {
+                let mut branch = module.kernels[0].instructions[2].clone();
+                branch.mnemonic = "s_branch".into();
+                branch.opcode = Opcode::Branch;
+                branch.operands = vec![Operand::Symbol("middle".into())];
+                module.kernels[0].labels.insert("middle".into(), 1);
+                module.kernels[0].instructions.push(branch);
+            }
+            6 => module.globals.push(module.globals[0].clone()),
+            7 => module.globals[0].alignment = 3,
+            _ => unreachable!(),
+        }
+        assert!(
+            lower_with_globals(&module.kernels[0], &module.globals, true).is_err(),
+            "mutation {mutation}"
+        );
+    }
+}

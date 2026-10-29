@@ -1,0 +1,294 @@
+{
+  "schema": 1,
+  "target": "gfx1250",
+  "status": "compiled_assembled_linked_only_semantics_pending",
+  "compiler_host": "XSJHARMENON01",
+  "tools": [
+    {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/clang-22",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.0/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.0/lib/llvm/bin/clang++.cfg\n"
+    },
+    {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n"
+    }
+  ],
+  "fixtures": [
+    {
+      "source": "original-f16.hip",
+      "assembly": "original-f16.s",
+      "compile": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-f16.hip",
+        "-o",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-f16.s"
+      ],
+      "assemble": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-f16.s",
+        "-o",
+        "/tmp/ptx-original-f16.o"
+      ],
+      "link": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-original-f16.o",
+        "-o",
+        "/tmp/ptx-original-f16.hsaco"
+      ],
+      "source_sha256": "a95232488643982c54f17bbe4c85573b36816475bc83569290f8c9c67f589d27",
+      "assembly_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0",
+      "object_sha256": "e1a581d3361902556d3e27fb20bac5ac980e26353b08f5590594edd20731e58a",
+      "code_object_sha256": "f188ee418afaa9ecf848a10171bae55973640cc122ca2738bbeac51b325d9770"
+    },
+    {
+      "source": "original-f8.hip",
+      "assembly": "original-f8.s",
+      "compile": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-f8.hip",
+        "-o",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-f8.s"
+      ],
+      "assemble": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-f8.s",
+        "-o",
+        "/tmp/ptx-original-f8.o"
+      ],
+      "link": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-original-f8.o",
+        "-o",
+        "/tmp/ptx-original-f8.hsaco"
+      ],
+      "source_sha256": "e81e64e5cf3ab07d425a72a47b511b2a0cc5c84382bad2abaa5499781885ea42",
+      "assembly_sha256": "5842efd29619494f51e164178af79dfb8440c29dcc1d7b6ebaa4232db812cdd6",
+      "object_sha256": "1fd43fabfeb7b1215f399cc61beea6f587ea09fc637e1a09b2c7292764e6ac2b",
+      "code_object_sha256": "0b65647d5e1eab94da52248738370470ef7e2dde921fc3ccf75ea5a78a658c4a"
+    },
+    {
+      "source": "original-convolution.hip",
+      "assembly": "original-convolution.s",
+      "compile": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-convolution.hip",
+        "-o",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-convolution.s"
+      ],
+      "assemble": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-convolution.s",
+        "-o",
+        "/tmp/ptx-gfx1250-original-convolution.o"
+      ],
+      "link": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-original-convolution.o",
+        "-o",
+        "/tmp/ptx-gfx1250-original-convolution.hsaco"
+      ],
+      "source_sha256": "0577b7187fa9c176c65ac10dcfe41ce91eef8c6bc25d87bcd4dcd32b5c3bfcda",
+      "assembly_sha256": "57ce53c898c4dcde8db7388c81a887fa72bb9dbec1469d5b732c256259268962",
+      "object_sha256": "8ebaef55cba8e0a01a24b1bba3d03bf653d537d02ddd4b92cbf75cb6b20d9bcc",
+      "code_object_sha256": "39f001156ff8d12861279c69d0118a814c46efbee4da05e0d3e2c4ac77b5d8a3",
+      "native_scope": {
+        "convolution_f16_original": {
+          "spatial": 128,
+          "channels": 128,
+          "K": 576,
+          "block": [
+            128,
+            1,
+            1
+          ],
+          "output_channel_stride": 2916,
+          "private_bytes": 0
+        },
+        "convolution_f8_original": {
+          "spatial": 64,
+          "channels": 128,
+          "K": 576,
+          "block": [
+            128,
+            1,
+            1
+          ],
+          "output_channel_stride": 2916,
+          "private_bytes": 0
+        }
+      }
+    },
+    {
+      "source": "original-attention.hip",
+      "assembly": "original-attention.s",
+      "compile": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-attention.hip",
+        "-o",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-attention.s"
+      ],
+      "assemble": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-attention.s",
+        "-o",
+        "/tmp/ptx-gfx1250-original-attention.o"
+      ],
+      "link": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-original-attention.o",
+        "-o",
+        "/tmp/ptx-gfx1250-original-attention.hsaco"
+      ],
+      "source_sha256": "a6f79415b4677af7b7d1d425661227682ddf03ebcac58ca8ea18f348e0443de3",
+      "assembly_sha256": "51772854ca74693443f17d7c3f382e5f1b65d6705f2b1fdb003216cf04b7c314",
+      "object_sha256": "fdac3f94a4d1211826097fc9de777df49dcd128d9507099e146019d6ebe8570b",
+      "code_object_sha256": "817881df3697ca1d213df28ca60b34a478535fcbfe180c06b0b69b1a69463d9d",
+      "software_hazard_spacing": "Four v_nop instructions tied to destination and both WMMA input fragments after every WMMA, matching the pinned LLVM gfx1250 coexecution source/result reuse window; no SALU/wait/barrier substitution."
+    },
+    {
+      "source": "original-sinkhorn.hip",
+      "assembly": "original-sinkhorn.s",
+      "compile": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-sinkhorn.hip",
+        "-o",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-sinkhorn.s"
+      ],
+      "assemble": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/full/fixtures/original-sinkhorn.s",
+        "-o",
+        "/tmp/ptx-gfx1250-original-sinkhorn.o"
+      ],
+      "link": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-original-sinkhorn.o",
+        "-o",
+        "/tmp/ptx-gfx1250-original-sinkhorn.hsaco"
+      ],
+      "source_sha256": "20266853dcdef64e15b37a9fed5de8fe99ef30a21bacc8e0000468531946a0b6",
+      "assembly_sha256": "ebb24ab3d1b6afe29c4d85f1528da6fca005d250d0abb2242c68fa9f295e1761",
+      "object_sha256": "52b2da58ac892a1af15565ef6197870dbc674e399c4688f172c0701eace01c9d",
+      "code_object_sha256": "fa115992e756f5adc70939689e9fb18c2f8d4e522c5d675a6d60a84374c5ee47"
+    },
+    {
+      "source": "original-mamba.hip",
+      "assembly": "original-mamba.s",
+      "compile": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/home/harsh/ptx-verifier-gfx1250-exact-scalar-parity/tests/gfx1250/full/fixtures/original-mamba.hip",
+        "-o",
+        "/home/harsh/ptx-verifier-gfx1250-exact-scalar-parity/tests/gfx1250/full/fixtures/original-mamba.s"
+      ],
+      "assemble": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-exact-scalar-parity/tests/gfx1250/full/fixtures/original-mamba.s",
+        "-o",
+        "/tmp/gfx1250-mamba-spaced.o"
+      ],
+      "link": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/gfx1250-mamba-spaced.o",
+        "-o",
+        "/tmp/gfx1250-mamba-spaced.hsaco"
+      ],
+      "source_sha256": "636f017a58e3bf49e528fa02a52c9204c4a8e978e2291841c0fed7d04a388cb7",
+      "assembly_sha256": "73a008917d2c76d59ac1e488c6169296a2019bc6969fbf70d5d00eb3c6903748",
+      "object_sha256": "28ace5aa808048683089d7c7a85e6317889ab1bbde357f8f6ddb02eb4f07c312",
+      "code_object_sha256": "2b257630b473adf44884fd19690a1b1d1e972f35083ac3546769f546e5e4d8ad",
+      "wmma_source_spacing": {
+        "policy": "four immediate v_nop VALU instructions after every WMMA, tied accumulator and both input fragments with volatile asm memory clobber",
+        "static_wmma_sites": 32,
+        "checked_immediate_v_nop_per_site": 4,
+        "private_segment_bytes": [
+          0,
+          0
+        ],
+        "reason": "The unchanged mathematical model and full native hardware computations do not waive LLVM checkWMMAHazards source reuse obligations. Source scheduling is made explicit without weakening the graph checker.",
+        "primary": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNHazardRecognizer.cpp"
+      }
+    }
+  ]
+}

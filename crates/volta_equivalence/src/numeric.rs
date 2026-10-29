@@ -1,10 +1,12 @@
 //! f64 evaluation of expression DAGs at seeded pseudo-random symbol values in [-1, 1): the
 //! decision procedure's oracle (Schwartz-Zippel: agreement implies equality almost surely).
 //! A differing seed refutes EQUIV / confirms DIFF; all-agree leaves DIFF unconfirmed.
+//! Finite arithmetic disagreements are independently replayed over exact rationals
+//! before they can refute equality through binary64 cancellation alone.
 
 use std::collections::HashMap;
 
-use volta_expr::{ExprArena, ExprId, ExprNode, SymbolRef};
+use volta_expr::{ExprArena, ExprId, ExprNode, RealRepr, SymbolRef};
 
 /// Numeric evaluation failure.
 #[derive(Debug, Clone, PartialEq)]
@@ -169,7 +171,74 @@ fn eval_inner(
 /// Default seeds for spot checks.
 pub const DEFAULT_SEEDS: [u64; 4] = [1, 42, 0xdeadbeef, 0x5eed];
 
-/// Relative-error agreement of two expressions at one seed.
+/// Independently replay the arithmetic subset at the exact same seeded values.
+/// This evaluates the original DAG; it does not consult the canonicalizer or
+/// change the oracle's tolerance. Unsupported and non-finite operations stay
+/// inconclusive rather than being approximated or treated as equal.
+fn eval_rational(
+    arena: &ExprArena,
+    id: ExprId,
+    seed: u64,
+    memo: &mut HashMap<ExprId, Option<rug::Rational>>,
+) -> Option<rug::Rational> {
+    if let Some(value) = memo.get(&id) {
+        return value.clone();
+    }
+    // Fail closed on oversized arithmetic instead of turning a numeric probe
+    // into an unbounded big-integer computation. Inserting before descent also
+    // bounds long dependency chains, not just the number of completed nodes.
+    if memo.len() >= 100_000 {
+        return None;
+    }
+    memo.insert(id, None);
+    let value = stacker::maybe_grow(64 * 1024, 8 * 1024 * 1024, || {
+        let ev = |id, memo: &mut HashMap<_, _>| eval_rational(arena, id, seed, memo);
+        Some(match arena.node(id) {
+            ExprNode::IntConst(value) => rug::Rational::from(*value),
+            ExprNode::RealConst(value) => match value.repr() {
+                RealRepr::Rational(value)
+                    if value.numer().significant_bits() <= 16_384
+                        && value.denom().significant_bits() <= 16_384 =>
+                {
+                    value.clone()
+                }
+                _ => return None,
+            },
+            ExprNode::ParamSymbol(_) | ExprNode::InputElement { .. } | ExprNode::Symbol(_) => {
+                let symbol = arena.node(id).symbol_ref(arena)?;
+                rug::Rational::from_f64(symbol_value(symbol, seed))?
+            }
+            ExprNode::Add(a, b) => ev(*a, memo)? + ev(*b, memo)?,
+            ExprNode::Sub(a, b) => ev(*a, memo)? - ev(*b, memo)?,
+            ExprNode::Mul(a, b) => ev(*a, memo)? * ev(*b, memo)?,
+            ExprNode::Div(a, b) => {
+                let denominator = ev(*b, memo)?;
+                if denominator == 0 {
+                    return None;
+                }
+                ev(*a, memo)? / denominator
+            }
+            ExprNode::Rcp(a) => {
+                let denominator = ev(*a, memo)?;
+                if denominator == 0 {
+                    return None;
+                }
+                denominator.recip()
+            }
+            ExprNode::Neg(a) => -ev(*a, memo)?,
+            ExprNode::Fma(a, b, c) => ev(*a, memo)? * ev(*b, memo)? + ev(*c, memo)?,
+            ExprNode::ToFloat(a) => ev(*a, memo)?,
+            _ => return None,
+        })
+    });
+    let value = value.filter(|value| {
+        value.numer().significant_bits() <= 16_384 && value.denom().significant_bits() <= 16_384
+    });
+    memo.insert(id, value.clone());
+    value
+}
+
+/// Relative-error agreement at one seed, with exact arithmetic replay on finite disagreements.
 pub fn agree_at(
     arena_a: &ExprArena,
     a: ExprId,
@@ -181,7 +250,21 @@ pub fn agree_at(
     let va = eval_f64(arena_a, a, seed)?;
     let vb = eval_f64(arena_b, b, seed)?;
     let scale = va.abs().max(vb.abs()).max(1e-30);
-    Ok(((va - vb) / scale).abs() <= rel_tol)
+    if ((va - vb) / scale).abs() <= rel_tol {
+        return Ok(true);
+    }
+    // Reassociated long sums can cancel to a tiny result: a relative-only
+    // binary64 comparison can then refute a true real-arithmetic equality.
+    // A fallback accepts only exact equality at the same assignment. It never
+    // widens the numeric threshold or replaces a non-finite/domain failure.
+    if va.is_finite() && vb.is_finite() && rel_tol >= 0.0 {
+        let a = eval_rational(arena_a, a, seed, &mut HashMap::new());
+        let b = eval_rational(arena_b, b, seed, &mut HashMap::new());
+        if let (Some(a), Some(b)) = (a, b) {
+            return Ok(a == b);
+        }
+    }
+    Ok(false)
 }
 
 /// Check a claimed verdict against the oracle at several seeds: EQUIV is Ok iff the sides
@@ -305,5 +388,74 @@ mod tests {
         let d2 = ar.add(eam, ebm);
         let e2 = ar.div(eam, d2);
         verify_verdict(&ar, e1, &ar, e2, true).unwrap();
+    }
+
+    #[test]
+    fn cancellation_replays_seeded_arithmetic_exactly_without_relaxing_tolerance() {
+        let mut arena = ExprArena::new();
+        let x = arena.param_symbol("x");
+        let large = arena.int(1 << 60);
+        let sum = arena.add(x, large);
+        let cancelled = arena.sub(sum, large);
+        for seed in DEFAULT_SEEDS {
+            assert_ne!(
+                eval_f64(&arena, cancelled, seed).unwrap(),
+                eval_f64(&arena, x, seed).unwrap()
+            );
+            assert!(agree_at(&arena, cancelled, &arena, x, seed, 0.0).unwrap());
+        }
+        verify_verdict(&arena, cancelled, &arena, x, true).unwrap();
+        // A real one-unit error remains a counterexample after the same lossy
+        // binary64 computation: exact replay cannot borrow canon's verdict.
+        let one = arena.int(1);
+        let wrong = arena.add(x, one);
+        assert!(verify_verdict(&arena, cancelled, &arena, wrong, true).is_err());
+        verify_verdict(&arena, cancelled, &arena, wrong, false).unwrap();
+    }
+
+    #[test]
+    fn exact_fallback_handles_rational_operations_but_refuses_zero_divisors() {
+        let mut arena = ExprArena::new();
+        let input = arena.intern_string("input");
+        let x = arena.input_element(input, 77);
+        let large = arena.int(1 << 60);
+        let sum = arena.add(x, large);
+        let cancelled = arena.sub(sum, large);
+        let three = arena.int(3);
+        let a = arena.div(cancelled, three);
+        let reciprocal = arena.rcp(three);
+        let b = arena.mul(x, reciprocal);
+        assert!(agree_at(&arena, a, &arena, b, 0xdeadbeef, 0.0).unwrap());
+        let zero = arena.int(0);
+        let singular = arena.div(x, zero);
+        assert!(eval_rational(&arena, singular, 1, &mut HashMap::new()).is_none());
+        assert!(!agree_at(&arena, singular, &arena, singular, 1, 1e-9).unwrap());
+    }
+
+    #[test]
+    fn unsupported_transcendentals_and_undefined_values_keep_their_numeric_failures() {
+        let mut arena = ExprArena::new();
+        let x = arena.param_symbol("x");
+        let exponential = arena.exp(x);
+        let large = arena.int(1 << 60);
+        let sum = arena.add(exponential, large);
+        let cancelled = arena.sub(sum, large);
+        assert!(eval_rational(&arena, cancelled, 1, &mut HashMap::new()).is_none());
+        assert!(verify_verdict(&arena, cancelled, &arena, exponential, true).is_err());
+        let undefined = arena.undefined();
+        assert_eq!(
+            agree_at(&arena, undefined, &arena, x, 1, 1e-9),
+            Err(NumericError::Undefined)
+        );
+    }
+
+    #[test]
+    fn explosive_arithmetic_refuses_exact_replay_without_constructing_huge_integers() {
+        let mut arena = ExprArena::new();
+        let mut expression = arena.param_symbol("x");
+        for _ in 0..30 {
+            expression = arena.mul(expression, expression);
+        }
+        assert!(eval_rational(&arena, expression, 1, &mut HashMap::new()).is_none());
     }
 }

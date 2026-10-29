@@ -417,6 +417,103 @@ fn gfx1250_waits_and_split_barriers_keep_their_objects_and_wave32() {
 }
 
 #[test]
+fn named_object_incarnations_wait_selectors_and_deadlocks_are_visible() {
+    let mut p = provenance(1);
+    p.targets = vec!["gfx1250".into()];
+    p.kernel = "gfx1250_named_schema_preview".into();
+    let mut b = GraphBuilder::new(p);
+    for incarnation in 0..2 {
+        let object = AmdNamedBarrier { id: 1, incarnation };
+        for kind in [
+            AmdEventKind::NamedBarrierInit {
+                object,
+                expected: 1,
+            },
+            AmdEventKind::NamedBarrierJoin { object, phase: 0 },
+            AmdEventKind::NamedBarrierSignal {
+                object,
+                phase: 0,
+                exec_mask: 1,
+            },
+            AmdEventKind::NamedBarrierWait {
+                encoded: 16,
+                object,
+                phase: 0,
+            },
+            AmdEventKind::NamedBarrierRelease { object, phase: 0 },
+            AmdEventKind::NamedBarrierLeave { object, phase: 1 },
+        ] {
+            b.amd_event(0, ProgramPoint(0), kind);
+        }
+    }
+    let graph = b.finish(Terminal::Stuck {
+        blocked: vec![BlockedThread {
+            thread: ThreadIx(0),
+            pc: ProgramPoint(0),
+            on: BlockedOn::AmdNamedBarrier {
+                object: AmdNamedBarrier {
+                    id: 1,
+                    incarnation: 1,
+                },
+                phase: 1,
+                expected: 3,
+                arrived: 2,
+            },
+        }],
+    });
+    let text = exported("named_schema_preview", &graph);
+    for expected in [
+        "1 incarnation 0",
+        "1 incarnation 1",
+        "encoded WAIT selector",
+        "16",
+        "expected arrivals",
+        "phase 1: 2/3 arrivals",
+        "\"amd-barrier\":[2,4,3,4,8,10,9,10]",
+    ] {
+        assert!(text.contains(expected), "missing {expected}: {text}");
+    }
+    assert!(!text.contains("\"status\":\"race-free\""));
+}
+
+#[test]
+fn null_barrier_noops_do_not_export_candidate_arrival_edges() {
+    let mut p = provenance(1);
+    p.targets = vec!["gfx1250".into()];
+    p.kernel = "gfx1250_null_schema_preview".into();
+    let mut b = GraphBuilder::new(p);
+    let object = AmdNamedBarrier {
+        id: 0,
+        incarnation: 0,
+    };
+    for kind in [
+        AmdEventKind::NamedBarrierSignal {
+            object,
+            phase: 0,
+            exec_mask: 1,
+        },
+        AmdEventKind::NamedBarrierLeave { object, phase: 0 },
+        AmdEventKind::NamedBarrierWait {
+            encoded: 1,
+            object,
+            phase: 0,
+        },
+        AmdEventKind::NamedBarrierRelease { object, phase: 0 },
+    ] {
+        b.amd_event(0, ProgramPoint(0), kind);
+    }
+    let graph = b.finish(Terminal::Aborted {
+        thread: None,
+        pc: None,
+        cause: AbortCause::Unsupported,
+        reason: "schema preview: no execution proof".into(),
+    });
+    let text = exported("null_schema_preview", &graph);
+    assert!(text.contains("\"amd-barrier\":[2,3]"), "{text}");
+    assert!(!text.contains("\"status\":\"race-free\""));
+}
+
+#[test]
 fn cdna3_success_and_failure_keep_their_actual_target_and_check_names() {
     for wait in [true, false] {
         let graph = register_graph_for_target(wait, Terminal::Completed, vec![], "gfx942:xnack-");

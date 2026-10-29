@@ -1,0 +1,449 @@
+{
+  "schema": 1,
+  "target": "gfx1250",
+  "claim": "Compile/assemble/link and encoding observations only; CPU graph/exact-rational tests and physical IEEE execution are separate gates.",
+  "review_base_commit": "757d421",
+  "compiler_revision": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+  "tools": [
+    {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)"
+    },
+    {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git"
+    },
+    {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)"
+    }
+  ],
+  "commands": [
+    [
+      "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "-x",
+      "hip",
+      "--offload-device-only",
+      "--offload-arch=gfx1250",
+      "--rocm-path=/opt/rocm-7.2.0",
+      "-O2",
+      "-std=c++17",
+      "-S",
+      "tests/gfx1250/fixtures/native-exact-f64.hip",
+      "-o",
+      "tests/gfx1250/fixtures/native-exact-f64.s"
+    ],
+    [
+      "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "--triple=amdgcn-amd-amdhsa",
+      "--mcpu=gfx1250",
+      "-filetype=obj",
+      "tests/gfx1250/fixtures/native-exact-f64.s",
+      "-o",
+      "/tmp/ptx-gfx1250-exact-f64.o"
+    ],
+    [
+      "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "-shared",
+      "/tmp/ptx-gfx1250-exact-f64.o",
+      "-o",
+      "/tmp/ptx-gfx1250-exact-f64.hsaco"
+    ]
+  ],
+  "source": "native-exact-f64.hip",
+  "source_sha256": "809727e391a895a0ab2feed939de490f94befc2aa7e81dbd681e3d07a992a468",
+  "assembly": "native-exact-f64.s",
+  "assembly_sha256": "ce89eebf00c879c9929f262e19bfa4d6168d354ed93943b539788d31963a2cf7",
+  "object_sha256": "2fc9f3117bc9fa0c16397cdef7cf288511ee4f0244ff70efd9c00e8fbfd313e2",
+  "code_object_sha256": "55372537ef178602f7d7505df5477c842885ff299eebef776a487b263e908a87",
+  "encoding_observations": [
+    {
+      "target": "gfx1250",
+      "instruction": "v_add_f64_e32 v[0:1],v[2:3],v[4:5]",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "instruction": "v_add_f64_e64 v[0:1],v[2:3],v[4:5]",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "instruction": "v_add_f64_e32 v[0:1],v[2:3],s[4:5]",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:29: error: invalid operand for instruction\nv_add_f64_e32 v[0:1],v[2:3],s[4:5]\n                            ^\n"
+    },
+    {
+      "target": "gfx1250",
+      "instruction": "v_add_f64_e32 v[0:1],v[2:3],0",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:29: error: invalid operand for instruction\nv_add_f64_e32 v[0:1],v[2:3],0\n                            ^\n"
+    },
+    {
+      "target": "gfx1250",
+      "instruction": "v_mul_f64_e32 v[0:1],v[2:3],v[4:5]",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "instruction": "v_mul_f64_e64 v[0:1],v[2:3],v[4:5]",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "instruction": "v_mul_f64_e32 v[0:1],v[2:3],s[4:5]",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:29: error: invalid operand for instruction\nv_mul_f64_e32 v[0:1],v[2:3],s[4:5]\n                            ^\n"
+    },
+    {
+      "target": "gfx1250",
+      "instruction": "v_mul_f64_e32 v[0:1],v[2:3],0",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:29: error: invalid operand for instruction\nv_mul_f64_e32 v[0:1],v[2:3],0\n                            ^\n"
+    },
+    {
+      "target": "gfx950",
+      "instruction": "v_add_f64_e32 v[0:1],v[2:3],v[4:5]",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:1: error: e32 variant of this instruction is not supported\nv_add_f64_e32 v[0:1],v[2:3],v[4:5]\n^\n"
+    },
+    {
+      "target": "gfx950",
+      "instruction": "v_add_f64_e64 v[0:1],v[2:3],v[4:5]",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "target": "gfx950",
+      "instruction": "v_add_f64_e32 v[0:1],v[2:3],s[4:5]",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:1: error: e32 variant of this instruction is not supported\nv_add_f64_e32 v[0:1],v[2:3],s[4:5]\n^\n"
+    },
+    {
+      "target": "gfx950",
+      "instruction": "v_add_f64_e32 v[0:1],v[2:3],0",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:1: error: e32 variant of this instruction is not supported\nv_add_f64_e32 v[0:1],v[2:3],0\n^\n"
+    },
+    {
+      "target": "gfx950",
+      "instruction": "v_mul_f64_e32 v[0:1],v[2:3],v[4:5]",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:1: error: e32 variant of this instruction is not supported\nv_mul_f64_e32 v[0:1],v[2:3],v[4:5]\n^\n"
+    },
+    {
+      "target": "gfx950",
+      "instruction": "v_mul_f64_e64 v[0:1],v[2:3],v[4:5]",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "target": "gfx950",
+      "instruction": "v_mul_f64_e32 v[0:1],v[2:3],s[4:5]",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:1: error: e32 variant of this instruction is not supported\nv_mul_f64_e32 v[0:1],v[2:3],s[4:5]\n^\n"
+    },
+    {
+      "target": "gfx950",
+      "instruction": "v_mul_f64_e32 v[0:1],v[2:3],0",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:1: error: e32 variant of this instruction is not supported\nv_mul_f64_e32 v[0:1],v[2:3],0\n^\n"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[0:1],v[8:9],v[10:11] :: v_dual_mov_b32 v0,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:57: error: dst registers must be distinct\nv_dual_add_f64 v[0:1],v[8:9],v[10:11] :: v_dual_mov_b32 v0,0\n                                                        ^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[0:1],v[8:9],v[10:11] :: v_dual_mov_b32 v1,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:57: error: dst registers must be distinct\nv_dual_add_f64 v[0:1],v[8:9],v[10:11] :: v_dual_mov_b32 v1,0\n                                                        ^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[0:1],v[8:9],v[10:11] :: v_dual_mov_b32 v2,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[0:1],v[8:9],v[10:11] :: v_dual_mov_b32 v3,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[0:1],v[8:9],v[10:11] :: v_dual_mov_b32 v4,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[0:1],v[8:9],v[10:11] :: v_dual_mov_b32 v5,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[1:2],v[8:9],v[10:11] :: v_dual_mov_b32 v0,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nv_dual_add_f64 v[1:2],v[8:9],v[10:11] :: v_dual_mov_b32 v0,0\n^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[1:2],v[8:9],v[10:11] :: v_dual_mov_b32 v1,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:57: error: dst registers must be distinct\nv_dual_add_f64 v[1:2],v[8:9],v[10:11] :: v_dual_mov_b32 v1,0\n                                                        ^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[1:2],v[8:9],v[10:11] :: v_dual_mov_b32 v2,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:57: error: dst registers must be distinct\nv_dual_add_f64 v[1:2],v[8:9],v[10:11] :: v_dual_mov_b32 v2,0\n                                                        ^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[1:2],v[8:9],v[10:11] :: v_dual_mov_b32 v3,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nv_dual_add_f64 v[1:2],v[8:9],v[10:11] :: v_dual_mov_b32 v3,0\n^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[1:2],v[8:9],v[10:11] :: v_dual_mov_b32 v4,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nv_dual_add_f64 v[1:2],v[8:9],v[10:11] :: v_dual_mov_b32 v4,0\n^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[1:2],v[8:9],v[10:11] :: v_dual_mov_b32 v5,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nv_dual_add_f64 v[1:2],v[8:9],v[10:11] :: v_dual_mov_b32 v5,0\n^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[2:3],v[8:9],v[10:11] :: v_dual_mov_b32 v0,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[2:3],v[8:9],v[10:11] :: v_dual_mov_b32 v1,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[2:3],v[8:9],v[10:11] :: v_dual_mov_b32 v2,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:57: error: dst registers must be distinct\nv_dual_add_f64 v[2:3],v[8:9],v[10:11] :: v_dual_mov_b32 v2,0\n                                                        ^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[2:3],v[8:9],v[10:11] :: v_dual_mov_b32 v3,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:57: error: dst registers must be distinct\nv_dual_add_f64 v[2:3],v[8:9],v[10:11] :: v_dual_mov_b32 v3,0\n                                                        ^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[2:3],v[8:9],v[10:11] :: v_dual_mov_b32 v4,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[2:3],v[8:9],v[10:11] :: v_dual_mov_b32 v5,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[3:4],v[8:9],v[10:11] :: v_dual_mov_b32 v0,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nv_dual_add_f64 v[3:4],v[8:9],v[10:11] :: v_dual_mov_b32 v0,0\n^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[3:4],v[8:9],v[10:11] :: v_dual_mov_b32 v1,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nv_dual_add_f64 v[3:4],v[8:9],v[10:11] :: v_dual_mov_b32 v1,0\n^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[3:4],v[8:9],v[10:11] :: v_dual_mov_b32 v2,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nv_dual_add_f64 v[3:4],v[8:9],v[10:11] :: v_dual_mov_b32 v2,0\n^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[3:4],v[8:9],v[10:11] :: v_dual_mov_b32 v3,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:57: error: dst registers must be distinct\nv_dual_add_f64 v[3:4],v[8:9],v[10:11] :: v_dual_mov_b32 v3,0\n                                                        ^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[3:4],v[8:9],v[10:11] :: v_dual_mov_b32 v4,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:57: error: dst registers must be distinct\nv_dual_add_f64 v[3:4],v[8:9],v[10:11] :: v_dual_mov_b32 v4,0\n                                                        ^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[3:4],v[8:9],v[10:11] :: v_dual_mov_b32 v5,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nv_dual_add_f64 v[3:4],v[8:9],v[10:11] :: v_dual_mov_b32 v5,0\n^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[4:5],v[8:9],v[10:11] :: v_dual_mov_b32 v0,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[4:5],v[8:9],v[10:11] :: v_dual_mov_b32 v1,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[4:5],v[8:9],v[10:11] :: v_dual_mov_b32 v2,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[4:5],v[8:9],v[10:11] :: v_dual_mov_b32 v3,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[4:5],v[8:9],v[10:11] :: v_dual_mov_b32 v4,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:57: error: dst registers must be distinct\nv_dual_add_f64 v[4:5],v[8:9],v[10:11] :: v_dual_mov_b32 v4,0\n                                                        ^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[4:5],v[8:9],v[10:11] :: v_dual_mov_b32 v5,0",
+      "accepted": false,
+      "stderr": "<stdin>:1:57: error: dst registers must be distinct\nv_dual_add_f64 v[4:5],v[8:9],v[10:11] :: v_dual_mov_b32 v5,0\n                                                        ^\n",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[254:255],v[8:9],v[10:11] :: v_dual_mov_b32 v0,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[254:255],v[8:9],v[10:11] :: v_dual_mov_b32 v1,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[254:255],v[8:9],v[10:11] :: v_dual_mov_b32 v2,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[254:255],v[8:9],v[10:11] :: v_dual_mov_b32 v3,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[254:255],v[8:9],v[10:11] :: v_dual_mov_b32 v4,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "instruction": "v_dual_add_f64 v[254:255],v[8:9],v[10:11] :: v_dual_mov_b32 v5,0",
+      "accepted": true,
+      "stderr": "",
+      "target": "gfx1250"
+    },
+    {
+      "target": "gfx1250",
+      "instruction": "v_dual_mul_f64 v[0:1],v[2:3],v[4:5] :: v_dual_mov_b32 v6,0",
+      "accepted": true,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "instruction": "v_add_f64_e32 v[1:2],v[4:5],v[6:7]",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nv_add_f64_e32 v[1:2],v[4:5],v[6:7]\n^\n"
+    },
+    {
+      "target": "gfx1250",
+      "instruction": "v_add_f64_e32 v[0:1],v[3:4],v[6:7]",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nv_add_f64_e32 v[0:1],v[3:4],v[6:7]\n^\n"
+    },
+    {
+      "target": "gfx1250",
+      "instruction": "v_mul_f64_e32 v[0:1],v[4:5],v[5:6]",
+      "accepted": false,
+      "returncode": 1,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nv_mul_f64_e32 v[0:1],v[4:5],v[5:6]\n^\n"
+    }
+  ],
+  "scope": {
+    "block": [
+      1,
+      1,
+      1
+    ],
+    "grid": [
+      1,
+      1,
+      1
+    ],
+    "output_elements": 1,
+    "output_dtype": "f64",
+    "model": "Exact encoded binary64 coefficients and mathematical-real intermediate operations, matching the original Volta contract; physical hardware rounds each encoded operation."
+  },
+  "primary_references": [
+    {
+      "repository": "llvm/llvm-project",
+      "revision": "f13414fb26b92bdbbfdf4b2b5401117936da84af",
+      "path": "llvm/lib/Target/AMDGPU/VOP2Instructions.td",
+      "section": "V_ADD_F64/V_MUL_F64 gfx12/gfx13 real VOP2 encodings"
+    },
+    {
+      "repository": "llvm/llvm-project",
+      "revision": "f13414fb26b92bdbbfdf4b2b5401117936da84af",
+      "path": "llvm/lib/Target/AMDGPU/VOPDInstructions.td",
+      "section": "VOPD3XPseudosExtraGFX1250 adds F64 add/mul in X slot"
+    }
+  ]
+}

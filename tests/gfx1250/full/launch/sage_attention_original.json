@@ -1,0 +1,86 @@
+{
+  "kernel": "sage_attention_original",
+  "block": [
+    256,
+    1,
+    1
+  ],
+  "grid": [
+    1,
+    1,
+    1
+  ],
+  "dynamic_shared_bytes": 0,
+  "arrays": [
+    {
+      "name": "q",
+      "base": 65536,
+      "elem_width": 1,
+      "len": 8192,
+      "kind": "in"
+    },
+    {
+      "name": "k",
+      "base": 131072,
+      "elem_width": 1,
+      "len": 8192,
+      "kind": "in"
+    },
+    {
+      "name": "v",
+      "base": 196608,
+      "elem_width": 2,
+      "len": 8192,
+      "kind": "in"
+    },
+    {
+      "name": "q_scale",
+      "base": 262144,
+      "elem_width": 4,
+      "len": 1,
+      "kind": "in"
+    },
+    {
+      "name": "k_scale",
+      "base": 327680,
+      "elem_width": 4,
+      "len": 2,
+      "kind": "in"
+    },
+    {
+      "name": "out",
+      "base": 393216,
+      "elem_width": 2,
+      "len": 8192,
+      "kind": "out"
+    }
+  ],
+  "params": [
+    {
+      "ptr": "q"
+    },
+    {
+      "ptr": "k"
+    },
+    {
+      "ptr": "v"
+    },
+    {
+      "ptr": "q_scale"
+    },
+    {
+      "ptr": "k_scale"
+    },
+    {
+      "ptr": "out"
+    },
+    {
+      "int": 0
+    },
+    {
+      "int": 0
+    }
+  ],
+  "max_instructions": 2000000000,
+  "description": "Original selectedCTA0 complete mathematical problem, input/output storage dtypes, masks/scales/null arguments, block/grid and source pitches are preserved. Native wave32 WMMA uses fixedLDS staging. The original232448-byte dynamic budget is not a physical native allocation. Full output coordinates are mandatory; smaller shapes, dropped outputs or decoded-F32 substitutes cannot close this case."
+}

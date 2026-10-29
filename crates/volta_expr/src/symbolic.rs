@@ -1613,22 +1613,107 @@ impl ExprArena {
         }
     }
 
-    /// Format an expression to a `String`. `fmt_expr` re-walks shared subexpressions (no memo), so
-    /// heavily shared DAGs can print exponentially large text (multi-GB for tensor-core chains);
-    /// past `MAX_DISPLAY_BYTES` this returns a short placeholder instead.
+    /// Format an expression to a `String`. Heavily shared DAGs can print exponentially large
+    /// text; past `MAX_DISPLAY_BYTES` this returns a short placeholder instead. A memoized
+    /// lower bound avoids walking the expanded text when it already proves that limit exceeded.
     pub fn display_expr(&self, id: ExprId) -> String {
         const MAX_DISPLAY_BYTES: usize = 50 * 1024 * 1024;
-
-        match self.display_bounded(id, MAX_DISPLAY_BYTES) {
-            Ok(text) => text,
-            Err(_) => format!(
+        let placeholder = || {
+            format!(
                 "<expression exceeds {}MB when printed - likely heavy internal \
                  sharing in this unmemoized display path; pass --print-outputs 0 \
                  to skip printing, or use 'volta verify'/'volta compare', which \
                  check equivalence without ever formatting raw expressions>",
                 MAX_DISPLAY_BYTES / (1024 * 1024)
-            ),
+            )
+        };
+        if self.display_size_lower_bound(id, MAX_DISPLAY_BYTES) > MAX_DISPLAY_BYTES {
+            return placeholder();
         }
+        match self.display_bounded(id, MAX_DISPLAY_BYTES) {
+            Ok(text) => text,
+            Err(_) => placeholder(),
+        }
+    }
+
+    /// Count each child occurrence, but visit each DAG node once. Every leaf contributes at
+    /// least one byte (except possibly an empty named parameter); every operator prints all
+    /// its children and at least one additional byte. This deliberately undercounts syntax.
+    /// It may miss an oversized display, which the existing byte-budgeted writer still catches,
+    /// but must never replace a string that fits. Saturation prevents arithmetic overflow.
+    fn display_size_lower_bound(&self, id: ExprId, limit: usize) -> usize {
+        use std::collections::HashMap;
+
+        fn visit(
+            arena: &ExprArena,
+            id: ExprId,
+            cap: usize,
+            memo: &mut HashMap<ExprId, usize>,
+        ) -> usize {
+            if let Some(&size) = memo.get(&id) {
+                return size;
+            }
+            let size = stacker::maybe_grow(64 * 1024, 8 * 1024 * 1024, || {
+                let mut child = |id| visit(arena, id, cap, memo);
+                match *arena.node(id) {
+                    ExprNode::ParamSymbol(name) => arena.string(name).len(),
+                    ExprNode::InputElement { array, .. } => {
+                        arena.string(array).len().saturating_add(3)
+                    }
+                    ExprNode::SymbolicRead { array, index } => arena
+                        .string(array)
+                        .len()
+                        .saturating_add(2)
+                        .saturating_add(child(index)),
+                    ExprNode::Neg(a)
+                    | ExprNode::Exp(a)
+                    | ExprNode::Log(a)
+                    | ExprNode::Sqrt(a)
+                    | ExprNode::Rcp(a)
+                    | ExprNode::Abs(a)
+                    | ExprNode::Sign(a)
+                    | ExprNode::BitNot(a)
+                    | ExprNode::Not(a)
+                    | ExprNode::ToFloat(a) => child(a).saturating_add(1),
+                    ExprNode::Add(a, b)
+                    | ExprNode::Sub(a, b)
+                    | ExprNode::Mul(a, b)
+                    | ExprNode::Div(a, b)
+                    | ExprNode::Rem(a, b)
+                    | ExprNode::Max(a, b)
+                    | ExprNode::Min(a, b)
+                    | ExprNode::BitAnd(a, b)
+                    | ExprNode::BitOr(a, b)
+                    | ExprNode::BitXor(a, b)
+                    | ExprNode::Shl(a, b)
+                    | ExprNode::Shr(a, b)
+                    | ExprNode::LShr(a, b)
+                    | ExprNode::Eq(a, b)
+                    | ExprNode::Ne(a, b)
+                    | ExprNode::Lt(a, b)
+                    | ExprNode::Le(a, b)
+                    | ExprNode::Gt(a, b)
+                    | ExprNode::Ge(a, b)
+                    | ExprNode::And(a, b)
+                    | ExprNode::Or(a, b) => child(a).saturating_add(child(b)).saturating_add(1),
+                    ExprNode::Select(a, b, c) | ExprNode::Fma(a, b, c) => child(a)
+                        .saturating_add(child(b))
+                        .saturating_add(child(c))
+                        .saturating_add(1),
+                    ExprNode::IntConst(_)
+                    | ExprNode::RealConst(_)
+                    | ExprNode::BoolConst(_)
+                    | ExprNode::Symbol(_)
+                    | ExprNode::Discarded
+                    | ExprNode::Undefined => 1,
+                }
+            })
+            .min(cap);
+            memo.insert(id, size);
+            size
+        }
+
+        visit(self, id, limit.saturating_add(1), &mut HashMap::new())
     }
 
     /// At most the first `max_bytes` of the expression's text, ending in `…` when cut: unlike
@@ -2500,5 +2585,83 @@ mod tests {
         let text = arena.display_expr(e);
         assert!(text.len() < 51 * 1024 * 1024);
         assert!(text.contains("exceeds"), "unexpected output: {text}");
+    }
+
+    #[test]
+    fn display_size_preflight_never_overcounts_any_expression_form() {
+        let mut arena = ExprArena::new();
+        let a = arena.param_symbol("");
+        let b = arena.param_symbol("λ🌋");
+        let c = arena.symbol();
+        let array = arena.intern_string("α");
+        let nodes = vec![
+            ExprNode::IntConst(i64::MIN),
+            ExprNode::RealConst(Real::from_i64(-17)),
+            ExprNode::BoolConst(false),
+            ExprNode::InputElement {
+                array,
+                index: u64::MAX,
+            },
+            ExprNode::Add(a, b),
+            ExprNode::Sub(a, b),
+            ExprNode::Mul(a, b),
+            ExprNode::Div(a, b),
+            ExprNode::Rem(a, b),
+            ExprNode::Max(a, b),
+            ExprNode::Min(a, b),
+            ExprNode::BitAnd(a, b),
+            ExprNode::BitOr(a, b),
+            ExprNode::BitXor(a, b),
+            ExprNode::Shl(a, b),
+            ExprNode::Shr(a, b),
+            ExprNode::LShr(a, b),
+            ExprNode::Eq(a, b),
+            ExprNode::Ne(a, b),
+            ExprNode::Lt(a, b),
+            ExprNode::Le(a, b),
+            ExprNode::Gt(a, b),
+            ExprNode::Ge(a, b),
+            ExprNode::And(a, b),
+            ExprNode::Or(a, b),
+            ExprNode::Neg(a),
+            ExprNode::Exp(a),
+            ExprNode::Log(a),
+            ExprNode::Sqrt(a),
+            ExprNode::Rcp(a),
+            ExprNode::Abs(a),
+            ExprNode::Sign(a),
+            ExprNode::BitNot(a),
+            ExprNode::Not(a),
+            ExprNode::ToFloat(a),
+            ExprNode::Fma(a, b, c),
+            ExprNode::Select(a, b, c),
+            ExprNode::SymbolicRead { array, index: b },
+            ExprNode::Discarded,
+            ExprNode::Undefined,
+        ];
+        let mut expressions = vec![a, b, c];
+        expressions.extend(nodes.into_iter().map(|node| arena.push(node)));
+        for id in expressions {
+            let exact = arena.display_bounded(id, 4096).unwrap();
+            for limit in [0, exact.len() / 2, exact.len(), exact.len() + 1, usize::MAX] {
+                let bound = arena.display_size_lower_bound(id, limit);
+                assert!(bound <= exact.len(), "{exact:?}: bound{bound} limit{limit}");
+                if bound > limit {
+                    assert!(exact.len() > limit);
+                }
+            }
+            assert_eq!(arena.display_expr(id), exact);
+        }
+        // Every duplicated child occurrence counts, without expanding its text.
+        let mut shared = b;
+        for _ in 0..60 {
+            shared = arena.add(shared, shared);
+        }
+        assert_eq!(
+            arena.display_size_lower_bound(shared, 50 * 1024 * 1024),
+            50 * 1024 * 1024 + 1
+        );
+        // An empty parameter's exact display still fits a zero-byte budget.
+        assert_eq!(arena.display_size_lower_bound(a, 0), 0);
     }
 }

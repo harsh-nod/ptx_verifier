@@ -2,7 +2,7 @@
 """Run all bounded portable cases from exact committed assembly on one gfx1250.
 
 Example (from any checkout):
-  python3 tests/gfx1250/hardware/portable_run.py --host mi400 --device 1 \
+  python3 tests/gfx1250/hardware/portable_run.py --host "$GFX1250_HOST" --device "$GFX1250_DEVICE" \
       --result /tmp/hardware-portable.json
 
 The remote directory is unique and retained for inspection. This script never

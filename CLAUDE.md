@@ -11,8 +11,7 @@ symbolic outputs and a candidate event graph; independent branches check
 mathematical equivalence and target-specific safety. This is an experimental
 best-effort model, not a claim of formal soundness, complete ISA coverage or
 whole-device correctness. gfx1250 software validation is complete for its
-[documented subset](tests/gfx1250/CONTRACT.md); exact-assembly hardware validation
-on gfx1250 is recorded in `tests/gfx1250/evidence/hardware-*-coordinator.json`.
+[documented subset](tests/gfx1250/CONTRACT.md). Run artifacts are local; the repository retains source fixtures and reproduction workflows.
 
 ## Coding practices
 
@@ -189,9 +188,19 @@ Mathematical specs: an output array as a formula over other arrays
 `SymbolicOutputs` with the arena's own constructors, so a kernel checks
 against a spec exactly like against a second kernel (`volta verify`).
 
+`bit_sign(word, bit_index)` preserves arbitrary integer input words and selects
+one low-32 bit into +/-1 through logical-shift/AND/NE/Select arena nodes. Its
+concrete index accepts integer quotient/remainder; invalid bit positions, zero
+divisors and integer-index overflow are unfold errors. This is vendor-neutral
+spec syntax, with no implicit float bitcast or index-input substitution.
+
 ## Crate: volta_graph
 
 **Path**: `crates/volta_graph/`
+
+Native named barriers retain object/incarnation/phase identities, descriptor
+capacity, encoded versus last-joined WAIT selectors, and counted deadlock state.
+These additive records never imply a synchronization certificate.
 
 The typed operation/event graph of one candidate execution, recorded by the
 analysis and consumed by the graph checks; depends only on
@@ -208,9 +217,14 @@ crate-level docs in `lib.rs` are the contract.
   `ObjectInit`/`ObjectInval`, `TmemAlloc`/`TmemDealloc`/`TmemRelinquish`,
   `Exit`.
 - `MemAccess`: space (`Global`/`Shared`/`Tensor`; local memory is not
-  recorded), mode, `OrderingKind` (only `Ordinary` produced), proxy, canonical
+  recorded), mode, `OrderingKind` (`Ordinary`, or the selected native Atomic
+  profile), proxy, canonical
   `Footprint` (byte range, or TMEM lane x column rectangle), attributed
-  thread, stored value for writes.
+  thread, stored value for writes. Selected gfx1250 no-return F32 atomic adds
+  use paired Atomic effects, one active lane, and independent Store/X readiness;
+  they do not certify general atomic serialization or cache publication.
+  A dependent later VMEM destination can retire an older VMEM translation
+  prefix, independently of both operations' data completion.
 - Sync objects (named barrier, mbarrier lifetime, warp/warpgroup collective,
   a thread's cp.async group waits) with logical `Generation`s: typed
   `Contribution`s (`Blocking`, `Arrival`, `Exited`, `AsyncCompletion`,
@@ -240,6 +254,11 @@ crate-level docs in `lib.rs` are the contract.
 
 **Path**: `crates/volta_amdgpu_analysis/`
 
+`eval/named_barrier.rs` owns the selected gfx1250 shader named-barrier execution
+state. Explicit M0 dependencies, real descriptor allocation, NULL no-ops,
+last-joined WAIT, fresh reinitialization lifetimes and END-without-drop are
+preserved; signal-time count updates and clustered objects remain unsupported.
+
 The independent native AMD producer: `frontend::parse` builds typed LLVM AMDHSA
 assembly, `target::validate` checks generation-specific profiles, lowering keeps
 native source spans, and `analyze` executes a candidate workgroup-zero schedule.
@@ -258,9 +277,38 @@ gfx1250 uses separate load/store/DS/KM/X/async/tensor completion, replay-source
 leases, split shader barriers and bounded plain 2D TDM. It does not inherit the
 legacy replay-disabled or `SingleCuWorkgroup` premises. Values are computed at
 issue; the checker independently establishes readiness/publication.
+Terminal gfx1250 `MSG_DEALLOC_VGPRS` is an X-draining message3 epilogue,
+permitted only with zero scratch and an immediately following `s_endpgm`.
+It never substitutes for a data-completion wait.
+Genuine resolved FLAT classes use conservative Load/Store+Ds+X and preserve
+same-wave same-address effect order within their Global or Shared segment.
+LDS-aperture classes stay outside the scalar/VMEM replay groups; neither group
+switching nor GLOBAL destination aliases retire their held sources. Explicit
+source retirement remains separate from both-data completion/publication.
+Generic FLAT destinations can retire a required older GLOBAL translation prefix
+without changing their resolved effect Space or releasing older LDS source
+tokens. Target-pinned Load/Store/Ds FIFO prefixes remain separate from data
+completion. Unresolved apertures and nonzero LDS FLAT X prefixes remain inconclusive. Global
+cache publication is independent.
+Tensor descriptor SGPRs are captured at issue and remain ordinary Instruction
+reads for pending-KM readiness; Tensor MemoryIssue has no completion-held
+register sources. Its memory effects still require Tensor completion and
+crosswave publication, independently of register reuse. The checker rejects
+fabricated Tensor source-lease roles instead of importing GLOBAL/X rules.
+Automatic-barrier drops on wave exit preserve execution progress, but completed
+memory publication through an implicit drop is unpinned. gfx1250 reports Unknown
+only for a conflicting memory dependency needing that edge; actual explicit
+arrivals, disjoint/read-only payloads and unrelated proven failures retain their
+own results. Genuine compiler controls and independent graph tests live in
+`tests/gfx1250/portable-graph` and `gfx1250_portable_graph_tests.rs`.
 
 The tested compiler envelope is code-object 6 and metadata 1.2. By-value bytes
 must match argument metadata exactly; unknown ABI bits remain undefined.
+Module-address lowering recognizes exact contiguous REL32 and gfx1250 REL64
+profiles; PC words stay opaque, and only the no-carry REL64 profile preserves
+SCC. Scalar-base FLAT addresses preserve the opaque LDS aperture and checked
+subobject bounds rather than inventing a numeric process aperture.
+
 Bare gfx1250, one unclustered workgroup and supported operand encodings define
 its tested subset. Advanced unsupported modes remain explicit. See the
 [crate README](crates/volta_amdgpu_analysis/README.md) and
@@ -450,6 +498,10 @@ native optional trailing commas and either wait-counter separator.
 
 **Path**: `crates/volta_graph_check/`
 
+`amdgpu/gfx1250/named.rs` independently reconstructs named object lifetimes,
+operation counts, joins, releases and phase separation. Its execution frontiers
+are distinct from completed-memory frontiers; drop-only publication stays Unknown.
+
 For PTX, the seven checks of the Volta v2 design's data-race freedom check (§1.3 of the
 design document), then three beyond it (allocation order and allocation permit,
 PTX ISA rules, and mbarrier release order), one
@@ -574,6 +626,31 @@ none turns an unsupported case into `Pass`. Depends only on `volta_graph`.
 ## Crate: volta_pipeline
 
 **Path**: `crates/volta_pipeline/`
+
+The allocated LLVM named-barrier corpus has complete native payload and typed
+deadlock/conflict controls in `gfx1250_named_barrier_tests`; harmful assembly
+mutations are CPU-only and separately validated with llvm-mc.
+`tests/gfx1250/portable-graph/named_browser.cjs` checks actual Chromium event,
+source and typed-finding navigation on those native runs in a mixed target store.
+The separate `native-named-phases.ll` corpus preserves two-object handshakes,
+independent per-object counts, the three-arrival expression and selected-ID
+deadlocks; the runtime mismatch input is CPU-only.
+
+`gfx1250_portable_copy_tests` checks six genuinely compiled SMEM/GLOBAL/FLAT
+copy controls: exact input/LDS byte footprints, all payloads and output tails,
+crosswave publication, and every actual reader. Its three MC-accepted CPU-only
+mutations distinguish scalar KM readiness, returned Load/DS readiness and memory
+publication. The corpus and hash receipts live in
+`tests/gfx1250/portable-graph/copy-order`; native DMA/proxy/transaction-byte
+mechanisms are not inferred from these ordinary-memory controls.
+
+`examples/measure_native_export.rs` measures a completed native graph and its
+viewer export on CPU; its counts and GraphVerified guard are independent of
+mathematical equivalence and hardware evidence.
+
+The full-shape gfx1250 matrix corpus has a separate exact-assembly frontend
+gate; parsing/lowering and zero-scratch descriptor checks do not establish
+execution, mathematical equivalence, or safety acceptance.
 
 The integration point: `verify_source_kernel(&KernelModule, kernel, config)`
 dispatches to PTX or native AMD, then runs the applicable graph checks.
@@ -731,6 +808,19 @@ The paper's canonicalizer, in Rust:
 
 **Path**: `crates/volta_viz/`
 
+Named AMD barrier rows and candidate edges retain object/incarnation/phase,
+encoded WAIT selectors and counted terminal waits without changing proof status.
+
+`write_run` bounds large browser displays at 50,000 events, with explicit full,
+included and omitted counts and original EventId mappings. It prioritizes
+selected finding witnesses, preserves actual async completion endpoints, and
+does not alter graph construction, checks, provenance or verdicts. Small records
+keep their existing representation. `write_complete_run` is the unbounded
+archival writer. Browser source/event navigation uses original event IDs.
+The shared Chromium harness accepts both legacy and projected IDs. The full
+matrix harness checks six original K4096 records, two typed memory failures,
+source hashes, explicit omissions and navigation to retained/omitted IDs.
+
 The event-graph viewer; depends only on `volta_graph`, `volta_graph_check`
 (findings, pipeline edges) and `volta_expr` (stored values). `write_run(dir,
 &Run)` stores one run (`Outcome::Executed { graph, arena, report }` or
@@ -766,6 +856,9 @@ concrete parameters, `Param.bytes([...])` and optional LDS subobject premises
 mirror existing Rust configuration. Failed native checks raise typed
 `DataRaceError`/`DeadlockError`; incomplete verification warns and sets
 `race_verified=False`. `just test-python` rebuilds the extension before testing.
+The original-workload test covers every W01–W18 output at its original shape
+and dtype; `VOLTA_GFX1250_ORIGINAL_FULL=1` requires all32 registrations and
+runs the separate heavy gate with no sampled/reduced fallback.
 
 ## Crate: volta_cli
 
@@ -777,6 +870,11 @@ The same launch, comparison, numeric, export, logging and viewer interfaces appl
 Native `--config` JSON supports the same optional `shared_allocations` byte ranges
 as `--shared-allocation` and Python; strict name/range validation and native LDS
 bounds apply, and PTX rejects these native-only premises.
+Original-workload CLI tests require complete first18 output footprints and
+unsampled specs, including exports, pair/replay and mismatch controls. The
+`VOLTA_GFX1250_ORIGINAL_FULL=1` heavy gate refuses missing original registrations.
+The original-dtype browser wrapper checks executed atomic and half/FP8 event/source
+navigation in a mixed store; rendering evidence remains separate from math/hardware.
 
 Commands:
 

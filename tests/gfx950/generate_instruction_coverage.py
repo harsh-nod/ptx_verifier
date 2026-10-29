@@ -642,13 +642,7 @@ def main():
             ),
             "semantics": "Known bits of a partially defined kernarg word are preserved. Exact low 16 bit sign extension and byte 2 to f32 consume only known bits; observing padding aborts.",
         },
-        "external_evidence": [
-            "tests/gfx950/evidence/hardware-2026-10-27-initial-corpus.json",
-            "tests/gfx950/evidence/hardware-abi-2026-10-27.json",
-            "tests/gfx950/evidence/hardware-full-workloads-2026-10-27.json",
-            "tests/gfx950/evidence/hardware-advanced-workloads-2026-10-27.json",
-            "tests/gfx950/evidence/hardware-attention-2026-10-27.json",
-        ],
+        "external_evidence": [],
     }
     lines = [
         "# gfx950 instruction and modifier coverage",

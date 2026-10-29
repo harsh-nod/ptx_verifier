@@ -275,6 +275,139 @@ fn canonical_operand(
     }
 }
 
+/// A native32-bit single-bit predicate has an exact, format-independent
+/// representation shared with packed external-word specifications. This only
+/// rewrites proven masks/sign tests, never general symbolic integer ordering.
+fn bit_nonzero(arena: &mut ExprArena, value: ExprId, bit: u32) -> ExprId {
+    let shift = arena.int(bit as i64);
+    let shifted = arena.lshr(value, shift);
+    let one = arena.int(1);
+    let selected = arena.bit_and(shifted, one);
+    let zero = arena.int(0);
+    arena.ne(selected, zero)
+}
+
+fn single_masked_bit(arena: &ExprArena, mut value: ExprId) -> Option<(ExprId, u32)> {
+    let mut mask = u32::MAX;
+    let mut saw_mask = false;
+    while let ExprNode::BitAnd(a, b) = *arena.node(value) {
+        if let Some(constant) = arena.as_int_const(a) {
+            mask &= constant as u32;
+            value = b;
+        } else if let Some(constant) = arena.as_int_const(b) {
+            mask &= constant as u32;
+            value = a;
+        } else {
+            break;
+        }
+        saw_mask = true;
+    }
+    (saw_mask && mask.is_power_of_two()).then_some((value, mask.trailing_zeros()))
+}
+
+fn compare_word_bit(
+    arena: &mut ExprArena,
+    ty: IntType,
+    op: CmpOp,
+    a: ExprId,
+    b: ExprId,
+) -> Option<ExprId> {
+    if ty.bits != 32 {
+        return None;
+    }
+    if matches!(op, CmpOp::Eq | CmpOp::Ne) {
+        let value = if arena.as_int_const(a) == Some(0) {
+            b
+        } else if arena.as_int_const(b) == Some(0) {
+            a
+        } else {
+            return None;
+        };
+        if let Some((word, bit)) = single_masked_bit(arena, value) {
+            let nonzero = bit_nonzero(arena, word, bit);
+            return Some(if op == CmpOp::Eq {
+                arena.not(nonzero)
+            } else {
+                nonzero
+            });
+        }
+    }
+    if !ty.signed {
+        return None;
+    }
+    let ac = arena.as_int_const(a);
+    let bc = arena.as_int_const(b);
+    let (word, negative) = match (op, ac, bc) {
+        (CmpOp::Lt, Some(-1), _) | (CmpOp::Le, Some(0), _) => (b, false),
+        (CmpOp::Gt, _, Some(-1)) | (CmpOp::Ge, _, Some(0)) => (a, false),
+        (CmpOp::Gt, Some(0), _) | (CmpOp::Ge, Some(-1), _) => (b, true),
+        (CmpOp::Lt, _, Some(0)) | (CmpOp::Le, _, Some(-1)) => (a, true),
+        _ => return None,
+    };
+    let nonzero = bit_nonzero(arena, word, 31);
+    Some(if negative {
+        nonzero
+    } else {
+        arena.not(nonzero)
+    })
+}
+
+/// Decode encoded-half constants selected by a symbolic predicate. All leaves
+/// must be native constant words. Arbitrary integer/input expressions remain
+/// opaque: this is a bit-preserving conditional decode, not a numeric bitcast.
+pub(crate) fn decode_half_select(
+    arena: &mut ExprArena,
+    value: ExprId,
+    high: bool,
+) -> Result<ExprId, String> {
+    fn decode(
+        arena: &mut ExprArena,
+        value: ExprId,
+        high: bool,
+        depth: u32,
+    ) -> Result<ExprId, String> {
+        if depth > 64 {
+            return Err("encoded-half select nesting exceeds supported depth".into());
+        }
+        match *arena.node(value) {
+            ExprNode::IntConst(word) => {
+                let bits = ((word as u32) >> if high { 16 } else { 0 }) as u16;
+                let sign = if bits & 0x8000 == 0 { 1.0 } else { -1.0 };
+                let exponent = (bits >> 10) & 31;
+                let fraction = bits & 1023;
+                let decoded = if exponent == 31 {
+                    if fraction != 0 {
+                        return Err("half NaN outside real arithmetic model".into());
+                    }
+                    sign * f64::INFINITY
+                } else if exponent == 0 {
+                    sign * f64::from(fraction) * 2f64.powi(-24)
+                } else {
+                    sign * (1.0 + f64::from(fraction) / 1024.0)
+                        * 2f64.powi(i32::from(exponent) - 15)
+                };
+                arena.float_from_f64(decoded).map_err(|e| e.to_string())
+            }
+            ExprNode::Select(mut condition, a, b) => {
+                let mut a = decode(arena, a, high, depth + 1)?;
+                let mut b = decode(arena, b, high, depth + 1)?;
+                // Canonical bit test is nonzero; its native zero-test form
+                // selects the opposite arms. Preserve the exact word identity.
+                if let ExprNode::Not(inner) = *arena.node(condition) {
+                    condition = inner;
+                    std::mem::swap(&mut a, &mut b);
+                }
+                if volta_expr::structurally_equal(arena, a, arena, b) {
+                    return Ok(a);
+                }
+                Ok(arena.select(condition, a, b))
+            }
+            _ => Err("symbolic half decode requires constant-word select leaves".into()),
+        }
+    }
+    decode(arena, value, high, 0)
+}
+
 pub(crate) fn compare(
     arena: &mut ExprArena,
     ty: ScalarType,
@@ -300,6 +433,11 @@ pub(crate) fn compare(
                 CmpOp::Ge => !ordering.is_lt(),
             };
             return Ok(arena.bool_val(value));
+        }
+    }
+    if let ScalarType::Int(ty) = ty {
+        if let Some(predicate) = compare_word_bit(arena, ty, op, a, b) {
+            return Ok(predicate);
         }
     }
     Ok(match op {
@@ -330,7 +468,46 @@ pub(crate) fn select(
     }
     let a = canonical_operand(arena, ty, a)?;
     let b = canonical_operand(arena, ty, b)?;
+
     Ok(arena.select(condition, a, b))
+}
+
+/// Decode one half of an encoded-word select. Preserve the existing generic
+/// scalar-select representation; this packed path additionally canonicalizes
+/// ordered compare/select to its exact real min/max identity.
+pub(crate) fn select_packed_half(
+    arena: &mut ExprArena,
+    condition: ExprId,
+    a: ExprId,
+    b: ExprId,
+) -> Result<ExprId, String> {
+    let result = select(arena, ScalarType::Float(FloatType::F32), condition, a, b)?;
+    let ExprNode::Select(_, a, b) = *arena.node(result) else {
+        return Ok(result);
+    };
+    {
+        // Ordered compare/select is min/max over the mathematical-real model.
+        // Match both exact data arms: a predicate about one packed half must
+        // never rewrite the other half merely because they share a word.
+        let ordered = match *arena.node(condition) {
+            ExprNode::Lt(left, right) | ExprNode::Le(left, right) => Some((left, right, false)),
+            ExprNode::Gt(left, right) | ExprNode::Ge(left, right) => Some((left, right, true)),
+            _ => None,
+        };
+        if let Some((left, right, greater)) = ordered {
+            let same = |x, y| volta_expr::structurally_equal(arena, x, arena, y);
+            let normal = same(a, left) && same(b, right);
+            let reversed = same(a, right) && same(b, left);
+            if normal || reversed {
+                return Ok(if greater == normal {
+                    arena.max(left, right)
+                } else {
+                    arena.min(left, right)
+                });
+            }
+        }
+    }
+    Ok(result)
 }
 
 /// Decode a concrete register bit pattern at its actual format. F64 must use
@@ -1022,5 +1199,94 @@ mod bit_expression_tests {
         )
         .unwrap();
         assert!(structurally_equal(&arena, a, &arena, b));
+    }
+    #[test]
+    fn encoded_half_selects_require_constant_leaves_and_preserve_all_word_bits() {
+        fn predicate(arena: &ExprArena, expression: ExprId, input: ExprId, bits: u32) -> bool {
+            match *arena.node(expression) {
+                ExprNode::Not(inner) => !predicate(arena, inner, input, bits),
+                ExprNode::Ne(a, b) => {
+                    evaluate_word(arena, a, input, u64::from(bits), input, u64::from(bits))
+                        != evaluate_word(arena, b, input, u64::from(bits), input, u64::from(bits))
+                }
+                ExprNode::BoolConst(value) => value,
+                ref node => panic!("unexpected predicate: {node:?}"),
+            }
+        }
+        let mut arena = ExprArena::new();
+        let word = arena.param_symbol("word");
+        for bit in 0..32 {
+            let zero = arena.int(0);
+            let condition = if bit == 31 {
+                let minus_one = arena.int(-1);
+                compare(
+                    &mut arena,
+                    ScalarType::Int(IntType {
+                        bits: 32,
+                        signed: true,
+                    }),
+                    CmpOp::Lt,
+                    minus_one,
+                    word,
+                )
+                .unwrap()
+            } else {
+                let mask = arena.int(1i64 << bit);
+                let masked = int_binary(
+                    &mut arena,
+                    IntType {
+                        bits: 32,
+                        signed: false,
+                    },
+                    IntBinOp::And,
+                    word,
+                    mask,
+                )
+                .unwrap();
+                compare(
+                    &mut arena,
+                    ScalarType::Int(IntType {
+                        bits: 32,
+                        signed: false,
+                    }),
+                    CmpOp::Eq,
+                    masked,
+                    zero,
+                )
+                .unwrap()
+            };
+            let positive = arena.int(0x3c00);
+            let negative = arena.int(0xbc00);
+            let selected = arena.select(condition, negative, positive);
+            let decoded = decode_half_select(&mut arena, selected, false).unwrap();
+            let ExprNode::Select(nonzero, a, b) = *arena.node(decoded) else {
+                panic!("missing select")
+            };
+            assert_eq!(arena.as_f64(a), Some(1.));
+            assert_eq!(arena.as_f64(b), Some(-1.));
+            for value in [
+                0,
+                1,
+                u32::MAX,
+                0x80000000,
+                0x7fffffff,
+                0xdeadbeef,
+                1u32 << bit,
+            ] {
+                assert_eq!(
+                    predicate(&arena, nonzero, word, value),
+                    value & (1 << bit) != 0
+                );
+            }
+            let upper = decode_half_select(&mut arena, selected, true).unwrap();
+            assert_eq!(arena.as_f64(upper), Some(0.));
+        }
+        assert!(decode_half_select(&mut arena, word, false).is_err());
+        let condition = arena.param_symbol("predicate");
+        let constant = arena.int(0x3c00);
+        let arbitrary = arena.select(condition, word, constant);
+        assert!(decode_half_select(&mut arena, arbitrary, false).is_err());
+        let nan = arena.int(0x7e00);
+        assert!(decode_half_select(&mut arena, nan, false).is_err());
     }
 }

@@ -9,8 +9,19 @@
 
 use super::*;
 use volta_graph::{AccessMode, AmdWmmaKind, Assumption, ThreadIx};
+mod named;
 
 const WAVE: usize = 32;
+
+fn flat_profile(class: AmdMemoryClass) -> Option<(Space, AccessMode)> {
+    Some(match class {
+        AmdMemoryClass::FlatGlobalLoad => (Space::Global, AccessMode::Read),
+        AmdMemoryClass::FlatGlobalStore => (Space::Global, AccessMode::Write),
+        AmdMemoryClass::FlatLdsLoad => (Space::Shared, AccessMode::Read),
+        AmdMemoryClass::FlatLdsStore => (Space::Shared, AccessMode::Write),
+        _ => return None,
+    })
+}
 
 fn maximum(counter: AmdCounter) -> Option<u16> {
     match counter {
@@ -32,6 +43,13 @@ fn charges(class: AmdMemoryClass) -> Option<Vec<(AmdCounter, u16)>> {
     Some(match class {
         AmdMemoryClass::VectorLoad => vec![(Load, 1), (X, 1)],
         AmdMemoryClass::VectorStore => vec![(Store, 1), (X, 1)],
+        AmdMemoryClass::GlobalAtomicAddF32NoReturn => vec![(Store, 1), (X, 1)],
+        AmdMemoryClass::FlatGlobalLoad | AmdMemoryClass::FlatLdsLoad => {
+            vec![(Load, 1), (Ds, 1), (X, 1)]
+        }
+        AmdMemoryClass::FlatGlobalStore | AmdMemoryClass::FlatLdsStore => {
+            vec![(Store, 1), (Ds, 1), (X, 1)]
+        }
         AmdMemoryClass::ScalarLoad => vec![(Km, 1), (X, 1)],
         AmdMemoryClass::Ds | AmdMemoryClass::CrossLane => vec![(Ds, 1)],
         AmdMemoryClass::AsyncLoadToLds => vec![(Load, 1), (X, 1), (Async, 1)],
@@ -42,12 +60,19 @@ fn charges(class: AmdMemoryClass) -> Option<Vec<(AmdCounter, u16)>> {
 }
 
 fn replay_group(class: AmdMemoryClass) -> Option<bool> {
+    // This conservative source-group classification does not infer the
+    // compiler's LOCAL MMO from a resolved LDS effect. Generic FLAT encoding
+    // remains a possible receiver of older VMEM translation dependencies below.
+    // Older LDS source tokens still require their own explicit retirement.
     match class {
         AmdMemoryClass::ScalarLoad => Some(false),
         AmdMemoryClass::VectorLoad
         | AmdMemoryClass::VectorStore
+        | AmdMemoryClass::GlobalAtomicAddF32NoReturn
         | AmdMemoryClass::AsyncLoadToLds
-        | AmdMemoryClass::AsyncStoreFromLds => Some(true),
+        | AmdMemoryClass::AsyncStoreFromLds
+        | AmdMemoryClass::FlatGlobalLoad
+        | AmdMemoryClass::FlatGlobalStore => Some(true),
         _ => None,
     }
 }
@@ -55,16 +80,41 @@ fn replay_group(class: AmdMemoryClass) -> Option<bool> {
 fn expected(kind: &str, mask: u64) -> Option<Option<&'static str>> {
     Some(match kind {
         "scalar memory" => Some("memory"),
-        "vector memory" | "LDS" | "async memory" | "tensor memory" if mask != 0 => Some("memory"),
+        "vector memory"
+        | "LDS"
+        | "async memory"
+        | "tensor memory"
+        | "atomic f32 add no return"
+        | "flat memory"
+            if mask != 0 =>
+        {
+            Some("memory")
+        }
         "wait" => Some("wait"),
         "s_nop" => Some("delay"),
         "s_delay_alu" => Some("delay alu"),
         "barrier signal" => Some("signal"),
         "barrier wait" => Some("barrier wait"),
+        "named barrier init" => Some("named init"),
+        "named barrier join" => Some("named join"),
+        "named barrier signal" => Some("named signal"),
+        "named barrier wait" => Some("named wait"),
+        "named barrier leave" => Some("named leave"),
         "WMMA" => Some("wmma"),
-        "scalar ALU" | "vector ALU" | "trans ALU" | "shifted ALU" | "branch" | "control"
-        | "xcnt drain" | "s_endpgm" | "vector memory" | "LDS" | "async memory"
-        | "tensor memory" => None,
+        "scalar ALU"
+        | "vector ALU"
+        | "trans ALU"
+        | "shifted ALU"
+        | "branch"
+        | "control"
+        | "xcnt drain"
+        | "s_endpgm"
+        | "vector memory"
+        | "LDS"
+        | "async memory"
+        | "tensor memory"
+        | "flat memory"
+        | "atomic f32 add no return" => None,
         _ => return None,
     })
 }
@@ -72,7 +122,7 @@ fn expected(kind: &str, mask: u64) -> Option<Option<&'static str>> {
 fn registers(regs: &[AmdRegister], mask: u64, event: EventId, unresolved: &mut Vec<Unresolved>) {
     for reg in regs {
         let valid = match reg.file {
-            AmdRegisterFile::Scalar => reg.index <= 106 || reg.index == 126,
+            AmdRegisterFile::Scalar => reg.index <= 106 || matches!(reg.index, 124 | 126),
             AmdRegisterFile::Temporary => reg.index < 16,
             AmdRegisterFile::Vector => reg.index < 1024 && reg.lanes != 0 && reg.lanes & !mask == 0,
             AmdRegisterFile::Accumulator => false,
@@ -136,6 +186,30 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
         );
     }
     let mut unresolved = Vec::new();
+    let named_allocations: Vec<_> = graph
+        .provenance()
+        .assumptions
+        .iter()
+        .filter_map(|a| {
+            if let Assumption::AllocatedNamedBarriers(count) = a {
+                Some(*count)
+            } else {
+                None
+            }
+        })
+        .collect();
+    if named_allocations.len() > 1
+        || named_allocations
+            .iter()
+            .any(|count| !matches!(count, 4 | 8 | 12 | 16))
+    {
+        unresolved.push(Unresolved::global(
+            "invalid or duplicate gfx1250 named barrier allocation premise",
+        ));
+    }
+    let named_capacity = named_allocations.first().copied().unwrap_or(0);
+    let mut atomic_pairs =
+        HashMap::<(EventId, ThreadIx), (Option<(EventId, u64)>, Option<(EventId, u64)>)>::new();
     if graph.provenance().assumes(Assumption::XnackReplayDisabled) {
         unresolved.push(Unresolved::global(
             "gfx1250 XNACK is hardwired on; a replay-disabled premise is invalid",
@@ -155,13 +229,18 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
             "configured LDS layout and its provenance premise disagree",
         ));
     }
-    if graph.provenance().grid_dim != (1, 1, 1) {
+    if graph.provenance().grid_dim != (1, 1, 1)
+        && !graph
+            .provenance()
+            .assumes(Assumption::SingleWorkgroupAnalyzed)
+    {
         unresolved.push(Unresolved::global(
-            "gfx1250 graph contract analyzes exactly one workgroup",
+            "a multi-workgroup logical grid requires the explicit single analyzed workgroup premise",
         ));
     }
     let waves = (graph.threads() as usize).div_ceil(WAVE);
     let mut seen = vec![false; waves];
+    let mut m0_defined = vec![false; waves];
     let mut instructions = HashMap::<u32, InstructionRecord>::new();
     let mut issues = HashMap::new();
     let mut instruction_count = 0;
@@ -205,6 +284,37 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                 }
                 let pc = graph.event(record.event).pc;
                 let kind = pc.map(|p| graph.provenance().instructions[p.0 as usize].kind);
+                let uses_m0 = reads
+                    .iter()
+                    .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 124);
+                let writes_m0 = writes
+                    .iter()
+                    .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 124);
+                if uses_m0
+                    && (!m0_defined[record.wave as usize]
+                        || !matches!(
+                            kind,
+                            Some(
+                                "named barrier init"
+                                    | "named barrier join"
+                                    | "named barrier signal"
+                            )
+                        ))
+                {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "M0 read is uninitialized or outside the selected named barrier role",
+                    ));
+                }
+                if writes_m0 {
+                    if kind != Some("scalar ALU") {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "M0 write is not a scalar move",
+                        ));
+                    }
+                    m0_defined[record.wave as usize] = true;
+                }
                 let required = kind.and_then(|k| expected(k, *exec_mask));
                 if kind == Some("s_endpgm") {
                     ended.insert(record.wave);
@@ -238,11 +348,28 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                     claim(graph, record, &mut instructions, "memory", &mut unresolved);
                 registers(destinations, physical_mask, record.event, &mut unresolved);
                 registers(held_sources, physical_mask, record.event, &mut unresolved);
+                if matches!(
+                    class,
+                    AmdMemoryClass::TensorLoadToLds | AmdMemoryClass::TensorStoreFromLds
+                ) && !held_sources.is_empty()
+                {
+                    // Tensor descriptors are SReg inputs consumed at issue.
+                    // LLVM classifies TDM as TENSOR_ACCESS without X/VMEM_GROUP
+                    // and scores no source registers against Tensor completion.
+                    // Read readiness still comes from the Instruction record.
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "tensor descriptors are captured at issue and have no completion-held register sources",
+                    ));
+                }
                 let correct_destinations = match class {
                     AmdMemoryClass::ScalarLoad => {
                         !destinations.is_empty() && destinations.iter().all(|r| r.is_uniform())
                     }
-                    AmdMemoryClass::VectorLoad | AmdMemoryClass::CrossLane => {
+                    AmdMemoryClass::VectorLoad
+                    | AmdMemoryClass::FlatGlobalLoad
+                    | AmdMemoryClass::FlatLdsLoad
+                    | AmdMemoryClass::CrossLane => {
                         !destinations.is_empty()
                             && destinations
                                 .iter()
@@ -252,6 +379,9 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         .iter()
                         .all(|r| r.file == AmdRegisterFile::Vector),
                     AmdMemoryClass::VectorStore
+                    | AmdMemoryClass::FlatGlobalStore
+                    | AmdMemoryClass::FlatLdsStore
+                    | AmdMemoryClass::GlobalAtomicAddF32NoReturn
                     | AmdMemoryClass::AsyncLoadToLds
                     | AmdMemoryClass::AsyncStoreFromLds
                     | AmdMemoryClass::TensorLoadToLds
@@ -271,6 +401,13 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         AmdMemoryClass::ScalarLoad => source_kind == "scalar memory",
                         AmdMemoryClass::VectorLoad | AmdMemoryClass::VectorStore => {
                             source_kind == "vector memory"
+                        }
+                        AmdMemoryClass::FlatGlobalLoad
+                        | AmdMemoryClass::FlatGlobalStore
+                        | AmdMemoryClass::FlatLdsLoad
+                        | AmdMemoryClass::FlatLdsStore => source_kind == "flat memory",
+                        AmdMemoryClass::GlobalAtomicAddF32NoReturn => {
+                            source_kind == "atomic f32 add no return"
                         }
                         AmdMemoryClass::Ds | AmdMemoryClass::CrossLane => source_kind == "LDS",
                         AmdMemoryClass::AsyncLoadToLds | AmdMemoryClass::AsyncStoreFromLds => {
@@ -295,7 +432,7 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                             "memory destinations differ from the instruction's writes",
                         ));
                     }
-                    if replay_group(*class).is_some()
+                    if (replay_group(*class).is_some() || flat_profile(*class).is_some())
                         && (held_sources.len() != instruction.reads.len()
                             || !instruction.reads.iter().all(|r| held_sources.contains(r)))
                     {
@@ -309,6 +446,26 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                             record.event,
                             "memory held source is missing from its instruction",
                         ));
+                    }
+                    if flat_profile(*class).is_some()
+                        && !instruction
+                            .reads
+                            .iter()
+                            .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 126)
+                    {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "gfx1250 FLAT requires its implicit EXEC replay source",
+                        ));
+                    }
+                    if *class == AmdMemoryClass::GlobalAtomicAddF32NoReturn
+                        && (instruction.exec_mask.count_ones() != 1
+                            || !held_sources
+                                .iter()
+                                .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 126))
+                    {
+                        unresolved.push(Unresolved::at(record.event,
+                            "selected atomic RMW requires one active lane and its implicit EXEC source"));
                     }
                 }
                 if !charges(*class).is_some_and(|expected| {
@@ -376,6 +533,59 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         record.event,
                         "unsupported gfx1250 barrier release object",
                     ));
+                }
+            }
+            AmdEventKind::NamedBarrierInit { object, .. }
+            | AmdEventKind::NamedBarrierJoin { object, .. }
+            | AmdEventKind::NamedBarrierSignal { object, .. }
+            | AmdEventKind::NamedBarrierWait { object, .. }
+            | AmdEventKind::NamedBarrierRelease { object, .. }
+            | AmdEventKind::NamedBarrierLeave { object, .. } => {
+                if object.id > named_capacity || object.id > 16 {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "named object exceeds the explicit native descriptor allocation",
+                    ));
+                }
+                let required = match record.kind {
+                    AmdEventKind::NamedBarrierInit { .. } => Some("named init"),
+                    AmdEventKind::NamedBarrierJoin { .. } => Some("named join"),
+                    AmdEventKind::NamedBarrierSignal { .. } => Some("named signal"),
+                    AmdEventKind::NamedBarrierWait { encoded, .. } => {
+                        if encoded > 16 {
+                            unresolved.push(Unresolved::at(
+                                record.event,
+                                "invalid encoded named WAIT selector",
+                            ));
+                        }
+                        Some("named wait")
+                    }
+                    AmdEventKind::NamedBarrierLeave { .. } => Some("named leave"),
+                    _ => None,
+                };
+                if let Some(required) = required
+                    && let Some(instruction) =
+                        claim(graph, record, &mut instructions, required, &mut unresolved)
+                {
+                    if matches!(record.kind, AmdEventKind::NamedBarrierInit { object, .. } if object.id != 0)
+                        && !instruction
+                            .reads
+                            .iter()
+                            .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 124)
+                    {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "named INIT requires its implicit M0 expected-count source",
+                        ));
+                    }
+                    if let AmdEventKind::NamedBarrierSignal { exec_mask, .. } = record.kind
+                        && (exec_mask != instruction.exec_mask || exec_mask & !physical_mask != 0)
+                    {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "named signal EXEC differs from the instruction record",
+                        ));
+                    }
                 }
             }
             AmdEventKind::Delay { cycles } => {
@@ -525,6 +735,11 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                     class,
                     AmdMemoryClass::VectorLoad
                         | AmdMemoryClass::VectorStore
+                        | AmdMemoryClass::FlatGlobalLoad
+                        | AmdMemoryClass::FlatGlobalStore
+                        | AmdMemoryClass::FlatLdsLoad
+                        | AmdMemoryClass::FlatLdsStore
+                        | AmdMemoryClass::GlobalAtomicAddF32NoReturn
                         | AmdMemoryClass::Ds
                         | AmdMemoryClass::AsyncLoadToLds
                         | AmdMemoryClass::AsyncStoreFromLds
@@ -543,6 +758,7 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         access.space == Space::Global && read
                     }
                     AmdMemoryClass::VectorStore => access.space == Space::Global && !read,
+                    AmdMemoryClass::GlobalAtomicAddF32NoReturn => access.space == Space::Global,
                     AmdMemoryClass::Ds => {
                         access.space == Space::Shared && (read != destinations.is_empty())
                     }
@@ -556,10 +772,17 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                             (Space::Shared, true) | (Space::Global, false)
                         )
                     }
-                    _ => false,
+                    _ => flat_profile(*class)
+                        .is_some_and(|(space, mode)| access.space == space && access.mode == mode),
                 };
+                let atomic = *class == AmdMemoryClass::GlobalAtomicAddF32NoReturn;
                 if !valid
-                    || access.ordering != OrderingKind::Ordinary
+                    || access.ordering
+                        != if atomic {
+                            OrderingKind::Atomic
+                        } else {
+                            OrderingKind::Ordinary
+                        }
                     || access.proxy != Proxy::Generic
                 {
                     unresolved.push(Unresolved::at(
@@ -575,6 +798,16 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         "legacy CDNA workgroup visibility does not certify gfx1250 SCOPE/cache publication"));
                 }
                 if let Footprint::Bytes { addr, width } = access.footprint {
+                    if atomic {
+                        let pair = atomic_pairs
+                            .entry((link.issue, access.attributed))
+                            .or_default();
+                        let part = if read { &mut pair.0 } else { &mut pair.1 };
+                        if width != 4 || addr % 4 != 0 || part.replace((event_id, addr)).is_some() {
+                            unresolved.push(Unresolved::at(event_id,
+                                "atomic F32 RMW requires exactly one aligned 4-byte read and write per active lane"));
+                        }
+                    }
                     let count = transferred
                         .entry(link.issue)
                         .or_default()
@@ -647,6 +880,11 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
             class,
             AmdMemoryClass::VectorLoad
                 | AmdMemoryClass::VectorStore
+                | AmdMemoryClass::FlatGlobalLoad
+                | AmdMemoryClass::FlatGlobalStore
+                | AmdMemoryClass::FlatLdsLoad
+                | AmdMemoryClass::FlatLdsStore
+                | AmdMemoryClass::GlobalAtomicAddF32NoReturn
                 | AmdMemoryClass::Ds
                 | AmdMemoryClass::AsyncLoadToLds
                 | AmdMemoryClass::AsyncStoreFromLds
@@ -657,6 +895,14 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                 id,
                 "memory instruction omits an active lane's effects",
             ));
+        }
+        if *class == AmdMemoryClass::GlobalAtomicAddF32NoReturn
+            && atomic_pairs.iter().filter(|((issue, _), _)| *issue == id).any(|(_, (read, write))| {
+                !matches!((read, write), (Some((r, a)), Some((w, b))) if r < w && a == b)
+            })
+        {
+            unresolved.push(Unresolved::at(id,
+                "atomic RMW effects must read then write the same 4-byte location"));
         }
         if matches!(
             class,
@@ -775,6 +1021,11 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     }
     let waves = (graph.threads() as usize).div_ceil(WAVE);
     let mut clocks = vec![vec![0; waves * CLASSES]; waves];
+    let mut execution_clocks = vec![vec![0; waves]; waves];
+    let mut execution_signals = HashMap::new();
+    let mut named = named::State::new(waves);
+    let mut arrival_clocks: Option<Vec<Vec<u32>>> = None;
+    let mut arrival_signals = HashMap::new();
     let mut sequences = vec![0; waves * CLASSES];
     let mut pending = vec![Vec::<usize>::new(); waves];
     let mut operations = Vec::<Operation>::new();
@@ -790,6 +1041,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     let mut waits = 0;
     let mut next_generation = vec![0; waves];
     let mut groups = HashMap::new();
+    let mut translation_receivers = HashSet::new();
     let mut instruction_at = HashMap::new();
     let mut wmma_at = HashMap::new();
     let mut valu_ordinal = vec![0u64; waves];
@@ -802,6 +1054,13 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
             AmdEventKind::MemoryIssue { class, .. } => {
                 if let Some(group) = replay_group(class) {
                     groups.insert(instruction_at[&record.wave], group);
+                }
+                if replay_group(class) == Some(true) || class == AmdMemoryClass::FlatLdsLoad {
+                    // The generic FLAT encoding can return into a VGPR after
+                    // older VMEM translations, even when its concrete address
+                    // resolves to LDS. This does not retire older LDS leases
+                    // or establish any scalar/group-switch shortcut.
+                    translation_receivers.insert(instruction_at[&record.wave]);
                 }
             }
             AmdEventKind::WmmaIssue {
@@ -816,6 +1075,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     }
     for record in graph.amd_events() {
         let wave = record.wave as usize;
+        execution_clocks[wave][wave] += 1;
         if let Some((object, phase, _)) = blocked[wave] {
             if !matches!(record.kind, AmdEventKind::SplitBarrierRelease { barrier, generation } if (barrier, generation) == (object, phase))
             {
@@ -829,6 +1089,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
         }
         match &record.kind {
             AmdEventKind::Instruction { reads, writes, .. } => {
+                named.instruction(record);
                 let kind = graph
                     .event(record.event)
                     .pc
@@ -905,7 +1166,13 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                 }
                 if matches!(
                     kind,
-                    "branch" | "s_endpgm" | "xcnt drain" | "barrier signal" | "barrier wait"
+                    "branch"
+                        | "s_endpgm"
+                        | "xcnt drain"
+                        | "barrier signal"
+                        | "barrier wait"
+                        | "named barrier signal"
+                        | "named barrier wait"
                 ) {
                     wait(AmdCounter::X, 0, &pending[wave], &mut operations);
                 }
@@ -914,6 +1181,32 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                         let op = &mut operations[index];
                         if replay_group(op.class).is_some_and(|old| old != *group) {
                             op.remaining.retain(|&(c, _)| c != AmdCounter::X);
+                        }
+                    }
+                }
+                if translation_receivers.contains(&record.event) {
+                    // VMEM translations issue in order. LLVM applies the X
+                    // dependency when a later VMEM destination aliases an
+                    // older source; neither operation's data completes here.
+                    let through = pending[wave]
+                        .iter()
+                        .copied()
+                        .filter(|&index| {
+                            let op = &operations[index];
+                            replay_group(op.class) == Some(true)
+                                && has(op, AmdCounter::X)
+                                && writes
+                                    .iter()
+                                    .any(|r| op.held_sources.iter().any(|s| s.overlaps(*r)))
+                        })
+                        .max();
+                    if let Some(through) = through {
+                        for &index in pending[wave].iter().take_while(|&&i| i <= through) {
+                            if replay_group(operations[index].class) == Some(true) {
+                                operations[index]
+                                    .remaining
+                                    .retain(|&(c, _)| c != AmdCounter::X);
+                            }
                         }
                     }
                 }
@@ -943,7 +1236,9 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                                 kind: AmdRegisterHazardKind::DestinationReuse,
                             });
                         }
-                        let held = if replay_group(op.class).is_some() {
+                        let held = if replay_group(op.class).is_some()
+                            || flat_profile(op.class).is_some()
+                        {
                             has(op, AmdCounter::X)
                         } else {
                             true
@@ -976,26 +1271,55 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                         }
                     }
                 }
+                if *class == AmdMemoryClass::GlobalAtomicAddF32NoReturn {
+                    for &index in &pending[wave] {
+                        let old = &operations[index];
+                        if has(old, AmdCounter::X)
+                            && old.class != AmdMemoryClass::GlobalAtomicAddF32NoReturn
+                        {
+                            hazards.push(AmdRegisterHazard {
+                                issue: old.event,
+                                use_event: record.event,
+                                wave: record.wave,
+                                register: AmdRegister {
+                                    file: AmdRegisterFile::Scalar,
+                                    index: 126,
+                                    lanes: 0,
+                                },
+                                kind: AmdRegisterHazardKind::AtomicReplayBeforeReady,
+                            });
+                        }
+                    }
+                }
                 let slot = wave * CLASSES + class_index(*class);
                 sequences[slot] += 1;
                 let mut clock = clocks[wave].clone();
-                // Same-wave ordinary GLOBAL operations to the same address and
-                // non-async LDS operations are processed in program order. This
-                // is an effect-order edge only; never advance completion clocks.
-                for stream in [
-                    AmdMemoryClass::VectorLoad,
-                    AmdMemoryClass::VectorStore,
-                    AmdMemoryClass::Ds,
-                ] {
-                    if matches!(
-                        class,
-                        AmdMemoryClass::VectorLoad | AmdMemoryClass::VectorStore
-                    ) && matches!(
-                        stream,
-                        AmdMemoryClass::VectorLoad | AmdMemoryClass::VectorStore
-                    ) || *class == AmdMemoryClass::Ds && stream == AmdMemoryClass::Ds
-                    {
-                        let source = wave * CLASSES + class_index(stream);
+                let mut arrival_clock = arrival_clocks.as_ref().map(|clocks| clocks[wave].clone());
+                // Effect order is within the resolved segment. A GLOBAL prefix
+                // must never publish an incomplete LDS operation, or vice versa.
+                let streams: &[AmdMemoryClass] = match class {
+                    AmdMemoryClass::VectorLoad
+                    | AmdMemoryClass::VectorStore
+                    | AmdMemoryClass::FlatGlobalLoad
+                    | AmdMemoryClass::FlatGlobalStore => &[
+                        AmdMemoryClass::VectorLoad,
+                        AmdMemoryClass::VectorStore,
+                        AmdMemoryClass::FlatGlobalLoad,
+                        AmdMemoryClass::FlatGlobalStore,
+                    ],
+                    AmdMemoryClass::Ds
+                    | AmdMemoryClass::FlatLdsLoad
+                    | AmdMemoryClass::FlatLdsStore => &[
+                        AmdMemoryClass::Ds,
+                        AmdMemoryClass::FlatLdsLoad,
+                        AmdMemoryClass::FlatLdsStore,
+                    ],
+                    _ => &[],
+                };
+                for &stream in streams {
+                    let source = wave * CLASSES + class_index(stream);
+                    clock[source] = sequences[source] - u32::from(source == slot);
+                    if let Some(clock) = &mut arrival_clock {
                         clock[source] = sequences[source] - u32::from(source == slot);
                     }
                 }
@@ -1011,11 +1335,26 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                     destinations: destinations.clone(),
                     held_sources: held_sources.clone(),
                     clock,
+                    arrival_clock,
                 });
             }
             AmdEventKind::WaitCounters { thresholds } => {
                 waits += 1;
                 for &(counter, threshold) in thresholds {
+                    if counter == AmdCounter::X
+                        && threshold != 0
+                        && Some(threshold) != maximum(counter)
+                        && pending[wave].iter().any(|&index| {
+                            matches!(
+                                operations[index].class,
+                                AmdMemoryClass::FlatLdsLoad | AmdMemoryClass::FlatLdsStore
+                            ) && has(&operations[index], counter)
+                        })
+                    {
+                        unresolved.push(Unresolved::at(record.event,
+                            "nonzero X wait with pending LDS-aperture FLAT tokens requires an unpinned translation prefix"));
+                        continue;
+                    }
                     if counter == AmdCounter::Tensor && threshold != 0 {
                         unresolved.push(Unresolved::at(record.event, "nonzero TENSOR_CNT wait requires a pinned hardware counter-width contract"));
                     }
@@ -1040,6 +1379,13 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                     .entry((*barrier, *generation))
                     .or_default()
                     .insert(wave, clocks[wave].clone());
+                execution_signals.insert(
+                    (*barrier, *generation, wave),
+                    execution_clocks[wave].clone(),
+                );
+                if let Some(clocks) = &arrival_clocks {
+                    arrival_signals.insert((*barrier, *generation, wave), clocks[wave].clone());
+                }
                 signals[wave] = Some((*barrier, *generation));
             }
             AmdEventKind::SplitBarrierWait {
@@ -1079,18 +1425,68 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                 {
                     barrier_violations.push(AmdBarrierViolation { generation: *generation, event: record.event, wave: record.wave, reason: "split-barrier release lacks matching wait, source point or live-wave arrivals".into() });
                 } else {
-                    for clock in phase.unwrap().values() {
+                    let phase = phase.unwrap();
+                    let adds_drop_memory = (0..waves).any(|w| {
+                        exited(w)
+                            && clocks[w].iter().enumerate().any(|(slot, value)| {
+                                *value > phase.get(&w).map_or(0, |clock| clock[slot])
+                            })
+                    });
+                    if arrival_clocks.is_none() && adds_drop_memory {
+                        arrival_clocks = Some(clocks.clone());
+                    }
+                    for (&participant, clock) in phase {
                         join(&mut clocks[wave], clock);
+                        join(
+                            &mut execution_clocks[wave],
+                            &execution_signals[&(*barrier, *generation, participant)],
+                        );
+                        if let Some(clocks) = &mut arrival_clocks {
+                            join(
+                                &mut clocks[wave],
+                                arrival_signals
+                                    .get(&(*barrier, *generation, participant))
+                                    .unwrap_or(clock),
+                            );
+                        }
                     }
                     for w in 0..waves {
                         if exited(w) {
                             let frontier = clocks[w].clone();
                             join(&mut clocks[wave], &frontier);
+                            let frontier = execution_clocks[w].clone();
+                            join(&mut execution_clocks[wave], &frontier);
                         }
                     }
                     blocked[wave] = None;
                     signals[wave] = None;
                     next_generation[wave] += 1;
+                }
+            }
+            AmdEventKind::NamedBarrierInit { .. }
+            | AmdEventKind::NamedBarrierJoin { .. }
+            | AmdEventKind::NamedBarrierSignal { .. }
+            | AmdEventKind::NamedBarrierWait { .. }
+            | AmdEventKind::NamedBarrierRelease { .. }
+            | AmdEventKind::NamedBarrierLeave { .. } => {
+                let arrivals = arrival_clocks.as_ref().map_or(&clocks[wave], |a| &a[wave]);
+                if let Some(release) = named.event(
+                    record,
+                    graph.event(record.event).pc,
+                    &mut execution_clocks,
+                    &clocks[wave],
+                    arrivals,
+                ) {
+                    if release.drops
+                        && release.memory != release.arrivals
+                        && arrival_clocks.is_none()
+                    {
+                        arrival_clocks = Some(clocks.clone());
+                    }
+                    clocks[wave] = release.memory;
+                    if let Some(clocks) = &mut arrival_clocks {
+                        clocks[wave] = release.arrivals;
+                    }
                 }
             }
             AmdEventKind::WmmaIssue {
@@ -1121,6 +1517,9 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                 // completion is promoted into a false scalar FIFO prefix.
                 let slot = wave * CLASSES + class_index(op.class);
                 clocks[wave][slot] = clocks[wave][slot].max(op.sequence);
+                if let Some(clocks) = &mut arrival_clocks {
+                    clocks[wave][slot] = clocks[wave][slot].max(op.sequence);
+                }
                 false
             } else {
                 true
@@ -1147,21 +1546,43 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
         hazards,
         unresolved,
     );
+    named.finish(graph);
+    barrier_violations.extend(named.violations);
     let barrier = PropertyResult::from_findings(
         AmdBarrierEvidence {
-            generations: barriers.len(),
-            arrivals,
-            releases: released.len(),
+            generations: barriers.len() + named.phases,
+            arrivals: arrivals + named.signals,
+            releases: released.len() + named.releases,
         },
         barrier_violations,
-        Vec::new(),
+        named.unresolved,
     );
-    let memory_conflict =
-        if barrier.verdict() == Verdict::Pass && wait_readiness.verdict() != Verdict::Unknown {
-            memory_conflicts(graph, &operations, &issue_index)
+    let memory_conflict = if barrier.verdict() == Verdict::Pass
+        && wait_readiness.verdict() != Verdict::Unknown
+    {
+        let candidate = memory_conflicts(graph, &operations, &issue_index);
+        if arrival_clocks.is_some() && candidate.verdict() == Verdict::Pass {
+            match memory_conflicts_with_clock(graph, &operations, &issue_index, true) {
+                PropertyResult::Pass(_) => candidate,
+                PropertyResult::Fail(conflicts) => {
+                    let reason = "gfx1250 memory ordering depends on an implicit barrier drop or named-barrier drop; drop publication is not pinned";
+                    PropertyResult::Unknown(
+                        conflicts
+                            .iter()
+                            .map(|conflict| {
+                                Unresolved::between(conflict.earlier, conflict.later, reason)
+                            })
+                            .collect(),
+                    )
+                }
+                PropertyResult::Unknown(reasons) => PropertyResult::Unknown(reasons),
+            }
         } else {
-            unknown("gfx1250 barrier or completion contract is inconclusive")
-        };
+            candidate
+        }
+    } else {
+        unknown("gfx1250 barrier or completion contract is inconclusive")
+    };
     AmdReport {
         trace,
         wait_readiness,

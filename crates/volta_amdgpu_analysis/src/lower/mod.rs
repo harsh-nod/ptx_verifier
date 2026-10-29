@@ -3,8 +3,8 @@
 use std::{collections::BTreeMap, error::Error, fmt};
 
 use crate::ir::{
-    Global, GlobalAddressSequence, Kernel, LoweredKernel, Module, Opcode, Operand, Register,
-    RegisterClass, RelocationKind, SourceSpan,
+    Global, GlobalAddressForm, GlobalAddressSequence, Kernel, LoweredKernel, Module, Opcode,
+    Operand, Register, RegisterClass, RelocationKind, SourceSpan,
 };
 
 #[cfg(test)]
@@ -29,21 +29,29 @@ impl fmt::Display for LowerError {
 impl Error for LowerError {}
 
 pub fn lower_kernel(kernel: &Kernel) -> Result<LoweredKernel, LowerError> {
-    lower_with_globals(kernel, &[])
+    lower_with_globals(kernel, &[], false)
 }
 
 pub fn lower_kernel_in_module(
     module: &Module,
     kernel: &Kernel,
 ) -> Result<LoweredKernel, LowerError> {
-    crate::target::validate(module).map_err(|error| LowerError {
+    let architecture = crate::target::validate(module).map_err(|error| LowerError {
         message: error.message,
         span: error.span,
     })?;
-    lower_with_globals(kernel, &module.globals)
+    lower_with_globals(
+        kernel,
+        &module.globals,
+        architecture == crate::target::Architecture::Gfx1250,
+    )
 }
 
-fn lower_with_globals(kernel: &Kernel, globals: &[Global]) -> Result<LoweredKernel, LowerError> {
+fn lower_with_globals(
+    kernel: &Kernel,
+    globals: &[Global],
+    allow_rel64: bool,
+) -> Result<LoweredKernel, LowerError> {
     let mut instructions = kernel.instructions.clone();
     let instruction_count = instructions.len();
     for instruction in &mut instructions {
@@ -100,68 +108,90 @@ fn lower_with_globals(kernel: &Kernel, globals: &[Global]) -> Result<LoweredKern
                 "relocation is not part of a canonical getpc/add/addc sequence",
             ));
         };
-        // A high relocation is visited after its already-validated low stage.
-        if pc >= 2 && global_address_sequences.contains_key(&(pc - 2)) {
+        // The high word belongs to an already validated three-instruction profile.
+        if pc >= 2
+            && global_address_sequences.get(&(pc - 2)).is_some_and(
+                |sequence: &GlobalAddressSequence| sequence.form == GlobalAddressForm::SplitRel32,
+            )
+        {
             continue;
         }
-        let Some(anchor) = instructions.get(anchor_pc) else {
-            unreachable!()
-        };
-        let Some(high) = instructions.get(pc + 1) else {
-            return Err(fail("incomplete split PC-relative relocation sequence"));
-        };
+        let anchor = &instructions[anchor_pc];
         let [Operand::Register(pair)] = anchor.operands.as_slice() else {
             return Err(fail("PC-relative relocation requires an SGPR pair anchor"));
         };
-        if anchor.mnemonic != "s_getpc_b64"
-            || pair.class != RegisterClass::Scalar
+        if pair.class != RegisterClass::Scalar
             || pair.count != 2
             || pair.special.is_some()
             || !anchor.modifiers.is_empty()
             || !instruction.modifiers.is_empty()
-            || !high.modifiers.is_empty()
         {
             return Err(fail("unsupported PC-relative anchor or modifiers"));
         }
-        let low_register = Register { count: 1, ..*pair };
-        let high_register = Register {
-            index: pair.index + 1,
-            count: 1,
-            ..*pair
-        };
         let [
-            Operand::Register(low_dst),
-            Operand::Register(low_src),
-            Operand::Relocation(low),
+            Operand::Register(destination),
+            Operand::Register(source),
+            Operand::Relocation(relocation),
         ] = instruction.operands.as_slice()
         else {
-            return Err(fail("invalid low PC-relative relocation stage"));
+            return Err(fail("invalid PC-relative relocation stage"));
         };
-        let [
-            Operand::Register(high_dst),
-            Operand::Register(high_src),
-            Operand::Relocation(high_reloc),
-        ] = high.operands.as_slice()
-        else {
-            return Err(fail("invalid high PC-relative relocation stage"));
+        let (form, symbol, final_pc) = if relocation.kind == RelocationKind::Rel64 {
+            if !allow_rel64
+                || anchor.mnemonic != "s_get_pc_i64"
+                || instruction.mnemonic != "s_add_nc_u64"
+                || destination != pair
+                || source != pair
+                || relocation.addend != 4
+            {
+                return Err(fail(
+                    "only the gfx1250 get_pc/add_nc matching rel64+4 profile is modeled",
+                ));
+            }
+            (GlobalAddressForm::Rel64, relocation.symbol.as_str(), pc)
+        } else {
+            let Some(high) = instructions.get(pc + 1) else {
+                return Err(fail("incomplete split PC-relative relocation sequence"));
+            };
+            let low_register = Register { count: 1, ..*pair };
+            let high_register = Register {
+                index: pair.index + 1,
+                count: 1,
+                ..*pair
+            };
+            let [
+                Operand::Register(high_dst),
+                Operand::Register(high_src),
+                Operand::Relocation(high_reloc),
+            ] = high.operands.as_slice()
+            else {
+                return Err(fail("invalid high PC-relative relocation stage"));
+            };
+            if anchor.mnemonic != "s_getpc_b64"
+                || instruction.mnemonic != "s_add_u32"
+                || high.mnemonic != "s_addc_u32"
+                || !high.modifiers.is_empty()
+                || *destination != low_register
+                || *source != low_register
+                || *high_dst != high_register
+                || *high_src != high_register
+                || relocation.kind != RelocationKind::Rel32Lo
+                || high_reloc.kind != RelocationKind::Rel32Hi
+                || relocation.addend != 4
+                || high_reloc.addend != 12
+                || relocation.symbol != high_reloc.symbol
+            {
+                return Err(fail(
+                    "only exact matching rel32 lo+4/hi+12 address construction is modeled",
+                ));
+            }
+            (
+                GlobalAddressForm::SplitRel32,
+                relocation.symbol.as_str(),
+                pc + 1,
+            )
         };
-        if instruction.mnemonic != "s_add_u32"
-            || high.mnemonic != "s_addc_u32"
-            || *low_dst != low_register
-            || *low_src != low_register
-            || *high_dst != high_register
-            || *high_src != high_register
-            || low.kind != RelocationKind::Rel32Lo
-            || high_reloc.kind != RelocationKind::Rel32Hi
-            || low.addend != 4
-            || high_reloc.addend != 12
-            || low.symbol != high_reloc.symbol
-        {
-            return Err(fail(
-                "only exact matching rel32 lo+4/hi+12 address construction is modeled",
-            ));
-        }
-        let Some(global) = globals.iter().find(|global| global.symbol == low.symbol) else {
+        let Some(global) = globals.iter().find(|global| global.symbol == symbol) else {
             return Err(fail(
                 "PC-relative relocation names an undefined or unbounded module object",
             ));
@@ -170,11 +200,7 @@ fn lower_with_globals(kernel: &Kernel, globals: &[Global]) -> Result<LoweredKern
             || global.initial_bytes.len() as u64 != global.size
             || global.alignment == 0
             || !global.alignment.is_power_of_two()
-            || globals
-                .iter()
-                .filter(|item| item.symbol == low.symbol)
-                .count()
-                != 1
+            || globals.iter().filter(|item| item.symbol == symbol).count() != 1
         {
             return Err(fail(
                 "PC-relative object has invalid size, alignment or ambiguous identity",
@@ -182,7 +208,7 @@ fn lower_with_globals(kernel: &Kernel, globals: &[Global]) -> Result<LoweredKern
         }
         if instructions.iter().any(|item| {
             item.operands.iter().any(|operand|
-            matches!(operand, Operand::BranchTarget(target) if *target == pc || *target == pc + 1))
+            matches!(operand, Operand::BranchTarget(target) if (pc..=final_pc).contains(target)))
         }) {
             return Err(fail(
                 "branch target enters the middle of a PC-relative address sequence",
@@ -193,7 +219,8 @@ fn lower_with_globals(kernel: &Kernel, globals: &[Global]) -> Result<LoweredKern
             GlobalAddressSequence {
                 anchor_pc,
                 register_pair: *pair,
-                symbol: low.symbol.clone(),
+                symbol: symbol.to_string(),
+                form,
             },
         );
     }

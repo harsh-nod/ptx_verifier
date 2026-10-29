@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Compiler/MC/link provenance for genuinely byte-addressed HSA GLOBAL DWORD copies. No symbolic or hardware acceptance is implied by this compiler receipt. No SMEM/DS/FLAT alignment claim.",
+  "hardware_execution": false,
+  "source_sha256": "6c28b63ee30a326d92004723176734f04ddcbed7c9199862efd51805fa35c567",
+  "assembly_sha256": "3cf668693050aa645fdae2b51970d91113944a36fe9c28e8b8825b110a07baeb",
+  "object_sha256": "678c1069ecf365a1dc894a5aa6d8cd7b38a5188261dfdfe4db83c62082722b93",
+  "code_object_sha256": "d255cc57ff4640c170e92d75edbeba0a4cf03bec54bc684beafad62810f6e9b3",
+  "commands": [
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "tests/gfx1250/fixtures/native-unaligned-global.hip",
+        "-o",
+        "tests/gfx1250/fixtures/native-unaligned-global.s"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "tests/gfx1250/fixtures/native-unaligned-global.s",
+        "-o",
+        "/tmp/gfx1250-root-unaligned-global.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/gfx1250-root-unaligned-global.o",
+        "-o",
+        "/tmp/gfx1250-root-unaligned-global.hsaco"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "primary_source_audit": {
+    "review": "gfx1250 HSA ordinary GLOBAL byte-misalignment profile",
+    "mode": "read-only; no production changes or hardware launches",
+    "public_revision": "5fd50ec8e07abb94e203933017e8d6e40fb51824",
+    "sources": {
+      "GCNProcessors.td": {
+        "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNProcessors.td",
+        "sha256": "0a8e3621ef72f5df64d7a7bdc77262564c7e4312ca087bd9b804fff0d81afe9b"
+      },
+      "GCNFeatures.td": {
+        "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNFeatures.td",
+        "sha256": "ac55bc844e0b4b5f9321b54b7a717be9f64a56c73e8554463e7a71733cf901b4"
+      },
+      "GCNSubtarget.cpp": {
+        "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNSubtarget.cpp",
+        "sha256": "fdd5271fdf8db57642f45b907d871e61279d01b6fe23adabfa43810176188432"
+      },
+      "GCNSubtarget.h": {
+        "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNSubtarget.h",
+        "sha256": "7399ae53fa98e9f1c0db09c721eeff3903e6b26d10ed7f1da889d45f1365e6a5"
+      },
+      "SIISelLowering.cpp": {
+        "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIISelLowering.cpp",
+        "sha256": "fa590967fa3a5af5954631c9e1a8118d131206cc6d90600a57b6d09b276773e2"
+      }
+    },
+    "feature_chain": [
+      {
+        "file": "GCNProcessors.td",
+        "lines": [
+          292,
+          294
+        ],
+        "fact": "gfx1250 selects FeatureISAVersion12_50"
+      },
+      {
+        "file": "GCNFeatures.td",
+        "lines": [
+          2441,
+          2443
+        ],
+        "fact": "Version12_50 includes Version12_50_Common"
+      },
+      {
+        "file": "GCNFeatures.td",
+        "lines": [
+          2316,
+          2318
+        ],
+        "fact": "Common includes FeatureGFX12"
+      },
+      {
+        "file": "GCNFeatures.td",
+        "lines": [
+          1753,
+          1754
+        ],
+        "fact": "GFX12 has UnalignedBufferAccess, UnalignedScratchAccess, and UnalignedDSAccess"
+      },
+      {
+        "file": "GCNSubtarget.cpp",
+        "lines": [
+          99,
+          104
+        ],
+        "fact": "AMDHSA OS enables unaligned-access-mode by default"
+      },
+      {
+        "file": "GCNSubtarget.h",
+        "lines": [
+          304,
+          310
+        ],
+        "fact": "Buffer and DS enabled predicates require capability AND unaligned access mode"
+      },
+      {
+        "file": "SIISelLowering.cpp",
+        "lines": [
+          2167,
+          2174
+        ],
+        "fact": "Extended GLOBAL accepts access below DWORD alignment when the unaligned-buffer predicate is enabled"
+      }
+    ],
+    "scope_distinctions": {
+      "GLOBAL": "The HSA gfx1250 capability chain supports underaligned ordinary GLOBAL loads/stores; the genuine Half[3] default-O2 compiler output uses global_load_b32 offset:2 to read bytes[2,6).",
+      "SMEM": "This GLOBAL lowering predicate does not define scalar instruction low-bit component masking. Existing explicit unsupported SMEM boundary remains separate.",
+      "DS": "Separate capability and opcode-specific width/offset/hardware-bug checks exist in SIISelLowering lines2042-2148; this review proposes no DS model expansion.",
+      "FLAT": "Separate path in SIISelLowering lines2150-2164 conservatively treats unknown aperture as potentially scratch. This review proposes no FLAT model expansion.",
+      "buffer": "Buffer-fat/resource robust-OOB path lines2176-2188 has its own conditions and cannot be inferred from ordinary GLOBAL."
+    },
+    "required_before_change": [
+      "Coordinator safe physical in-bounds positive probe on gfx1250",
+      "Narrow target+ordinaryGLOBAL context, not a global validate_address relaxation",
+      "Whole named-allocation footprint, initialized-byte definedness and read-only bounds unchanged",
+      "Retain legacy gfx942/gfx950 current modeled envelope unless separately reviewed"
+    ],
+    "genuine_fixture": {
+      "path": "/home/harsh/ptx-verifier-gfx1250-portable-boundaries/tests/gfx1250/portable-boundaries/native-equivalence.s",
+      "symbol": "relu_ref",
+      "line": 1033,
+      "instruction": "global_load_b32 v1, v0, s[0:1] offset:2",
+      "requested_bytes": "[input.base+2,input.base+6)",
+      "input_object_bytes": 6
+    }
+  },
+  "kernels": [
+    {
+      "kernel": "global_unaligned_1",
+      "offset_bytes": 1,
+      "load_bytes": 4,
+      "store_bytes": 4,
+      "input_bytes": 16,
+      "output_bytes": 16,
+      "transfer_interval": [
+        1,
+        5
+      ]
+    },
+    {
+      "kernel": "global_unaligned_2",
+      "offset_bytes": 2,
+      "load_bytes": 4,
+      "store_bytes": 4,
+      "input_bytes": 16,
+      "output_bytes": 16,
+      "transfer_interval": [
+        2,
+        6
+      ]
+    },
+    {
+      "kernel": "global_unaligned_3",
+      "offset_bytes": 3,
+      "load_bytes": 4,
+      "store_bytes": 4,
+      "input_bytes": 16,
+      "output_bytes": 16,
+      "transfer_interval": [
+        3,
+        7
+      ]
+    },
+    {
+      "kernel": "global_unaligned_5",
+      "offset_bytes": 5,
+      "load_bytes": 4,
+      "store_bytes": 4,
+      "input_bytes": 16,
+      "output_bytes": 16,
+      "transfer_interval": [
+        5,
+        9
+      ]
+    },
+    {
+      "kernel": "global_unaligned_7",
+      "offset_bytes": 7,
+      "load_bytes": 4,
+      "store_bytes": 4,
+      "input_bytes": 16,
+      "output_bytes": 16,
+      "transfer_interval": [
+        7,
+        11
+      ]
+    }
+  ]
+}

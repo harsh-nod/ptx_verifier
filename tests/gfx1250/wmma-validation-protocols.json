@@ -47,8 +47,7 @@
         2
       ],
       "expected": "basis_b0: D[row,col]=(row==selected); basis_b1:D[row,col]=(col==selected), allrows/allcols; A/B sourceK basis and stripe match selectedK",
-      "native_test": "real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "native_test": "real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter"
     },
     {
       "profile": "finite_values",
@@ -94,8 +93,7 @@
           "vector_items": 16,
           "all_output_values": 64
         }
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      ]
     }
   ]
 }

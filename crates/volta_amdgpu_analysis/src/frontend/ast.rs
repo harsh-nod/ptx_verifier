@@ -55,7 +55,7 @@ pub enum Operand {
     Float(f64),
     /// A label, `off`, or an explicitly declared assembly constant.
     Symbol(String),
-    /// Direct LLVM AMDGPU split PC-relative relocation. Only a validated
+    /// Direct LLVM AMDGPU PC-relative relocation. Only a validated
     /// contiguous address-construction sequence may consume this operand.
     Relocation(Relocation),
     Modified {
@@ -82,6 +82,7 @@ pub enum Operand {
 pub enum RelocationKind {
     Rel32Lo,
     Rel32Hi,
+    Rel64,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

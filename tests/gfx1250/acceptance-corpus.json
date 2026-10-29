@@ -3,7 +3,7 @@
   "target": "gfx1250",
   "baseline_commit": "9f52e2a7a35585080fd943014b9a3d898da91022",
   "rebased_upstream_baseline": "6538ebb5bc2d6598ffc0cda77b6cd3e8fb4b69cd",
-  "scope": "Coordinator-validated required software and hardware inventory: fourteen mechanism configurations and twenty bounded family counterparts. Original PTX shapes/dtypes and full ISA coverage are not claimed; advanced unsupported modes remain explicit.",
+  "scope": "Required software inventory: fourteen mechanism configurations and twenty bounded family counterparts. Original PTX shapes/dtypes and full ISA coverage are not claimed; device-run records are not retained.",
   "families": [
     {
       "family": "BitDeltaNeurIPS2024BatchedMatmul",
@@ -15,9 +15,7 @@
       "baseline_artifacts": [
         "ai_compiler_kernels/BitDeltaNeurIPS2024BatchedMatmul/NVIDIA_B200_Unknown_2.5096x.ptx"
       ],
-      "scope": "Complete bounded 1-bit-weight matmul with all 32 unpacked bits; concrete IndexInput packed[i]=i, arbitrary symbolic decoded F32 A. This does not validate arbitrary symbolic packed words or original large PTX shapes.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Complete bounded 1-bit-weight matmul with all 32 unpacked bits; concrete IndexInput packed[i]=i, arbitrary symbolic decoded F32 A. This does not validate arbitrary symbolic packed words or original large PTX shapes."
     },
     {
       "family": "BitDeltaNeurIPS2024Matmul",
@@ -29,9 +27,7 @@
       "baseline_artifacts": [
         "ai_compiler_kernels/BitDeltaNeurIPS2024Matmul/NVIDIA_B200_Unknown_3.3438x.ptx"
       ],
-      "scope": "Complete bounded 1-bit-weight matmul with all 32 unpacked bits; concrete IndexInput packed[i]=i, arbitrary symbolic decoded F32 A. This does not validate arbitrary symbolic packed words or original large PTX shapes.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Complete bounded 1-bit-weight matmul with all 32 unpacked bits; concrete IndexInput packed[i]=i, arbitrary symbolic decoded F32 A. This does not validate arbitrary symbolic packed words or original large PTX shapes."
     },
     {
       "family": "Convolution2DKernel",
@@ -44,9 +40,7 @@
         "ai_compiler_kernels/Convolution2DKernel/NVIDIA_B200_Float16_1.3590x.ptx",
         "ai_compiler_kernels/Convolution2DKernel/NVIDIA_B200_Float8_2.0810x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "FlashAttentionNeurIPS2022Forward",
@@ -58,9 +52,7 @@
       "baseline_artifacts": [
         "ai_compiler_kernels/FlashAttentionNeurIPS2022Forward/NVIDIA_B200_Unknown_1.2610x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "FlashSinkhornFusedSchurMatvec",
@@ -72,9 +64,7 @@
       "baseline_artifacts": [
         "ai_compiler_kernels/FlashSinkhornFusedSchurMatvec/NVIDIA_B200_Unknown_1.5491x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "ForgettingAttentionICLR2025Forward",
@@ -86,9 +76,7 @@
       "baseline_artifacts": [
         "ai_compiler_kernels/ForgettingAttentionICLR2025Forward/NVIDIA_B200_Unknown_1.0139x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "FusedGEMMAddSiLUKernel",
@@ -101,9 +89,7 @@
         "ai_compiler_kernels/FusedGEMMAddSiLUKernel/NVIDIA_B200_Float16_1.1140x.ptx",
         "ai_compiler_kernels/FusedGEMMAddSiLUKernel/NVIDIA_B200_Float8_1.1642x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "Mamba2ChunkScanForward",
@@ -115,9 +101,7 @@
       "baseline_artifacts": [
         "ai_compiler_kernels/Mamba2ChunkScanForward/NVIDIA_B200_Unknown_1.0740x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "Mamba2ChunkStateForward",
@@ -129,9 +113,7 @@
       "baseline_artifacts": [
         "ai_compiler_kernels/Mamba2ChunkStateForward/NVIDIA_B200_Unknown_1.0984x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "MatrixMultiplication",
@@ -144,9 +126,7 @@
         "ai_compiler_kernels/MatrixMultiplication/NVIDIA_B200_Float16_1.0017x.ptx",
         "ai_compiler_kernels/MatrixMultiplication/NVIDIA_B200_Float8_0.9979x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "MatrixVectorMultiplicationKernel",
@@ -159,9 +139,7 @@
         "ai_compiler_kernels/MatrixVectorMultiplicationKernel/NVIDIA_B200_Float16_1.0103x.ptx",
         "ai_compiler_kernels/MatrixVectorMultiplicationKernel/NVIDIA_B200_Float8_1.0002x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "RMSNormKernel",
@@ -174,9 +152,7 @@
         "ai_compiler_kernels/RMSNormKernel/NVIDIA_B200_Float16_1.0000x.ptx",
         "ai_compiler_kernels/RMSNormKernel/NVIDIA_B200_Float8_1.0206x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "ReLUKernel",
@@ -189,9 +165,7 @@
         "ai_compiler_kernels/ReLUKernel/NVIDIA_B200_Float16_1.0000x.ptx",
         "ai_compiler_kernels/ReLUKernel/NVIDIA_B200_Float8_1.0000x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "ReductionSumKernel",
@@ -204,9 +178,7 @@
         "ai_compiler_kernels/ReductionSumKernel/NVIDIA_B200_Float16_1.0828x.ptx",
         "ai_compiler_kernels/ReductionSumKernel/NVIDIA_B200_Float8_1.0017x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "RoPEKernel",
@@ -219,9 +191,7 @@
         "ai_compiler_kernels/RoPEKernel/NVIDIA_B200_Float16_1.0000x.ptx",
         "ai_compiler_kernels/RoPEKernel/NVIDIA_B200_Float8_1.0000x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "SageAttentionICLR2025",
@@ -233,9 +203,7 @@
       "baseline_artifacts": [
         "ai_compiler_kernels/SageAttentionICLR2025/NVIDIA_B200_Unknown_1.4104x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400. Q/K values are decoded F32 values; int8 packing and quantization are outside this case.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device. Q/K values are decoded F32 values; int8 packing and quantization are outside this case."
     },
     {
       "family": "SiLUKernel",
@@ -248,9 +216,7 @@
         "ai_compiler_kernels/SiLUKernel/NVIDIA_B200_Float16_1.0000x.ptx",
         "ai_compiler_kernels/SiLUKernel/NVIDIA_B200_Float8_1.0000x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "SigmoidKernel",
@@ -263,9 +229,7 @@
         "ai_compiler_kernels/SigmoidKernel/NVIDIA_B200_Float16_1.0001x.ptx",
         "ai_compiler_kernels/SigmoidKernel/NVIDIA_B200_Float8_1.0000x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "SoftmaxKernel",
@@ -278,9 +242,7 @@
         "ai_compiler_kernels/SoftmaxKernel/NVIDIA_B200_Float16_1.2702x.ptx",
         "ai_compiler_kernels/SoftmaxKernel/NVIDIA_B200_Float8_1.2811x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "SwiGLUKernel",
@@ -293,9 +255,7 @@
         "ai_compiler_kernels/SwiGLUKernel/NVIDIA_B200_Float16_1.0001x.ptx",
         "ai_compiler_kernels/SwiGLUKernel/NVIDIA_B200_Float8_1.0000x.ptx"
       ],
-      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on mi400.",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-portable-coordinator.json"
+      "scope": "Bounded complete mathematical computation on decoded F32 inputs; not original-shape or original-dtype PTX parity. Hardware execution covers the pinned bounded case on a matching gfx1250 device."
     },
     {
       "family": "copy_add_wave32_tails",
@@ -305,9 +265,7 @@
         "copy",
         "add"
       ],
-      "scope": "Complete configured native mechanism corpus and independent oracles; exact-assembly hardware replay passed",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      "scope": "Complete configured native mechanism corpus and independent oracles; hardware run records are not retained"
     },
     {
       "family": "packed_multidimensional_ids",
@@ -316,9 +274,7 @@
       "native_cases": [
         "ids_3d"
       ],
-      "scope": "Complete configured native mechanism corpus and independent oracles; exact-assembly hardware replay passed",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      "scope": "Complete configured native mechanism corpus and independent oracles; hardware run records are not retained"
     },
     {
       "family": "crosswave_lds_staging",
@@ -329,9 +285,7 @@
         "reduce",
         "gemm_pipeline_f16"
       ],
-      "scope": "Complete configured native mechanism corpus and independent oracles; exact-assembly hardware replay passed",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      "scope": "Complete configured native mechanism corpus and independent oracles; hardware run records are not retained"
     },
     {
       "family": "wmma_f32_f16_bf16_basis_dense",
@@ -342,9 +296,7 @@
         "wmma_f16",
         "wmma_bf16"
       ],
-      "scope": "Complete configured native mechanism corpus and independent oracles; exact-assembly hardware replay passed",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      "scope": "Complete configured native mechanism corpus and independent oracles; hardware run records are not retained"
     },
     {
       "family": "tensor_global_lds_global_staging",
@@ -353,9 +305,7 @@
       "native_cases": [
         "tensor_roundtrip"
       ],
-      "scope": "Complete configured native mechanism corpus and independent oracles; exact-assembly hardware replay passed",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      "scope": "Complete configured native mechanism corpus and independent oracles; hardware run records are not retained"
     },
     {
       "family": "packed_16bit_8x8_transpose",
@@ -364,9 +314,7 @@
       "native_cases": [
         "transpose_8x8_b16"
       ],
-      "scope": "Complete configured native mechanism corpus and independent oracles; exact-assembly hardware replay passed",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      "scope": "Complete configured native mechanism corpus and independent oracles; hardware run records are not retained"
     },
     {
       "family": "concrete_high64_multiply_mad_limbs",
@@ -376,119 +324,94 @@
         "high64_mul_mad",
         "high64_signed_mul_mad"
       ],
-      "scope": "Complete configured native mechanism corpus and independent oracles; exact-assembly hardware replay passed",
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      "scope": "Complete configured native mechanism corpus and independent oracles; hardware run records are not retained"
     }
   ],
   "workflows": [
     {
       "name": "parse",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "analyze_graph",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "verify_full_spec",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "compare_pair",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "CLI_launch_JSON",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "Python_config",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "Python_by_value_bytes",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "expressions_export_import",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "VC_dump_replay",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "numeric_confirmation",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "profiling",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "logging",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "mutation_adapter",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "source_viewer",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "mixed_target_Chromium",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     },
     {
       "name": "scale_resource_measurements",
       "required": true,
-      "status": "software_validated",
-      "coordinator_evidence": "evidence/coordinator-software.json"
+      "status": "software_validated"
     }
   ],
   "hardware": {
-    "status": "coordinator_validated_actual_gfx1250_exact_assembly",
-    "source_commit": "97b5df0ab258a3818f41bfc1d2620649185e1384",
-    "execution_receipts": [
-      "evidence/hardware-core-coordinator.json",
-      "evidence/hardware-portable-coordinator.json"
-    ],
-    "launches": 3955,
-    "output_checks": 654548,
-    "unsafe_mutants_executed": false
+    "status": "not_retained",
+    "scope": "Device-run records are local artifacts; reproduce hardware checks separately."
   },
   "upstream_new_portable_obligations": [
     "movmatrix8x8packed16transpose using native LDS/crosslane equivalent",
@@ -514,9 +437,7 @@
       "native_cases": [
         "copy",
         "add"
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      ]
     },
     {
       "name": "exchange",
@@ -530,9 +451,7 @@
       "status": "software_and_hardware_validated_for_documented_scope",
       "native_cases": [
         "exchange"
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      ]
     },
     {
       "name": "reduce",
@@ -546,9 +465,7 @@
       "status": "software_and_hardware_validated_for_documented_scope",
       "native_cases": [
         "reduce"
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      ]
     },
     {
       "name": "ids_3d",
@@ -562,9 +479,7 @@
       "status": "software_and_hardware_validated_for_documented_scope",
       "native_cases": [
         "ids_3d"
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      ]
     },
     {
       "name": "wmma_f32",
@@ -583,9 +498,7 @@
       "status": "software_and_hardware_validated_for_documented_scope",
       "native_cases": [
         "wmma_f32"
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      ]
     },
     {
       "name": "wmma_f16",
@@ -604,9 +517,7 @@
       "status": "software_and_hardware_validated_for_documented_scope",
       "native_cases": [
         "wmma_f16"
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      ]
     },
     {
       "name": "wmma_bf16",
@@ -625,9 +536,7 @@
       "status": "software_and_hardware_validated_for_documented_scope",
       "native_cases": [
         "wmma_bf16"
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      ]
     },
     {
       "name": "gemm_pipeline_f16",
@@ -647,9 +556,7 @@
       "status": "software_and_hardware_validated_for_documented_scope",
       "native_cases": [
         "gemm_pipeline_f16"
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      ]
     },
     {
       "name": "tdm_roundtrip",
@@ -670,9 +577,7 @@
       "status": "software_and_hardware_validated_for_documented_scope",
       "native_cases": [
         "tensor_roundtrip"
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      ]
     },
     {
       "name": "attention_small",
@@ -691,9 +596,7 @@
       "status": "software_and_hardware_validated_for_documented_scope",
       "native_cases": [
         "attention_small"
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      ]
     },
     {
       "name": "transpose_8x8_b16",
@@ -707,9 +610,7 @@
       "status": "software_and_hardware_validated_for_documented_scope",
       "native_cases": [
         "transpose_8x8_b16"
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      ]
     },
     {
       "name": "high64_mul_mad",
@@ -724,9 +625,7 @@
       "native_cases": [
         "high64_mul_mad",
         "high64_signed_mul_mad"
-      ],
-      "coordinator_evidence": "evidence/coordinator-software.json",
-      "hardware_evidence": "evidence/hardware-core-coordinator.json"
+      ]
     }
   ],
   "software_reviewed_commit": "08d44dd6514813d20024158b1eb3cae8a5fe2f98",
@@ -739,9 +638,5 @@
     "legacy CDNA cache visibility certificates and unproven cross-wave GLOBAL publication protocols",
     "pinned HipKittens CDNA4 application retargeting"
   ],
-  "integrated_upstream_master": "b3a37911b8bd87352996403e8471a1fe18c4e975",
-  "hardware_evidence": [
-    "evidence/hardware-core-coordinator.json",
-    "evidence/hardware-portable-coordinator.json"
-  ]
+  "integrated_upstream_master": "b3a37911b8bd87352996403e8471a1fe18c4e975"
 }

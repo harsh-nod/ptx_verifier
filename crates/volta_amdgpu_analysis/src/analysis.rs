@@ -102,6 +102,10 @@ pub fn analyze(
         == Some(crate::target::Architecture::Gfx1250)
     {
         assumptions.push(Assumption::UnclusteredWorkgroup);
+        let named = kernel.descriptor.value("named_barrier_count", 0);
+        if named != 0 {
+            assumptions.push(Assumption::AllocatedNamedBarriers((named * 4) as u8));
+        }
     } else if !replay_enabled {
         assumptions.push(Assumption::XnackReplayDisabled);
     }
@@ -121,20 +125,57 @@ pub fn analyze(
             .instructions
             .iter()
             .map(|instruction| InstructionInfo {
-                kind: if instruction.mnemonic.starts_with("tensor_") {
+                kind: if instruction.mnemonic == "global_atomic_add_f32" {
+                    "atomic f32 add no return"
+                } else if module
+                    .target
+                    .as_deref()
+                    .and_then(crate::target::Architecture::from_target)
+                    == Some(crate::target::Architecture::Gfx1250)
+                    && instruction.mnemonic.starts_with("flat_")
+                {
+                    "flat memory"
+                } else if instruction.mnemonic.starts_with("tensor_") {
                     "tensor memory"
                 } else if instruction.mnemonic == "v_nop" {
                     "vector ALU"
-                } else if instruction.mnemonic == "s_getreg_b32" {
+                } else if instruction.mnemonic == "s_getreg_b32"
+                    || (instruction.mnemonic == "s_sendmsg"
+                        && module
+                            .target
+                            .as_deref()
+                            .and_then(crate::target::Architecture::from_target)
+                            == Some(crate::target::Architecture::Gfx1250))
+                {
                     "xcnt drain"
                 } else if instruction.mnemonic.starts_with("v_wmma_") {
                     "WMMA"
                 } else if instruction.mnemonic == "s_delay_alu" {
                     "s_delay_alu"
                 } else if instruction.mnemonic == "s_barrier_signal" {
-                    "barrier signal"
+                    if matches!(
+                        instruction.operands.as_slice(),
+                        [crate::frontend::Operand::Integer(-1)]
+                    ) {
+                        "barrier signal"
+                    } else {
+                        "named barrier signal"
+                    }
                 } else if instruction.mnemonic == "s_barrier_wait" {
-                    "barrier wait"
+                    if matches!(
+                        instruction.operands.as_slice(),
+                        [crate::frontend::Operand::Integer(-1)]
+                    ) {
+                        "barrier wait"
+                    } else {
+                        "named barrier wait"
+                    }
+                } else if instruction.mnemonic == "s_barrier_init" {
+                    "named barrier init"
+                } else if instruction.mnemonic == "s_barrier_join" {
+                    "named barrier join"
+                } else if instruction.mnemonic == "s_barrier_leave" {
+                    "named barrier leave"
                 } else if instruction.mnemonic == "s_nop" {
                     "s_nop"
                 } else if instruction.mnemonic == "s_endpgm" {

@@ -63,6 +63,15 @@ claim (`--verify-numeric`). The pipeline treats a claimed difference as a
 refutation only when the oracle separates the two sides. Agreement at random
 points means equality almost surely for this fragment (Schwartz-Zippel).
 
+A finite f64 disagreement receives an independent exact-rational replay of
+arithmetic DAGs at the same seeded symbol values. Only exact equality can
+override the f64 disagreement; seeds and relative tolerance stay unchanged.
+This avoids false counterexamples from different accumulation orders near
+zero. Unsupported operations, non-finite values, zero divisors and bounded
+replay limits retain the original inconclusive/failing result. Replay is
+limited to100,000 nodes and16,384-bit numerators/denominators and never uses
+the canonicalizer's equality decision as numeric evidence.
+
 ## VC dumps (`vc_dump.rs`)
 
 `VcDump { reference, optimized }` is a serialized pair of `SymbolicOutputs`, so

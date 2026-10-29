@@ -19,6 +19,14 @@ v = volta.verify(ptx_source, "dim N; array in[N]; array out[N]; out[i] = in[i];"
 assert v.equivalent and v.mismatches == []
 ```
 
+`result.outputs` is a fresh ordinary Python list of array-name/element-list
+tuples, with `(index, expression_string)` elements. Strings are formatted when
+this property is read; `analyze` retains the compact expression DAG internally.
+The text and existing 50 MiB per-expression display limit are unchanged. A
+complete large attention result can still require substantial Python memory
+when its expressions fit that limit. Graph checks and `verify` operate on the
+complete DAG independently of display formatting.
+
 ## Modules
 
 - `config.rs`: Python classes that wrap the Rust config types one to one
@@ -56,8 +64,9 @@ Omitting the AMD target preserves gfx950. `analyze` runs native graph checks;
 `DataRaceError`; incomplete or resource-limited traces stay inconclusive.
 By-value arguments use `Param.bytes(...)`, including descriptor padding checks.
 See [gfx1250 scope and CPU validation](../../tests/gfx1250/README.md).
-The documented gfx1250 corpus has passed exact-assembly hardware replay; see
-[the hardware scope and receipts](../../tests/gfx1250/hardware/README.md). For native source, pass selection
+Optional exact-assembly numerical checks are described in
+[the hardware guide](../../tests/gfx1250/hardware/README.md). Device-run records
+are not retained. For native source, pass selection
 explicitly to the independent syntax check as well:
 
 ```python
@@ -65,3 +74,10 @@ volta.parse(amd_source, backend="amdgpu", target="gfx1250")
 config = volta.Config(block=(65, 1, 1), backend="amdgpu", target="gfx1250")
 # Add the source kernel's arrays and arguments before analyze/verify.
 ```
+
+`tests/test_gfx1250_original_workloads.py` checks all18 first-family original
+shapes/storage dtypes through parse/analyze/verify, exact output coordinates and
+unsampled numeric specifications. The separate heavy32-case workflow gate uses
+`VOLTA_GFX1250_ORIGINAL_FULL=1` and refuses missing registrations. These tests
+rebuild the current extension; they do not reuse an older binary as evidence.
+See the [full-parity workflow recipes](../../tests/gfx1250/full-parity/README.md#public-workflow-gates).

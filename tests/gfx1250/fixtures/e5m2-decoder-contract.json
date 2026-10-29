@@ -1,0 +1,129 @@
+{
+  "scope": "Concrete OCP E5M2 byte0 decoding only, gfx1250 bare/e32. Legal e64/byte selection outside the selected model remains rejected. Symbolic E5M2 unsupported; NaN/infinity outside mathematical real model. No hardware claim.",
+  "compiler_revision": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+  "llvm_mc_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "primary_reference": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/VOP1Instructions.td",
+  "probes": [
+    {
+      "instruction": "v_cvt_f32_bf8 v1,s6",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-e5m2-probe-0.s",
+        "-o",
+        "/tmp/gfx1250-e5m2-probe-0.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "v_cvt_f32_bf8_e32 v1,s6",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-e5m2-probe-1.s",
+        "-o",
+        "/tmp/gfx1250-e5m2-probe-1.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "v_cvt_f32_bf8_e32 v1,v2",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-e5m2-probe-2.s",
+        "-o",
+        "/tmp/gfx1250-e5m2-probe-2.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "v_cvt_f32_bf8_e32 v1,0x3c",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-e5m2-probe-3.s",
+        "-o",
+        "/tmp/gfx1250-e5m2-probe-3.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "v_cvt_f32_bf8_e64 v1,s6",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-e5m2-probe-4.s",
+        "-o",
+        "/tmp/gfx1250-e5m2-probe-4.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "v_cvt_f32_bf8 v1,s6 byte_sel:1",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-e5m2-probe-5.s",
+        "-o",
+        "/tmp/gfx1250-e5m2-probe-5.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "v_cvt_f32_bf8_e32 v1,s[6:7]",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-e5m2-probe-6.s",
+        "-o",
+        "/tmp/gfx1250-e5m2-probe-6.o"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "/tmp/gfx1250-e5m2-probe-6.s:2:22: error: invalid operand for instruction\nv_cvt_f32_bf8_e32 v1,s[6:7]\n                     ^\n"
+    },
+    {
+      "instruction": "v_cvt_f32_bf8_e32 v[1:2],s6",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-e5m2-probe-7.s",
+        "-o",
+        "/tmp/gfx1250-e5m2-probe-7.o"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "/tmp/gfx1250-e5m2-probe-7.s:2:19: error: invalid operand for instruction\nv_cvt_f32_bf8_e32 v[1:2],s6\n                  ^\n"
+    }
+  ],
+  "primary_reference_sha256": "1f7cec3069c0fe8af84086e3f0b94f0d97978a677dfac97544580e81ed00dc7e"
+}

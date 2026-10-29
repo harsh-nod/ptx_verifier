@@ -49,6 +49,8 @@ pub enum AmdRegisterHazardKind {
     ValuReadBeforeReady,
     ValuDestinationBeforeReady,
     ValuScalarReadBeforeReady,
+    /// The atomic's implicit EXEC is unsafe while an older non-RMW translation is pending.
+    AtomicReplayBeforeReady,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -87,7 +89,7 @@ pub struct AmdReport {
     pub memory_conflict: MemoryConflictResult,
 }
 
-const CLASSES: usize = 12;
+const CLASSES: usize = 17;
 fn class_index(class: AmdMemoryClass) -> usize {
     // CDNA4 §4.4 orders same-type LDS instructions. §12.12's DS_(B)PERMUTE
     // uses LDS hardware, with no LDS memory footprint. LLVM AMDGPUHWEvents.cpp
@@ -108,6 +110,11 @@ fn class_index(class: AmdMemoryClass) -> usize {
         AmdMemoryClass::AsyncStoreFromLds => 9,
         AmdMemoryClass::TensorLoadToLds => 10,
         AmdMemoryClass::TensorStoreFromLds => 11,
+        AmdMemoryClass::GlobalAtomicAddF32NoReturn => 12,
+        AmdMemoryClass::FlatGlobalLoad => 13,
+        AmdMemoryClass::FlatGlobalStore => 14,
+        AmdMemoryClass::FlatLdsLoad => 15,
+        AmdMemoryClass::FlatLdsStore => 16,
     }
 }
 fn ordered(class: AmdMemoryClass) -> bool {
@@ -137,6 +144,9 @@ struct Operation {
     held_sources: Vec<AmdRegister>,
     /// Completed-effect frontiers at issue, not the candidate trace's earlier effects.
     clock: Vec<u32>,
+    /// Present only after a gfx1250 implicit drop adds an unpinned memory edge.
+    /// This frontier retains explicit arrivals and excludes those drop edges.
+    arrival_clock: Option<Vec<u32>>,
 }
 
 fn unknown<E, V>(reason: &str) -> PropertyResult<E, V> {
@@ -145,6 +155,16 @@ fn unknown<E, V>(reason: &str) -> PropertyResult<E, V> {
 
 fn trace_contract(graph: &EventGraph, architecture: AmdArchitecture) -> AmdTraceResult {
     let mut unresolved = Vec::new();
+    if graph
+        .provenance()
+        .assumptions
+        .iter()
+        .any(|a| matches!(a, volta_graph::Assumption::AllocatedNamedBarriers(_)))
+    {
+        unresolved.push(Unresolved::global(
+            "shader named barrier allocation requires gfx1250",
+        ));
+    }
     if let Err(defects) = graph.validate() {
         unresolved.extend(defects.into_iter().map(|d| {
             Unresolved {
@@ -1121,6 +1141,7 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                     destinations: destinations.clone(),
                     held_sources: held_sources.clone(),
                     clock,
+                    arrival_clock: None,
                 });
             }
             AmdEventKind::Wait {
@@ -1386,6 +1407,15 @@ fn memory_conflicts(
     operations: &[Operation],
     issue_index: &HashMap<EventId, usize>,
 ) -> MemoryConflictResult {
+    memory_conflicts_with_clock(graph, operations, issue_index, false)
+}
+
+fn memory_conflicts_with_clock(
+    graph: &EventGraph,
+    operations: &[Operation],
+    issue_index: &HashMap<EventId, usize>,
+    arrivals_only: bool,
+) -> MemoryConflictResult {
     let links: HashMap<EventId, usize> = graph
         .amd_memory_effects()
         .iter()
@@ -1409,7 +1439,19 @@ fn memory_conflicts(
         .filter(|link| single_cu && link.scope == AmdMemoryScope::Workgroup)
         .map(|link| link.effect)
         .collect();
-    let written = written_bytes(graph);
+    let mut written = written_bytes(graph);
+    // Native trace validation admits only the selected RMW profile. Keep its
+    // writes in this domain without changing PTX's ordinary-only domain M.
+    written.extend(
+        graph
+            .accesses()
+            .values()
+            .filter(|a| {
+                a.ordering == OrderingKind::Atomic && a.mode == volta_graph::AccessMode::Write
+            })
+            .flat_map(bytes),
+    );
+    let mut atomic_unresolved = Vec::new();
     let mut roots = HashMap::<ByteLocation, Vec<usize>>::new();
     let mut nodes = Vec::<EffectNode>::new();
     let mut conflicts = Vec::new();
@@ -1425,8 +1467,16 @@ fn memory_conflicts(
         let later_scoped = scoped.contains(&event);
         let mut reaches = |node: &EffectNode, forest: &[EffectNode]| {
             let earlier = &operations[node.operation];
-            let ordered = later.clock[earlier.wave as usize * CLASSES + class_index(earlier.class)]
-                >= earlier.sequence;
+            let atomic_self = node.operation == operation
+                && later.class == AmdMemoryClass::GlobalAtomicAddF32NoReturn;
+            let clock = if arrivals_only {
+                later.arrival_clock.as_ref().unwrap_or(&later.clock)
+            } else {
+                &later.clock
+            };
+            let ordered = atomic_self
+                || clock[earlier.wave as usize * CLASSES + class_index(earlier.class)]
+                    >= earlier.sequence;
             if ordered && access.space == Space::Global && unresolved.is_empty() {
                 if let Some(earlier) = missing_global_publication(
                     node,
@@ -1460,7 +1510,16 @@ fn memory_conflicts(
             }
             while let Some(n) = unordered.pop() {
                 if let Some(kind) = ConflictKind::of(nodes[n].mode, access.mode) {
-                    if reported.insert((nodes[n].event, event)) && conflicts.len() < CONFLICT_CAP {
+                    let both_atomic = later.class == AmdMemoryClass::GlobalAtomicAddF32NoReturn
+                        && operations[nodes[n].operation].class
+                            == AmdMemoryClass::GlobalAtomicAddF32NoReturn;
+                    if both_atomic && reported.insert((nodes[n].event, event)) {
+                        atomic_unresolved.push(Unresolved::between(nodes[n].event, event,
+                            "concurrent atomic RMW serialization is outside the selected single-issuer profile"));
+                    } else if !both_atomic
+                        && reported.insert((nodes[n].event, event))
+                        && conflicts.len() < CONFLICT_CAP
+                    {
                         conflicts.push(MemoryConflict {
                             kind,
                             location,
@@ -1501,6 +1560,7 @@ fn memory_conflicts(
         }
     }
     conflicts.sort_by_key(|c| (c.later, c.earlier));
+    unresolved.extend(atomic_unresolved);
     PropertyResult::from_findings(
         MemoryConflictEvidence {
             effects: links.len(),

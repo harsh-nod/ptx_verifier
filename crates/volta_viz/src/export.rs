@@ -28,6 +28,9 @@ use volta_graph_check::{GraphConclusion, GraphReport, Property, PropertyResult, 
 use crate::json::Json;
 use crate::store::RunId;
 
+mod display;
+use display::DisplayEvents;
+
 /// The longest stored-value expression a document carries; longer ones are cut.
 const MAX_VALUE_BYTES: usize = 400;
 
@@ -159,8 +162,17 @@ pub fn summary(run: &Run) -> Json {
     ])
 }
 
-/// The run's full document.
+/// The run's browser document, with a bounded display selection for large graphs.
 pub fn document(run: &Run) -> Json {
+    document_with_limit(run, Some(display::EVENT_LIMIT))
+}
+
+/// Complete archival document, without the browser's display projection.
+pub fn complete_document(run: &Run) -> Json {
+    document_with_limit(run, None)
+}
+
+fn document_with_limit(run: &Run, limit: Option<usize>) -> Json {
     let amd_source = match &run.outcome {
         Outcome::Executed { graph, .. } => native_amd_graph(graph),
         // Before execution there is no graph/launch provenance. Retain only
@@ -194,7 +206,7 @@ pub fn document(run: &Run) -> Json {
             graph,
             arena,
             report,
-        } => fields.extend(graph_fields(graph, arena, *report, run.source)),
+        } => fields.extend(graph_fields(graph, arena, *report, run.source, limit)),
     }
     Json::Obj(fields)
 }
@@ -294,18 +306,27 @@ fn graph_fields(
     arena: &ExprArena,
     report: Option<&GraphReport>,
     source: &str,
+    limit: Option<usize>,
 ) -> Vec<(&'static str, Json)> {
     let lanes = Lanes::of(graph);
+    let finding_limit = if limit.is_some_and(|limit| graph.events().len() > limit) {
+        display::FINDING_LIMIT
+    } else {
+        usize::MAX
+    };
+    let mut checks = Json::opt(report, |r| checks(graph, r, finding_limit));
+    let mut terminal = terminal(graph);
+    let view = DisplayEvents::of(graph, &lanes, &mut checks, &mut terminal, limit);
     let mut interner = Interner::default();
     let amd_scopes: HashMap<_, _> = graph
         .amd_memory_effects()
         .iter()
+        .filter(|effect| view.index(effect.effect).is_some())
         .map(|effect| (effect.effect, effect.scope))
         .collect();
-    let events: Vec<Json> = graph
-        .events()
-        .iter()
-        .map(|(id, _)| {
+    let events: Vec<Json> = view
+        .ids()
+        .map(|id| {
             event_row(
                 graph,
                 arena,
@@ -318,7 +339,7 @@ fn graph_fields(
         .collect();
     let lines = LineIndex::new(source);
     let p = graph.provenance();
-    vec![
+    let mut fields = vec![
         ("launch", {
             let mut launch = vec![
                 ("wave_size", Json::uint(graph_wave_size(graph))),
@@ -409,12 +430,14 @@ fn graph_fields(
             ),
         ),
         ("events", Json::Arr(events)),
-        ("edges", edges(graph)),
-        ("asyncOps", async_ops(graph)),
-        ("terminal", terminal(graph)),
-        ("checks", Json::opt(report, |r| checks(graph, r))),
+        ("edges", edges(graph, &view)),
+        ("asyncOps", async_ops(graph, &view)),
+        ("terminal", terminal),
+        ("checks", checks),
         ("conclusion", Json::opt(report, |r| conclusion(graph, r))),
-    ]
+    ];
+    fields.extend(view.fields());
+    fields
 }
 
 fn dims((x, y, z): (u32, u32, u32)) -> Json {
@@ -561,13 +584,16 @@ impl Lanes {
 /// async ops' spawn and completion edges (see `async_ops`), as flat `[from, to, ...]` lists
 /// per kind. An execution-only collective's member edges get their own `-execution-only` kinds,
 /// drawn dashed: they order nothing, unlike its async completions and the releases observing them.
-fn edges(graph: &EventGraph) -> Json {
+fn edges(graph: &EventGraph, view: &DisplayEvents) -> Json {
     let mut by_kind: BTreeMap<&'static str, Vec<Json>> = BTreeMap::new();
     let mut push = |kind, from: EventId, to: EventId| {
+        let (Some(from), Some(to)) = (view.index(from), view.index(to)) else {
+            return;
+        };
         by_kind
             .entry(kind)
             .or_default()
-            .extend([Json::uint(from.0), Json::uint(to.0)]);
+            .extend([Json::uint(from), Json::uint(to)]);
     };
     for g in graph.generations().values() {
         let Some(completion) = g.completion else {
@@ -612,8 +638,32 @@ fn edges(graph: &EventGraph) -> Json {
     let mut amd_arrivals = HashMap::<u32, Vec<EventId>>::new();
     let mut split_arrivals = HashMap::<(i16, u32), Vec<EventId>>::new();
     let mut split_waits = HashMap::new();
+    let mut named_arrivals = HashMap::<(volta_graph::AmdNamedBarrier, u32), Vec<EventId>>::new();
+    let mut named_waits = HashMap::new();
     for record in graph.amd_events() {
         match record.kind {
+            volta_graph::AmdEventKind::NamedBarrierSignal { object, phase, .. }
+            | volta_graph::AmdEventKind::NamedBarrierLeave { object, phase }
+                if object.id != 0 =>
+            {
+                named_arrivals
+                    .entry((object, phase))
+                    .or_default()
+                    .push(record.event);
+            }
+            volta_graph::AmdEventKind::NamedBarrierWait { object, phase, .. } => {
+                named_waits.insert((object, phase, record.wave), record.event);
+            }
+            volta_graph::AmdEventKind::NamedBarrierRelease { object, phase } => {
+                if let Some(arrivals) = named_arrivals.get(&(object, phase)) {
+                    for &arrival in arrivals {
+                        push("amd-barrier", arrival, record.event);
+                    }
+                }
+                if let Some(&wait) = named_waits.get(&(object, phase, record.wave)) {
+                    push("amd-barrier", wait, record.event);
+                }
+            }
             volta_graph::AmdEventKind::SplitBarrierSignal {
                 barrier,
                 generation,
@@ -665,23 +715,41 @@ fn edges(graph: &EventGraph) -> Json {
 
 /// Each async op as `[issue, completion or -1, effect events...]`: the issue spawns every
 /// effect, and every effect precedes the completion.
-fn async_ops(graph: &EventGraph) -> Json {
+fn async_ops(graph: &EventGraph, view: &DisplayEvents) -> Json {
+    if graph.async_ops().is_empty() {
+        return Json::Arr(Vec::new());
+    }
     let mut access_event = BTreeMap::new();
     for (id, ev) in graph.events().iter() {
-        if let EventKind::Access(a) = ev.kind {
-            access_event.insert(a, id);
+        if let EventKind::Access(a) = ev.kind
+            && let Some(displayed) = view.index(id)
+        {
+            access_event.insert(a, displayed);
         }
     }
     Json::Arr(
         graph
             .async_ops()
             .values()
+            .filter(|op| view.index(op.issue).is_some())
+            // The v1 decoder draws issue -> completion for truly effectless
+            // ops. Omitted effects must not create that synthetic direct edge.
+            .filter(|op| {
+                op.effects.is_empty() || op.effects.iter().any(|a| access_event.contains_key(a))
+            })
             .map(|op| {
                 let mut row = vec![
-                    Json::uint(op.issue.0),
-                    op.completion.map_or(Json::Int(-1), |c| Json::uint(c.0)),
+                    Json::uint(view.index(op.issue).expect("selected async issue")),
+                    op.completion.map_or(Json::Int(-1), |c| {
+                        Json::uint(view.index(c).expect("selected async completion"))
+                    }),
                 ];
-                row.extend(op.effects.iter().map(|a| Json::uint(access_event[a].0)));
+                row.extend(
+                    op.effects
+                        .iter()
+                        .filter_map(|a| access_event.get(a))
+                        .map(|&id| Json::uint(id)),
+                );
                 Json::Arr(row)
             })
             .collect(),
@@ -767,6 +835,48 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
                     (
                         "resume",
                         format!("barrier {barrier} phase {generation} released"),
+                    )
+                }
+                volta_graph::AmdEventKind::NamedBarrierInit { object, expected } => {
+                    info.push((
+                        "named object",
+                        format!("{} incarnation {}", object.id, object.incarnation),
+                    ));
+                    info.push(("expected arrivals", expected.to_string()));
+                    ("sync", format!("named init {} count {expected}", object.id))
+                }
+                volta_graph::AmdEventKind::NamedBarrierJoin { object, phase }
+                | volta_graph::AmdEventKind::NamedBarrierSignal { object, phase, .. }
+                | volta_graph::AmdEventKind::NamedBarrierWait { object, phase, .. }
+                | volta_graph::AmdEventKind::NamedBarrierRelease { object, phase }
+                | volta_graph::AmdEventKind::NamedBarrierLeave { object, phase } => {
+                    info.push((
+                        "named object",
+                        format!("{} incarnation {}", object.id, object.incarnation),
+                    ));
+                    info.push(("phase", phase.to_string()));
+                    let operation = match record.kind {
+                        volta_graph::AmdEventKind::NamedBarrierJoin { .. } => "join",
+                        volta_graph::AmdEventKind::NamedBarrierSignal { exec_mask, .. } => {
+                            info.push(("EXEC", format!("{exec_mask:#x}")));
+                            "signal"
+                        }
+                        volta_graph::AmdEventKind::NamedBarrierWait { encoded, .. } => {
+                            info.push(("encoded WAIT selector", encoded.to_string()));
+                            "wait"
+                        }
+                        volta_graph::AmdEventKind::NamedBarrierRelease { .. } => "release",
+                        _ => "leave",
+                    };
+                    (
+                        if operation == "wait" {
+                            "wait"
+                        } else if operation == "release" {
+                            "resume"
+                        } else {
+                            "sync"
+                        },
+                        format!("named {operation} {} phase {phase}", object.id),
                     )
                 }
                 volta_graph::AmdEventKind::MatrixIssue {
@@ -1156,6 +1266,7 @@ fn terminal(graph: &EventGraph) -> Json {
             .iter()
             .map(|b| {
                 let on = match &b.on {
+                    BlockedOn::AmdNamedBarrier { object, phase, expected, arrived } => format!("waits at AMD named barrier {} incarnation {} phase {phase}: {arrived}/{expected} arrivals", object.id, object.incarnation),
                     BlockedOn::AmdBarrier {
                         generation,
                         missing_waves,
@@ -1226,6 +1337,7 @@ fn event_list(events: &[EventId]) -> Vec<Json> {
 /// A check's findings: each violation (`Fail`) or unresolved obligation (`Unknown`), with the
 /// events it concerns.
 fn findings<E, V>(
+    limit: usize,
     result: &PropertyResult<E, V>,
     violation: impl Fn(&V) -> (String, Vec<EventId>),
 ) -> Vec<Json> {
@@ -1233,6 +1345,7 @@ fn findings<E, V>(
         PropertyResult::Pass(_) => Vec::new(),
         PropertyResult::Fail(violations) => violations
             .iter()
+            .take(limit)
             .map(|v| {
                 let (text, events) = violation(v);
                 finding(text, event_list(&events))
@@ -1240,6 +1353,7 @@ fn findings<E, V>(
             .collect(),
         PropertyResult::Unknown(unresolved) => unresolved
             .iter()
+            .take(limit)
             .map(|u| finding(u.reason.clone(), event_list(&u.events)))
             .collect(),
     }
@@ -1390,7 +1504,7 @@ fn release_order_violation(
     }
 }
 
-fn checks(graph: &EventGraph, report: &GraphReport) -> Json {
+fn checks(graph: &EventGraph, report: &GraphReport, limit: usize) -> Json {
     Json::Arr(
         report
             .applicable_properties()
@@ -1401,13 +1515,15 @@ fn checks(graph: &EventGraph, report: &GraphReport) -> Json {
                     Property::AmdTrace => report
                         .amd
                         .as_ref()
-                        .map(|a| findings(&a.trace, |u| (u.reason.clone(), u.events.clone())))
+                        .map(|a| {
+                            findings(limit, &a.trace, |u| (u.reason.clone(), u.events.clone()))
+                        })
                         .unwrap_or_default(),
                     Property::AmdWaitReadiness => report
                         .amd
                         .as_ref()
                         .map(|a| {
-                            findings(&a.wait_readiness, |h| {
+                            findings(limit, &a.wait_readiness, |h| {
                                 (
                                     format!(
                                         "wave {} {:?}: {:?}{} {} is pending from e{} at e{}",
@@ -1432,7 +1548,7 @@ fn checks(graph: &EventGraph, report: &GraphReport) -> Json {
                         .amd
                         .as_ref()
                         .map(|a| {
-                            findings(&a.barrier, |v| {
+                            findings(limit, &a.barrier, |v| {
                                 (
                                     format!(
                                         "wave {} barrier #{}: {}",
@@ -1447,7 +1563,7 @@ fn checks(graph: &EventGraph, report: &GraphReport) -> Json {
                         .amd
                         .as_ref()
                         .map(|a| {
-                            findings(&a.memory_conflict, |c| {
+                            findings(limit, &a.memory_conflict, |c| {
                                 (
                                     format!(
                                         "{} conflict at {} {:#x}: e{} and e{} lack AMD ordering",
@@ -1463,12 +1579,14 @@ fn checks(graph: &EventGraph, report: &GraphReport) -> Json {
                         })
                         .unwrap_or_default(),
                     Property::NamedBarrierEpoch => {
-                        findings(&report.named_barrier_epoch, |v| epoch_violation(graph, v))
+                        findings(limit, &report.named_barrier_epoch, |v| {
+                            epoch_violation(graph, v)
+                        })
                     }
                     Property::MbarrierEpoch => {
-                        findings(&report.mbarrier_epoch, |v| epoch_violation(graph, v))
+                        findings(limit, &report.mbarrier_epoch, |v| epoch_violation(graph, v))
                     }
-                    Property::MbarrierOrdering => findings(&report.mbarrier_ordering, |v| {
+                    Property::MbarrierOrdering => findings(limit, &report.mbarrier_ordering, |v| {
                         (
                             format!(
                                 "phase {} of the mbarrier does not balance: {} of {} \
@@ -1486,7 +1604,7 @@ fn checks(graph: &EventGraph, report: &GraphReport) -> Json {
                                 .collect(),
                         )
                     }),
-                    Property::MemoryConflict => findings(&report.memory_conflict, |c| {
+                    Property::MemoryConflict => findings(limit, &report.memory_conflict, |c| {
                         (
                             format!(
                                 "{} conflict at {} {:#x}: e{} and e{} are unordered",
@@ -1499,7 +1617,7 @@ fn checks(graph: &EventGraph, report: &GraphReport) -> Json {
                             vec![c.earlier, c.later],
                         )
                     }),
-                    Property::ProxyOrder => findings(&report.proxy_order, |v| {
+                    Property::ProxyOrder => findings(limit, &report.proxy_order, |v| {
                         (
                             format!(
                                 "{} conflict at {} {:#x}: no proxy fence orders generic e{} \
@@ -1514,7 +1632,7 @@ fn checks(graph: &EventGraph, report: &GraphReport) -> Json {
                             vec![v.generic, v.asynchronous],
                         )
                     }),
-                    Property::TensorOrder => findings(&report.tensor_order, |c| {
+                    Property::TensorOrder => findings(limit, &report.tensor_order, |c| {
                         (
                             format!(
                                 "{} conflict at tmem lane {}, column {}: e{} and e{} are \
@@ -1529,21 +1647,23 @@ fn checks(graph: &EventGraph, report: &GraphReport) -> Json {
                         )
                     }),
                     Property::ResourceLifetime => {
-                        findings(&report.resource_lifetime, lifetime_violation)
+                        findings(limit, &report.resource_lifetime, lifetime_violation)
                     }
                     Property::AllocationOrder => {
-                        findings(&report.allocation_order, allocation_order_violation)
+                        findings(limit, &report.allocation_order, allocation_order_violation)
                     }
-                    Property::AllocationPermit => {
-                        findings(&report.allocation_permit, allocation_permit_violation)
-                    }
+                    Property::AllocationPermit => findings(
+                        limit,
+                        &report.allocation_permit,
+                        allocation_permit_violation,
+                    ),
                     Property::MbarrierReleaseOrder => {
-                        findings(&report.mbarrier_release_order, |v| {
+                        findings(limit, &report.mbarrier_release_order, |v| {
                             release_order_violation(graph, v)
                         })
                     }
                 };
-                Json::Obj(vec![
+                let mut fields = vec![
                     ("name", Json::str(property.name())),
                     ("algorithm", Json::str(property.algorithm())),
                     (
@@ -1556,7 +1676,11 @@ fn checks(graph: &EventGraph, report: &GraphReport) -> Json {
                     ),
                     ("evidence", Json::opt(summary.evidence, Json::Str)),
                     ("findings", Json::Arr(findings)),
-                ])
+                ];
+                if limit != usize::MAX {
+                    fields.push(("totalFindings", Json::uint(summary.findings.len() as u64)));
+                }
+                Json::Obj(fields)
             })
             .collect(),
     )
@@ -1588,7 +1712,114 @@ fn conclusion(graph: &EventGraph, report: &GraphReport) -> Json {
 
 #[cfg(test)]
 mod tests {
-    use super::LineIndex;
+    use super::*;
+    use std::num::NonZeroU32;
+    use volta_graph::{
+        GraphBuilder, InstructionInfo, MemAccess, OperandRole, ProgramPoint, Provenance,
+    };
+    use volta_graph_check::check_graph;
+
+    fn field<'a>(value: &'a Json, key: &str) -> &'a Json {
+        let Json::Obj(fields) = value else {
+            panic!("object required")
+        };
+        &fields.iter().find(|(name, _)| *name == key).unwrap().1
+    }
+
+    #[test]
+    fn large_display_preserves_full_rejection_or_unknown_and_archival_events() {
+        for ordering in [OrderingKind::Ordinary, OrderingKind::Atomic] {
+            let mut builder = GraphBuilder::new(Provenance {
+                kernel: "large_display".into(),
+                block_dim: (2, 1, 1),
+                grid_dim: (1, 1, 1),
+                targets: vec!["Sm100a".into()],
+                assumptions: vec![],
+                instructions: vec![InstructionInfo {
+                    kind: "Store",
+                    span: None,
+                }],
+            });
+            for n in 0..50_021 {
+                builder.fence(
+                    ThreadIx(n % 2),
+                    ProgramPoint(0),
+                    FenceKind::ProxyAsync { space: None },
+                );
+            }
+            let mut arena = ExprArena::new();
+            let value = builder.value(StoredValue::Scalar(arena.int(7)));
+            for t in 0..2 {
+                builder.thread_access(
+                    ThreadIx(t),
+                    ProgramPoint(0),
+                    MemAccess {
+                        space: Space::Global,
+                        mode: AccessMode::Write,
+                        ordering,
+                        proxy: Proxy::Generic,
+                        footprint: Footprint::Bytes { addr: 0, width: 4 },
+                        role: OperandRole::Plain,
+                        attributed: ThreadIx(t),
+                        value: Some(value),
+                    },
+                );
+            }
+            for t in 0..2 {
+                builder.exit(ThreadIx(t), ProgramPoint(0));
+            }
+            let graph = builder.finish(Terminal::Completed);
+            let report = check_graph(&graph);
+            let expected = if ordering == OrderingKind::Atomic {
+                "unknown"
+            } else {
+                "race-condition"
+            };
+            let before = report.clone();
+            let id = RunId {
+                suite: "display".into(),
+                test: "large".into(),
+                ordinal: NonZeroU32::MIN,
+            };
+            let run = Run {
+                id: &id,
+                ptx_file: None,
+                source: "complete source",
+                outcome: Outcome::Executed {
+                    graph: &graph,
+                    arena: &arena,
+                    report: Some(&report),
+                },
+            };
+            let projected = document(&run);
+            assert_eq!(
+                field(field(&projected, "meta"), "status"),
+                &Json::str(expected),
+                "{:?}",
+                report.conclusion()
+            );
+            assert_eq!(field(&projected, "source"), &Json::str("complete source"));
+            let Json::Arr(events) = field(&projected, "events") else {
+                panic!()
+            };
+            assert_eq!(events.len(), display::EVENT_LIMIT);
+            let Json::Arr(original_ids) = field(&projected, "eventIds") else {
+                panic!()
+            };
+            assert_eq!(original_ids.len(), events.len());
+            assert!(original_ids.contains(&Json::uint(50_021u32)));
+            assert!(original_ids.contains(&Json::uint(50_022u32)));
+            assert_eq!(
+                field(field(&projected, "display"), "totalEvents"),
+                &Json::uint(graph.events().len() as u64)
+            );
+            let Json::Arr(complete) = field(&complete_document(&run), "events").clone() else {
+                panic!()
+            };
+            assert_eq!(complete.len(), graph.events().len());
+            assert_eq!(report.conclusion(), before.conclusion());
+        }
+    }
 
     #[test]
     fn offsets_map_to_one_based_lines() {

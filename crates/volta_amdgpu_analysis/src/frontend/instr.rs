@@ -276,6 +276,31 @@ fn operand(text: &str, architecture: crate::target::Architecture) -> Result<Oper
     if let Some(register) = register(text, architecture)? {
         return Ok(Operand::Register(register));
     }
+    if let Some((symbol, addend)) = text.split_once("@rel64") {
+        if architecture != crate::target::Architecture::Gfx1250
+            || symbol.is_empty()
+            || symbol.starts_with(|c: char| c.is_ascii_digit())
+            || !symbol
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || "_.$".contains(c))
+        {
+            return Err(format!(
+                "unsupported or malformed REL64 relocation `{text}`"
+            ));
+        }
+        let addend = if addend.is_empty() {
+            0
+        } else if addend.starts_with(['+', '-']) {
+            integer(addend).ok_or_else(|| format!("invalid REL64 addend `{text}`"))?
+        } else {
+            return Err(format!("invalid REL64 suffix `{text}`"));
+        };
+        return Ok(Operand::Relocation(Relocation {
+            symbol: symbol.into(),
+            kind: RelocationKind::Rel64,
+            addend,
+        }));
+    }
     if let Some((symbol, suffix)) = text.split_once("@rel32@") {
         if symbol.is_empty()
             || symbol.starts_with(|c: char| c.is_ascii_digit())
@@ -676,6 +701,8 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
         "cbsz" | "abid" | "blgp" => opcode == Opcode::Matrix,
         "bitop3" => matches!(mnemonic, "v_bitop3_b32" | "v_bitop2_b32" | "v_bitop3_b16"),
         "scale_offset" => matches!(opcode, Opcode::ScalarMemory | Opcode::VectorMemory),
+        "byte_sel" => mnemonic.trim_end_matches("_e64") == "v_cvt_f32_fp8",
+        "scope" => mnemonic == "global_atomic_add_f32" || mnemonic.starts_with("flat_"),
         "dst_sel" | "dst_unused" | "src0_sel" | "src1_sel" => mnemonic.ends_with("_sdwa"),
         _ => false,
     };
@@ -684,10 +711,36 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
     }
     let numeric = matches!(
         name,
-        "offset" | "offset0" | "offset1" | "mul" | "div" | "cbsz" | "abid" | "blgp" | "bitop3"
+        "offset"
+            | "offset0"
+            | "offset1"
+            | "mul"
+            | "div"
+            | "cbsz"
+            | "abid"
+            | "blgp"
+            | "bitop3"
+            | "byte_sel"
     );
     if numeric && value.and_then(integer).is_none() {
         return Err(format!("modifier `{name}` requires an integer"));
+    }
+    if name == "scope"
+        && value
+            != Some(if mnemonic.starts_with("flat_") {
+                "SCOPE_SYS"
+            } else {
+                "SCOPE_DEV"
+            })
+    {
+        return Err("native atomic requires SCOPE_DEV; selected FLAT requires SCOPE_SYS".into());
+    }
+    if name == "byte_sel"
+        && !value
+            .and_then(integer)
+            .is_some_and(|n| (0..=3).contains(&n))
+    {
+        return Err("FP8 byte_sel must be in 0..3".into());
     }
     if matches!(name, "offset0" | "offset1" | "bitop3")
         && !value
@@ -732,7 +785,8 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
     if !numeric
         && !matches!(
             name,
-            "op_sel"
+            "scope"
+                | "op_sel"
                 | "op_sel_hi"
                 | "neg_lo"
                 | "neg_hi"
@@ -895,7 +949,7 @@ pub(super) fn parse_instruction(
                 "glc" | "slc" | "dlc" | "sc0" | "sc1" | "nt"
             )
         } else {
-            m.name == "scale_offset"
+            matches!(m.name.as_str(), "scale_offset" | "scope")
         }
     }) {
         return Err(fail(
@@ -1162,6 +1216,16 @@ pub(super) fn validate_registers(
         return Err("SCC cannot be used as an explicit general-purpose register operand".into());
     }
     for (index, operand) in operands.iter().enumerate() {
+        if architecture == crate::target::Architecture::Gfx1250
+            && register(operand).is_some_and(|r| r.special == Some(SpecialRegister::M0))
+            && index == 0
+            && !matches!(
+                stem,
+                "s_mov_b32" | "s_barrier_init" | "s_barrier_join" | "s_barrier_signal"
+            )
+        {
+            return Err("gfx1250 M0 writes are modeled only for explicit s_mov_b32".into());
+        }
         if register(operand)
             .is_some_and(|register| register.special == Some(SpecialRegister::SharedBase))
         {
@@ -1180,6 +1244,15 @@ pub(super) fn validate_registers(
         return Ok(());
     }
     match opcode {
+        Opcode::Barrier if architecture == crate::target::Architecture::Gfx1250 => {
+            match (stem, operands) {
+                ("s_barrier_leave", []) => {},
+                ("s_barrier_signal" | "s_barrier_wait", [Operand::Integer(id)]) if *id == -1 || (0..=16).contains(id) => {},
+                ("s_barrier_init" | "s_barrier_join", [Operand::Integer(id)]) if (0..=16).contains(id) => {},
+                ("s_barrier_init" | "s_barrier_join" | "s_barrier_signal", [Operand::Register(r)]) if r.special == Some(SpecialRegister::M0) => {},
+                _ => return Err("unsupported gfx1250 barrier operand; shader IDs are -1 or 0..16, with M0 only on init/join/signal".into()),
+            }
+        }
         Opcode::ScalarAlu => {
             if operands
                 .iter()
@@ -1219,6 +1292,15 @@ pub(super) fn validate_registers(
             }
         }
         Opcode::ScalarMemory => {
+            if architecture == crate::target::Architecture::Gfx1250
+                && matches!(stem, "s_load_u8" | "s_load_u16")
+            {
+                if !matches!(operands.get(2),Some(Operand::Integer(value)) if (0..=0xffffff).contains(value))
+                    && !matches!(operands.get(2),Some(Operand::Register(r)) if r.class==Scalar && r.count==1)
+                {
+                    return Err("selected subword SMEM requires an unsigned24 immediate byte offset or one numbered SGPR".into());
+                }
+            }
             if architecture == crate::target::Architecture::Gfx1250
                 && modifiers
                     .iter()
@@ -1272,7 +1354,22 @@ pub(super) fn validate_registers(
                     }
                 }
             } else if stem.starts_with("flat_") {
-                require(address, &[Vector], 2)?;
+                if architecture == crate::target::Architecture::Gfx1250 && operands.len() == 3 {
+                    require(address, &[Vector], 1)?;
+                    require(2, &[Scalar], 2)?;
+                } else {
+                    require(address, &[Vector], 2)?;
+                }
+                if architecture == crate::target::Architecture::Gfx1250
+                    && modifiers.iter().any(|m| {
+                        !matches!(m.name.as_str(), "offset" | "scope")
+                            || (m.name == "scope" && m.value.as_deref() != Some("SCOPE_SYS"))
+                    })
+                {
+                    return Err(
+                        "selected gfx1250 FLAT supports only byte offset and SCOPE_SYS".into(),
+                    );
+                }
             } else if buffer {
                 require(2, &[Scalar], 4)?;
                 source_width(3, 1)?;
@@ -1288,7 +1385,10 @@ pub(super) fn validate_registers(
             } else {
                 1
             };
-            let pair = stem.starts_with("ds_read2") || stem.starts_with("ds_write2");
+            let pair = stem.starts_with("ds_read2")
+                || stem.starts_with("ds_write2")
+                || (architecture == crate::target::Architecture::Gfx1250
+                    && stem == "ds_load_2addr_b32");
             if stem.starts_with("ds_read") || stem.starts_with("ds_load") {
                 require(0, &[Vector], element_width * if pair { 2 } else { 1 })?;
                 require(1, &[Vector], 1)?;
@@ -1381,6 +1481,18 @@ pub(super) fn validate_registers(
             }
         }
         Opcode::VectorAlu => {
+            if architecture == crate::target::Architecture::Gfx1250
+                && matches!(stem, "v_cvt_f32_ubyte0" | "v_cvt_f32_ubyte3")
+            {
+                if !modifiers.is_empty()
+                    || !matches!(operands.get(1),Some(Operand::Register(r)) if matches!(r.class,Scalar|Vector) && r.count==1)
+                        && !matches!(operands.get(1),Some(Operand::Integer(v)) if (i32::MIN as i64..=u32::MAX as i64).contains(v))
+                {
+                    return Err(
+                        "selected UBYTE conversion needs one unmodified encoded32bit source".into(),
+                    );
+                }
+            }
             if stem == "v_s_exp_f32" {
                 // LLVM VOP_Pseudo_Scalar_F32 uses SSrc_f32, not VSrc_f32:
                 // reading an arbitrary VGPR lane would change its semantics.
@@ -1395,6 +1507,57 @@ pub(super) fn validate_registers(
                 return Ok(());
             }
             let comparison = stem.starts_with("v_cmp");
+            if architecture == crate::target::Architecture::Gfx1250 && mnemonic.ends_with("_e32") {
+                if comparison && stem.ends_with("_f16") {
+                    let cmpx = stem.starts_with("v_cmpx_");
+                    let start = usize::from(!cmpx);
+                    if !cmpx
+                        && !matches!(operands.first(), Some(Operand::Register(r))
+                        if r.special == Some(SpecialRegister::VccLo) && r.count == 1 && r.class == Special)
+                    {
+                        return Err(
+                            "gfx1250 F16 e32 comparison writes the fixed VCC_LO destination".into(),
+                        );
+                    }
+                    if !matches!(operands.get(start + 1), Some(Operand::Register(r))
+                        if r.class == Vector && r.count == 1)
+                    {
+                        return Err("gfx1250 F16 e32 comparison SRC1 requires a VGPR".into());
+                    }
+                    let src0 = match operands.get(start) {
+                        Some(Operand::Register(r)) => r.count == 1,
+                        Some(Operand::Integer(n)) => {
+                            (i16::MIN as i64..=u16::MAX as i64).contains(n)
+                        }
+                        Some(Operand::Float(_)) => true,
+                        _ => false,
+                    };
+                    if !src0 {
+                        return Err("gfx1250 F16 e32 comparison SRC0 requires an unmodified source with a16-bit literal".into());
+                    }
+                }
+                let all_half = matches!(
+                    stem,
+                    "v_add_f16"
+                        | "v_sub_f16"
+                        | "v_mul_f16"
+                        | "v_min_f16"
+                        | "v_max_f16"
+                        | "v_max_num_f16"
+                        | "v_fmac_f16"
+                        | "v_cvt_f16_i16"
+                ) || comparison && stem.ends_with("_f16");
+                for (index, operand) in operands.iter().enumerate() {
+                    let half_operand = all_half
+                        || stem == "v_cvt_f16_f32" && index == 0
+                        || matches!(stem, "v_cvt_f32_f16" | "v_cvt_f32_bf16") && index == 1;
+                    if half_operand
+                        && register(operand).is_some_and(|r| r.class == Vector && r.index >= 128)
+                    {
+                        return Err("gfx1250 true16 e32 operands require VGPRs below v128".into());
+                    }
+                }
+            }
             let carry = stem.starts_with("v_add_co_")
                 || stem.starts_with("v_addc_co_")
                 || stem.starts_with("v_sub_co_")
@@ -1526,6 +1689,37 @@ pub(super) fn validate_registers(
                 }
                 if stem.starts_with("v_readlane_") {
                     require(1, &[Vector], 1)?;
+                    if architecture == crate::target::Architecture::Gfx1250 {
+                        let inline = |bits: u32| {
+                            bits <= 64
+                                || bits >= (-16_i32) as u32
+                                || [
+                                    0x3f00_0000,
+                                    0xbf00_0000,
+                                    0x3f80_0000,
+                                    0xbf80_0000,
+                                    0x4000_0000,
+                                    0xc000_0000,
+                                    0x4080_0000,
+                                    0xc080_0000,
+                                    0x3e22_f983,
+                                ]
+                                .contains(&bits)
+                        };
+                        let selector = match operands.get(2) {
+                            Some(Operand::Register(r)) => {
+                                r.count == 1 && matches!(r.class, Scalar | Temporary | Special)
+                            }
+                            Some(Operand::Integer(n)) => {
+                                (i32::MIN as i64..=u32::MAX as i64).contains(n) && inline(*n as u32)
+                            }
+                            Some(Operand::Float(n)) => inline((*n as f32).to_bits()),
+                            _ => false,
+                        };
+                        if !selector {
+                            return Err("gfx1250 readlane selector requires an unmodified scalar source or inline constant".into());
+                        }
+                    }
                 }
             }
         }
@@ -1551,6 +1745,10 @@ pub(super) fn validate_vop_literal_positions(
         .or_else(|| mnemonic.strip_suffix("_e64"))
         .unwrap_or(mnemonic);
     if ![
+        "s_sub_co_i32",
+        "s_cvt_f32_i32",
+        "s_cvt_f32_u32",
+        "s_add_f32",
         "s_sub_f32",
         "s_mul_f32",
         "s_min_num_f32",
@@ -1566,8 +1764,10 @@ pub(super) fn validate_vop_literal_positions(
         "v_min_num_f32",
         "v_max_num_f32",
         "v_fmac_f32",
+        "v_fmac_f16",
         "v_min_f16",
         "v_max_f16",
+        "v_max_num_f16",
         "v_add_f64",
         "v_mul_f64",
         "v_min_f64",
@@ -1673,17 +1873,20 @@ pub(super) fn validate_vop_literal_positions(
     }
     let f64_source = stem.ends_with("_f64");
     let f16_source = stem.ends_with("_f16");
+    if architecture == crate::target::Architecture::Gfx1250
+        && explicit32
+        && matches!(stem, "v_add_f64" | "v_mul_f64")
+        && operands.iter().any(|operand| {
+            matches!(operand, Operand::Register(r) if matches!(r.class, RegisterClass::Vector | RegisterClass::Scalar) && r.index % 2 != 0)
+        })
+    {
+        return Err("gfx1250 F64 VOP2 requires aligned register pairs".into());
+    }
     let vop3_only = matches!(
         stem,
-        "v_mul_lo_u32"
-            | "v_fma_f32"
-            | "v_fma_f16"
-            | "v_fma_f64"
-            | "v_add_f64"
-            | "v_mul_f64"
-            | "v_min_f64"
-            | "v_max_f64"
-    );
+        "v_mul_lo_u32" | "v_fma_f32" | "v_fma_f16" | "v_fma_f64" | "v_min_f64" | "v_max_f64"
+    ) || (architecture != crate::target::Architecture::Gfx1250
+        && matches!(stem, "v_add_f64" | "v_mul_f64"));
     let src1_vgpr = matches!(
         operands.get(2),
         Some(Operand::Register(Register {

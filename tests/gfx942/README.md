@@ -1,5 +1,7 @@
 # Native gfx942 compiler and hardware controls
 
+Local validation run artifacts are not retained. Source fixtures and reproduction workflows remain available; removed observations do not establish current acceptance.
+
 These four HIP translation units were compiled for `gfx942` on an actual
 MI300X host. Their `.s` files are unchanged compiler output, assembled with
 `llvm-mc --mcpu=gfx942` and loaded through the HIP module API. This is bounded
@@ -49,17 +51,6 @@ python3 compile_fixtures.py "$fixture_dir"
 python3 run.py "$fixture_dir"
 python3 validate_mutations.py "$fixture_dir"
 ```
-
-The compiler script produces assembly, objects and shared code objects. The
-host-only C++ driver contains no GPU kernels. It loads the exact assembled
-objects and checks independent ordinary CPU formulas, every output, prefix and
-suffix guards, and unchanged input bytes. Inputs are finite dyadic values;
-the selected cases use zero absolute and relative tolerance. The hardware
-receipt is [evidence/hardware-mi300x.json](evidence/hardware-mi300x.json).
-It records 850 launches, 195,494 output checks, 430,848 output guard bytes and
-1,334,624 unchanged input bytes. Checker controls reject missing/wrong output
-and guard corruption. Numerical agreement supplements symbolic safety/math
-checks; it does not prove those checks or the real-number abstraction.
 
 `fixtures/mutations.json` records successful assembly of four exact native
 barrier/wait/spacing mutations. The Rust tests require negative graph results.

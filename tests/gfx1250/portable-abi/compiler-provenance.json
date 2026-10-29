@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "host": "XSJHARMENON01",
+  "scope": "Genuine native compiler outputs, not edited or retargeted assembly; compilation/assembly alone make no semantic verification claim.",
+  "hardware_validation": "not_performed_by_this_compiler_only_workflow",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/clang-22",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.0/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.0/lib/llvm/bin/clang++.cfg\n"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n"
+    }
+  },
+  "fixtures": [
+    {
+      "source": "native-arguments.hip",
+      "assembly": "native-arguments.s",
+      "source_sha256": "d4bf0e766156f2066225d582dec67a56f082604f904608312754b454f8b48829",
+      "assembly_sha256": "6f46ce7db6bb4582fbc6ae9d39282d9ba895344d55ea833daabbae02d4d0bba7",
+      "object_sha256": "eb6c4d070a0106635b111275a2fa86f26eeebcfa995a29f141ae6cb16c85de08",
+      "code_object_sha256": "3c731206a946299166e69500a945e3763f95f763139a5d9aaf6dc13abcb24452",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-arguments.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-arguments.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-arguments.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-arguments.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-arguments.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-arguments.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-dynamic-lds.hip",
+      "assembly": "native-dynamic-lds.s",
+      "source_sha256": "09ccd76dc29d0ac1140b6fbda1ef1d60b7a88186ec5f9b6640d969f42ac0edb9",
+      "assembly_sha256": "58ddbe11918b6be416943a327a7de8843a85879f990ca1af51f03a53f240617a",
+      "object_sha256": "73918a81910635fd2101db27828fe840c43e2bdb52ee46e99ab2baedcc64d350",
+      "code_object_sha256": "70bff9fc254c347c15a6f219eb1b3343a5db95ebb02d0fffe2a43f39a7aea966",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-dynamic-lds.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-dynamic-lds.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-dynamic-lds.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-dynamic-lds.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-dynamic-lds.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-dynamic-lds.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-module-globals.hip",
+      "assembly": "native-module-globals.s",
+      "source_sha256": "a43400e88b00768a62236850804b8c2d79614965faf7fc0bbec628f7bcec176d",
+      "assembly_sha256": "d01497e8cc50e2cc159234f6f6dd46e3fb8f95210988aec6faa5e7ed89eb7266",
+      "object_sha256": "b6fa54484c99b60cbfa590ebd9d2baf83643f31fb732625073981b6fe6fe9a55",
+      "code_object_sha256": "c3a819932c922d247d98bf51bb9bd681961c7d983f3149e454da5100c7c7162c",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-module-globals.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-module-globals.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-module-globals.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-module-globals.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-module-globals.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-module-globals.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-transfers.hip",
+      "assembly": "native-transfers.s",
+      "source_sha256": "f7d064fdf8f66a956ebad7357845afea939f662022586cc8ca25ced253c55b2c",
+      "assembly_sha256": "b09c8687f5e074a3216d7e18af32e6cce6b425fd7520cb886aa0f6bf1fde3192",
+      "object_sha256": "3bfa54200d26859f95a8778ec6031caa9dc474b6ea0bb5028b959dcee19d39fb",
+      "code_object_sha256": "860925f05bdc70e04b1d59b8e6d739d2afe01b5d8affccc4cc122294c3eae429",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-transfers.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-transfers.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-transfers.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-transfers.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-transfers.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-transfers.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ]
+}

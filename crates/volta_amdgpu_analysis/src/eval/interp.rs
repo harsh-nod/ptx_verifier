@@ -10,8 +10,14 @@ use std::{collections::BTreeMap, error::Error, fmt};
 use volta_expr::{ExprArena, ExprId, ExprNode};
 use volta_graph::*;
 
+#[path = "named_barrier.rs"]
+mod named_barrier;
+
 const KERNARG_BASE: u64 = 0xffff_0000_0000;
 const DISPATCH_BASE: u64 = 0xffff_1000_0000;
+#[cfg(test)]
+#[path = "interp_address_tests.rs"]
+mod address_tests;
 // Synthetic module storage is disjoint from host-bound arrays and analyzer ABI
 // packets. Match the existing PTX module-window convention without a dependency.
 pub const MODULE_GLOBAL_BASE: u64 = 0x7000_0000_0000_0000;
@@ -99,7 +105,13 @@ struct Wave {
     vcc_predicates: [Option<Value>; 2],
     scc: bool,
     scc_defined: bool,
+    // A uniform symbolic condition can select data, never concrete control,
+    // carry, addresses, or an architectural EXEC mask.
+    scc_condition: Option<ExprId>,
     m0: u32,
+    m0_defined: bool,
+    named_join: Option<named_barrier::Joined>,
+    named_wait: Option<named_barrier::Joined>,
     scalar: Vec<Option<Value>>,
     temporary: [Option<Value>; 16],
     vector: BTreeMap<(u16, u8), Value>,
@@ -127,7 +139,11 @@ impl Wave {
             vcc_predicates: [None; 2],
             scc: false,
             scc_defined: false,
+            scc_condition: None,
             m0: 0,
+            m0_defined: false,
+            named_join: None,
+            named_wait: None,
             scalar: vec![None; 128],
             temporary: [None; 16],
             vector: BTreeMap::new(),
@@ -163,6 +179,12 @@ impl Wave {
         Ok(self.vcc)
     }
     fn read_scc(&self) -> Result<bool, EvalError> {
+        if self.scc_condition.is_some() {
+            return Err(self.fail(
+                None,
+                "symbolic SCC condition used as concrete control or carry",
+            ));
+        }
         if !self.scc_defined {
             return Err(self.fail(None, "uninitialized SCC flag"));
         }
@@ -171,6 +193,11 @@ impl Wave {
     fn set_scc(&mut self, value: bool) {
         self.scc = value;
         self.scc_defined = true;
+        self.scc_condition = None;
+    }
+    fn clear_scc(&mut self) {
+        self.scc_defined = false;
+        self.scc_condition = None;
     }
     fn reg(&self, reg: Register, lane: u8, component: u16) -> Result<Value, EvalError> {
         let index = reg.index + component;
@@ -226,6 +253,9 @@ impl Wave {
                     }
                     Some(SpecialRegister::Scc) => self.read_scc()? as u64,
                     Some(SpecialRegister::M0) => {
+                        if self.width == 32 && self.m0_defined {
+                            return Ok(Value::Bits(self.m0));
+                        }
                         return Err(EvalError::Unsupported {
                             pc: self.pc,
                             what: "initial M0 value is not part of the modeled kernel ABI".into(),
@@ -310,6 +340,11 @@ impl Wave {
                     }
                     Some(SpecialRegister::Scc) => self.set_scc(bits != 0),
                     Some(SpecialRegister::M0) => {
+                        if self.width == 32 {
+                            self.m0 = bits as u32;
+                            self.m0_defined = true;
+                            return Ok(());
+                        }
                         return Err(EvalError::Unsupported {
                             pc: self.pc,
                             what: "explicit M0 writes need software dependency-spacing checks"
@@ -387,6 +422,12 @@ impl Wave {
     }
 }
 
+#[derive(Clone)]
+struct FloatBitPattern {
+    decoded: ExprId,
+    input_words: Vec<ExprId>,
+}
+
 pub(crate) struct Interpreter<'a> {
     program: &'a LoweredKernel,
     config: AnalysisConfig,
@@ -404,8 +445,12 @@ pub(crate) struct Interpreter<'a> {
     byte_formats: BTreeMap<volta_expr::StringId, ByteFormat>,
     word_formats: BTreeMap<volta_expr::StringId, WordFormat>,
     predicate_masks: Vec<[ExprId; 64]>,
+    // Only exact F32 sign/magnitude transport can defer its interpretation.
+    // Actual integer consumers and observable raw outputs commit Integer32.
+    float_bit_patterns: BTreeMap<ExprId, FloatBitPattern>,
     xnack_replay_enabled: bool,
     module_globals: BTreeMap<String, GlobalAllocation>,
+    named: named_barrier::State,
 }
 #[derive(Debug, Clone, Copy)]
 struct GlobalAllocation {
@@ -682,8 +727,10 @@ impl<'a> Interpreter<'a> {
             byte_formats: BTreeMap::new(),
             word_formats: BTreeMap::new(),
             predicate_masks: Vec::new(),
+            float_bit_patterns: BTreeMap::new(),
             xnack_replay_enabled,
             module_globals,
+            named: named_barrier::State::default(),
         };
         result
             .builder
@@ -1072,6 +1119,53 @@ impl<'a> Interpreter<'a> {
                 let outputs = self.extract().map_err(OutputsUnavailable::Extraction);
                 (Terminal::Completed, outputs)
             }
+            Err(EvalError::Invalid { ref what, .. })
+                if what == "workgroup rendezvous made no progress"
+                    && self.waves.iter().any(|w| w.named_wait.is_some())
+                    && self
+                        .waves
+                        .iter()
+                        .all(|w| w.exited || w.named_wait.is_some() || w.at_barrier.is_some()) =>
+            {
+                let mut blocked = Vec::new();
+                for wave in self.waves.iter().filter(|w| !w.exited) {
+                    let on = if let Some(wait) = wave.named_wait {
+                        let (expected, arrived) = self.named.counts(wait);
+                        BlockedOn::AmdNamedBarrier {
+                            object: wait.object,
+                            phase: wait.phase,
+                            expected,
+                            arrived,
+                        }
+                    } else {
+                        let generation = wave.at_barrier.unwrap();
+                        BlockedOn::AmdBarrier {
+                            generation,
+                            missing_waves: self
+                                .waves
+                                .iter()
+                                .filter(|w| !w.exited && w.signal_generation != Some(generation))
+                                .map(|w| w.id)
+                                .collect(),
+                        }
+                    };
+                    for lane in 0..wave.valid.count_ones() {
+                        blocked.push(BlockedThread {
+                            thread: ThreadIx(wave.id * wave.width + lane),
+                            pc: ProgramPoint(wave.pc as u32),
+                            on: on.clone(),
+                        });
+                    }
+                }
+                let locations = blocked
+                    .iter()
+                    .map(|b| (ThreadId(b.thread.0), b.pc.0 as usize))
+                    .collect();
+                (
+                    Terminal::Stuck { blocked },
+                    Err(OutputsUnavailable::Stuck { blocked: locations }),
+                )
+            }
             Err(error) => {
                 let cause = if matches!(error, EvalError::Unsupported { .. }) {
                     AbortCause::Unsupported
@@ -1137,6 +1231,27 @@ impl<'a> Interpreter<'a> {
             }
             outputs.push((array.name.clone(), elements));
         }
+        if !self.float_bit_patterns.is_empty() {
+            let wave = Wave::new(0, 1, self.architecture.wave_size());
+            let mut pending = outputs
+                .iter()
+                .flat_map(|(_, xs)| xs.iter().map(|(_, id)| *id))
+                .collect::<Vec<_>>();
+            let mut visited = std::collections::BTreeSet::new();
+            while let Some(id) = pending.pop() {
+                if !visited.insert(id) {
+                    continue;
+                }
+                if let Some(pattern) = self.float_bit_patterns.get(&id).cloned() {
+                    for input in pattern.input_words {
+                        self.claim_word_format(&wave, input, WordFormat::Integer32)?;
+                    }
+                }
+                self.arena
+                    .node(id)
+                    .for_each_child(|child| pending.push(child));
+            }
+        }
         Ok(outputs)
     }
     fn run(&mut self) -> Result<(), EvalError> {
@@ -1146,7 +1261,10 @@ impl<'a> Interpreter<'a> {
             }
             let mut progress = false;
             for index in 0..self.waves.len() {
-                if self.waves[index].exited || self.waves[index].at_barrier.is_some() {
+                if self.waves[index].exited
+                    || self.waves[index].at_barrier.is_some()
+                    || self.waves[index].named_wait.is_some()
+                {
                     continue;
                 }
                 if self.stats.instructions >= self.config.max_instructions {
@@ -1164,6 +1282,7 @@ impl<'a> Interpreter<'a> {
                 progress = true;
             }
             if self.architecture == AmdArchitecture::Gfx1250 {
+                progress |= self.release_named_barriers();
                 // SIGNAL snapshots one phase without blocking. A WAIT can
                 // complete as soon as every surviving wave has signalled it,
                 // even if another participant has not reached its WAIT yet.
@@ -1274,6 +1393,7 @@ impl<'a> Interpreter<'a> {
                             Some(SpecialRegister::Exec) => (AmdRegisterFile::Scalar, 126, 2),
                             Some(SpecialRegister::ExecLo) => (AmdRegisterFile::Scalar, 126, 1),
                             Some(SpecialRegister::ExecHi) => (AmdRegisterFile::Scalar, 127, 1),
+                            Some(SpecialRegister::M0) => (AmdRegisterFile::Scalar, 124, 1),
                             _ => return,
                         },
                     };
@@ -1324,6 +1444,13 @@ impl<'a> Interpreter<'a> {
                     lanes: u64::MAX,
                 }),
             );
+        }
+        if mnemonic == "v_readlane_b32" && self.architecture == AmdArchitecture::Gfx1250 {
+            let lane = wave.bits(&instruction.operands[2], 0).unwrap_or(0) & (wave.width - 1);
+            add(&instruction.operands[0], u64::MAX, &mut writes);
+            add(&instruction.operands[1], 1u64 << lane, &mut reads);
+            add(&instruction.operands[2], u64::MAX, &mut reads);
+            return (reads, writes);
         }
         if wave.exec == 0
             && matches!(
@@ -1421,8 +1548,9 @@ impl<'a> Interpreter<'a> {
             add(&instruction.operands[2], u64::MAX, &mut reads);
             return (reads, writes);
         }
-        let store =
-            instruction.mnemonic.contains("store") || instruction.mnemonic.starts_with("ds_write");
+        let store = instruction.mnemonic.contains("store")
+            || instruction.mnemonic.starts_with("ds_write")
+            || instruction.mnemonic == "global_atomic_add_f32";
         let no_destination = instruction.mnemonic.starts_with("tensor_")
             || (wave.width == 32 && mnemonic.starts_with("v_cmpx_"))
             || matches!(
@@ -1453,6 +1581,7 @@ impl<'a> Interpreter<'a> {
             mnemonic,
             "v_fmac_f32"
                 | "v_fmac_f64"
+                | "v_fmac_f16"
                 | "v_fma_mixlo_f16"
                 | "v_fma_mixhi_f16"
                 | "s_mulk_i32"
@@ -1462,12 +1591,39 @@ impl<'a> Interpreter<'a> {
             add(&instruction.operands[0], wave.exec, &mut reads);
         }
         if self.architecture == AmdArchitecture::Gfx1250
+            && matches!(
+                mnemonic,
+                "v_add_f16"
+                    | "v_sub_f16"
+                    | "v_mul_f16"
+                    | "v_max_f16"
+                    | "v_min_f16"
+                    | "v_cvt_f16_f32"
+            )
+        {
+            // True16 arithmetic updates low16 and preserves the destination
+            // high16, including any asynchronous producer of that half.
+            add(&instruction.operands[0], wave.exec, &mut reads);
+        }
+        if self.architecture == AmdArchitecture::Gfx1250
             && instruction.opcode == Opcode::VectorMemory
             && wave.exec != 0
         {
             reads.push(AmdRegister {
                 file: AmdRegisterFile::Scalar,
                 index: 126,
+                lanes: u64::MAX,
+            });
+        }
+        if instruction.mnemonic == "s_barrier_init"
+            && !matches!(instruction.operands.as_slice(), [Operand::Integer(0)])
+            && !reads
+                .iter()
+                .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 124)
+        {
+            reads.push(AmdRegister {
+                file: AmdRegisterFile::Scalar,
+                index: 124,
                 lanes: u64::MAX,
             });
         }
@@ -1620,6 +1776,15 @@ impl<'a> Interpreter<'a> {
                 if register == SpecialRegister::Null {
                     continue;
                 }
+                if self.architecture == AmdArchitecture::Gfx1250
+                    && name == "v_mbcnt_lo_u32_b32"
+                    && index == 1
+                    && register == SpecialRegister::ExecLo
+                {
+                    // Wave32 lane rank uses the architectural concrete EXEC
+                    // mask; the default gfx1250 ALU pipeline is interlocked.
+                    continue;
+                }
                 let selector = name == "v_cndmask_b32" && index == 3;
                 let carry = matches!(name, "v_addc_co_u32" | "v_subb_co_u32" | "v_subbrev_co_u32")
                     && index == 4;
@@ -1639,44 +1804,47 @@ impl<'a> Interpreter<'a> {
             Opcode::Wait => self.wait(wave, &instruction)?,
             Opcode::Barrier if self.architecture == AmdArchitecture::Gfx1250 => {
                 if !matches!(instruction.operands.as_slice(), [Operand::Integer(-1)]) {
-                    return Err(self.unsupported(wave, &instruction));
-                }
-                match name {
-                    "s_barrier_signal" => {
-                        if wave.signal_generation == Some(wave.generation) {
-                            return Err(wave.fail(
-                                None,
-                                "duplicate workgroup barrier signal before phase wait",
-                            ));
-                        }
-                        self.builder.amd_event(
-                            wave.id,
-                            ProgramPoint(wave.pc as u32),
-                            AmdEventKind::SplitBarrierSignal {
-                                barrier: -1,
-                                generation: wave.generation,
-                                exec_mask: wave.exec,
-                            },
-                        );
-                        wave.signal_generation = Some(wave.generation);
-                    }
-                    "s_barrier_wait" => {
-                        if wave.signal_generation != Some(wave.generation) {
-                            return Err(self.unsupported(wave, &instruction));
-                        }
-                        self.builder.amd_event(
-                            wave.id,
-                            ProgramPoint(wave.pc as u32),
-                            AmdEventKind::SplitBarrierWait {
-                                barrier: -1,
-                                generation: wave.generation,
-                            },
-                        );
-                        wave.at_barrier = Some(wave.generation);
-                        self.stats.block_syncs += 1;
+                    if self.named_barrier(wave, &instruction)? {
                         return Ok(());
                     }
-                    _ => return Err(self.unsupported(wave, &instruction)),
+                } else {
+                    match name {
+                        "s_barrier_signal" => {
+                            if wave.signal_generation == Some(wave.generation) {
+                                return Err(wave.fail(
+                                    None,
+                                    "duplicate workgroup barrier signal before phase wait",
+                                ));
+                            }
+                            self.builder.amd_event(
+                                wave.id,
+                                ProgramPoint(wave.pc as u32),
+                                AmdEventKind::SplitBarrierSignal {
+                                    barrier: -1,
+                                    generation: wave.generation,
+                                    exec_mask: wave.exec,
+                                },
+                            );
+                            wave.signal_generation = Some(wave.generation);
+                        }
+                        "s_barrier_wait" => {
+                            if wave.signal_generation != Some(wave.generation) {
+                                return Err(self.unsupported(wave, &instruction));
+                            }
+                            self.builder.amd_event(
+                                wave.id,
+                                ProgramPoint(wave.pc as u32),
+                                AmdEventKind::SplitBarrierWait {
+                                    barrier: -1,
+                                    generation: wave.generation,
+                                },
+                            );
+                            wave.at_barrier = Some(wave.generation);
+                            self.stats.block_syncs += 1;
+                            return Ok(());
+                        }
+                        _ => return Err(self.unsupported(wave, &instruction)),
+                    }
                 }
             }
             Opcode::Barrier => {
@@ -1713,6 +1881,9 @@ impl<'a> Interpreter<'a> {
             }
             Opcode::Control => match name {
                 "v_nop" => {}
+                "s_sendmsg"
+                    if self.architecture == AmdArchitecture::Gfx1250
+                        && instruction.operands == [Operand::Integer(3)] => {}
                 "s_endpgm" => {
                     // CDNA4 S_ENDPGM drains all memory counters before the wave
                     // terminates and ceases participating in workgroup barriers.
@@ -1861,6 +2032,14 @@ impl<'a> Interpreter<'a> {
             self.claim_word_format(wave, expr, WordFormat::Float32)?;
             return Ok(expr);
         }
+        if let Value::IntExpr(expr) = value {
+            if let Some(pattern) = self.float_bit_patterns.get(&expr).cloned() {
+                for input in pattern.input_words {
+                    self.claim_word_format(wave, input, WordFormat::Float32)?;
+                }
+                return Ok(pattern.decoded);
+            }
+        }
         value
             .real(&mut self.arena)
             .map_err(|e| wave.fail(Some(lane), e))
@@ -1933,7 +2112,31 @@ impl<'a> Interpreter<'a> {
                 self.claim_byte_format(wave, expr, ByteFormat::UnsignedU8)?;
                 Ok(expr)
             }
-            Value::IntExpr(expr) | Value::NarrowInt { expr, .. } => Ok(expr),
+            Value::IntExpr(expr) => {
+                if let Some(pattern) = self.float_bit_patterns.get(&expr).cloned() {
+                    for input in pattern.input_words {
+                        self.claim_word_format(wave, input, WordFormat::Integer32)?;
+                    }
+                }
+                Ok(expr)
+            }
+            Value::WidePart {
+                expr,
+                high: true,
+                kind: WideKind::Integer,
+            } => {
+                let value = self
+                    .arena
+                    .as_int_const(expr)
+                    .ok_or_else(|| self.unsupported(wave, &self.program.instructions[wave.pc]))?;
+                let high = ((value as u64) >> 32) as u32;
+                Ok(self.arena.int(if ty.signed {
+                    high as i32 as i64
+                } else {
+                    high as i64
+                }))
+            }
+            Value::NarrowInt { expr, .. } => Ok(expr),
             Value::SignedInteger(value) => Ok(self.arena.int(value as i64)),
             Value::Bits(value) | Value::Integer(value) => Ok(self.arena.int(if ty.signed {
                 value as i32 as i64
@@ -2067,6 +2270,39 @@ impl<'a> Interpreter<'a> {
         use super::scalar::{FloatType, IntType, ScalarType, select};
         if let Some(condition) = self.arena.as_bool(condition) {
             return self.modified_value(wave, if condition { when_true } else { when_false }, lane);
+        }
+        let half_payload = |operand: &Operand| {
+            matches!(
+                wave.value(operand, lane),
+                Ok(Value::Half(_) | Value::Halves(..) | Value::PartialHalves(..))
+            )
+        };
+        if !force_float && (half_payload(when_true) || half_payload(when_false)) {
+            // CNDMASK copies a whole encoded word. Preserve both independent
+            // half identities under the same condition rather than retyping
+            // packed floating data as an integer or selecting only low16.
+            let mut components = [None, None];
+            for (component, high) in [false, true].into_iter().enumerate() {
+                let defined = |operand: &Operand| match wave.value(operand, lane) {
+                    Ok(Value::PartialHalves(lo, hi)) => if high { hi } else { lo }.is_some(),
+                    _ => true,
+                };
+                if !defined(when_true) || !defined(when_false) {
+                    continue;
+                }
+                let a = self.half(wave, when_true, lane, high)?;
+                let b = self.half(wave, when_false, lane, high)?;
+                let a = self.decoded_float_argument(a);
+                let b = self.decoded_float_argument(b);
+                components[component] = Some(
+                    super::scalar::select_packed_half(&mut self.arena, condition, a, b)
+                        .map_err(|what| EvalError::Unsupported { pc: wave.pc, what })?,
+                );
+            }
+            return Ok(match components {
+                [Some(lo), Some(hi)] => Value::Halves(lo, hi),
+                [lo, hi] => Value::PartialHalves(lo, hi),
+            });
         }
         let is_float = |operand: &Operand| {
             if matches!(operand, Operand::Float(_) | Operand::Modified { .. }) {
@@ -2283,6 +2519,187 @@ impl<'a> Interpreter<'a> {
             wave.value(operand, lane)
         }
     }
+    fn float_bit_source(
+        &mut self,
+        value: Value,
+    ) -> Result<Option<(ExprId, FloatBitPattern)>, String> {
+        if let Some(bits) = super::float_bits::exact_word(&self.arena, value) {
+            let decoded = super::scalar::decode_float(
+                &mut self.arena,
+                super::scalar::FloatType::F32,
+                u64::from(bits),
+            )?;
+            let raw = self.arena.int(i64::from(bits));
+            return Ok(Some((
+                raw,
+                FloatBitPattern {
+                    decoded,
+                    input_words: Vec::new(),
+                },
+            )));
+        }
+        Ok(match value {
+            Value::Input(expr) => Some((
+                expr,
+                FloatBitPattern {
+                    decoded: expr,
+                    input_words: vec![expr],
+                },
+            )),
+            Value::IntExpr(expr) => self
+                .float_bit_patterns
+                .get(&expr)
+                .cloned()
+                .map(|pattern| (expr, pattern)),
+            _ => None,
+        })
+    }
+    fn float_bit_logic(
+        &mut self,
+        wave: &Wave,
+        instruction: &Instruction,
+        name: &str,
+        lane: u8,
+    ) -> Result<Option<Value>, EvalError> {
+        if self.architecture != AmdArchitecture::Gfx1250
+            || !instruction.modifiers.is_empty()
+            || instruction
+                .operands
+                .iter()
+                .any(|op| matches!(op, Operand::Modified { .. }))
+        {
+            return Ok(None);
+        }
+        let o = &instruction.operands;
+        if name == "v_and_b32" {
+            let a = wave.value(&o[1], lane)?;
+            let b = wave.value(&o[2], lane)?;
+            let source = if a.bits() == Ok(0xffff) {
+                Some(b)
+            } else if b.bits() == Ok(0xffff) {
+                Some(a)
+            } else {
+                None
+            };
+            if let Some(source) = source {
+                if let Some(masked) = source
+                    .mask_low16()
+                    .map_err(|error| wave.fail(Some(lane), error))?
+                {
+                    return Ok(Some(masked));
+                }
+            }
+        }
+        if matches!(name, "v_and_b32" | "v_xor_b32") {
+            let mask = if name == "v_and_b32" {
+                0x7fff_ffff
+            } else {
+                0x8000_0000
+            };
+            let a = wave.value(&o[1], lane)?;
+            let b = wave.value(&o[2], lane)?;
+            let source = if super::float_bits::exact_word(&self.arena, a) == Some(mask) {
+                b
+            } else if super::float_bits::exact_word(&self.arena, b) == Some(mask) {
+                a
+            } else {
+                return Ok(None);
+            };
+            // Concrete bit operations keep their ordinary typed integer path.
+            if !matches!(source, Value::Input(_) | Value::IntExpr(_)) {
+                return Ok(None);
+            }
+            if let Some((source, mut pattern)) = self
+                .float_bit_source(source)
+                .map_err(|e| wave.fail(Some(lane), e))?
+            {
+                let mask = self.arena.int(i64::from(mask));
+                let raw = if name == "v_and_b32" {
+                    self.arena.bit_and(source, mask)
+                } else {
+                    self.arena.bit_xor(source, mask)
+                };
+                pattern.decoded = if name == "v_and_b32" {
+                    self.arena.abs(pattern.decoded)
+                } else {
+                    self.arena.neg(pattern.decoded)
+                };
+                self.float_bit_patterns.insert(raw, pattern);
+                return Ok(Some(Value::IntExpr(raw)));
+            }
+        }
+        if name == "v_bfi_b32" {
+            // Halfword copies have their own tagged path, which preserves an
+            // unavailable unselected half. Do not eagerly demand both sources
+            // merely to decide whether this is an F32 sign/magnitude idiom.
+            if wave
+                .value(&o[1], lane)?
+                .bits()
+                .is_ok_and(|mask| matches!(mask, 0xffff | 0xffff0000))
+            {
+                return Ok(None);
+            }
+            let values = [
+                wave.value(&o[1], lane)?,
+                wave.value(&o[2], lane)?,
+                wave.value(&o[3], lane)?,
+            ];
+            let words = values.map(|v| super::float_bits::exact_word(&self.arena, v));
+            if let [Some(mask), Some(insert), Some(base)] = words {
+                return Ok(Some(Value::Bits(super::scalar::bfi32(mask, insert, base))));
+            }
+            if let Some(mask @ (0x7fff_ffff | 0x8000_0000)) = words[0] {
+                let insert = self
+                    .float_bit_source(values[1])
+                    .map_err(|e| wave.fail(Some(lane), e))?;
+                let base = self
+                    .float_bit_source(values[2])
+                    .map_err(|e| wave.fail(Some(lane), e))?;
+                if let (Some((insert, mut insert_pattern)), Some((base, base_pattern))) =
+                    (insert, base)
+                {
+                    let constant = self.arena.int(i64::from(mask));
+                    let inverted = self.arena.int(i64::from(!mask));
+                    let left = self.arena.bit_and(insert, constant);
+                    let right = self.arena.bit_and(base, inverted);
+                    let raw = self.arena.bit_or(left, right);
+                    let (sign, magnitude) = if mask == 0x7fff_ffff {
+                        (base_pattern.decoded, insert_pattern.decoded)
+                    } else {
+                        (insert_pattern.decoded, base_pattern.decoded)
+                    };
+                    insert_pattern.decoded =
+                        super::scalar::copysign(&mut self.arena, sign, magnitude);
+                    insert_pattern.input_words.extend(base_pattern.input_words);
+                    self.float_bit_patterns.insert(raw, insert_pattern);
+                    return Ok(Some(Value::IntExpr(raw)));
+                }
+            }
+        }
+        Ok(None)
+    }
+    /// Exact encoded byte transport only. Unknown bytes stay absent; no array
+    /// interpretation is claimed until a numeric decoder actually consumes one.
+    fn encoded_bytes(&mut self, value: Value) -> Option<[Option<ExprId>; 4]> {
+        let zero = self.arena.int(0);
+        Some(match value {
+            Value::Byte(a) => [Some(a), Some(zero), Some(zero), Some(zero)],
+            Value::BytePair(a, b) => [Some(a), Some(b), Some(zero), Some(zero)],
+            Value::PartialBytePair(a, b) => [Some(a), Some(b), None, None],
+            Value::Bytes(bytes) => bytes.map(Some),
+            Value::PartialBits { bits, defined } => std::array::from_fn(|i| {
+                ((defined >> (i * 8)) & 255 == 255)
+                    .then(|| self.arena.int(((bits >> (i * 8)) & 255) as i64))
+            }),
+            Value::Bits(bits) | Value::Integer(bits) => {
+                std::array::from_fn(|i| Some(self.arena.int(((bits >> (i * 8)) & 255) as i64)))
+            }
+            Value::SignedInteger(bits) => std::array::from_fn(|i| {
+                Some(self.arena.int((((bits as u32) >> (i * 8)) & 255) as i64))
+            }),
+            _ => return None,
+        })
+    }
     fn fp8(
         &mut self,
         wave: &Wave,
@@ -2297,6 +2714,17 @@ impl<'a> Interpreter<'a> {
             Value::Bytes(bytes) => {
                 self.claim_byte_format(wave, bytes[byte], ByteFormat::OcpE4m3)?;
                 return Ok(bytes[byte]);
+            }
+            Value::PartialBytePair(lo, hi) => {
+                if byte >= 2 {
+                    return Err(wave.fail(
+                        Some(lane),
+                        "selected undefined upper byte of true16 packing",
+                    ));
+                }
+                let value = if byte == 0 { lo } else { hi };
+                self.claim_byte_format(wave, value, ByteFormat::OcpE4m3)?;
+                return Ok(value);
             }
             Value::BytePair(lo, hi) => {
                 if byte < 2 {
@@ -2387,6 +2815,7 @@ impl<'a> Interpreter<'a> {
             Value::Byte(expr) if byte == Some(0) || selector == "DWORD" => Some(expr),
             Value::Byte(_) if byte.is_some() => return Ok(self.arena.int(0)),
             Value::Bytes(bytes) if byte.is_some() => Some(bytes[byte.unwrap()]),
+            Value::Low16Integer(expr) if selector == "DWORD" => return Ok(expr),
             Value::NarrowInt { expr, bits, signed }
                 if selector == "DWORD" && bits <= 16 && signed =>
             {
@@ -2430,6 +2859,29 @@ impl<'a> Interpreter<'a> {
             selected as i16 as i64
         };
         Ok(self.arena.int(number))
+    }
+    /// Copy an encoded half without assigning a numeric format. Symbolic
+    /// global halfwords remain untyped until F16/BF16 arithmetic consumes them.
+    /// Raw nonzero constants retain the existing F16 interpretation and the
+    /// BF16 matrix input guard rejects their cross-format reinterpretation.
+    fn copied_half(
+        &mut self,
+        wave: &Wave,
+        operand: &Operand,
+        lane: u8,
+        high: bool,
+    ) -> Result<ExprId, EvalError> {
+        match wave.value(operand, lane)? {
+            Value::Half(expr) => Ok(if high { self.arena.int(0) } else { expr }),
+            Value::Halves(lo, hi) => Ok(if high { hi } else { lo }),
+            Value::PartialHalves(lo, hi) => {
+                if high { hi } else { lo }.ok_or_else(|| EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "unknown half after partial register write".into(),
+                })
+            }
+            _ => self.half(wave, operand, lane, high),
+        }
     }
     fn half(
         &mut self,
@@ -2499,18 +2951,21 @@ impl<'a> Interpreter<'a> {
                     .float_from_f64(value)
                     .map_err(|e| wave.fail(Some(lane), e.to_string()))
             }
+            Value::IntExpr(expr) => super::scalar::decode_half_select(&mut self.arena, expr, high)
+                .map_err(|what| EvalError::Unsupported { pc: wave.pc, what }),
             Value::Input(_)
-            | Value::IntExpr(_)
             | Value::PredicateWord { .. }
             | Value::RelocationWord { .. }
             | Value::SharedApertureHi
             | Value::PartialBits { .. }
             | Value::NarrowInt { .. }
+            | Value::Low16Integer(_)
             | Value::WidePart { .. }
             | Value::Real(_)
             | Value::Byte(_)
             | Value::Bytes(_)
-            | Value::BytePair(..) => Err(EvalError::Unsupported {
+            | Value::BytePair(..)
+            | Value::PartialBytePair(..) => Err(EvalError::Unsupported {
                 pc: wave.pc,
                 what: "symbolic non-f16 bits reinterpreted as half".into(),
             }),
@@ -2595,6 +3050,9 @@ impl<'a> Interpreter<'a> {
         instruction: &Instruction,
         name: &str,
     ) -> Result<(), EvalError> {
+        if self.module_address_scalar(wave, instruction)? {
+            return Ok(());
+        }
         if matches!(name, "s_add_nc_u64" | "s_mul_u64") {
             let a = wave.wide(&instruction.operands[1], 0)?;
             let b = wave.wide(&instruction.operands[2], 0)?;
@@ -2607,18 +3065,39 @@ impl<'a> Interpreter<'a> {
             wave.put(reg, 0, 0, Value::Integer(value as u32))?;
             return wave.put(reg, 0, 1, Value::Integer((value >> 32) as u32));
         }
-        if matches!(name, "s_sub_f32" | "s_mul_f32" | "s_min_num_f32") {
+        if matches!(
+            name,
+            "s_add_f32" | "s_sub_f32" | "s_mul_f32" | "s_min_num_f32"
+        ) {
             if !instruction.modifiers.is_empty() {
                 return Err(self.unsupported(wave, instruction));
             }
             let a = self.real(wave, &instruction.operands[1], 0)?;
             let b = self.real(wave, &instruction.operands[2], 0)?;
             let value = match name {
+                "s_add_f32" => self.arena.add(a, b),
                 "s_sub_f32" => self.arena.sub(a, b),
                 "s_mul_f32" => self.arena.mul(a, b),
                 _ => self.arena.min(a, b),
             };
             return wave.put_value(&instruction.operands[0], 0, Value::Real(value));
+        }
+        if matches!(name, "s_cvt_f32_i32" | "s_cvt_f32_u32") {
+            if self.architecture != AmdArchitecture::Gfx1250 || !instruction.modifiers.is_empty() {
+                return Err(self.unsupported(wave, instruction));
+            }
+            let ty = super::scalar::IntType {
+                bits: 32,
+                signed: name == "s_cvt_f32_i32",
+            };
+            let expr = self.integer_expression(wave, &instruction.operands[1], 0, ty)?;
+            let expr = if let Some(value) = self.arena.as_int_const(expr) {
+                self.arena
+                    .int(super::scalar::canonical_int(value, ty).map_err(|e| wave.fail(None, e))?)
+            } else {
+                expr
+            };
+            return wave.put_value(&instruction.operands[0], 0, Value::Real(expr));
         }
         if name == "s_getreg_b32" {
             if self.architecture != AmdArchitecture::Gfx1250
@@ -2627,9 +3106,6 @@ impl<'a> Interpreter<'a> {
                 return Err(self.unsupported(wave, instruction));
             }
             return wave.put_value(&instruction.operands[0], 0, Value::Integer(0));
-        }
-        if self.module_address_scalar(wave, instruction)? {
-            return Ok(());
         }
         if !name.starts_with("s_cmp_")
             && !name.starts_with("s_cmpk_")
@@ -2644,6 +3120,8 @@ impl<'a> Interpreter<'a> {
                     | "s_bitset1_b32"
                     | "s_sext_i32_i16"
                     | "s_ff1_i32_b64"
+                    | "s_ff1_i32_b32"
+                    | "s_brev_b32"
                     | "s_cselect_b32"
                     | "s_cselect_b64"
                     | "s_and_b64"
@@ -2668,6 +3146,7 @@ impl<'a> Interpreter<'a> {
                     | "s_mul_hi_u32"
                     | "s_and_b32"
                     | "s_or_b32"
+                    | "s_nor_b32"
                     | "s_xor_b32"
                     | "s_andn2_b32"
                     | "s_not_b32"
@@ -2693,6 +3172,63 @@ impl<'a> Interpreter<'a> {
         let o = &instruction.operands;
         if !instruction.modifiers.is_empty() {
             return Err(self.unsupported(wave, instruction));
+        }
+        if self.architecture == AmdArchitecture::Gfx1250
+            && matches!(
+                name,
+                "s_add_i32"
+                    | "s_sub_i32"
+                    | "s_add_u32"
+                    | "s_sub_u32"
+                    | "s_add_nc_u32"
+                    | "s_sub_nc_u32"
+                    | "s_mul_i32"
+                    | "s_xor_b32"
+                    | "s_and_b32"
+                    | "s_lshr_b32"
+            )
+            && [1, 2].into_iter().any(|i| {
+                matches!(
+                    wave.value(&o[i], 0),
+                    Ok(Value::Input(_) | Value::IntExpr(_) | Value::NarrowInt { .. })
+                )
+            })
+        {
+            use super::scalar::{IntBinOp, IntType};
+            let ty = IntType {
+                bits: 32,
+                signed: name.ends_with("i32"),
+            };
+            let a = self.integer_expression(wave, &o[1], 0, ty)?;
+            let b = self.integer_expression(wave, &o[2], 0, ty)?;
+            let op = if name == "s_xor_b32" {
+                IntBinOp::Xor
+            } else if name == "s_and_b32" {
+                IntBinOp::And
+            } else if name == "s_lshr_b32" {
+                IntBinOp::LShr
+            } else if name.starts_with("s_mul") {
+                IntBinOp::MulLo
+            } else if name.starts_with("s_sub") {
+                IntBinOp::Sub
+            } else {
+                IntBinOp::Add
+            };
+            let value = super::scalar::int_binary(&mut self.arena, ty, op, a, b)
+                .map_err(|e| wave.fail(None, e))?;
+            if matches!(name, "s_xor_b32" | "s_and_b32" | "s_lshr_b32") {
+                let zero = self.arena.int(0);
+                let nonzero = self.arena.ne(value, zero);
+                if let Some(nonzero) = self.arena.as_bool(nonzero) {
+                    wave.set_scc(nonzero);
+                } else {
+                    wave.clear_scc();
+                    wave.scc_condition = Some(nonzero);
+                }
+            } else if !matches!(name, "s_mul_i32" | "s_add_nc_u32" | "s_sub_nc_u32") {
+                wave.clear_scc();
+            }
+            return wave.put_value(&o[0], 0, Value::IntExpr(value));
         }
         if name.starts_with("s_bitcmp") {
             let bits = if name.ends_with("b64") {
@@ -2733,6 +3269,44 @@ impl<'a> Interpreter<'a> {
             wave.set_scc(result);
             return Ok(());
         }
+        if self.architecture == AmdArchitecture::Gfx1250
+            && name.starts_with("s_cmp_")
+            && matches!(name.rsplit('_').next(), Some("i32" | "u32"))
+            && [0, 1].into_iter().any(|i| {
+                matches!(
+                    wave.value(&o[i], 0),
+                    Ok(Value::Input(_) | Value::IntExpr(_) | Value::NarrowInt { .. })
+                )
+            })
+        {
+            use super::scalar::{CmpOp, IntType, ScalarType};
+            let op = match name.trim_start_matches("s_cmp_").split('_').next() {
+                Some("eq") => CmpOp::Eq,
+                Some("lg" | "ne") => CmpOp::Ne,
+                Some("lt") => CmpOp::Lt,
+                Some("le") => CmpOp::Le,
+                Some("gt") => CmpOp::Gt,
+                Some("ge") => CmpOp::Ge,
+                _ => return Err(self.unsupported(wave, instruction)),
+            };
+            // Equality observes the same32 bits for signed/unsigned encodings.
+            // Use signed canonical constants consistently for symbolic words.
+            let ty = IntType {
+                bits: 32,
+                signed: name.ends_with("i32") || matches!(op, CmpOp::Eq | CmpOp::Ne),
+            };
+            let a = self.integer_expression(wave, &o[0], 0, ty)?;
+            let b = self.integer_expression(wave, &o[1], 0, ty)?;
+            let predicate = super::scalar::compare(&mut self.arena, ScalarType::Int(ty), op, a, b)
+                .map_err(|e| wave.fail(None, e))?;
+            if let Some(value) = self.arena.as_bool(predicate) {
+                wave.set_scc(value);
+            } else {
+                wave.clear_scc();
+                wave.scc_condition = Some(predicate);
+            }
+            return Ok(());
+        }
         if name.starts_with("s_cmp_") {
             let a = wave.bits(&o[0], 0)?;
             let b = wave.bits(&o[1], 0)?;
@@ -2770,6 +3344,19 @@ impl<'a> Interpreter<'a> {
             wave.set_scc(overflow);
             return wave.put_value(dest, 0, Value::SignedInteger(value));
         }
+        if name == "s_brev_b32" {
+            let value = wave.bits(&o[1], 0)?.reverse_bits();
+            return wave.put_value(dest, 0, Value::Integer(value));
+        }
+        if name == "s_ff1_i32_b32" {
+            let bits = wave.bits(&o[1], 0)?;
+            let first = if bits == 0 {
+                -1
+            } else {
+                bits.trailing_zeros() as i32
+            };
+            return wave.put_value(dest, 0, Value::SignedInteger(first));
+        }
         if name == "s_ff1_i32_b64" {
             let source = wave.wide(&o[1], 0)?;
             let first = if source == 0 {
@@ -2794,6 +3381,36 @@ impl<'a> Interpreter<'a> {
         if name == "s_mov_b32" {
             let value = wave.value(&o[1], 0)?;
             return wave.put_value(dest, 0, value);
+        }
+        if name == "s_cselect_b32" && self.architecture == AmdArchitecture::Gfx1250 {
+            if let Some(mut condition) = wave.scc_condition {
+                let a = wave.value(&o[1], 0)?;
+                let b = wave.value(&o[2], 0)?;
+                if matches!(
+                    (a.bits(), b.bits()),
+                    (Ok(u32::MAX), Ok(0)) | (Ok(0), Ok(u32::MAX))
+                ) {
+                    if a.bits() == Ok(0) {
+                        condition = self.arena.not(condition);
+                    }
+                    return self.write_predicates(wave, Some(dest), [condition; 64]);
+                }
+                let ty = super::scalar::IntType {
+                    bits: 32,
+                    signed: false,
+                };
+                let a = self.integer_expression(wave, &o[1], 0, ty)?;
+                let b = self.integer_expression(wave, &o[2], 0, ty)?;
+                let expr = super::scalar::select(
+                    &mut self.arena,
+                    super::scalar::ScalarType::Int(ty),
+                    condition,
+                    a,
+                    b,
+                )
+                .map_err(|e| wave.fail(None, e))?;
+                return wave.put_value(dest, 0, Value::IntExpr(expr));
+            }
         }
         if name == "s_cselect_b32" || name == "s_cselect_b64" {
             let source = if wave.read_scc()? { &o[1] } else { &o[2] };
@@ -2828,7 +3445,8 @@ impl<'a> Interpreter<'a> {
                     old_exec
                 }
                 "s_andn2_saveexec_b64" => {
-                    wave.exec &= !a;
+                    // The explicit S0 is first; implicit EXEC is second.
+                    wave.exec = a & !old_exec;
                     old_exec
                 }
                 "s_lshl_b64" => a.wrapping_shl((b & 63) as u32),
@@ -2855,7 +3473,7 @@ impl<'a> Interpreter<'a> {
             let old = wave.exec;
             wave.exec = match name {
                 "s_and_saveexec_b32" => old & source,
-                "s_andn2_saveexec_b32" => old & !source,
+                "s_andn2_saveexec_b32" => source & !old,
                 _ => old | source,
             };
             wave.set_scc(wave.exec != 0);
@@ -2888,7 +3506,7 @@ impl<'a> Interpreter<'a> {
         if self.architecture == AmdArchitecture::Gfx1250
             && matches!(
                 name,
-                "s_and_b32" | "s_andn2_b32" | "s_or_b32" | "s_xor_b32" | "s_not_b32"
+                "s_and_b32" | "s_andn2_b32" | "s_or_b32" | "s_nor_b32" | "s_xor_b32" | "s_not_b32"
             )
         {
             fn partial(wave: &Wave, operand: &Operand) -> Result<(u32, u32), EvalError> {
@@ -2921,6 +3539,7 @@ impl<'a> Interpreter<'a> {
             let (bits, defined) = match name {
                 "s_and_b32" | "s_andn2_b32" => (a & b, (da & db) | (da & !a) | (db & !b)),
                 "s_or_b32" => (a | b, (da & db) | (da & a) | (db & b)),
+                "s_nor_b32" => (!(a | b), (da & db) | (da & a) | (db & b)),
                 "s_xor_b32" => (a ^ b, da & db),
                 _ => (!a, da),
             };
@@ -2929,7 +3548,7 @@ impl<'a> Interpreter<'a> {
             } else if defined == u32::MAX {
                 wave.set_scc(false);
             } else {
-                wave.scc_defined = false;
+                wave.clear_scc();
             }
             return wave.put_value(
                 dest,
@@ -2979,6 +3598,7 @@ impl<'a> Interpreter<'a> {
             "s_mul_hi_u32" => (((a as u64 * b as u64) >> 32) as u32, wave.scc),
             "s_and_b32" => (a & b, a & b != 0),
             "s_or_b32" => (a | b, a | b != 0),
+            "s_nor_b32" => (!(a | b), !(a | b) != 0),
             "s_xor_b32" => (a ^ b, a ^ b != 0),
             "s_andn2_b32" => (a & !b, a & !b != 0),
             "s_not_b32" => (!a, !a != 0),
@@ -3035,6 +3655,7 @@ impl<'a> Interpreter<'a> {
                 self.program
                     .global_address_sequences
                     .get(&anchor)
+                    .filter(|sequence| stage < sequence.form.mnemonics().len())
                     .map(|sequence| (stage, sequence))
             })
         });
@@ -3042,7 +3663,7 @@ impl<'a> Interpreter<'a> {
             return Ok(false);
         };
         if sequence.anchor_pc + stage != wave.pc
-            || instruction.mnemonic != ["s_getpc_b64", "s_add_u32", "s_addc_u32"][stage]
+            || instruction.mnemonic != sequence.form.mnemonics()[stage]
         {
             return Err(wave.fail(None, "invalid approved module-address sequence stage"));
         }
@@ -3078,7 +3699,11 @@ impl<'a> Interpreter<'a> {
                     return Err(wave.fail(None, "PC-relative low stage lost its opaque anchor"));
                 }
                 wave.put(pair, 0, 0, Value::Bits(address as u32))?;
-                wave.scc_defined = false;
+                if sequence.form == crate::ir::GlobalAddressForm::Rel64 {
+                    wave.put(pair, 0, 1, Value::Bits((address >> 32) as u32))?;
+                } else {
+                    wave.clear_scc();
+                }
             }
             2 => {
                 if wave.reg(pair, 0, 0)?.bits().ok() != Some(address as u32)
@@ -3089,7 +3714,7 @@ impl<'a> Interpreter<'a> {
                 wave.put(pair, 0, 1, Value::Bits((address >> 32) as u32))?;
                 // The chosen abstract storage address determines the pointer,
                 // not the actual code address or linker carry/overflow bits.
-                wave.scc_defined = false;
+                wave.clear_scc();
             }
             _ => unreachable!(),
         }
@@ -3405,7 +4030,9 @@ impl<'a> Interpreter<'a> {
         if matches!(
             name,
             "v_readlane_b32" | "v_readfirstlane_b32" | "v_writelane_b32"
-        ) {
+        ) && !(matches!(name, "v_readlane_b32" | "v_readfirstlane_b32")
+            && self.architecture == AmdArchitecture::Gfx1250)
+        {
             return Err(EvalError::Unsupported {
                 pc: wave.pc,
                 what: "lane/accumulator register moves need Table 11 software dependency checks"
@@ -3446,11 +4073,140 @@ impl<'a> Interpreter<'a> {
             return wave.put_value(&o[0], 0, Value::Real(value));
         }
         if self.architecture == AmdArchitecture::Gfx1250
+            && (name == "v_ashrrev_i16" || name == "v_bfe_i32")
+        {
+            if !instruction.modifiers.is_empty()
+                || o.iter()
+                    .any(|operand| matches!(operand, Operand::Modified { .. }))
+            {
+                return Err(self.unsupported(wave, instruction));
+            }
+            let uniform_bits = |operand: &Operand| {
+                if matches!(operand, Operand::Register(register) if matches!(register.class, RegisterClass::Vector | RegisterClass::Accumulator))
+                {
+                    None
+                } else {
+                    wave.bits(operand, 0).ok()
+                }
+            };
+            let (operand, byte) = if name == "v_ashrrev_i16" && uniform_bits(&o[1]) == Some(8) {
+                (&o[2], Some(1))
+            } else if name == "v_bfe_i32" && uniform_bits(&o[3]) == Some(8) {
+                let offset = uniform_bits(&o[2]);
+                (
+                    &o[1],
+                    offset
+                        .filter(|offset| *offset < 32 && *offset % 8 == 0)
+                        .map(|offset| offset / 8),
+                )
+            } else {
+                (&o[1], None)
+            };
+            if let Some(byte) = byte {
+                let lanes = wave.active().collect::<Vec<_>>();
+                let mut decoded = Vec::new();
+                for lane in &lanes {
+                    let value = wave.value(operand, *lane)?;
+                    let zero = self.arena.int(0);
+                    let expr = match value {
+                        Value::Bytes(values) => Some(values[byte as usize]),
+                        Value::Byte(expr) => Some(if byte == 0 { expr } else { zero }),
+                        Value::BytePair(a, b) => Some(match byte {
+                            0 => a,
+                            1 => b,
+                            _ => zero,
+                        }),
+                        _ => None,
+                    };
+                    if let Some(expr) = expr {
+                        self.claim_byte_format(wave, expr, ByteFormat::SignedI8)?;
+                        decoded.push((*lane, expr));
+                    } else {
+                        break;
+                    }
+                }
+                if decoded.len() == lanes.len() {
+                    for (lane, expr) in decoded {
+                        wave.put_value(
+                            &o[0],
+                            lane,
+                            if name == "v_ashrrev_i16" {
+                                Value::Low16Integer(expr)
+                            } else {
+                                Value::NarrowInt {
+                                    expr,
+                                    bits: 8,
+                                    signed: true,
+                                }
+                            },
+                        )?;
+                    }
+                    return Ok(());
+                }
+            }
+            if name == "v_ashrrev_i16" {
+                if !instruction.modifiers.is_empty() {
+                    return Err(self.unsupported(wave, instruction));
+                }
+                for lane in wave.active().collect::<Vec<_>>() {
+                    let shift = wave
+                        .value(&o[1], lane)?
+                        .selected_bits(0, 4)
+                        .map_err(|e| wave.fail(Some(lane), e))?;
+                    let source = wave
+                        .value(&o[2], lane)?
+                        .selected_bits(0, 16)
+                        .map_err(|e| wave.fail(Some(lane), e))?;
+                    let result = self.arena.int(((source as i16) >> shift) as i64);
+                    wave.put_value(&o[0], lane, Value::Low16Integer(result))?;
+                }
+                return Ok(());
+            }
+        }
+        if self.architecture == AmdArchitecture::Gfx1250
+            && matches!(name, "v_pk_mul_lo_u16" | "v_pk_sub_i16")
+        {
+            if !instruction
+                .modifiers
+                .iter()
+                .all(|m| matches!(m.name.as_str(), "op_sel" | "op_sel_hi"))
+            {
+                return Err(self.unsupported(wave, instruction));
+            }
+            let low = selectors(instruction, "op_sel", 2, 0)
+                .ok_or_else(|| self.unsupported(wave, instruction))?;
+            let high = selectors(instruction, "op_sel_hi", 2, 1)
+                .ok_or_else(|| self.unsupported(wave, instruction))?;
+            for lane in wave.active().collect::<Vec<_>>() {
+                let mut result = 0u32;
+                for (half, selection) in [low.as_slice(), high.as_slice()].into_iter().enumerate() {
+                    let a = wave
+                        .value(&o[1], lane)?
+                        .selected_bits(u32::from(selection[0]) * 16, 16)
+                        .map_err(|e| wave.fail(Some(lane), e))?;
+                    let b = wave
+                        .value(&o[2], lane)?
+                        .selected_bits(u32::from(selection[1]) * 16, 16)
+                        .map_err(|e| wave.fail(Some(lane), e))?;
+                    let bits = if name == "v_pk_mul_lo_u16" {
+                        a.wrapping_mul(b)
+                    } else {
+                        a.wrapping_sub(b)
+                    };
+                    result |= (bits & 65535) << (half * 16);
+                }
+                wave.put_value(&o[0], lane, Value::Integer(result))?;
+            }
+            return Ok(());
+        }
+        if self.architecture == AmdArchitecture::Gfx1250
             && matches!(
                 name,
-                "v_lshlrev_b16" | "v_sub_u16" | "v_mul_lo_u16" | "v_bitop3_b16"
+                "v_lshlrev_b16" | "v_lshrrev_b16" | "v_sub_u16" | "v_mul_lo_u16" | "v_bitop3_b16"
             )
         {
+            // True16 shifts observe low16 data and low4 count bits. The
+            // remaining destination bits stay undefined in this profile.
             if (name != "v_bitop3_b16" && !instruction.modifiers.is_empty())
                 || (name == "v_bitop3_b16"
                     && (instruction.modifiers.len() != 1
@@ -3461,14 +4217,44 @@ impl<'a> Interpreter<'a> {
             for lane in wave.active().collect::<Vec<_>>() {
                 let a = wave
                     .value(&o[1], lane)?
-                    .selected_bits(0, 16)
+                    .selected_bits(
+                        0,
+                        if matches!(name, "v_lshlrev_b16" | "v_lshrrev_b16") {
+                            4
+                        } else {
+                            16
+                        },
+                    )
                     .map_err(|e| wave.fail(Some(lane), e))?;
+                if matches!(name, "v_lshlrev_b16" | "v_lshrrev_b16") && matches!(a, 0 | 8) {
+                    let source = wave.value(&o[2], lane)?;
+                    if matches!(
+                        source,
+                        Value::Byte(_)
+                            | Value::BytePair(..)
+                            | Value::PartialBytePair(..)
+                            | Value::Bytes(_)
+                    ) {
+                        let bytes = self.encoded_bytes(source).expect("encoded byte tag");
+                        let zero = self.arena.int(0);
+                        let (lo, hi) = match (name, a) {
+                            (_, 0) => (bytes[0], bytes[1]),
+                            ("v_lshlrev_b16", 8) => (Some(zero), bytes[0]),
+                            _ => (bytes[1], Some(zero)),
+                        };
+                        if let (Some(lo), Some(hi)) = (lo, hi) {
+                            wave.put_value(&o[0], lane, Value::PartialBytePair(lo, hi))?;
+                            continue;
+                        }
+                    }
+                }
                 let b = wave
                     .value(&o[2], lane)?
                     .selected_bits(0, 16)
                     .map_err(|e| wave.fail(Some(lane), e))?;
                 let value = match name {
                     "v_lshlrev_b16" => b.wrapping_shl(a & 15),
+                    "v_lshrrev_b16" => b >> a,
                     "v_sub_u16" => a.wrapping_sub(b),
                     "v_mul_lo_u16" => a.wrapping_mul(b),
                     _ => {
@@ -3504,7 +4290,10 @@ impl<'a> Interpreter<'a> {
             return Ok(());
         }
         let packed = name.starts_with("v_pk_");
-        let mix = matches!(name, "v_fma_mixlo_f16" | "v_fma_mixhi_f16");
+        let mix = matches!(
+            name,
+            "v_fma_mixlo_f16" | "v_fma_mixhi_f16" | "v_fma_mix_f32"
+        );
         let half_select_high = instruction.modifiers.iter().any(|modifier| {
             modifier.name == "src0_sel" && modifier.value.as_deref() == Some("WORD_1")
         });
@@ -3543,7 +4332,16 @@ impl<'a> Interpreter<'a> {
         {
             return Err(self.unsupported(wave, instruction));
         }
-        let valid_modifiers = if packed || mix {
+        let native_packed_f32 = self.architecture == AmdArchitecture::Gfx1250
+            && matches!(name, "v_pk_mul_f32" | "v_pk_add_f32" | "v_pk_fma_f32");
+        let valid_modifiers = if native_packed_f32 {
+            instruction.modifiers.iter().all(|modifier| {
+                matches!(
+                    modifier.name.as_str(),
+                    "op_sel" | "op_sel_hi" | "neg_lo" | "neg_hi"
+                )
+            })
+        } else if packed || mix {
             instruction
                 .modifiers
                 .iter()
@@ -3579,12 +4377,19 @@ impl<'a> Interpreter<'a> {
                     .is_some_and(|value| value <= 255)
         } else if name == "v_cvt_f32_fp8" {
             instruction.modifiers.iter().all(|modifier| {
-                matches!(
-                    (modifier.name.as_str(), modifier.value.as_deref()),
-                    ("src0_sel", Some("BYTE_0" | "BYTE_1" | "BYTE_2" | "BYTE_3"))
-                        | ("dst_sel", Some("DWORD"))
-                        | ("dst_unused", Some("UNUSED_PAD"))
-                )
+                (self.architecture == AmdArchitecture::Gfx1250
+                    && modifier.name == "byte_sel"
+                    && modifier
+                        .value
+                        .as_deref()
+                        .and_then(parse_u64)
+                        .is_some_and(|byte| byte <= 3))
+                    || matches!(
+                        (modifier.name.as_str(), modifier.value.as_deref()),
+                        ("src0_sel", Some("BYTE_0" | "BYTE_1" | "BYTE_2" | "BYTE_3"))
+                            | ("dst_sel", Some("DWORD"))
+                            | ("dst_unused", Some("UNUSED_PAD"))
+                    )
             })
         } else if half_op {
             instruction.modifiers.iter().all(|modifier| {
@@ -3721,6 +4526,20 @@ impl<'a> Interpreter<'a> {
             return Ok(());
         }
         if matches!(name, "v_pk_mul_f32" | "v_pk_add_f32" | "v_pk_fma_f32") {
+            if ["neg_lo", "neg_hi"].iter().any(|name| {
+                instruction
+                    .modifiers
+                    .iter()
+                    .filter(|modifier| modifier.name == *name)
+                    .count()
+                    > 1
+            }) {
+                return Err(self.unsupported(wave, instruction));
+            }
+            let low_neg = selectors(instruction, "neg_lo", o.len() - 1, 0)
+                .ok_or_else(|| self.unsupported(wave, instruction))?;
+            let high_neg = selectors(instruction, "neg_hi", o.len() - 1, 0)
+                .ok_or_else(|| self.unsupported(wave, instruction))?;
             let destination = wave.destination(&o[0])?;
             if destination.count != 2 {
                 return Err(self.unsupported(wave, instruction));
@@ -3733,13 +4552,23 @@ impl<'a> Interpreter<'a> {
                     } else {
                         &high_select
                     };
-                    let a = self.real_component(wave, &o[1], lane, select[0])?;
-                    let b = self.real_component(wave, &o[2], lane, select[1])?;
+                    let negate = if component == 0 { &low_neg } else { &high_neg };
+                    let mut a = self.real_component(wave, &o[1], lane, select[0])?;
+                    let mut b = self.real_component(wave, &o[2], lane, select[1])?;
+                    if negate[0] == 1 {
+                        a = self.arena.neg(a);
+                    }
+                    if negate[1] == 1 {
+                        b = self.arena.neg(b);
+                    }
                     results.push(match name {
                         "v_pk_mul_f32" => self.arena.mul(a, b),
                         "v_pk_add_f32" => self.arena.add(a, b),
                         _ => {
-                            let c = self.real_component(wave, &o[3], lane, select[2])?;
+                            let mut c = self.real_component(wave, &o[3], lane, select[2])?;
+                            if negate[2] == 1 {
+                                c = self.arena.neg(c);
+                            }
                             self.arena.fma(a, b, c)
                         }
                     });
@@ -3780,7 +4609,9 @@ impl<'a> Interpreter<'a> {
                 .trim_start_matches(prefix)
                 .rsplit_once('_')
                 .ok_or_else(|| self.unsupported(wave, instruction))?;
-            if !matches!(kind, "f32" | "i32" | "u32" | "u16") {
+            if !matches!(kind, "f32" | "i32" | "u32" | "u16")
+                && !(kind == "f16" && self.architecture == AmdArchitecture::Gfx1250)
+            {
                 return Err(self.unsupported(wave, instruction));
             }
             let start = if cmpx && wave.width == 32 {
@@ -3819,9 +4650,18 @@ impl<'a> Interpreter<'a> {
             let mut predicates = [inactive; 64];
             let mut concrete_mask = Some(0u64);
             for lane in lanes {
-                let (ty, a, b) = if kind == "f32" {
-                    let a = self.real(wave, &o[start], lane)?;
-                    let b = self.real(wave, &o[start + 1], lane)?;
+                let (ty, a, b) = if matches!(kind, "f32" | "f16") {
+                    let (a, b) = if kind == "f16" {
+                        (
+                            self.half(wave, &o[start], lane, false)?,
+                            self.half(wave, &o[start + 1], lane, false)?,
+                        )
+                    } else {
+                        (
+                            self.real(wave, &o[start], lane)?,
+                            self.real(wave, &o[start + 1], lane)?,
+                        )
+                    };
                     (
                         ScalarType::Float(FloatType::F32),
                         self.decoded_float_argument(a),
@@ -3830,7 +4670,10 @@ impl<'a> Interpreter<'a> {
                 } else {
                     let ty = IntType {
                         bits: if kind == "u16" { 16 } else { 32 },
-                        signed: kind == "i32",
+                        signed: kind == "i32"
+                            || (self.architecture == AmdArchitecture::Gfx1250
+                                && kind == "u32"
+                                && matches!(operation, CmpOp::Eq | CmpOp::Ne)),
                     };
                     let a = self.integer_expression(wave, &o[start], lane, ty)?;
                     let b = self.integer_expression(wave, &o[start + 1], lane, ty)?;
@@ -3937,6 +4780,12 @@ impl<'a> Interpreter<'a> {
             return wave.put_wide(&o[1], 0, mask);
         }
         for lane in lanes {
+            if matches!(name, "v_and_b32" | "v_xor_b32" | "v_bfi_b32") {
+                if let Some(value) = self.float_bit_logic(wave, instruction, name, lane)? {
+                    wave.put_value(&o[0], lane, value)?;
+                    continue;
+                }
+            }
             let value = match name {
                 "v_perm_b32" => {
                     let selector = wave.bits(&o[3], lane)?;
@@ -3974,10 +4823,56 @@ impl<'a> Interpreter<'a> {
                                     return Err(self.unsupported(wave, instruction));
                                 }
                                 let source = if lo < 4 { &o[2] } else { &o[1] };
-                                halves.push(self.half(wave, source, lane, lo % 4 == 2)?);
+                                halves.push(self.copied_half(wave, source, lane, lo % 4 == 2)?);
                             }
                         }
                         Value::Halves(halves[0], halves[1])
+                    }
+                }
+                "v_bfi_b32"
+                    if self.architecture == AmdArchitecture::Gfx1250
+                        && matches!(wave.bits(&o[1], lane)?, 0xffff | 0xffff0000)
+                        && [&o[2], &o[3]].iter().any(|operand| {
+                            matches!(
+                                wave.value(operand, lane),
+                                Ok(Value::Half(_) | Value::Halves(..) | Value::PartialHalves(..))
+                            )
+                        }) =>
+                {
+                    if !instruction.modifiers.is_empty()
+                        || o.iter()
+                            .any(|operand| matches!(operand, Operand::Modified { .. }))
+                    {
+                        return Err(self.unsupported(wave, instruction));
+                    }
+                    let mask = wave.bits(&o[1], lane)?;
+                    let zero = self.arena.int(0);
+                    // BFI copies encoded halves. Do not decode an untyped BF16
+                    // input as IEEE F16 while transporting it into a fragment.
+                    let component = |value: Option<Value>, high: bool| match value {
+                        Some(Value::Half(expr)) => Some(if high { zero } else { expr }),
+                        Some(Value::Halves(lo, hi)) => Some(if high { hi } else { lo }),
+                        Some(Value::PartialHalves(lo, hi)) => {
+                            if high {
+                                hi
+                            } else {
+                                lo
+                            }
+                        }
+                        Some(Value::Bits(bits) | Value::Integer(bits))
+                            if ((bits >> if high { 16 } else { 0 }) & 65535) == 0 =>
+                        {
+                            Some(zero)
+                        }
+                        _ => None,
+                    };
+                    let insert = wave.value(&o[2], lane).ok();
+                    let base = wave.value(&o[3], lane).ok();
+                    let lo = component(if mask == 0xffff { insert } else { base }, false);
+                    let hi = component(if mask == 0xffff { base } else { insert }, true);
+                    match (lo, hi) {
+                        (Some(lo), Some(hi)) => Value::Halves(lo, hi),
+                        (lo, hi) => Value::PartialHalves(lo, hi),
                     }
                 }
                 "v_fma_f16" => {
@@ -4098,6 +4993,38 @@ impl<'a> Interpreter<'a> {
                     wave.put(destination, lane, 1, Value::Real(high))?;
                     continue;
                 }
+                "v_cvt_f32_bf8" => {
+                    // The selected gfx1250 VOP1 profile decodes only byte0.
+                    // No symbolic E5M2 storage interpretation is inferred.
+                    if self.architecture != AmdArchitecture::Gfx1250
+                        || !matches!(
+                            instruction.mnemonic.as_str(),
+                            "v_cvt_f32_bf8" | "v_cvt_f32_bf8_e32"
+                        )
+                        || !instruction.modifiers.is_empty()
+                    {
+                        return Err(self.unsupported(wave, instruction));
+                    }
+                    let bits = wave.value(&o[1], lane)?.selected_bits(0, 8).map_err(|_| {
+                        EvalError::Unsupported {
+                            pc: wave.pc,
+                            what: "symbolic E5M2 decoding is not modeled".into(),
+                        }
+                    })?;
+                    let decoded =
+                        super::matrix::decode_bits(super::matrix::InputKind::Fp8E5m2, bits)
+                            .map_err(|_| {
+                                wave.fail(
+                                    Some(lane),
+                                    "OCP E5M2 NaN or infinity is outside the real-number model",
+                                )
+                            })?;
+                    Value::Real(
+                        self.arena
+                            .float_from_f64(decoded)
+                            .expect("finite E5M2 value"),
+                    )
+                }
                 "v_cvt_f32_fp8" => {
                     let byte = instruction
                         .modifiers
@@ -4106,10 +5033,19 @@ impl<'a> Interpreter<'a> {
                         .and_then(|modifier| modifier.value.as_deref())
                         .and_then(|value| value.strip_prefix("BYTE_"))
                         .and_then(|value| value.parse::<usize>().ok())
+                        .or_else(|| {
+                            instruction
+                                .modifiers
+                                .iter()
+                                .find(|modifier| modifier.name == "byte_sel")
+                                .and_then(|modifier| modifier.value.as_deref())
+                                .and_then(parse_u64)
+                                .and_then(|byte| usize::try_from(byte).ok())
+                        })
                         .unwrap_or(0);
                     Value::Real(self.fp8(wave, &o[1], lane, byte)?)
                 }
-                "v_fma_mixlo_f16" | "v_fma_mixhi_f16" => {
+                "v_fma_mixlo_f16" | "v_fma_mixhi_f16" | "v_fma_mix_f32" => {
                     let mut arguments = Vec::with_capacity(3);
                     for index in 0..3 {
                         arguments.push(if high_select[index] != 0 {
@@ -4119,6 +5055,10 @@ impl<'a> Interpreter<'a> {
                         });
                     }
                     let result = self.arena.fma(arguments[0], arguments[1], arguments[2]);
+                    if name == "v_fma_mix_f32" {
+                        wave.put_value(&o[0], lane, Value::Real(result))?;
+                        continue;
+                    }
                     let old = wave.value(&o[0], lane).ok();
                     let old_half = |high| match old {
                         Some(Value::Halves(lo, hi)) => Some(if high { hi } else { lo }),
@@ -4168,8 +5108,8 @@ impl<'a> Interpreter<'a> {
                     Value::Halves(self.real(wave, &o[1], lane)?, self.real(wave, &o[2], lane)?)
                 }
                 "v_pack_b32_f16" => Value::Halves(
-                    self.half(wave, &o[1], lane, false)?,
-                    self.half(wave, &o[2], lane, false)?,
+                    self.copied_half(wave, &o[1], lane, false)?,
+                    self.copied_half(wave, &o[2], lane, false)?,
                 ),
                 "v_add_f16" | "v_sub_f16" | "v_mul_f16" | "v_max_f16" | "v_min_f16" => {
                     let a = self.half(wave, &o[1], lane, half_select_high)?;
@@ -4181,6 +5121,12 @@ impl<'a> Interpreter<'a> {
                         "v_max_f16" => self.arena.max(a, b),
                         _ => self.arena.min(a, b),
                     })
+                }
+                "v_fmac_f16" => {
+                    let a = self.half(wave, &o[1], lane, false)?;
+                    let b = self.half(wave, &o[2], lane, false)?;
+                    let c = self.half(wave, &o[0], lane, false)?;
+                    Value::Half(self.arena.fma(a, b, c))
                 }
                 "v_max3_f16" => {
                     let a = self.half(wave, &o[1], lane, false)?;
@@ -4348,14 +5294,25 @@ impl<'a> Interpreter<'a> {
                     };
                     Value::Real(result)
                 }
-                "v_cvt_f32_ubyte2" => {
+                "v_cvt_f32_ubyte0" | "v_cvt_f32_ubyte2" | "v_cvt_f32_ubyte3" => {
+                    let byte = match name {
+                        "v_cvt_f32_ubyte0" => 0,
+                        "v_cvt_f32_ubyte2" => 2,
+                        _ => 3,
+                    };
                     let value = wave.value(&o[1], lane)?;
-                    let expr = if let Value::Bytes(bytes) = value {
-                        self.claim_byte_format(wave, bytes[2], ByteFormat::UnsignedU8)?;
-                        bytes[2]
+                    let expr = if let Some(bytes) = self.encoded_bytes(value) {
+                        let selected = bytes[byte].ok_or_else(|| {
+                            wave.fail(
+                                Some(lane),
+                                "selected undefined upper byte from true16 result",
+                            )
+                        })?;
+                        self.claim_byte_format(wave, selected, ByteFormat::UnsignedU8)?;
+                        selected
                     } else {
                         let byte = value
-                            .selected_bits(16, 8)
+                            .selected_bits(byte as u32 * 8, 8)
                             .map_err(|error| wave.fail(Some(lane), error))?;
                         self.arena.int(byte as i64)
                     };
@@ -4388,6 +5345,60 @@ impl<'a> Interpreter<'a> {
                     if name == "v_or_b32" {
                         let a = wave.value(&o[1], lane)?;
                         let b = wave.value(&o[2], lane)?;
+                        if matches!(
+                            a,
+                            Value::Byte(_)
+                                | Value::BytePair(..)
+                                | Value::PartialBytePair(..)
+                                | Value::Bytes(_)
+                        ) || matches!(
+                            b,
+                            Value::Byte(_)
+                                | Value::BytePair(..)
+                                | Value::PartialBytePair(..)
+                                | Value::Bytes(_)
+                        ) {
+                            if let (Some(a), Some(b)) =
+                                (self.encoded_bytes(a), self.encoded_bytes(b))
+                            {
+                                let mut bytes = [None; 4];
+                                for i in 0..4 {
+                                    bytes[i] = match (a[i], b[i]) {
+                                        (Some(x), other)
+                                            if self.arena.as_int_const(x) == Some(0) =>
+                                        {
+                                            other
+                                        }
+                                        (other, Some(y))
+                                            if self.arena.as_int_const(y) == Some(0) =>
+                                        {
+                                            other
+                                        }
+                                        (Some(x), Some(y)) if x == y => Some(x),
+                                        (Some(x), Some(y)) => match (
+                                            self.arena.as_int_const(x),
+                                            self.arena.as_int_const(y),
+                                        ) {
+                                            (Some(x), Some(y)) => {
+                                                Some(self.arena.int((x | y) & 255))
+                                            }
+                                            _ => None,
+                                        },
+                                        _ => None,
+                                    };
+                                }
+                                if let [Some(lo), Some(hi), upper0, upper1] = bytes {
+                                    let value = if let (Some(c), Some(d)) = (upper0, upper1) {
+                                        Value::Bytes([lo, hi, c, d])
+                                    } else {
+                                        Value::PartialBytePair(lo, hi)
+                                    };
+                                    wave.put_value(&o[0], lane, value)?;
+                                    continue;
+                                }
+                            }
+                            return Err(self.unsupported(wave, instruction));
+                        }
                         let transport = |value: Value| {
                             matches!(
                                 value,
@@ -4449,7 +5460,35 @@ impl<'a> Interpreter<'a> {
                         let result =
                             super::scalar::int_binary(&mut self.arena, ty, operation, a, b)
                                 .map_err(|what| EvalError::Unsupported { pc: wave.pc, what })?;
-                        let value = self.integer_result(result, ty.signed);
+                        let mut value = self.integer_result(result, ty.signed);
+                        // A concrete ASHR31 into the adjacent odd word is an
+                        // exact signed-widening witness. Keep its low source
+                        // unchanged; extraction rechecks that word so later
+                        // clobbers cannot resurrect the old mathematical value.
+                        if self.architecture == AmdArchitecture::Gfx1250
+                            && name == "v_ashrrev_i32"
+                            && wave.bits(&o[1], lane).is_ok_and(|count| count & 31 == 31)
+                        {
+                            if let (Operand::Register(dest), Operand::Register(source)) =
+                                (&o[0], &o[2])
+                            {
+                                if dest.class == RegisterClass::Vector
+                                    && source.class == RegisterClass::Vector
+                                    && dest.count == 1
+                                    && source.count == 1
+                                    && dest.index % 2 == 1
+                                    && source.index + 1 == dest.index
+                                {
+                                    if let Ok(bits) = wave.bits(&o[2], lane) {
+                                        value = Value::WidePart {
+                                            expr: self.arena.int(bits as i32 as i64),
+                                            high: true,
+                                            kind: WideKind::Integer,
+                                        };
+                                    }
+                                }
+                            }
+                        }
                         wave.put_value(&o[0], lane, value)?;
                         continue;
                     }
@@ -4492,6 +5531,7 @@ impl<'a> Interpreter<'a> {
                         "v_or3_b32" => a | b | wave.bits(&o[3], lane)?,
                         "v_and_or_b32" => (a & b) | wave.bits(&o[3], lane)?,
                         "v_add3_u32" => a.wrapping_add(b).wrapping_add(wave.bits(&o[3], lane)?),
+                        "v_xad_u32" => (a ^ b).wrapping_add(wave.bits(&o[3], lane)?),
                         "v_bfe_u32" | "v_bfe_i32" => {
                             super::scalar::bfe32(a, b, wave.bits(&o[3], lane)?, name == "v_bfe_i32")
                         }
@@ -4547,6 +5587,28 @@ impl<'a> Interpreter<'a> {
                     super::scalar::Clamp::Sat,
                     decoded,
                 ))
+            } else {
+                value
+            };
+            let value = if self.architecture == AmdArchitecture::Gfx1250
+                && matches!(
+                    name,
+                    "v_add_f16"
+                        | "v_sub_f16"
+                        | "v_mul_f16"
+                        | "v_max_f16"
+                        | "v_min_f16"
+                        | "v_cvt_f16_f32"
+                        | "v_fmac_f16"
+                ) {
+                let Value::Half(low) = value else {
+                    return Err(self.unsupported(wave, instruction));
+                };
+                // The hardware preserves the old upper half. If that payload
+                // is not representable by the selected packed-data model,
+                // retain it as undefined rather than inventing zero bits.
+                let high = self.half(wave, &o[0], lane, true).ok();
+                Value::PartialHalves(Some(low), high)
             } else {
                 value
             };
@@ -4766,7 +5828,6 @@ impl<'a> Interpreter<'a> {
                 "tensor footprint crosses shared allocation boundaries",
             ));
         }
-        let (reads, _) = self.instruction_registers(instruction, wave);
         let issue = self.builder.amd_event(
             wave.id,
             ProgramPoint(wave.pc as u32),
@@ -4778,10 +5839,10 @@ impl<'a> Interpreter<'a> {
                 },
                 counters: vec![(AmdCounter::Tensor, 1)],
                 destinations: vec![],
-                held_sources: reads
-                    .into_iter()
-                    .filter(|r| r.file != AmdRegisterFile::Scalar || r.index != 126)
-                    .collect(),
+                // Native TDM captures uniform descriptors at issue. Keep their
+                // Instruction reads for pending-KM readiness, without inventing
+                // an X/EXP source lease for the Tensor completion counter.
+                held_sources: vec![],
             },
         );
         let lane = wave.exec.trailing_zeros() as u8;
@@ -4862,13 +5923,128 @@ impl<'a> Interpreter<'a> {
         }
         Ok(())
     }
+    fn atomic_add_f32_no_return(
+        &mut self,
+        wave: &mut Wave,
+        instruction: &Instruction,
+    ) -> Result<(), EvalError> {
+        let operands = &instruction.operands;
+        if self.architecture != AmdArchitecture::Gfx1250
+            || operands.len() != 3
+            || instruction
+                .modifiers
+                .iter()
+                .filter(|modifier| {
+                    modifier.name == "scope" && modifier.value.as_deref() == Some("SCOPE_DEV")
+                })
+                .count()
+                != 1
+            || instruction
+                .modifiers
+                .iter()
+                .any(|modifier| !matches!(modifier.name.as_str(), "scope" | "scale_offset"))
+            || instruction
+                .modifiers
+                .iter()
+                .filter(|modifier| modifier.name == "scale_offset")
+                .count()
+                > 1
+        {
+            return Err(self.unsupported(wave, instruction));
+        }
+        if wave.exec == 0 {
+            return Ok(());
+        }
+        if wave.exec.count_ones() != 1 {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "native F32 atomic add currently requires one issuing lane per wave".into(),
+            });
+        }
+        let lane = wave.exec.trailing_zeros() as u8;
+        let scale = if instruction
+            .modifiers
+            .iter()
+            .any(|modifier| modifier.name == "scale_offset")
+        {
+            4
+        } else {
+            1
+        };
+        let address = (wave.bits(&operands[0], lane)? as u64)
+            .checked_mul(scale)
+            .and_then(|offset| wave.wide(&operands[2], lane).ok()?.checked_add(offset))
+            .ok_or_else(|| {
+                wave.fail(
+                    Some(lane),
+                    "native atomic address overflow or invalid scalar base",
+                )
+            })?;
+        self.validate_address(wave, lane, false, address, 4, true)?;
+        let previous = self
+            .global
+            .read(address, 4)
+            .map_err(|error| wave.fail(Some(lane), error))?;
+        let previous = self.real_value(wave, previous, lane)?;
+        let addend = self.real(wave, &operands[1], lane)?;
+        let next = self.arena.add(previous, addend);
+        let (reads, writes) = self.instruction_registers(instruction, wave);
+        debug_assert!(writes.is_empty());
+        let issue = self.builder.amd_event(
+            wave.id,
+            ProgramPoint(wave.pc as u32),
+            AmdEventKind::MemoryIssue {
+                class: AmdMemoryClass::GlobalAtomicAddF32NoReturn,
+                counters: vec![(AmdCounter::Store, 1), (AmdCounter::X, 1)],
+                destinations: Vec::new(),
+                held_sources: reads,
+            },
+        );
+        self.global
+            .write(address, 4, Value::Real(next))
+            .map_err(|error| wave.fail(Some(lane), error))?;
+        let thread = ThreadIx(wave.id * wave.width + lane as u32);
+        for mode in [AccessMode::Read, AccessMode::Write] {
+            let value = if mode == AccessMode::Write {
+                Some(self.builder.value(StoredValue::Scalar(next)))
+            } else {
+                None
+            };
+            let effect = self.builder.thread_access(
+                thread,
+                ProgramPoint(wave.pc as u32),
+                MemAccess {
+                    space: Space::Global,
+                    mode,
+                    ordering: OrderingKind::Atomic,
+                    proxy: Proxy::Generic,
+                    footprint: Footprint::Bytes {
+                        addr: address,
+                        width: 4,
+                    },
+                    role: OperandRole::Plain,
+                    attributed: thread,
+                    value,
+                },
+            );
+            self.builder.amd_memory_effect(issue, effect);
+        }
+        Ok(())
+    }
     fn memory_instruction(
         &mut self,
         wave: &mut Wave,
         instruction: &Instruction,
     ) -> Result<(), EvalError> {
-        let name = instruction.mnemonic.as_str();
+        let name = match instruction.mnemonic.as_str() {
+            "ds_store_b16_d16_hi" => "ds_write_b16_d16_hi",
+            "ds_load_2addr_b32" if self.architecture == AmdArchitecture::Gfx1250 => "ds_read2_b32",
+            name => name,
+        };
         let o = &instruction.operands;
+        if name == "global_atomic_add_f32" {
+            return self.atomic_add_f32_no_return(wave, instruction);
+        }
         if name.starts_with("tensor_") {
             return self.tensor(wave, instruction);
         }
@@ -4879,7 +6055,10 @@ impl<'a> Interpreter<'a> {
         let scalar = instruction.opcode == Opcode::ScalarMemory;
         let lds = instruction.opcode == Opcode::Lds;
         let dual = name.starts_with("ds_read2") || name.starts_with("ds_write2");
-        if name.contains("_d16") && !matches!(name, "ds_write_b16_d16_hi" | "ds_write_b8_d16_hi") {
+        if name.contains("_d16")
+            && !matches!(name, "ds_write_b16_d16_hi" | "ds_write_b8_d16_hi")
+            && !(self.architecture == AmdArchitecture::Gfx1250 && name == "flat_store_d16_hi_b16")
+        {
             return Err(self.unsupported(wave, instruction));
         }
         if !scalar && wave.exec == 0 {
@@ -4916,6 +6095,13 @@ impl<'a> Interpreter<'a> {
                         .and_then(|value| parse_i64(value))
                         .ok_or_else(|| self.unsupported(wave, instruction)),
                     "glc" | "slc" | "dlc" | "sc0" | "sc1" | "scale_offset" => Ok(offset),
+                    "scope"
+                        if self.architecture == AmdArchitecture::Gfx1250
+                            && flat
+                            && modifier.value.as_deref() == Some("SCOPE_SYS") =>
+                    {
+                        Ok(offset)
+                    }
                     "offset0" | "offset1" if dual => {
                         let index = if modifier.name == "offset0" { 0 } else { 1 };
                         dual_offsets[index] = modifier
@@ -4929,10 +6115,18 @@ impl<'a> Interpreter<'a> {
                 })?;
         let offset_valid = if lds {
             (0..=65535).contains(&offset)
+        } else if flat && self.architecture == AmdArchitecture::Gfx1250 {
+            // Native VFLAT_Real carries a signed24 byte displacement in bits95:72,
+            // including the generic-aperture encoding and the scalar-base form.
+            (-8_388_608..=8_388_607).contains(&offset)
         } else if flat {
             (0..=4095).contains(&offset)
         } else if scalar {
             (0..=(1 << 21) - 1).contains(&offset)
+        } else if self.architecture == AmdArchitecture::Gfx1250 && name.starts_with("global_") {
+            // LLVM FeatureFlatOffsetBits24 and VFLAT_Real encode a signed24
+            // immediate. scale_offset scales the VGPR index, not this byte offset.
+            (-8_388_608..=8_388_607).contains(&offset)
         } else {
             (-4096..=4095).contains(&offset)
         };
@@ -4997,18 +6191,54 @@ impl<'a> Interpreter<'a> {
         } else {
             0
         };
-        if scalar && ((wave.wide(&o[1], 0)? | scalar_displacement | offset as u64) & 3) != 0 {
+        let scalar_alignment = if self.architecture == AmdArchitecture::Gfx1250
+            && matches!(name, "s_load_u8" | "s_load_u16")
+        {
+            width - 1
+        } else {
+            3
+        };
+        if scalar
+            && ((wave.wide(&o[1], 0)? & 3) != 0
+                || ((scalar_displacement | offset as u64) & scalar_alignment) != 0)
+        {
             return Err(EvalError::Unsupported {
                 pc: wave.pc,
                 what: "unaligned SMEM address components require native low-bit masking semantics"
                     .into(),
             });
         }
+        let native_flat_shared = if self.architecture == AmdArchitecture::Gfx1250 && flat {
+            let mut shared = None;
+            for lane in wave.active() {
+                let (_, is_shared) = self.flat_memory_address_with_saddr(
+                    wave,
+                    if store { &o[0] } else { &o[1] },
+                    o.get(2),
+                    lane,
+                    offset,
+                )?;
+                if shared.is_some_and(|old| old != is_shared) {
+                    return Err(wave.fail(
+                        Some(lane),
+                        "FLAT instruction mixes Global and Shared apertures",
+                    ));
+                }
+                shared = Some(is_shared);
+            }
+            shared.unwrap_or(false)
+        } else {
+            false
+        };
         let class = if self.architecture == AmdArchitecture::Gfx1250 {
             if flat {
-                return Err(self.unsupported(wave, instruction));
-            }
-            if scalar {
+                match (native_flat_shared, store) {
+                    (false, false) => AmdMemoryClass::FlatGlobalLoad,
+                    (false, true) => AmdMemoryClass::FlatGlobalStore,
+                    (true, false) => AmdMemoryClass::FlatLdsLoad,
+                    (true, true) => AmdMemoryClass::FlatLdsStore,
+                }
+            } else if scalar {
                 AmdMemoryClass::ScalarLoad
             } else if lds {
                 AmdMemoryClass::Ds
@@ -5035,6 +6265,19 @@ impl<'a> Interpreter<'a> {
                 vec![(AmdCounter::Km, 1), (AmdCounter::X, 1)]
             } else if lds {
                 vec![(AmdCounter::Ds, 1)]
+            } else if flat {
+                vec![
+                    (
+                        if store {
+                            AmdCounter::Store
+                        } else {
+                            AmdCounter::Load
+                        },
+                        1,
+                    ),
+                    (AmdCounter::Ds, 1),
+                    (AmdCounter::X, 1),
+                ]
             } else if store {
                 vec![(AmdCounter::Store, 1), (AmdCounter::X, 1)]
             } else {
@@ -5109,8 +6352,11 @@ impl<'a> Interpreter<'a> {
                 }
             } else if flat {
                 let operand = if store { &o[0] } else { &o[1] };
-                let (address, shared) =
-                    self.flat_memory_address(wave, operand, lane, offset as u64)?;
+                let (address, shared) = if self.architecture == AmdArchitecture::Gfx1250 {
+                    self.flat_memory_address_with_saddr(wave, operand, o.get(2), lane, offset)?
+                } else {
+                    self.flat_memory_address(wave, operand, lane, offset as u64)?
+                };
                 effective_lds = shared;
                 (address, if store { &o[1] } else { &o[0] })
             } else if store {
@@ -5241,7 +6487,18 @@ impl<'a> Interpreter<'a> {
                     return Err(wave.fail(Some(lane), "load exceeds the declared ABI segment"));
                 }
                 if !abi {
-                    self.validate_address(wave, lane, effective_lds, addr, width, store)?;
+                    // HSA enables unaligned-access-mode, and gfx1250 has
+                    // UnalignedBufferAccess. Limit the established byte-addressed
+                    // profile to ordinary GLOBAL B32; SMEM/DS/FLAT, wider
+                    // transfers and older targets retain their existing gates.
+                    // Whole-instruction allocation bounds were checked above.
+                    if self.architecture == AmdArchitecture::Gfx1250
+                        && matches!(name, "global_load_b32" | "global_store_b32")
+                    {
+                        self.validate_memory_range(wave, lane, false, addr, width, store)?;
+                    } else {
+                        self.validate_address(wave, lane, effective_lds, addr, width, store)?;
+                    }
                 }
                 let value = if store {
                     let source_register = if dual && component >= registers_per_part {
@@ -5254,7 +6511,11 @@ impl<'a> Interpreter<'a> {
                     } else {
                         component
                     };
-                    let value = if name == "ds_write_b8_d16_hi" {
+                    let value = if name == "flat_store_d16_hi_b16" {
+                        wave.reg(source_register, lane, source_component)?
+                            .high16()
+                            .map_err(|error| wave.fail(Some(lane), error))?
+                    } else if name == "ds_write_b8_d16_hi" {
                         match wave.reg(source_register, lane, source_component)? {
                             Value::Bytes(bytes) => Value::Byte(bytes[2]),
                             Value::Byte(_) => Value::Bits(0),
@@ -5373,7 +6634,9 @@ impl<'a> Interpreter<'a> {
                             | Value::PredicateWord { .. }
                             | Value::RelocationWord { .. }
                             | Value::SharedApertureHi
-                            | Value::PartialBits { .. } => StoredValue::Opaque,
+                            | Value::PartialBits { .. }
+                            | Value::PartialBytePair(..)
+                            | Value::Low16Integer(_) => StoredValue::Opaque,
                         }))
                     } else {
                         None
@@ -5447,6 +6710,46 @@ impl<'a> Interpreter<'a> {
             }
         }
         Ok((wave.wide(operand, lane)?.wrapping_add(offset), false))
+    }
+
+    /// Resolve the two native FLAT addressing profiles without assigning a
+    /// numeric value to the process-dependent shared-memory aperture.
+    fn flat_memory_address_with_saddr(
+        &self,
+        wave: &Wave,
+        vector: &Operand,
+        scalar: Option<&Operand>,
+        lane: u8,
+        offset: i64,
+    ) -> Result<(u64, bool), EvalError> {
+        let base = scalar.unwrap_or(vector);
+        let vector_offset = if scalar.is_some() {
+            u64::from(wave.bits(vector, lane)?)
+        } else {
+            0
+        };
+        if let Operand::Register(register) = base {
+            if register.count == 2 && wave.reg(*register, lane, 1)? == Value::SharedApertureHi {
+                let low = wave
+                    .reg(*register, lane, 0)?
+                    .bits()
+                    .map_err(|error| wave.fail(Some(lane), error))?;
+                let address = u64::from(low)
+                    .checked_add(vector_offset)
+                    .and_then(|value| value.checked_add_signed(offset))
+                    .filter(|value| *value <= u64::from(u32::MAX))
+                    .ok_or_else(|| {
+                        wave.fail(Some(lane), "FLAT offset escapes the shared aperture")
+                    })?;
+                return Ok((address, true));
+            }
+        }
+        Ok((
+            wave.wide(base, lane)?
+                .wrapping_add(vector_offset)
+                .wrapping_add_signed(offset),
+            false,
+        ))
     }
     /// CDNA4 §8.2.1 forbids replay-enabled scalar-memory clauses from overwriting
     /// an address-source SGPR, except one DWORD loaded by an isolated instruction.
@@ -5553,6 +6856,24 @@ impl<'a> Interpreter<'a> {
         width: u64,
         write: bool,
     ) -> Result<(), EvalError> {
+        self.validate_memory_range(wave, lane, lds, addr, width, write)?;
+        if addr % width.min(4) != 0 {
+            return Err(wave.fail(
+                Some(lane),
+                format!("misaligned access at {addr:#x} width {width}"),
+            ));
+        }
+        Ok(())
+    }
+    fn validate_memory_range(
+        &self,
+        wave: &Wave,
+        lane: u8,
+        lds: bool,
+        addr: u64,
+        width: u64,
+        write: bool,
+    ) -> Result<(), EvalError> {
         let valid = if lds {
             addr <= self.lds_size && width <= self.lds_size - addr
         } else {
@@ -5582,12 +6903,6 @@ impl<'a> Interpreter<'a> {
             })
         {
             return Err(wave.fail(Some(lane), "store to read-only module-global object"));
-        }
-        if addr % width.min(4) != 0 {
-            return Err(wave.fail(
-                Some(lane),
-                format!("misaligned access at {addr:#x} width {width}"),
-            ));
         }
         Ok(())
     }
@@ -5646,13 +6961,21 @@ fn selectors(
 fn canonical_alu(name: &str) -> &str {
     match name {
         "s_add_co_i32" => "s_add_i32",
+        "s_sub_co_i32" => "s_sub_i32",
+        "s_addk_co_i32" => "s_addk_i32",
         "s_add_co_u32" => "s_add_u32",
         "s_add_co_ci_u32" => "s_addc_u32",
         "s_and_not1_b32" => "s_andn2_b32",
+        "s_and_not1_saveexec_b32" => "s_andn2_saveexec_b32",
+        "s_ctz_i32_b32" => "s_ff1_i32_b32",
         "v_add_nc_u32" => "v_add_u32",
         "v_sub_nc_u32" => "v_sub_u32",
+        "v_subrev_nc_u32" => "v_subrev_u32",
         "v_sub_nc_u16" => "v_sub_u16",
         "v_max_num_f32" => "v_max_f32",
+        "v_max_num_f16" => "v_max_f16",
+        "v_max3_num_f16" => "v_max3_f16",
+        "v_pk_max_num_f16" => "v_pk_max_f16",
         "v_min_num_f32" => "v_min_f32",
         "v_add_co_ci_u32" => "v_addc_co_u32",
         _ => name,

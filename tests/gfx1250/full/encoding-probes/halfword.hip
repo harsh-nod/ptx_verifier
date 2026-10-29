@@ -1,0 +1,50 @@
+#include <hip/hip_runtime.h>
+
+extern "C" __global__ void halfword_policy(unsigned *out) {
+  if (threadIdx.x != 0) return;
+  unsigned a = 0x2aaa4000u, b = 0x2aaa4200u;
+  unsigned x = 0x35553c00u;
+  asm volatile("v_fmac_f16_e32 %0, %1, %2" : "+v"(x) : "v"(a), "v"(b));
+  out[0] = x;
+  x = 0x35553c00u;
+  asm volatile("v_add_f16_e32 %0, %1, %2" : "+v"(x) : "v"(a), "v"(b));
+  out[1] = x;
+  x = 0x35553c00u;
+  asm volatile("v_mul_f16_e32 %0, %1, %2" : "+v"(x) : "v"(a), "v"(b));
+  out[2] = x;
+  x = 0x35553c00u;
+  asm volatile("v_fmac_f16_e64 %0, %1, %2" : "+v"(x) : "v"(a), "v"(b));
+  out[3] = x;
+  x = 0x35553c00u;
+  asm volatile("v_add_f16_e64 %0, %1, %2" : "+v"(x) : "v"(a), "v"(b));
+  out[4] = x;
+  x = 0x35553c00u;
+  asm volatile("v_mul_f16_e64 %0, %1, %2" : "+v"(x) : "v"(a), "v"(b));
+  out[5] = x;
+  x = 0x35553c00u;
+  asm volatile("v_sub_f16_e32 %0, %1, %2" : "+v"(x) : "v"(a), "v"(b));
+  out[6] = x;
+  x = 0x35553c00u;
+  asm volatile("v_sub_f16_e64 %0, %1, %2" : "+v"(x) : "v"(a), "v"(b));
+  out[7] = x;
+  x = 0x35553c00u;
+  asm volatile("v_max_num_f16_e32 %0, %1, %2" : "+v"(x) : "v"(a), "v"(b));
+  out[8] = x;
+  x = 0x35553c00u;
+  asm volatile("v_max_num_f16_e64 %0, %1, %2" : "+v"(x) : "v"(a), "v"(b));
+  out[9] = x;
+  x = 0x35553c00u;
+  asm volatile("v_min_num_f16_e32 %0, %1, %2" : "+v"(x) : "v"(a), "v"(b));
+  out[10] = x;
+  x = 0x35553c00u;
+  asm volatile("v_min_num_f16_e64 %0, %1, %2" : "+v"(x) : "v"(a), "v"(b));
+  out[11] = x;
+  x = 0x35553c00u;
+  unsigned c12 = 0x3faaaaabu;
+  asm volatile("v_cvt_f16_f32_e32 %0, %1" : "+v"(x) : "v"(c12));
+  out[12] = x;
+  x = 0x35553c00u;
+  unsigned c13 = 0x3faaaaabu;
+  asm volatile("v_cvt_f16_f32_e64 %0, %1" : "+v"(x) : "v"(c13));
+  out[13] = x;
+}

@@ -1,0 +1,913 @@
+{
+  "native-barriers.s": {
+    "sha256": "1e9f78b1d38317c617518543b02c0dea63ebc93e0dfe64735b513ecc60c63fc2",
+    "instructions": [
+      {
+        "line": 10,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 11,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 12,
+        "text": "s_mov_b32 s2, exec_lo",
+        "components": [
+          "s_mov_b32 s2, exec_lo"
+        ]
+      },
+      {
+        "line": 13,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 14,
+        "text": "s_cbranch_execz .LBB0_2",
+        "components": [
+          "s_cbranch_execz .LBB0_2"
+        ]
+      },
+      {
+        "line": 16,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 17,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 18,
+        "text": "s_load_b32 s0, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s0, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 19,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 20,
+        "text": "v_dual_mov_b32 v0, 0 :: v_dual_mov_b32 v1, s0",
+        "components": [
+          "v_dual_mov_b32 v0, 0",
+          "v_dual_mov_b32 v1, s0"
+        ]
+      },
+      {
+        "line": 21,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 23,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 112,
+        "text": "s_mov_b32 s2, exec_lo",
+        "components": [
+          "s_mov_b32 s2, exec_lo"
+        ]
+      },
+      {
+        "line": 113,
+        "text": "v_cmpx_gt_u32_e32 32, v0",
+        "components": [
+          "v_cmpx_gt_u32_e32 32, v0"
+        ]
+      },
+      {
+        "line": 114,
+        "text": "s_cbranch_execz .LBB1_2",
+        "components": [
+          "s_cbranch_execz .LBB1_2"
+        ]
+      },
+      {
+        "line": 116,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 117,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 118,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 119,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 120,
+        "text": "global_load_b32 v1, v0, s[0:1] scale_offset",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] scale_offset"
+        ]
+      },
+      {
+        "line": 121,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 122,
+        "text": "global_store_b32 v0, v1, s[2:3] scale_offset",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3] scale_offset"
+        ]
+      },
+      {
+        "line": 124,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 213,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 214,
+        "text": "v_and_b32_e32 v1, 31, v0",
+        "components": [
+          "v_and_b32_e32 v1, 31, v0"
+        ]
+      },
+      {
+        "line": 215,
+        "text": "v_cmp_gt_u32_e32 vcc_lo, 32, v0",
+        "components": [
+          "v_cmp_gt_u32_e32 vcc_lo, 32, v0"
+        ]
+      },
+      {
+        "line": 216,
+        "text": "s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 217,
+        "text": "v_lshlrev_b32_e32 v0, 2, v1",
+        "components": [
+          "v_lshlrev_b32_e32 v0, 2, v1"
+        ]
+      },
+      {
+        "line": 218,
+        "text": "s_and_saveexec_b32 s4, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s4, vcc_lo"
+        ]
+      },
+      {
+        "line": 219,
+        "text": "s_xor_b32 s4, exec_lo, s4",
+        "components": [
+          "s_xor_b32 s4, exec_lo, s4"
+        ]
+      },
+      {
+        "line": 220,
+        "text": "s_cbranch_execnz .LBB2_3",
+        "components": [
+          "s_cbranch_execnz .LBB2_3"
+        ]
+      },
+      {
+        "line": 222,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 223,
+        "text": "s_and_not1_saveexec_b32 s2, s4",
+        "components": [
+          "s_and_not1_saveexec_b32 s2, s4"
+        ]
+      },
+      {
+        "line": 224,
+        "text": "s_cbranch_execnz .LBB2_4",
+        "components": [
+          "s_cbranch_execnz .LBB2_4"
+        ]
+      },
+      {
+        "line": 226,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 228,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 229,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 230,
+        "text": "ds_load_b32 v0, v0",
+        "components": [
+          "ds_load_b32 v0, v0"
+        ]
+      },
+      {
+        "line": 231,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 232,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 233,
+        "text": "global_store_b32 v1, v0, s[2:3] scale_offset",
+        "components": [
+          "global_store_b32 v1, v0, s[2:3] scale_offset"
+        ]
+      },
+      {
+        "line": 236,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 237,
+        "text": "s_and_not1_saveexec_b32 s2, s4",
+        "components": [
+          "s_and_not1_saveexec_b32 s2, s4"
+        ]
+      },
+      {
+        "line": 238,
+        "text": "s_cbranch_execz .LBB2_2",
+        "components": [
+          "s_cbranch_execz .LBB2_2"
+        ]
+      },
+      {
+        "line": 240,
+        "text": "global_load_b32 v1, v1, s[0:1] scale_offset",
+        "components": [
+          "global_load_b32 v1, v1, s[0:1] scale_offset"
+        ]
+      },
+      {
+        "line": 241,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 242,
+        "text": "ds_store_b32 v0, v1",
+        "components": [
+          "ds_store_b32 v0, v1"
+        ]
+      },
+      {
+        "line": 244,
+        "text": "s_wait_dscnt 0",
+        "components": [
+          "s_wait_dscnt 0"
+        ]
+      },
+      {
+        "line": 246,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 335,
+        "text": "s_load_b128 s[4:7], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[4:7], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 336,
+        "text": "v_and_b32_e32 v1, 31, v0",
+        "components": [
+          "v_and_b32_e32 v1, 31, v0"
+        ]
+      },
+      {
+        "line": 337,
+        "text": "v_cmp_gt_u32_e32 vcc_lo, 32, v0",
+        "components": [
+          "v_cmp_gt_u32_e32 vcc_lo, 32, v0"
+        ]
+      },
+      {
+        "line": 338,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 339,
+        "text": "v_cmp_lt_u32_e64 s0, 31, v0",
+        "components": [
+          "v_cmp_lt_u32_e64 s0, 31, v0"
+        ]
+      },
+      {
+        "line": 340,
+        "text": "s_delay_alu instid0(VALU_DEP_3)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_3)"
+        ]
+      },
+      {
+        "line": 341,
+        "text": "v_lshlrev_b32_e32 v0, 2, v1",
+        "components": [
+          "v_lshlrev_b32_e32 v0, 2, v1"
+        ]
+      },
+      {
+        "line": 342,
+        "text": "s_and_saveexec_b32 s1, s0",
+        "components": [
+          "s_and_saveexec_b32 s1, s0"
+        ]
+      },
+      {
+        "line": 343,
+        "text": "s_cbranch_execz .LBB3_2",
+        "components": [
+          "s_cbranch_execz .LBB3_2"
+        ]
+      },
+      {
+        "line": 345,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 346,
+        "text": "global_load_b32 v2, v1, s[4:5] scale_offset",
+        "components": [
+          "global_load_b32 v2, v1, s[4:5] scale_offset"
+        ]
+      },
+      {
+        "line": 347,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 348,
+        "text": "ds_store_b32 v0, v2",
+        "components": [
+          "ds_store_b32 v0, v2"
+        ]
+      },
+      {
+        "line": 350,
+        "text": "s_or_b32 exec_lo, exec_lo, s1",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s1"
+        ]
+      },
+      {
+        "line": 351,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 352,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 353,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 354,
+        "text": "s_and_saveexec_b32 s0, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s0, vcc_lo"
+        ]
+      },
+      {
+        "line": 355,
+        "text": "s_cbranch_execz .LBB3_4",
+        "components": [
+          "s_cbranch_execz .LBB3_4"
+        ]
+      },
+      {
+        "line": 357,
+        "text": "ds_load_b32 v0, v0",
+        "components": [
+          "ds_load_b32 v0, v0"
+        ]
+      },
+      {
+        "line": 358,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 359,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 360,
+        "text": "global_store_b32 v1, v0, s[6:7] scale_offset",
+        "components": [
+          "global_store_b32 v1, v0, s[6:7] scale_offset"
+        ]
+      },
+      {
+        "line": 362,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 451,
+        "text": "s_load_b128 s[4:7], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[4:7], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 452,
+        "text": "v_cmp_eq_u32_e32 vcc_lo, 0, v0",
+        "components": [
+          "v_cmp_eq_u32_e32 vcc_lo, 0, v0"
+        ]
+      },
+      {
+        "line": 453,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 454,
+        "text": "s_and_saveexec_b32 s0, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s0, vcc_lo"
+        ]
+      },
+      {
+        "line": 455,
+        "text": "s_cbranch_execz .LBB4_2",
+        "components": [
+          "s_cbranch_execz .LBB4_2"
+        ]
+      },
+      {
+        "line": 457,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 458,
+        "text": "s_load_b32 s1, s[4:5], 0x0",
+        "components": [
+          "s_load_b32 s1, s[4:5], 0x0"
+        ]
+      },
+      {
+        "line": 459,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 460,
+        "text": "v_dual_mov_b32 v1, 0 :: v_dual_mov_b32 v2, s1",
+        "components": [
+          "v_dual_mov_b32 v1, 0",
+          "v_dual_mov_b32 v2, s1"
+        ]
+      },
+      {
+        "line": 461,
+        "text": "ds_store_b32 v1, v2",
+        "components": [
+          "ds_store_b32 v1, v2"
+        ]
+      },
+      {
+        "line": 463,
+        "text": "s_or_b32 exec_lo, exec_lo, s0",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s0"
+        ]
+      },
+      {
+        "line": 464,
+        "text": "v_dual_lshrrev_b32 v2, 4, v0 :: v_dual_bitop2_b32 v1, 31, v0 bitop3:0x40",
+        "components": [
+          "v_dual_lshrrev_b32 v2, 4, v0",
+          "v_dual_bitop2_b32 v1, 31, v0 bitop3:0x40"
+        ]
+      },
+      {
+        "line": 465,
+        "text": "v_cmp_lt_u32_e64 s0, 31, v0",
+        "components": [
+          "v_cmp_lt_u32_e64 s0, 31, v0"
+        ]
+      },
+      {
+        "line": 466,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 467,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 468,
+        "text": "s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_3) | instid1(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_3) | instid1(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 469,
+        "text": "v_cmp_eq_u32_e64 s1, 0, v1",
+        "components": [
+          "v_cmp_eq_u32_e64 s1, 0, v1"
+        ]
+      },
+      {
+        "line": 470,
+        "text": "v_and_b32_e32 v0, 62, v2",
+        "components": [
+          "v_and_b32_e32 v0, 62, v2"
+        ]
+      },
+      {
+        "line": 471,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 472,
+        "text": "s_and_b32 s0, s0, s1",
+        "components": [
+          "s_and_b32 s0, s0, s1"
+        ]
+      },
+      {
+        "line": 473,
+        "text": "s_and_saveexec_b32 s1, s0",
+        "components": [
+          "s_and_saveexec_b32 s1, s0"
+        ]
+      },
+      {
+        "line": 474,
+        "text": "s_cbranch_execz .LBB4_4",
+        "components": [
+          "s_cbranch_execz .LBB4_4"
+        ]
+      },
+      {
+        "line": 476,
+        "text": "v_mov_b32_e32 v1, 0",
+        "components": [
+          "v_mov_b32_e32 v1, 0"
+        ]
+      },
+      {
+        "line": 477,
+        "text": "ds_load_b32 v1, v1",
+        "components": [
+          "ds_load_b32 v1, v1"
+        ]
+      },
+      {
+        "line": 478,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 479,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 480,
+        "text": "global_store_b32 v0, v1, s[6:7] offset:-8 scale_offset",
+        "components": [
+          "global_store_b32 v0, v1, s[6:7] offset:-8 scale_offset"
+        ]
+      },
+      {
+        "line": 482,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 483,
+        "text": "s_or_b32 exec_lo, exec_lo, s1",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s1"
+        ]
+      },
+      {
+        "line": 484,
+        "text": "s_wait_storecnt 0x0",
+        "components": [
+          "s_wait_storecnt 0x0"
+        ]
+      },
+      {
+        "line": 485,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 486,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 487,
+        "text": "s_and_saveexec_b32 s1, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s1, vcc_lo"
+        ]
+      },
+      {
+        "line": 488,
+        "text": "s_cbranch_execz .LBB4_6",
+        "components": [
+          "s_cbranch_execz .LBB4_6"
+        ]
+      },
+      {
+        "line": 490,
+        "text": "v_mov_b32_e32 v1, 0",
+        "components": [
+          "v_mov_b32_e32 v1, 0"
+        ]
+      },
+      {
+        "line": 491,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 492,
+        "text": "global_load_b32 v2, v1, s[4:5] offset:4",
+        "components": [
+          "global_load_b32 v2, v1, s[4:5] offset:4"
+        ]
+      },
+      {
+        "line": 493,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 494,
+        "text": "ds_store_b32 v1, v2",
+        "components": [
+          "ds_store_b32 v1, v2"
+        ]
+      },
+      {
+        "line": 496,
+        "text": "s_or_b32 exec_lo, exec_lo, s1",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s1"
+        ]
+      },
+      {
+        "line": 497,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 498,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 499,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 500,
+        "text": "s_and_saveexec_b32 s1, s0",
+        "components": [
+          "s_and_saveexec_b32 s1, s0"
+        ]
+      },
+      {
+        "line": 501,
+        "text": "s_cbranch_execz .LBB4_8",
+        "components": [
+          "s_cbranch_execz .LBB4_8"
+        ]
+      },
+      {
+        "line": 503,
+        "text": "v_mov_b32_e32 v1, 0",
+        "components": [
+          "v_mov_b32_e32 v1, 0"
+        ]
+      },
+      {
+        "line": 504,
+        "text": "ds_load_b32 v1, v1",
+        "components": [
+          "ds_load_b32 v1, v1"
+        ]
+      },
+      {
+        "line": 505,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 506,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 507,
+        "text": "global_store_b32 v0, v1, s[6:7] offset:-4 scale_offset",
+        "components": [
+          "global_store_b32 v0, v1, s[6:7] offset:-4 scale_offset"
+        ]
+      },
+      {
+        "line": 509,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 510,
+        "text": "s_or_b32 exec_lo, exec_lo, s1",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s1"
+        ]
+      },
+      {
+        "line": 511,
+        "text": "s_wait_storecnt 0x0",
+        "components": [
+          "s_wait_storecnt 0x0"
+        ]
+      },
+      {
+        "line": 512,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 513,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 514,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      }
+    ]
+  }
+}

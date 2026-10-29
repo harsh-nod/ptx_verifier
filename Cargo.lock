@@ -781,6 +781,7 @@ dependencies = [
  "volta_graph",
  "volta_graph_check",
  "volta_ptx_analysis",
+ "volta_spec",
  "volta_viz",
 ]
 

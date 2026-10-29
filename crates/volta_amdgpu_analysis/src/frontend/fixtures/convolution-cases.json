@@ -181,12 +181,10 @@
       "expected_native_outcome": "RACE-FREE*",
       "validation_evidence": {
         "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
         "result_key": "conv2d/convolution_f16",
         "hardware": [],
         "scope": "Supplemental reduced mechanism control; does not replace full baseline launch.",
-        "hardware_scope": "No direct hardware receipt for this reduced source; full-shape required family has independent hardware evidence. No physical execution of this exact reduced source is claimed.",
-        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
+        "hardware_scope": "No direct hardware receipt for this reduced source; full-shape required family has independent hardware evidence. No physical execution of this exact reduced source is claimed."
       }
     },
     {
@@ -369,12 +367,10 @@
       "expected_native_outcome": "RACE-FREE*",
       "validation_evidence": {
         "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
-        "symbolic": "tests/gfx950/evidence/full-workloads-final-default.json",
         "result_key": "conv2d/convolution_f8",
         "hardware": [],
         "scope": "Supplemental reduced mechanism control; does not replace full baseline launch.",
-        "hardware_scope": "No direct hardware receipt for this reduced source; full-shape required family has independent hardware evidence. No physical execution of this exact reduced source is claimed.",
-        "logging": "tests/gfx950/evidence/full-workloads-final-logging.json"
+        "hardware_scope": "No direct hardware receipt for this reduced source; full-shape required family has independent hardware evidence. No physical execution of this exact reduced source is claimed."
       }
     }
   ]

@@ -348,6 +348,13 @@ impl Parser {
             "sqrt" => Ok(self.parse_unary_call()?.sqrt()),
             "abs" => Ok(self.parse_unary_call()?.abs()),
             "sign" => Ok(self.parse_unary_call()?.sign()),
+            "bit_sign" => {
+                let word = self.parse_expr()?;
+                self.expect(TokenKind::Comma, "','")?;
+                let bit = self.parse_index_expr()?;
+                self.expect(TokenKind::RParen, "')'")?;
+                Ok(word.bit_sign(bit))
+            }
             "tanh" => Ok(desugar_tanh(self.parse_unary_call()?)),
             "min" => {
                 let (a, b) = self.parse_binary_call()?;
@@ -450,9 +457,22 @@ impl Parser {
 
     fn parse_index_mul(&mut self) -> Result<IndexExpr, ParseError> {
         let mut lhs = self.parse_index_primary()?;
-        while self.peek().kind == TokenKind::Star {
-            self.bump();
-            lhs = lhs * self.parse_index_primary()?;
+        loop {
+            lhs = match self.peek().kind {
+                TokenKind::Star => {
+                    self.bump();
+                    lhs * self.parse_index_primary()?
+                }
+                TokenKind::Slash => {
+                    self.bump();
+                    IndexExpr::Div(Box::new(lhs), Box::new(self.parse_index_primary()?))
+                }
+                TokenKind::Percent => {
+                    self.bump();
+                    IndexExpr::Rem(Box::new(lhs), Box::new(self.parse_index_primary()?))
+                }
+                _ => break,
+            };
         }
         Ok(lhs)
     }
@@ -474,7 +494,7 @@ impl Parser {
                 Ok(e)
             }
             _ => Err(self.unexpected(
-                "an integer, a variable, or '(' (index expressions only allow +, -, *, and parens)",
+                "an integer, a variable, or '(' (index expressions only allow +, -, *, /, %, and parens)",
             )),
         }
     }
@@ -646,9 +666,10 @@ mod tests {
     }
 
     #[test]
-    fn index_expressions_reject_division() {
-        let err = parse_spec("dim N; array A[N];\nC[i] = A[i / 2];").unwrap_err();
-        assert!(matches!(err.error, ParseErrorKind::UnexpectedToken { .. }));
+    fn packed_word_indices_allow_integer_division() {
+        let body = output_body("dim N; array A[N]; C[i] = A[i / 32];");
+        assert!(matches!(body, SpecExpr::Index { indices, .. }
+            if matches!(indices.as_slice(), [IndexExpr::Div(_, _)])));
     }
 
     #[test]

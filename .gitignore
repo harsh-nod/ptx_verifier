@@ -16,3 +16,9 @@
 /external/**/*.json
 !/external/**/*.launch.json
 /external/output/
+
+# Local architecture validation artifacts
+/tests/gfx942/evidence/
+/tests/gfx950/evidence/
+/tests/gfx1250/evidence/
+/tests/gfx1250/full/encoding-probes/*-hardware.json

@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "host": "XSJHARMENON01",
+  "scope": "Genuine native compiler outputs, not edited or retargeted assembly; compilation/assembly alone make no semantic verification claim.",
+  "hardware_validation": "not_performed_by_this_compiler_only_workflow",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/clang-22",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.0/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.0/lib/llvm/bin/clang++.cfg\n"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n"
+    }
+  },
+  "fixtures": [
+    {
+      "source": "native-barriers.hip",
+      "assembly": "native-barriers.s",
+      "source_sha256": "1b27b30d0f1b9f2d02ef47996cfdc036ffc17a244f5ff74c0e2ab9297ca941e2",
+      "assembly_sha256": "1e9f78b1d38317c617518543b02c0dea63ebc93e0dfe64735b513ecc60c63fc2",
+      "object_sha256": "bffccdda2ac993949ce510fcfbffd246064233899f683eabaeed5ae5b1fc6731",
+      "code_object_sha256": "db19636fc42e1522368ae0a740f3a6db12f4a38152d28cc9d747fd4b5682ec16",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-graph/tests/gfx1250/portable-graph/native-barriers.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-graph/tests/gfx1250/portable-graph/native-barriers.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-graph/tests/gfx1250/portable-graph/native-barriers.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-graph/tests/gfx1250/portable-graph/native-barriers.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-graph/tests/gfx1250/portable-graph/native-barriers.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-graph/tests/gfx1250/portable-graph/native-barriers.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ]
+}

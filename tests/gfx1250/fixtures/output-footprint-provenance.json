@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "host": "XSJHARMENON01",
+  "scope": "Genuine unchanged compiler outputs for exact native CLI footprint controls. No hardware execution or numerical acceptance is claimed by compilation.",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/clang-22",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.0/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.0/lib/llvm/bin/clang++.cfg\n"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "realpath": "/opt/rocm-7.2.0/lib/llvm/bin/lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n"
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+        "-x",
+        "hip",
+        "--offload-device-only",
+        "--offload-arch=gfx1250",
+        "--rocm-path=/opt/rocm-7.2.0",
+        "-O2",
+        "-std=c++17",
+        "-S",
+        "/home/harsh/ptx-verifier-gfx1250-full-integration/tests/gfx1250/fixtures/native-output-footprint.hip",
+        "-o",
+        "/home/harsh/ptx-verifier-gfx1250-full-integration/tests/gfx1250/fixtures/native-output-footprint.s"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "--filetype=obj",
+        "/home/harsh/ptx-verifier-gfx1250-full-integration/tests/gfx1250/fixtures/native-output-footprint.s",
+        "-o",
+        "/tmp/gfx1250-cli-footprint-z2s05e7b/output.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/gfx1250-cli-footprint-z2s05e7b/output.o",
+        "-o",
+        "/tmp/gfx1250-cli-footprint-z2s05e7b/output.hsaco"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "inputs": {
+    "native-output-footprint.hip": "33bd623d0c421cf16ef80e44ffd2f8385d52d7568dd7f492df07a8d331540e5b",
+    "native-output-footprint.s": "b4e7e0accfb532130c61f0d25ae7b800a93ede51721030b2e78956fa7e608a7d"
+  },
+  "built_artifacts": {
+    "object_sha256": "19fda08a9e60ddd6badb52f7266c92a492f882d33a89a910aef8744d59eb01bc",
+    "code_object_sha256": "2dfaa0e716526b52597b04ce44a3ce41207aadba09701d4dbaa95fa95f26c3c1"
+  },
+  "baseline_revision": "b3a37911b8bd87352996403e8471a1fe18c4e975",
+  "baseline_assertions": [
+    "crates/volta_cli/tests/soundness_tests.rs::sampled_verify_must_not_accept_an_incomplete_output_footprint",
+    "crates/volta_cli/tests/soundness_tests.rs::verify_must_reject_a_kernel_writing_other_indices_than_the_spec"
+  ]
+}

@@ -226,6 +226,121 @@ effects; missing data waits remain hazards. WMMA operand roles and dependencies
 use gfx1250 layouts. Missing waves, wrong masks/register classes, forged memory
 associations and incomplete traces stay inconclusive or fail their typed
 obligation. Advanced barrier/cache/tensor modes outside the documented subset
-cannot inherit gfx942/gfx950 certificates. The documented positive corpus has
-passed independent gfx1250 hardware replay; numerical agreement remains separate
-from these graph obligations.
+cannot inherit gfx942/gfx950 certificates. Extending a graph profile does not
+establish a hardware result. Numerical agreement remains separate from these
+graph obligations; local hardware run records are not retained.
+The logical launch grid is preserved in provenance. A grid larger than one
+requires `SingleWorkgroupAnalyzed`: the result covers only the selected workgroup,
+including its launch-coordinate inputs, and makes no claim about other groups.
+The unclustered premise and full selected-block trace remain required.
+
+Tensor descriptor SGPRs are captured by the issuing instruction. They remain
+ordinary instruction reads, so descriptor values returned by an unfinished KM
+load fail readiness at issue. The Tensor memory issue has no completion-held
+register sources; a later SGPR overwrite does not complete its memory effects.
+Tensor waits still govern LDS/global buffer lifetime, and completed effects
+still require publication before another wave consumes them. Load, DS and X
+waits cannot replace Tensor completion. The selected contract follows pinned
+LLVM's [TDM operand definitions](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/MIMGInstructions.td#L2291),
+[Tensor-only event classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/AMDGPUHWEvents.cpp#L140)
+and [register score handling](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInsertWaitcnts.cpp#L985).
+Independent graph tests cover descriptor overwrite, pending-KM inputs, LDS
+source/destination reuse, publication and malformed held-source records.
+
+An exiting wave drops its automatic workgroup-barrier participation, so an
+otherwise independent surviving wave can still finish. The pinned LLVM
+[execution-barrier description](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md)
+distinguishes drops from arrivals, and the
+[memory model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md#memory-model-gfx125x)
+specifies arrive-release/wait-acquire ordering. These sources do not establish
+that END's implicit drop publishes the exiting wave's completed LDS operations.
+The checker therefore reports a typed inconclusive memory result only when a
+conflicting pair needs that unpinned edge, including dependencies carried through
+later phases. An explicit arrival publishes only its captured completed frontier;
+later operations do not inherit that publication. Disjoint accesses, read/read
+pairs and exit-only progress still verify, and unrelated established conflicts
+still fail. This is a conservative proof limit, not an architectural race claim.
+
+Genuine global FLAT accesses use `FlatGlobalLoad/Store`, with strictly matching
+resolved Global effects and `flat memory` provenance. They
+retain every source, including EXEC, and charge Load or Store plus Ds and X.
+Both data counters must drain before a load destination becomes ready. A
+same-wave store/load to the same address retains effect order even while a
+separate conservative counter marker remains; this does not certify data
+completion or cross-wave global cache publication. Global and LDS frontiers
+are separate. `FlatLdsLoad/Store` require resolved Shared effects and the same
+conservative dual data completion. They hold every source through their own
+X token, but remain outside both scalar and GLOBAL replay groups: group changes
+and later GLOBAL destination aliases cannot release their source leases.
+An explicit own Load0/Store0 releases that operation's source token while its
+independent Ds token remains. Explicit X0 releases sources without completing
+either data token. Ds0 alone does not release this conservative source token.
+Partial Load/Store/Ds waits retire only the oldest guaranteed target FIFO prefix;
+dual data tokens still must both retire. Nonzero X waits with pending LDS FLAT
+source tokens remain inconclusive. Old CDNA FLAT events cannot certify this
+target. The frontend must reject unresolved apertures.
+These distinctions follow the pinned LLVM
+[FLAT event classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/AMDGPUHWEvents.cpp#L119),
+[address-space classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInstrInfo.cpp#L4765)
+and [FLAT counter definition](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/FLATInstructions.td#L76),
+with explicit Load/Store waits and their X relationship from the
+[GFX125x memory model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md#memory-model-gfx125x).
+The pinned [target ordering helper](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNSubtarget.h#L396)
+and [wait-prefix construction](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInsertWaitcnts.cpp#L1369)
+establish the GFX1250 FLAT data-counter FIFO. A generic FLAT destination may also
+retire the required older GLOBAL translation prefix, even when its effect
+resolves to Shared. Encoding class and resolved effect space are separate: a
+Shared address does not establish a compiler LOCAL MMO. Actual pre-wait MIR
+retains generic pointer MMOs for the native ABI controls. The
+[VMEM translation dependency](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInsertWaitcnts.cpp#L2596)
+and its [FLAT classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInsertWaitcnts.cpp#L2671)
+support this asymmetric rule. It never retires a later GLOBAL translation or an
+older LDS source token, completes data, or establishes memory happens-before.
+An ordinary VALU overwrite still fails the source-lease check.
+
+The dual data tokens and retained LDS source token are conservative model
+requirements; they do not assert that a resolved LDS access uses VMEM_GROUP.
+Actual compiled static/dynamic LDS controls use Store0, then Ds0 before
+publication, and Load0/X0, then Ds0 before result consumption. Opaque or mixed
+apertures, arbitrary numeric shared-base values and unpinned partial waits cannot
+be promoted into this concrete-aperture profile.
+
+A later VMEM destination that aliases an older VMEM replay source establishes
+that older translation prefix, following LLVM's in-order translation dependency
+rule. This does not complete either operation's data, retire later translations,
+or permit immediate ALU overwrites and LDS destinations to bypass source leases.
+
+The initial atomic profile is device-scoped `global_atomic_add_f32`, no return,
+one active lane. It requires an exact paired 4-byte Atomic read/write and retains
+all sources through X completion. Older non-RMW memory translations must drain
+before issuance; explicit X0, completing data waits, and architectural drains
+can establish this. Back-to-back RMWs do not create that earlier-translation
+prerequisite. Only a validated RMW's own read/write pair avoids self-conflict;
+atomic overlap with ordinary accesses retains typed conflict checks. Unordered
+atomic/atomic serialization and returning/multi-lane profiles remain inconclusive.
+These rules follow LLVM's [hardware-event classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/AMDGPUHWEvents.cpp),
+[wait insertion](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInsertWaitcnts.cpp),
+and GFX125x memory-model replay requirements in AMDGPUUsage.md at that revision.
+
+Shader named barriers are reconstructed independently in `gfx1250/named.rs`.
+The checker validates descriptor capacity, initialized M0 roles, object
+incarnations, operation counts, last-joined WAIT resolution, matching wait/release
+source points, join-before-contribution and phase separation. Counts refer to
+arrival operations, not distinct waves or PTX lane participants. A separate
+execution frontier validates initialization and reuse without manufacturing a
+memory completion. Completed memory at actual arrivals can publish; paths that
+need a drop's memory frontier remain Unknown because that publication is unpinned.
+NULL LEAVE preserves a NULL join; an unjoined LEAVE produces no drop. Named END
+never supplies a missing contribution. Fresh lifetimes cannot consume stale
+signals or waits from an earlier initialization.
+NULL WAIT requires an explicit NULL join; an initial or cleared last-joined
+selector is not inferred from its encoded operand.
+
+This selected profile follows LLVM's pinned
+[named barrier execution model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md#named-barriers-model-extensions)
+and [instruction sequences](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md#code-sequences-1).
+Unordered initialization/reuse, outstanding joins at reinitialization and missing
+native sideband state stay inconclusive. Signal-time expected-count updates,
+`_isfirst`, and clustered objects are outside this profile. The native allocated
+controls and independent malformed graphs are separate tests; no GPU execution
+of a harmful mutation is required or claimed.
