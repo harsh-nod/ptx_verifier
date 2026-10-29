@@ -1,0 +1,86 @@
+{
+  "status": "pass",
+  "scope": "Rendering/navigation only; mathematical and hardware receipts are separate.",
+  "browser": "145.0.7632.6",
+  "html": "/tmp/ptx-gfx1250-full-mixed-browser-store/index.html",
+  "html_sha256": "4bc302bd3dda772dc4691531fcf6a9fd2d3b2cc4a4b7177f2ef5505c49f7ea2a",
+  "script_sha256": "f594c77b62d7bc06d723865fa2724b3f4708302ad4456341388b19b322976a5c",
+  "shared_script_sha256": "b6c69ab6f31431ab2f37510ee5255789fee36f8aa9ca07dfcb8a2efa8c80dc3f",
+  "shared_receipt_sha256": "a0454452bee560f4c5025b860143585c589eaa2b9b767968454d93a145946ae3",
+  "mixed_runs": 86,
+  "original_selected_events": [
+    {
+      "test": "original-reduction_f16",
+      "event": 371,
+      "original_event": 371,
+      "line": 809,
+      "instruction": "\tglobal_atomic_add_f32 v0, v1, s[2:3] scale_offset scope:SCOPE_DEV",
+      "label": "wave 0 instruction",
+      "target": [
+        "gfx1250"
+      ],
+      "wave": 32,
+      "kernel": "reduction_f16",
+      "terminal": {
+        "kind": "completed",
+        "notes": []
+      },
+      "source_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0"
+    },
+    {
+      "test": "original-reduction_f8",
+      "event": 1078,
+      "original_event": 1078,
+      "line": 1506,
+      "instruction": "\tglobal_atomic_add_f32 v0, v1, s[2:3] scale_offset scope:SCOPE_DEV",
+      "label": "wave 0 instruction",
+      "target": [
+        "gfx1250"
+      ],
+      "wave": 32,
+      "kernel": "reduction_f8",
+      "terminal": {
+        "kind": "completed",
+        "notes": []
+      },
+      "source_sha256": "5842efd29619494f51e164178af79dfb8440c29dcc1d7b6ebaa4232db812cdd6"
+    },
+    {
+      "test": "original-rope_f16",
+      "event": 588,
+      "original_event": 588,
+      "line": 601,
+      "instruction": "\tv_cvt_f32_f16_e32 v6, v2",
+      "label": "wave 0 instruction",
+      "target": [
+        "gfx1250"
+      ],
+      "wave": 32,
+      "kernel": "rope_f16",
+      "terminal": {
+        "kind": "completed",
+        "notes": []
+      },
+      "source_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0"
+    },
+    {
+      "test": "original-rope_f8",
+      "event": 676,
+      "original_event": 676,
+      "line": 617,
+      "instruction": "\tv_cvt_f32_fp8_e32 v3, v5",
+      "label": "wave 0 instruction",
+      "target": [
+        "gfx1250"
+      ],
+      "wave": 32,
+      "kernel": "rope_f8",
+      "terminal": {
+        "kind": "completed",
+        "notes": []
+      },
+      "source_sha256": "5842efd29619494f51e164178af79dfb8440c29dcc1d7b6ebaa4232db812cdd6"
+    }
+  ],
+  "browser_errors": []
+}

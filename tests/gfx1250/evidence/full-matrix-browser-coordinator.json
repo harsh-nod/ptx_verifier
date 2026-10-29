@@ -1,0 +1,2488 @@
+{
+  "status": "pass",
+  "scope": "Full W27-W32 native graph rendering/navigation only; mathematical and hardware receipts are separate.",
+  "browser": "145.0.7632.6",
+  "html": "/tmp/ptx-gfx1250-full-mixed-browser-store/index.html",
+  "html_sha256": "4bc302bd3dda772dc4691531fcf6a9fd2d3b2cc4a4b7177f2ef5505c49f7ea2a",
+  "cases_sha256": "e578f97d218ca01e88b137fd00beebebb5705a1570b5df65541115c620914616",
+  "script_sha256": "e4e297fe7b592cf28e415ca4bbdafdef2568e51d108c437a9b09ee2edf261ad5",
+  "reviewed": [
+    {
+      "test": "gemm_f16_full",
+      "expected_outputs": 65536,
+      "source_sha256": "7f776b18fdc5b7ae94c74456b61e7d15de53315b537d5eeb9b7f9620fd0e29a3",
+      "display": {
+        "eventLimit": 50000,
+        "findingLimitPerProperty": 128,
+        "totalEvents": 21242784,
+        "includedEvents": 50000,
+        "omittedEvents": 21192784,
+        "totalFindings": 0,
+        "includedFindings": 0,
+        "omittedFindings": 0,
+        "selection": "display only: selected finding witnesses, first/last source and lane events, evenly spaced events; checks use the complete graph"
+      },
+      "full_events": 21242784,
+      "events": 50000,
+      "kernel": "gemm_f16_full",
+      "terminal": "completed",
+      "launch": {
+        "wave_size": 32,
+        "wave_kind": "wave",
+        "source_language": "amdgpu",
+        "block": [
+          1024,
+          1,
+          1
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "targets": [
+          "gfx1250"
+        ],
+        "assumptions": [
+          "addresses, branch conditions and synchronization parameters are concrete",
+          "one AMD workgroup is analyzed; other workgroups are outside this result",
+          "arithmetic is modeled over mathematical reals, not bit-exact floating-point",
+          "asynchronous operations compute their data at issue; only completion is asynchronous",
+          "workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result"
+        ]
+      },
+      "checks": [
+        {
+          "name": "AMD trace completeness",
+          "algorithm": "native AMD graph contract",
+          "verdict": "pass",
+          "evidence": "AmdTraceEvidence { waves: 32, instructions: 1574464, issues: 346176, effects: 18940096 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD wait and register readiness",
+          "algorithm": "target-selected counters and register dependencies",
+          "verdict": "pass",
+          "evidence": "AmdWaitEvidence { issues: 346176, waits: 242112 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD workgroup barrier generations",
+          "algorithm": "target-selected AMD barrier objects and phases",
+          "verdict": "pass",
+          "evidence": "AmdBarrierEvidence { generations: 258, arrivals: 8256, releases: 8256 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD memory-conflict freedom",
+          "algorithm": "AMD completed-effect happens-before",
+          "verdict": "pass",
+          "evidence": "MemoryConflictEvidence { effects: 18940096, written_bytes: 196608 }",
+          "findings": [],
+          "totalFindings": 0
+        }
+      ],
+      "row": 1476,
+      "original": 50133,
+      "line": 196,
+      "label": "read shared [0xa1d4, +4)",
+      "omitted": 62,
+      "final_lane": "w31:l31"
+    },
+    {
+      "test": "gemm_f8_full",
+      "expected_outputs": 65536,
+      "source_sha256": "7f776b18fdc5b7ae94c74456b61e7d15de53315b537d5eeb9b7f9620fd0e29a3",
+      "display": {
+        "eventLimit": 50000,
+        "findingLimitPerProperty": 128,
+        "totalEvents": 21658624,
+        "includedEvents": 50000,
+        "omittedEvents": 21608624,
+        "totalFindings": 0,
+        "includedFindings": 0,
+        "omittedFindings": 0,
+        "selection": "display only: selected finding witnesses, first/last source and lane events, evenly spaced events; checks use the complete graph"
+      },
+      "full_events": 21658624,
+      "events": 50000,
+      "kernel": "gemm_f8_full",
+      "terminal": "completed",
+      "launch": {
+        "wave_size": 32,
+        "wave_kind": "wave",
+        "source_language": "amdgpu",
+        "block": [
+          1024,
+          1,
+          1
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "targets": [
+          "gfx1250"
+        ],
+        "assumptions": [
+          "addresses, branch conditions and synchronization parameters are concrete",
+          "one AMD workgroup is analyzed; other workgroups are outside this result",
+          "arithmetic is modeled over mathematical reals, not bit-exact floating-point",
+          "asynchronous operations compute their data at issue; only completion is asynchronous",
+          "workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result"
+        ]
+      },
+      "checks": [
+        {
+          "name": "AMD trace completeness",
+          "algorithm": "native AMD graph contract",
+          "verdict": "pass",
+          "evidence": "AmdTraceEvidence { waves: 32, instructions: 1927200, issues: 346176, effects: 18940096 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD wait and register readiness",
+          "algorithm": "target-selected counters and register dependencies",
+          "verdict": "pass",
+          "evidence": "AmdWaitEvidence { issues: 346176, waits: 239072 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD workgroup barrier generations",
+          "algorithm": "target-selected AMD barrier objects and phases",
+          "verdict": "pass",
+          "evidence": "AmdBarrierEvidence { generations: 258, arrivals: 8256, releases: 8256 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD memory-conflict freedom",
+          "algorithm": "AMD completed-effect happens-before",
+          "verdict": "pass",
+          "evidence": "MemoryConflictEvidence { effects: 18940096, written_bytes: 196608 }",
+          "findings": [],
+          "totalFindings": 0
+        }
+      ],
+      "row": 1303,
+      "original": 50249,
+      "line": 1004,
+      "label": "read shared [0x1734, +4)",
+      "omitted": 62,
+      "final_lane": "w31:l31"
+    },
+    {
+      "test": "gemm_add_silu_f16_full",
+      "expected_outputs": 65536,
+      "source_sha256": "7f776b18fdc5b7ae94c74456b61e7d15de53315b537d5eeb9b7f9620fd0e29a3",
+      "display": {
+        "eventLimit": 50000,
+        "findingLimitPerProperty": 128,
+        "totalEvents": 21336800,
+        "includedEvents": 50000,
+        "omittedEvents": 21286800,
+        "totalFindings": 0,
+        "includedFindings": 0,
+        "omittedFindings": 0,
+        "selection": "display only: selected finding witnesses, first/last source and lane events, evenly spaced events; checks use the complete graph"
+      },
+      "full_events": 21336800,
+      "events": 50000,
+      "kernel": "gemm_add_silu_f16_full",
+      "terminal": "completed",
+      "launch": {
+        "wave_size": 32,
+        "wave_kind": "wave",
+        "source_language": "amdgpu",
+        "block": [
+          1024,
+          1,
+          1
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "targets": [
+          "gfx1250"
+        ],
+        "assumptions": [
+          "addresses, branch conditions and synchronization parameters are concrete",
+          "one AMD workgroup is analyzed; other workgroups are outside this result",
+          "arithmetic is modeled over mathematical reals, not bit-exact floating-point",
+          "asynchronous operations compute their data at issue; only completion is asynchronous",
+          "workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result",
+          "the compiler's exact rounded f32 log2(e) multiply/exp2 idiom is modeled as mathematical exp"
+        ]
+      },
+      "checks": [
+        {
+          "name": "AMD trace completeness",
+          "algorithm": "native AMD graph contract",
+          "verdict": "pass",
+          "evidence": "AmdTraceEvidence { waves: 32, instructions: 1597312, issues: 348192, effects: 19005696 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD wait and register readiness",
+          "algorithm": "target-selected counters and register dependencies",
+          "verdict": "pass",
+          "evidence": "AmdWaitEvidence { issues: 348192, waits: 239296 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD workgroup barrier generations",
+          "algorithm": "target-selected AMD barrier objects and phases",
+          "verdict": "pass",
+          "evidence": "AmdBarrierEvidence { generations: 258, arrivals: 8256, releases: 8256 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD memory-conflict freedom",
+          "algorithm": "AMD completed-effect happens-before",
+          "verdict": "pass",
+          "evidence": "MemoryConflictEvidence { effects: 19005696, written_bytes: 196608 }",
+          "findings": [],
+          "totalFindings": 0
+        }
+      ],
+      "row": 1439,
+      "original": 50355,
+      "line": 1905,
+      "label": "read shared [0x8054, +4)",
+      "omitted": 62,
+      "final_lane": "w31:l31"
+    },
+    {
+      "test": "gemm_add_silu_f8_full",
+      "expected_outputs": 65536,
+      "source_sha256": "7f776b18fdc5b7ae94c74456b61e7d15de53315b537d5eeb9b7f9620fd0e29a3",
+      "display": {
+        "eventLimit": 50000,
+        "findingLimitPerProperty": 128,
+        "totalEvents": 21768160,
+        "includedEvents": 50000,
+        "omittedEvents": 21718160,
+        "totalFindings": 0,
+        "includedFindings": 0,
+        "omittedFindings": 0,
+        "selection": "display only: selected finding witnesses, first/last source and lane events, evenly spaced events; checks use the complete graph"
+      },
+      "full_events": 21768160,
+      "events": 50000,
+      "kernel": "gemm_add_silu_f8_full",
+      "terminal": "completed",
+      "launch": {
+        "wave_size": 32,
+        "wave_kind": "wave",
+        "source_language": "amdgpu",
+        "block": [
+          1024,
+          1,
+          1
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "targets": [
+          "gfx1250"
+        ],
+        "assumptions": [
+          "addresses, branch conditions and synchronization parameters are concrete",
+          "one AMD workgroup is analyzed; other workgroups are outside this result",
+          "arithmetic is modeled over mathematical reals, not bit-exact floating-point",
+          "asynchronous operations compute their data at issue; only completion is asynchronous",
+          "workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result",
+          "the compiler's exact rounded f32 log2(e) multiply/exp2 idiom is modeled as mathematical exp"
+        ]
+      },
+      "checks": [
+        {
+          "name": "AMD trace completeness",
+          "algorithm": "native AMD graph contract",
+          "verdict": "pass",
+          "evidence": "AmdTraceEvidence { waves: 32, instructions: 1959648, issues: 348192, effects: 19005696 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD wait and register readiness",
+          "algorithm": "target-selected counters and register dependencies",
+          "verdict": "pass",
+          "evidence": "AmdWaitEvidence { issues: 348192, waits: 240288 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD workgroup barrier generations",
+          "algorithm": "target-selected AMD barrier objects and phases",
+          "verdict": "pass",
+          "evidence": "AmdBarrierEvidence { generations: 258, arrivals: 8256, releases: 8256 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD memory-conflict freedom",
+          "algorithm": "AMD completed-effect happens-before",
+          "verdict": "pass",
+          "evidence": "MemoryConflictEvidence { effects: 19005696, written_bytes: 196608 }",
+          "findings": [],
+          "totalFindings": 0
+        }
+      ],
+      "row": 1297,
+      "original": 50067,
+      "line": 2819,
+      "label": "read shared [0x15ac, +4)",
+      "omitted": 62,
+      "final_lane": "w31:l31"
+    },
+    {
+      "test": "bitdelta_full",
+      "expected_outputs": 8192,
+      "source_sha256": "7f776b18fdc5b7ae94c74456b61e7d15de53315b537d5eeb9b7f9620fd0e29a3",
+      "display": {
+        "eventLimit": 50000,
+        "findingLimitPerProperty": 128,
+        "totalEvents": 2346880,
+        "includedEvents": 50000,
+        "omittedEvents": 2296880,
+        "totalFindings": 0,
+        "includedFindings": 0,
+        "omittedFindings": 0,
+        "selection": "display only: selected finding witnesses, first/last source and lane events, evenly spaced events; checks use the complete graph"
+      },
+      "full_events": 2346880,
+      "events": 50000,
+      "kernel": "bitdelta_full",
+      "terminal": "completed",
+      "launch": {
+        "wave_size": 32,
+        "wave_kind": "wave",
+        "source_language": "amdgpu",
+        "block": [
+          256,
+          1,
+          1
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "targets": [
+          "gfx1250"
+        ],
+        "assumptions": [
+          "addresses, branch conditions and synchronization parameters are concrete",
+          "one AMD workgroup is analyzed; other workgroups are outside this result",
+          "arithmetic is modeled over mathematical reals, not bit-exact floating-point",
+          "asynchronous operations compute their data at issue; only completion is asynchronous",
+          "workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result"
+        ]
+      },
+      "checks": [
+        {
+          "name": "AMD trace completeness",
+          "algorithm": "native AMD graph contract",
+          "verdict": "pass",
+          "evidence": "AmdTraceEvidence { waves: 8, instructions: 167008, issues: 29456, effects: 2121776 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD wait and register readiness",
+          "algorithm": "target-selected counters and register dependencies",
+          "verdict": "pass",
+          "evidence": "AmdWaitEvidence { issues: 29456, waits: 14936 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD workgroup barrier generations",
+          "algorithm": "target-selected AMD barrier objects and phases",
+          "verdict": "pass",
+          "evidence": "AmdBarrierEvidence { generations: 129, arrivals: 1032, releases: 1032 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD memory-conflict freedom",
+          "algorithm": "AMD completed-effect happens-before",
+          "verdict": "pass",
+          "evidence": "MemoryConflictEvidence { effects: 2121776, written_bytes: 40960 }",
+          "findings": [],
+          "totalFindings": 0
+        }
+      ],
+      "row": 2104,
+      "original": 50036,
+      "line": 3322,
+      "label": "read shared [0x7d8, +4)",
+      "omitted": 14,
+      "final_lane": "w7:l31"
+    },
+    {
+      "test": "bitdelta_batched_full",
+      "expected_outputs": 32768,
+      "source_sha256": "7f776b18fdc5b7ae94c74456b61e7d15de53315b537d5eeb9b7f9620fd0e29a3",
+      "display": {
+        "eventLimit": 50000,
+        "findingLimitPerProperty": 128,
+        "totalEvents": 9106272,
+        "includedEvents": 50000,
+        "omittedEvents": 9056272,
+        "totalFindings": 0,
+        "includedFindings": 0,
+        "omittedFindings": 0,
+        "selection": "display only: selected finding witnesses, first/last source and lane events, evenly spaced events; checks use the complete graph"
+      },
+      "full_events": 9106272,
+      "events": 50000,
+      "kernel": "bitdelta_batched_full",
+      "terminal": "completed",
+      "launch": {
+        "wave_size": 32,
+        "wave_kind": "wave",
+        "source_language": "amdgpu",
+        "block": [
+          256,
+          1,
+          1
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "targets": [
+          "gfx1250"
+        ],
+        "assumptions": [
+          "addresses, branch conditions and synchronization parameters are concrete",
+          "one AMD workgroup is analyzed; other workgroups are outside this result",
+          "arithmetic is modeled over mathematical reals, not bit-exact floating-point",
+          "asynchronous operations compute their data at issue; only completion is asynchronous",
+          "workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result"
+        ]
+      },
+      "checks": [
+        {
+          "name": "AMD trace completeness",
+          "algorithm": "native AMD graph contract",
+          "verdict": "pass",
+          "evidence": "AmdTraceEvidence { waves: 8, instructions: 865680, issues: 113680, effects: 7962672 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD wait and register readiness",
+          "algorithm": "target-selected counters and register dependencies",
+          "verdict": "pass",
+          "evidence": "AmdWaitEvidence { issues: 113680, waits: 88192 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD workgroup barrier generations",
+          "algorithm": "target-selected AMD barrier objects and phases",
+          "verdict": "pass",
+          "evidence": "AmdBarrierEvidence { generations: 258, arrivals: 2064, releases: 2064 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD memory-conflict freedom",
+          "algorithm": "AMD completed-effect happens-before",
+          "verdict": "pass",
+          "evidence": "MemoryConflictEvidence { effects: 7962672, written_bytes: 114688 }",
+          "findings": [],
+          "totalFindings": 0
+        }
+      ],
+      "row": 1052,
+      "original": 50048,
+      "line": 4381,
+      "label": "wave 0 instruction",
+      "omitted": 14,
+      "final_lane": "w7:l31"
+    },
+    {
+      "test": "matrix-wrong_initial_ds_completion",
+      "expected_outputs": 65536,
+      "source_sha256": "e5fd39242f4acabba3aaa9721c924041d3387a8c256ec59edf45bd25ecf63868",
+      "display": {
+        "eventLimit": 50000,
+        "findingLimitPerProperty": 128,
+        "totalEvents": 21242784,
+        "includedEvents": 50000,
+        "omittedEvents": 21192784,
+        "totalFindings": 4096,
+        "includedFindings": 128,
+        "omittedFindings": 3968,
+        "selection": "display only: selected finding witnesses, first/last source and lane events, evenly spaced events; checks use the complete graph"
+      },
+      "full_events": 21242784,
+      "events": 50000,
+      "kernel": "gemm_f16_full",
+      "terminal": "completed",
+      "launch": {
+        "wave_size": 32,
+        "wave_kind": "wave",
+        "source_language": "amdgpu",
+        "block": [
+          1024,
+          1,
+          1
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "targets": [
+          "gfx1250"
+        ],
+        "assumptions": [
+          "addresses, branch conditions and synchronization parameters are concrete",
+          "one AMD workgroup is analyzed; other workgroups are outside this result",
+          "arithmetic is modeled over mathematical reals, not bit-exact floating-point",
+          "asynchronous operations compute their data at issue; only completion is asynchronous",
+          "workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result"
+        ]
+      },
+      "checks": [
+        {
+          "name": "AMD trace completeness",
+          "algorithm": "native AMD graph contract",
+          "verdict": "pass",
+          "evidence": "AmdTraceEvidence { waves: 32, instructions: 1574464, issues: 346176, effects: 18940096 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD wait and register readiness",
+          "algorithm": "target-selected counters and register dependencies",
+          "verdict": "pass",
+          "evidence": "AmdWaitEvidence { issues: 346176, waits: 242112 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD workgroup barrier generations",
+          "algorithm": "target-selected AMD barrier objects and phases",
+          "verdict": "pass",
+          "evidence": "AmdBarrierEvidence { generations: 258, arrivals: 8256, releases: 8256 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD memory-conflict freedom",
+          "algorithm": "AMD completed-effect happens-before",
+          "verdict": "fail",
+          "evidence": null,
+          "findings": [
+            {
+              "text": "write → read conflict at shared 0x40: e21476 and e40294 lack AMD ordering",
+              "events": [
+                1333,
+                1610
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x42: e21477 and e40294 lack AMD ordering",
+              "events": [
+                1334,
+                1610
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x44: e21478 and e40295 lack AMD ordering",
+              "events": [
+                1335,
+                1611
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x46: e21479 and e40295 lack AMD ordering",
+              "events": [
+                1336,
+                1611
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x48: e21480 and e40296 lack AMD ordering",
+              "events": [
+                1337,
+                1612
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x4a: e21481 and e40296 lack AMD ordering",
+              "events": [
+                1338,
+                1612
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x4c: e21482 and e40297 lack AMD ordering",
+              "events": [
+                1339,
+                1613
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x4e: e21483 and e40297 lack AMD ordering",
+              "events": [
+                1340,
+                1613
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x80: e21510 and e40298 lack AMD ordering",
+              "events": [
+                1351,
+                1614
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x82: e21511 and e40298 lack AMD ordering",
+              "events": [
+                1352,
+                1614
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x84: e21512 and e40299 lack AMD ordering",
+              "events": [
+                1353,
+                1615
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x86: e21513 and e40299 lack AMD ordering",
+              "events": [
+                1354,
+                1615
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x88: e21514 and e40300 lack AMD ordering",
+              "events": [
+                1355,
+                1616
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x8a: e21515 and e40300 lack AMD ordering",
+              "events": [
+                1356,
+                1616
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x8c: e21516 and e40301 lack AMD ordering",
+              "events": [
+                1357,
+                1617
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x8e: e21517 and e40301 lack AMD ordering",
+              "events": [
+                1358,
+                1617
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xc0: e21544 and e40302 lack AMD ordering",
+              "events": [
+                1361,
+                1618
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xc2: e21545 and e40302 lack AMD ordering",
+              "events": [
+                1362,
+                1618
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xc4: e21546 and e40303 lack AMD ordering",
+              "events": [
+                1363,
+                1619
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xc6: e21547 and e40303 lack AMD ordering",
+              "events": [
+                1364,
+                1619
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xc8: e21548 and e40304 lack AMD ordering",
+              "events": [
+                1365,
+                1620
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xca: e21549 and e40304 lack AMD ordering",
+              "events": [
+                1366,
+                1620
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xcc: e21550 and e40305 lack AMD ordering",
+              "events": [
+                1367,
+                1621
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xce: e21551 and e40305 lack AMD ordering",
+              "events": [
+                1368,
+                1621
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x100: e21578 and e40306 lack AMD ordering",
+              "events": [
+                1371,
+                1622
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x102: e21579 and e40306 lack AMD ordering",
+              "events": [
+                1372,
+                1622
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x104: e21580 and e40307 lack AMD ordering",
+              "events": [
+                1373,
+                1623
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x106: e21581 and e40307 lack AMD ordering",
+              "events": [
+                1374,
+                1623
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x108: e21582 and e40308 lack AMD ordering",
+              "events": [
+                1375,
+                1624
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x10a: e21583 and e40308 lack AMD ordering",
+              "events": [
+                1376,
+                1624
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x10c: e21584 and e40309 lack AMD ordering",
+              "events": [
+                1377,
+                1625
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x10e: e21585 and e40309 lack AMD ordering",
+              "events": [
+                1378,
+                1625
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x140: e21612 and e40310 lack AMD ordering",
+              "events": [
+                1381,
+                1626
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x142: e21613 and e40310 lack AMD ordering",
+              "events": [
+                1382,
+                1626
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x144: e21614 and e40311 lack AMD ordering",
+              "events": [
+                1383,
+                1627
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x146: e21615 and e40311 lack AMD ordering",
+              "events": [
+                1384,
+                1627
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x148: e21616 and e40312 lack AMD ordering",
+              "events": [
+                1385,
+                1628
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x14a: e21617 and e40312 lack AMD ordering",
+              "events": [
+                1386,
+                1628
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x14c: e21618 and e40313 lack AMD ordering",
+              "events": [
+                1387,
+                1629
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x14e: e21619 and e40313 lack AMD ordering",
+              "events": [
+                1388,
+                1629
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x180: e21646 and e40314 lack AMD ordering",
+              "events": [
+                1391,
+                1630
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x182: e21647 and e40314 lack AMD ordering",
+              "events": [
+                1392,
+                1630
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x184: e21648 and e40315 lack AMD ordering",
+              "events": [
+                1393,
+                1631
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x186: e21649 and e40315 lack AMD ordering",
+              "events": [
+                1394,
+                1631
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x188: e21650 and e40316 lack AMD ordering",
+              "events": [
+                1395,
+                1632
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x18a: e21651 and e40316 lack AMD ordering",
+              "events": [
+                1396,
+                1632
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x18c: e21652 and e40317 lack AMD ordering",
+              "events": [
+                1397,
+                1633
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x18e: e21653 and e40317 lack AMD ordering",
+              "events": [
+                1398,
+                1633
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1c0: e21680 and e40318 lack AMD ordering",
+              "events": [
+                1402,
+                1634
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1c2: e21681 and e40318 lack AMD ordering",
+              "events": [
+                1403,
+                1634
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1c4: e21682 and e40319 lack AMD ordering",
+              "events": [
+                1404,
+                1635
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1c6: e21683 and e40319 lack AMD ordering",
+              "events": [
+                1405,
+                1635
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1c8: e21684 and e40320 lack AMD ordering",
+              "events": [
+                1406,
+                1636
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1ca: e21685 and e40320 lack AMD ordering",
+              "events": [
+                1407,
+                1636
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1cc: e21686 and e40321 lack AMD ordering",
+              "events": [
+                1408,
+                1637
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1ce: e21687 and e40321 lack AMD ordering",
+              "events": [
+                1409,
+                1637
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x200: e21714 and e40322 lack AMD ordering",
+              "events": [
+                1412,
+                1638
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x202: e21715 and e40322 lack AMD ordering",
+              "events": [
+                1413,
+                1638
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x204: e21716 and e40323 lack AMD ordering",
+              "events": [
+                1414,
+                1639
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x206: e21717 and e40323 lack AMD ordering",
+              "events": [
+                1415,
+                1639
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x208: e21718 and e40324 lack AMD ordering",
+              "events": [
+                1416,
+                1640
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x20a: e21719 and e40324 lack AMD ordering",
+              "events": [
+                1417,
+                1640
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x20c: e21720 and e40325 lack AMD ordering",
+              "events": [
+                1418,
+                1641
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x20e: e21721 and e40325 lack AMD ordering",
+              "events": [
+                1419,
+                1641
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x240: e21748 and e40326 lack AMD ordering",
+              "events": [
+                1422,
+                1642
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x242: e21749 and e40326 lack AMD ordering",
+              "events": [
+                1423,
+                1642
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x244: e21750 and e40327 lack AMD ordering",
+              "events": [
+                1424,
+                1643
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x246: e21751 and e40327 lack AMD ordering",
+              "events": [
+                1425,
+                1643
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x248: e21752 and e40328 lack AMD ordering",
+              "events": [
+                1426,
+                1644
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x24a: e21753 and e40328 lack AMD ordering",
+              "events": [
+                1427,
+                1644
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x24c: e21754 and e40329 lack AMD ordering",
+              "events": [
+                1428,
+                1645
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x24e: e21755 and e40329 lack AMD ordering",
+              "events": [
+                1429,
+                1645
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x280: e21782 and e40330 lack AMD ordering",
+              "events": [
+                1432,
+                1646
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x282: e21783 and e40330 lack AMD ordering",
+              "events": [
+                1433,
+                1646
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x284: e21784 and e40331 lack AMD ordering",
+              "events": [
+                1434,
+                1647
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x286: e21785 and e40331 lack AMD ordering",
+              "events": [
+                1435,
+                1647
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x288: e21786 and e40332 lack AMD ordering",
+              "events": [
+                1436,
+                1648
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x28a: e21787 and e40332 lack AMD ordering",
+              "events": [
+                1437,
+                1648
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x28c: e21788 and e40333 lack AMD ordering",
+              "events": [
+                1438,
+                1649
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x28e: e21789 and e40333 lack AMD ordering",
+              "events": [
+                1439,
+                1649
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2c0: e21816 and e40334 lack AMD ordering",
+              "events": [
+                1442,
+                1650
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2c2: e21817 and e40334 lack AMD ordering",
+              "events": [
+                1443,
+                1650
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2c4: e21818 and e40335 lack AMD ordering",
+              "events": [
+                1444,
+                1651
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2c6: e21819 and e40335 lack AMD ordering",
+              "events": [
+                1445,
+                1651
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2c8: e21820 and e40336 lack AMD ordering",
+              "events": [
+                1446,
+                1652
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2ca: e21821 and e40336 lack AMD ordering",
+              "events": [
+                1447,
+                1652
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2cc: e21822 and e40337 lack AMD ordering",
+              "events": [
+                1448,
+                1653
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2ce: e21823 and e40337 lack AMD ordering",
+              "events": [
+                1449,
+                1653
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x300: e21850 and e40338 lack AMD ordering",
+              "events": [
+                1452,
+                1654
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x302: e21851 and e40338 lack AMD ordering",
+              "events": [
+                1453,
+                1654
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x304: e21852 and e40339 lack AMD ordering",
+              "events": [
+                1454,
+                1655
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x306: e21853 and e40339 lack AMD ordering",
+              "events": [
+                1455,
+                1655
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x308: e21854 and e40340 lack AMD ordering",
+              "events": [
+                1456,
+                1656
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x30a: e21855 and e40340 lack AMD ordering",
+              "events": [
+                1457,
+                1656
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x30c: e21856 and e40341 lack AMD ordering",
+              "events": [
+                1458,
+                1657
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x30e: e21857 and e40341 lack AMD ordering",
+              "events": [
+                1459,
+                1657
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x340: e21884 and e40342 lack AMD ordering",
+              "events": [
+                1462,
+                1658
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x342: e21885 and e40342 lack AMD ordering",
+              "events": [
+                1463,
+                1658
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x344: e21886 and e40343 lack AMD ordering",
+              "events": [
+                1464,
+                1659
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x346: e21887 and e40343 lack AMD ordering",
+              "events": [
+                1465,
+                1659
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x348: e21888 and e40344 lack AMD ordering",
+              "events": [
+                1466,
+                1660
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x34a: e21889 and e40344 lack AMD ordering",
+              "events": [
+                1467,
+                1660
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x34c: e21890 and e40345 lack AMD ordering",
+              "events": [
+                1468,
+                1661
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x34e: e21891 and e40345 lack AMD ordering",
+              "events": [
+                1469,
+                1661
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x380: e21918 and e40346 lack AMD ordering",
+              "events": [
+                1472,
+                1662
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x382: e21919 and e40346 lack AMD ordering",
+              "events": [
+                1473,
+                1662
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x384: e21920 and e40347 lack AMD ordering",
+              "events": [
+                1474,
+                1663
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x386: e21921 and e40347 lack AMD ordering",
+              "events": [
+                1475,
+                1663
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x388: e21922 and e40348 lack AMD ordering",
+              "events": [
+                1476,
+                1664
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x38a: e21923 and e40348 lack AMD ordering",
+              "events": [
+                1477,
+                1664
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x38c: e21924 and e40349 lack AMD ordering",
+              "events": [
+                1478,
+                1665
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x38e: e21925 and e40349 lack AMD ordering",
+              "events": [
+                1479,
+                1665
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3c0: e21952 and e40350 lack AMD ordering",
+              "events": [
+                1482,
+                1666
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3c2: e21953 and e40350 lack AMD ordering",
+              "events": [
+                1483,
+                1666
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3c4: e21954 and e40351 lack AMD ordering",
+              "events": [
+                1484,
+                1667
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3c6: e21955 and e40351 lack AMD ordering",
+              "events": [
+                1485,
+                1667
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3c8: e21956 and e40352 lack AMD ordering",
+              "events": [
+                1486,
+                1668
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3ca: e21957 and e40352 lack AMD ordering",
+              "events": [
+                1487,
+                1668
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3cc: e21958 and e40353 lack AMD ordering",
+              "events": [
+                1488,
+                1669
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3ce: e21959 and e40353 lack AMD ordering",
+              "events": [
+                1489,
+                1669
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x50: e21484 and e40358 lack AMD ordering",
+              "events": [
+                1341,
+                1672
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x52: e21485 and e40358 lack AMD ordering",
+              "events": [
+                1342,
+                1672
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x54: e21486 and e40359 lack AMD ordering",
+              "events": [
+                1343,
+                1673
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x56: e21487 and e40359 lack AMD ordering",
+              "events": [
+                1344,
+                1673
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x58: e21488 and e40360 lack AMD ordering",
+              "events": [
+                1345,
+                1674
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x5a: e21489 and e40360 lack AMD ordering",
+              "events": [
+                1346,
+                1674
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x5c: e21490 and e40361 lack AMD ordering",
+              "events": [
+                1347,
+                1675
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x5e: e21491 and e40361 lack AMD ordering",
+              "events": [
+                1348,
+                1675
+              ]
+            }
+          ],
+          "totalFindings": 4096
+        }
+      ],
+      "row": 1701,
+      "original": 50133,
+      "line": 196,
+      "label": "read shared [0xa1d4, +4)",
+      "omitted": 62,
+      "final_lane": "w31:l31"
+    },
+    {
+      "test": "matrix-missing_initial_workgroup_publication",
+      "expected_outputs": 65536,
+      "source_sha256": "e95344629b18b7524597bc766cffe56634dd6ac47c59f6266c8eab8b36de1d32",
+      "display": {
+        "eventLimit": 50000,
+        "findingLimitPerProperty": 128,
+        "totalEvents": 21242752,
+        "includedEvents": 50000,
+        "omittedEvents": 21192752,
+        "totalFindings": 4096,
+        "includedFindings": 128,
+        "omittedFindings": 3968,
+        "selection": "display only: selected finding witnesses, first/last source and lane events, evenly spaced events; checks use the complete graph"
+      },
+      "full_events": 21242752,
+      "events": 50000,
+      "kernel": "gemm_f16_full",
+      "terminal": "completed",
+      "launch": {
+        "wave_size": 32,
+        "wave_kind": "wave",
+        "source_language": "amdgpu",
+        "block": [
+          1024,
+          1,
+          1
+        ],
+        "grid": [
+          1,
+          1,
+          1
+        ],
+        "targets": [
+          "gfx1250"
+        ],
+        "assumptions": [
+          "addresses, branch conditions and synchronization parameters are concrete",
+          "one AMD workgroup is analyzed; other workgroups are outside this result",
+          "arithmetic is modeled over mathematical reals, not bit-exact floating-point",
+          "asynchronous operations compute their data at issue; only completion is asynchronous",
+          "workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result"
+        ]
+      },
+      "checks": [
+        {
+          "name": "AMD trace completeness",
+          "algorithm": "native AMD graph contract",
+          "verdict": "pass",
+          "evidence": "AmdTraceEvidence { waves: 32, instructions: 1574464, issues: 346176, effects: 18940096 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD wait and register readiness",
+          "algorithm": "target-selected counters and register dependencies",
+          "verdict": "pass",
+          "evidence": "AmdWaitEvidence { issues: 346176, waits: 242112 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD workgroup barrier generations",
+          "algorithm": "target-selected AMD barrier objects and phases",
+          "verdict": "pass",
+          "evidence": "AmdBarrierEvidence { generations: 257, arrivals: 8224, releases: 8224 }",
+          "findings": [],
+          "totalFindings": 0
+        },
+        {
+          "name": "AMD memory-conflict freedom",
+          "algorithm": "AMD completed-effect happens-before",
+          "verdict": "fail",
+          "evidence": null,
+          "findings": [
+            {
+              "text": "write → read conflict at shared 0x40: e21476 and e40262 lack AMD ordering",
+              "events": [
+                1333,
+                1610
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x42: e21477 and e40262 lack AMD ordering",
+              "events": [
+                1334,
+                1610
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x44: e21478 and e40263 lack AMD ordering",
+              "events": [
+                1335,
+                1611
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x46: e21479 and e40263 lack AMD ordering",
+              "events": [
+                1336,
+                1611
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x48: e21480 and e40264 lack AMD ordering",
+              "events": [
+                1337,
+                1612
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x4a: e21481 and e40264 lack AMD ordering",
+              "events": [
+                1338,
+                1612
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x4c: e21482 and e40265 lack AMD ordering",
+              "events": [
+                1339,
+                1613
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x4e: e21483 and e40265 lack AMD ordering",
+              "events": [
+                1340,
+                1613
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x80: e21510 and e40266 lack AMD ordering",
+              "events": [
+                1351,
+                1614
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x82: e21511 and e40266 lack AMD ordering",
+              "events": [
+                1352,
+                1614
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x84: e21512 and e40267 lack AMD ordering",
+              "events": [
+                1353,
+                1615
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x86: e21513 and e40267 lack AMD ordering",
+              "events": [
+                1354,
+                1615
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x88: e21514 and e40268 lack AMD ordering",
+              "events": [
+                1355,
+                1616
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x8a: e21515 and e40268 lack AMD ordering",
+              "events": [
+                1356,
+                1616
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x8c: e21516 and e40269 lack AMD ordering",
+              "events": [
+                1357,
+                1617
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x8e: e21517 and e40269 lack AMD ordering",
+              "events": [
+                1358,
+                1617
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xc0: e21544 and e40270 lack AMD ordering",
+              "events": [
+                1361,
+                1618
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xc2: e21545 and e40270 lack AMD ordering",
+              "events": [
+                1362,
+                1618
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xc4: e21546 and e40271 lack AMD ordering",
+              "events": [
+                1363,
+                1619
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xc6: e21547 and e40271 lack AMD ordering",
+              "events": [
+                1364,
+                1619
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xc8: e21548 and e40272 lack AMD ordering",
+              "events": [
+                1365,
+                1620
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xca: e21549 and e40272 lack AMD ordering",
+              "events": [
+                1366,
+                1620
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xcc: e21550 and e40273 lack AMD ordering",
+              "events": [
+                1367,
+                1621
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0xce: e21551 and e40273 lack AMD ordering",
+              "events": [
+                1368,
+                1621
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x100: e21578 and e40274 lack AMD ordering",
+              "events": [
+                1371,
+                1622
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x102: e21579 and e40274 lack AMD ordering",
+              "events": [
+                1372,
+                1622
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x104: e21580 and e40275 lack AMD ordering",
+              "events": [
+                1373,
+                1623
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x106: e21581 and e40275 lack AMD ordering",
+              "events": [
+                1374,
+                1623
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x108: e21582 and e40276 lack AMD ordering",
+              "events": [
+                1375,
+                1624
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x10a: e21583 and e40276 lack AMD ordering",
+              "events": [
+                1376,
+                1624
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x10c: e21584 and e40277 lack AMD ordering",
+              "events": [
+                1377,
+                1625
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x10e: e21585 and e40277 lack AMD ordering",
+              "events": [
+                1378,
+                1625
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x140: e21612 and e40278 lack AMD ordering",
+              "events": [
+                1381,
+                1626
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x142: e21613 and e40278 lack AMD ordering",
+              "events": [
+                1382,
+                1626
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x144: e21614 and e40279 lack AMD ordering",
+              "events": [
+                1383,
+                1627
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x146: e21615 and e40279 lack AMD ordering",
+              "events": [
+                1384,
+                1627
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x148: e21616 and e40280 lack AMD ordering",
+              "events": [
+                1385,
+                1628
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x14a: e21617 and e40280 lack AMD ordering",
+              "events": [
+                1386,
+                1628
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x14c: e21618 and e40281 lack AMD ordering",
+              "events": [
+                1387,
+                1629
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x14e: e21619 and e40281 lack AMD ordering",
+              "events": [
+                1388,
+                1629
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x180: e21646 and e40282 lack AMD ordering",
+              "events": [
+                1391,
+                1630
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x182: e21647 and e40282 lack AMD ordering",
+              "events": [
+                1392,
+                1630
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x184: e21648 and e40283 lack AMD ordering",
+              "events": [
+                1393,
+                1631
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x186: e21649 and e40283 lack AMD ordering",
+              "events": [
+                1394,
+                1631
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x188: e21650 and e40284 lack AMD ordering",
+              "events": [
+                1395,
+                1632
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x18a: e21651 and e40284 lack AMD ordering",
+              "events": [
+                1396,
+                1632
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x18c: e21652 and e40285 lack AMD ordering",
+              "events": [
+                1397,
+                1633
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x18e: e21653 and e40285 lack AMD ordering",
+              "events": [
+                1398,
+                1633
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1c0: e21680 and e40286 lack AMD ordering",
+              "events": [
+                1402,
+                1634
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1c2: e21681 and e40286 lack AMD ordering",
+              "events": [
+                1403,
+                1634
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1c4: e21682 and e40287 lack AMD ordering",
+              "events": [
+                1404,
+                1635
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1c6: e21683 and e40287 lack AMD ordering",
+              "events": [
+                1405,
+                1635
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1c8: e21684 and e40288 lack AMD ordering",
+              "events": [
+                1406,
+                1636
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1ca: e21685 and e40288 lack AMD ordering",
+              "events": [
+                1407,
+                1636
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1cc: e21686 and e40289 lack AMD ordering",
+              "events": [
+                1408,
+                1637
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x1ce: e21687 and e40289 lack AMD ordering",
+              "events": [
+                1409,
+                1637
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x200: e21714 and e40290 lack AMD ordering",
+              "events": [
+                1412,
+                1638
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x202: e21715 and e40290 lack AMD ordering",
+              "events": [
+                1413,
+                1638
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x204: e21716 and e40291 lack AMD ordering",
+              "events": [
+                1414,
+                1639
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x206: e21717 and e40291 lack AMD ordering",
+              "events": [
+                1415,
+                1639
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x208: e21718 and e40292 lack AMD ordering",
+              "events": [
+                1416,
+                1640
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x20a: e21719 and e40292 lack AMD ordering",
+              "events": [
+                1417,
+                1640
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x20c: e21720 and e40293 lack AMD ordering",
+              "events": [
+                1418,
+                1641
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x20e: e21721 and e40293 lack AMD ordering",
+              "events": [
+                1419,
+                1641
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x240: e21748 and e40294 lack AMD ordering",
+              "events": [
+                1422,
+                1642
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x242: e21749 and e40294 lack AMD ordering",
+              "events": [
+                1423,
+                1642
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x244: e21750 and e40295 lack AMD ordering",
+              "events": [
+                1424,
+                1643
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x246: e21751 and e40295 lack AMD ordering",
+              "events": [
+                1425,
+                1643
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x248: e21752 and e40296 lack AMD ordering",
+              "events": [
+                1426,
+                1644
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x24a: e21753 and e40296 lack AMD ordering",
+              "events": [
+                1427,
+                1644
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x24c: e21754 and e40297 lack AMD ordering",
+              "events": [
+                1428,
+                1645
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x24e: e21755 and e40297 lack AMD ordering",
+              "events": [
+                1429,
+                1645
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x280: e21782 and e40298 lack AMD ordering",
+              "events": [
+                1432,
+                1646
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x282: e21783 and e40298 lack AMD ordering",
+              "events": [
+                1433,
+                1646
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x284: e21784 and e40299 lack AMD ordering",
+              "events": [
+                1434,
+                1647
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x286: e21785 and e40299 lack AMD ordering",
+              "events": [
+                1435,
+                1647
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x288: e21786 and e40300 lack AMD ordering",
+              "events": [
+                1436,
+                1648
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x28a: e21787 and e40300 lack AMD ordering",
+              "events": [
+                1437,
+                1648
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x28c: e21788 and e40301 lack AMD ordering",
+              "events": [
+                1438,
+                1649
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x28e: e21789 and e40301 lack AMD ordering",
+              "events": [
+                1439,
+                1649
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2c0: e21816 and e40302 lack AMD ordering",
+              "events": [
+                1442,
+                1650
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2c2: e21817 and e40302 lack AMD ordering",
+              "events": [
+                1443,
+                1650
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2c4: e21818 and e40303 lack AMD ordering",
+              "events": [
+                1444,
+                1651
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2c6: e21819 and e40303 lack AMD ordering",
+              "events": [
+                1445,
+                1651
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2c8: e21820 and e40304 lack AMD ordering",
+              "events": [
+                1446,
+                1652
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2ca: e21821 and e40304 lack AMD ordering",
+              "events": [
+                1447,
+                1652
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2cc: e21822 and e40305 lack AMD ordering",
+              "events": [
+                1448,
+                1653
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x2ce: e21823 and e40305 lack AMD ordering",
+              "events": [
+                1449,
+                1653
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x300: e21850 and e40306 lack AMD ordering",
+              "events": [
+                1452,
+                1654
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x302: e21851 and e40306 lack AMD ordering",
+              "events": [
+                1453,
+                1654
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x304: e21852 and e40307 lack AMD ordering",
+              "events": [
+                1454,
+                1655
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x306: e21853 and e40307 lack AMD ordering",
+              "events": [
+                1455,
+                1655
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x308: e21854 and e40308 lack AMD ordering",
+              "events": [
+                1456,
+                1656
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x30a: e21855 and e40308 lack AMD ordering",
+              "events": [
+                1457,
+                1656
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x30c: e21856 and e40309 lack AMD ordering",
+              "events": [
+                1458,
+                1657
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x30e: e21857 and e40309 lack AMD ordering",
+              "events": [
+                1459,
+                1657
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x340: e21884 and e40310 lack AMD ordering",
+              "events": [
+                1462,
+                1658
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x342: e21885 and e40310 lack AMD ordering",
+              "events": [
+                1463,
+                1658
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x344: e21886 and e40311 lack AMD ordering",
+              "events": [
+                1464,
+                1659
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x346: e21887 and e40311 lack AMD ordering",
+              "events": [
+                1465,
+                1659
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x348: e21888 and e40312 lack AMD ordering",
+              "events": [
+                1466,
+                1660
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x34a: e21889 and e40312 lack AMD ordering",
+              "events": [
+                1467,
+                1660
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x34c: e21890 and e40313 lack AMD ordering",
+              "events": [
+                1468,
+                1661
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x34e: e21891 and e40313 lack AMD ordering",
+              "events": [
+                1469,
+                1661
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x380: e21918 and e40314 lack AMD ordering",
+              "events": [
+                1472,
+                1662
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x382: e21919 and e40314 lack AMD ordering",
+              "events": [
+                1473,
+                1662
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x384: e21920 and e40315 lack AMD ordering",
+              "events": [
+                1474,
+                1663
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x386: e21921 and e40315 lack AMD ordering",
+              "events": [
+                1475,
+                1663
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x388: e21922 and e40316 lack AMD ordering",
+              "events": [
+                1476,
+                1664
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x38a: e21923 and e40316 lack AMD ordering",
+              "events": [
+                1477,
+                1664
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x38c: e21924 and e40317 lack AMD ordering",
+              "events": [
+                1478,
+                1665
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x38e: e21925 and e40317 lack AMD ordering",
+              "events": [
+                1479,
+                1665
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3c0: e21952 and e40318 lack AMD ordering",
+              "events": [
+                1482,
+                1666
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3c2: e21953 and e40318 lack AMD ordering",
+              "events": [
+                1483,
+                1666
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3c4: e21954 and e40319 lack AMD ordering",
+              "events": [
+                1484,
+                1667
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3c6: e21955 and e40319 lack AMD ordering",
+              "events": [
+                1485,
+                1667
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3c8: e21956 and e40320 lack AMD ordering",
+              "events": [
+                1486,
+                1668
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3ca: e21957 and e40320 lack AMD ordering",
+              "events": [
+                1487,
+                1668
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3cc: e21958 and e40321 lack AMD ordering",
+              "events": [
+                1488,
+                1669
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x3ce: e21959 and e40321 lack AMD ordering",
+              "events": [
+                1489,
+                1669
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x50: e21484 and e40326 lack AMD ordering",
+              "events": [
+                1341,
+                1672
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x52: e21485 and e40326 lack AMD ordering",
+              "events": [
+                1342,
+                1672
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x54: e21486 and e40327 lack AMD ordering",
+              "events": [
+                1343,
+                1673
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x56: e21487 and e40327 lack AMD ordering",
+              "events": [
+                1344,
+                1673
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x58: e21488 and e40328 lack AMD ordering",
+              "events": [
+                1345,
+                1674
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x5a: e21489 and e40328 lack AMD ordering",
+              "events": [
+                1346,
+                1674
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x5c: e21490 and e40329 lack AMD ordering",
+              "events": [
+                1347,
+                1675
+              ]
+            },
+            {
+              "text": "write → read conflict at shared 0x5e: e21491 and e40329 lack AMD ordering",
+              "events": [
+                1348,
+                1675
+              ]
+            }
+          ],
+          "totalFindings": 4096
+        }
+      ],
+      "row": 1702,
+      "original": 50133,
+      "line": 196,
+      "label": "read shared [0xa3d4, +4)",
+      "omitted": 62,
+      "final_lane": "w31:l31"
+    }
+  ],
+  "browser_errors": []
+}
