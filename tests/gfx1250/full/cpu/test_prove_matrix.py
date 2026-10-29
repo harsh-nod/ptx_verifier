@@ -76,7 +76,8 @@ class Controls(unittest.TestCase):
                     accepted().replace("elements: 65536", "elements: 16"),
                     accepted().replace("VERDICT: ACCEPT", "VERDICT: UNKNOWN"),
                     accepted().replace("EQUIVALENT (matches spec)", ""),
-                    accepted() + "VERDICT: ACCEPT\n"]
+                    accepted() + "VERDICT: ACCEPT\n",
+                    accepted() + f"  {driver.PROPERTIES[0]} (algorithm) UNKNOWN\n"]
         variants += [accepted().replace(name + " (algorithm) PASS", name + " (algorithm) UNKNOWN")
                      for name in driver.PROPERTIES]
         for text in variants:
