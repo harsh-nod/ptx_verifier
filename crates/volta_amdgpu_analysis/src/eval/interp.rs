@@ -555,20 +555,11 @@ impl<'a> Interpreter<'a> {
                 }
             }
         }
-        let threads = config
-            .block_dim
-            .0
-            .checked_mul(config.block_dim.1)
-            .and_then(|n| n.checked_mul(config.block_dim.2))
-            .ok_or_else(|| EvalError::InvalidConfig("block dimension overflow".into()))?;
-        if threads == 0 || threads > 1024 {
+        // Common validation established a nonzero, representable product.
+        let threads = config.num_threads();
+        if threads > 1024 {
             return Err(EvalError::InvalidConfig(
                 "native AMD workgroup must contain 1..=1024 workitems".into(),
-            ));
-        }
-        if config.grid_dim.0 == 0 || config.grid_dim.1 == 0 || config.grid_dim.2 == 0 {
-            return Err(EvalError::InvalidConfig(
-                "grid dimensions must be nonzero".into(),
             ));
         }
         for (groups, threads) in [

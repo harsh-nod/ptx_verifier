@@ -73,6 +73,36 @@ fn config(block: u32, n: u64) -> AnalysisConfig {
 }
 
 #[test]
+fn native_rejects_zero_or_overflowing_launch_dimensions() {
+    let module = frontend::parse(&source(COPY, 0)).unwrap();
+    for block in [
+        (0, 1, 1),
+        (65_536, 65_536, 1),
+        (u32::MAX, 2, 1),
+        (1025, 1, 1),
+    ] {
+        let mut launch = config(1, 1);
+        launch.block_dim = block;
+        assert!(matches!(
+            analyze(&module, None, launch),
+            Err(volta_amdgpu_analysis::AnalysisError::Eval(
+                volta_amdgpu_analysis::EvalError::InvalidConfig(_)
+            ))
+        ));
+    }
+    for grid in [(0, 1, 1), (1, 0, 1), (1, 1, 0)] {
+        let mut launch = config(1, 1);
+        launch.grid_dim = grid;
+        assert!(matches!(
+            analyze(&module, None, launch),
+            Err(volta_amdgpu_analysis::AnalysisError::Eval(
+                volta_amdgpu_analysis::EvalError::InvalidConfig(_)
+            ))
+        ));
+    }
+}
+
+#[test]
 fn native_copy_across_partial_and_multiple_waves() {
     let module = frontend::parse(&source(COPY, 0)).unwrap();
     for block in [1, 63, 64, 65, 128, 256] {

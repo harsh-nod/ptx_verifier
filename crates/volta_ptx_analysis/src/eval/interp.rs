@@ -254,16 +254,10 @@ impl<'p> Interpreter<'p> {
         config: AnalysisConfig,
         provenance: Provenance,
     ) -> EvalResult<Self> {
-        let n_threads = config.num_threads();
-        if n_threads == 0 {
-            return Err(EvalError::Config {
-                message: "block has zero threads".to_string(),
-            });
-        }
-
         config
             .validate()
             .map_err(|message| EvalError::Config { message })?;
+        let n_threads = config.num_threads();
 
         let mut arena = ExprArena::new();
         let undefined = arena.undefined();

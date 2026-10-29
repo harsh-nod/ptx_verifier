@@ -298,6 +298,19 @@ mod tests {
     use super::*;
 
     #[test]
+    fn rejects_zero_and_overflowing_launch_dimensions() {
+        for source in [
+            r#"{"block": 0}"#,
+            r#"{"block": [1, 0, 1]}"#,
+            r#"{"block": [65536, 65536, 1]}"#,
+            r#"{"block": [4294967295, 2, 1]}"#,
+            r#"{"block": 1, "grid": [1, 1, 0]}"#,
+        ] {
+            assert!(LaunchFile::from_json(source).is_err(), "{source}");
+        }
+    }
+
+    #[test]
     fn reads_the_documented_example() {
         let launch = LaunchFile::from_json(
             r#"{
