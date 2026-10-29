@@ -2568,8 +2568,9 @@ impl<'a> Interpreter<'a> {
                     .float_from_f64(value)
                     .map_err(|e| wave.fail(Some(lane), e.to_string()))
             }
+            Value::IntExpr(expr) => super::scalar::decode_half_select(&mut self.arena, expr, high)
+                .map_err(|what| EvalError::Unsupported { pc: wave.pc, what }),
             Value::Input(_)
-            | Value::IntExpr(_)
             | Value::PredicateWord { .. }
             | Value::RelocationWord { .. }
             | Value::SharedApertureHi
