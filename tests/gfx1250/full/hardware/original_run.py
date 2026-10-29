@@ -206,8 +206,9 @@ def artifact_hashes(directory: Path, profile: Profile = BASIC) -> dict:
 
 
 def module_assemblies(profile: Profile) -> tuple[str, ...]:
-    sources = profile.assemblies or tuple(
-        f"full/fixtures/original-{module}.s" for module in profile.modules
+    sources = (
+        tuple(f"full/fixtures/original-{module}.s" for module in profile.modules)
+        if profile.assemblies is None else profile.assemblies
     )
     if len(sources) != len(profile.modules) or not sources:
         raise ValueError("each native module requires one exact assembly input")

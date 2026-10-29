@@ -53,7 +53,8 @@ class ReceiptControls(unittest.TestCase):
         mapped = replace(runner.BASIC, modules=("adapter",), assemblies=("fixtures/adapter.s",),
                          files=("fixtures/adapter.s",))
         self.assertEqual(mapped.assemblies, runner.module_assemblies(mapped))
-        for profile in [replace(mapped, files=()), replace(mapped, modules=("a", "b"))]:
+        for profile in [replace(mapped, files=()), replace(mapped, modules=("a", "b")),
+                        replace(runner.BASIC, assemblies=())]:
             with self.assertRaises(ValueError):
                 runner.module_assemblies(profile)
 

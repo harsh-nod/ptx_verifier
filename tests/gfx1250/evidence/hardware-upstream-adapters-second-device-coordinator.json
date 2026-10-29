@@ -1,0 +1,313 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "invocation_id": "1be63dc3-373e-450a-8a23-f3345a284de5",
+  "timestamp_utc": "2026-10-29T07:39:03.750044+00:00",
+  "commands": [
+    {
+      "argv": [
+        "hostname"
+      ],
+      "cwd": null,
+      "timeout_seconds": 10,
+      "exit_code": 0,
+      "stdout": "ctheliosr-rck-g02-e15-04\n",
+      "stderr": "",
+      "seconds": 0.0004332429962232709
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/llvm-mc",
+        "--version"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "AMD LLVM version 24.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn  - legacy name for amdgpu\n    amdgpu  - AMDGPU gfx6+\n    r600    - AMD GPUs HD2XXX-HD6XXX\n    spirv   - SPIR-V Logical\n    spirv32 - SPIR-V 32-bit\n    spirv64 - SPIR-V 64-bit\n    x86     - 32-bit X86: Pentium-Pro and above\n    x86-64  - 64-bit X86: EM64T and AMD64\n",
+      "stderr": "",
+      "seconds": 0.004426402971148491
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/ld.lld",
+        "--version"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "AMD LLD 24.0.0 (https://github.com/ROCm/llvm-project.git c7ceccf9a5789b92fda4056b8501450d0b7a75de) (compatible with GNU linkers)\n",
+      "stderr": "",
+      "seconds": 0.004756984009873122
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/clang++",
+        "--version"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "AMD clang version 24.0.0git (https://github.com/ROCm/llvm-project.git c7ceccf9a5789b92fda4056b8501450d0b7a75de)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin\nConfiguration file: /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/clang++.cfg\n",
+      "stderr": "",
+      "seconds": 0.006237043009605259
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "--filetype=obj",
+        "/tmp/ptx-gfx1250-original.W1uBS4/fixtures/native-upstream-adapters.s",
+        "-o",
+        "/tmp/ptx-gfx1250-original.W1uBS4/original-build-avxzry5_/upstream-adapters.o"
+      ],
+      "cwd": null,
+      "timeout_seconds": 60,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "/tmp/ptx-gfx1250-original.W1uBS4/fixtures/native-upstream-adapters.s:8:1: warning: kernel 'bf16_m16n8k16_fragment_adapter' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nbf16_m16n8k16_fragment_adapter:         ; @bf16_m16n8k16_fragment_adapter\n^\n/tmp/ptx-gfx1250-original.W1uBS4/fixtures/native-upstream-adapters.s:332:1: warning: kernel 'high64_division_projection' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nhigh64_division_projection:             ; @high64_division_projection\n^\n",
+      "seconds": 0.004744183970615268
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-original.W1uBS4/original-build-avxzry5_/upstream-adapters.o",
+        "-o",
+        "/tmp/ptx-gfx1250-original.W1uBS4/original-build-avxzry5_/upstream-adapters.hsaco"
+      ],
+      "cwd": null,
+      "timeout_seconds": 60,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.003815539996139705
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/clang++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-D__HIP_PLATFORM_AMD__",
+        "-I/opt/rocm-10.2.0a20261013+bkc.20261019/include",
+        "/tmp/ptx-gfx1250-original.W1uBS4/full/hardware/upstream_adapters.cpp",
+        "-L/opt/rocm-10.2.0a20261013+bkc.20261019/lib",
+        "-lamdhip64",
+        "-Wl,-rpath,/opt/rocm-10.2.0a20261013+bkc.20261019/lib",
+        "-o",
+        "/tmp/ptx-gfx1250-original.W1uBS4/original-build-avxzry5_/original_driver"
+      ],
+      "cwd": null,
+      "timeout_seconds": 120,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.32750352896982804
+    },
+    {
+      "argv": [
+        "ldd",
+        "/tmp/ptx-gfx1250-original.W1uBS4/original-build-avxzry5_/original_driver"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x00007398432d8000)\n\tlibamdhip64.so.7 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/libamdhip64.so.7 (0x0000739842a00000)\n\tlibstdc++.so.6 => /usr/lib/x86_64-linux-gnu/libstdc++.so.6 (0x0000739842600000)\n\tlibm.so.6 => /usr/lib/x86_64-linux-gnu/libm.so.6 (0x0000739843196000)\n\tlibgcc_s.so.1 => /usr/lib/x86_64-linux-gnu/libgcc_s.so.1 (0x0000739843168000)\n\tlibc.so.6 => /usr/lib/x86_64-linux-gnu/libc.so.6 (0x0000739842200000)\n\tlibdl.so.2 => /usr/lib/x86_64-linux-gnu/libdl.so.2 (0x0000739843161000)\n\tlibrocm_kpack.so.0 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/librocm_kpack.so.0 (0x000073984311c000)\n\tlibrocprofiler-register.so.0 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/librocprofiler-register.so.0 (0x0000739842922000)\n\tlibrt.so.1 => /usr/lib/x86_64-linux-gnu/librt.so.1 (0x0000739843117000)\n\tlibamd_comgr.so.3 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/libamd_comgr.so.3 (0x0000739841400000)\n\tlibhsa-runtime64.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/libhsa-runtime64.so.1 (0x0000739840e00000)\n\tlibpthread.so.0 => /usr/lib/x86_64-linux-gnu/libpthread.so.0 (0x0000739843110000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007398432da000)\n\tlibrocm_sysdeps_zstd.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_zstd.so.1 (0x0000739842531000)\n\tlibclang-cpp.so.24.0git => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/lib/libclang-cpp.so.24.0git (0x000073983c600000)\n\tlibrocm_sysdeps_z.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_z.so.1 (0x00007398430f2000)\n\tlibLLVM.so.24.0git => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/lib/libLLVM.so.24.0git (0x0000739835400000)\n\tlibrocm_sysdeps_elf.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_elf.so.1 (0x00007398430d4000)\n\tlibrocm_sysdeps_drm.so.2 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_drm.so.2 (0x000073984290d000)\n\tlibrocm_sysdeps_drm_amdgpu.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_drm_amdgpu.so.1 (0x00007398428f8000)\n\tlibrocm_sysdeps_numa.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_numa.so.1 (0x00007398428e9000)\n\tlibrocm_sysdeps_liblzma.so.5 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_liblzma.so.5 (0x00007398428b8000)\n\tlibrocm_sysdeps_bz2.so => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_bz2.so (0x0000739842518000)\n",
+      "stderr": "",
+      "seconds": 0.003606028971262276
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/clang++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-D__HIP_PLATFORM_AMD__",
+        "-I/opt/rocm-10.2.0a20261013+bkc.20261019/include",
+        "-I/tmp/ptx-gfx1250-original.W1uBS4/full/hardware",
+        "/tmp/ptx-gfx1250-original.W1uBS4/original-build-avxzry5_/device_identity.cpp",
+        "-L/opt/rocm-10.2.0a20261013+bkc.20261019/lib",
+        "-lamdhip64",
+        "-Wl,-rpath,/opt/rocm-10.2.0a20261013+bkc.20261019/lib",
+        "-o",
+        "/tmp/ptx-gfx1250-original.W1uBS4/original-build-avxzry5_/device_identity"
+      ],
+      "cwd": null,
+      "timeout_seconds": 120,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.24190443800762296
+    },
+    {
+      "argv": [
+        "/tmp/ptx-gfx1250-original.W1uBS4/original-build-avxzry5_/device_identity"
+      ],
+      "cwd": null,
+      "timeout_seconds": 30,
+      "exit_code": 0,
+      "stdout": "{\"logical_ordinal\":0,\"visible_device_count\":1,\"name\":\"AMD Radeon Graphics\",\"architecture\":\"gfx1250\",\"wave_size\":32,\"pci_bus_id\":\"0004:01:00.0\",\"uuid_status\":\"available\",\"uuid_hex\":\"32653636653233663339393732656339\",\"uuid_hip_error\":0,\"hip_runtime_version\":71726405,\"hip_driver_version\":71726405}\n",
+      "stderr": "",
+      "seconds": 0.05751892697298899
+    },
+    {
+      "argv": [
+        "/tmp/ptx-gfx1250-original.W1uBS4/original-build-avxzry5_/original_driver",
+        "--cpu-only"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.015950431989040226
+    },
+    {
+      "argv": [
+        "/tmp/ptx-gfx1250-original.W1uBS4/original-build-avxzry5_/original_driver",
+        "/tmp/ptx-gfx1250-original.W1uBS4/original-build-avxzry5_/upstream-adapters.hsaco",
+        "34"
+      ],
+      "cwd": null,
+      "timeout_seconds": 180,
+      "exit_code": 0,
+      "stdout": "{\"status\":\"pass\",\"architecture\":\"gfx1250\",\"wave_size\":32,\"reference_controls\":\"pass\",\"patterns\":34,\"cases\":[{\"kernel\":\"bf16_m16n8k16_fragment_adapter\",\"outputs\":8840,\"original_outputs\":136,\"launches\":34,\"unchanged_input_bytes\":26112,\"unchanged_guard_bytes\":1114112,\"max_absolute_error\":0},{\"kernel\":\"high64_division_projection\",\"outputs\":34,\"original_outputs\":34,\"launches\":34,\"unchanged_input_bytes\":0,\"unchanged_guard_bytes\":278528,\"max_absolute_error\":0}]}\n",
+      "stderr": "",
+      "seconds": 0.09687702899100259
+    }
+  ],
+  "scope": "Exact-assembly numerical hardware gate for the enumerated original variants only; graph/equivalence and other workload variants require separate gates.",
+  "source_revision": "bb63d2830e9a858ccc95a95a44522b97b42c0522",
+  "input_artifacts": {
+    "hardware/portable_run.py": "821f96ca50eb2e0adf7ef7e28729851af7564fe8640f3ce2b838b1b5ca672749",
+    "full/hardware/original_run.py": "9049724f23b3e63b55819311b35fff06ebe1f28d39a73cb739be524ccab79803",
+    "full/hardware/original_common.hpp": "d5db21e2563323c3ec24e976180cda08e79751babd0ba4d6b0348b953a89e2cf",
+    "full/hardware/upstream_adapters.cpp": "174e3de2c35ec3743ddb4419f1dce619aa22e864c662aecdad1ebc7e1b9aad7c",
+    "full/hardware/upstream_adapters_run.py": "d1c020ad4c443e85e275dae82fed56c2b933f9e7921a7577cb51be65c5c76de3",
+    "fixtures/native-upstream-adapters.hip": "aca7e96f95e6de1215777eb68ef9480e3f2ef72e1face1ad6b59e39f96bef1ec",
+    "fixtures/native-upstream-adapters.s": "e8d9c41ad3539dbaf12698014265e5b6c1783efd9cecbea2f9b0fb42fa4fd46f",
+    "fixtures/upstream-adapters-provenance.json": "795056c5960c4c5ba212be9b6fe71657dcbb5dfde6837945a7d84dc6c7de2e58"
+  },
+  "selected_physical_device": 3,
+  "native_validation_contract": {
+    "bf16_m16n8k16_fragment_adapter": [
+      260,
+      768,
+      4
+    ],
+    "high64_division_projection": [
+      1,
+      0,
+      1
+    ]
+  },
+  "original_output_projection": {
+    "bf16_m16n8k16_fragment_adapter": 4,
+    "high64_division_projection": 1
+  },
+  "build_directory": "/tmp/ptx-gfx1250-original.W1uBS4/original-build-avxzry5_",
+  "rocm_directory": "/opt/rocm-10.2.0a20261013+bkc.20261019",
+  "device_environment": {
+    "HIP_VISIBLE_DEVICES": "3"
+  },
+  "host": "ctheliosr-rck-g02-e15-04",
+  "toolchains": {
+    "llvm-mc": {
+      "path": "/opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/llvm-mc",
+      "sha256": "fd4483b0ad14a76beb97aad0b5015ad5ac0ca744ad70a638cb0c3480b1f98ca9",
+      "version": "AMD LLVM version 24.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn  - legacy name for amdgpu\n    amdgpu  - AMDGPU gfx6+\n    r600    - AMD GPUs HD2XXX-HD6XXX\n    spirv   - SPIR-V Logical\n    spirv32 - SPIR-V 32-bit\n    spirv64 - SPIR-V 64-bit\n    x86     - 32-bit X86: Pentium-Pro and above\n    x86-64  - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/lld",
+      "sha256": "646487af07dcdf9d3263849db8833136dfc10817e1fc8f61ae6daf93b1305cbe",
+      "version": "AMD LLD 24.0.0 (https://github.com/ROCm/llvm-project.git c7ceccf9a5789b92fda4056b8501450d0b7a75de) (compatible with GNU linkers)\n"
+    },
+    "clang++": {
+      "path": "/opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/clang-24",
+      "sha256": "7c0bca5771a9a9748ccf22aece01169f5e2dacbd64e9e4c2cfbe6678a6b405d5",
+      "version": "AMD clang version 24.0.0git (https://github.com/ROCm/llvm-project.git c7ceccf9a5789b92fda4056b8501450d0b7a75de)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin\nConfiguration file: /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/clang++.cfg\n"
+    },
+    "HIP_runtime_library": {
+      "path": "/opt/rocm-10.2.0a20261013+bkc.20261019/lib/libamdhip64.so.7.17.26405-0000000",
+      "sha256": "6875790c48db4405a7fdc5ad68acf8ea2ee139d12d2155a9e04f74045af02a72"
+    }
+  },
+  "device_identity": {
+    "logical_ordinal": 0,
+    "visible_device_count": 1,
+    "name": "AMD Radeon Graphics",
+    "architecture": "gfx1250",
+    "wave_size": 32,
+    "pci_bus_id": "0004:01:00.0",
+    "uuid_status": "available",
+    "uuid_hex": "32653636653233663339393732656339",
+    "uuid_hip_error": 0,
+    "hip_runtime_version": 71726405,
+    "hip_driver_version": 71726405
+  },
+  "built_artifacts": {
+    "original_driver": "4fbe473e4ed831a166aa93ec6b2fbdb85e61e37a44a168fd7aa5957f3ac8cd1f",
+    "upstream-adapters.o": "9624ed80837da027dbbf917487caa9f919858f745ae937fee90a68ced724c49d",
+    "upstream-adapters.hsaco": "15d727f4b8b355756348111c847972c6e7847ab126abd0e0a1e5aff1c5749e10",
+    "device_identity.cpp": "a26606dd40a134309c28ccce34e8d102e69184a835684968a758d40021ac1b0a",
+    "device_identity": "d5def70bd3d0b1dad6f334c58971e8ef3e3d1299b162fe71c5f9125940823575"
+  },
+  "validation": {
+    "status": "pass",
+    "architecture": "gfx1250",
+    "wave_size": 32,
+    "reference_controls": "pass",
+    "patterns": 34,
+    "cases": [
+      {
+        "kernel": "bf16_m16n8k16_fragment_adapter",
+        "outputs": 8840,
+        "original_outputs": 136,
+        "launches": 34,
+        "unchanged_input_bytes": 26112,
+        "unchanged_guard_bytes": 1114112,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "high64_division_projection",
+        "outputs": 34,
+        "original_outputs": 34,
+        "launches": 34,
+        "unchanged_input_bytes": 0,
+        "unchanged_guard_bytes": 278528,
+        "max_absolute_error": 0
+      }
+    ]
+  },
+  "remote_execution": {
+    "ssh_host": "mi400",
+    "directory": "/tmp/ptx-gfx1250-original.W1uBS4",
+    "argv": [
+      "python3",
+      "/tmp/ptx-gfx1250-original.W1uBS4/full/hardware/upstream_adapters_run.py",
+      "--local",
+      "--fixture-directory",
+      "/tmp/ptx-gfx1250-original.W1uBS4",
+      "--device",
+      "3",
+      "--patterns",
+      "34",
+      "--timeout",
+      "180",
+      "--rocm",
+      "/opt/rocm",
+      "--revision",
+      "bb63d2830e9a858ccc95a95a44522b97b42c0522",
+      "--result",
+      "/tmp/ptx-gfx1250-original.W1uBS4/result.json",
+      "--invocation-id",
+      "1be63dc3-373e-450a-8a23-f3345a284de5"
+    ],
+    "staging_archive_sha256": "04574a6b0848f78644b8c5dd3b801808f6719b8799213053462cc7f83585d3cd"
+  }
+}
