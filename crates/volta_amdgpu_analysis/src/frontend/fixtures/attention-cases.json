@@ -83,7 +83,6 @@
           "lse"
         ]
       },
-      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "nativeF16MFMA QK and PV",
         "online max/sum/accumulator rescaling",
@@ -189,7 +188,6 @@
           "lse"
         ]
       },
-      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "nativeF16MFMA QK and PV",
         "online max/sum/accumulator rescaling",

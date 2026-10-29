@@ -611,7 +611,6 @@
       },
       "full_baseline_shape": true,
       "reduced_case": false,
-      "status": "coordinator_validated_declared_native_scope",
       "notes": [
         "Native block128/two wave64 replaces originalblock64/two warp32; full32x128 result and stateK32/scanK128 reductions retained.",
         "Previous states and weighted CB are convertedtohalf before nativeF16MFMA, matching actualsource ordering.",

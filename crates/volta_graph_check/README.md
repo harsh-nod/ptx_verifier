@@ -1,76 +1,16 @@
 # volta_graph_check
 
-The gfx1250 named-object checker requires execution order from initialization
-to every other wave's use, and from earlier uses to reinitialization. Absent
-order admits a potential uninitialized/reset-object protocol hazard and yields
-a typed `AmdBarrierViolation`. Reinitialization with live joins remains outside
-the selected profile; it does not gain an ordering certificate from this rule.
+Checks the event graph of one candidate execution without running symbolic
+analysis or equivalence checking. `check_graph` validates the representation,
+selects the target-specific properties, and returns typed findings and a
+`GraphReport`. Its conclusion is `Verified`, `Rejected` or `Unknown`.
 
-For supported `gfx942`, `gfx950` and `gfx1250` targets, `check_graph` selects four AMD properties:
-trace completeness, wait/register readiness, workgroup barrier generations, and
-memory-conflict freedom. `Property::ALL` retains the ten PTX properties for API
-compatibility; consumers must enumerate `report.applicable_properties()` or
-`report.summaries()`. `report.amd` retains typed register and barrier witnesses.
-Empty/missing AMD instrumentation, malformed graphs, conflicting targets, foreign
-events, unsupported memory effects, and missing instruction/issue associations
-cannot produce `Verified`. An aborted prefix remains incomplete even if its checked
-obligations pass.
+The graph's recorded trace order is not a synchronization proof. The checker
+must validate tentative barrier, completion and memory associations before
+using them to establish ordering. An incomplete execution cannot become
+`Verified` merely because checks on its prefix pass.
 
-AMD ordering is independent of PTX certificates. The following VM/LGKM/MFMA
-profile applies to gfx942/gfx950; see the separate gfx1250 section for its
-wave32 counters, replay and WMMA rules. VM and LDS FIFO pipelines, waits
-that guarantee completion, and validated workgroup rendezvous create completed-effect
-frontiers. Candidate trace order and a barrier alone do not complete memory operations.
-The checker reuses the existing byte-overlap domain and conflict forest, with clocks
-bounded by wave count and instruction class. SMEM charges one LGKM count for a dword,
-two for wider loads; FLAT retires only after both VM and LGKM charges clear. Nonzero
-LGKM waits do not assume FIFO for scalar/mixed classes. Cross-lane DS permutations
-share the LDS completion FIFO while recording no LDS memory footprint. Register reads, pending destination overwrites and held
-store-source overwrites have distinct witnesses, respecting physical lane slices.
-Ordinary DS, cross-lane, and narrow store sources use hardware operand handling;
-they are not held until a counter wait. Three/four-dword Global/Flat store data
-requires two independent states before a VALU overwrite (CDNA4 Table 11).
-VM/LDS destination writes occur on asynchronous return and use hardware dependency
-handling; their issue events do not act as immediate overwrites. A trans-VALU result similarly needs one independent
-state before a non-trans VALU consumes it. Minimal failing and corrected controls
-cover these timing rules.
-
-VALU-produced scalar registers (including VCC low/high) require two independent
-states before ordinary VALU data use, and five before vector-memory data/address
-use. Explicit carry/condition-mask roles require no software bubble; recording
-those roles never bypasses asynchronous register readiness checks. Later scalar
-writes replace earlier producers. Scalar-mask roles must be actual scalar reads
-of the corresponding instruction.
-VALU writes of EXEC require four states before MFMA, including writes that leave
-the active mask unchanged. MFMA traces must include both implicit EXEC reads.
-
-The MFMA timing model pins the dense, single-block F32 16x16x4/32x32x2,
-F16/BF16 16x16x16/16x16x32/32x32x8/32x32x16, and OCP FP8
-16x16x128/32x32x64 forms (including unit-scaled forms). SGEMM ordinary RAW/WAW
-requires `passes + 2` independent states; XDL requires `passes + 4` on gfx950.
-VALU operand production requires two states. A complete accumulator can forward
-without a bubble when the pass counts match; partial accumulator overlap and matrix-to-A/B dependencies have
-separate rules. XDL accumulator-source overwrites require `passes - 1` states.
-S_NOP contributes its encoded immediate plus one and must have a pinned source
-instruction. Other matrix forms, general DPP/special-register software hazards,
-and global cache visibility policies are not inferred from this model.
-Scoped cross-wave GLOBAL publication on gfx942/gfx950 requires completed effects,
-workgroup scope at both endpoints, and the explicit `SingleCuWorkgroup` premise.
-Unscoped publication remains inconclusive even when execution order is known;
-conflicting unordered accesses still fail. No FLAT/SMEM/device/system visibility
-protocol is inferred. This legacy cache certificate is rejected on gfx1250.
-Disjoint global outputs and LDS communication use the ordinary native checks.
-
-References: [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
-(5-August-2025, sections 4.3–4.5, 7.6 Table 38, 8.3, 10.2 and 12.12), and LLVM
-`GCNHazardRecognizer.cpp` / `SIInstrInfo.cpp` at local review revision
-`846473237377990d00b9c353f6a2c86116b52ea5`. The former's `checkMAIHazards90A`
-and `checkMAIVALUHazards` cross-check the per-form timing rules; the latter
-counts S_NOP states. `SISchedule.td` pins the gfx950 pass counts, including the
-FP8-dependent doubled pass counts for F8F6F4 instructions.
-
-Focused regression suite: `cargo test -p volta_graph_check --test amdgpu_tests`.
-The PTX tests remain in the same package and are required independently.
+## PTX checks
 
 The PTX graph branch of the pipeline runs ten checks over one `volta_graph::EventGraph`
 that decide whether the recorded candidate execution is free of data races,
@@ -223,6 +163,76 @@ Prerequisites (`Property::prerequisites`): 1, 2, 3 and 10 need nothing; 4 and
 tests for each check live in `volta_pipeline/tests/<check>_tests.rs` and assert on
 the check's typed witness.
 
+## Native AMD checks
+
+For supported `gfx942`, `gfx950` and `gfx1250` targets, `check_graph` selects four AMD properties:
+trace completeness, wait/register readiness, workgroup barrier generations, and
+memory-conflict freedom. `Property::ALL` retains the ten PTX properties for API
+compatibility; consumers must enumerate `report.applicable_properties()` or
+`report.summaries()`. `report.amd` retains typed register and barrier witnesses.
+Empty/missing AMD instrumentation, malformed graphs, conflicting targets, foreign
+events, unsupported memory effects, and missing instruction/issue associations
+cannot produce `Verified`. An aborted prefix remains incomplete even if its checked
+obligations pass.
+
+### gfx942 and gfx950
+
+AMD ordering is independent of PTX certificates. The following VM/LGKM/MFMA
+profile applies to gfx942/gfx950; see the separate gfx1250 section for its
+wave32 counters, replay and WMMA rules. VM and LDS FIFO pipelines, waits
+that guarantee completion, and validated workgroup rendezvous create completed-effect
+frontiers. Candidate trace order and a barrier alone do not complete memory operations.
+The checker reuses the existing byte-overlap domain and conflict forest, with clocks
+bounded by wave count and instruction class. SMEM charges one LGKM count for a dword,
+two for wider loads; FLAT retires only after both VM and LGKM charges clear. Nonzero
+LGKM waits do not assume FIFO for scalar/mixed classes. Cross-lane DS permutations
+share the LDS completion FIFO while recording no LDS memory footprint. Register reads, pending destination overwrites and held
+store-source overwrites have distinct witnesses, respecting physical lane slices.
+Ordinary DS, cross-lane, and narrow store sources use hardware operand handling;
+they are not held until a counter wait. Three/four-dword Global/Flat store data
+requires two independent states before a VALU overwrite (CDNA4 Table 11).
+VM/LDS destination writes occur on asynchronous return and use hardware dependency
+handling; their issue events do not act as immediate overwrites. A trans-VALU result similarly needs one independent
+state before a non-trans VALU consumes it. Minimal failing and corrected controls
+cover these timing rules.
+
+VALU-produced scalar registers (including VCC low/high) require two independent
+states before ordinary VALU data use, and five before vector-memory data/address
+use. Explicit carry/condition-mask roles require no software bubble; recording
+those roles never bypasses asynchronous register readiness checks. Later scalar
+writes replace earlier producers. Scalar-mask roles must be actual scalar reads
+of the corresponding instruction.
+VALU writes of EXEC require four states before MFMA, including writes that leave
+the active mask unchanged. MFMA traces must include both implicit EXEC reads.
+
+The MFMA timing model pins the dense, single-block F32 16x16x4/32x32x2,
+F16/BF16 16x16x16/16x16x32/32x32x8/32x32x16, and OCP FP8
+16x16x128/32x32x64 forms (including unit-scaled forms). SGEMM ordinary RAW/WAW
+requires `passes + 2` independent states; XDL requires `passes + 4` on gfx950.
+VALU operand production requires two states. A complete accumulator can forward
+without a bubble when the pass counts match; partial accumulator overlap and matrix-to-A/B dependencies have
+separate rules. XDL accumulator-source overwrites require `passes - 1` states.
+S_NOP contributes its encoded immediate plus one and must have a pinned source
+instruction. Other matrix forms, general DPP/special-register software hazards,
+and global cache visibility policies are not inferred from this model.
+Scoped cross-wave GLOBAL publication on gfx942/gfx950 requires completed effects,
+workgroup scope at both endpoints, and the explicit `SingleCuWorkgroup` premise.
+Unscoped publication remains inconclusive even when execution order is known;
+conflicting unordered accesses still fail. No FLAT/SMEM/device/system visibility
+protocol is inferred. This legacy cache certificate is rejected on gfx1250.
+Disjoint global outputs and LDS communication use the ordinary native checks.
+
+References: [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
+(5-August-2025, sections 4.3–4.5, 7.6 Table 38, 8.3, 10.2 and 12.12), and LLVM
+[`GCNHazardRecognizer.cpp`](https://github.com/llvm/llvm-project/blob/846473237377990d00b9c353f6a2c86116b52ea5/llvm/lib/Target/AMDGPU/GCNHazardRecognizer.cpp)
+and [`SIInstrInfo.cpp`](https://github.com/llvm/llvm-project/blob/846473237377990d00b9c353f6a2c86116b52ea5/llvm/lib/Target/AMDGPU/SIInstrInfo.cpp). The former's `checkMAIHazards90A`
+and `checkMAIVALUHazards` cross-check the per-form timing rules; the latter
+counts S_NOP states. `SISchedule.td` pins the gfx950 pass counts, including the
+FP8-dependent doubled pass counts for F8F6F4 instructions.
+
+Focused regression suite: `cargo test -p volta_graph_check --test amdgpu_tests`.
+The PTX tests remain in the same package and are required independently.
+
 ## gfx1250 checks
 
 The target-selected wave32 checker validates trace completeness before readiness,
@@ -234,7 +244,7 @@ associations and incomplete traces stay inconclusive or fail their typed
 obligation. Advanced barrier/cache/tensor modes outside the documented subset
 cannot inherit gfx942/gfx950 certificates. Extending a graph profile does not
 establish a hardware result. Numerical agreement remains separate from these
-graph obligations; local hardware run records are not retained.
+graph obligations.
 For ordinary gfx1250 GLOBAL and resolved-global FLAT accesses, explicit
 `SCOPE_SYS` at both endpoints supplies cache visibility under the pinned
 [LLVM GFX125x memory model](https://github.com/ROCm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md#memory-model-gfx125x).
@@ -339,6 +349,12 @@ These rules follow LLVM's [hardware-event classification](https://github.com/llv
 and GFX125x memory-model replay requirements in AMDGPUUsage.md at that revision.
 
 Shader named barriers are reconstructed independently in `gfx1250/named.rs`.
+The gfx1250 named-object checker requires execution order from initialization
+to every other wave's use, and from earlier uses to reinitialization. Absent
+order admits a potential uninitialized/reset-object protocol hazard and yields
+a typed `AmdBarrierViolation`. Reinitialization with live joins remains outside
+the selected profile; it does not gain an ordering certificate from this rule.
+
 The checker validates descriptor capacity, initialized M0 roles, object
 incarnations, operation counts, last-joined WAIT resolution, matching wait/release
 source points, join-before-contribution and phase separation. Counts refer to
@@ -358,7 +374,7 @@ and [instruction sequences](https://github.com/llvm/llvm-project/blob/5fd50ec8e0
 Unordered initialization/reuse produces typed potential protocol violations;
 outstanding joins at reinitialization and missing native sideband state remain
 inconclusive. Signal-time expected-count updates
-retain their exact7-bit nonzero domain, phase/lifetime and M0 source. Different
+retain their exact 7-bit nonzero domain, phase/lifetime and M0 source. Different
 setters and drops require execution order across phases; identical explicit
 updates may commute. Equality with existing arrivals remains inconclusive.
 `_isfirst` and clustered objects are outside this profile. The native allocated

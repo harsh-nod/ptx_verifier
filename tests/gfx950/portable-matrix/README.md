@@ -1,11 +1,9 @@
 # Specific matrix, LDS layout, and dtype contracts
 
-Local validation run artifacts are not retained. Source fixtures and reproduction workflows remain available; removed observations do not establish current acceptance.
-
 The 19 positive native gfx950 sources map 20 original success rows. A legal
 wrong-format control brings the total to 20 assembly sources. `cases.json` records each actual PTX
 source hash, Rust assertion, expected output, native configuration, and scope
-changes. The coordinator owns parity dispositions.
+changes.
 
 ```sh
 cargo test -p volta_pipeline --test gfx950_matrix_parity_tests

@@ -15,12 +15,12 @@ ref outputs, opt outputs, arrays to check
 for each element: EquivSession::check(ref_expr, opt_expr)
    │   canonicalize both sides into normal forms, compare
    ▼
-Equivalent / Different / Unknown per element  ──(--verify-numeric)──► f64 oracle confirms
+equal / different, or an error  ──(--verify-numeric)──► independent numeric cross-check
 ```
 
 ## Decision procedure (`canon/`, `equiv.rs`)
 
-This is the paper's canonicalizer. Each expression is rewritten bottom-up, with
+Each expression is rewritten bottom-up, with
 memoization, into a **canonical rational form**:
 
 ```
@@ -56,12 +56,18 @@ time for bounded memory. One warm FlashAttention row can retain several GiB.
   a determinism check). The report has the outcome, checked/total counts and
   per-iteration and per-element timings.
 
+`EquivSession::check` returns `Result<bool, EquivError>`. Canonicalization
+limits, undefined values and coefficient overflow are errors rather than
+proofs of a difference. Output comparison similarly returns a typed error
+for shape mismatches or an unconfirmed numeric result; the pipeline determines
+how those outcomes affect its combined verdict.
+
 ## Numeric oracle (`numeric.rs`)
 
-Evaluates both DAGs in f64 at seeded random inputs. It confirms an EQUIV or DIFF
-claim (`--verify-numeric`). The pipeline treats a claimed difference as a
-refutation only when the oracle separates the two sides. Agreement at random
-points means equality almost surely for this fragment (Schwartz-Zippel).
+Evaluates both DAGs in f64 at seeded inputs as an independent cross-check
+(`--verify-numeric`). The pipeline treats a claimed difference as a refutation
+only when the oracle separates the two sides. Agreement at these points does
+not replace a symbolic equivalence proof.
 
 A finite f64 disagreement receives an independent exact-rational replay of
 arithmetic DAGs at the same seeded symbol values. Only exact equality can
@@ -69,7 +75,7 @@ override the f64 disagreement; seeds and relative tolerance stay unchanged.
 This avoids false counterexamples from different accumulation orders near
 zero. Unsupported operations, non-finite values, zero divisors and bounded
 replay limits retain the original inconclusive/failing result. Replay is
-limited to100,000 nodes and16,384-bit numerators/denominators and never uses
+limited to 100,000 nodes and 16,384-bit numerators/denominators and never uses
 the canonicalizer's equality decision as numeric evidence.
 
 ## VC dumps (`vc_dump.rs`)

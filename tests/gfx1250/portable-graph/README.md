@@ -7,8 +7,8 @@ uninitialized shuffle sources and allocated initialization/count lifetimes.
 `native-barriers.hip` is compiled unchanged for gfx1250 by the pinned ROCm clang
 22 toolchain. `compiler-provenance.json` records the source, assembly, object,
 code-object and tool hashes plus the exact successful compiler/MC/link commands.
-The assembly is an actual compiler output. None of these controls has been run
-on a GPU; `exited_writer_no_arrival` is a CPU-only proof-limit control.
+`exited_writer_no_arrival` is a CPU-only proof-limit control; harmful protocol
+variants must not be launched on a device.
 
 Reproduce compilation with:
 
@@ -35,9 +35,8 @@ through END's implicit drop. See the precise rationale and primary links in the
 [checker README](../../../crates/volta_graph_check/README.md#gfx1250-checks).
 Independent event graphs additionally cover writes after an explicit arrival,
 transitive later phases, read/read and disjoint accesses, and an unrelated actual
-conflict that must remain a failure. These controls do not imply that arbitrary
-barrier objects, participant counts, asynchronous copies or all portable baseline
-rows are implemented.
+conflict that must remain a failure. The selected object/count/copy profiles remain bounded by the
+[model contract](../CONTRACT.md).
 
 `validate_flat_profile.py` separately records actual compiler pre-waitcnt MIR
 for the unchanged portable ABI transfer source, plus two assemble-valid CPU-only
@@ -90,20 +89,19 @@ The mutations exercise a wrong expected count, a missing signal, END without a
 named drop, WAIT without JOIN, and replacing DS completion by an unrelated Load
 wait. Independent event graphs additionally test all IDs 1–16, malformed M0 and
 allocation roles, stale incarnations, forged/duplicate releases, phase
-interleaving, unordered initialization and drop-dependent memory Unknown.
+interleaving, typed initialization-order violations and drop-dependent memory
+Unknown.
 
 The checker follows the pinned LLVM
 [execution model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md).
 Arrivals are wave-uniform operations, not distinct waves or PTX per-lane counts.
 INIT reads its expected count from M0, and each reinitialization receives a fresh
-trace incarnation. END does not implicitly drop a named object. This initial
-fixture corpus uses initialization-bound counts. The separate
+trace incarnation. END does not implicitly drop a named object. This
+fixture module uses initialization-bound counts. The separate
 [signal-count corpus](signal-counts/README.md) checks signal-time updates,
 including the disputed equality boundary and unordered conflicting setter/drop
 operations that remain inconclusive. `_isfirst`, clustered objects and
 reinitialization with outstanding joins remain outside the selected profile.
-This corpus does not complete every portable barrier, lifetime or
-asynchronous-copy obligation. No hardware result is claimed.
 NULL waits require an explicit NULL join; an unbound initial last-joined selector
 is not inferred from the encoded operand and remains Unknown.
 
@@ -125,7 +123,7 @@ hashes; mathematical, graph and hardware evidence remain separate.
 `native-named-phases.ll` and its unchanged compiler output add four separate
 controls. The compiler assigns `full` object ID 2 and `empty` ID 1 in this module;
 the tests check those actual allocations, count values and every observed phase.
-The original six-kernel module is unchanged.
+The modules use separate allocation inventories.
 
 | Kernel | Launch/ABI | Complete payload and obligation |
 | --- | --- | --- |
@@ -145,7 +143,7 @@ a Shared conflict; changing one object's expected count must deadlock both waves
 changing the encoded WAIT selector preserves both payloads because the joined
 object still determines the wait. The runtime ID-mismatch control uses the same
 actual assembly with a different scalar input, not an edited descriptor. No
-hardware outcome is claimed here. The native payload lane is inactive elsewhere;
+hardware result is implied by these CPU tests. The native payload lane is inactive elsewhere;
 this does not emulate PTX independent lane termination or PTX count rounding.
 
 ## Copy completion and publication
@@ -171,15 +169,14 @@ python3 tests/gfx1250/portable-graph/copy-order/validate_mutations.py
 cargo test -p volta_pipeline --test gfx1250_portable_copy_tests
 ```
 
-The eight CPU tests check full symbolic outputs, untouched output tails, exact
+The CPU tests check full symbolic outputs, untouched output tails, exact
 input/LDS byte footprints and reader attribution. Three separately MC-accepted
 mutations replace the actual KM wait with a Load wait, replace a returned FLAT
 load wait with Store completion, or remove crosswave publication after LDS
 completion. Each has a passing unmodified payload control and a typed failing
 graph property. Independent scalar NOPs in the last mutation keep its candidate
 execution complete; they do not establish memory ordering. The mutations are
-CPU-only. Compiler and mutation receipts record source/tool/object hashes; no
-hardware result or completion of the entire portable feature group is claimed.
+CPU-only. Compiler and mutation records pin source/tool/object hashes.
 
 ## Named lifecycle markers
 
@@ -210,12 +207,12 @@ python3 tests/gfx1250/portable-graph/validate_named_profile.py --module native-n
 cargo test -p volta_pipeline --test gfx1250_named_lifecycle_tests
 ```
 
-The eleven CPU tests preserve exact output indices/tails and global write bytes,
+The CPU tests preserve exact output indices/tails and global write bytes,
 participant counts, phases and memory footprints. Four MC-accepted CPU-only
 mutations expose a missing LDS completion, a phase-1 wait unsatisfied by a
 completed phase 0, a count-1 wait with no arrival and missing consumer release
 before buffer reuse. The same-source scalar
-skip control is also CPU-only. No hardware outcome is claimed. Hardware WAIT
+skip control is also CPU-only. Hardware WAIT
 does not reproduce PTX scoped polling-loop grammar; AMD count-1 completion does
 not emulate manual NVIDIA transaction-byte credits or tensor-engine commits.
 Those mechanism residuals remain separate from the native marker assertions.
@@ -237,7 +234,7 @@ python3 tests/gfx1250/portable-graph/validate_named_profile.py --module native-n
 cargo test -p volta_pipeline --test gfx1250_named_consumer_tests
 ```
 
-The two CPU tests check all four outputs, all eight input bytes, every shared
+The CPU tests check all four outputs, all eight input bytes, every shared
 read/write byte, actual reader IDs 32 and 64, full/empty counts and every native
 arrival/wait role. **Inputs `skip_consumer=1` and `2` are CPU-only**: each leaves
 one empty arrival missing, blocks the producer and both next-phase waiters, and
@@ -246,32 +243,26 @@ These use the same unchanged MC-accepted assembly; the receipt claims no edited
 MC mutants or hardware execution. PTX parity pre-init polling is represented by
 an initially free buffer and explicit subsequent native handshakes.
 
-## Individual feature review proposal
+## Reference mappings and related controls
 
-[`feature-review-proposal.json`](feature-review-proposal.json) separately reviews
-all 59 assigned barrier/exit/copy rows from upstream `b3a3791`. Source, assertion
-function and golden hashes were checked against that revision. It proposes 27
-native assertion candidates and 10 contract-difference candidates, and retains
-22 explicit portable gaps. Each row records exact native scope, a mechanism
-residual and its remaining gate. These counts are not acceptance results, and
-the proposal does not change the coordinator's feature or completion ledger.
+[`feature-mappings.json`](feature-mappings.json) maps barrier/exit/copy reference
+assertions to native tests, complete outputs and exact target differences.
+[`mechanism-mappings.json`](mechanism-mappings.json) identifies NVIDIA grammar,
+resource and scheduler contracts separately from portable arithmetic, storage
+and ordering assertions. The [mechanism lifetime fixtures](../fixtures/mechanism-lifetime.md)
+provide TDM source reuse, count boundaries, zero-matrix projections and both
+matrix publication directions.
 
-[`mechanism-review-proposal.json`](mechanism-review-proposal.json) is a separate
-source-pinned review of all 82 rows originally labeled as target-mechanism residuals.
-It pins the actual upstream sources and 47 distinct assertion functions, retains
-every positive control, and names the exact target contract per row. Its 65
-precise residual candidates and seventeen native-property candidates are
-proposals for coordinator review, not completed exclusions. Eleven of those
-native candidates reconcile previously explicit portable gaps through the
-13-row [mechanism lifetime contract](../fixtures/mechanism-lifetime-contract.json).
-Their prior gap descriptions remain recorded; each current row names the exact
-source-backed property and the pending coordinator gate.
-Repeated native evidence is stored in a source-hashed catalog. The audit changes
-no production code, original workload source, canonical ledger or issue status.
+Additional source suites cover [asynchronous memory](async-memory/README.md),
+[protocol lifetimes](protocol-lifetimes/README.md) and
+[signal-time counts](signal-counts/README.md). Their adjacent manifests pin
+source hashes and actual assertion functions. See the
+[full-workload contracts](../full-parity/README.md) for the mapping validators.
 
-Two names need particular care: `tcgen05_wait_ld_after_bar_sync_is_rejected` and
-`tcgen05_wait_st_after_mbarrier_arrive_is_rejected` actually assert an allocation
-was never freed, rather than a late wait hazard. The transaction-count overflow
-row also retains its successful boundary control. Successful empty fence tests
-do not establish broader memory visibility, and zero-MMA boundary tests retain
-matrix completion/lifetime obligations even though they write no output arrays.
+Names alone are insufficient to identify a tested property:
+`tcgen05_wait_ld_after_bar_sync_is_rejected` and
+`tcgen05_wait_st_after_mbarrier_arrive_is_rejected` assert an allocation was
+never freed. The transaction-count overflow reference also has a successful
+boundary control. Empty fence tests do not establish broader memory visibility;
+zero-MMA tests still require completion and storage lifetime checks even with
+no output arrays.

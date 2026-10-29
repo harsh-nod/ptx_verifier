@@ -1,6 +1,6 @@
 # Actual original32 opcode and modifier profiles
 
-This generated index complements [stage-support.md](stage-support.md). Its typed frontend and lowering checks do not execute instructions. Value/event/checker contracts and named positive/negative family controls are linked in [stage-profiles.json](stage-profiles.json); each profile links its actual source entries and all32 retain separate full CLI/Python acceptance gates.
+This generated index complements [stage-support.md](stage-support.md). Its typed frontend and lowering checks do not execute instructions. Value/event/checker contracts and named positive/negative family controls are linked in [stage-profiles.json](stage-profiles.json); each profile links its actual source entries. See the [CPU workflow guide](../full/cpu/README.md) for full-workload CLI/Python runs.
 
 The seven compiler modules contain 185 mnemonics and 497 typed profiles across 13239 component occurrences. Both VOPD slots are indexed separately. A profile records operand shapes and exact named modifiers; it does not enable every immediate, register index or combination with those shapes.
 

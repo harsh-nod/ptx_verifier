@@ -1,8 +1,10 @@
-`matrix-feature-contract.json` maps all 32 original references across matrix LDS
+# Matrix layout, arithmetic and publication fixtures
+
+`matrix-feature-contract.json` maps reference assertions across matrix LDS
 layout (8), strided layout (4), raw accumulators (2), numeric layout (8) and
 publication (10). Each row pins its original assertion/source/golden, genuine
 native source and test, complete native output views and target-specific
-residual. All entries remain candidates for coordinator acceptance.
+difference.
 
 The layout sources expose every gathered half at 32-, 48-, 64- and native-legal
 40-byte row pitches, all 256 weighted matrix outputs, all 128 original raw or
@@ -18,7 +20,7 @@ CPU controls. The latter keeps global stores and LDS publication in distinct loo
 so the source reaches its intended definedness property. An assemble-valid
 unmodeled native WMMA mode is explicitly rejected rather than silently erased.
 
-The new publication source uses two wave32 groups. Wave0 computes a full 16×16
+The publication source uses two wave32 groups. Wave0 computes a full 16×16
 weighted WMMA tile; wave1 reads all 256 results through LDS after completion and
 a workgroup barrier. A completed prior zero phase lets the missing-publication
 mutation produce a complete candidate trace. Four actual assembler-valid CPU

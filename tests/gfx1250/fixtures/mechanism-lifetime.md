@@ -1,9 +1,9 @@
-These source-only controls address the eleven explicit portable gaps in the
-mechanism review and two additional matrix publication directions. The finite
-13-row contract retains exact original assertions, source hashes, empty-output
-positives, logical projections and target-specific residuals. Coordinator
-acceptance remains pending; compilation provenance and source mappings are
-separate from runtime proof or hardware validation.
+# Asynchronous and matrix resource lifetimes
+
+`mechanism-lifetime-contract.json` maps exact reference assertions to native
+source hashes, empty-output positives, logical projections and target-specific
+differences. These controls test source/destination reuse, counted progress,
+matrix readiness and cross-wave publication.
 
 `async_source128_reuse` borrows exactly 128 LDS source bytes for an actual TDM
 store, waits for its completion and then reuses them from the second wave.
@@ -29,7 +29,7 @@ native K32. An assemble-valid early WMMA destination overwrite retains the full
 candidate and reports `MatrixDestinationReuse`; no TMEM deallocation opcode is
 invented for native registers or LDS.
 
-The two new matrix-ordering entries keep their memory directions distinct.
+The two matrix-ordering entries keep their memory directions distinct.
 `matrix_input_cross_wave` publishes 512 operand bytes from wave0 to wave1 before
 WMMA reads and checks every weighted result. `matrix_completion_keeps_metadata_separate`
 checks all 256 matrix outputs plus a separate arbitrary U32 metadata word.
@@ -47,5 +47,5 @@ python3 tests/gfx1250/full-parity/validate_native_mappings.py \
 
 The three genuine compiler modules and all six harmful assembly mutations have
 actual compiler/MC/link provenance. Count0/refusal and harmful memory/register
-mutations stay on CPU. `mechanism-positive-cases.json` lists only the six safe
-new entries with their exact argument order and independent reference formulas.
+mutations stay on CPU. `mechanism-positive-cases.json` lists only the safe
+entries with their exact argument order and independent reference formulas.

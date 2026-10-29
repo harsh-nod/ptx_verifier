@@ -1,9 +1,10 @@
-These genuine compiler sources preserve all 24 original feature references in
+# Packed data and byte-format fixtures
+
+These compiler sources preserve the reference assertions in
 `PACKED-F32-TYPING` and `FP8-BYTES-PACKING`: 15 packed-F32 rows and 9 FP8 rows.
 `packed-data-contract.json` pins each original assertion, source/golden, native
-entry and exact output view. All mappings remain candidates for coordinator
-acceptance. Compilation provenance is separate from graph/math validation;
-no execution receipts or hardware observations are included.
+entry and exact output view. Compilation provenance records source and
+encoding hashes; graph/equivalence tests check complete payloads separately.
 
 The 22 positive payloads compare every original coordinate against both the
 original PTX execution and its checked-in golden. They retain independent packed

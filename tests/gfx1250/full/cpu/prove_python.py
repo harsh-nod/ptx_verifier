@@ -28,7 +28,7 @@ TEST = "test_registered_original_case_analyzes_every_index_and_matches_full_spec
 def selected_cases(document, selected):
     cases = document["cases"]
     require(
-        len(cases) == 32 and not document["pending_baseline_ids"],
+        len(cases) == 32 and not document["missing_baseline_ids"],
         "full32 registry required",
     )
     names = {case["kernel"]: case for case in cases}

@@ -1,33 +1,5 @@
 # volta_viz
 
-Named signal-time count updates show their updated expected arrivals on the
-single signal row and retain ordinary arrival-to-release edges.
-
-The run store accepts PTX, gfx942/gfx950 wave64 and gfx1250 wave32 graphs.
-Native runs show AMD wave/lane labels, target-width EXEC and register masks,
-counter charges and wait thresholds, MFMA or WMMA operands, delay states,
-LDS/tensor footprints and barrier generations. Typed AMD findings
-link the issuing and consuming events back to their source lines. AMD barrier deadlocks
-name missing waves directly.
-
-Gfx1250 named-barrier rows retain physical ID, initialization incarnation and
-phase, including INIT counts and WAIT's encoded versus last-joined selector.
-Candidate signal/drop-to-release edges remain separate from checked findings.
-Named deadlocks display expected and observed arrival counts; they do not invent
-a PTX synchronization object or treat END as a named drop.
-
-The wire format remains `volta-viz 1`: `launch.wave_size` and
-`launch.source_language` and `launch.wave_kind` are additive fields. Legacy
-stores without geometry/language metadata use the warp32 fallback; stored AMD
-wave64 width still identifies wave grouping. Source-only unsupported outcomes
-retain declared target/geometry separately, without inventing a launch. Source
-filenames still occupy the legacy `ptx` metadata key, including `.s`
-files, so stored-run readers remain compatible. Candidate barrier/issue edges are
-visualized as recorded associations; check findings establish their validity.
-
-Run `cargo test -p volta_viz --test amdgpu_viewer_tests` for AMD source mapping,
-wait/readiness witnesses, aborted/unsupported status, and deadlock export coverage.
-
 The event-graph viewer. It records kernel runs into a directory (a **run
 store**) and turns that store into **one self-contained HTML page** showing
 each run's displayed event graph as a space-time diagram. The diagram has a lane per
@@ -35,10 +7,10 @@ thread, per issuing thread's async ops and per sync object; the typed edges;
 the graph checks' findings; and the PTX or native AMD source behind every event.
 
 ```sh
-just viz   # records the complete pipeline suite, including thousands of numeric variations
+just viz   # record pipeline test runs and build the viewer
 ```
 
-For a smaller store, use the [focused gfx1250 recipe](../../tests/gfx1250/README.md#software-acceptance-and-reproduction).
+For a smaller store, use the [gfx1250 corpus guide](../../tests/gfx1250/README.md).
 Set `VOLTA_VIZ_DIR` to an absolute path: Cargo runs each test from its crate
 folder, so a relative store path may differ from the subsequent CLI invocation.
 
@@ -130,16 +102,45 @@ kind, and keyboard navigation (`?` lists the keys).
 `volta_expr` (rendering stored values). `tests/viewer_tests.rs` covers export
 and page assembly.
 
-## Native gfx1250 records
+## Native AMD records
 
-The viewer labels native gfx1250 lanes as AMD wave32, including source-only
-unsupported outcomes. It displays target-specific wait counters, WMMA/tensor
-issues, split signal/wait/release events and typed findings with source links.
-The mixed-target Chromium harness covers PTX, gfx942, gfx950 and gfx1250;
-rendering a run is separate from successful proof or hardware validation.
+Named signal-time count updates show their updated expected arrivals on the
+single signal row and retain ordinary arrival-to-release edges.
 
-The full-size matrix Chromium harness requires all six W27–W32 records and
-both typed shared-memory mutation controls. It checks complete source hashes
+The run store accepts PTX, gfx942/gfx950 wave64 and gfx1250 wave32 graphs.
+Native runs show AMD wave/lane labels, target-width EXEC and register masks,
+counter charges and wait thresholds, MFMA or WMMA operands, delay states,
+LDS/tensor footprints and barrier generations. Typed AMD findings
+link the issuing and consuming events back to their source lines. AMD barrier deadlocks
+name missing waves directly.
+
+Gfx1250 named-barrier rows retain physical ID, initialization incarnation and
+phase, including INIT counts and WAIT's encoded versus last-joined selector.
+Candidate signal/drop-to-release edges remain separate from checked findings.
+Named deadlocks display expected and observed arrival counts; they do not invent
+a PTX synchronization object or treat END as a named drop.
+
+The wire format remains `volta-viz 1`: `launch.wave_size` and
+`launch.source_language` and `launch.wave_kind` are additive fields. Legacy
+stores without geometry/language metadata use the warp32 fallback; stored AMD
+wave64 width still identifies wave grouping. Source-only unsupported outcomes
+retain declared target/geometry separately, without inventing a launch. Source
+filenames still occupy the legacy `ptx` metadata key, including `.s`
+files, so stored-run readers remain compatible. Candidate barrier/issue edges are
+visualized as recorded associations; check findings establish their validity.
+
+Run `cargo test -p volta_viz --test amdgpu_viewer_tests` for AMD source mapping,
+wait/readiness witnesses, aborted/unsupported status, and deadlock export coverage.
+
+
+## Browser tests
+
+The [mixed-target Chromium harness](tests/browser/README.md) covers PTX,
+gfx942, gfx950 and gfx1250. Rendering a run is separate from mathematical
+proof and hardware validation.
+
+The full-size matrix Chromium harness requires the registered matrix workload
+records and typed shared-memory mutation controls. It checks complete source hashes
 against the registration, wave32 geometry, disclosed omissions, original IDs
 outside the display row range, omitted-ID rejection and finding/source links.
 The shared harness also accepts legacy identity-mapped records in the same page.
@@ -149,5 +150,5 @@ PLAYWRIGHT_MODULE=/path/to/playwright node tests/gfx1250/full-parity/browser.cjs
 PLAYWRIGHT_MODULE=/path/to/playwright node tests/gfx1250/full-parity/matrix_browser.cjs mixed/index.html matrix-browser-evidence tests/gfx1250/full/cases.json
 ```
 
-Both commands write browser receipts and screenshots. They require actual
+Both commands write browser reports and screenshots. They require actual
 recorded native graphs; no sampled computation substitutes for a full-size run.

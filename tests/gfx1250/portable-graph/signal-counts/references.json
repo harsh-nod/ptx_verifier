@@ -1,8 +1,7 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "scope": "Three original graph count obligations, actual signal-time native sources and exact target boundary candidates only; no hardware claim or automatic coordinator acceptance.",
-  "completion": "coordinator_review_required",
+  "scope": "Native signal-time count source mappings, complete payloads and explicit public count-boundary semantics.",
   "public_execution_semantics": {
     "url": "https://raw.githubusercontent.com/ROCm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md",
     "sha256": "314e8fc411687dc2d5ebbb99afe0efdd8496eb469af4b401a24e4b40703456a9",
@@ -12,7 +11,7 @@
     "tests/gfx1250/portable-graph/signal-counts/native-signal-counts.ll": "eb7fdeac74ea352954217e0b3cc76d63a443d2f408b3e97477112ec777c45254",
     "tests/gfx1250/portable-graph/signal-counts/native-signal-counts.s": "905535c24161201668cc06a4743984e13fc1024715428bc341024be0ff956212",
     "tests/gfx1250/portable-graph/signal-counts/compiler-provenance.json": "71973f6bd23e00dffc90726fc9f31f72dff831b302634bcd637b0ec580af8bd0",
-    "tests/gfx1250/portable-graph/signal-counts/check_sources.py": "08ce4c2d20719354693a97a8d140b3e7b886f5276aed0bef9b721a90c65c2525",
+    "tests/gfx1250/portable-graph/signal-counts/check_sources.py": "d60f5b6eb691dd7288416f573cc8d7372d7fbb585ee15919ab0f961987735f7f",
     "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc",
     "crates/volta_graph_check/tests/gfx1250_tests.rs": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
   },
@@ -92,13 +91,10 @@
       "portable_obligation": "Same PTX object sees conflicting64/32 counts across wait/arrive.",
       "native_scope": "Actual public M0 signal-time update: same incarnation phase0 count2 then phase1 count1 preserves exactly[7,7]; zero/NULL, all127 arrivals, stable expected3/arrived2 deadlock in both actual wave orders, and below-arrived typed-invalid controls are separate.",
       "target_contract_residual": "PTX thread counts64/32 map separately to native wave-arrival counts2/1. Exact count2-to-count1 after one arrival is retained as an actual Unsupported/Unknown boundary: pinned public formal and code-sequence rules disagree at equality. Supporting count3 deadlock is not substituted for that instruction.",
-      "remaining_gate": "Coordinator review of actual source-backed signal updates, full payload/progress controls and precise public equality/ordering residual; completion is not automatic.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "distinct_named_objects_keep_independent_counts_across_phases",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         },
         {
@@ -136,9 +132,7 @@
           "function": "equal_explicit_count_updates_still_require_order_against_other_wave_drops",
           "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         }
-      ],
-      "completion": "coordinator_review_required",
-      "previous_portable_gap": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
+      ]
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_changes_between_phases.ptx",
@@ -157,13 +151,10 @@
       "portable_obligation": "PTX allows a new phase count, but the baseline tool rejects its unsupported count change.",
       "native_scope": "Actual public M0 signal-time update: same incarnation phase0 count2 then phase1 count1 preserves exactly[7,7]; zero/NULL, all127 arrivals, stable expected3/arrived2 deadlock in both actual wave orders, and below-arrived typed-invalid controls are separate.",
       "target_contract_residual": "Native signal-time counts update within one initialization lifetime and successive phases. PTX first-arrival-pinned tool behavior and thread-count granularity differ; the actual native phase-change positive preserves both word7 outputs.",
-      "remaining_gate": "Coordinator review of actual source-backed signal updates, full payload/progress controls and precise public equality/ordering residual; completion is not automatic.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "distinct_named_objects_keep_independent_counts_across_phases",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         },
         {
@@ -201,9 +192,7 @@
           "function": "equal_explicit_count_updates_still_require_order_against_other_wave_drops",
           "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         }
-      ],
-      "completion": "coordinator_review_required",
-      "previous_portable_gap": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
+      ]
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_mismatch.ptx",
@@ -222,13 +211,10 @@
       "portable_obligation": "Conflicting32/64 counts cannot certify Shared word7 transfer.",
       "native_scope": "Actual public M0 signal-time update: same incarnation phase0 count2 then phase1 count1 preserves exactly[7,7]; zero/NULL, all127 arrivals, stable expected3/arrived2 deadlock in both actual wave orders, and below-arrived typed-invalid controls are separate.",
       "target_contract_residual": "PTX thread counts64/32 map separately to native wave-arrival counts2/1. Exact count2-to-count1 after one arrival is retained as an actual Unsupported/Unknown boundary: pinned public formal and code-sequence rules disagree at equality. Supporting count3 deadlock is not substituted for that instruction.",
-      "remaining_gate": "Coordinator review of actual source-backed signal updates, full payload/progress controls and precise public equality/ordering residual; completion is not automatic.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "distinct_named_objects_keep_independent_counts_across_phases",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         },
         {
@@ -266,9 +252,7 @@
           "function": "equal_explicit_count_updates_still_require_order_against_other_wave_drops",
           "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         }
-      ],
-      "completion": "coordinator_review_required",
-      "previous_portable_gap": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
+      ]
     }
   ]
 }

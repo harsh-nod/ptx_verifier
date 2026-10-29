@@ -66,6 +66,5 @@
     "crates/volta_pipeline/tests/gfx1250_exact_wave_parity.rs::same_instruction_logical_leaders_keep_the_original_unordered_writer_conflict",
     "crates/volta_pipeline/tests/gfx1250_exact_wave_parity.rs::same_address_divergent_native_stores_keep_the_public_wave_instruction_order"
   ],
-  "public_ordering_reference": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md#memory-model-gfx125x",
-  "completion": "coordinator_review_required"
+  "public_ordering_reference": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md#memory-model-gfx125x"
 }

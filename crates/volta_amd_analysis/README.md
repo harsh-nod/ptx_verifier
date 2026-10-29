@@ -11,7 +11,7 @@ The IR represents AMD instructions for symbolic execution. It preserves
 physical register identities, explicit waits, and launch metadata.
 The implemented stages are parsing and lowering of the selected gfx950 copy
 subset; symbolic execution and verifier dispatch are not implemented here.
-The fork's CLI and Python native backend remains `volta_amdgpu_analysis`.
+The CLI and Python native backend is `volta_amdgpu_analysis`.
 Shared pipeline regressions compare syntax, exercise this typed lowering, and
 check complete native outputs plus harmful missing-wait controls.
 Lowering rejects unknown, duplicate and conflicting target-feature suffixes;

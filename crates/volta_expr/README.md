@@ -3,8 +3,8 @@
 The expression language every other part of Volta speaks. The interpreter
 builds expressions, `volta_spec` unfolds specs into them, and the equivalence
 checker consumes them. It depends on no other Volta crate, which is how
-`volta_ptx_analysis` (the producer) and `volta_equivalence` (the consumer) stay
-independent of each other.
+the PTX/AMD analysis producers and `volta_equivalence` stay independent of
+each other.
 
 ## Expressions (`symbolic.rs`)
 

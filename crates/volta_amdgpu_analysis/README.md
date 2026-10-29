@@ -1,321 +1,173 @@
-# Native gfx942, gfx950 and gfx1250 analysis
+# volta_amdgpu_analysis
 
-Local validation run artifacts are not retained. Source fixtures and reproduction workflows remain available; removed observations do not establish current acceptance.
+Parses, lowers and symbolically executes selected native AMDGPU assembly for
+**gfx942, gfx950 and gfx1250**. It produces symbolic outputs and an event graph
+for one candidate execution. It does not decide equivalence or graph safety;
+[`volta_pipeline`](../volta_pipeline/README.md) sends those artifacts to their
+independent checkers. Analyzing checked-in assembly requires a CPU, with no
+ROCm installation or GPU.
 
-This crate mirrors `volta_ptx_analysis`: typed assembly frontend, lowering, one
-candidate execution with target-selected wave geometry, then the existing symbolic-output and event-graph
-artifacts. It does not depend on the pipeline, equivalence checker, or graph
-checker. Backend dispatch and verification remain in the existing pipeline.
+```text
+assembly + launch configuration + selected entry + declared target
+                         └─ frontend::Module
+                         └─ lower ──► typed IR
+                                       └─ analyze ──► symbolic outputs
+                                                   + event graph
+                                                   + statistics/provenance
+```
 
-The targets are LLVM AMDHSA assembly for gfx942, gfx950 and gfx1250, tested with
-code-object version 6 and metadata 1.2. The frontend recognizes code-object 4–6
-and metadata 1.0–1.2; those broader version ranges are not independently validated
-gfx1250 toolchain profiles. Legacy compiler fixtures retain source and provenance
-under `src/frontend/fixtures`; gfx1250 fixtures live under
-[`tests/gfx1250`](../../tests/gfx1250). CPU analysis of checked-in assembly
-requires no ROCm installation or GPU.
+## Interfaces and module boundaries
 
-The selected gfx1250 named-barrier profile supports shader IDs 1–16 within the
-descriptor's four-object allocation units, explicit M0 count/selector moves,
-INIT, JOIN, one-count SIGNAL, last-joined WAIT and LEAVE. NULL operations are
-no-ops except JOIN; END does not drop named objects. Reinitialization advances
-the trace incarnation after all joins have been left. Signal-time count updates
-use explicit M0 bits22:16 and one typed signal event; zero/NULL preserve their
-no-change/no-op rules. The public equality boundary remains Unsupported.
-Reserved M0 bits, `_isfirst`, clustered objects and reinitialization with outstanding joins remain
-unsupported. Genuine allocated LLVM inputs, compiler output and CPU-only harmful
-controls are in [portable-graph](../../tests/gfx1250/portable-graph).
-NULL waits require an explicit NULL join rather than an assumed initial selector.
+- `frontend::parse` / `parse_module`: preserve source spans, target, globals,
+  kernel descriptors and argument metadata while validating assembly syntax.
+- `lower::lower_module_kernel(&module, name)`: select and lower an entry while
+  retaining the module's target and globals. Lowering also validates
+  caller-constructed typed modules; changing a target cannot bypass its profile.
+- `analyze(&module, name, config)`: lower and execute the selected kernel.
+  `AnalysisResult` exposes the graph, arena, statistics and instruction counts;
+  `symbolic_outputs()` succeeds only after completed execution and extraction.
+  `into_parts()` transfers ownership of those artifacts to a caller.
+- `ir`: the contract between lowering and execution. `target` defines
+  architecture boundaries; `eval` implements wave state and event recording.
 
-`frontend::parse` and `parse_module` preserve the original source, instruction
-spans, globals, descriptors and argument metadata. Descriptors and AMDHSA metadata
-identify the entry kernels in compiler modules. Unrelated functions are excluded
-only when declared with `.type ...,@function` and closed by a matching `.size`;
-overlapping function definitions and entry fallthrough are rejected when excluding
-helpers. Module directives, metadata and global objects are still validated.
-Every entry instruction is checked, including unreachable instructions. Calls and
-computed jumps remain unsupported; lowering rejects branches outside the entry
-body. Descriptor-free, metadata-free handwritten modules retain strict parsing of
-all functions. This frontend does not analyze helper call graphs or synthesize
-returns. Select an entry through `lower::lower_module_kernel(&module, name)` after
-parsing, so target information and module globals remain available.
+The frontend identifies compiler entry kernels through descriptors and AMDHSA
+metadata. It excludes an unrelated helper only when `.type ...,@function` and
+matching `.size` declarations bound it unambiguously. Overlapping definitions
+and entry fallthrough are rejected. Every entry instruction is checked,
+including unreachable instructions. Calls, computed jumps and helper call
+analysis are unsupported. Handwritten modules without entry declarations
+retain strict parsing of all function bodies.
 
-Select gfx942 explicitly with CLI `--backend amdgpu --target gfx942` or Python
-`Config(..., backend="amdgpu", target="gfx942")`. The source target must match
-that selection; omitted API targets retain gfx950 as the default. Direct Rust
-analysis uses the module's declared architecture. Target feature suffixes remain
-in graph provenance and survive serialization.
+CLI and Python callers select `backend=amdgpu` and a matching `target`.
+Omitting the AMD API target selects gfx950. Direct Rust analysis uses the
+module's declared architecture. Code-object versions 4–6 and metadata versions
+1.0–1.2 are recognized; individual compiler fixtures determine which
+combinations have executable coverage.
 
-| Architecture boundary | gfx942 (CDNA3 / MI300) | gfx950 (CDNA4 / MI350) |
-| --- | --- | --- |
-| Wavefront and local-ID ABI | Wave64, packed x/y/z in v0 | Same |
-| Aggregate static plus dynamic LDS | 65,536 bytes | 163,840 bytes |
-| Selected native MFMA | F32 16x16x4/32x32x2, F16 16x16x16/32x32x8, BF16 `_1k` counterparts | Existing selected forms, including doubled-K and F8F6F4 forms |
-| XDL ordinary-result wait | Target-specific CDNA3 pass count plus three | CDNA4 pass count plus four |
-| FP8/BF8 numeric decoding | Unsupported: FNUZ is distinct from the existing OCP abstraction | Existing OCP support |
-| `v_cvt_pk_f16_f32`, bitop3, native BF16 conversion | Rejected | Existing supported subset |
+## Execution and memory contract
 
-This is a selected instruction model. Unimplemented CDNA3 FP8 MFMA, atomics,
-replay-enabled vector clauses, and other existing unsupported instruction families
-remain unsupported. On gfx942/gfx950, BF16 MFMA arithmetic currently requires
-concrete encoded BF16 operands; gfx1250 WMMA has a separate original-16-bit-input
-profile described below. Arbitrary symbolic BF16 reinterpretation is unsupported.
-Native gfx942 compiler sources, hardware drivers and receipts live under
-[`tests/gfx942`](../../tests/gfx942). The architecture gate is applied both during
-parsing and lowering of caller-built modules, so changing a target string cannot
-make a CDNA4-only instruction execute as CDNA3.
+Only workgroup `(0,0,0)` executes. The configured logical grid remains in
+provenance and supplies launch-coordinate values; the result makes no claim
+about races between workgroups. Each wave has one PC, a scalar register file,
+EXEC/VCC/SCC state and lane-indexed vector storage. Addresses, branches and
+EXEC changes must be concrete. Symbolic comparisons may select data through
+supported masks, but cannot control addresses, branches or carry inputs.
+Undefined flags and unavailable ABI fields stop execution.
 
-## gfx942/gfx950 execution model
+Kernel descriptors determine user/system register assignments and LDS limits.
+AMDHSA argument offsets and sizes determine explicit kernarg layout. By-value
+arguments require exact caller-supplied bytes. Partial native loads preserve
+undefined padding bits; only consumers that use defined portions may proceed.
+Descriptor/configuration mismatches, uninitialized reads and out-of-bounds
+accesses are errors. Scratch/private execution and kernarg preloading are
+outside the selected profile.
 
-The analyzer executes workgroup `(0,0,0)` only. Each wave has one PC, SGPR file,
-64-bit `EXEC` and `VCC`, `SCC`, and lane-indexed vector/accumulator storage. It
-initializes partial waves and packed multidimensional local IDs from
-launch dimensions. Initial VCC halves and SCC remain undefined until written.
-Reading an undefined flag stops analysis. Scalar instructions execute with empty
-`EXEC`; ordinary vector reads/writes and vector memory issues do not. Comparisons
-and carry operations still overwrite their scalar mask destination. Activating
-nonexistent lanes in a partial wave is rejected.
+Global allocations are byte-addressed, bounded and disjoint. Wide transfers
+retain each register-sized granule and its exact footprint. Optional
+`shared_allocations` supply named LDS subobject bounds; a complete DS or
+resolved-shared FLAT transfer must fit one object and aggregate LDS. Empty
+configuration retains aggregate bounds. Raw descriptors do not infer
+source-language LDS objects.
 
-Initial user/system register assignments come from kernel descriptor enable bits.
-Explicit argument bytes come from AMDHSA argument offsets and sizes. Recognized
-hidden launch fields are initialized from configuration. Unknown hidden runtime
-facilities remain uninitialized and their consumption stops analysis.
-Concrete partial kernarg words retain a bit-definedness mask when native loads
-include padding. Exact low16 sign extension and byte2-to-f32 conversion can
-consume their defined portions; copying a word preserves unknown bits. Whole-word
-arithmetic, floating decoding, and stores that observe padding stop analysis.
-Padding is never initialized to a numeric value, and ordinary global/LDS reads
-retain their existing uninitialized-memory checks.
-Descriptor/user-SGPR disagreement and argument-count disagreement are errors.
-Kernarg preloading remains unsupported. Launch checks
-enforce descriptor workgroup limits and required dimensions. Split workgroups
-are unsupported. Explicit VGPR/AGPR allocations must not alias in the unified
-physical register file.
-Both targets have separately encoded v0..v255/a0..a255 operands and numbered
-s0..s101 operands. The unified VGPR/AGPR descriptor allocation can reach512
-words; the accumulator offset is a multiple of four in4..256. Every explicit
-register must fit its allocation, and overlapping VGPR/AGPR names are rejected.
+Defined module globals retain exact initialized bytes and bounds.
+`global_values` may bind a writable scalar object of one, two, four or eight
+bytes. Selected PC-relative relocation sequences resolve object addresses
+without inventing linker addresses. Undefined externs, GOT relocations,
+arbitrary PC arithmetic and writes to read-only objects are rejected.
 
-Defined module globals have bounded, aligned storage with their exact initialized
-bytes. Integer data directives and a single plain printable `.ascii` literal
-preserve exact bytes; escaped strings, implicit terminators and non-ASCII text
-remain outside the supported data profile. `global_values` can override a writable scalar object of one, two, four,
-or eight bytes. Read-only objects cannot be rebound or written. The native
-contiguous `s_getpc_b64` / `s_add_u32 symbol@rel32@lo+4` /
-`s_addc_u32 symbol@rel32@hi+12` relocation sequence resolves an object address.
-gfx1250 additionally has a two-instruction `s_get_pc_i64 s[p:p+1]` /
-`s_add_nc_u64 s[p:p+1], s[p:p+1], symbol@rel64+4` profile. Both retain their
-original instructions and reject branches into the middle of the sequence.
-Intermediate PC words remain opaque. The split REL32 profile leaves SCC
-undefined; the no-carry REL64 profile preserves SCC. The analyzer does not
-invent linker addresses or carry flags. Undefined externs,
-GOT relocations, arbitrary PC arithmetic, and overlapping storage are rejected.
+Input identities come from launch-config array and parameter names. Floating
+arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
+subnormal behavior are outside that model. Encoded F16, BF16 and FP8 transport
+and decoding have separate profiles; an input array cannot acquire
+incompatible numeric interpretations through aliases. Symbolic integers use
+the supported ring/bit operations, while concrete integer and address
+arithmetic wraps at its native width. Exact compiler exponential idioms and
+base2 conversions record their distinct modeling assumptions.
 
-Concrete integers and addresses use native-width wrapping arithmetic. Symbolic
-integer add/sub/mullo follows the existing mathematical ring contract; native
-bit operations retain explicit width operations. Symbolic input data remains
-separate from address bits. Input identities
-use existing expression-arena names and indices. The floating-point abstraction
-follows the repository's real-number contract: rounding, denormals, and IEEE NaN
-behavior are outside the claim. Encoded halves, packed pairs, and OCP E4M3 input
-bytes retain separate symbolic identities. Arbitrary symbolic reinterpretation
-is unsupported. Untyped word inputs acquire their numeric interpretation at the
-first arithmetic consumer; an array cannot be treated as both integer and
-floating-point storage through different aliases. Recognizing the exact compiler multiply-by-rounded-log2(e)/exp2
-idiom adds a separate `CompilerExp2Idiom` assumption; nearby constants do not
-trigger that fold.
-Native comparisons can retain lane predicates in opaque VCC or SGPR mask words.
-`v_cndmask_b32` selects symbolic integer or typed f32 data; concrete b32 arms are
-canonicalized as unsigned32 words. Mask-word copies preserve their original bit
-positions, including separate VCC low/high writes. Symbolic masks cannot drive
-branches, EXEC, carry inputs, addresses, or raw data stores.
-Byte inputs acquire a numeric interpretation at their first decoder. OCP E4M3
-and signed/unsigned integer-byte interpretations of the same input array cannot
-be mixed. Signed loads and native signed-byte-to-F16 conversions preserve numeric
-input identities while packing keeps the original byte positions.
-Two-byte encoded byte pairs retain both identities through native 16-bit memory
-transfers. Exact 32-bit word transport via b64 shifts by zero or 32 and OR with a
-concrete zero preserves symbolic data tags; other symbolic b64 shifts require
-encoded bits. Concrete `v_ashrrev_i64` retains signed whole-value integer
-provenance; its count uses the low six bits. Symbolic signed64 arithmetic remains unsupported.
-An integer consumer of a symbolic UBYTE input records its unsigned-byte numeric
-interpretation, which cannot be combined with FP8 decoding of the same array.
-Concrete logical b64 shifts retain unsigned integer provenance for numeric
-64-bit output extraction while remaining usable as native address bits.
-General base2 exponentials/logarithms use the exact reciprocal of rounded f32
-log2(e), matching the existing PTX mathematical contract; executing that path
-records `CompilerBase2Conversion`. Actual instruction coefficients remain exact.
+Execution calculates candidate asynchronous data eagerly and separately
+records instruction operands, memory issues, register leases, counter charges
+and byte effects. Eager calculation is not a readiness or publication proof.
+The [graph checker](../volta_graph_check/README.md) independently validates
+completion, synchronization and conflicting memory accesses. Budgets and
+unsupported instructions leave a partial graph and unavailable outputs.
 
-Memory is byte-addressed with explicit symbolic granules. Global allocations must
-be disjoint and accesses must lie inside one declared allocation; LDS is bounded
-by static plus dynamic size. Wide transfers preserve each register-sized granule
-and its byte footprint. Only completely written output elements are extracted.
-Optional named `shared_allocations` preserve configured LDS subobject bounds:
-the entire DS or shared-aperture FLAT transfer, including dual offsets, must fit
-one supplied region. Each region must fit aggregate LDS capacity. The exact
-layout is exported with `ConfiguredSharedAllocationLayout`; empty configuration
-keeps aggregate bounds. Source-level objects are not inferred from raw metadata.
-An exact native `s_mov_b64 ..., src_shared_base` produces an opaque shared-aperture
-high word and a zero low word. Copies preserve that token. A FLAT address pair
-with this high word and a concrete low offset accesses the same LDS bytes as DS
-instructions; its encoded displacement cannot carry out of the aperture.
-The gfx1250 scalar-base FLAT profile adds a concrete vector DWORD offset to
-an SGPR address pair. An opaque shared high word retains the LDS interpretation;
-a concrete address pair retains the global interpretation. Signed displacements
-cannot escape the shared aperture, and the complete transfer still obeys its
-configured allocation and aggregate bounds.
-The token cannot become data bits, participate in arithmetic, or form a GLOBAL
-address. Other generic-pointer apertures remain unsupported.
-Generic `gfx942`/`gfx950` assembly and explicit `xnack-` targets model execution with
-XNACK replay disabled, matching the test devices; provenance records the
-`XnackReplayDisabled` assumption. Target feature suffixes remain in provenance.
-Explicit `xnack+` targets enforce conservative scalar-memory replay checks:
-contiguous SMEM clauses cannot overwrite their address-source SGPRs, except for
-the native isolated single-DWORD exception. Vector GLOBAL/FLAT memory execution
-with replay enabled remains unsupported until vector clause/source retention is
-modeled. Unaligned SMEM address component masking remains outside the supported
-scope.
-Missing stores remain missing for downstream equivalence to diagnose. Concrete
-integer ALU results retain integer provenance; ambiguous raw-bit output constants
-require a conversion instead of guessing their numeric type.
-Known zero reciprocal, nonpositive reciprocal-square-root/logarithm, and negative
-square-root operands stop execution before undefined real expressions can
-disappear through later multiplication. Nonzero reciprocals and unrelated encoded
-infinities retain the upstream model.
+## Target profiles
 
-## gfx942/gfx950 events and synchronization
+| Contract | gfx942 | gfx950 | gfx1250 |
+| --- | --- | --- | --- |
+| Wave width | 64 | 64 | 32 |
+| Aggregate static + dynamic LDS | 65,536 bytes | 163,840 bytes | 327,680 bytes |
+| Matrix operations | Selected F32, F16 and BF16 `_1k` MFMA | Selected F32/F16/BF16 MFMA and OCP F8F6F4 forms | F32 16×16×4 and F16/BF16 16×16×32 WMMA with F32 accumulators |
+| Floating-byte interpretation | FNUZ FP8/BF8 decoding unsupported | Selected OCP E4M3 symbolic and finite E5M2 profiles | Selected E4M3 transport/conversion and finite concrete E5M2 byte-zero conversion |
+| Memory completion | VM/LGKM counters and matrix state delays | VM/LGKM counters and matrix state delays | Separate Load/Store/DS/KM/X/Async/Tensor counters |
+| Replay premise | Generic or `xnack-` target records disabled replay; `xnack+` unsupported | Same | X replay-source retention is modeled separately from data completion |
 
-Every issued instruction records its register reads and writes with 64-bit lane
-masks. Memory issues separately identify counter class, destinations, held
-operands, and attributed byte effects. Kernarg accesses are also recorded.
-Counter waits are observations, not assumed universal completion of every
-operation. The graph checker owns readiness and ordering proofs. The interpreter
-constructs candidate values at issue.
+These are instruction-form profiles, not complete ISA coverage. Operand tuples,
+formats, immediates, modifiers and register allocations are validated per form.
+The target-specific corpus guides below identify concrete sources and tests.
 
-Unsplit workgroups record the `SingleCuWorkgroup` premise. Only native GLOBAL
-loads/stores with `sc0` and without `sc1` annotate workgroup visibility; these
-cache controls add no synchronization edges. Cross-wave GLOBAL publication also
-requires the graph checker's supported completion-and-barrier protocol. Other
-GLOBAL scope combinations, SMEM, and FLAT accesses do not acquire this visibility
-annotation.
+### gfx942 and gfx950
 
-LDS barriers record wave arrivals and releases by generation. LDS visibility
-requires the appropriate memory waits as well as rendezvous. DS permutations
-snapshot source lanes before writing destinations and record LGKM readiness;
-they do not fabricate LDS accesses for the cross-lane network.
-`s_endpgm` records its implicit full memory-counter drain before all valid lanes
-exit. Terminated waves cease participating in later barriers; each surviving
-wave still arrives and releases in every generation, including a partial wave.
-Exit completion alone does not publish LDS data to another wave without its
-required barrier.
+Both use packed local IDs, separate encoded VGPR/AGPR names and a unified
+physical register allocation. Explicit names must fit their descriptor
+allocation without VGPR/AGPR aliasing. Target-specific MFMA pass counts and
+source/result delays are checked downstream. BF16 MFMA requires concrete
+encoded BF16 operands; arbitrary symbolic BF16 reinterpretation is unsupported.
 
-Every matrix operation requires a full active wave64. A/B/C/D mappings derive
-from CDNA4 ISA sections 7.1.4–7.1.5; FP8 uses separate sixteen-K interleaving.
-Inputs are snapshotted before overlapping destinations change. Matrix issue,
-instruction, and NOP delay events allow downstream checks to enforce form-specific
-result, operand, and accumulator dependencies. Default layout controls are
-required, except explicitly supported FP8 format and unit-scale selectors.
+Selected ALU, conversion, GLOBAL/scalar/LDS/FLAT memory, cross-lane DS and
+workgroup-barrier forms support the compiler corpora. Direct-to-LDS, buffer
+addressing, atomics and general DPP/special-register hazard profiles are not
+implemented for these targets. The legacy cross-wave GLOBAL publication
+certificate additionally requires completed effects, workgroup scope at both
+endpoints and the `SingleCuWorkgroup` premise.
 
-## Current support
+### gfx1250
 
-| Area | Supported behavior | Limits |
-| --- | --- | --- |
-| Integer/address ALU | Concrete fixed-width arithmetic, carry masks, bitfields, address packing; symbolic32 add/sub/mullo, bit operations, native shifts, min/max | Symbolic integer division/control and general64-bit integer data remain unsupported; data expressions cannot become address bits |
-| Floating data | Mathematical f32/f64 arithmetic, selected conversions/transcendentals, packed f32/f16 operations, partial-half preservation, OCP E4M3 decoding, finite concrete gfx1250 E5M2 byte0 decoding; f32 clamp for arithmetic, trans, mov and cndmask VOP3 forms | No IEEE rounding/NaN claim; ordered whole-value F64 storage only; symbolic BF16/E5M2 storage remains unsupported; E5M2 wider byte selectors remain outside the modeled profile; clamp with explicit e32/SDWA, integer/compare/conversion clamp meanings and output scaling remain unsupported |
-| Global and LDS memory | Byte/short/dword and wide transfers, sign extension, narrow-store truncation, dual-offset LDS, static/dynamic LDS bounds, exact opaque shared-aperture FLAT accesses, bounded module globals and scalar bindings | Equal-offset dual LDS operations, scratch/private apertures, arbitrary PC/GOT relocations, buffer addressing, direct-to-LDS, and atomics remain unsupported |
-| Control and synchronization | Scalar branches, concrete EXEC/VCC/SCC, symbolic lane comparison masks and cndmask data selection, save/restore EXEC, memory waits, surviving-wave barriers after whole-wave termination | One workgroup; symbolic control/EXEC/carry/address masks remain unsupported; live-wave loops remain inconclusive on budget exhaustion; partial graph on abort |
-| Cross-lane | DS permute/bpermute with source snapshots and LGKM readiness | DPP and ordinary readlane/readfirstlane/writelane require further software hazard checks |
-| Accumulator registers | Disjoint physical allocation, MFMA accumulation, native AGPR read/write/move and direct stores | Aliasing VGPR/AGPR allocations are rejected |
-| F32 MFMA | 16×16×4 and 32×32×2 | Full active wave64 and default layouts |
-| F16 MFMA | 16×16×16, 16×16×32, 32×32×8, 32×32×16 | Typed symbolic F16 and finite concrete operands |
-| BF16 MFMA | 16×16×16, 16×16×32, 32×32×8, 32×32×16 | Finite concrete decoding; ordinary symbolic two-byte arrays are F16, so symbolic BF16 is rejected |
-| OCP FP8 MFMA | F8F6F4 16×16×128 and 32×32×64, with E4M3/E5M2 format controls | Symbolic storage currently E4M3 only; finite concrete E5M2 supported; F6/F4 rejected |
-| Scaled FP8 MFMA | Same FP8 shapes with selected E8M0 scale bytes equal to 127 | Nonunit scale bytes are rejected |
+Only bare `gfx1250` is accepted; aliases and target feature suffixes are
+rejected. Wave32 uses low-32-bit EXEC/VCC masks and no AGPR namespace.
+Logical VGPR allocation may reach 1024, but selected named operands are
+v0–v255; higher banked encodings are unsupported. Allocation limits do not
+imply that every instruction can access every register tuple.
 
-M0 initialization and explicit writes, special mask registers consumed as
-ordinary vector data, and instruction families with unmodeled software
-dependencies stop analysis. Unsupported behavior never receives fabricated values
-or a positive verification result.
+The profile includes selected scalar/vector ALU and VOPD forms, bounded
+GLOBAL/scalar/LDS memory, and resolved-global or opaque-shared-aperture FLAT
+accesses. The selected scalar-base scaled FLAT form is B32. A single-lane,
+no-return, device-scoped `global_atomic_add_f32` is modeled separately;
+returning, multi-lane and general unordered atomic serialization are outside
+that profile. Ordinary GLOBAL and resolved-global FLAT accesses retain explicit
+`SCOPE_SYS`; that annotation does not apply to scalar, LDS, atomic or tensor
+effects and does not create a completion or synchronization edge.
 
-Budgets, unsupported instructions, invalid accesses, and malformed state preserve
-a partial event graph and withhold symbolic outputs. Budget exhaustion is
-inconclusive, not a synchronization deadlock.
+Selected WMMA forms retain native lane layouts, operand roles and source
+leases. TDM supports bounded plain 2D global-to-LDS and LDS-to-global transfers,
+with descriptor capture, completion and publication checked independently.
+Cluster, multicast, descriptor padding, gather and atomic-barrier tensor modes
+are unsupported; nonzero Tensor wait thresholds remain inconclusive.
 
-## Focused validation
+Shader named barriers use allocated IDs 1–16 within descriptor capacity,
+explicit M0 state, INIT/JOIN/SIGNAL/WAIT/LEAVE, incarnations and phases.
+SIGNAL's nonzero M0 bits 22:16 update the expected arrival count before the
+arrival; zero preserves the count. NULL operations are no-ops except JOIN,
+and NULL WAIT requires an explicit NULL join. END does not drop named objects.
+Initialization, count changes and reuse require independently checked execution
+order. Equality between an updated expectation and existing arrivals remains
+inconclusive because the pinned public descriptions disagree at that boundary.
+Non-NULL reserved M0 bits, `_isfirst`, clustered objects and reinitialization
+with outstanding joins are outside the profile.
 
-Run `cargo test -p volta_amdgpu_analysis -j4`.
+The selected `MSG_DEALLOC_VGPRS` epilogue requires zero scratch and an immediately
+following `s_endpgm`; it drains X leases without completing outstanding data.
 
-Execution tests check complete output identities for native copy/add and tails
-at block sizes 1, 63, 64, 65, 128, and 256; three-dimensional packed IDs; wide and
-narrow transfers; missing stores; budget-limited partial graphs; cross-wave LDS
-exchange; wave reductions; F16/FP8 activation and RoPE packing; undefined flag and
-empty-EXEC safety; native symbolic integer/F64 data; and complete MFMA dot products against independently enumerated
-coordinates. Native compiler fixtures also exercise two-wave LDS/MFMA pipelines,
-module-global relocations and bindings, static LDS padding with genuine external
-dynamic LDS, multidimensional grid/group/block output,
-a convolution tile with the original 576-term reduction and physical pitches,
-full-shape GEMM/convolution, attention-family and Mamba workloads, and supplemental reduced online-softmax/MFMA controls. Full/reduced scopes and revision-pinned receipts are listed in tests/gfx950/. Reduced
-fixtures do not establish full original-launch capacity or baseline parity.
+## Tests and source references
 
-Workflow, safety mutation, serialization, and hardware tests live with pipeline
-integration. These focused tests do not establish full parity.
+```sh
+cargo test -p volta_amdgpu_analysis
+cargo test -p volta_pipeline --test amd_frontend_compatibility_tests
+```
 
-Primary references:
-
-- [AMD CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf),
-  sections 4, 7.1.4–7.1.5, 7.6, 8.3, 10.2, and 12.12.
-- [LLVM AMDGPU ABI](https://llvm.org/docs/AMDGPUUsage.html).
-- LLVM GCNHazardRecognizer.cpp and SIInstrInfo.cpp provide independent instruction
-  classification and software dependency checks; gfx950-specific timing remains
-  pinned by matrix form in the graph checker.
-
-## gfx1250 wave32 profile
-
-`gfx1250` is a separate target, not a gfx950 alias. Direct Rust analysis selects
-its declared target; CLI/Python require explicit matching target selection.
-The validated toolchain emits code-object 6 and metadata 1.2. Target features
-are deliberately limited to bare `gfx1250`; `gfx1250-strict`, `gfx1251` and
-feature suffixes are rejected. The default AMD API target remains gfx950.
-
-The profile uses wave32, low32 EXEC/VCC masks, s0..s105, architected TTMP
-registers, and 327,680-byte aggregate LDS capacity. Logical VGPR allocation
-reaches 1024; supported named operands are v0..v255, with higher banked
-encodings explicitly unsupported. No AGPR namespace is available.
-A register spelling being encodable does not mean every instruction can access
-all banks: allocation, tuple and instruction constraints are checked separately.
-Packed local IDs and the architected workgroup-zero ABI replace the older
-system-SGPR workgroup-ID path. Only defined ABI bits are initialized.
-
-The graph checker requires one unclustered workgroup, full native trace evidence
-and an end instruction for every participating wave. Hardwired XNACK is not
-treated as replay-disabled: X-count replay-source leases are tracked separately
-from load/store/DS/KM/async/tensor completion. Signals publish only completed
-effects; issue order and execution synchronization do not invent data waits.
-Legacy CDNA cache-scope annotations cannot certify gfx1250 publication.
-Explicit `scope:SCOPE_SYS` on ordinary GLOBAL and resolved-global FLAT accesses
-is retained as a separate target-specific effect scope. Resolved LDS, scalar,
-atomic and tensor effects do not acquire this visibility annotation.
-
-The compiler epilogue `s_sendmsg sendmsg(MSG_DEALLOC_VGPRS)` (immediate3)
-is supported only with zero scratch and an immediately following `s_endpgm`.
-It drains X replay leases, without inventing load/store completion. Other
-messages and any instruction after release before `s_endpgm` are rejected.
-This follows LLVM's pinned [X-drain classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInstrInfo.cpp).
-
-Selected WMMA forms cover F32 16x16x4 and F16/BF16 16x16x32 with F32
-accumulators, full-wave legality, separately derived lane layouts and dependency
-rules. TDM covers bounded plain 2D global-to-LDS and LDS-to-global transfers,
-both directions, two-stage reuse and unnamed shader split barriers. Selected
-allocated named shader barriers are described above. Cluster, multicast,
-descriptor padding, gather and atomic-barrier tensor modes are outside
-this profile; nonzero tensor wait thresholds remain inconclusive.
-
-The existing mathematical-real abstraction applies, including disclosed native
-base2 conversion coefficients. It does not establish IEEE rounding, NaNs or
-denormal behavior. Raw finite F16/BF16 controls test decoding separately from
-symbolic mathematical input identities. See the [detailed contract](../../tests/gfx1250/CONTRACT.md)
-and [reproducible corpus](../../tests/gfx1250/README.md).
-Optional numerical checks for the exact positive assembly are described in
-[the hardware guide](../../tests/gfx1250/hardware/README.md). Device-run records
-and machine-specific observations are not retained.
-This does not expand the selected instruction or mathematical-model contract.
+Compiler sources and provenance are under `src/frontend/fixtures` and the
+[gfx942](../../tests/gfx942/README.md),
+[gfx950](../../tests/gfx950/README.md) and
+[gfx1250](../../tests/gfx1250/README.md) corpora. End-to-end pipeline tests
+check complete symbolic outputs and typed safety controls. Exact-assembly
+hardware drivers check numerical values separately from symbolic proof.

@@ -13,7 +13,7 @@
       "native_source_sha256": "9efeabefa30b2831b928747e47794f0ef2257221d9dfd4e4e08f5c3b1d6b699f",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::concrete_fp8_pairs_decode_low_high_and_relu_independently",
       "scope_note": "Concrete0x7f byte is rejected by actual OCP E4M3 decoder.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/float_op_rejects_nan_bit_pattern.ptx",
@@ -25,7 +25,7 @@
       "native_source_sha256": "b063a5098689febebe255e69dcc7051b811c4ff09a4347327a774a6485e9d57d",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::nonreal_literals_raw_bits_parameters_and_zero_division_have_no_positive_result",
       "scope_note": "Runtime rejects raw NaN bits at actual floating arithmetic consumer.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/nan_float_param_rejected.ptx",
@@ -37,7 +37,7 @@
       "native_source_sha256": "72a7cea82b970a8e181f000d9de99cab9b9479a75d87e15e48b082d5f01c9014",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::nonreal_literals_raw_bits_parameters_and_zero_division_have_no_positive_result",
       "scope_note": "Genuine six-argument ABI configured with NaN alpha rejects configuration before execution.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/nan_literal_rejected_at_lowering.ptx",
@@ -49,7 +49,7 @@
       "native_source_sha256": "beca392724d0fdbdfdf99e9d47ce8779e227f65a1fd4376e1c96c41ee6708ec8",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::nonreal_literals_raw_bits_parameters_and_zero_division_have_no_positive_result",
       "scope_note": "Native raw literal encoding is legal assembly; typed floating consumer rejects NaN. Target stage differs from PTX lowering.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/symbolic_branch_rejected.ptx",
@@ -61,7 +61,7 @@
       "native_source_sha256": "224bd57b91df0fe42530a8c53e26ec442d5408b2b984df25ab3ab1ae510d16de",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_branches_and_observable_narrow_scalar_bitcasts_remain_closed",
       "scope_note": "Symbolic comparison mask cannot select native scalar control flow.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/symbolic_integer_div_is_unsupported.ptx",
@@ -73,7 +73,7 @@
       "native_source_sha256": "cc0ddf5d4d4a492afc38a1fe94b1795c2ce484373ce7765dd7657d0a2a84cb47",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_integer_floor_does_not_become_rational_division_or_roundtrip_identity",
       "scope_note": "Native divide-by-two is exactly represented by masked integer shifts. Symbolic roundtrip is not proved identity; IndexInput values0..7 independently demonstrate truncation and counterexample1->0. This supports more native arithmetic than PTX symbolic div.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/symbolic_sub_register_load_rejected.ptx",
@@ -85,7 +85,7 @@
       "native_source_sha256": "8fce9058ce2369f52ce333cf3442a9c5adb57f67f25416516216ae207f87f9ad",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_sign_extended_byte_load_is_numeric_and_cannot_be_reinterpreted_as_fp8",
       "scope_note": "AMD GLOBAL_LOAD_SBYTE explicitly sign-extends. Numeric I8 input identity is supported, and conflicting FP8 reinterpretation is rejected; differs from PTX unsupported narrow-load model.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/symbolic_sub_register_store_rejected.ptx",
@@ -97,7 +97,7 @@
       "native_source_sha256": "132d73fbb4b8a65424ac5e3d2c3e1b2586e389ce67a16f52494d5e04d76523e6",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_branches_and_observable_narrow_scalar_bitcasts_remain_closed",
       "scope_note": "An arbitrary symbolic32 word cannot silently truncate to a byte.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/zero_over_zero_is_a_loud_equivalence_error.ptx",
@@ -109,7 +109,7 @@
       "native_source_sha256": "c569b74dd4e4ec294c6b4a8fe426b8d387659655b3b77ca671dc2c0159a11ffc",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::nonreal_literals_raw_bits_parameters_and_zero_division_have_no_positive_result",
       "scope_note": "Native divide counterpart0*rcp0 rejects at concrete reciprocal; it cannot simplify to zero. Stage differs from direct PTX division.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/redux_predicate_side_effect_race.ptx",
@@ -121,7 +121,7 @@
       "native_source_sha256": "a81af8899a2eb36b12984b9429bef0bf1074afc3742b327ef3ed57ea2ee47728",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_predicate_permute_idiom_retains_the_same_value_shared_write_race",
       "scope_note": "Supported native DS permutation plus predicate-controlled two-wave writes retain same-value LDS WriteWrite conflict. PTX redux opcode is not claimed; portable no-dropped-side-effects property is tested.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.ptx",
@@ -133,7 +133,7 @@
       "native_source_sha256": "2b88ca5bb38ba33beccd62665bfb9f6fdd075de7e77b1dad5a074195b5327e98",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_fp8_bytes_survive_vector_pair_and_native_low16_truncation",
       "scope_note": "Reuses independently assembled native16-bit global/LDS byte-pair transport.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvt_pack_halves_values.ptx",
@@ -145,7 +145,7 @@
       "native_source_sha256": "213ffa12f4e92522c46a7544a3cd8ed731efd930afdc8a15dd2a993463bf407e",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_half_packing_order_and_relu_have_independent_typed_references",
       "scope_note": "AMD packed conversion stores SRC0 low and SRC1 high; source operands preserve baseline output order2.5,1.5.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvt_relu_symbolic_is_max.ptx",
@@ -157,7 +157,7 @@
       "native_source_sha256": "1859fdec2961e80fa7dbed7e183e1bf163d1906c74e90a62036cf1fec75a41f3",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_half_packing_order_and_relu_have_independent_typed_references",
       "scope_note": "Native max plus F16 conversion implements the same mathematical max(x,0), preserving symbolic identity.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_decodes_a_concrete_scalar_bit_pattern.ptx",
@@ -169,7 +169,7 @@
       "native_source_sha256": "f5ed55a4c8b2128cafe86dd52c0bf1d30c73d54390e1a8255af7e9c17fb3e40a",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::concrete_fp8_pairs_decode_low_high_and_relu_independently",
       "scope_note": "Reuses exact native packed FP8 decoder;0xb838 produces +1,-1.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_low_half_extracted_via_cvt_u16_u32_truncation_of_a_quad.ptx",
@@ -181,7 +181,7 @@
       "native_source_sha256": "14321ffe04e2646057eccfa1bed417ef2da55774e2bda2a8a0fb512ce68074ca",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_fp8_bytes_survive_vector_pair_and_native_low16_truncation",
       "scope_note": "Native16-bit LDS stores retain bytes0/1, then bytes2/3; selecting each pair low byte yields x0,x2.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_relu_clamps_a_negative_decoded_lane_to_zero.ptx",
@@ -193,7 +193,7 @@
       "native_source_sha256": "0ab9c5d1719f9c8c4aa390da1f9e0fb314eb1bb6e140d6bdb8a34c2ecd06b348",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::concrete_fp8_pairs_decode_low_high_and_relu_independently",
       "scope_note": "Same actual packed decoder plus native maximum clamps only negative lane.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_scalar_source_from_a_zero_extended_byte_load.ptx",
@@ -205,7 +205,7 @@
       "native_source_sha256": "a6f395952342b872f2f7fae164cf93738e12ca6191bc237033e7060e8c48bcee",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_fp8_bytes_survive_vector_pair_and_native_low16_truncation",
       "scope_note": "GLOBAL_LOAD_UBYTE initializes all upper register bits to zero on AMD; only the real low element is compared.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_vector_load_keeps_four_symbolic_bytes_independent.ptx",
@@ -217,7 +217,7 @@
       "native_source_sha256": "c6a4db7de09d6802b5be6bac2a02231ee3aae618fa4911857d2e9f61a461dc93",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::symbolic_fp8_bytes_survive_vector_pair_and_native_low16_truncation",
       "scope_note": "Reuses two real packed native FP8 conversions and shift16; all four independent symbolic identities are checked.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_add_s32_neg1.ptx",
@@ -229,7 +229,7 @@
       "native_source_sha256": "010950743187c4111c88d2dc409fa41816f70e55f933a49dc335f31ca5c8f3df",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
       "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_add_u32_neg1.ptx",
@@ -241,7 +241,7 @@
       "native_source_sha256": "60b35899c762a48eae3579d2d83846e424f5d69187bf251eaed45fd4fda8ad75",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
       "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_mul_lo_s32_neg3.ptx",
@@ -253,7 +253,7 @@
       "native_source_sha256": "836294bd43c9198a4a0aeffdf13a5d9a1e8d2170ba12c294ea5de8a965b4a4d1",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
       "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_mul_lo_u32_neg3.ptx",
@@ -265,7 +265,7 @@
       "native_source_sha256": "52edfda462df7b582fe7e9ed2aa3925fdace03b16b498b8fd5d474470e8e5ef0",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
       "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_sub_s32_neg7.ptx",
@@ -277,7 +277,7 @@
       "native_source_sha256": "4a228c2dbe079f2642f581c71ee0bb49e16370cf79ced1d669983ac66ceeba2f",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
       "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_sub_u32_1.ptx",
@@ -289,7 +289,7 @@
       "native_source_sha256": "17910ac78e190e1944dfdb81872ea4c8321bfa6dd49a9848ef5f64a5caf1d347",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
       "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/ring_op_constant_signedness_is_irrelevant_sub_u32_neg7.ptx",
@@ -301,7 +301,7 @@
       "native_source_sha256": "26d8a2d679271dfe984c1e9359baec4c01c1f1bf1b79de8e9a36d3a6af85bffa",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::all_seven_symbolic_integer_ring_rows_preserve_signed_immediates",
       "scope_note": "Same native fixed-width ADD/SUB machine operation serves signed/unsigned variants; original negative immediate remains negative in the existing symbolic mathematical-ring abstraction. MUL mnemonic aliases are both exercised.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/setp_selp_canonicalize_operands.ptx",
@@ -313,7 +313,7 @@
       "native_source_sha256": "f20c6b7da31f853c60f18c9be3177d22a5d499afc149f82a048bc185260896fe",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::both_symbolic_setp_selp_rows_canonicalize_signed_minus_one_and_complement",
       "scope_note": "Signed comparison of symbolic integer to-1 and unsigned32 full-bit select arm.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/setp_selp_canonicalize_operands_2.ptx",
@@ -325,7 +325,7 @@
       "native_source_sha256": "39cf595d98c4b47f75aa799266be81d1d055be1055b817f47832f10b934b2473",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::both_symbolic_setp_selp_rows_canonicalize_signed_minus_one_and_complement",
       "scope_note": "Computed complement0xffffffff has same signed comparison and unsigned select-arm interpretation.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/symbolic_integer_div_is_unsupported_concrete.ptx",
@@ -337,7 +337,7 @@
       "native_source_sha256": "32bcf529e0951c437cc4d2900afbf09b6807866a9282f7bd82871e9874f62d45",
       "native_test": "crates/volta_pipeline/tests/gfx950_data_parity_tests.rs::native_integer_floor_does_not_become_rational_division_or_roundtrip_identity",
       "scope_note": "Native exact constant shift implements unsigned7/2=3; no blanket unsupported disposition.",
-      "validation": "Native semantic test mapping. Coordinator-reviewed parity dispositions and separately pinned integration evidence are recorded in tests/gfx950/parity.json and local run artifacts (not retained)"
+      "validation": "Native semantic test mapping"
     }
   ]
 }

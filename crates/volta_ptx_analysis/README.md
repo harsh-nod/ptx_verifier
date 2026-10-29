@@ -28,7 +28,7 @@ the crate.
 
 ```
 PTX text ──lex.rs──► tokens ──parse.rs──► ast::Module ──instr_parse.rs──► ParsedInstruction
-                                          (directives,                    (~105 typed variants,
+                                          (directives,                    (typed variants,
                                            functions, generic              validated modifiers
                                            instructions)                   and operands)
 ```
@@ -113,7 +113,8 @@ constants fold eagerly.
   run ends **stuck** (deadlock). Exited threads count as arrived (Sync').
 - **Concreteness**: addresses, branch conditions and sync parameters must be
   concrete, i.e. depend only on thread ids and concrete parameters. Otherwise the
-  run fails with `NotConcrete`. Only CTA 0 runs; it stands for the grid.
+  run fails with `NotConcrete`. Only CTA 0 runs; this does not analyze races
+  between CTAs in the configured grid.
 - **Families**: `arithm.rs` (ALU, `cvt`, width canonicalization), `warp.rs`
   (`shfl`, `ldmatrix`, `mma.sync`, `wmma`, warp-scoped `tcgen05`),
   `cp_async.rs`, `async_bulk.rs` (TMA, `cp.async.bulk`), `mbarrier.rs`,

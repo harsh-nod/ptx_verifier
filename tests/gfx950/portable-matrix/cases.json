@@ -633,5 +633,5 @@
       "native_test": "crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs::tcgen_shape128x256_lds_bounds"
     }
   ],
-  "scope": "Precise matrix/layout/dtype counterparts; coordinator owns parity dispositions. All mathematical claims use the existing exact real-number model, and native launch/layout differences are recorded per case."
+  "scope": "All mathematical claims use the existing exact real-number model, and native launch/layout differences are recorded per case."
 }

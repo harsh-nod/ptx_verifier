@@ -1,7 +1,6 @@
 {
   "schema_version": 1,
-  "scope": "Exact16 previously unowned rows:14 memory-race/publication payloads,one BF16 fragment case andone packed B16 transpose. Presence in this review is not coordinator acceptance. Harmful controls remain CPU-only.",
-  "completion": "coordinator_review_required",
+  "scope": "Native memory conflict/publication payloads, BF16 fragments and complete packed transpose mappings. Harmful controls execute on CPU only.",
   "reference_groups": [
     "MEMORY-RACE-PAYLOAD",
     "MATRIX-BF16-16x8x16",
@@ -25,8 +24,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_typed_memory_negative",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -53,7 +50,7 @@
       "native_mapping": "Both physical/logical writers0/1 store the unchanged2*in[0] value into one four-byte Shared word; same values cannot erase WW.",
       "target_specific_residual": "PTX instruction spelling and independent per-lane PCs are not native syntax. Native workgroup mapping and initialized-phase additions are explicit; no reduced original input/output footprint is substituted.",
       "expected_outcome": "Completed candidate; AMD Trace/Readiness/Barrier PASS and intended typed MemoryConflict FAIL. Unknown, Unsupported, aborted or uninitialized candidate does not satisfy this row.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_memory_negative"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/same_value_warp_uniform_store_is_not_a_race_differ.ptx",
@@ -68,8 +65,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_typed_memory_negative",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -96,7 +91,7 @@
       "native_mapping": "Both physical/logical writers0/1 store original F32 lane values0/1 to one Shared word, retaining one complete output and typed WW.",
       "target_specific_residual": "PTX instruction spelling and independent per-lane PCs are not native syntax. Native workgroup mapping and initialized-phase additions are explicit; no reduced original input/output footprint is substituted.",
       "expected_outcome": "Completed candidate; AMD Trace/Readiness/Barrier PASS and intended typed MemoryConflict FAIL. Unknown, Unsupported, aborted or uninitialized candidate does not satisfy this row.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_memory_negative"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/shared_write_write_race.ptx",
@@ -118,8 +113,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_typed_memory_negative",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -146,7 +139,7 @@
       "native_mapping": "Both original U32 Shared writes from actors0/1 remain recorded and overlap; the complete candidate has no numerical output.",
       "target_specific_residual": "PTX instruction spelling and independent per-lane PCs are not native syntax. Native workgroup mapping and initialized-phase additions are explicit; no reduced original input/output footprint is substituted.",
       "expected_outcome": "Completed candidate; AMD Trace/Readiness/Barrier PASS and intended typed MemoryConflict FAIL. Unknown, Unsupported, aborted or uninitialized candidate does not satisfy this row.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_memory_negative"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/address_constant_expression_race.ptx",
@@ -161,8 +154,6 @@
           "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_typed_memory_negative",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -189,7 +180,7 @@
       "native_mapping": "Original address expressions(4|4) and4 designate the same byte offset4. Native source folding preserves aliasing, actors0/1, data1/2 and only sparse out[1].",
       "target_specific_residual": "PTX instruction spelling and independent per-lane PCs are not native syntax. Native workgroup mapping and initialized-phase additions are explicit; no reduced original input/output footprint is substituted.",
       "expected_outcome": "Completed candidate; AMD Trace/Readiness/Barrier PASS and intended typed MemoryConflict FAIL. Unknown, Unsupported, aborted or uninitialized candidate does not satisfy this row.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_memory_negative"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/shared_exchange_without_barrier_races.ptx",
@@ -204,8 +195,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_typed_memory_negative",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -232,7 +221,7 @@
       "native_mapping": "Logical actors0/1 map to workitems0/32. A separate completed initialization phase makes all reads defined. Removing only payload publication leaves the complete two-output candidate and intended Shared WR; no initialization failure substitutes for a race.",
       "target_specific_residual": "PTX instruction spelling and independent per-lane PCs are not native syntax. Native workgroup mapping and initialized-phase additions are explicit; no reduced original input/output footprint is substituted.",
       "expected_outcome": "Completed candidate; AMD Trace/Readiness/Barrier PASS and intended typed MemoryConflict FAIL. Unknown, Unsupported, aborted or uninitialized candidate does not satisfy this row.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_memory_negative"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/same_write_read_without_the_wait_still_races.ptx",
@@ -247,8 +236,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_typed_memory_negative",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -275,7 +262,7 @@
       "native_mapping": "Logical writer0/reader1 map to workitems0/32. Original U32 Shared word42 survives. One additional diagnostic out[0]=42 and pointer argument are explicitly added and fully checked; original case had no numerical outputs.",
       "target_specific_residual": "PTX instruction spelling and independent per-lane PCs are not native syntax. Native workgroup mapping and initialized-phase additions are explicit; no reduced original input/output footprint is substituted.",
       "expected_outcome": "Completed candidate; AMD Trace/Readiness/Barrier PASS and intended typed MemoryConflict FAIL. Unknown, Unsupported, aborted or uninitialized candidate does not satisfy this row.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_memory_negative"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_alloc_address_read_without_bar_warp_sync.ptx",
@@ -290,8 +277,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_typed_memory_negative",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -318,7 +303,7 @@
       "native_mapping": "Logical writer0 maps to workitem0; all31 original reader roles1..31 map to workitems32..62. A genuine four-byte LDS address word and actual execution-only DS collective do not publish it across waves; removing WG publication produces all31 intended Shared WR witnesses and no output.",
       "target_specific_residual": "Dynamic NVIDIA TMEM column allocation/deallocation and its returned address representation are target-specific. The actual portable four-byte handle/payload publication, execution-only collective and complete required reader/output roles are separately tested with genuine native LDS/DS source; no native TMEM allocator is fabricated.",
       "expected_outcome": "Completed candidate; AMD Trace/Readiness/Barrier PASS and intended typed MemoryConflict FAIL. Unknown, Unsupported, aborted or uninitialized candidate does not satisfy this row.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_memory_negative"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_alloc_orders_lanes_plain_accesses.ptx",
@@ -333,8 +318,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_typed_memory_negative",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -361,7 +344,7 @@
       "native_mapping": "Original writer1 remains workitem1; logical reader2 maps to workitem32. A real execution-only DS collective retains original U32 word1, downstream F32 conversion and sole out[0]=1; missing WG publication produces intended Shared WR.",
       "target_specific_residual": "Dynamic NVIDIA TMEM column allocation/deallocation and its returned address representation are target-specific. The actual portable four-byte handle/payload publication, execution-only collective and complete required reader/output roles are separately tested with genuine native LDS/DS source; no native TMEM allocator is fabricated.",
       "expected_outcome": "Completed candidate; AMD Trace/Readiness/Barrier PASS and intended typed MemoryConflict FAIL. Unknown, Unsupported, aborted or uninitialized candidate does not satisfy this row.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_memory_negative"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/bar_warp_sync_neighbor_exchange.ptx",
@@ -376,8 +359,6 @@
           "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_positive_payload",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -404,7 +385,7 @@
       "native_mapping": "Logical actors0/1 map to workitems0/32, preserving both original independent F32 inputs and exact out[0]=in[1],out[1]=in[0] footprint. All64 native workitems participate in WG publication; only the two mapped actors access the payload.",
       "target_specific_residual": "PTX instruction spelling and independent per-lane PCs are not native syntax. Native workgroup mapping and initialized-phase additions are explicit; no reduced original input/output footprint is substituted.",
       "expected_outcome": "Verified with complete unchanged original payload and index set; paired typed negative remains rejected.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/barrier_sync_is_bar_sync.ptx",
@@ -419,8 +400,6 @@
           "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_positive_payload",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -447,7 +426,7 @@
       "native_mapping": "The exact original barrier-alias computation and both output indices are compared to unchanged golden and original PTX; native actor mapping0/1\u21920/32 makes portable publication explicit.",
       "target_specific_residual": "PTX instruction spelling and independent per-lane PCs are not native syntax. Native workgroup mapping and initialized-phase additions are explicit; no reduced original input/output footprint is substituted.",
       "expected_outcome": "Verified with complete unchanged original payload and index set; paired typed negative remains rejected.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/barrier_sync_is_bar_sync_cta_aligned.ptx",
@@ -462,8 +441,6 @@
           "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_positive_payload",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -490,7 +467,7 @@
       "native_mapping": "The exact original aligned barrier-alias computation and both output indices are compared to unchanged golden and original PTX; native actor mapping0/1\u21920/32 makes portable publication explicit.",
       "target_specific_residual": "PTX instruction spelling and independent per-lane PCs are not native syntax. Native workgroup mapping and initialized-phase additions are explicit; no reduced original input/output footprint is substituted.",
       "expected_outcome": "Verified with complete unchanged original payload and index set; paired typed negative remains rejected.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/shared_exchange_with_barrier.ptx",
@@ -519,8 +496,6 @@
           "source_sha256": "ce18495ecaccc15c9672e47f93f16e2b974fbf56bb958c6712b3ebf4e829ad3f"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_positive_payload",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -547,7 +522,7 @@
       "native_mapping": "Both original F32 input/output coordinates are unchanged; native logical actors0/1 map to0/32 and WG publication protects the complete exchange. The extra defined initialization phase does not alter either output.",
       "target_specific_residual": "PTX instruction spelling and independent per-lane PCs are not native syntax. Native workgroup mapping and initialized-phase additions are explicit; no reduced original input/output footprint is substituted.",
       "expected_outcome": "Verified with complete unchanged original payload and index set; paired typed negative remains rejected.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/same_value_stores_separated_by_bar_sync_are_not_a_race.ptx",
@@ -562,8 +537,6 @@
           "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_positive_payload",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -590,7 +563,7 @@
       "native_mapping": "Original logical stores0/1 map to workitems0/32, remain separated by real publication, and preserve the exact2*in[0] output. Removing the first publication is separately rejected despite unchanged equal values.",
       "target_specific_residual": "PTX instruction spelling and independent per-lane PCs are not native syntax. Native workgroup mapping and initialized-phase additions are explicit; no reduced original input/output footprint is substituted.",
       "expected_outcome": "Verified with complete unchanged original payload and index set; paired typed negative remains rejected.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_alloc_lanes_ordered_by_bar_warp_sync_is_accepted.ptx",
@@ -605,8 +578,6 @@
           "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_positive_payload",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -633,7 +604,7 @@
       "native_mapping": "Original producer1 and reader2 map to workitems1/32; complete unchanged F32 out[0]=1 and U32 Shared payload survive actual native DS execution-only collective plus WG publication.",
       "target_specific_residual": "Dynamic NVIDIA TMEM column allocation/deallocation and its returned address representation are target-specific. The actual portable four-byte handle/payload publication, execution-only collective and complete required reader/output roles are separately tested with genuine native LDS/DS source; no native TMEM allocator is fabricated.",
       "expected_outcome": "Verified with complete unchanged original payload and index set; paired typed negative remains rejected.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main and reviews exact native actor/resource mapping; no acceptance checkbox changes."
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/mma_bf16.ptx",
@@ -648,8 +619,6 @@
           "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_positive_payload",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_upstream_adapters.rs",
@@ -674,7 +643,7 @@
       "native_mapping": "Preserve every original packed BF16 A/B fragment, exact four original F32 output cells and all256 native padded outputs. Compare actual original PTX plus independently reconstructed full native16x16 matrix; all arrays/index sets are checked.",
       "target_specific_residual": "PTX instruction/fragment encoding is target-specific; the complete original storage computation remains required and is retained. Any extra native matrix outputs are separately validated.",
       "expected_outcome": "Verified, complete original footprint and every additional native output equivalent to independent expected data.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main; no acceptance checkbox changes."
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/movmatrix_transpose.ptx",
@@ -689,8 +658,6 @@
           "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
         }
       ],
-      "completion": "coordinator_review_required",
-      "candidate_kind": "portable_positive_payload",
       "native_candidates": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_memory_payload_parity_tests.rs",
@@ -715,8 +682,11 @@
       "native_mapping": "Exact32-workitem,64-element B16 storage transpose preserves every original input and output coordinate. Compare actual PTX and unchanged64-line golden plus complete native graph verification; no dense matrix product substitutes for transpose.",
       "target_specific_residual": "PTX instruction/fragment encoding is target-specific; the complete original storage computation remains required and is retained. Any extra native matrix outputs are separately validated.",
       "expected_outcome": "Verified, complete original footprint and every additional native output equivalent to independent expected data.",
-      "remaining_gate": "Coordinator independently reruns the named source controls on final integrated main; no acceptance checkbox changes."
+      "mapping_kind": "native_assertion"
     }
   ],
-  "review_source_commit": "453b815b7a36b90ba1a65757c3ea20c18fe8a13a"
+  "mapping_counts": {
+    "native_assertion": 8,
+    "native_memory_negative": 8
+  }
 }

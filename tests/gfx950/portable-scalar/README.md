@@ -4,8 +4,7 @@ These native AMDHSA sources exercise the computations and memory properties of
 42 upstream success fixtures. `cases.json` identifies each original source,
 its source hash, Rust assertion, expected output, native launch configuration,
 and test. Two additional mappings use the unchanged compiler fixtures for
-module globals and grid outputs. They cover 44 baseline rows; the mapping file
-does not change the coordinator's parity statuses. Native handwritten kernels
+module globals and grid outputs. Native handwritten kernels
 use a consistent `x`/`out` pointer ABI; baseline input name `in` is renamed
 `x`, and an unused input slot is retained for baseline output-only cases.
 

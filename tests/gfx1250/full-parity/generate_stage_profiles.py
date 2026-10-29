@@ -424,14 +424,12 @@ def generate():
                     "tests/gfx1250/full/cpu/test_prove_cli.py",
                     "test_snapshot_runtime_and_log_mutations_fail",
                 ),
-                "execution_status": "separate_coordinator_gate_not_inferred_from_inventory",
             }
         )
     return {
         "schema_version": 1,
         "target": "gfx1250",
-        "completion": "coordinator_review_required",
-        "scope": "Actual original32 typed opcode/operand-shape/modifier profiles, including both VOPD component slots. Static frontend and lowering were run; this index is not runtime PC coverage, a hardware result, or coordinator acceptance.",
+        "scope": "Original workload opcode/operand-shape/modifier profiles, including both VOPD component slots. This index validates frontend and lowering forms; it does not execute the workloads.",
         "profile_identity": "Mnemonic, typed family, operand shapes, exact named modifier values and optional VOPD slot. Register indices and immediate data values remain source-specific; their legality/semantics are never generalized from a shape.",
         "registry": {
             "path": str(REGISTRY.relative_to(ROOT)),
@@ -458,7 +456,7 @@ def markdown(document):
     lines = [
         "# Actual original32 opcode and modifier profiles",
         "",
-        "This generated index complements [stage-support.md](stage-support.md). Its typed frontend and lowering checks do not execute instructions. Value/event/checker contracts and named positive/negative family controls are linked in [stage-profiles.json](stage-profiles.json); each profile links its actual source entries and all32 retain separate full CLI/Python acceptance gates.",
+        "This generated index complements [stage-support.md](stage-support.md). Its typed frontend and lowering checks do not execute instructions. Value/event/checker contracts and named positive/negative family controls are linked in [stage-profiles.json](stage-profiles.json); each profile links its actual source entries. See the [CPU workflow guide](../full/cpu/README.md) for full-workload CLI/Python runs.",
         "",
         f"The seven compiler modules contain {document['mnemonic_count']} mnemonics and {document['profile_count']} typed profiles across {document['instruction_component_occurrences']} component occurrences. Both VOPD slots are indexed separately. A profile records operand shapes and exact named modifiers; it does not enable every immediate, register index or combination with those shapes.",
         "",
@@ -505,7 +503,7 @@ def main():
         else:
             path.write_text(content)
     print(
-        f"Static parse/lower index: {document['case_count']} cases, {document['assembly_count']} modules, {document['mnemonic_count']} mnemonics, {document['profile_count']} profiles. Runtime acceptance remains separate."
+        f"Static parse/lower index: {document['case_count']} cases, {document['assembly_count']} modules, {document['mnemonic_count']} mnemonics, {document['profile_count']} profiles. Runtime checks are separate from this static index."
     )
 
 

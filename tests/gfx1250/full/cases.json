@@ -1,7 +1,6 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "issue": "https://github.com/harsh-nod/ptx_verifier/issues/21",
   "scope": "Original-shape/dtype registrations, not an acceptance receipt. Every required unsupported/unknown/incomplete positive remains a gap.",
   "baseline_inventory": "../full-parity/gaps.json",
   "required_baseline_ids": [
@@ -38,7 +37,7 @@
     "W31",
     "W32"
   ],
-  "pending_baseline_ids": [],
+  "missing_baseline_ids": [],
   "registered_original_outputs": 395394,
   "cases": [
     {

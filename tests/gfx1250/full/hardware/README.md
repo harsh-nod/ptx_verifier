@@ -7,7 +7,7 @@ output-gap checks are retained. Sparse inputs do not shorten any GPU or CPU loop
 
 The required default pattern counts include the following explicit bases:
 
-| Runner | Required patterns | Added basis coverage | Launches | Native outputs |
+| Runner | Required patterns | Input coverage | Launches | Native outputs |
 | --- | ---: | --- | ---: | ---: |
 | `original_run.py` | 10 | Pattern9: final element, both RoPE partners, RMS/softmax4095, matvec final row/K4095, reduction tail and initial output dependence | 180 | 264660 |
 | `original_convolution_run.py` | 5 | Pattern4: input channel63, filter tap2,2, output channel127 and final original spatial coordinate at K575 | 10 | 122880 |
@@ -23,9 +23,8 @@ U32 bytes, and Sage keeps its signed-I8 inputs and separate per64-key scales.
 
 Run each runner with `--local --device "$GFX1250_DEVICE" --result /tmp/...json`
 on a matching reserved GPU, or use its existing SSH staging options. The runner
-and driver both reject counts below these minima. Reports from older drivers
-retain their historical scope; they do not satisfy this new basis gate. No
-device-run receipt is committed by this change.
+and driver both reject counts below these minima. Keep generated receipts
+outside the repository.
 
 CPU-only verification, without a GPU launch:
 

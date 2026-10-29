@@ -34,10 +34,10 @@ class OriginalShapeContractTests(unittest.TestCase):
         self.assertEqual(4096, len(scan["out"]))
         self.assertNotIn(128, scan["out"])  # untouched head/row gap
 
-    def test_registrations_keep_exact_pending_rows_and_original_total(self):
-        pending = self.validate(self.registry)
+    def test_registrations_keep_exact_missing_rows_and_original_total(self):
+        missing = self.validate(self.registry)
         expected = set(self.rows) - {c["baseline_id"] for c in self.registry["cases"]}
-        self.assertEqual(sorted(expected), pending)
+        self.assertEqual(sorted(expected), missing)
         self.assertEqual(
             sum(
                 self.rows[c["baseline_id"]]["original"]["expected_outputs"]
@@ -45,7 +45,7 @@ class OriginalShapeContractTests(unittest.TestCase):
             ),
             self.registry["registered_original_outputs"],
         )
-        if pending:
+        if missing:
             with self.assertRaisesRegex(ValueError, "incomplete"):
                 self.validate(self.registry, require_all=True)
         else:
@@ -57,7 +57,7 @@ class OriginalShapeContractTests(unittest.TestCase):
             lambda r: r["cases"].pop(),
             lambda r: r["cases"].append(copy.deepcopy(r["cases"][0])),
             lambda r: r.update(required_baseline_ids=r["required_baseline_ids"][:-1]),
-            lambda r: r.update(pending_baseline_ids=["W01"]),
+            lambda r: r.update(missing_baseline_ids=["W01"]),
         ):
             data = copy.deepcopy(self.registry)
             mutate(data)

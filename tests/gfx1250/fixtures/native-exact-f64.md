@@ -1,8 +1,10 @@
+# Exact F64 expression fixtures
+
 These four kernels preserve the exact binary64 coefficients, output dtype,
 launch size, and complete one-element outputs of the original
 `concrete_fma_vs_mul_add{,_2}.ptx` and
 `runtime_sum_differs_from_prerounded_literal{,_2}.ptx` assertions.
-They are new gfx1250 compilations; no assembly was retargeted.
+Their assembly is compiled directly for gfx1250.
 
 | Native entry | Original computation |
 | --- | --- |
@@ -28,6 +30,6 @@ reference must be reported separately.
 
 `exact-f64-provenance.json` pins the real default-O2 source/assembly,
 compiler, assembler, linked object hashes, and 56 actual target/encoding
-observations. The selected new F64 VOPD3 profile accepts aligned X-slot
+observations. The selected F64 VOPD3 profile accepts aligned X-slot
 add/multiply paired with disjoint Y-slot MOV-zero initialization. Other
 F64 pair profiles remain explicitly outside this selected frontend profile.

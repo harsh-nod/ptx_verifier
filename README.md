@@ -1,302 +1,148 @@
 <h1 align="center">GPU Kernel Verifier</h1>
 
 <p align="center">
-  <img src="gpu-kernel-verifier.png" alt="GPU Kernel Verifier: NVIDIA PTX and AMD GCN ISA" width="560">
+  <img src="gpu-kernel-verifier.png" alt="GPU Kernel Verifier: NVIDIA PTX and AMD assembly" width="560">
 </p>
 
-GPU Kernel Verifier checks NVIDIA PTX and native AMD gfx942/gfx950/gfx1250 assembly for data races and deadlocks, and checks a kernel for equivalence to a reference kernel or a math spec (floats are modeled as reals). This is an experimental fork of [Volta](https://github.com/willtunnels/volta). The CLI and Python package retain the `volta` name for compatibility.
+GPU Kernel Verifier analyzes GPU assembly for data races and deadlocks, and
+compares a kernel's outputs with another kernel or a mathematical specification.
+It supports NVIDIA PTX and selected native AMD instructions for gfx942, gfx950
+and gfx1250. This experimental fork of [Volta](https://github.com/willtunnels/volta)
+keeps the `volta` command and Python module names.
 
-> [!CAUTION]
-> **This project is not intended to be a sound verifier, and we do not claim that it is a formal verifier. It is a best-effort verifier for catching bugs in generated kernels; a successful check does not guarantee correctness.**
->
-> Results depend on the implemented instruction subset, concrete launch configuration and recorded modeling assumptions. Independent numerical and hardware checks remain necessary.
+The engine symbolically executes a concrete launch configuration. It produces
+output expressions and an event graph, then checks mathematical equivalence and
+target-specific synchronization independently. Floating arithmetic uses a
+mathematical-real model. Addresses, control flow and synchronization parameters
+must resolve from concrete configuration and thread indices.
 
-Kernels must have statically known sizes, and their addresses and branches must resolve from thread indices and concrete parameters, not from input values. The analyzers execute workgroup zero. An AMD result covers that workgroup under its recorded assumptions; it does not prove the whole grid.
+> This is a best-effort bug-finding tool, not a sound formal verifier. Results
+> depend on supported instructions and the reported modeling assumptions. A
+> successful result does not guarantee hardware correctness. Analysis covers
+> workgroup zero, not the whole grid or physical floating-point rounding.
 
-## Build
+## Build and run
 
-```bash
-cargo build --release   # the binary is target/release/volta
-just test               # Rust and Python tests
+Use a Rust toolchain that supports edition 2024 and a C build toolchain for the
+rational-arithmetic dependency. CPU analysis does not require a GPU or ROCm.
+
+```sh
+cargo build --release -p volta_cli
+target/release/volta --help
 ```
 
-`cargo run --release -p volta_cli -- <command> ...` builds and runs in one step.
-Examples below use `volta`; substitute `target/release/volta` for a local build.
-The recorded workspace baseline includes the failing PTX regression
-`test_aligned_bar_sync_reached_on_different_iterations`; a full `just test` run
-therefore exits nonzero at its Rust step. Run `just test-python` separately to
-rebuild and test Python. Validation run artifacts are local and are not retained in this repository.
+This example checks the checked-in native copy kernel and all 65 output elements:
 
-Generate the Rust library reference with:
+```sh
+target/release/volta verify \
+  tests/gfx1250/fixtures/native-copy-add.s tests/gfx1250/specs/copy.spec \
+  --backend amdgpu --target gfx1250 --kernel copy --block 65 --dim N=65 \
+  --array x:0x10000:4:65:in --array out:0x30000:4:65:out \
+  --param ptr:x --param ptr:out --param int:65
+```
+
+Replace `verify SOURCE SPEC` with `analyze SOURCE` and omit `--dim N=65` to
+check synchronization without requesting mathematical equivalence. Use
+`parse SOURCE` to check syntax. PTX is the default backend; native AMD source
+requires `--backend amdgpu`, with an explicit matching `--target` recommended.
+
+| Operation | What it checks |
+| --- | --- |
+| `parse` | Source syntax and target-specific frontend validation |
+| `analyze` | One candidate execution and its graph properties |
+| `verify` | Graph properties and complete outputs against a specification |
+| `compare` | Graph properties and output equivalence between two kernels |
+| `viz` | Interactive inspection of recorded event graphs |
+
+`analyze` reports `VERIFIED`, `REJECTED` or `UNKNOWN`. `verify` and kernel-to-kernel
+`compare` report `ACCEPT`, `REJECT` or `UNKNOWN`. Exit codes are 0, 1 and 2,
+respectively. Sampling that omits outputs, incomplete execution and unsupported
+semantics cannot produce full acceptance. Expression or VC replay checks
+equivalence only; those artifacts do not contain a safety graph.
+
+The [usage guide](docs/usage.md) explains launch files, specifications, kernel
+comparison, artifacts, logging and Python setup.
+
+## Supported targets and scope
+
+| Backend / target | Execution model | Reference |
+| --- | --- | --- |
+| `ptx` | NVIDIA warp32; selected PTX instructions and synchronization objects | [PTX analyzer](crates/volta_ptx_analysis/README.md) |
+| `amdgpu` / `gfx942` | Wave64; selected CDNA3 scalar/vector, memory and MFMA forms | [gfx942 fixtures and scope](tests/gfx942/README.md) |
+| `amdgpu` / `gfx950` | Wave64; selected CDNA4 instructions and MFMA forms | [gfx950 fixtures and scope](tests/gfx950/README.md) |
+| `amdgpu` / `gfx1250` | Wave32; selected WMMA, waits, named/split barriers and tensor transfers | [gfx1250 model](tests/gfx1250/CONTRACT.md) |
+
+Omitting an AMD target selects gfx950. The source's declared target must match;
+changing a target string does not port a kernel. Each target has its own register,
+completion, publication and matrix rules. The [AMD analyzer guide](crates/volta_amdgpu_analysis/README.md)
+describes the supported instruction and ABI profiles.
+
+Launch configuration defines array extents, argument values, geometry and shared
+memory. These are analysis premises and must match the actual kernel. The grid
+may affect the computation even though only workgroup zero is analyzed. Optional
+native LDS allocation ranges preserve subobject bounds when assembly no longer
+contains source-level object boundaries.
+
+## How the code is organized
+
+The [architecture guide](docs/architecture.md) follows a kernel through parsing,
+lowering, execution, graph checking and equivalence checking. The main boundaries
+are:
+
+| Location | Responsibility |
+| --- | --- |
+| `crates/volta_ptx_analysis`, `crates/volta_amdgpu_analysis` | Parse and execute the selected backend; produce expressions, events and provenance |
+| `crates/volta_expr`, `crates/volta_spec` | Shared symbolic expressions and the mathematical specification language |
+| `crates/volta_graph`, `crates/volta_graph_check` | Typed event graph and target-selected safety checks |
+| `crates/volta_equivalence` | Compare complete output index sets and their expressions |
+| `crates/volta_pipeline` | Combine the independent safety and equivalence results |
+| `crates/volta_cli`, `crates/volta_py`, `crates/volta_viz` | Command-line, Python and browser interfaces |
+| `tests/`, `ai_compiler_kernels/`, `external/` | Compiler fixtures, workload configurations, independent oracles and extraction tools |
+
+Each crate has a README explaining its public entry points and internal modules.
+Start with `volta_pipeline/src/backend.rs` for backend dispatch and
+`volta_pipeline/src/aggregate.rs` for verdict rules.
+
+## Development and testing
+
+`just` provides common commands; Python development uses `uv` and maturin.
+
+```sh
+cargo test --release --workspace
+just test-python                 # rebuild the Python extension and run its tests
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets
+```
+
+`just test` runs both Rust and Python tests. Focused examples and fixture-specific
+commands are documented beside the relevant tests. Large workload proofs need
+separate capacity planning; see the [full workload runners](tests/gfx1250/full/cpu/README.md).
+To extend an instruction, follow the [development guide](docs/architecture.md#extending-an-instruction).
+
+Generate library documentation with:
 
 ```sh
 cargo doc --workspace --no-deps --exclude volta_cli
 ```
 
-The Python library and CLI binary are both named `volta`; generating both into
-one Rustdoc directory causes an output-name collision. For CLI internals, use
-`cargo doc -p volta_cli --no-deps --target-dir target/cli-rustdoc`. User-facing
-command documentation is available from `target/release/volta --help`.
+The CLI and Python crate share the `volta` output name. Build CLI internals into
+a separate Rustdoc directory with
+`cargo doc -p volta_cli --no-deps --target-dir target/cli-rustdoc`.
 
-## Native AMD gfx942, gfx950 and gfx1250
+## Inspect an execution
 
-Select `--backend amdgpu --target gfx942` (MI300/CDNA3) or `--target gfx950`
-(MI350/CDNA4) to analyze native LLVM AMDHSA `.s`
-files. PTX remains the default. CPU analysis requires no ROCm installation;
-hardware validation requires the corresponding GPU. Explicit target selection
-must match the assembly; omitted AMD targets retain gfx950 as the default.
-For example, the checked-in compiler copy kernel crosses a wave boundary:
-
-```bash
-gfx950_source=crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-copy-add.s
-volta analyze "$gfx950_source" --backend amdgpu --target gfx950 -k copy -b 65 \
-  --array x:0x10000:4:65:in --array out:0x20000:4:65:out \
-  --param ptr:x --param ptr:out --param int:65 \
-  --emit-exprs copy.vexpr --dump-graph copy.graph
-volta verify "$gfx950_source" \
-  'dim N; array x[N]; array out[N]; out[i] = x[i];' \
-  --backend amdgpu --target gfx950 -k copy -b 65 --dim N=65 \
-  --array x:0x10000:4:65:in --array out:0x20000:4:65:out \
-  --param ptr:x --param ptr:out --param int:65
-```
-
-The same backend selection supports `parse`, two-kernel `compare`, expression
-and VC exchange, numeric confirmation, profiling, logs, and the existing graph
-viewer. Python selects it with
-`volta.Config(block=(65, 1, 1), backend="amdgpu", target="gfx950")`.
-Use `target="gfx942"` for gfx942 source. For a genuine MI300X compiler fixture:
-
-```bash
-volta verify tests/gfx942/fixtures/native-copy-add.s tests/gfx942/specs/copy.spec \
-  --backend amdgpu --target gfx942 -k copy -b 65 --dim N=65 \
-  --array x:0x10000:4:65:in --array out:0x30000:4:65:out \
-  --param ptr:x --param ptr:out --param int:65
-```
-
-gfx942 support includes native copy/add, LDS exchange/reduction, packed local
-IDs, selected F32/F16/BF16 MFMA forms, and a two-wave LDS/F16 matrix pipeline.
-It uses its own LDS capacity and MFMA hazard timings. CDNA4-only instructions
-and gfx942 FP8/BF8 number formats remain unsupported. See the
-[gfx942 scope, compiler fixtures and MI300X validation](tests/gfx942/README.md).
-The existing gfx950 parity inventory does not assert complete gfx942 parity.
-
-gfx1250 uses a separate **wave32** model with WMMA, split workgroup barriers,
-replay-source dependencies and bounded tensor transfers. Select it explicitly
-with `--backend amdgpu --target gfx1250` or Python
-`volta.Config(..., backend="amdgpu", target="gfx1250")`.
-The analysis envelope is a single
-unclustered workgroup, code-object 6,
-metadata 1.2, and the selected compiler instruction subset. Strict/neighbor
-targets, cluster barriers and advanced tensor modes remain unsupported. Selected
-allocated named shader barriers have separate participant and lifetime checks.
-
-```bash
-volta verify tests/gfx1250/fixtures/native-copy-add.s tests/gfx1250/specs/copy.spec \
-  --backend amdgpu --target gfx1250 -k copy -b 65 --dim N=65 \
-  --array x:0x10000:4:65:in --array out:0x30000:4:65:out \
-  --param ptr:x --param ptr:out --param int:65
-```
-
-See the [gfx1250 contract and validation corpus](tests/gfx1250/README.md) for
-complete configured matrix/tensor checks, bounded ports of twenty workload
-families, independent mutation/oracle controls and hardware reproduction commands.
-The bounded issue #13 ports remain separate from the
-[original32 workload and portable-feature contract](tests/gfx1250/full-parity/README.md).
-That contract preserves original dimensions, storage dtypes and sparse output
-projections; registration and individual test results do not imply full acceptance.
-The [coordinator review](tests/gfx1250/full-parity/coordinator-review.md) records
-the completed original32 and finite portable-feature gates, exact proof
-revisions, reproduction budgets and retained target/model boundaries.
-
-Launch arguments follow the selected kernel's descriptor and argument metadata.
-`--global NAME=value` overrides a writable defined module object;
-`--dyn-shared N` supplies dynamic LDS capacity.
-
-Native assembly usually omits source-level LDS object boundaries. Optional
-`--shared-allocation NAME:OFFSET:SIZE` entries, or Python
-`cfg.add_shared_allocation(name, offset, size)`, supply those boundaries as an
-explicit caller premise. Without them, LDS bounds refer to the complete static
-plus dynamic segment. The analyzer records supplied layouts in graph provenance.
-
-See the [AMD support table](crates/volta_amdgpu_analysis/README.md) for supported
-instruction forms, ABI/toolchain envelope and arithmetic assumptions, and the
-[parity inventory and evidence](tests/gfx950/README.md) for remaining work.
-`python3 scripts/gfx950_parity.py summary --require-complete` is the strict
-completion gate; it fails while any baseline row is pending. Unsupported,
-sampled, aborted and resource-limited analyses remain inconclusive.
-
-### HipKittens kernels
-
-`just extract-hipkittens` compiles pinned upstream HipKittens CDNA4 sources to
-gfx950 assembly; `just hipkittens` checks them through the same external-kernel
-harness used for ThunderKittens. The workflow reports unsupported application
-instructions explicitly and includes a validated local vector-copy control.
-See [the HipKittens workflow](external/hipkittens/README.md) for setup, current
-results, exact ABI payloads, hardware checks and strict exit-status handling.
-
-## CLI
-
-### Check a kernel for races and deadlocks
-
-```bash
-volta analyze relu.ptx -k relu -b 128 \
-  --array x:0x10000:4:128:in --array out:0x20000:4:128:out \
-  --param ptr:x --param ptr:out
-```
-
-Prints the symbolic outputs (`--print-outputs N`, default 8 per array), the verdict of each graph check, and `GRAPH VERIFICATION: VERIFIED | REJECTED | UNKNOWN` (exit 0/1/2). `--emit-exprs FILE` writes the outputs as `.vexpr` text, `--dump-graph FILE` the event graph.
-
-### Check a kernel against a spec
-
-```
-# relu.spec
-dim N;
-array x[N];
-array out[N];
-out[i] = max(x[i], 0);
-```
-
-```bash
-volta verify relu.ptx relu.spec -k relu -b 128 --dim N=128 \
-  --array x:0x10000:4:128:in --array out:0x20000:4:128:out \
-  --param ptr:x --param ptr:out
-```
-
-The spec can also be passed inline as a string. Each spec output must be declared `out` or `inout`, and each `dim` needs a `--dim NAME=VALUE`.
-
-### Compare two kernels
-
-```bash
-volta compare ref.ptx opt.ptx --kernel1 ref --kernel2 opt -b 128 \
-  --array x:0x10000:4:128:in --array out:0x20000:4:128:out \
-  --param ptr:x --param ptr:out --check-array out
-```
-
-`--check-array NAME` (required, repeatable) names the outputs to compare. Arrays, params and globals are shared by both kernels; `--block2`/`--grid2` override the optimized kernel's dims.
-
-`verify` and kernel-to-kernel `compare` print `VERDICT: ACCEPT | REJECT | UNKNOWN` (exit 0/1/2) and take:
-
-- `--sample N`: check at most N elements per array (a sampled check is never ACCEPT)
-- `--verify-numeric`: confirm each verdict with an f64 oracle at random inputs
-- `--recycle-terms N`: bound memory by recycling intern tables past N terms
-- `--iterations N`: re-run the solve N times (timing and determinism check)
-
-`compare --dump-vcs pair.vcdump` executes and checks the kernels, then saves
-their expressions. Later, `compare --from-dump pair.vcdump --check-array out`
-or `compare --exprs a.vexpr b.vexpr --check-array out` skips execution and runs
-only equivalence. Successful replay prints `EQUIVALENT`; expression files and
-VC dumps carry no event graph and cannot recheck races or deadlocks.
-
-### Launch flags
-
-`analyze`, `verify` and `compare` share these flags. They must match the kernel's parameters.
-
-- `-b, --block X[,Y[,Z]]` / `-g, --grid X[,Y[,Z]]`: launch dims (default `1`)
-- `--array name:base:elem_width:len:kind`: a global array of `len` elements of `elem_width` bytes at address `base`; `kind` is `in`, `out`, `inout` or `index` (concrete `a[i] = i`). Repeatable.
-- `--param int:N | float:X | sym:name | ptr:array`: the kernel's parameters, in declaration order. Repeatable.
-- `--global NAME=value`: value of a module-scope `.global` variable. Repeatable.
-- `--dyn-shared N`: dynamic shared memory, in bytes
-- `--no-profile`: skip the per-instruction-kind profile
-
-### Launch files
-
-`--config FILE` replaces every launch flag above with one JSON file. The ReLU launch of the first example reads:
-
-```json
-{
-  "description": "relu over 128 fp32 elements",
-  "kernel": "relu",
-  "block": 128,
-  "arrays": [
-    {"name": "x",   "kind": "in",  "dtype": "f32", "shape": [128]},
-    {"name": "out", "kind": "out", "dtype": "f32", "shape": [128]}
-  ],
-  "params": [
-    {"ptr": "x"},
-    {"ptr": "out"}
-  ]
-}
-```
-
-```bash
-volta analyze relu.ptx --config relu.json
-```
-
-- `block` (required) and `grid`: a number or one to three numbers
-- `arrays`: `kind` is `in`, `out`, `inout` or `index`; the element size is a `dtype` (`f32`, `bf16`, `u8`, `e4m3`, ...) or an `elem_width` in bytes, the length a `shape` or a `len`. Arrays without a `base` (a number or `"0x..."`) are laid out in order from `0x10000`, each on a 64 KiB boundary.
-- `params`: exactly one of `{"int": N}`, `{"float": X}`, `{"sym": name}`, `{"ptr": array}` or native AMD `{"bytes": [0, 1, ...]}` each, in declaration order. Byte payloads must exactly match a by-value argument's metadata size, including padding; PTX rejects them. An optional `"name"` labels the argument for the reader.
-- `globals` (`{"NAME": value}`), `dynamic_shared_bytes`, `max_instructions`, and a free-text `description`
-- `kernel`: the default for `--kernel` (`analyze`, `verify`); `compare` names its two kernels with `--kernel1`/`--kernel2` instead
-
-Unknown keys are errors, so a typo never falls back to a default. `--config` cannot be combined with the launch flags.
-
-### Syntax checks and logging
-
-`volta parse file.ptx` checks PTX syntax.
-
-Every run writes a log under `volta-logs/` (`--log-dir DIR`, `--no-log-file`). Build with `--features logging` and pass `--log-level info` for a trace of the run.
-
-## Python
-
-Add the bindings to your project's `pyproject.toml`, then run `uv sync`:
-
-```toml
-[project]
-dependencies = ["volta"]
-
-[tool.uv.sources]
-volta = { path = "<path/to/volta>/crates/volta_py", editable = true }
-```
-
-```python
-import volta
-
-src = open("relu.ptx").read()
-
-config = volta.Config(block=(128, 1, 1), grid=(1, 1, 1), dynamic_shared_bytes=0)
-config.add_array(volta.ArrayDef("x", base=0x10000, elem_width=4, len=128, kind=volta.ArrayKind.Input))
-config.add_array(volta.ArrayDef("out", base=0x20000, elem_width=4, len=128, kind=volta.ArrayKind.Output))
-config.add_param(volta.Param.array_ptr("x"))  # also Param.int, Param.float, Param.sym_float
-config.add_param(volta.Param.array_ptr("out"))
-# config.set_global("NAME", 42)
-
-volta.parse(src)  # raises VoltaError on a syntax error
-
-result = volta.analyze(src, config, kernel="relu")
-result.outputs        # [("out", [(0, "max(x[0], 0)"), ...])]
-result.race_verified  # True when every graph check passed
-result.stats, result.op_counts
-
-spec = "dim N; array x[N]; array out[N]; out[i] = max(x[i], 0);"
-check = volta.verify(src, spec, config, kernel="relu", dims={"N": 128}, sample=0, verify_numeric=False)
-check.equivalent, check.mismatches, check.elements_checked
-```
-
-`ArrayKind` is `Input`, `Output`, `InputOutput` or `IndexInput`. A race raises `volta.DataRaceError`, a deadlock `volta.DeadlockError`, and any other failure `volta.VoltaError` (the base class of both). An inconclusive graph check emits a `RuntimeWarning` and sets `race_verified` to `False`. `compare` is CLI-only for now.
-
-## Event-graph visualization
-
-`just viz` records the event graph of every test kernel and builds a single HTML
-page at `target/volta-viz/volta-graphs.html`. Open it in a browser to inspect the
-events, applicable graph checks, and PTX or native AMD source. The full suite
-includes thousands of gfx1250 numeric variations; use the [focused recording
-recipe](tests/gfx1250/README.md#software-acceptance-and-reproduction) for a smaller
-viewer store.
-
-```bash
+```sh
 just viz
 ```
 
-To build a viewer from an existing run store:
-
-```bash
-volta viz <run-store> -o page.html
-```
+This records pipeline test runs and builds `target/volta-viz/volta-graphs.html`.
+The [viewer guide](crates/volta_viz/README.md) also explains focused recording and
+exporting an existing store with `volta viz RUN_STORE -o page.html`. The viewer
+shows target geometry, source instructions, events and typed findings. Its
+bounded display never limits the graph used by the checks.
 
 <p align="center">
-  <img src="volta-viz.png" alt="The GPU Kernel Verifier event-graph viewer showing warp 1's reads racing a bulk async copy">
-  <br>
-  <sub>Warp 1's reads race a <code>cp.async.bulk</code> copy that a <code>bar.sync</code> does not order.</sub>
+  <img src="volta-viz.png" alt="Event-graph viewer showing reads racing an asynchronous copy">
 </p>
 
 ## Citation

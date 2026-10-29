@@ -1,7 +1,7 @@
 # Selected native gfx1250 stage coverage
 
-This table describes the finite compiler/portable-feature profile used by issue
-#21. It is not an ISA coverage percentage. An opcode name alone does not enable
+This table describes the selected compiler and portable-feature profiles.
+It is not an ISA coverage percentage. An opcode name alone does not enable
 every encoding, tuple, modifier or operand type. The frontend validates every
 instruction in the selected entry, including unreachable and empty-EXEC code;
 lowering and execution can impose additional conditions. A parsed instruction
@@ -16,8 +16,8 @@ compiler-provenance files. Public semantic source revisions are pinned in
 
 All test filenames below are relative to `crates/volta_pipeline/tests/`.
 “Complete” describes the test's required footprint, rather than a count of
-instructions accepted by the parser. Original32 acceptance additionally needs
-the separate strict CLI/Python and hardware gates.
+instructions accepted by the parser. Full-workload commands are documented in the
+[CPU](../full/cpu/README.md) and [hardware](../full/hardware/README.md) guides.
 
 | Source forms and boundary | Frontend / lowering | Values | Events / checker | Positive and negative controls |
 | --- | --- | --- | --- | --- |
@@ -30,7 +30,7 @@ the separate strict CLI/Python and hardware gates.
 | Unnamed and selected named shader barriers | Allocated IDs 1–16, M0 selector/count, INIT/JOIN/SIGNAL/WAIT/LEAVE; signal-time bits22:16 set a nonzero expected count, zero leaves it unchanged; no cluster form | Explicit participant/count/phase/incarnation state, signal-time setters1–127 and typed below-arrived rejection; disputed equal-to-arrived boundary remains Unsupported/Unknown; NULL behavior follows the selected operation | Only completed effects publish; initialization/use and noncommuting setters/drops need execution order; equal setters commute only within their validated count preconditions; join/lifetime/incarnation and progress remain independent of issue order | `gfx1250_named_barrier_tests.rs`, `gfx1250_named_consumer_tests.rs`, `gfx1250_named_lifecycle_tests.rs`, `gfx1250_portable_graph_tests.rs`, `gfx1250_signal_count_tests.rs`, `gfx1250_protocol_lifetime_tests.rs` |
 | WMMA F32 16×16×4 and F16/BF16 16×16×32 | Full wave32, exact input/output tuples and selected format | Independent dense/basis/raw oracles; fragment copies, seeds, strides and complete logical/padded projections | Matrix input/output readiness and storage lifetime; LDS publication remains a separate obligation | `gfx1250_matrix_layout_parity.rs`, `gfx1250_matrix_numeric_parity.rs`, `gfx1250_matrix_publication.rs`, `gfx1250_upstream_adapters.rs` |
 | Plain bounded 2D TDM in both directions | Actual compiler D0–D3 signature and selected descriptor fields; no advanced descriptor padding/multicast/gather/iteration/atomic-barrier modes | Concrete descriptor-derived addresses and full byte payloads; edge zero fill is explicit ordinary native code | Descriptor operands captured at issue; Tensor completion, source/destination memory leases and cross-wave publication tracked | `gfx1250_tensor_parity_tests.rs`, `gfx1250_tensor_capture_tests.rs`, `gfx1250_async_memory_tests.rs` |
-| Original32 compiled loops and full output storage | Strict manifest validates exact unchanged source/spec/config and explicit native mappings | All 395,394 original coordinates, plus every native-superset coordinate, required; no sampling or shortened dimensions | Complete original iterations and graph events; any unsupported/unknown/resource failure leaves acceptance unfinished | `gfx1250_original_matrix_tests.rs`, CLI/Python original-workload tests, `../full/cpu/prove_cli.py`, `../full/cpu/prove_python.py` |
+| Original32 compiled loops and full output storage | Strict manifest validates exact unchanged source/spec/config and explicit native mappings | All 395,394 original coordinates, plus every native-superset coordinate, required; no sampling or shortened dimensions | Complete original iterations and graph events; unsupported/unknown/resource failures cannot satisfy a positive check | `gfx1250_original_matrix_tests.rs`, CLI/Python original-workload tests, `../full/cpu/prove_cli.py`, `../full/cpu/prove_python.py` |
 
 The [signal-time count source contract](../portable-graph/signal-counts/references.json)
 binds the exact same-lifetime count2-to1 positive and complete `[7,7]` payload,
@@ -47,9 +47,9 @@ The implementation stage boundaries are
 [`lower`](../../../crates/volta_amdgpu_analysis/src/lower),
 [`eval`](../../../crates/volta_amdgpu_analysis/src/eval) and
 [`amdgpu` graph checks](../../../crates/volta_graph_check/src/amdgpu.rs).
-The exact NVIDIA-only grammar, descriptor encodings, TMEM resources and cluster
-scheduler residuals are reviewed per reference row. Those residuals do not
-exclude portable arithmetic, byte layout, memory lifetime or publication.
+The reference mappings identify exact NVIDIA-only grammar, descriptor
+encodings, TMEM resources and cluster scheduler differences. Those differences
+do not exclude portable arithmetic, byte layout, memory lifetime or publication.
 
 Physical floating rounding, exceptional values and whole-device/inter-workgroup
 race freedom remain outside the mathematical-real selected-workgroup model.

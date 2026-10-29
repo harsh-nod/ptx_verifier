@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "scope": "Source-pinned mapping candidates for15 packed-F32 and9 FP8 original reference rows. This contract is not an execution receipt or coordinator acceptance.",
+  "scope": "Packed-F32 and FP8 source/test mappings with complete original golden outputs and native storage contracts.",
   "reference_groups": [
     "PACKED-F32-TYPING",
     "FP8-BYTES-PACKING"
@@ -29,8 +29,7 @@
       "reason": "Actual native decoder observes concrete OCP E4M3 byte0x7f, explicitly outside the mathematical real model; graph cannot be Verified. CPU-only negative, excluded from hardware.",
       "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
       "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
-      "candidate_kind": "model_domain_refusal",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "model_refusal"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/failing/e4m3x2_scalar_source_high_lane_is_undefined_not_fabricated.ptx",
@@ -52,8 +51,7 @@
       "reason": "The original PTX scalar16 register has undefined byte1 and is independently asserted Undefined. Genuine native GLOBAL_LOAD_U8 explicitly zero-extends the register, so native outputs are exactly x[0],0; rejecting the defined native byte1 would invent an AMD undefinedness rule. The source storage rule remains target-specific.",
       "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
       "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
-      "candidate_kind": "target_storage_residual_with_native_payload",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "target_contract_difference"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvt_pack_halves_values.ptx",
@@ -97,8 +95,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
       "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/cvt_relu_symbolic_is_max.ptx",
@@ -146,8 +143,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
       "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_decodes_a_concrete_scalar_bit_pattern.ptx",
@@ -191,8 +187,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
       "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_low_half_extracted_via_cvt_u16_u32_truncation_of_a_quad.ptx",
@@ -241,8 +236,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
       "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_relu_clamps_a_negative_decoded_lane_to_zero.ptx",
@@ -286,8 +280,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
       "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_scalar_source_from_a_zero_extended_byte_load.ptx",
@@ -335,8 +328,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
       "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/e4m3x2_vector_load_keeps_four_symbolic_bytes_independent.ptx",
@@ -387,8 +379,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "3288a13c56830f92b3c3042332852d5e005a227e8edecc3e1e8f9cfd14596d87",
       "native_assembly_sha256": "af3447d3b340b62258d5ac33a8aaed0b0c911a64da26176473d14a807ee99fb7",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_constant_bit_pattern_operand.ptx",
@@ -439,8 +430,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_fma_via_64bit_memory_access.ptx",
@@ -491,8 +481,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_fma_via_register_pack.ptx",
@@ -543,8 +532,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_lane_extracted_with_shift.ptx",
@@ -595,8 +583,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_mul_add_via_register_pack.ptx",
@@ -647,8 +634,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_operand_assembled_with_cvt_zero_extension.ptx",
@@ -699,8 +685,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_operand_assembled_with_shift_and_or.ptx",
@@ -751,8 +736,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_scalar_reference.ptx",
@@ -803,8 +787,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/f32x2_wrong_lane_math.ptx",
@@ -855,8 +838,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_b64_integer_pack_recombines_as_scalar_direct.ptx",
@@ -904,8 +886,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_b64_integer_pack_recombines_as_scalar_packed.ptx",
@@ -953,8 +934,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_pack_b32_always_builds_pair.ptx",
@@ -1003,8 +983,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_pack_b64_integer_halves_recombine.ptx",
@@ -1047,8 +1026,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_unpack_native_pair_source.ptx",
@@ -1097,8 +1075,7 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     },
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/success/mov_vector_destination_unpack_values.ptx",
@@ -1142,8 +1119,12 @@
       "comparison": "every original written index and no additional indices; original PTX execution independently asserted against checked-in golden; unsampled native/original equivalence; native graph Verified",
       "native_source_sha256": "4fa6ac4ba7e480af5c51f91e5fc38d8a804b097c0e35b1d995933c9b4dcd9968",
       "native_assembly_sha256": "51a0d8c55ba38c56a4e4ca3e28aea4a24b7109f590c8cb47bdde21b381cde962",
-      "candidate_kind": "positive_computation",
-      "coordinator_acceptance": "pending"
+      "mapping_kind": "native_assertion"
     }
-  ]
+  ],
+  "mapping_counts": {
+    "model_refusal": 1,
+    "native_assertion": 22,
+    "target_contract_difference": 1
+  }
 }

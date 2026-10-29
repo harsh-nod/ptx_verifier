@@ -58,7 +58,7 @@ cargo run --release -p volta_cli -- analyze relu.ptx -k relu -b 128 \
 cargo run --release -p volta_cli -- analyze relu.ptx --config relu.json
 ```
 
-See the top-level `README.md` for the full flag reference.
+See [usage](../../docs/usage.md) for launch formats, examples and replay commands.
 
 ## Native gfx1250
 
@@ -69,15 +69,13 @@ must match explicit selection; omitted AMD targets remain gfx950. Native graph
 failures exit 1, inconclusive checks exit 2, and success exits 0. Expression-only
 replay reports equivalence without claiming any graph checks. See the
 [gfx1250 compiler corpus](../../tests/gfx1250/README.md) for the wave32/ABI subset
-and hardware reproduction workflows. Device-run records are not retained.
+and hardware reproduction workflows.
 
-`gfx1250_original_workload_tests` exercises all18 first-family original shapes
+`gfx1250_original_workload_tests` exercises original workload shapes
 and storage dtypes: exact output coordinates, complete unsampled mathematical
 specs, graph/expression export, pair comparison, VC/expression replay and a
 full-size mismatch. `VOLTA_GFX1250_ORIGINAL_FULL=1` requests the separate heavy
-32-case gate and refuses missing registrations. See the [original-shape workflow
-recipes](../../tests/gfx1250/full-parity/README.md#public-workflow-gates); neither
-metadata registration nor expression replay attests a verified execution graph.
-The [coordinator review](../../tests/gfx1250/full-parity/coordinator-review.md)
-records the completed full32 gates and the distinct revisions used by immutable
-mathematical proofs and final integrated graph replay.
+full-workload tests and refuses missing registrations. See the
+[original-shape workflows](../../tests/gfx1250/full-parity/README.md).
+Registering a workload or replaying its expressions does not establish graph
+safety; analysis must complete and the applicable graph checks must pass.

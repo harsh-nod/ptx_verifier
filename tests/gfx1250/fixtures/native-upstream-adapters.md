@@ -1,7 +1,9 @@
+# Reference computation adapters
+
 These kernels preserve the computations in the upstream
 [`mma_bf16.ptx`](../../../crates/volta_pipeline/tests/ptx/success/mma_bf16.ptx)
 and [`mul_hi_u64_concrete.ptx`](../../../crates/volta_pipeline/tests/ptx/success/mul_hi_u64_concrete.ptx)
-fixtures. The source and assembly are new gfx1250 compilations; the original
+fixtures. The source and assembly are compiled directly for gfx1250; the original
 fixture assertions remain unchanged.
 
 `bf16_m16n8k16_fragment_adapter(a, b, native_full, original_four)` launches one

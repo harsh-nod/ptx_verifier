@@ -2,7 +2,6 @@
   "schema_version": 1,
   "target": "gfx1250",
   "scope": "Finite review of46 source-reference rows:11 model boundaries,11 static syntax rows and24 equivalence mutation rows. Source references are not46 independent acceptance tests; exact controls may cover multiple rows.",
-  "completion": "pending_coordinator_validation; no issue or parent ledger status is changed",
   "hardware_execution": false,
   "source_reference_revision": "b3a3791",
   "test_command": "CARGO_HTTP_CAINFO=/home/harsh/.codex-openai/ca-combined.pem cargo test --release -p volta_pipeline --test gfx1250_boundary_parity_tests",
@@ -32,7 +31,6 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Recognized operations must reject unsupported operand/precision profiles instead of certifying arbitrary values. The baseline has no initialized F16 operands or successful computation to preserve.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::malformed_known_native_instructions_reject_in_live_unreachable_and_zero_exec_paths",
@@ -45,8 +43,7 @@
       ],
       "configuration": "Static known-opcode tuple/arity precision controls plus separate actual F32 copysign operand-role test.",
       "expected_outcome": "Malformed recognized native operand shapes fail statically; supported actual F32 sign/magnitude math is separately equivalent to its baseline.",
-      "target_only_residual": "The PTX lowerer intentionally supports copysign only for .f32/.f64 and rejects .f16. That exact supported-type list and syntax are target-specific; no standalone AMD copysign opcode or successful F16 result is fabricated.",
-      "proposal": "narrow_ptx_precision_contract_with_portable_controls_for_coordinator_review"
+      "target_only_residual": "The PTX lowerer intentionally supports copysign only for .f32/.f64 and rejects .f16. That exact supported-type list and syntax are target-specific; no standalone AMD copysign opcode or successful F16 result is fabricated."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/float_op_rejects_nan_bit_pattern.ptx",
@@ -61,7 +58,6 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Raw NaN bits must reach an actual floating consumer and fail explicitly with no verified output.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::real_model_rejects_actual_nan_bits_and_nan_byvalue_parameters"
@@ -75,8 +71,7 @@
       ],
       "configuration": "Exact typed widths, by-value arguments, coordinates and bounds appear in the named Rust test; complete selected output footprints, no sampling.",
       "expected_outcome": "Raw NaN bits must reach an actual floating consumer and fail explicitly with no verified output.",
-      "target_only_residual": "AMD uses an encodable raw bit literal followed by native floating arithmetic; failure stage can differ from PTX lowering.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "AMD uses an encodable raw bit literal followed by native floating arithmetic; failure stage can differ from PTX lowering."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/membar_levels_none.ptx",
@@ -91,7 +86,6 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "A recognized native wait instruction requires its own counter operand, including unreachable and empty-EXEC paths; canonical explicit wait completes.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::malformed_known_native_instructions_reject_in_live_unreachable_and_zero_exec_paths",
@@ -104,8 +98,7 @@
       ],
       "configuration": "Live, unconditional-branch-skipped and EXEC-zero variants; exact LLVM MC comparison in syntax-provenance.json.",
       "expected_outcome": "A recognized native wait instruction requires its own counter operand, including unreachable and empty-EXEC paths; canonical explicit wait completes.",
-      "target_only_residual": "This is grammar completeness only: no PTX membar scope or fence semantics are substituted by a native wait.",
-      "proposal": "portable_static_native_counterpart_for_coordinator_review"
+      "target_only_residual": "This is grammar completeness only: no PTX membar scope or fence semantics are substituted by a native wait."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/nan_float_param_rejected.ptx",
@@ -120,7 +113,6 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "A genuine floating by-value parameter configured as NaN fails InvalidConfig before a trace/result.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::real_model_rejects_actual_nan_bits_and_nan_byvalue_parameters"
@@ -134,8 +126,7 @@
       ],
       "configuration": "Exact typed widths, by-value arguments, coordinates and bounds appear in the named Rust test; complete selected output footprints, no sampling.",
       "expected_outcome": "A genuine floating by-value parameter configured as NaN fails InvalidConfig before a trace/result.",
-      "target_only_residual": "Exact parameter directive spelling differs; the actual native metadata/by-value parameter is exercised.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "Exact parameter directive spelling differs; the actual native metadata/by-value parameter is exercised."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/nan_literal_rejected_at_lowering.ptx",
@@ -150,7 +141,6 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "A non-real NaN constant cannot become a successful real arithmetic result.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::real_model_rejects_actual_nan_bits_and_nan_byvalue_parameters"
@@ -164,8 +154,7 @@
       ],
       "configuration": "Exact typed widths, by-value arguments, coordinates and bounds appear in the named Rust test; complete selected output footprints, no sampling.",
       "expected_outcome": "A non-real NaN constant cannot become a successful real arithmetic result.",
-      "target_only_residual": "PTX NaN literal grammar/lowering is target-specific; native compiler emits the equivalent raw IEEE NaN bits and rejects at consumption.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX NaN literal grammar/lowering is target-specific; native compiler emits the equivalent raw IEEE NaN bits and rejects at consumption."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/symbolic_branch_rejected.ptx",
@@ -180,7 +169,6 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Data-dependent symbolic VCC cannot steer concrete execution; exact Invalid wave0/pc7 control-mask witness and GraphUnknown are required. Concrete2 retains out[0]=2.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::symbolic_native_branch_is_explicit_while_concrete_branch_retains_its_value"
@@ -195,8 +183,7 @@
       ],
       "configuration": "Exact typed widths, by-value arguments, coordinates and bounds appear in the named Rust test; complete selected output footprints, no sampling.",
       "expected_outcome": "Data-dependent symbolic VCC cannot steer concrete execution; exact Invalid wave0/pc7 control-mask witness and GraphUnknown are required. Concrete2 retains out[0]=2.",
-      "target_only_residual": "The native branch uses actual VCC and a static symbolic label; PTX predicate register spelling is not imported.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "The native branch uses actual VCC and a static symbolic label; PTX predicate register spelling is not imported."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/symbolic_integer_div_is_unsupported.ptx",
@@ -211,7 +198,6 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Native U32 divide by2 is exact floor via logical shift, independently compared to the masked U32 shift expression. Multiplying the quotient by2 is not an identity for arbitrary input; concrete7/2=3.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_integer_division_by_two_is_flooring_not_rational_cancellation"
@@ -227,8 +213,7 @@
       ],
       "configuration": "Exact typed widths, by-value arguments, coordinates and bounds appear in the named Rust test; complete selected output footprints, no sampling.",
       "expected_outcome": "Native U32 divide by2 is exact floor via logical shift, independently compared to the masked U32 shift expression. Multiplying the quotient by2 is not an identity for arbitrary input; concrete7/2=3.",
-      "target_only_residual": "Baseline symbolic div is unsupported; AMD recognizes a strictly stronger exact power-of-two lowering. No rational division substitution or IndexInput concretization is used.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "Baseline symbolic div is unsupported; AMD recognizes a strictly stronger exact power-of-two lowering. No rational division substitution or IndexInput concretization is used."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/symbolic_sub_register_load_rejected.ptx",
@@ -243,7 +228,6 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Preserve a signed-I8 input atom through actual FLAT signed-byte widening and the complete U32 output store; compare the same explicit U32 stored view on both sides.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_signed_global_byte_widening_has_an_explicit_signed_input_and_u32_store_view"
@@ -257,8 +241,7 @@
       ],
       "configuration": "Exact typed widths, by-value arguments, coordinates and bounds appear in the named Rust test; complete selected output footprints, no sampling.",
       "expected_outcome": "Preserve a signed-I8 input atom through actual FLAT signed-byte widening and the complete U32 output store; compare the same explicit U32 stored view on both sides.",
-      "target_only_residual": "Baseline rejects symbolic signed-byte loads. Native supports a stronger typed SignedI8 domain [-128,127], explicitly distinct from FP8; its positive identity is disclosed rather than pretending the original unsupported outcome is required. Volatile input prevents scalarization and preserves the explicit memory load.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "Baseline rejects symbolic signed-byte loads. Native supports a stronger typed SignedI8 domain [-128,127], explicitly distinct from FP8; its positive identity is disclosed rather than pretending the original unsupported outcome is required. Volatile input prevents scalarization and preserves the explicit memory load."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/symbolic_sub_register_store_rejected.ptx",
@@ -273,7 +256,6 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Actual symbolic fullword-to-byte store fails typed Invalid/Unsupported with exact symbolic-byte-truncation reason and GraphUnknown. Five complete concrete low-byte results test0,255,256,0x12345678,U32MAX.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_subword_store_refuses_ambiguous_symbolic_truncation_but_keeps_concrete_low_byte"
@@ -288,8 +270,7 @@
       ],
       "configuration": "Exact typed widths, by-value arguments, coordinates and bounds appear in the named Rust test; complete selected output footprints, no sampling.",
       "expected_outcome": "Actual symbolic fullword-to-byte store fails typed Invalid/Unsupported with exact symbolic-byte-truncation reason and GraphUnknown. Five complete concrete low-byte results test0,255,256,0x12345678,U32MAX.",
-      "target_only_residual": "Native and PTX truncating store spellings differ; no unknown-op failure substitutes for the actual storage boundary.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "Native and PTX truncating store spellings differ; no unknown-op failure substitutes for the actual storage boundary."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/zero_over_zero_is_a_loud_equivalence_error.ptx",
@@ -304,7 +285,6 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Undefined zero reciprocal/division cannot certify an equivalent real constant; native typed execution failure or exact decision-procedure domain error is required.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::zero_over_zero_native_control_cannot_become_a_successful_equivalence"
@@ -318,8 +298,7 @@
       ],
       "configuration": "Exact typed widths, by-value arguments, coordinates and bounds appear in the named Rust test; complete selected output footprints, no sampling.",
       "expected_outcome": "Undefined zero reciprocal/division cannot certify an equivalent real constant; native typed execution failure or exact decision-procedure domain error is required.",
-      "target_only_residual": "Native reciprocal-times-zero reaches the real-model boundary earlier than the PTX unfolded0/0 expression. No handler or finite numerical value is invented.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "Native reciprocal-times-zero reaches the real-model boundary earlier than the PTX unfolded0/0 expression. No handler or finite numerical value is invented."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/balanced_tree_sum.ptx",
@@ -334,7 +313,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Complete exact positive algebra control, including direct comparison to this original PTX computation.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::genuine_native_algebra_controls_preserve_reassociation_fma_exp_and_u32_sentinel"
@@ -359,8 +337,7 @@
         ]
       },
       "expected_outcome": "Equivalent to both its genuine native alternate form and the original PTX positive control; export/replay preserves the outcome.",
-      "target_only_residual": "Floating hardware rounding is outside the shared real-arithmetic abstraction; exponent coefficients follow the disclosed exact idiom.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "Floating hardware rounding is outside the shared real-arithmetic abstraction; exponent coefficients follow the disclosed exact idiom."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/balanced_tree_sum_doubled_leaf.ptx",
@@ -375,7 +352,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Doubling a leaf changes the sum; a separate complete reassociation control preserves the original linear and balanced sums.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_reassociated_doubled_leaf_retains_exact_original_pair_and_coordinates"
@@ -408,8 +384,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/constant_perturbation_mut.ptx",
@@ -424,7 +399,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Changing the encoded F32 coefficient0x3f000000 to0x3f000002 must differ; both exact encoded rational coefficients are retained.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_constant_perturbation_retains_exact_original_pair_and_coordinates"
@@ -457,8 +431,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/constant_perturbation_ref.ptx",
@@ -473,7 +446,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Changing the encoded F32 coefficient0x3f000000 to0x3f000002 must differ; both exact encoded rational coefficients are retained.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_constant_perturbation_retains_exact_original_pair_and_coordinates"
@@ -506,8 +478,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/dropped_term_mut.ptx",
@@ -522,7 +493,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Dropping the fourth independent input term changes out[0].",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_dropped_term_retains_exact_original_pair_and_coordinates"
@@ -555,8 +525,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/dropped_term_ref.ptx",
@@ -571,7 +540,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Dropping the fourth independent input term changes out[0].",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_dropped_term_retains_exact_original_pair_and_coordinates"
@@ -604,8 +572,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/exp_of_product.ptx",
@@ -620,7 +587,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "exp(a)*exp(b) differs from exp(a*b); exp(a+b) remains equivalent under the disclosed mathematical exponential abstraction.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_exp_of_product_retains_exact_original_pair_and_coordinates"
@@ -653,8 +619,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/exp_of_sum.ptx",
@@ -669,7 +634,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Complete exact positive algebra control, including direct comparison to this original PTX computation.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::genuine_native_algebra_controls_preserve_reassociation_fma_exp_and_u32_sentinel"
@@ -694,8 +658,7 @@
         ]
       },
       "expected_outcome": "Equivalent to both its genuine native alternate form and the original PTX positive control; export/replay preserves the outcome.",
-      "target_only_residual": "Floating hardware rounding is outside the shared real-arithmetic abstraction; exponent coefficients follow the disclosed exact idiom.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "Floating hardware rounding is outside the shared real-arithmetic abstraction; exponent coefficients follow the disclosed exact idiom."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/exp_product_of_exps.ptx",
@@ -710,7 +673,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "exp(a)*exp(b) differs from exp(a*b); exp(a+b) remains equivalent under the disclosed mathematical exponential abstraction.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_exp_of_product_retains_exact_original_pair_and_coordinates"
@@ -743,8 +705,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/fma_different_addend_mut.ptx",
@@ -759,7 +720,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Changing FMA addend x[2] to x[3] differs; the real-arithmetic fused/unfused control with the same addend stays equivalent.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_different_fma_addend_retains_exact_original_pair_and_coordinates"
@@ -792,8 +752,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/fma_different_addend_ref.ptx",
@@ -808,7 +767,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Changing FMA addend x[2] to x[3] differs; the real-arithmetic fused/unfused control with the same addend stays equivalent.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_different_fma_addend_retains_exact_original_pair_and_coordinates"
@@ -841,8 +799,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/integer_sign_bit_xor_mut.ptx",
@@ -857,7 +814,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Raw integer sign-bit XOR is not mathematical negation. Original/native comparisons explicitly project BOTH declared U32 store views with &0xffffffff, using only mask idempotence; the unmodified native pair must still be NotEquivalent at out[0]. The shared symbolic add/sub ring abstraction is unchanged.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_integer_sign_xor_retains_exact_original_pair_and_coordinates"
@@ -890,8 +846,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/integer_sign_bit_xor_ref.ptx",
@@ -906,7 +861,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Raw integer sign-bit XOR is not mathematical negation. Original/native comparisons explicitly project BOTH declared U32 store views with &0xffffffff, using only mask idempotence; the unmodified native pair must still be NotEquivalent at out[0]. The shared symbolic add/sub ring abstraction is unchanged.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_integer_sign_xor_retains_exact_original_pair_and_coordinates"
@@ -939,8 +893,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/linear_chain_sum.ptx",
@@ -955,7 +908,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Doubling a leaf changes the sum; a separate complete reassociation control preserves the original linear and balanced sums.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_reassociated_doubled_leaf_retains_exact_original_pair_and_coordinates"
@@ -988,8 +940,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/max_vs_min_mut.ptx",
@@ -1004,7 +955,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Maximum and minimum of the same two independent inputs must differ.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_max_vs_min_retains_exact_original_pair_and_coordinates"
@@ -1037,8 +987,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/max_vs_min_ref.ptx",
@@ -1053,7 +1002,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Maximum and minimum of the same two independent inputs must differ.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_max_vs_min_retains_exact_original_pair_and_coordinates"
@@ -1086,8 +1034,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/missing_relu_clamp_mut.ptx",
@@ -1102,7 +1049,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "F16 FMA followed by max(value,0) is distinct from the unclamped FMA. Genuine compiler reads the exact six input bytes, including byte-aligned GLOBAL B32 offset2.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_missing_f16_relu_clamp_retains_exact_original_pair_and_coordinates"
@@ -1135,8 +1081,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/missing_relu_clamp_ref.ptx",
@@ -1151,7 +1096,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "F16 FMA followed by max(value,0) is distinct from the unclamped FMA. Genuine compiler reads the exact six input bytes, including byte-aligned GLOBAL B32 offset2.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_missing_f16_relu_clamp_retains_exact_original_pair_and_coordinates"
@@ -1184,8 +1128,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/off_by_one_index_mut.ptx",
@@ -1200,7 +1143,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "All four outputs preserve exact independent input index identities; the shifted source changes every coordinate.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_off_by_one_index_retains_exact_original_pair_and_coordinates"
@@ -1236,8 +1178,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/off_by_one_index_ref.ptx",
@@ -1252,7 +1193,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "All four outputs preserve exact independent input index identities; the shifted source changes every coordinate.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_off_by_one_index_retains_exact_original_pair_and_coordinates"
@@ -1288,8 +1228,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/sentinel_off_by_one_mut.ptx",
@@ -1304,7 +1243,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "U32 all-ones and all-ones-minus-one remain distinct exact integers; a separate complement control retains all-ones.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_u32_sentinel_retains_exact_original_pair_and_coordinates"
@@ -1337,8 +1275,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/sentinel_off_by_one_ref.ptx",
@@ -1353,7 +1290,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "U32 all-ones and all-ones-minus-one remain distinct exact integers; a separate complement control retains all-ones.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_u32_sentinel_retains_exact_original_pair_and_coordinates"
@@ -1386,8 +1322,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/swapped_noncommutative_mut.ptx",
@@ -1402,7 +1337,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Subtraction and division preserve operand order; both out[0] and out[1] differ.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_swapped_noncommutative_retains_exact_original_pair_and_coordinates"
@@ -1436,8 +1370,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/negative_equivalence/swapped_noncommutative_ref.ptx",
@@ -1452,7 +1385,6 @@
           "source_sha256": "f1be320693840e06bf2df8fc5feccf7322c42ddec2a8fdbc2e41e3863a0f4737"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Subtraction and division preserve operand order; both out[0] and out[1] differ.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_swapped_noncommutative_retains_exact_original_pair_and_coordinates"
@@ -1486,8 +1418,7 @@
         "input_kind": "Input; arbitrary symbolic values, never IndexInput"
       },
       "expected_outcome": "Each native side matches its original PTX computation; native reference versus mutation is NotEquivalent at every listed output index; text export/replay preserves verdicts.",
-      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX/AMDGPU instruction encodings and physical floating rounding are outside this real-arithmetic equivalence abstraction."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/brkpt_extra_operand.ptx",
@@ -1502,7 +1433,6 @@
           "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Known native termination forms statically reject excess operands and meaning-changing modifiers, even unreachable/emptyEXEC; legal S_ENDPGM completes.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::malformed_known_native_instructions_reject_in_live_unreachable_and_zero_exec_paths",
@@ -1515,8 +1445,7 @@
       ],
       "configuration": "Live, unconditional-branch-skipped and EXEC-zero variants; exact LLVM MC comparison in syntax-provenance.json.",
       "expected_outcome": "Known native termination forms statically reject excess operands and meaning-changing modifiers, even unreachable/emptyEXEC; legal S_ENDPGM completes.",
-      "target_only_residual": "PTX ret/exit/brkpt grammar and the PTX brkpt no-op convention are target-specific. Native termination may take an optional immediate; no native breakpoint returning-handler behavior is invented.",
-      "proposal": "portable_static_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX ret/exit/brkpt grammar and the PTX brkpt no-op convention are target-specific. Native termination may take an optional immediate; no native breakpoint returning-handler behavior is invented."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/brkpt_invalid_modifier.ptx",
@@ -1531,7 +1460,6 @@
           "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Known native termination forms statically reject excess operands and meaning-changing modifiers, even unreachable/emptyEXEC; legal S_ENDPGM completes.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::malformed_known_native_instructions_reject_in_live_unreachable_and_zero_exec_paths",
@@ -1544,8 +1472,7 @@
       ],
       "configuration": "Live, unconditional-branch-skipped and EXEC-zero variants; exact LLVM MC comparison in syntax-provenance.json.",
       "expected_outcome": "Known native termination forms statically reject excess operands and meaning-changing modifiers, even unreachable/emptyEXEC; legal S_ENDPGM completes.",
-      "target_only_residual": "PTX ret/exit/brkpt grammar and the PTX brkpt no-op convention are target-specific. Native termination may take an optional immediate; no native breakpoint returning-handler behavior is invented.",
-      "proposal": "portable_static_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX ret/exit/brkpt grammar and the PTX brkpt no-op convention are target-specific. Native termination may take an optional immediate; no native breakpoint returning-handler behavior is invented."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/exit_extra_operand.ptx",
@@ -1560,7 +1487,6 @@
           "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Known native termination forms statically reject excess operands and meaning-changing modifiers, even unreachable/emptyEXEC; legal S_ENDPGM completes.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::malformed_known_native_instructions_reject_in_live_unreachable_and_zero_exec_paths",
@@ -1573,8 +1499,7 @@
       ],
       "configuration": "Live, unconditional-branch-skipped and EXEC-zero variants; exact LLVM MC comparison in syntax-provenance.json.",
       "expected_outcome": "Known native termination forms statically reject excess operands and meaning-changing modifiers, even unreachable/emptyEXEC; legal S_ENDPGM completes.",
-      "target_only_residual": "PTX ret/exit/brkpt grammar and the PTX brkpt no-op convention are target-specific. Native termination may take an optional immediate; no native breakpoint returning-handler behavior is invented.",
-      "proposal": "portable_static_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX ret/exit/brkpt grammar and the PTX brkpt no-op convention are target-specific. Native termination may take an optional immediate; no native breakpoint returning-handler behavior is invented."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/exit_invalid_modifier.ptx",
@@ -1589,7 +1514,6 @@
           "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Known native termination forms statically reject excess operands and meaning-changing modifiers, even unreachable/emptyEXEC; legal S_ENDPGM completes.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::malformed_known_native_instructions_reject_in_live_unreachable_and_zero_exec_paths",
@@ -1602,8 +1526,7 @@
       ],
       "configuration": "Live, unconditional-branch-skipped and EXEC-zero variants; exact LLVM MC comparison in syntax-provenance.json.",
       "expected_outcome": "Known native termination forms statically reject excess operands and meaning-changing modifiers, even unreachable/emptyEXEC; legal S_ENDPGM completes.",
-      "target_only_residual": "PTX ret/exit/brkpt grammar and the PTX brkpt no-op convention are target-specific. Native termination may take an optional immediate; no native breakpoint returning-handler behavior is invented.",
-      "proposal": "portable_static_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX ret/exit/brkpt grammar and the PTX brkpt no-op convention are target-specific. Native termination may take an optional immediate; no native breakpoint returning-handler behavior is invented."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/ldmatrix_extra_operand.ptx",
@@ -1618,7 +1541,6 @@
           "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Known native vector-load forms statically reject extra/missing operands and a wrong destination width even in unreachable or EXEC-zero paths; legal128-bit control copies all four independent outputs.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::malformed_known_native_instructions_reject_in_live_unreachable_and_zero_exec_paths",
@@ -1631,8 +1553,7 @@
       ],
       "configuration": "Live, unconditional-branch-skipped and EXEC-zero variants; exact LLVM MC comparison in syntax-provenance.json.",
       "expected_outcome": "Known native vector-load forms statically reject extra/missing operands and a wrong destination width even in unreachable or EXEC-zero paths; legal128-bit control copies all four independent outputs.",
-      "target_only_residual": "PTX ldmatrix .sync/.aligned modifier grammar is target-specific. This row asserts malformed syntax, not a matrix LDS layout or numerical transpose; those obligations have separate fixtures.",
-      "proposal": "portable_static_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX ldmatrix .sync/.aligned modifier grammar is target-specific. This row asserts malformed syntax, not a matrix LDS layout or numerical transpose; those obligations have separate fixtures."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/ldmatrix_missing_modifiers.ptx",
@@ -1647,7 +1568,6 @@
           "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Known native vector-load forms statically reject extra/missing operands and a wrong destination width even in unreachable or EXEC-zero paths; legal128-bit control copies all four independent outputs.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::malformed_known_native_instructions_reject_in_live_unreachable_and_zero_exec_paths",
@@ -1660,8 +1580,7 @@
       ],
       "configuration": "Live, unconditional-branch-skipped and EXEC-zero variants; exact LLVM MC comparison in syntax-provenance.json.",
       "expected_outcome": "Known native vector-load forms statically reject extra/missing operands and a wrong destination width even in unreachable or EXEC-zero paths; legal128-bit control copies all four independent outputs.",
-      "target_only_residual": "PTX ldmatrix .sync/.aligned modifier grammar is target-specific. This row asserts malformed syntax, not a matrix LDS layout or numerical transpose; those obligations have separate fixtures.",
-      "proposal": "portable_static_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX ldmatrix .sync/.aligned modifier grammar is target-specific. This row asserts malformed syntax, not a matrix LDS layout or numerical transpose; those obligations have separate fixtures."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/redux_predicate_side_effect_race.ptx",
@@ -1676,7 +1595,6 @@
           "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Both lanes storing1 at the same global byte0x20000 must produce a typed WriteWrite Global conflict while candidate execution completes; one writer retains exact out[0]=1.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::original_predicate_side_effect_is_not_erased_when_both_lanes_write"
@@ -1691,8 +1609,7 @@
       ],
       "configuration": "Exact typed widths, by-value arguments, coordinates and bounds appear in the named Rust test; complete selected output footprints, no sampling.",
       "expected_outcome": "Both lanes storing1 at the same global byte0x20000 must produce a typed WriteWrite Global conflict while candidate execution completes; one writer retains exact out[0]=1.",
-      "target_only_residual": "The two-lane reduction of the same negative packed word is mathematically constant. Native source preserves its predicate side effect and full conflicting store instead of imitating unsupported redux.sync; PTX currently rejects the idiom. No generic reduction support claim follows.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "The two-lane reduction of the same negative packed word is mathematically constant. Native source preserves its predicate side effect and full conflicting store instead of imitating unsupported redux.sync; PTX currently rejects the idiom. No generic reduction support claim follows."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/ret_extra_operand.ptx",
@@ -1707,7 +1624,6 @@
           "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Known native termination forms statically reject excess operands and meaning-changing modifiers, even unreachable/emptyEXEC; legal S_ENDPGM completes.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::malformed_known_native_instructions_reject_in_live_unreachable_and_zero_exec_paths",
@@ -1720,8 +1636,7 @@
       ],
       "configuration": "Live, unconditional-branch-skipped and EXEC-zero variants; exact LLVM MC comparison in syntax-provenance.json.",
       "expected_outcome": "Known native termination forms statically reject excess operands and meaning-changing modifiers, even unreachable/emptyEXEC; legal S_ENDPGM completes.",
-      "target_only_residual": "PTX ret/exit/brkpt grammar and the PTX brkpt no-op convention are target-specific. Native termination may take an optional immediate; no native breakpoint returning-handler behavior is invented.",
-      "proposal": "portable_static_native_counterpart_for_coordinator_review"
+      "target_only_residual": "PTX ret/exit/brkpt grammar and the PTX brkpt no-op convention are target-specific. Native termination may take an optional immediate; no native breakpoint returning-handler behavior is invented."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/trap_extra_operand.ptx",
@@ -1736,7 +1651,6 @@
           "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Recognized legal native S_TRAP parses and execution explicitly returns Unsupported/Unknown without assuming a returning handler; extra/register operands and illegal modifiers reject statically in all three reachability profiles.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::malformed_known_native_instructions_reject_in_live_unreachable_and_zero_exec_paths",
@@ -1751,8 +1665,7 @@
       ],
       "configuration": "Live, unconditional-branch-skipped and EXEC-zero variants; exact LLVM MC comparison in syntax-provenance.json.",
       "expected_outcome": "Recognized legal native S_TRAP parses and execution explicitly returns Unsupported/Unknown without assuming a returning handler; extra/register operands and illegal modifiers reject statically in all three reachability profiles.",
-      "target_only_residual": "Native supported trap IDs are0..255. LLVM encodes a16-bit SOPP field, so256 is recorded as assembler-legal but outside the verifier profile, not falsely called malformed assembly.",
-      "proposal": "portable_static_native_counterpart_for_coordinator_review"
+      "target_only_residual": "Native supported trap IDs are0..255. LLVM encodes a16-bit SOPP field, so256 is recorded as assembler-legal but outside the verifier profile, not falsely called malformed assembly."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/trap_invalid_modifier.ptx",
@@ -1767,7 +1680,6 @@
           "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "Recognized legal native S_TRAP parses and execution explicitly returns Unsupported/Unknown without assuming a returning handler; extra/register operands and illegal modifiers reject statically in all three reachability profiles.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::malformed_known_native_instructions_reject_in_live_unreachable_and_zero_exec_paths",
@@ -1782,8 +1694,7 @@
       ],
       "configuration": "Live, unconditional-branch-skipped and EXEC-zero variants; exact LLVM MC comparison in syntax-provenance.json.",
       "expected_outcome": "Recognized legal native S_TRAP parses and execution explicitly returns Unsupported/Unknown without assuming a returning handler; extra/register operands and illegal modifiers reject statically in all three reachability profiles.",
-      "target_only_residual": "Native supported trap IDs are0..255. LLVM encodes a16-bit SOPP field, so256 is recorded as assembler-legal but outside the verifier profile, not falsely called malformed assembly.",
-      "proposal": "portable_static_native_counterpart_for_coordinator_review"
+      "target_only_residual": "Native supported trap IDs are0..255. LLVM encodes a16-bit SOPP field, so256 is recorded as assembler-legal but outside the verifier profile, not falsely called malformed assembly."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/soundness/unknown_directive.ptx",
@@ -1798,7 +1709,6 @@
           "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
         }
       ],
-      "coordinator_validation": "pending",
       "portable_obligation": "An ordinary native.text directive parses; a truly unknown directive rejects. Undefined branches also reject in lowering even when unreachable.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::unknown_directive_and_unresolved_branch_are_statically_rejected",
@@ -1811,8 +1721,7 @@
       ],
       "configuration": "Live, unconditional-branch-skipped and EXEC-zero variants; exact LLVM MC comparison in syntax-provenance.json.",
       "expected_outcome": "An ordinary native.text directive parses; a truly unknown directive rejects. Undefined branches also reject in lowering even when unreachable.",
-      "target_only_residual": "Directive and label spellings differ between target assemblers.",
-      "proposal": "portable_static_native_counterpart_for_coordinator_review"
+      "target_only_residual": "Directive and label spellings differ between target assemblers."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/symbolic_integer_div_is_unsupported_concrete.ptx",
@@ -1837,7 +1746,6 @@
           ]
         }
       },
-      "coordinator_validation": "pending",
       "portable_obligation": "The complete concrete output must be exactly3 for unsigned7/2.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_integer_division_by_two_is_flooring_not_rational_cancellation"
@@ -1851,8 +1759,7 @@
       ],
       "configuration": "Exact typed widths, by-value arguments, coordinates and bounds appear in the named Rust test; complete selected output footprints, no sampling.",
       "expected_outcome": "The complete concrete output must be exactly3 for unsigned7/2.",
-      "target_only_residual": "Exact native logical shift lowering replaces the PTX div encoding, preserving the successful original golden.",
-      "proposal": "portable_exact_native_counterpart_for_coordinator_review"
+      "target_only_residual": "Exact native logical shift lowering replaces the PTX div encoding, preserving the successful original golden."
     }
   ]
 }

@@ -172,7 +172,6 @@
         "bytes": 1024,
         "description": "16 disjoint32-element slices at original NCHW channel pitch2916"
       },
-      "status": "coordinator_validated_declared_native_scope",
       "notes": [
         "CTA tile reduced from baseline128spatialx128channels to32spatialx16channels; full64x3x3 reduction unchanged.",
         "No flattening of original layout: output slices retain physical NCHW pitch2916.",
@@ -358,7 +357,6 @@
         "bytes": 1024,
         "description": "16 disjoint32-element slices at original NCHW channel pitch2916"
       },
-      "status": "coordinator_validated_declared_native_scope",
       "notes": [
         "CTA tile reduced from baseline64spatialx128channels to32spatialx16channels; full64x3x3 reduction unchanged.",
         "No flattening of original layout: output slices retain physical NCHW pitch2916.",

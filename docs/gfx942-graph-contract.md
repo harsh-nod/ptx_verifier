@@ -39,13 +39,6 @@ functions `GFX940_XDL_N_PassWriteVgprVALUMemExpReadWaitStates`,
 `GFX940_XDL_N_PassWriteVgprVALUWawWaitStates`, and
 `GFX940_XDL_N_PassWritesVGPROverlapped*SrcCWaitStates`.
 
-The reachable release commit is `4434dabb69916856b824f68a64b029c67175e532`
-(the peeled `llvmorg-22.1.0` tag). The downloaded raw source SHA256 is
-`2d38526164a9017555849067d4346ad9d9c128f964fb8c9f3902936088d8fd56`.
-The [official LLVM source browser](https://llvm.org/doxygen/GCNHazardRecognizer_8cpp_source.html)
-independently shows the same target-specific formulas; its downloaded HTML
-snapshot SHA256 is `51508f5bef07a60e59eda069105816321358d73002351faaa1d2aed5128a4290`.
-
-`volta_graph_check/tests/amdgpu_tests.rs` contains paired short-delay/valid-delay
+[`amdgpu_tests.rs`](../crates/volta_graph_check/tests/amdgpu_tests.rs) contains paired short-delay/valid-delay
 controls for all six selected forms, accumulator forwarding, unrecognized target
 selection and forged CDNA4 records. Existing PTX checks remain separate.
