@@ -2946,7 +2946,8 @@ impl<'a> Interpreter<'a> {
                     old_exec
                 }
                 "s_andn2_saveexec_b64" => {
-                    wave.exec &= !a;
+                    // The explicit S0 is first; implicit EXEC is second.
+                    wave.exec = a & !old_exec;
                     old_exec
                 }
                 "s_lshl_b64" => a.wrapping_shl((b & 63) as u32),
@@ -2973,7 +2974,7 @@ impl<'a> Interpreter<'a> {
             let old = wave.exec;
             wave.exec = match name {
                 "s_and_saveexec_b32" => old & source,
-                "s_andn2_saveexec_b32" => old & !source,
+                "s_andn2_saveexec_b32" => source & !old,
                 _ => old | source,
             };
             wave.set_scc(wave.exec != 0);
