@@ -975,6 +975,32 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                         }
                     }
                 }
+                if groups.get(&record.event) == Some(&true) {
+                    // VMEM translations issue in order. LLVM applies the X
+                    // dependency when a later VMEM destination aliases an
+                    // older source; neither operation's data completes here.
+                    let through = pending[wave]
+                        .iter()
+                        .copied()
+                        .filter(|&index| {
+                            let op = &operations[index];
+                            replay_group(op.class) == Some(true)
+                                && has(op, AmdCounter::X)
+                                && writes
+                                    .iter()
+                                    .any(|r| op.held_sources.iter().any(|s| s.overlaps(*r)))
+                        })
+                        .max();
+                    if let Some(through) = through {
+                        for &index in pending[wave].iter().take_while(|&&i| i <= through) {
+                            if replay_group(operations[index].class) == Some(true) {
+                                operations[index]
+                                    .remaining
+                                    .retain(|&(c, _)| c != AmdCounter::X);
+                            }
+                        }
+                    }
+                }
                 for &index in &pending[wave] {
                     let op = &operations[index];
                     if complete(op) {
