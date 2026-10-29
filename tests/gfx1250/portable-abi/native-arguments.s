@@ -126,50 +126,86 @@ abi_grid_dimensions:                    ; @abi_grid_dimensions
 	v_cmpx_eq_u32_e32 0, v0
 	s_cbranch_execz .LBB1_2
 ; %bb.1:
-	s_clause 0x1
-	s_load_b128 s[4:7], s[0:1], 0x8
-	s_load_b64 s[2:3], s[0:1], 0x0
-	s_bfe_u32 s8, ttmp6, 0x4000c
-	s_wait_xcnt 0x0
-	s_load_b32 s0, s[0:1], 0x18
-	s_bfe_u32 s10, ttmp6, 0x40010
-	s_bfe_u32 s13, ttmp6, 0x40014
-	s_and_b32 s9, ttmp7, 0xffff
-	s_lshr_b32 s12, ttmp7, 16
-	s_add_co_i32 s8, s8, 1
-	s_add_co_i32 s10, s10, 1
-	s_add_co_i32 s13, s13, 1
-	s_wait_xcnt 0x0
-	s_and_b32 s1, ttmp6, 15
-	s_bfe_u32 s11, ttmp6, 0x40004
-	s_bfe_u32 s14, ttmp6, 0x40008
-	s_mul_i32 s8, ttmp9, s8
-	s_mul_i32 s10, s9, s10
-	s_mul_i32 s13, s12, s13
-	v_mov_b32_e32 v7, 0
-	s_add_co_i32 s1, s1, s8
-	s_add_co_i32 s11, s11, s10
-	s_wait_kmcnt 0x0
-	v_mov_b32_e32 v8, s4
-	s_getreg_b32 s4, hwreg(HW_REG_IB_STS2, 6, 4)
-	s_add_co_i32 s14, s14, s13
-	s_cmp_eq_u32 s4, 0
-	v_dual_mov_b32 v9, s5 :: v_dual_mov_b32 v0, s6
-	s_cselect_b32 s4, s12, s14
-	s_cselect_b32 s1, ttmp9, s1
-	s_cselect_b32 s5, s9, s11
-	s_delay_alu instid0(SALU_CYCLE_1) | instskip(SKIP_2) | instid1(SALU_CYCLE_1)
-	v_dual_mov_b32 v1, s1 :: v_dual_mov_b32 v2, s5
-	s_and_b32 s0, s0, 0xffff
-	s_and_b32 s1, s7, 0xffff
-	v_dual_mov_b32 v3, s4 :: v_dual_mov_b32 v4, s1
-	s_lshr_b32 s4, s7, 16
-	s_delay_alu instid0(SALU_CYCLE_1)
-	v_dual_mov_b32 v6, s0 :: v_dual_mov_b32 v5, s4
 	s_clause 0x2
-	global_store_b64 v7, v[8:9], s[2:3]
-	global_store_b128 v7, v[0:3], s[2:3] offset:8
-	global_store_b96 v7, v[4:6], s[2:3] offset:24
+	s_load_b128 s[4:7], s[0:1], 0x0
+	s_load_b96 s[8:10], s[0:1], 0x10
+	s_load_u16 s2, s[0:1], 0x16
+	s_wait_xcnt 0x0
+	s_bfe_u32 s1, ttmp6, 0x40014
+	s_bfe_u32 s12, ttmp6, 0x40010
+	s_bfe_u32 s15, ttmp6, 0x4000c
+	s_lshr_b32 s0, ttmp7, 16
+	s_and_b32 s11, ttmp7, 0xffff
+	s_add_co_i32 s1, s1, 1
+	s_add_co_i32 s12, s12, 1
+	s_add_co_i32 s15, s15, 1
+	s_bfe_u32 s3, ttmp6, 0x40008
+	s_bfe_u32 s13, ttmp6, 0x40004
+	s_and_b32 s14, ttmp6, 15
+	s_mul_i32 s1, s0, s1
+	s_mul_i32 s12, s11, s12
+	s_mul_i32 s15, ttmp9, s15
+	s_getreg_b32 s16, hwreg(HW_REG_IB_STS2, 6, 4)
+	v_mov_b32_e32 v0, 0
+	s_add_co_i32 s3, s3, s1
+	s_add_co_i32 s13, s13, s12
+	s_add_co_i32 s14, s14, s15
+	s_cmp_eq_u32 s16, 0
+	s_wait_kmcnt 0x0
+	v_mov_b32_e32 v1, s6
+	s_cselect_b32 s1, ttmp9, s14
+	v_dual_mov_b32 v2, s7 :: v_dual_mov_b32 v3, s8
+	;;#ASMSTART
+	v_add_nc_u32 v1, 0, v1
+	;;#ASMEND
+	s_cselect_b32 s0, s0, s3
+	global_store_b32 v0, v1, s[4:5]
+	;;#ASMSTART
+	v_add_nc_u32 v2, 0, v2
+	;;#ASMEND
+	global_store_b32 v0, v2, s[4:5] offset:4
+	;;#ASMSTART
+	v_add_nc_u32 v3, 0, v3
+	;;#ASMEND
+	s_wait_xcnt 0x1
+	v_mov_b32_e32 v1, s1
+	s_cselect_b32 s1, s11, s13
+	global_store_b32 v0, v3, s[4:5] offset:8
+	s_wait_xcnt 0x0
+	v_mov_b32_e32 v3, s0
+	s_and_b32 s0, s9, 0xffff
+	v_mov_b32_e32 v2, s1
+	;;#ASMSTART
+	v_add_nc_u32 v1, 0, v1
+	;;#ASMEND
+	global_store_b32 v0, v1, s[4:5] offset:12
+	s_wait_xcnt 0x0
+	v_mov_b32_e32 v1, s0
+	s_and_b32 s0, s10, 0xffff
+	;;#ASMSTART
+	v_add_nc_u32 v2, 0, v2
+	;;#ASMEND
+	global_store_b32 v0, v2, s[4:5] offset:16
+	;;#ASMSTART
+	v_add_nc_u32 v3, 0, v3
+	;;#ASMEND
+	s_wait_xcnt 0x0
+	v_mov_b32_e32 v2, s2
+	global_store_b32 v0, v3, s[4:5] offset:20
+	s_wait_xcnt 0x0
+	v_mov_b32_e32 v3, s0
+	;;#ASMSTART
+	v_add_nc_u32 v1, 0, v1
+	;;#ASMEND
+	global_store_b32 v0, v1, s[4:5] offset:24
+	;;#ASMSTART
+	v_add_nc_u32 v2, 0, v2
+	;;#ASMEND
+	global_store_b32 v0, v2, s[4:5] offset:28
+	;;#ASMSTART
+	v_add_nc_u32 v3, 0, v3
+	;;#ASMEND
+	global_store_b32 v0, v3, s[4:5] offset:32
 .LBB1_2:
 	s_endpgm
 	.section	.rodata,"a",@progbits
@@ -194,8 +230,8 @@ abi_grid_dimensions:                    ; @abi_grid_dimensions
 		.amdhsa_system_sgpr_workgroup_id_z 1
 		.amdhsa_system_sgpr_workgroup_info 0
 		.amdhsa_system_vgpr_workitem_id 2
-		.amdhsa_next_free_vgpr 10
-		.amdhsa_next_free_sgpr 15
+		.amdhsa_next_free_vgpr 4
+		.amdhsa_next_free_sgpr 17
 		.amdhsa_named_barrier_count 0
 		.amdhsa_reserve_vcc 0
 		.amdhsa_float_round_mode_32 0
@@ -219,9 +255,9 @@ abi_grid_dimensions:                    ; @abi_grid_dimensions
 .Lfunc_end1:
 	.size	abi_grid_dimensions, .Lfunc_end1-abi_grid_dimensions
                                         ; -- End function
-	.set abi_grid_dimensions.num_vgpr, 10
+	.set abi_grid_dimensions.num_vgpr, 4
 	.set abi_grid_dimensions.num_agpr, 0
-	.set abi_grid_dimensions.numbered_sgpr, 15
+	.set abi_grid_dimensions.numbered_sgpr, 17
 	.set abi_grid_dimensions.num_named_barrier, 0
 	.set abi_grid_dimensions.private_seg_size, 0
 	.set abi_grid_dimensions.uses_vcc, 0
@@ -231,9 +267,9 @@ abi_grid_dimensions:                    ; @abi_grid_dimensions
 	.set abi_grid_dimensions.has_indirect_call, 0
 	.section	.AMDGPU.csdata,"",@progbits
 ; Kernel info:
-; codeLenInByte = 288
-; TotalNumSgprs: 15
-; NumVgprs: 10
+; codeLenInByte = 360
+; TotalNumSgprs: 17
+; NumVgprs: 4
 ; ScratchSize: 0
 ; MemoryBound: 0
 ; FloatMode: 240
@@ -241,8 +277,8 @@ abi_grid_dimensions:                    ; @abi_grid_dimensions
 ; LDSByteSize: 0 bytes/workgroup (compile time only)
 ; SGPRBlocks: 0
 ; VGPRBlocks: 0
-; NumSGPRsForWavesPerEU: 15
-; NumVGPRsForWavesPerEU: 10
+; NumSGPRsForWavesPerEU: 17
+; NumVGPRsForWavesPerEU: 4
 ; NamedBarCnt: 0
 ; Occupancy: 16
 ; WaveLimiterHint : 0
@@ -367,12 +403,12 @@ amdhsa.kernels:
     .max_flat_workgroup_size: 1024
     .name:           abi_grid_dimensions
     .private_segment_fixed_size: 0
-    .sgpr_count:     15
+    .sgpr_count:     17
     .sgpr_spill_count: 0
     .symbol:         abi_grid_dimensions.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count:     10
+    .vgpr_count:     4
     .vgpr_spill_count: 0
     .wavefront_size: 32
 amdhsa.target:   amdgcn-amd-amdhsa--gfx1250

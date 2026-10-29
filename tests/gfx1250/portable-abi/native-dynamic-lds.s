@@ -121,11 +121,11 @@ abi_dynamic_static:                     ; @abi_dynamic_static
 	.type	abi_extern_only,@function
 abi_extern_only:                        ; @abi_extern_only
 ; %bb.0:
+	s_load_b64 s[0:1], s[0:1], 0x0
 	s_mov_b64 s[2:3], src_shared_base
 	s_add_co_i32 s2, 0, 12
 	v_dual_mov_b32 v0, 0 :: v_dual_mov_b32 v1, 0x42280000
 	s_cmp_lg_u32 s2, -1
-	s_load_b64 s[0:1], s[0:1], 0x0
 	s_cselect_b32 s2, s2, 0
 	s_cselect_b32 s3, s3, 0
 	flat_store_b32 v0, v1, s[2:3] scope:SCOPE_SYS
@@ -134,6 +134,9 @@ abi_extern_only:                        ; @abi_extern_only
 	s_barrier_wait -1
 	flat_load_b32 v1, v0, s[2:3] scope:SCOPE_SYS
 	s_wait_loadcnt_dscnt 0x0
+	;;#ASMSTART
+	v_add_f32 v1, 0, v1
+	;;#ASMEND
 	s_wait_kmcnt 0x0
 	global_store_b32 v0, v1, s[0:1]
 	s_endpgm
@@ -260,10 +263,10 @@ abi_static_dynamic_disjoint:            ; @abi_static_dynamic_disjoint
 	s_and_saveexec_b32 s2, vcc_lo
 	s_cbranch_execz .LBB2_6
 ; %bb.5:
+	s_load_b64 s[0:1], s[0:1], 0x0
 	v_mov_b32_e32 v0, 0
 	s_mov_b64 s[2:3], src_shared_base
 	s_mov_b32 s2, 0
-	s_load_b64 s[0:1], s[0:1], 0x0
 	s_cmp_lg_u32 32, -1
 	flat_load_b32 v1, v0, s[2:3] scope:SCOPE_SYS
 	s_wait_loadcnt 0x0
@@ -271,10 +274,16 @@ abi_static_dynamic_disjoint:            ; @abi_static_dynamic_disjoint
 	s_cselect_b32 s3, s3, 0
 	s_cselect_b32 s2, 32, 0
 	s_wait_dscnt 0x0
+	;;#ASMSTART
+	v_add_f32 v1, 0, v1
+	;;#ASMEND
 	s_wait_kmcnt 0x0
 	global_store_b32 v0, v1, s[0:1]
 	flat_load_b32 v1, v0, s[2:3] scope:SCOPE_SYS
 	s_wait_loadcnt_dscnt 0x0
+	;;#ASMSTART
+	v_add_f32 v1, 0, v1
+	;;#ASMEND
 	global_store_b32 v0, v1, s[0:1] offset:4
 .LBB2_6:
 	s_endpgm

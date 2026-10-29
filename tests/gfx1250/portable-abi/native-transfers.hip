@@ -2,6 +2,13 @@
 
 using Float4 = float __attribute__((ext_vector_type(4)));
 
+// An explicit unsigned identity disambiguates B32 constants after raw memory
+// transport; it preserves every bit and does not infer a dtype from a pointer.
+__device__ __forceinline__ unsigned output_u32(unsigned value) {
+  asm volatile("v_add_nc_u32 %0, 0, %0" : "+v"(value));
+  return value;
+}
+
 extern "C" __global__ void abi_shared_words(const float *x, float *out) {
   __shared__ __align__(16) volatile float words[4];
   words[0] = x[0];
@@ -50,9 +57,9 @@ extern "C" __global__ void abi_pair_truncation(unsigned *out) {
   const unsigned packed = *reinterpret_cast<volatile unsigned *>(words);
   words[2] = static_cast<unsigned short>(packed);
   __syncthreads();
-  out[0] = words[0];
-  out[1] = words[1];
-  out[2] = words[2];
+  out[0] = output_u32(words[0]);
+  out[1] = output_u32(words[1]);
+  out[2] = output_u32(words[2]);
 }
 
 extern "C" __global__ void abi_logical_partitions(unsigned *out) {
@@ -98,6 +105,6 @@ extern "C" __global__ void abi_region_edge(unsigned *out) {
   words[11] = 7;
   __syncthreads();
   const UInt4 value = *reinterpret_cast<const volatile UInt4 *>(words + 8);
-  out[0] = words[11];
-  out[1] = value[0];
+  out[0] = output_u32(words[11]);
+  out[1] = output_u32(value[0]);
 }

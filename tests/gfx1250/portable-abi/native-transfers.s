@@ -468,34 +468,45 @@ abi_scalar_granule:                     ; @abi_scalar_granule
 	.type	abi_pair_truncation,@function
 abi_pair_truncation:                    ; @abi_pair_truncation
 ; %bb.0:
-	v_dual_mov_b32 v3, 0 :: v_dual_mov_b32 v0, 1
-	v_mov_b32_e32 v1, 2
+	v_dual_mov_b32 v0, 0 :: v_dual_mov_b32 v1, 1
+	v_mov_b32_e32 v2, 2
 	s_mov_b64 s[2:3], src_shared_base
 	s_mov_b32 s2, 0
 	s_mov_b32 s4, 2
 	s_mov_b32 s5, s3
-	flat_store_b16 v3, v0, s[2:3] scope:SCOPE_SYS
+	flat_store_b16 v0, v1, s[2:3] scope:SCOPE_SYS
 	s_wait_storecnt 0x0
-	flat_store_b16 v3, v1, s[4:5] scope:SCOPE_SYS
+	flat_store_b16 v0, v2, s[4:5] scope:SCOPE_SYS
 	s_wait_storecnt 0x0
-	flat_load_b32 v0, v3, s[2:3] scope:SCOPE_SYS
+	flat_load_b32 v1, v0, s[2:3] scope:SCOPE_SYS
 	s_wait_loadcnt 0x0
+	s_load_b64 s[0:1], s[0:1], 0x0
 	s_mov_b32 s6, 4
 	s_mov_b32 s7, s3
-	s_load_b64 s[0:1], s[0:1], 0x0
 	s_wait_dscnt 0x0
-	flat_store_b16 v3, v0, s[6:7] scope:SCOPE_SYS
+	flat_store_b16 v0, v1, s[6:7] scope:SCOPE_SYS
 	s_wait_storecnt_dscnt 0x0
 	s_barrier_signal -1
 	s_barrier_wait -1
-	flat_load_u16 v0, v3, s[2:3] scope:SCOPE_SYS
-	s_wait_loadcnt 0x0
-	flat_load_u16 v1, v3, s[4:5] scope:SCOPE_SYS
-	s_wait_loadcnt 0x0
-	flat_load_u16 v2, v3, s[6:7] scope:SCOPE_SYS
+	flat_load_u16 v1, v0, s[2:3] scope:SCOPE_SYS
 	s_wait_loadcnt_dscnt 0x0
+	;;#ASMSTART
+	v_add_nc_u32 v1, 0, v1
+	;;#ASMEND
 	s_wait_kmcnt 0x0
-	global_store_b96 v3, v[0:2], s[0:1]
+	global_store_b32 v0, v1, s[0:1]
+	flat_load_u16 v1, v0, s[4:5] scope:SCOPE_SYS
+	s_wait_loadcnt_dscnt 0x0
+	;;#ASMSTART
+	v_add_nc_u32 v1, 0, v1
+	;;#ASMEND
+	global_store_b32 v0, v1, s[0:1] offset:4
+	flat_load_u16 v1, v0, s[6:7] scope:SCOPE_SYS
+	s_wait_loadcnt_dscnt 0x0
+	;;#ASMSTART
+	v_add_nc_u32 v1, 0, v1
+	;;#ASMEND
+	global_store_b32 v0, v1, s[0:1] offset:8
 	s_endpgm
 	.section	.rodata,"a",@progbits
 	.p2align	6, 0x0
@@ -519,7 +530,7 @@ abi_pair_truncation:                    ; @abi_pair_truncation
 		.amdhsa_system_sgpr_workgroup_id_z 0
 		.amdhsa_system_sgpr_workgroup_info 0
 		.amdhsa_system_vgpr_workitem_id 0
-		.amdhsa_next_free_vgpr 4
+		.amdhsa_next_free_vgpr 3
 		.amdhsa_next_free_sgpr 8
 		.amdhsa_named_barrier_count 0
 		.amdhsa_reserve_vcc 0
@@ -544,7 +555,7 @@ abi_pair_truncation:                    ; @abi_pair_truncation
 .Lfunc_end4:
 	.size	abi_pair_truncation, .Lfunc_end4-abi_pair_truncation
                                         ; -- End function
-	.set abi_pair_truncation.num_vgpr, 4
+	.set abi_pair_truncation.num_vgpr, 3
 	.set abi_pair_truncation.num_agpr, 0
 	.set abi_pair_truncation.numbered_sgpr, 8
 	.set abi_pair_truncation.num_named_barrier, 0
@@ -556,9 +567,9 @@ abi_pair_truncation:                    ; @abi_pair_truncation
 	.set abi_pair_truncation.has_indirect_call, 0
 	.section	.AMDGPU.csdata,"",@progbits
 ; Kernel info:
-; codeLenInByte = 188
+; codeLenInByte = 212
 ; TotalNumSgprs: 8
-; NumVgprs: 4
+; NumVgprs: 3
 ; ScratchSize: 0
 ; MemoryBound: 0
 ; FloatMode: 240
@@ -567,7 +578,7 @@ abi_pair_truncation:                    ; @abi_pair_truncation
 ; SGPRBlocks: 0
 ; VGPRBlocks: 0
 ; NumSGPRsForWavesPerEU: 8
-; NumVGPRsForWavesPerEU: 4
+; NumVGPRsForWavesPerEU: 3
 ; NamedBarCnt: 0
 ; Occupancy: 16
 ; WaveLimiterHint : 0
@@ -1273,6 +1284,7 @@ abi_shared_array_tail:                  ; @abi_shared_array_tail
 	.type	abi_region_edge,@function
 abi_region_edge:                        ; @abi_region_edge
 ; %bb.0:
+	s_load_b64 s[0:1], s[0:1], 0x0
 	v_dual_mov_b32 v4, 0 :: v_dual_mov_b32 v0, 1
 	v_mov_b32_e32 v1, 2
 	s_mov_b64 s[2:3], src_shared_base
@@ -1296,15 +1308,19 @@ abi_region_edge:                        ; @abi_region_edge
 	s_barrier_wait -1
 	flat_load_b128 v[0:3], v4, s[2:3] scope:SCOPE_SYS
 	s_wait_loadcnt_dscnt 0x0
-	flat_load_b32 v2, v4, s[6:7] scope:SCOPE_SYS
-	s_wait_loadcnt 0x0
-	s_load_b64 s[0:1], s[0:1], 0x0
+	flat_load_b32 v1, v4, s[6:7] scope:SCOPE_SYS
                                         ; kill: killed $sgpr6 killed $sgpr7
                                         ; kill: killed $sgpr2 killed $sgpr3
-	v_mov_b32_e32 v3, v0
-	s_wait_dscnt 0x0
+	s_wait_loadcnt_dscnt 0x0
+	;;#ASMSTART
+	v_add_nc_u32 v1, 0, v1
+	;;#ASMEND
 	s_wait_kmcnt 0x0
-	global_store_b64 v4, v[2:3], s[0:1]
+	global_store_b32 v4, v1, s[0:1]
+	;;#ASMSTART
+	v_add_nc_u32 v0, 0, v0
+	;;#ASMEND
+	global_store_b32 v4, v0, s[0:1] offset:4
 	s_endpgm
 	.section	.rodata,"a",@progbits
 	.p2align	6, 0x0
@@ -1365,7 +1381,7 @@ abi_region_edge:                        ; @abi_region_edge
 	.set abi_region_edge.has_indirect_call, 0
 	.section	.AMDGPU.csdata,"",@progbits
 ; Kernel info:
-; codeLenInByte = 196
+; codeLenInByte = 200
 ; TotalNumSgprs: 8
 ; NumVgprs: 5
 ; ScratchSize: 0
@@ -1537,7 +1553,7 @@ amdhsa.kernels:
     .symbol:         abi_pair_truncation.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count:     4
+    .vgpr_count:     3
     .vgpr_spill_count: 0
     .wavefront_size: 32
   - .args:

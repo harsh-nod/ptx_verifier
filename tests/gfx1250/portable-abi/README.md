@@ -38,6 +38,13 @@ words are opaque.
 arguments, including undefined padding, and all nine ordinary XYZ grid/group/
 block fields. It makes no clustered-launch claim.
 
+Native B32 memory instructions do not encode an integer or floating dtype.
+Constant-output controls therefore contain explicit U32 or F32 add-zero
+identity instructions after raw transport. U32 identities preserve every bit;
+the F32 identities here consume only the positive finite constants7,9,42 and
+preserve their bits and values. The verifier does not infer an output dtype
+from the C++ pointer declaration or guess an interpretation of raw constants.
+
 `native-dynamic-lds` retains real fixed-storage padding and a separate external
 LDS window. `native-transfers` covers complete wide transfers, independent byte
 and halfword values, partial-word writes, exact allocation ends, signed-boundary
