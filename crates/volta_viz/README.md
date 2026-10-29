@@ -1,5 +1,8 @@
 # volta_viz
 
+Named signal-time count updates show their updated expected arrivals on the
+single signal row and retain ordinary arrival-to-release edges.
+
 The run store accepts PTX, gfx942/gfx950 wave64 and gfx1250 wave32 graphs.
 Native runs show AMD wave/lane labels, target-width EXEC and register masks,
 counter charges and wait thresholds, MFMA or WMMA operands, delay states,

@@ -1,5 +1,9 @@
 # volta_graph
 
+`NamedBarrierSignalWithCount` is appended to the native event variants and
+records one signal with its explicit7-bit M0 expected-count update. Existing
+event layouts remain unchanged; native graph dumps retain their text format.
+
 The gfx942/gfx950/gfx1250 producers use the same `EventGraph` and `GraphBuilder`.
 Their additive `AmdEventKind` records retain target-selected EXEC masks, individual register/lane slices,
 memory counter charges, waits, matrix operand roles, independent S_NOP states, and

@@ -2,6 +2,29 @@ use volta_graph::*;
 use volta_graph_check::amdgpu::AmdRegisterHazardKind;
 use volta_graph_check::{GraphConclusion, Property, PropertyResult, Verdict, check_graph};
 
+#[test]
+fn native_count_updates_cannot_use_a_legacy_cdna_target_contract() {
+    let mut t = Trace::with_kind(1, "named signal");
+    t.ins(0, 0, vec![s(124)], vec![]);
+    t.b.amd_event(
+        0,
+        ProgramPoint(0),
+        AmdEventKind::NamedBarrierSignalWithCount {
+            object: AmdNamedBarrier {
+                id: 1,
+                incarnation: 0,
+            },
+            phase: 0,
+            exec_mask: 1,
+            expected: 1,
+        },
+    );
+    assert_eq!(
+        check_graph(&t.finish()).verdict(Property::AmdTrace),
+        Verdict::Unknown
+    );
+}
+
 fn v(index: u16, lanes: u64) -> AmdRegister {
     AmdRegister {
         file: AmdRegisterFile::Vector,

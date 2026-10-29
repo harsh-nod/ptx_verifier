@@ -1,5 +1,10 @@
 # volta_pipeline
 
+`gfx1250_signal_count_tests` checks genuine signal-time count changes, exact
+two-phase marker payloads, both contribution orders of a stable deadlock,
+zero/NULL rules,127 arrivals and explicit invalid/ambiguous boundaries. See
+the [signal-count source controls](../../tests/gfx1250/portable-graph/signal-counts/README.md).
+
 The integration point. This is the only crate that composes the analysis stage
 with its two branches and combines their results into a verdict.
 

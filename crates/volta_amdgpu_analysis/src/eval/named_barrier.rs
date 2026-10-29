@@ -40,9 +40,9 @@ impl Interpreter<'_> {
                 }
                 if instruction.mnemonic == "s_barrier_signal"
                     && wave.m0 & 0xffff != 0
-                    && wave.m0 >> 16 != 0
+                    && wave.m0 & 0xff80_0000 != 0
                 {
-                    return Err(EvalError::Unsupported { pc: wave.pc, what: "named signal-time expected-count updates are outside the selected profile".into() });
+                    return Err(EvalError::Unsupported { pc: wave.pc, what: "named signal has nonzero reserved M0 bits above the 7-bit expected count".into() });
                 }
                 wave.m0 & 0xffff
             }
@@ -137,13 +137,28 @@ impl Interpreter<'_> {
                 wave.named_join = Some(Joined { object, phase });
             }
             "s_barrier_signal" => {
+                let expected = match instruction.operands.as_slice() {
+                    [Operand::Register(r)] if r.special == Some(SpecialRegister::M0) && id != 0 => {
+                        ((wave.m0 >> 16) & 0x7f) as u16
+                    }
+                    _ => 0,
+                };
                 self.builder.amd_event(
                     wave.id,
                     pc,
-                    AmdEventKind::NamedBarrierSignal {
-                        object,
-                        phase,
-                        exec_mask: wave.exec,
+                    if expected != 0 {
+                        AmdEventKind::NamedBarrierSignalWithCount {
+                            object,
+                            phase,
+                            exec_mask: wave.exec,
+                            expected,
+                        }
+                    } else {
+                        AmdEventKind::NamedBarrierSignal {
+                            object,
+                            phase,
+                            exec_mask: wave.exec,
+                        }
                     },
                 );
                 if id == 0 {
@@ -154,6 +169,18 @@ impl Interpreter<'_> {
                     .objects
                     .get_mut(&id)
                     .ok_or_else(|| wave.fail(None, "signal of uninitialized named barrier"))?;
+                if expected != 0 {
+                    if expected < state.arrived {
+                        return Err(wave.fail(
+                            None,
+                            "named signal expected count is less than the current arrival count",
+                        ));
+                    }
+                    if expected == state.arrived {
+                        return Err(EvalError::Unsupported { pc: wave.pc, what: "named signal expected count equals current arrivals: public formal and code-sequence boundary rules differ".into() });
+                    }
+                    state.expected = expected;
+                }
                 if state.expected == 0 {
                     return Err(wave.fail(None, "arrival on zero-count named barrier"));
                 }

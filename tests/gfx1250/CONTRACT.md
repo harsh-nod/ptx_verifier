@@ -22,7 +22,7 @@ evidence classes.
 | Replay | Hardwired XNACK; independent X-count address-source leases and data completion |
 | Global visibility | Ordered cross-wave write dependencies require explicit `SCOPE_SYS` at both endpoints; completed read-before-write needs completion and publication; no cross-workgroup claim |
 | Completion | Load/store/DS/KM/X/async/tensor classes; tensor threshold 0 only |
-| Barriers | Unnamed shader split signal/wait/release; selected allocated named shader objects with explicit count, join, leave and incarnation; completed-effect publication |
+| Barriers | Unnamed shader split signal/wait/release; selected allocated named shader INIT/JOIN/SIGNAL/WAIT/LEAVE with explicit M0 7-bit signal-time count updates, object/phase/incarnation and completed-effect publication |
 | Matrices | WMMA F32 16x16x4, F16/BF16 16x16x32; F32 accumulation, complete wave32 |
 | Tensor | Plain bounded 2D global/LDS transfers in both directions; staged buffer reuse |
 | Arithmetic | Existing mathematical reals; exact concrete signed/unsigned 64-bit products and mad |

@@ -406,6 +406,14 @@ pub enum AmdEventKind {
     BarrierRelease {
         generation: u32,
     },
+    /// A named signal with an explicit nonzero M0[22:16] expected-count update.
+    /// Appended so existing event variants and their layouts remain unchanged.
+    NamedBarrierSignalWithCount {
+        object: AmdNamedBarrier,
+        phase: u32,
+        exec_mask: u64,
+        expected: u16,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

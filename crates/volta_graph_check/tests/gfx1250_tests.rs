@@ -84,6 +84,20 @@ impl Trace {
             },
         );
     }
+    fn n_signal_count(&mut self, wave: u32, object: AmdNamedBarrier, phase: u32, expected: u16) {
+        self.ins(wave, 22, vec![], vec![s(124)]);
+        self.ins(wave, 19, vec![s(124)], vec![]);
+        self.b.amd_event(
+            wave,
+            ProgramPoint(19),
+            AmdEventKind::NamedBarrierSignalWithCount {
+                object,
+                phase,
+                exec_mask: self.mask(wave),
+                expected,
+            },
+        );
+    }
     fn n_wait(
         &mut self,
         wave: u32,
@@ -2793,6 +2807,268 @@ fn named_reinitialization_creates_a_fresh_lifetime_and_stale_records_fail() {
             if stale { Verdict::Fail } else { Verdict::Pass }
         );
     }
+}
+
+#[test]
+fn named_signal_count_updates_preserve_phase_lifetime_and_counted_progress() {
+    let mut t = Trace::named(1);
+    let object = named_object(1, 0);
+    t.n_init(0, object, 1);
+    t.n_join(0, object, 0);
+    t.n_signal_count(0, object, 0, 2);
+    t.n_signal_count(0, object, 0, 2);
+    t.n_wait(0, 1, object, 0, true);
+    t.n_signal_count(0, object, 1, 1);
+    t.n_wait(0, 1, object, 1, true);
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
+    );
+}
+
+#[test]
+fn conflicting_count_updates_need_order_but_equal_updates_are_commutative() {
+    for (ordered, first_count, expected) in [
+        (false, 2, Verdict::Unknown),
+        (true, 2, Verdict::Pass),
+        (false, 3, Verdict::Pass),
+    ] {
+        let mut t = Trace::named(96);
+        let object = named_object(1, 0);
+        t.n_init(0, object, 3);
+        t.publish_init();
+        for wave in 0..3 {
+            t.n_join(wave, object, 0);
+        }
+        t.n_signal_count(0, object, 0, first_count);
+        if ordered {
+            for wave in 0..3 {
+                t.signal(wave, 1);
+            }
+            for wave in 0..3 {
+                t.barrier_wait(wave, 1, true);
+            }
+        }
+        t.n_signal_count(1, object, 0, 3);
+        t.n_signal_count(2, object, 0, 3);
+        for wave in 0..3 {
+            t.n_wait(wave, 1, object, 0, true);
+        }
+        let report = check_graph(&t.finish());
+        assert_eq!(
+            report.verdict(Property::AmdTrace),
+            Verdict::Pass,
+            "{report:?}"
+        );
+        assert_eq!(
+            report.verdict(Property::AmdBarrier),
+            expected,
+            "ordered={ordered}, first={first_count}: {report:?}"
+        );
+    }
+}
+
+#[test]
+fn equal_explicit_count_updates_still_require_order_against_other_wave_drops() {
+    for update_first in [false, true] {
+        for ordered in [false, true] {
+            let mut t = Trace::named(96);
+            let object = named_object(1, 0);
+            t.n_init(0, object, 3);
+            t.publish_init();
+            for wave in 0..3 {
+                t.n_join(wave, object, 0);
+            }
+            if update_first {
+                t.n_signal_count(1, object, 0, 3);
+            } else {
+                t.n_leave(0, object, 0);
+            }
+            if ordered {
+                for wave in 0..3 {
+                    t.signal(wave, 1);
+                }
+                for wave in 0..3 {
+                    t.barrier_wait(wave, 1, true);
+                }
+            }
+            if update_first {
+                t.n_leave(0, object, 0);
+            } else {
+                t.n_signal_count(1, object, 0, 2);
+            }
+            t.n_signal(2, object, 0);
+            for wave in 1..3 {
+                t.n_wait(wave, 1, object, 0, true);
+            }
+            let report = check_graph(&t.finish());
+            assert_eq!(
+                report.verdict(Property::AmdTrace),
+                Verdict::Pass,
+                "{report:?}"
+            );
+            assert_eq!(
+                report.verdict(Property::AmdBarrier),
+                if ordered {
+                    Verdict::Pass
+                } else {
+                    Verdict::Unknown
+                },
+                "update_first={update_first}, ordered={ordered}: {report:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn a_new_phase_count_change_cannot_reorder_before_another_waves_previous_phase_arrival() {
+    let mut t = Trace::named(64);
+    let object = named_object(1, 0);
+    t.n_init(0, object, 2);
+    t.publish_init();
+    for wave in 0..2 {
+        t.n_join(wave, object, 0);
+        t.n_signal_count(wave, object, 0, 2);
+    }
+    t.n_signal_count(0, object, 1, 1);
+    let report = check_graph(&t.finish());
+    assert_eq!(
+        report.verdict(Property::AmdTrace),
+        Verdict::Pass,
+        "{report:?}"
+    );
+    assert_eq!(
+        report.verdict(Property::AmdBarrier),
+        Verdict::Unknown,
+        "{report:?}"
+    );
+}
+
+#[test]
+fn named_count_boundaries_distinguish_a_known_invalid_decrease_from_ambiguous_equality() {
+    for (count, expected) in [
+        (1, Verdict::Fail),
+        (2, Verdict::Unknown),
+        (3, Verdict::Pass),
+    ] {
+        let mut t = Trace::named(1);
+        let object = named_object(1, 0);
+        t.n_init(0, object, 3);
+        t.n_join(0, object, 0);
+        t.n_signal(0, object, 0);
+        t.n_signal(0, object, 0);
+        t.n_signal_count(0, object, 0, count);
+        let report = check_graph(&t.finish());
+        assert_eq!(
+            report.verdict(Property::AmdTrace),
+            Verdict::Pass,
+            "{report:?}"
+        );
+        assert_eq!(
+            report.verdict(Property::AmdBarrier),
+            expected,
+            "count={count}: {report:?}"
+        );
+    }
+}
+
+#[test]
+fn forged_count_updates_cannot_remove_m0_or_widen_the_public_seven_bit_domain() {
+    for mutation in 0..7 {
+        let mut t = Trace::named(1);
+        let object = named_object(1, 0);
+        t.n_init(0, object, 1);
+        t.n_join(0, object, 0);
+        t.ins(
+            0,
+            19,
+            if mutation == 0 { vec![] } else { vec![s(124)] },
+            vec![],
+        );
+        let update = AmdEventKind::NamedBarrierSignalWithCount {
+            object: if mutation == 1 {
+                named_object(0, 0)
+            } else if mutation == 5 {
+                named_object(1, 1)
+            } else {
+                object
+            },
+            phase: if mutation == 4 { 1 } else { 0 },
+            exec_mask: if mutation == 6 { 2 } else { 1 },
+            expected: match mutation {
+                2 => 0,
+                3 => 128,
+                _ => 1,
+            },
+        };
+        t.b.amd_event(0, ProgramPoint(19), update);
+        let report = check_graph(&t.finish());
+        assert_ne!(
+            report.conclusion(),
+            GraphConclusion::Verified,
+            "mutation={mutation}: {report:?}"
+        );
+        assert_eq!(
+            report.verdict(if mutation == 4 || mutation == 5 {
+                Property::AmdBarrier
+            } else {
+                Property::AmdTrace
+            }),
+            if mutation == 4 || mutation == 5 {
+                Verdict::Fail
+            } else {
+                Verdict::Unknown
+            },
+            "mutation={mutation}: {report:?}"
+        );
+    }
+}
+
+#[test]
+fn a_count_update_cannot_duplicate_a_signal_semantic_claim() {
+    let mut t = Trace::named(1);
+    let object = named_object(1, 0);
+    t.n_init(0, object, 2);
+    t.n_join(0, object, 0);
+    t.n_signal(0, object, 0);
+    t.b.amd_event(
+        0,
+        ProgramPoint(19),
+        AmdEventKind::NamedBarrierSignalWithCount {
+            object,
+            phase: 0,
+            exec_mask: 1,
+            expected: 2,
+        },
+    );
+    assert_eq!(
+        check_graph(&t.finish()).verdict(Property::AmdTrace),
+        Verdict::Unknown
+    );
+}
+
+#[test]
+fn legacy_named_signal_dump_layout_is_unchanged() {
+    let mut t = Trace::named(1);
+    let object = named_object(1, 0);
+    t.n_init(0, object, 1);
+    t.n_join(0, object, 0);
+    t.n_signal(0, object, 0);
+    t.n_wait(0, 1, object, 0, true);
+    let graph = t.finish();
+    assert_eq!(check_graph(&graph).conclusion(), GraphConclusion::Verified);
+    let dump = graph.dump();
+    let signal = dump
+        .lines()
+        .find(|line| line.contains("NamedBarrierSignal {"))
+        .unwrap()
+        .split_once("amd wave=0 ")
+        .unwrap()
+        .1;
+    assert_eq!(
+        signal,
+        "NamedBarrierSignal { object: AmdNamedBarrier { id: 1, incarnation: 0 }, phase: 0, exec_mask: 1 }"
+    );
 }
 
 #[test]

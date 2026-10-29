@@ -477,6 +477,48 @@ fn named_object_incarnations_wait_selectors_and_deadlocks_are_visible() {
 }
 
 #[test]
+fn a_signal_time_count_update_is_one_visible_arrival_with_its_new_count() {
+    let mut p = provenance(1);
+    p.targets = vec!["gfx1250".into()];
+    let mut b = GraphBuilder::new(p);
+    let object = AmdNamedBarrier {
+        id: 1,
+        incarnation: 0,
+    };
+    for kind in [
+        AmdEventKind::NamedBarrierSignalWithCount {
+            object,
+            phase: 2,
+            exec_mask: 1,
+            expected: 3,
+        },
+        AmdEventKind::NamedBarrierWait {
+            object,
+            phase: 2,
+            encoded: 1,
+        },
+        AmdEventKind::NamedBarrierRelease { object, phase: 2 },
+    ] {
+        b.amd_event(0, ProgramPoint(0), kind);
+    }
+    let graph = b.finish(Terminal::Aborted {
+        thread: None,
+        pc: None,
+        cause: AbortCause::Unsupported,
+        reason: "schema preview only".into(),
+    });
+    let text = exported("count_update_preview", &graph);
+    for expected in [
+        "updated expected arrivals",
+        "named signal 1",
+        "\"amd-barrier\":[0,2,1,2]",
+    ] {
+        assert!(text.contains(expected), "missing {expected}: {text}");
+    }
+    assert!(!text.contains("\"status\":\"race-free\""));
+}
+
+#[test]
 fn null_barrier_noops_do_not_export_candidate_arrival_edges() {
     let mut p = provenance(1);
     p.targets = vec!["gfx1250".into()];
