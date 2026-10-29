@@ -129,6 +129,8 @@ pub enum AmdMemoryClass {
     AsyncStoreFromLds,
     TensorLoadToLds,
     TensorStoreFromLds,
+    /// Selected gfx1250 F32 add RMW: device scope, one active lane, no return.
+    GlobalAtomicAddF32NoReturn,
 }
 
 /// Encoded S_DELAY_ALU dependency selectors. These refer to prior producer
