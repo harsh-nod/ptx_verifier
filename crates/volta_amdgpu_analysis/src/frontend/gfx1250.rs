@@ -45,6 +45,23 @@ pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
 }
 
 fn validate_dual_pair(x: &Instruction, y: &Instruction) -> Result<(), String> {
+    for operation in [x, y] {
+        if operation.mnemonic == "v_ashrrev_i32" {
+            let count = match operation.operands.get(1) {
+                Some(Operand::Integer(value)) => (-16..=64).contains(value),
+                Some(Operand::Register(r)) => r.count == 1,
+                _ => false,
+            };
+            if operation.operands.len() != 3
+                || !operation.modifiers.is_empty()
+                || !count
+                || !matches!(operation.operands.first(),Some(Operand::Register(r)) if r.class == RegisterClass::Vector && r.count == 1)
+                || !matches!(operation.operands.get(2),Some(Operand::Register(r)) if r.class == RegisterClass::Vector && r.count == 1)
+            {
+                return Err("selected VOPD ASHR requires a plain VGPR destination/data and an inline or register count".into());
+            }
+        }
+    }
     if matches!(x.mnemonic.as_str(), "v_add_f64" | "v_mul_f64")
         || matches!(y.mnemonic.as_str(), "v_add_f64" | "v_mul_f64")
     {
@@ -337,6 +354,7 @@ pub(super) fn parse_special(
                 "fmamk_f32",
                 "lshlrev_b32",
                 "lshrrev_b32",
+                "ashrrev_i32",
                 "mov_b32",
                 "bitop2_b32",
                 "cndmask_b32",
