@@ -1548,6 +1548,37 @@ pub(super) fn validate_registers(
                 }
                 if stem.starts_with("v_readlane_") {
                     require(1, &[Vector], 1)?;
+                    if architecture == crate::target::Architecture::Gfx1250 {
+                        let inline = |bits: u32| {
+                            bits <= 64
+                                || bits >= (-16_i32) as u32
+                                || [
+                                    0x3f00_0000,
+                                    0xbf00_0000,
+                                    0x3f80_0000,
+                                    0xbf80_0000,
+                                    0x4000_0000,
+                                    0xc000_0000,
+                                    0x4080_0000,
+                                    0xc080_0000,
+                                    0x3e22_f983,
+                                ]
+                                .contains(&bits)
+                        };
+                        let selector = match operands.get(2) {
+                            Some(Operand::Register(r)) => {
+                                r.count == 1 && matches!(r.class, Scalar | Temporary | Special)
+                            }
+                            Some(Operand::Integer(n)) => {
+                                (i32::MIN as i64..=u32::MAX as i64).contains(n) && inline(*n as u32)
+                            }
+                            Some(Operand::Float(n)) => inline((*n as f32).to_bits()),
+                            _ => false,
+                        };
+                        if !selector {
+                            return Err("gfx1250 readlane selector requires an unmodified scalar source or inline constant".into());
+                        }
+                    }
                 }
             }
         }
@@ -1589,6 +1620,7 @@ pub(super) fn validate_vop_literal_positions(
         "v_min_num_f32",
         "v_max_num_f32",
         "v_fmac_f32",
+        "v_fmac_f16",
         "v_min_f16",
         "v_max_f16",
         "v_max_num_f16",
