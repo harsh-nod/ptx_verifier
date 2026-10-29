@@ -26,6 +26,59 @@
   },
   "fixtures": [
     {
+      "source": "native-tensor-descriptor-bytes.hip",
+      "assembly": "native-tensor-descriptor-bytes.s",
+      "source_sha256": "a4e77a542d2e7b6aec44c8e9034f15b8b053882388ba82e57f0356270b30bb4b",
+      "assembly_sha256": "f60a25a0d0e7a090c0bf0d230594bebd561fe7c3deae4ba554dd3633a3562c28",
+      "object_sha256": "821e9820df48bf5ff25cda45ea31078da94cfd9b7175fe10e5c8b22ed39f56d7",
+      "code_object_sha256": "16edf4b33c8ed6ef57e944a8cfb7e278ebee89796e9737e750bf846649335c4b",
+      "compile": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx1250",
+          "--rocm-path=/opt/rocm-7.2.0",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-descriptor-bytes.hip",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-descriptor-bytes.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-descriptor-bytes.s",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-descriptor-bytes.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "-shared",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-descriptor-bytes.o",
+          "-o",
+          "/home/harsh/ptx-verifier-gfx1250-portable-tensor/tests/gfx1250/portable-tensor/native-tensor-descriptor-bytes.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
       "source": "native-tensor-edge.hip",
       "assembly": "native-tensor-edge.s",
       "source_sha256": "978074a1cec058a7fec9c8a14156cfa391e7f30dd3d33f40fff4220047cb063c",
