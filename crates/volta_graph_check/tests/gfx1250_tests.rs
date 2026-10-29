@@ -1398,3 +1398,94 @@ fn memory_operation_cannot_forge_a_destination_register_namespace() {
         );
     }
 }
+
+#[test]
+fn later_vmem_destination_resolves_only_its_older_translation_prefix() {
+    for later_class in [AmdMemoryClass::VectorLoad, AmdMemoryClass::Ds] {
+        let mut t = Trace::new(1);
+        t.issue(
+            0,
+            AmdMemoryClass::VectorStore,
+            vec![],
+            vec![v(0, 1), v(1, 1)],
+            0,
+        );
+        t.issue(0, later_class, vec![v(0, 1)], vec![], 0x100);
+        t.ins(0, 0, vec![], vec![v(1, 1)]);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            if later_class == AmdMemoryClass::VectorLoad {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            }
+        );
+    }
+    let mut t = Trace::new(1);
+    t.issue(0, AmdMemoryClass::VectorStore, vec![], vec![v(0, 1)], 0);
+    t.issue(0, AmdMemoryClass::VectorStore, vec![], vec![v(1, 1)], 4);
+    t.issue(0, AmdMemoryClass::VectorLoad, vec![v(0, 1)], vec![], 0x100);
+    t.ins(0, 0, vec![], vec![v(1, 1)]);
+    let r = check_graph(&t.finish());
+    assert_eq!(r.verdict(Property::AmdWaitReadiness), Verdict::Fail);
+    assert!(matches!(r.amd.unwrap().wait_readiness,
+        volta_graph_check::PropertyResult::Fail(violations)
+        if violations.iter().any(|h| h.kind == volta_graph_check::amdgpu::AmdRegisterHazardKind::SourceReuse && h.register == v(1, 1))));
+}
+
+#[test]
+fn vmem_translation_dependency_never_completes_async_data() {
+    for data_wait in [false, true] {
+        let mut t = Trace::new(1);
+        t.issue(0, AmdMemoryClass::VectorStore, vec![], vec![v(0, 1)], 0);
+        t.issue(0, AmdMemoryClass::VectorLoad, vec![v(0, 1)], vec![], 0x100);
+        if data_wait {
+            t.wait(0, AmdCounter::Load, 0);
+        }
+        t.ins(0, 0, vec![v(0, 1)], vec![]);
+        let r = check_graph(&t.finish());
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            if data_wait {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            }
+        );
+    }
+    let mut t = Trace::new(64);
+    let mask = u32::MAX as u64;
+    t.issue(0, AmdMemoryClass::VectorStore, vec![], vec![v(0, mask)], 0);
+    t.issue(
+        0,
+        AmdMemoryClass::VectorLoad,
+        vec![v(0, mask)],
+        vec![],
+        0x100,
+    );
+    t.wait(0, AmdCounter::Load, 0);
+    t.signal(0, 0);
+    t.signal(1, 0);
+    t.barrier_wait(0, 0, true);
+    t.barrier_wait(1, 0, true);
+    t.issue(1, AmdMemoryClass::VectorLoad, vec![v(1, mask)], vec![], 0);
+    let r = check_graph(&t.finish());
+    assert_eq!(r.verdict(Property::AmdWaitReadiness), Verdict::Pass);
+    assert_eq!(r.verdict(Property::AmdMemoryConflict), Verdict::Fail);
+
+    let mut t = Trace::new(1);
+    t.issue(
+        0,
+        AmdMemoryClass::VectorLoad,
+        vec![v(0, 1)],
+        vec![v(1, 1)],
+        0,
+    );
+    t.issue(0, AmdMemoryClass::VectorLoad, vec![v(0, 1)], vec![], 0x100);
+    assert_eq!(
+        check_graph(&t.finish()).verdict(Property::AmdWaitReadiness),
+        Verdict::Fail
+    );
+}

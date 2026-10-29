@@ -214,6 +214,8 @@ crate-level docs in `lib.rs` are the contract.
   thread, stored value for writes. Selected gfx1250 no-return F32 atomic adds
   use paired Atomic effects, one active lane, and independent Store/X readiness;
   they do not certify general atomic serialization or cache publication.
+  A dependent later VMEM destination can retire an older VMEM translation
+  prefix, independently of both operations' data completion.
 - Sync objects (named barrier, mbarrier lifetime, warp/warpgroup collective,
   a thread's cp.async group waits) with logical `Generation`s: typed
   `Contribution`s (`Blocking`, `Arrival`, `Exited`, `AsyncCompletion`,

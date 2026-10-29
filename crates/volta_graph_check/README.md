@@ -230,6 +230,11 @@ cannot inherit gfx942/gfx950 certificates. The documented positive corpus has
 passed independent gfx1250 hardware replay; numerical agreement remains separate
 from these graph obligations.
 
+A later VMEM destination that aliases an older VMEM replay source establishes
+that older translation prefix, following LLVM's in-order translation dependency
+rule. This does not complete either operation's data, retire later translations,
+or permit immediate ALU overwrites and LDS destinations to bypass source leases.
+
 The initial atomic profile is device-scoped `global_atomic_add_f32`, no return,
 one active lane. It requires an exact paired 4-byte Atomic read/write and retains
 all sources through X completion. Older non-RMW memory translations must drain
