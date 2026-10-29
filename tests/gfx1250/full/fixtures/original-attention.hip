@@ -5,6 +5,14 @@
 typedef _Float16 attention_half16 __attribute__((ext_vector_type(16)));
 typedef float attention_float8 __attribute__((ext_vector_type(8)));
 
+// Gfx1250 WMMA source/result reuse requires four intervening VALU instructions.
+// Tie all fragments through the spacing so register allocation cannot move a
+// source overwrite before these instructions. SALU/waits/barriers do not count.
+__device__ __forceinline__ void attention_wmma_spacing(attention_float8 &d, attention_half16 a,
+                                                       attention_half16 b) {
+  asm volatile("v_nop\nv_nop\nv_nop\nv_nop" : "+v"(d) : "v"(a), "v"(b) : "memory");
+}
+
 __device__ __forceinline__ float attention_max16(float x) {
 #pragma unroll
   for (unsigned d = 8; d; d >>= 1)
@@ -73,6 +81,7 @@ attention_original(const void *q, const void *k, const _Float16 *v, const float 
           b[element] = sk[slot * 1024 + (lane % 16) * 64 + feature];
         }
         score = __builtin_amdgcn_wmma_f32_16x16x32_f16(false, a, false, b, 0, score, false, false);
+        attention_wmma_spacing(score, a, b);
       }
       attention_float8 alpha;
 #pragma unroll
@@ -120,6 +129,7 @@ attention_original(const void *q, const void *k, const _Float16 *v, const float 
           accumulator[feature_tile][element] *= alpha[element];
         accumulator[feature_tile] = __builtin_amdgcn_wmma_f32_16x16x32_f16(
             false, p, false, b, 0, accumulator[feature_tile], false, false);
+        attention_wmma_spacing(accumulator[feature_tile], p, b);
       }
       __syncthreads();
     }
