@@ -4941,6 +4941,38 @@ impl<'a> Interpreter<'a> {
                     wave.put(destination, lane, 1, Value::Real(high))?;
                     continue;
                 }
+                "v_cvt_f32_bf8" => {
+                    // The selected gfx1250 VOP1 profile decodes only byte0.
+                    // No symbolic E5M2 storage interpretation is inferred.
+                    if self.architecture != AmdArchitecture::Gfx1250
+                        || !matches!(
+                            instruction.mnemonic.as_str(),
+                            "v_cvt_f32_bf8" | "v_cvt_f32_bf8_e32"
+                        )
+                        || !instruction.modifiers.is_empty()
+                    {
+                        return Err(self.unsupported(wave, instruction));
+                    }
+                    let bits = wave.value(&o[1], lane)?.selected_bits(0, 8).map_err(|_| {
+                        EvalError::Unsupported {
+                            pc: wave.pc,
+                            what: "symbolic E5M2 decoding is not modeled".into(),
+                        }
+                    })?;
+                    let decoded =
+                        super::matrix::decode_bits(super::matrix::InputKind::Fp8E5m2, bits)
+                            .map_err(|_| {
+                                wave.fail(
+                                    Some(lane),
+                                    "OCP E5M2 NaN or infinity is outside the real-number model",
+                                )
+                            })?;
+                    Value::Real(
+                        self.arena
+                            .float_from_f64(decoded)
+                            .expect("finite E5M2 value"),
+                    )
+                }
                 "v_cvt_f32_fp8" => {
                     let byte = instruction
                         .modifiers

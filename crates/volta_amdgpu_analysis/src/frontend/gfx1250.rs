@@ -184,6 +184,21 @@ pub(crate) fn validate_typed_profile(instruction: &Instruction) -> Result<(), St
     {
         return Err("s_addk_co_i32 requires one native 16-bit immediate".into());
     }
+    if instruction.mnemonic.starts_with("v_cvt_f32_bf8") {
+        let source_is_word = match instruction.operands.get(1) {
+            Some(Operand::Register(register)) => register.count == 1,
+            Some(Operand::Integer(value)) => (i32::MIN as i64..=u32::MAX as i64).contains(value),
+            _ => false,
+        };
+        if !matches!(
+            instruction.mnemonic.as_str(),
+            "v_cvt_f32_bf8" | "v_cvt_f32_bf8_e32"
+        ) || !instruction.modifiers.is_empty()
+            || !source_is_word
+        {
+            return Err("selected gfx1250 E5M2 decoder requires a plain word source and byte0 VOP1 encoding".into());
+        }
+    }
     let byte_selectors = instruction
         .modifiers
         .iter()
