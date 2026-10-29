@@ -1721,7 +1721,10 @@ impl<'a> Interpreter<'a> {
         self.stats.instructions += 1;
         *self
             .op_counts
-            .entry(super::interp_kind(instruction.opcode))
+            .entry(super::interp_kind(
+                instruction.opcode,
+                &instruction.mnemonic,
+            ))
             .or_default() += 1;
         let name = canonical_alu(
             instruction
