@@ -58,6 +58,7 @@ class Profile:
     gaps: dict[str, int] | None = None
     original_outputs: dict[str, int] | None = None
     assemblies: tuple[str, ...] | None = None
+    scope: str = "Exact-assembly numerical hardware gate for the enumerated original variants only; graph/equivalence and other workload variants require separate gates."
 
 
 BASIC = Profile(CONTRACT, ("f16", "f8"), "full/hardware/original.cpp",
@@ -334,7 +335,7 @@ def run_remote(args: argparse.Namespace, directory: Path, receipt: dict) -> None
 
 
 def main(profile: Profile = BASIC) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=profile.scope)
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--host")
     mode.add_argument("--local", action="store_true")
@@ -355,7 +356,7 @@ def main(profile: Profile = BASIC) -> int:
         parser.error("receipt must not overwrite an input artifact")
     receipt = {"schema_version": 1, "status": "incomplete", "invocation_id": args.invocation_id,
                "timestamp_utc": dt.datetime.now(dt.timezone.utc).isoformat(), "commands": [],
-               "scope": "Exact-assembly numerical hardware gate for the enumerated original variants only; graph/equivalence and other workload variants require separate gates."}
+               "scope": profile.scope}
     try:
         # Invalidate old success before preflight, SSH, build, or kernel launch.
         write_receipt(result_path, receipt)
@@ -377,12 +378,12 @@ def main(profile: Profile = BASIC) -> int:
             raise ValueError("source artifacts changed during execution")
         receipt["status"] = "pass"
         write_receipt(result_path, receipt)
-        print(f"PASS {len(profile.contract)} original variants; receipt: {result_path}")
+        print(f"PASS {len(profile.contract)} native cases; receipt: {result_path}")
         return 0
     except Exception as error:
         receipt.update(status="fail", error=str(error))
         write_receipt(result_path, receipt)
-        print(f"original workload validation failed: {error}; receipt: {result_path}", file=sys.stderr)
+        print(f"native validation failed: {error}; receipt: {result_path}", file=sys.stderr)
         return 1
 
 
