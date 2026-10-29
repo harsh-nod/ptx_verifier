@@ -21,6 +21,7 @@ whole-device correctness. gfx1250 software validation is complete for its
   - Maximum 3 lines of comments per code block.
   - Prefer zero comments when the code is self-explanatory.
   - Never narrate what the code does.
+  - Describe lasting roles and invariants, not temporary development status such as "scaffold", "empty", or "not implemented yet".
   - Only document non-obvious invariants, assumptions, or design decisions.
   - Do not split long comments into multiple blocks to bypass this limit.
 - READMEs: every crate has a `README.md` explaining it. A change to a crate's API, behavior, structure or tests updates that crate's README in the same commit, along with the crate's section of this file.
@@ -36,6 +37,7 @@ crates/
 ├── volta_graph_check/ # Ten PTX or four native AMD properties, selected from target provenance
 ├── volta_ptx_analysis/ # PTX frontend (lexer, parser) and abstract interpreter (PTX -> expressions + event graph)
 ├── volta_amdgpu_analysis/ # Native AMD frontend, target/ABI validation, interpreter and event producer
+├── volta_amd_analysis/ # Upstream experimental selected-kernel AMD syntax parser
 ├── volta_equivalence/ # Equivalence checking of expressions (decision procedure, VC dumps)
 ├── volta_pipeline/   # Analysis -> {equivalence, graph} branches -> ACCEPT/REJECT/UNKNOWN; every end-to-end PTX test
 ├── volta_viz/        # Event-graph viewer (run store -> one self-contained HTML page)
@@ -52,6 +54,7 @@ volta_cli             → volta_amdgpu_analysis, volta_common, volta_equivalence
 volta_py              → volta_amdgpu_analysis, volta_common, volta_equivalence, volta_expr, volta_graph_check, volta_pipeline, volta_ptx_analysis, volta_spec
 volta_viz             → volta_expr, volta_graph, volta_graph_check
 volta_pipeline        → volta_amdgpu_analysis, volta_equivalence, volta_expr, volta_graph, volta_graph_check, volta_ptx_analysis (+ dev: volta_viz)
+volta_amd_analysis    → (no workspace crate)
 volta_amdgpu_analysis → volta_common, volta_expr, volta_graph (+ dev: volta_equivalence, volta_spec)
 volta_ptx_analysis    → volta_common, volta_expr, volta_graph
 volta_equivalence     → volta_expr (+ dev: volta_spec)
@@ -270,10 +273,11 @@ hardware receipts do not validate gfx1250 execution.
 **Path**: `crates/volta_ptx_analysis/`
 
 Every module but `frontend` is private: `lib.rs` re-exports the whole API (`analyze`,
-`AnalysisResult`, `AnalysisParts`, `AnalysisError`, `write_op_counts`, the
-`AnalysisConfig` types, `EvalError`, `ClcMisuse`, `OutputsUnavailable`,
-`Stats`, `ThreadId`, `LowerError`), so rustc flags any code it does not
-reach. Other crates import from the root (`volta_ptx_analysis::AnalysisConfig`).
+`analyze_lowered`, `AnalysisResult`, `AnalysisParts`, `AnalysisError`, `write_op_counts`,
+the `AnalysisConfig` types, `EvalError`, `ClcMisuse`, `OutputsUnavailable`,
+`Stats`, `ThreadId`, `LowerError`, and the IR types `LoweredProgram`, `LoweredInstr`,
+`Operand`, `SymbolTable`, `SourceMap`, and supporting types), so rustc flags any code
+it does not reach. Other crates import from the root (`volta_ptx_analysis::AnalysisConfig`).
 
 ### Frontend (`frontend/`)
 
@@ -396,7 +400,10 @@ racing another thread's use of the object keeps its witness.
   graph's `Provenance` only): every kernel is analyzed and checked as on
   Blackwell, so the proxy-order check always runs
 - `analyze(module, kernel_name, config) -> Result<AnalysisResult, AnalysisError>`:
-  lowering plus one candidate execution, no verdict. `AnalysisResult` holds
+  lowers PTX and calls `analyze_lowered(program, config, provenance)`, which runs
+  one candidate execution and returns `Result<AnalysisResult, EvalError>`, no
+  verdict. Direct callers supply well-formed IR that preserves the source
+  semantics and provenance matching the program and config. `AnalysisResult` holds
   the arena, the event graph (always; partial on abort), stats, op counts,
   and the symbolic outputs only when the execution completed and its outputs
   read back (`symbolic_outputs()` / `into_parts()`; else `OutputsUnavailable`:
@@ -420,6 +427,18 @@ info, tagged `[analysis]`/`[graph]`/`[equivalence]`: graph extraction and
 the equivalence branch in `volta_pipeline`, each of the ten checks (start,
 verdict, duration) in `check_graph`. `cargo run -p volta_cli
 --features logging -- --log-level info analyze ...` narrates a run.
+
+## Crate: volta_amd_analysis
+
+**Path**: `crates/volta_amd_analysis/`
+
+AMD assembly analysis, parallel to `volta_ptx_analysis`: parsing (`frontend`),
+lowering (`lower`, `ir`), and symbolic execution (`eval`). The frontend is public;
+the other stages are private.
+`frontend::parse::parse_kernel(source, name)` extracts a kernel's target,
+instructions with typed operands, and numeric launch settings. It parses operand
+syntax without validating instruction semantics. Tests use the compiled gfx950
+copy kernel; see the crate README for supported forms and build commands.
 
 ## Crate: volta_graph_check
 
@@ -574,6 +593,8 @@ PTX kernels from `tests/ptx/` through `verify_kernel` (`common::check` /
   `Verified`, then the rendered
   symbolic outputs must match the kernel's `.out` file exactly
   (`VOLTA_BLESS=1` rewrites them).
+- `lowered_program_tests.rs` - constructs IR through the public API, without
+  parsing PTX, and checks the resulting symbolic output and event graph.
 - one suite per check whose witnesses PTX kernels exercise, each asserting on
   that check's typed witness only: `mbarrier_epoch_tests.rs` (Algorithm 1 over
   mbarrier phases: the unseparated synchronization and operation),
