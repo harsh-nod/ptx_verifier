@@ -237,3 +237,13 @@ records all 96 blocked workitems with their distinct object/phase/count reasons.
 These use the same unchanged MC-accepted assembly; the receipt claims no edited
 MC mutants or hardware execution. PTX parity pre-init polling is represented by
 an initially free buffer and explicit subsequent native handshakes.
+
+## Individual feature review proposal
+
+[`feature-review-proposal.json`](feature-review-proposal.json) separately reviews
+all 59 assigned barrier/exit/copy rows from upstream `b3a3791`. Source, assertion
+function and golden hashes were checked against that revision. It proposes 27
+native assertion candidates and 10 contract-difference candidates, and retains
+22 explicit portable gaps. Each row records exact native scope, a mechanism
+residual and its remaining gate. These counts are not acceptance results, and
+the proposal does not change the coordinator's feature or completion ledger.
