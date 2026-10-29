@@ -51,6 +51,11 @@ pub(crate) fn validate_typed_profile(instruction: &Instruction) -> Result<(), St
         return Ok(());
     }
     validate_encoding(&instruction.mnemonic)?;
+    if instruction.mnemonic == "s_sendmsg"
+        && (instruction.operands != [Operand::Integer(3)] || !instruction.modifiers.is_empty())
+    {
+        return Err("gfx1250 only supports terminal MSG_DEALLOC_VGPRS (message3)".into());
+    }
     let byte_selectors = instruction
         .modifiers
         .iter()
@@ -167,6 +172,17 @@ pub(super) fn parse_special(
         message: message.into(),
         span,
     };
+    if let Some(("s_sendmsg", rest)) = text.split_once(char::is_whitespace)
+        && rest.trim() == "sendmsg(MSG_DEALLOC_VGPRS)"
+    {
+        return Ok(Some(Instruction {
+            mnemonic: "s_sendmsg".into(),
+            opcode: Opcode::Control,
+            operands: vec![Operand::Integer(3)],
+            modifiers: vec![],
+            span,
+        }));
+    }
     if let Some((x, y)) = text.split_once("::") {
         if y.contains("::") {
             return Err(fail("VOPD requires exactly two operations"));

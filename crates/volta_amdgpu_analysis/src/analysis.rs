@@ -127,7 +127,10 @@ pub fn analyze(
                     "tensor memory"
                 } else if instruction.mnemonic == "v_nop" {
                     "vector ALU"
-                } else if instruction.mnemonic == "s_getreg_b32" {
+                } else if instruction.mnemonic == "s_getreg_b32"
+                    || (instruction.mnemonic == "s_sendmsg"
+                        && module.target.as_deref() == Some("gfx1250"))
+                {
                     "xcnt drain"
                 } else if instruction.mnemonic.starts_with("v_wmma_") {
                     "WMMA"

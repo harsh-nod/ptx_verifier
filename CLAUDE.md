@@ -263,6 +263,9 @@ gfx1250 uses separate load/store/DS/KM/X/async/tensor completion, replay-source
 leases, split shader barriers and bounded plain 2D TDM. It does not inherit the
 legacy replay-disabled or `SingleCuWorkgroup` premises. Values are computed at
 issue; the checker independently establishes readiness/publication.
+Terminal gfx1250 `MSG_DEALLOC_VGPRS` is an X-draining message3 epilogue,
+permitted only with zero scratch and an immediately following `s_endpgm`.
+It never substitutes for a data-completion wait.
 
 The tested compiler envelope is code-object 6 and metadata 1.2. By-value bytes
 must match argument metadata exactly; unknown ABI bits remain undefined.
