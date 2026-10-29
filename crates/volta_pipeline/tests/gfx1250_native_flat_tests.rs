@@ -163,8 +163,9 @@ fn scalar_signed_conversion_preserves_scc_and_unsigned_byte_keeps_its_source_ide
 }
 #[test]
 fn new_scalar_and_flat_profiles_reject_incorrect_registers_modifiers_and_retargeting() {
+    // B32 scalar-base index scaling has separate positive/value/bounds controls
+    // in gfx1250_flat_scaled_index_tests; malformed operand widths stay rejected.
     for line in [
-        "flat_load_b32 v1,v0,s[4:5] scale_offset",
         "flat_load_b32 v1,v[0:1],s[4:5]",
         "flat_load_b32 v1,v0,s4",
         "flat_load_b32_e64 v1,v0,s[4:5]",
