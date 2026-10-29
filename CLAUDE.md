@@ -276,6 +276,12 @@ Genuine global FLAT classes use Load/Store+Ds+X and preserve same-wave
 same-address effect order. LDS-aperture class names remain separate and
 inconclusive; unresolved apertures and unpinned partial data waits cannot
 inherit this profile. Global cache publication is independent.
+Automatic-barrier drops on wave exit preserve execution progress, but completed
+memory publication through an implicit drop is unpinned. gfx1250 reports Unknown
+only for a conflicting memory dependency needing that edge; actual explicit
+arrivals, disjoint/read-only payloads and unrelated proven failures retain their
+own results. Genuine compiler controls and independent graph tests live in
+`tests/gfx1250/portable-graph` and `gfx1250_portable_graph_tests.rs`.
 
 The tested compiler envelope is code-object 6 and metadata 1.2. By-value bytes
 must match argument metadata exactly; unknown ABI bits remain undefined.

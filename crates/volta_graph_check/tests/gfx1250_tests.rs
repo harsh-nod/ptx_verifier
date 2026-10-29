@@ -1742,3 +1742,177 @@ fn lds_aperture_flat_classes_cannot_inherit_global_replay_or_counter_semantics()
         );
     }
 }
+
+#[test]
+fn implicit_exit_drop_preserves_progress_but_only_explicit_arrival_certifies_publication() {
+    for (arrived, after_arrival, expected) in [
+        (false, false, Verdict::Unknown),
+        (true, false, Verdict::Pass),
+        (true, true, Verdict::Unknown),
+    ] {
+        let mut t = Trace::new(64);
+        t.ins(0, 0, vec![], vec![]);
+        if !after_arrival {
+            t.issue(1, AmdMemoryClass::Ds, vec![], vec![], 0);
+            t.wait(1, AmdCounter::Ds, 0);
+        }
+        if arrived {
+            t.signal(1, 0);
+            t.signal(0, 0);
+            t.barrier_wait(1, 0, true);
+        }
+        if after_arrival {
+            t.issue(1, AmdMemoryClass::Ds, vec![], vec![], 0);
+            t.wait(1, AmdCounter::Ds, 0);
+        }
+        t.ins(1, 7, vec![], vec![]);
+        for thread in 32..64 {
+            t.b.exit(ThreadIx(thread), ProgramPoint(7));
+        }
+        if !arrived {
+            t.signal(0, 0);
+        }
+        t.barrier_wait(0, 0, true);
+        t.issue(
+            0,
+            AmdMemoryClass::Ds,
+            vec![v(1, u32::MAX as u64)],
+            vec![],
+            0,
+        );
+        t.wait(0, AmdCounter::Ds, 0);
+        t.ins(0, 7, vec![], vec![]);
+        for thread in 0..32 {
+            t.b.exit(ThreadIx(thread), ProgramPoint(7));
+        }
+        let r = check_graph(&t.b.finish(Terminal::Completed));
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Pass);
+        assert_eq!(r.verdict(Property::AmdWaitReadiness), Verdict::Pass);
+        assert_eq!(
+            r.verdict(Property::AmdMemoryConflict),
+            expected,
+            "arrived{arrived} after{after_arrival}"
+        );
+        if expected == Verdict::Unknown {
+            assert!(
+                matches!(r.amd.unwrap().memory_conflict, volta_graph_check::PropertyResult::Unknown(reasons)
+                if reasons.iter().any(|r| r.events.len()==2 && r.reason.contains("implicit barrier drop")))
+            );
+        }
+    }
+}
+
+#[test]
+fn an_exit_drop_without_a_conflicting_memory_dependency_still_verifies() {
+    for (earlier_access, later_address) in [(None, 0), (Some(true), 256), (Some(false), 0)] {
+        let mut t = Trace::new(64);
+        t.ins(0, 0, vec![], vec![]);
+        if let Some(write) = earlier_access {
+            t.issue(
+                1,
+                AmdMemoryClass::Ds,
+                if write {
+                    vec![]
+                } else {
+                    vec![v(1, u32::MAX as u64)]
+                },
+                vec![],
+                0,
+            );
+            t.wait(1, AmdCounter::Ds, 0);
+        }
+        t.ins(1, 7, vec![], vec![]);
+        for thread in 32..64 {
+            t.b.exit(ThreadIx(thread), ProgramPoint(7));
+        }
+        t.signal(0, 0);
+        t.barrier_wait(0, 0, true);
+        t.issue(
+            0,
+            AmdMemoryClass::Ds,
+            vec![v(1, u32::MAX as u64)],
+            vec![],
+            later_address,
+        );
+        t.wait(0, AmdCounter::Ds, 0);
+        t.ins(0, 7, vec![], vec![]);
+        for thread in 0..32 {
+            t.b.exit(ThreadIx(thread), ProgramPoint(7));
+        }
+        assert_eq!(
+            check_graph(&t.b.finish(Terminal::Completed)).conclusion(),
+            GraphConclusion::Verified
+        );
+    }
+}
+
+#[test]
+fn unpinned_exit_frontiers_stay_unpinned_through_a_later_explicit_phase() {
+    let mut t = Trace::new(96);
+    t.issue(2, AmdMemoryClass::Ds, vec![], vec![], 0);
+    t.wait(2, AmdCounter::Ds, 0);
+    t.ins(2, 7, vec![], vec![]);
+    for thread in 64..96 {
+        t.b.exit(ThreadIx(thread), ProgramPoint(7));
+    }
+    for generation in 0..2 {
+        t.signal(0, generation);
+        t.signal(1, generation);
+        t.barrier_wait(0, generation, true);
+        t.barrier_wait(1, generation, true);
+    }
+    t.issue(
+        1,
+        AmdMemoryClass::Ds,
+        vec![v(1, u32::MAX as u64)],
+        vec![],
+        0,
+    );
+    for wave in 0..2 {
+        t.wait(wave, AmdCounter::Ds, 0);
+        t.ins(wave, 7, vec![], vec![]);
+        for thread in wave * 32..(wave + 1) * 32 {
+            t.b.exit(ThreadIx(thread), ProgramPoint(7));
+        }
+    }
+    let r = check_graph(&t.b.finish(Terminal::Completed));
+    assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+    assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Pass);
+    assert_eq!(r.verdict(Property::AmdMemoryConflict), Verdict::Unknown);
+}
+
+#[test]
+fn an_unrelated_real_conflict_is_not_hidden_by_an_unpinned_exit_frontier() {
+    let mut t = Trace::new(96);
+    t.issue(2, AmdMemoryClass::Ds, vec![], vec![], 0);
+    t.wait(2, AmdCounter::Ds, 0);
+    t.ins(2, 7, vec![], vec![]);
+    for thread in 64..96 {
+        t.b.exit(ThreadIx(thread), ProgramPoint(7));
+    }
+    t.signal(0, 0);
+    t.signal(1, 0);
+    t.barrier_wait(0, 0, true);
+    t.barrier_wait(1, 0, true);
+    t.issue(0, AmdMemoryClass::Ds, vec![], vec![], 256);
+    t.wait(0, AmdCounter::Ds, 0);
+    t.issue(
+        1,
+        AmdMemoryClass::Ds,
+        vec![v(1, u32::MAX as u64)],
+        vec![],
+        256,
+    );
+    for wave in 0..2 {
+        t.wait(wave, AmdCounter::Ds, 0);
+        t.ins(wave, 7, vec![], vec![]);
+        for thread in wave * 32..(wave + 1) * 32 {
+            t.b.exit(ThreadIx(thread), ProgramPoint(7));
+        }
+    }
+    let r = check_graph(&t.b.finish(Terminal::Completed));
+    assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+    assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Pass);
+    assert_eq!(r.verdict(Property::AmdMemoryConflict), Verdict::Fail);
+}

@@ -144,6 +144,9 @@ struct Operation {
     held_sources: Vec<AmdRegister>,
     /// Completed-effect frontiers at issue, not the candidate trace's earlier effects.
     clock: Vec<u32>,
+    /// Present only after a gfx1250 implicit drop adds an unpinned memory edge.
+    /// This frontier retains explicit arrivals and excludes those drop edges.
+    arrival_clock: Option<Vec<u32>>,
 }
 
 fn unknown<E, V>(reason: &str) -> PropertyResult<E, V> {
@@ -1128,6 +1131,7 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                     destinations: destinations.clone(),
                     held_sources: held_sources.clone(),
                     clock,
+                    arrival_clock: None,
                 });
             }
             AmdEventKind::Wait {
@@ -1393,6 +1397,15 @@ fn memory_conflicts(
     operations: &[Operation],
     issue_index: &HashMap<EventId, usize>,
 ) -> MemoryConflictResult {
+    memory_conflicts_with_clock(graph, operations, issue_index, false)
+}
+
+fn memory_conflicts_with_clock(
+    graph: &EventGraph,
+    operations: &[Operation],
+    issue_index: &HashMap<EventId, usize>,
+    arrivals_only: bool,
+) -> MemoryConflictResult {
     let links: HashMap<EventId, usize> = graph
         .amd_memory_effects()
         .iter()
@@ -1446,8 +1459,13 @@ fn memory_conflicts(
             let earlier = &operations[node.operation];
             let atomic_self = node.operation == operation
                 && later.class == AmdMemoryClass::GlobalAtomicAddF32NoReturn;
+            let clock = if arrivals_only {
+                later.arrival_clock.as_ref().unwrap_or(&later.clock)
+            } else {
+                &later.clock
+            };
             let ordered = atomic_self
-                || later.clock[earlier.wave as usize * CLASSES + class_index(earlier.class)]
+                || clock[earlier.wave as usize * CLASSES + class_index(earlier.class)]
                     >= earlier.sequence;
             if ordered && access.space == Space::Global && unresolved.is_empty() {
                 if let Some(earlier) = missing_global_publication(

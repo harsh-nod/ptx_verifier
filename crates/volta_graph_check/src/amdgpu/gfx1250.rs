@@ -893,6 +893,8 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     }
     let waves = (graph.threads() as usize).div_ceil(WAVE);
     let mut clocks = vec![vec![0; waves * CLASSES]; waves];
+    let mut arrival_clocks: Option<Vec<Vec<u32>>> = None;
+    let mut arrival_signals = HashMap::new();
     let mut sequences = vec![0; waves * CLASSES];
     let mut pending = vec![Vec::<usize>::new(); waves];
     let mut operations = Vec::<Operation>::new();
@@ -1143,6 +1145,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                 let slot = wave * CLASSES + class_index(*class);
                 sequences[slot] += 1;
                 let mut clock = clocks[wave].clone();
+                let mut arrival_clock = arrival_clocks.as_ref().map(|clocks| clocks[wave].clone());
                 // Effect order is within the resolved segment. A GLOBAL prefix
                 // must never publish an incomplete LDS operation, or vice versa.
                 let streams: &[AmdMemoryClass] = match class {
@@ -1167,6 +1170,9 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                 for &stream in streams {
                     let source = wave * CLASSES + class_index(stream);
                     clock[source] = sequences[source] - u32::from(source == slot);
+                    if let Some(clock) = &mut arrival_clock {
+                        clock[source] = sequences[source] - u32::from(source == slot);
+                    }
                 }
                 issue_index.insert(record.event, operations.len());
                 pending[wave].push(operations.len());
@@ -1180,6 +1186,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                     destinations: destinations.clone(),
                     held_sources: held_sources.clone(),
                     clock,
+                    arrival_clock,
                 });
             }
             AmdEventKind::WaitCounters { thresholds } => {
@@ -1224,6 +1231,9 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                     .entry((*barrier, *generation))
                     .or_default()
                     .insert(wave, clocks[wave].clone());
+                if let Some(clocks) = &arrival_clocks {
+                    arrival_signals.insert((*barrier, *generation, wave), clocks[wave].clone());
+                }
                 signals[wave] = Some((*barrier, *generation));
             }
             AmdEventKind::SplitBarrierWait {
@@ -1263,8 +1273,26 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                 {
                     barrier_violations.push(AmdBarrierViolation { generation: *generation, event: record.event, wave: record.wave, reason: "split-barrier release lacks matching wait, source point or live-wave arrivals".into() });
                 } else {
-                    for clock in phase.unwrap().values() {
+                    let phase = phase.unwrap();
+                    let adds_drop_memory = (0..waves).any(|w| {
+                        exited(w)
+                            && clocks[w].iter().enumerate().any(|(slot, value)| {
+                                *value > phase.get(&w).map_or(0, |clock| clock[slot])
+                            })
+                    });
+                    if arrival_clocks.is_none() && adds_drop_memory {
+                        arrival_clocks = Some(clocks.clone());
+                    }
+                    for (&participant, clock) in phase {
                         join(&mut clocks[wave], clock);
+                        if let Some(clocks) = &mut arrival_clocks {
+                            join(
+                                &mut clocks[wave],
+                                arrival_signals
+                                    .get(&(*barrier, *generation, participant))
+                                    .unwrap_or(clock),
+                            );
+                        }
                     }
                     for w in 0..waves {
                         if exited(w) {
@@ -1305,6 +1333,9 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                 // completion is promoted into a false scalar FIFO prefix.
                 let slot = wave * CLASSES + class_index(op.class);
                 clocks[wave][slot] = clocks[wave][slot].max(op.sequence);
+                if let Some(clocks) = &mut arrival_clocks {
+                    clocks[wave][slot] = clocks[wave][slot].max(op.sequence);
+                }
                 false
             } else {
                 true
@@ -1340,12 +1371,32 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
         barrier_violations,
         Vec::new(),
     );
-    let memory_conflict =
-        if barrier.verdict() == Verdict::Pass && wait_readiness.verdict() != Verdict::Unknown {
-            memory_conflicts(graph, &operations, &issue_index)
+    let memory_conflict = if barrier.verdict() == Verdict::Pass
+        && wait_readiness.verdict() != Verdict::Unknown
+    {
+        let candidate = memory_conflicts(graph, &operations, &issue_index);
+        if arrival_clocks.is_some() && candidate.verdict() == Verdict::Pass {
+            match memory_conflicts_with_clock(graph, &operations, &issue_index, true) {
+                PropertyResult::Pass(_) => candidate,
+                PropertyResult::Fail(conflicts) => {
+                    let reason = "gfx1250 memory ordering depends on an exited wave's implicit barrier drop; drop publication is not pinned";
+                    PropertyResult::Unknown(
+                        conflicts
+                            .iter()
+                            .map(|conflict| {
+                                Unresolved::between(conflict.earlier, conflict.later, reason)
+                            })
+                            .collect(),
+                    )
+                }
+                PropertyResult::Unknown(reasons) => PropertyResult::Unknown(reasons),
+            }
         } else {
-            unknown("gfx1250 barrier or completion contract is inconclusive")
-        };
+            candidate
+        }
+    } else {
+        unknown("gfx1250 barrier or completion contract is inconclusive")
+    };
     AmdReport {
         trace,
         wait_readiness,

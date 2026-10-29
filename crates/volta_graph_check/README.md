@@ -231,6 +231,20 @@ is recorded separately in `tests/gfx1250/evidence`; extending a graph profile
 does not establish a hardware result. Numerical agreement remains separate
 from these graph obligations.
 
+An exiting wave drops its automatic workgroup-barrier participation, so an
+otherwise independent surviving wave can still finish. The pinned LLVM
+[execution-barrier description](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md)
+distinguishes drops from arrivals, and the
+[memory model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md#memory-model-gfx125x)
+specifies arrive-release/wait-acquire ordering. These sources do not establish
+that END's implicit drop publishes the exiting wave's completed LDS operations.
+The checker therefore reports a typed inconclusive memory result only when a
+conflicting pair needs that unpinned edge, including dependencies carried through
+later phases. An explicit arrival publishes only its captured completed frontier;
+later operations do not inherit that publication. Disjoint accesses, read/read
+pairs and exit-only progress still verify, and unrelated established conflicts
+still fail. This is a conservative proof limit, not an architectural race claim.
+
 Genuine global FLAT accesses use `FlatGlobalLoad/Store`, with strictly matching
 resolved Global effects and `flat memory` provenance. They
 retain every source, including EXEC, and charge Load or Store plus Ds and X.
