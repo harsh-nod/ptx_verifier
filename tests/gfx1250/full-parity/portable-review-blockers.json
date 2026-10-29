@@ -34,10 +34,34 @@
       "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_init_unordered_with_other_threads_arrive.ptx",
       "upstream_sha256": "e0f4f0f6866f9a5354efa760fe2246661c982c1a05396a1247f302a622f6ed7a",
       "group": "BARRIER-OBJECT-LIFECYCLE",
-      "status": "pending",
+      "status": "resolved_candidate",
       "completion": "coordinator_review_required",
-      "current_observation": "Actual allocated source currently returns AmdBarrier Unknown for unordered initialization, which does not satisfy this intended harmful negative.",
-      "required_gate": "Actual native source safe/unsafe pair with documented typed AmdBarrier violation; Unknown is not a caught harmful outcome."
+      "current_observation": "Actual allocated compiler source preserves the complete42 payload in safe and unsafe candidates; removing only initialization ordering now yields a typed AmdBarrierViolation Fail. The independent checker also rejects unordered reinitialization after prior other-wave use without adding publication/completion edges. Coordinator acceptance remains pending.",
+      "required_gate": "Actual native source safe/unsafe pair with documented typed AmdBarrier violation; Unknown is not a caught harmful outcome.",
+      "historical_observation": "Actual allocated source currently returns AmdBarrier Unknown for unordered initialization, which does not satisfy this intended harmful negative.",
+      "native_evidence": [
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "allocated_object_initialization_precedes_every_other_wave_use",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee",
+          "line": 157
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "named_initialization_and_reinitialization_require_execution_order_with_other_waves",
+          "source_sha256": "6d5a572577e2ad76c7789285a1623f8026fd9eece46d441602f95742b8b58b44",
+          "line": 2799
+        }
+      ],
+      "independent_validation": {
+        "source_revision": "f0e393f9030b21e3da44df1ce28f080cb6a7e59f",
+        "commands": [
+          "cargo test -p volta_pipeline --test gfx1250_protocol_lifetime_tests",
+          "cargo test -p volta_graph_check --test gfx1250_tests named_initialization",
+          "cargo test -p volta_graph_check --test gfx1250_tests named_reinitialization"
+        ],
+        "tests_passed": 12
+      }
     }
   ]
 }

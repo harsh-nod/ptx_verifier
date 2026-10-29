@@ -10,7 +10,35 @@
   "duplicate_rows_within_manifest": [],
   "unexpected_rows": [],
   "policy_violations": [],
-  "explicit_portable_native_gaps": [],
+  "explicit_portable_native_gaps": [
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/bar_arrive_register_id_count_mismatch.ptx",
+      "group": "BARRIER-SPLIT-PHASE",
+      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
+      "candidate_status": "explicit_portable_native_gap",
+      "proposal": "portable_native_gap",
+      "completion": "coordinator_review_required",
+      "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_changes_between_phases.ptx",
+      "group": "BARRIER-SPLIT-PHASE",
+      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
+      "candidate_status": "explicit_portable_native_gap",
+      "proposal": "portable_native_gap",
+      "completion": "coordinator_review_required",
+      "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_mismatch.ptx",
+      "group": "BARRIER-SPLIT-PHASE",
+      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
+      "candidate_status": "explicit_portable_native_gap",
+      "proposal": "portable_native_gap",
+      "completion": "coordinator_review_required",
+      "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
+    }
+  ],
   "target_residual_review_gates": [],
   "pending_current_portable_reviews": [
     {
@@ -39,23 +67,15 @@
       "completion": "coordinator_review_required",
       "current_observation": "Native fresh initialization lifetimes do not yet implement the required signal-time expected-count update counterpart. Target-specific spelling alone does not close this portable progress/count obligation.",
       "required_gate": "Pinned public M0 signal-time count-update semantics, typed producer/event/checker support and actual native matching safe/count-mismatch/count-change controls."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_init_unordered_with_other_threads_arrive.ptx",
-      "upstream_sha256": "e0f4f0f6866f9a5354efa760fe2246661c982c1a05396a1247f302a622f6ed7a",
-      "group": "BARRIER-OBJECT-LIFECYCLE",
-      "status": "pending",
-      "completion": "coordinator_review_required",
-      "current_observation": "Actual allocated source currently returns AmdBarrier Unknown for unordered initialization, which does not satisfy this intended harmful negative.",
-      "required_gate": "Actual native source safe/unsafe pair with documented typed AmdBarrier violation; Unknown is not a caught harmful outcome."
     }
   ],
   "known_current_review_blockers_resolved": false,
   "candidate_status_counts": {
     "completed_typed_native_negative_candidate": 8,
+    "explicit_portable_native_gap": 3,
     "intentional_negative_model_control": 1,
-    "native_target_contract_difference_candidate": 16,
-    "native_test_candidate_requires_coordinator_review": 276,
+    "native_target_contract_difference_candidate": 12,
+    "native_test_candidate_requires_coordinator_review": 277,
     "precise_target_residual_candidate": 65,
     "retained_shared_source_guard": 154
   },
@@ -2908,9 +2928,10 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "native_target_contract_difference_candidate",
-          "proposal": "native_contract_difference_candidate",
-          "completion": "coordinator_review_required"
+          "candidate_status": "explicit_portable_native_gap",
+          "proposal": "portable_native_gap",
+          "completion": "coordinator_review_required",
+          "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
         }
       ],
       "completion": "coordinator_review_required"
@@ -2934,9 +2955,10 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "native_target_contract_difference_candidate",
-          "proposal": "native_contract_difference_candidate",
-          "completion": "coordinator_review_required"
+          "candidate_status": "explicit_portable_native_gap",
+          "proposal": "portable_native_gap",
+          "completion": "coordinator_review_required",
+          "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
         }
       ],
       "completion": "coordinator_review_required"
@@ -2947,9 +2969,10 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "native_target_contract_difference_candidate",
-          "proposal": "native_contract_difference_candidate",
-          "completion": "coordinator_review_required"
+          "candidate_status": "explicit_portable_native_gap",
+          "proposal": "portable_native_gap",
+          "completion": "coordinator_review_required",
+          "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
         }
       ],
       "completion": "coordinator_review_required"
@@ -3337,8 +3360,8 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "native_target_contract_difference_candidate",
-          "proposal": "native_contract_difference_candidate",
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
           "completion": "coordinator_review_required"
         }
       ],
@@ -7006,7 +7029,7 @@
     },
     {
       "path": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "sha256": "eff097dae740afbc1e10cea8ba74d7fb2030c3828c926789c9c979e23c05fab7",
+      "sha256": "8392c5b9f0069bf212b8767707a2e6170aebf0f5086277f34206e24c4df39c15",
       "state": "repository_contract"
     },
     {
@@ -7036,7 +7059,7 @@
     },
     {
       "path": "tests/gfx1250/full-parity/portable-review-blockers.json",
-      "sha256": "7edb5a67e60fbf63e019c99d1d942d3ba04a9041d0ae00f536ce9121b5bce09a",
+      "sha256": "ea81e98376530468a817f1c460196fea4e6b17ebe165e9663c1c2ba24892d600",
       "state": "current_review_overlay_not_duplicate_ownership"
     }
   ]
