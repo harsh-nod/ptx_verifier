@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import prove_matrix as driver
 
@@ -33,6 +34,20 @@ def accepted():
 
 
 class Controls(unittest.TestCase):
+    def test_shared_readonly_fixture_is_verified_once_without_recopied_writes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, target = root / "source", root / "snapshot/input"
+            source.write_text("same assembly for six entries")
+            digest = driver.sha(source)
+            driver.snapshot_file(source, target, digest)
+            with mock.patch.object(driver.shutil, "copy2", side_effect=AssertionError("duplicate copy")):
+                driver.snapshot_file(source, target, digest)
+            self.assertEqual(target.stat().st_mode & 0o222, 0)
+            source.write_text("changed assembly")
+            with self.assertRaises(ValueError):
+                driver.snapshot_file(source, target, driver.sha(source))
+
     def test_full_and_explicit_nonempty_selection(self):
         self.assertEqual(len(driver.checked_cases(manifest(), [])), 6)
         self.assertEqual(len(driver.checked_cases(manifest(), ["gemm_f16_full"])), 1)

@@ -47,6 +47,17 @@ def atomic_json(path, value):
     temporary.replace(path)
 
 
+def snapshot_file(source, target, expected):
+    require(sha(source) == expected, f"stale source: {source}")
+    if target.exists():
+        require(sha(target) == expected, f"conflicting snapshot input: {target}")
+        return
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, target)
+    require(sha(target) == expected, f"snapshot copy mismatch: {target}")
+    target.chmod(0o444)
+
+
 def checked_cases(document, selected):
     cases = {c["kernel"]: c for c in document["cases"] if c["kernel"] in REQUIRED}
     require(len(cases) == 6, "all six original matrix registrations are required")
@@ -179,11 +190,8 @@ def main():
                 relative = Path(case[key])
                 require(not relative.is_absolute() and ".." not in relative.parts, "snapshot path must be relative")
                 source, target = full / relative, snapshot / relative
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source, target)
-                require(sha(target) == case[key + "_sha256"], f"stale {key}: {case['kernel']}")
+                snapshot_file(source, target, case[key + "_sha256"])
                 files[str(relative)] = sha(target)
-                target.chmod(0o444)
         receipt.update(binary_sha256=sha(binary), input_sha256=files, snapshot=str(snapshot))
         env = dict(os.environ)
         require(not any(name in env for name in ("LD_PRELOAD", "LD_AUDIT")), "loader injection is outside this replay profile")
