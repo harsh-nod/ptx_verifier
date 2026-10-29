@@ -24,6 +24,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 
 
 EXPECTED_OUTPUTS = {
@@ -213,6 +214,17 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def write_receipt(path: Path, receipt: dict) -> None:
+    """Atomically replace stale evidence; never expose a half-written PASS."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
+    try:
+        temporary.write_text(json.dumps(receipt, indent=2) + "\n")
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def integer(value: object, label: str, minimum: int = 0) -> int:
@@ -460,10 +472,26 @@ def validate_driver_result(result: dict, cases: list[dict], patterns: int) -> No
         raise ValueError("aggregate output/input/gap/guard accounting mismatch")
 
 
+def device_environment(device: int, inherited: dict) -> dict:
+    selectors = {
+        "HIP_VISIBLE_DEVICES",
+        "ROCR_VISIBLE_DEVICES",
+        "CUDA_VISIBLE_DEVICES",
+        "GPU_DEVICE_ORDINAL",
+    }
+    conflicts = sorted(
+        key for key in inherited if key in selectors or key.startswith("HSA_OVERRIDE_GFX_VERSION")
+    )
+    if conflicts:
+        raise ValueError("remove inherited device/architecture overrides: " + ", ".join(conflicts))
+    return dict(inherited, HIP_VISIBLE_DEVICES=str(device))
+
+
 def run_local(args: argparse.Namespace, directory: Path, result_path: Path) -> None:
     receipt = {
         "schema_version": 1,
-        "status": "not_completed",
+        "status": "incomplete",
+        "invocation_id": args.invocation_id,
         "target": "gfx1250",
         "scope": "All 20 bounded F32 portable cases; not original full PTX shapes or dtypes.",
         "source_revision": args.revision,
@@ -503,14 +531,7 @@ def run_local(args: argparse.Namespace, directory: Path, result_path: Path) -> N
         }
         # Visibility is set only for the child; conflicting inherited restrictions
         # are rejected rather than accidentally selecting a different physical GPU.
-        conflicts = [
-            key
-            for key in ("ROCR_VISIBLE_DEVICES", "CUDA_VISIBLE_DEVICES", "GPU_DEVICE_ORDINAL")
-            if key in os.environ
-        ]
-        if conflicts:
-            raise ValueError("remove conflicting device selectors: " + ", ".join(conflicts))
-        env = dict(os.environ, HIP_VISIBLE_DEVICES=str(args.device))
+        env = device_environment(args.device, dict(os.environ))
         receipt["device_environment"] = {"HIP_VISIBLE_DEVICES": str(args.device)}
         receipt["host"] = checked_run(["hostname"], timeout=10, records=records).stdout.strip()
         receipt["uname"] = checked_run(["uname", "-a"], timeout=10, records=records).stdout.strip()
@@ -611,7 +632,7 @@ def run_local(args: argparse.Namespace, directory: Path, result_path: Path) -> N
         receipt["error"] = str(error)
         raise
     finally:
-        result_path.write_text(json.dumps(receipt, indent=2) + "\n")
+        write_receipt(result_path, receipt)
 
 
 def validate_revision(directory: Path, revision: str) -> None:
@@ -681,27 +702,42 @@ def run_remote(args: argparse.Namespace, directory: Path, result_path: Path) -> 
         args.revision,
         "--result",
         remote_result,
+        "--invocation-id",
+        args.invocation_id,
     ]
     run_error = None
     try:
         checked_run(["ssh", args.host, shlex.join(command)], timeout=args.timeout + 300)
     except Exception as error:
         run_error = error
-    result_path.parent.mkdir(parents=True, exist_ok=True)
-    checked_run(["scp", args.host + ":" + remote_result, str(result_path)], timeout=45)
-    receipt = json.loads(result_path.read_text())
-    receipt["remote_execution"] = {
-        "ssh_host": args.host,
-        "directory": remote,
-        "argv": command,
-        "source_revision_validated_before_transfer": True,
-    }
-    result_path.write_text(json.dumps(receipt, indent=2) + "\n")
-    if run_error:
-        raise run_error
-    validate_driver_result(receipt["validation"], validate_manifest(directory), args.patterns)
-    if receipt.get("status") != "pass":
-        raise RuntimeError("remote receipt is not successful")
+    downloaded = result_path.with_name(result_path.name + "." + args.invocation_id + ".download")
+    try:
+        checked_run(["scp", args.host + ":" + remote_result, str(downloaded)], timeout=45)
+        receipt = json.loads(downloaded.read_text())
+        if (
+            receipt.get("invocation_id") != args.invocation_id
+            or receipt.get("source_revision") != args.revision
+        ):
+            raise RuntimeError("downloaded receipt belongs to a different invocation or revision")
+        if receipt.get("input_artifacts") != {p: sha256(directory / p) for p in INPUT_FILES}:
+            raise RuntimeError("downloaded receipt has different source artifact hashes")
+        receipt["remote_execution"] = {
+            "ssh_host": args.host,
+            "directory": remote,
+            "argv": command,
+            "source_revision_validated_before_transfer": True,
+        }
+        if run_error:
+            receipt["status"] = "fail"
+            write_receipt(result_path, receipt)
+            raise run_error
+        if receipt.get("status") != "pass":
+            write_receipt(result_path, receipt)
+            raise RuntimeError("remote receipt is not successful")
+        validate_driver_result(receipt["validation"], validate_manifest(directory), args.patterns)
+        write_receipt(result_path, receipt)
+    finally:
+        downloaded.unlink(missing_ok=True)
 
 
 def main() -> int:
@@ -727,18 +763,35 @@ def main() -> int:
         "--revision", help="pinned source revision; automatically detected for SSH invocation"
     )
     parser.add_argument("--result", type=Path, required=True)
+    parser.add_argument("--invocation-id", help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if not 1 <= args.patterns <= 256 or args.device < 0 or args.timeout < 1:
-        parser.error("require patterns 1..256, nonnegative device, positive timeout")
-    directory = args.fixture_directory.resolve(strict=True)
-    if args.revision is None:
-        args.revision = checked_run(
-            ["git", "rev-parse", "HEAD"], cwd=directory, timeout=10
-        ).stdout.strip()
-    if len(args.revision) != 40 or any(c not in "0123456789abcdef" for c in args.revision):
-        parser.error("revision must be an exact 40-character git object ID")
     result = args.result.resolve()
+    candidate_directory = args.fixture_directory.resolve()
+    if result in {candidate_directory / p for p in INPUT_FILES}:
+        parser.error("receipt path must not overwrite an input artifact")
+    args.invocation_id = args.invocation_id or str(uuid.uuid4())
+    initial = {
+        "schema_version": 1,
+        "status": "incomplete",
+        "target": "gfx1250",
+        "invocation_id": args.invocation_id,
+        "timestamp_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "argv": sys.argv,
+    }
     try:
+        # Invalidate any previous PASS before git, fixture, SSH, or build preflight.
+        write_receipt(result, initial)
+        if not 1 <= args.patterns <= 256 or args.device < 0 or args.timeout < 1:
+            raise ValueError("require patterns 1..256, nonnegative device, positive timeout")
+        if str(uuid.UUID(args.invocation_id)) != args.invocation_id:
+            raise ValueError("invocation ID must be a canonical UUID")
+        directory = args.fixture_directory.resolve(strict=True)
+        if args.revision is None:
+            args.revision = checked_run(
+                ["git", "rev-parse", "HEAD"], cwd=directory, timeout=10
+            ).stdout.strip()
+        if len(args.revision) != 40 or any(c not in "0123456789abcdef" for c in args.revision):
+            raise ValueError("revision must be an exact 40-character git object ID")
         if args.local:
             run_local(args, directory, result)
         else:
@@ -746,6 +799,21 @@ def main() -> int:
         print(f"PASS all 20 portable cases, {590 * args.patterns} outputs; receipt: {result}")
         return 0
     except Exception as error:
+        # Preserve the current invocation's detailed command records, if any.
+        # A failed download, missing source, invalid manifest, or lost SSH session
+        # must not leave an older/current-looking success artifact at --result.
+        failure = initial
+        try:
+            current = json.loads(result.read_text())
+            if current.get("invocation_id") == args.invocation_id:
+                failure = current
+        except (OSError, ValueError, AttributeError):
+            pass
+        failure.update(status="fail", error=str(error))
+        try:
+            write_receipt(result, failure)
+        except OSError as receipt_error:
+            print(f"could not invalidate receipt {result}: {receipt_error}", file=sys.stderr)
         print(f"portable hardware validation failed: {error}; receipt: {result}", file=sys.stderr)
         return 1
 

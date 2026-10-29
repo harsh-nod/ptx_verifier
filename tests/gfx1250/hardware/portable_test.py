@@ -2,12 +2,17 @@
 """Host-only refusal/accounting controls for portable_run.py."""
 
 import copy
+import contextlib
+import io
 import importlib.util
 import json
 from pathlib import Path
 import shutil
 import tempfile
+import subprocess
+import sys
 import unittest
+from unittest import mock
 
 SCRIPT = Path(__file__).with_name("portable_run.py")
 SPEC = importlib.util.spec_from_file_location("portable_run", SCRIPT)
@@ -82,6 +87,85 @@ class PortableHardwareControls(unittest.TestCase):
                 self.write_manifest()
                 with self.assertRaises(ValueError):
                     RUNNER.validate_manifest(self.directory)
+
+    def test_inherited_visibility_and_architecture_overrides_are_rejected(self):
+        self.assertEqual({"HIP_VISIBLE_DEVICES": "1"}, RUNNER.device_environment(1, {}))
+        for key in (
+            "HIP_VISIBLE_DEVICES",
+            "ROCR_VISIBLE_DEVICES",
+            "CUDA_VISIBLE_DEVICES",
+            "GPU_DEVICE_ORDINAL",
+            "HSA_OVERRIDE_GFX_VERSION",
+            "HSA_OVERRIDE_GFX_VERSION_0",
+            "HSA_OVERRIDE_GFX_VERSION_1",
+        ):
+            for value in ("", "12.5.0"):
+                with self.subTest(key=key, value=value):
+                    with self.assertRaisesRegex(ValueError, "overrides"):
+                        RUNNER.device_environment(1, {key: value})
+
+    def test_stale_pass_is_replaced_when_manifest_preflight_or_ssh_fails(self):
+        result = self.directory / "receipt.json"
+        arguments = [
+            str(SCRIPT),
+            "--host",
+            "unused.invalid",
+            "--device",
+            "1",
+            "--revision",
+            "a" * 40,
+            "--fixture-directory",
+            str(self.directory),
+            "--result",
+            str(result),
+        ]
+        for failure in ("manifest", "ssh"):
+            with self.subTest(failure=failure):
+                result.write_text(json.dumps({"status": "pass", "invocation_id": "stale"}))
+                if failure == "manifest":
+                    self.manifest["cases"] = []
+                    self.write_manifest()
+                else:
+                    shutil.copyfile(
+                        FIXTURES / "portable-cases.json", self.directory / "portable-cases.json"
+                    )
+                with (
+                    mock.patch.object(sys, "argv", arguments),
+                    mock.patch.object(RUNNER, "validate_revision"),
+                    mock.patch.object(
+                        RUNNER, "checked_run", side_effect=RuntimeError("SSH refused")
+                    ) as commands,
+                    contextlib.redirect_stderr(io.StringIO()),
+                ):
+                    self.assertEqual(1, RUNNER.main())
+                receipt = json.loads(result.read_text())
+                self.assertEqual("fail", receipt["status"])
+                self.assertNotEqual("stale", receipt["invocation_id"])
+                self.assertIn("timestamp_utc", receipt)
+                self.assertIn("error", receipt)
+                if failure == "ssh":
+                    self.assertEqual("SSH refused", receipt["error"])
+                    self.assertEqual("ssh", commands.call_args.args[0][0])
+                else:
+                    self.assertIn("all 20 portable cases", receipt["error"])
+                    commands.assert_not_called()
+
+    def test_nonzero_process_and_timeout_cannot_produce_success(self):
+        records = []
+        with self.assertRaisesRegex(RuntimeError, "exited 9"):
+            RUNNER.checked_run(
+                [sys.executable, "-c", "import sys; print('PASS'); sys.exit(9)"],
+                timeout=5,
+                records=records,
+            )
+        self.assertEqual(9, records[0]["exit_code"])
+        self.assertIn("PASS", records[0]["stdout"])
+        with mock.patch.object(
+            subprocess, "run", side_effect=subprocess.TimeoutExpired(["probe"], 1)
+        ):
+            with self.assertRaisesRegex(RuntimeError, "timed out"):
+                RUNNER.checked_run(["probe"], timeout=1, records=records)
+        self.assertEqual("timeout", records[1]["status"])
 
     def complete_result(self):
         rows = []
