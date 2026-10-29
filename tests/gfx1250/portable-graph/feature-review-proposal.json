@@ -20,9 +20,8 @@
     "84be9d963fd72dd998f6dfef926e16cf23d4735b"
   ],
   "counts": {
-    "native_assertion_candidate": 45,
-    "native_contract_difference_candidate": 11,
-    "portable_native_gap": 3
+    "native_assertion_candidate": 46,
+    "native_contract_difference_candidate": 13
   },
   "rows": [
     {
@@ -575,10 +574,10 @@
       ],
       "baseline_golden": null,
       "portable_obligation": "Same PTX object sees conflicting64/32 counts across wait/arrive.",
-      "native_scope": "Native expected count is initialized per object; source checks count2 with both waves, count3/arrived2 deadlock with all64 blocked, and a released ordered newcount1 lifetime.",
-      "target_contract_residual": "Native public hardware supports signal-time expected-count updates in M0 bits22:16; this implementation has not yet modeled that operation. PTX thread counts map separately to native wave-arrival counts.",
-      "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation.",
-      "proposal": "portable_native_gap",
+      "native_scope": "Actual public M0 signal-time update: same incarnation phase0 count2 then phase1 count1 preserves exactly[7,7]; zero/NULL, all127 arrivals, stable expected3/arrived2 deadlock in both actual wave orders, and below-arrived typed-invalid controls are separate.",
+      "target_contract_residual": "PTX thread counts64/32 map separately to native wave-arrival counts2/1. Exact count2-to-count1 after one arrival is retained as an actual Unsupported/Unknown boundary: pinned public formal and code-sequence rules disagree at equality. Supporting count3 deadlock is not substituted for that instruction.",
+      "remaining_gate": "Coordinator review of actual source-backed signal updates, full payload/progress controls and precise public equality/ordering residual; completion is not automatic.",
+      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
@@ -590,9 +589,40 @@
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "native_count_changes_require_a_released_ordered_new_initialization_lifetime",
           "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "actual_signal_updates_change_count_between_phases_without_reinitialization",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "an_actual_count_update_cannot_release_two_arrivals_when_it_requires_three",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "a_decrease_below_existing_arrivals_has_a_typed_protocol_violation",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "equal_to_arrived_boundary_remains_explicitly_inconclusive",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "conflicting_count_updates_need_order_but_equal_updates_are_commutative",
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "equal_explicit_count_updates_still_require_order_against_other_wave_drops",
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         }
       ],
-      "completion": "coordinator_review_required"
+      "completion": "coordinator_review_required",
+      "previous_portable_gap": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_arrive_twice_before_the_barrier_fires.ptx",
@@ -644,10 +674,10 @@
       ],
       "baseline_golden": null,
       "portable_obligation": "PTX allows a new phase count, but the baseline tool rejects its unsupported count change.",
-      "native_scope": "Actual complete[7,7] payload, INIT(incarnation0,count2), allLEAVEs and rendezvous, then INIT(incarnation1,count1).",
-      "target_contract_residual": "Native public hardware supports signal-time expected-count updates in M0 bits22:16; this implementation has not yet modeled that operation. PTX thread counts map separately to native wave-arrival counts.",
-      "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation.",
-      "proposal": "portable_native_gap",
+      "native_scope": "Actual public M0 signal-time update: same incarnation phase0 count2 then phase1 count1 preserves exactly[7,7]; zero/NULL, all127 arrivals, stable expected3/arrived2 deadlock in both actual wave orders, and below-arrived typed-invalid controls are separate.",
+      "target_contract_residual": "Native signal-time counts update within one initialization lifetime and successive phases. PTX first-arrival-pinned tool behavior and thread-count granularity differ; the actual native phase-change positive preserves both word7 outputs.",
+      "remaining_gate": "Coordinator review of actual source-backed signal updates, full payload/progress controls and precise public equality/ordering residual; completion is not automatic.",
+      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
@@ -659,9 +689,40 @@
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "native_count_changes_require_a_released_ordered_new_initialization_lifetime",
           "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "actual_signal_updates_change_count_between_phases_without_reinitialization",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "an_actual_count_update_cannot_release_two_arrivals_when_it_requires_three",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "a_decrease_below_existing_arrivals_has_a_typed_protocol_violation",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "equal_to_arrived_boundary_remains_explicitly_inconclusive",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "conflicting_count_updates_need_order_but_equal_updates_are_commutative",
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "equal_explicit_count_updates_still_require_order_against_other_wave_drops",
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         }
       ],
-      "completion": "coordinator_review_required"
+      "completion": "coordinator_review_required",
+      "previous_portable_gap": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_mismatch.ptx",
@@ -678,10 +739,10 @@
       ],
       "baseline_golden": null,
       "portable_obligation": "Conflicting32/64 counts cannot certify Shared word7 transfer.",
-      "native_scope": "Actual Sharedword7 producer/consumer requires initialized native count2; count3/arrived2 blocks all64 workitems before any output certificate.",
-      "target_contract_residual": "Native public hardware supports signal-time expected-count updates in M0 bits22:16; this implementation has not yet modeled that operation. PTX thread counts map separately to native wave-arrival counts.",
-      "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation.",
-      "proposal": "portable_native_gap",
+      "native_scope": "Actual public M0 signal-time update: same incarnation phase0 count2 then phase1 count1 preserves exactly[7,7]; zero/NULL, all127 arrivals, stable expected3/arrived2 deadlock in both actual wave orders, and below-arrived typed-invalid controls are separate.",
+      "target_contract_residual": "PTX thread counts64/32 map separately to native wave-arrival counts2/1. Exact count2-to-count1 after one arrival is retained as an actual Unsupported/Unknown boundary: pinned public formal and code-sequence rules disagree at equality. Supporting count3 deadlock is not substituted for that instruction.",
+      "remaining_gate": "Coordinator review of actual source-backed signal updates, full payload/progress controls and precise public equality/ordering residual; completion is not automatic.",
+      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
@@ -693,9 +754,40 @@
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
           "function": "native_count_changes_require_a_released_ordered_new_initialization_lifetime",
           "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "actual_signal_updates_change_count_between_phases_without_reinitialization",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "an_actual_count_update_cannot_release_two_arrivals_when_it_requires_three",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "a_decrease_below_existing_arrivals_has_a_typed_protocol_violation",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "equal_to_arrived_boundary_remains_explicitly_inconclusive",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "conflicting_count_updates_need_order_but_equal_updates_are_commutative",
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "equal_explicit_count_updates_still_require_order_against_other_wave_drops",
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         }
       ],
-      "completion": "coordinator_review_required"
+      "completion": "coordinator_review_required",
+      "previous_portable_gap": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_split_across_two_instructions_in_one_warp.ptx",
@@ -922,9 +1014,14 @@
       "native_evidence": [
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
-          "function": "named_initialization_without_crosswave_execution_order_is_inconclusive",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "function": "named_initialization_without_crosswave_execution_order_is_a_typed_violation",
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085",
+          "historical_reference": {
+            "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+            "function": "named_initialization_without_crosswave_execution_order_is_inconclusive",
+            "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+            "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc"
+          }
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
@@ -1007,9 +1104,14 @@
       "native_evidence": [
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
-          "function": "named_initialization_without_crosswave_execution_order_is_inconclusive",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "function": "named_initialization_without_crosswave_execution_order_is_a_typed_violation",
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085",
+          "historical_reference": {
+            "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+            "function": "named_initialization_without_crosswave_execution_order_is_inconclusive",
+            "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
+            "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc"
+          }
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",

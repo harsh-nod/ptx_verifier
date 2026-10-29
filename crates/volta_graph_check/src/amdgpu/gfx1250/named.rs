@@ -20,6 +20,7 @@ impl Point {
 struct Phase {
     signals: Vec<Point>,
     drops: Vec<Point>,
+    signal_updates: HashMap<EventId, u16>,
     complete: bool,
     releases: Vec<Point>,
 }
@@ -30,6 +31,7 @@ struct Object {
     arrived: u16,
     phase: u32,
     phases: HashMap<u32, Phase>,
+    count_changes: Vec<(Point, u16)>,
     last_arrive: HashMap<usize, u32>,
     uses: Vec<Point>,
 }
@@ -113,6 +115,7 @@ impl State {
             AmdEventKind::NamedBarrierInit { object, .. } => (object, 0),
             AmdEventKind::NamedBarrierJoin { object, phase }
             | AmdEventKind::NamedBarrierSignal { object, phase, .. }
+            | AmdEventKind::NamedBarrierSignalWithCount { object, phase, .. }
             | AmdEventKind::NamedBarrierWait { object, phase, .. }
             | AmdEventKind::NamedBarrierRelease { object, phase }
             | AmdEventKind::NamedBarrierLeave { object, phase } => (object, phase),
@@ -170,6 +173,7 @@ impl State {
                     arrived: 0,
                     phase: 0,
                     phases: HashMap::new(),
+                    count_changes: Vec::new(),
                     last_arrive: HashMap::new(),
                     uses: vec![point],
                 },
@@ -264,7 +268,65 @@ impl State {
                     join: point,
                 });
             }
-            AmdEventKind::NamedBarrierSignal { .. } => {
+            AmdEventKind::NamedBarrierSignal { .. }
+            | AmdEventKind::NamedBarrierSignalWithCount { .. } => {
+                let update = match record.kind {
+                    AmdEventKind::NamedBarrierSignalWithCount { expected, .. } => Some(expected),
+                    _ => None,
+                };
+                for (changed, value) in &object.count_changes {
+                    if update != Some(*value) && !changed.before(&point) {
+                        self.unresolved.push(Unresolved::between(
+                            changed.event,
+                            record.event,
+                            "named count change is unordered with another wave's contribution",
+                        ));
+                    }
+                }
+                if let Some(expected) = update
+                    && expected != object.expected
+                {
+                    for state in object.phases.values() {
+                        for previous in state.signals.iter().chain(&state.drops) {
+                            if state.signal_updates.get(&previous.event) != Some(&expected)
+                                && !previous.before(&point)
+                            {
+                                self.unresolved.push(Unresolved::between(previous.event, record.event,
+                                "named count change is unordered with an earlier candidate contribution"));
+                            }
+                        }
+                    }
+                    object.count_changes.push((point.clone(), expected));
+                }
+                if let AmdEventKind::NamedBarrierSignalWithCount { expected, .. } = record.kind {
+                    for state in object.phases.values() {
+                        for drop in &state.drops {
+                            if !drop.before(&point) {
+                                self.unresolved.push(Unresolved::between(drop.event, record.event,
+                                    "named explicit count update is unordered with another wave's drop"));
+                            }
+                        }
+                    }
+                    if expected < object.arrived {
+                        self.fail(
+                            record,
+                            phase,
+                            "named signal expected count is less than the current arrival count",
+                        );
+                        return None;
+                    }
+                    if expected == object.arrived {
+                        self.unresolved.push(Unresolved::at(record.event, "named signal expected count equals current arrivals: public formal and code-sequence boundary rules differ"));
+                        return None;
+                    }
+                    object.expected = expected;
+                    object
+                        .phases
+                        .entry(phase)
+                        .or_default()
+                        .signal_updates
+                        .insert(record.event, expected);
+                }
                 if phase != object.phase || object.expected == 0 {
                     self.fail(
                         record,
@@ -349,6 +411,19 @@ impl State {
                 return Some(release);
             }
             AmdEventKind::NamedBarrierLeave { .. } => {
+                for state in object.phases.values() {
+                    for update in &state.signals {
+                        if state.signal_updates.contains_key(&update.event)
+                            && !update.before(&point)
+                        {
+                            self.unresolved.push(Unresolved::between(
+                                update.event,
+                                record.event,
+                                "named explicit count update is unordered with another wave's drop",
+                            ));
+                        }
+                    }
+                }
                 if self.joined[wave]
                     .as_ref()
                     .is_none_or(|j| j.handle != handle)

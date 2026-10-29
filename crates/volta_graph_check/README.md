@@ -355,8 +355,12 @@ selector is not inferred from its encoded operand.
 This selected profile follows LLVM's pinned
 [named barrier execution model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md#named-barriers-model-extensions)
 and [instruction sequences](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md#code-sequences-1).
-Unordered initialization/reuse, outstanding joins at reinitialization and missing
-native sideband state stay inconclusive. Signal-time expected-count updates,
-`_isfirst`, and clustered objects are outside this profile. The native allocated
+Unordered initialization/reuse produces typed potential protocol violations;
+outstanding joins at reinitialization and missing native sideband state remain
+inconclusive. Signal-time expected-count updates
+retain their exact7-bit nonzero domain, phase/lifetime and M0 source. Different
+setters and drops require execution order across phases; identical explicit
+updates may commute. Equality with existing arrivals remains inconclusive.
+`_isfirst` and clustered objects are outside this profile. The native allocated
 controls and independent malformed graphs are separate tests; no GPU execution
 of a harmful mutation is required or claimed.

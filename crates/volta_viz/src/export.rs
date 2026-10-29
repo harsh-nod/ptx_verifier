@@ -643,6 +643,7 @@ fn edges(graph: &EventGraph, view: &DisplayEvents) -> Json {
     for record in graph.amd_events() {
         match record.kind {
             volta_graph::AmdEventKind::NamedBarrierSignal { object, phase, .. }
+            | volta_graph::AmdEventKind::NamedBarrierSignalWithCount { object, phase, .. }
             | volta_graph::AmdEventKind::NamedBarrierLeave { object, phase }
                 if object.id != 0 =>
             {
@@ -847,6 +848,9 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
                 }
                 volta_graph::AmdEventKind::NamedBarrierJoin { object, phase }
                 | volta_graph::AmdEventKind::NamedBarrierSignal { object, phase, .. }
+                | volta_graph::AmdEventKind::NamedBarrierSignalWithCount {
+                    object, phase, ..
+                }
                 | volta_graph::AmdEventKind::NamedBarrierWait { object, phase, .. }
                 | volta_graph::AmdEventKind::NamedBarrierRelease { object, phase }
                 | volta_graph::AmdEventKind::NamedBarrierLeave { object, phase } => {
@@ -859,6 +863,15 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
                         volta_graph::AmdEventKind::NamedBarrierJoin { .. } => "join",
                         volta_graph::AmdEventKind::NamedBarrierSignal { exec_mask, .. } => {
                             info.push(("EXEC", format!("{exec_mask:#x}")));
+                            "signal"
+                        }
+                        volta_graph::AmdEventKind::NamedBarrierSignalWithCount {
+                            exec_mask,
+                            expected,
+                            ..
+                        } => {
+                            info.push(("EXEC", format!("{exec_mask:#x}")));
+                            info.push(("updated expected arrivals", expected.to_string()));
                             "signal"
                         }
                         volta_graph::AmdEventKind::NamedBarrierWait { encoded, .. } => {
