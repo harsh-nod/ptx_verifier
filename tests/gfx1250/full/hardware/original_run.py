@@ -36,7 +36,7 @@ CONTRACT = {
 }
 INPUTS = (
     "hardware/portable_run.py", "full/hardware/original_run.py",
-    "full/hardware/original.cpp", "full/fixtures/original-f16.hip",
+    "full/hardware/original.cpp", "full/hardware/original_common.hpp", "full/fixtures/original-f16.hip",
     "full/fixtures/original-f16.s", "full/fixtures/original-f8.hip",
     "full/fixtures/original-f8.s",
 )
