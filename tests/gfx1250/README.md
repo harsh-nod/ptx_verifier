@@ -114,14 +114,18 @@ python3 ai_compiler_kernels/check_races.py --backend amdgpu --target gfx1250 \
   --binary target/release/volta --mutate -k copy --color never
 ```
 
-The workspace retains the inherited PTX failure
-`test_aligned_bar_sync_reached_on_different_iterations`. It is disclosed in the
-historical baseline and is not a gfx1250 acceptance or regression claim.
+The historical PTX baseline failure
+`test_aligned_bar_sync_reached_on_different_iterations` has a separate fix:
+aligned arrivals now retain their per-instruction visit ordinal, including
+predicated skipped visits. The original regression fixture is unchanged.
 Expression/VC replay checks equivalence only, because those formats contain no
 native event graph. Target-preserving graph dumps and the viewer carry their
 own trace evidence.
 
 The [contract](CONTRACT.md) states register/ABI, replay and advanced-mode limits.
+The [original32 registration and workflow contract](full-parity/README.md) and
+[instruction-stage table](full-parity/stage-support.md) describe the subsequent
+issue #21 implementation separately from the bounded issue #13 corpus.
 The [upstream audit](UPSTREAM_AUDIT.md) maps the latest transpose, BF16, wide
 arithmetic and barrier-loop changes to native counterparts or explicit
 architecture boundaries. [External recipes](../../external/gfx1250/README.md)
