@@ -62,7 +62,7 @@ Regenerate with `python3 tests/gfx1250/full-parity/generate_stage_profiles.py`; 
 | `s_ctz_i32_b32` | none | 1 | scalar | W17, W18 |
 | `s_delay_alu` | none | 1 | control | W01, W02, W03, W04, W05, W06, W07, W08, W09, W10, W11, W12, W13, W14, W15, W16, W17, W18, W19, W20, W21, W22, W23, W24, W25, W26, W27, W28, W29, W30, W31, W32 |
 | `s_endpgm` | none | 1 | control | W01, W02, W03, W04, W05, W06, W07, W08, W09, W10, W11, W12, W13, W14, W15, W16, W17, W18, W19, W20, W21, W22, W23, W24, W25, W26, W27, W28, W29, W30, W31, W32 |
-| `s_getreg_b32` | none | 1 | scalar | W01, W02, W03, W04, W05, W06, W07, W08, W09, W10, W11, W12, W13, W14, W15, W16, W17, W18, W19, W20, W21, W22, W23, W24, W25, W26, W27, W28, W29, W30, W31, W32 |
+| `s_getreg_b32` | none | 1 | hardware_abi | W01, W02, W03, W04, W05, W06, W07, W08, W09, W10, W11, W12, W13, W14, W15, W16, W17, W18, W19, W20, W21, W22, W23, W24, W25, W26, W27, W28, W29, W30, W31, W32 |
 | `s_load_b128` | none | 1 | memory | W01, W02, W03, W04, W05, W06, W07, W08, W11, W12, W13, W14, W15, W16, W17, W18, W19, W20, W22, W23, W24, W26, W27, W28, W31, W32 |
 | `s_load_b256` | none | 1 | memory | W09, W10, W22, W24, W25, W26, W29, W30 |
 | `s_load_b32` | none; offset:0x3fc, scale_offset | 2 | memory | W13, W14, W23, W25 |

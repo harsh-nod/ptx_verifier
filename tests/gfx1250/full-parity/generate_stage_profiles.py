@@ -40,6 +40,8 @@ def category(row):
     name, family = row["mnemonic"], row["family"]
     if name == "s_sendmsg":
         return "release"
+    if name == "s_getreg_b32":
+        return "hardware_abi"
     if name == "ds_bpermute_b32":
         return "permutation"
     if name.startswith("global_atomic_"):
@@ -66,6 +68,22 @@ def implementation_contracts():
         return reference(GRAPH + "tests/gfx1250_tests.rs", function)
 
     definitions = {
+        "hardware_abi": (
+            "scalar",
+            "Only the compiler's HW_REG_IB_STS2 offset6 width4 read is modeled in the selected unsplit launch profile. Other hardware fields never receive a fabricated zero; no general hardware-register model is claimed.",
+            [
+                reference(
+                    AMD + "tests/gfx1250_full_execution.rs",
+                    "original_f16_relu_preserves_both_symbolically_selected_halves",
+                )
+            ],
+            [
+                test(
+                    "gfx1250_mechanism_boundary_tests",
+                    "compiler_hardware_field_read_never_generalizes_to_unmodeled_field_bits",
+                )
+            ],
+        ),
         "scalar": (
             "scalar",
             "Exact concrete integer/bit/carry and typed mathematical scalar data; opaque address and SCC restrictions remain explicit.",
