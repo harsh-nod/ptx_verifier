@@ -399,7 +399,7 @@ racing another thread's use of the object keeps its witness.
 ### Analysis stage (`analysis.rs`, `config.rs`)
 
 - `config.rs` - `AnalysisConfig`: launch dims, positional `ParamValue`s (int/float/symbolic-float/array-pointer), `ArrayDef`s (`Input`/`Output`/`InputOutput`/`IndexInput`), module-global values, dynamic shared size
-- `launch_file.rs` - `LaunchFile::from_json`: the JSON launch file (`volta analyze --config FILE`) to the kernel it names + a validated `AnalysisConfig`; arrays by `dtype`/`shape`, auto-laid out on 64 KiB boundaries unless given a `base`; params `{"int"|"float"|"sym"|"ptr": ...}` with an optional reader-only `name`; unknown keys are errors
+- `launch_file.rs` - `LaunchFile::from_json`: the JSON launch file (`volta analyze --config FILE`) to the kernel it names + a validated `AnalysisConfig`; arrays by `dtype`/`shape`, auto-laid out on 64 KiB boundaries unless given a `base`; params `{"int"|"float"|"sym"|"ptr": ...}` with an optional reader-only `name`, or exact native `{"bytes": [...]}`; optional `shared_allocations` byte ranges `[{"name":"tile","offset":0,"size":256}]` preserve native LDS object-bound premises; unknown keys and malformed/overlapping/duplicate/overflowing ranges are errors. Native execution validates capacity/access bounds; PTX rejects LDS premises
 - No behavior depends on the module's `.target` directive (recorded in the
   graph's `Provenance` only): every kernel is analyzed and checked as on
   Blackwell, so the proxy-order check always runs
@@ -777,6 +777,9 @@ mirror existing Rust configuration. Failed native checks raise typed
 PTX is the default; `--backend amdgpu --target gfx942|gfx950|gfx1250` selects
 native assembly through `verify_source_kernel`. Omitted AMD targets keep gfx950.
 The same launch, comparison, numeric, export, logging and viewer interfaces apply.
+Native `--config` JSON supports the same optional `shared_allocations` byte ranges
+as `--shared-allocation` and Python; strict name/range validation and native LDS
+bounds apply, and PTX rejects these native-only premises.
 
 Commands:
 

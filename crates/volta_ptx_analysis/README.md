@@ -167,7 +167,17 @@ analyze --config`) into the kernel it names and a validated
 `AnalysisConfig`. Arrays take a `dtype` and a `shape` and are laid
 out on 64 KiB boundaries unless given a `base`; params are `{"int": N}`,
 `{"float": X}`, `{"sym": name}` or `{"ptr": array}` with an optional `name`
-label; unknown keys are errors. The module docs give the full format.
+label; unknown keys are errors. Native by-value parameters also accept
+`{"bytes": [...]}` with the exact metadata-sized payload, including padding.
+
+The shared launch-file parser accepts optional native AMD `shared_allocations`:
+`[{"name": "tile", "offset": 0, "size": 256}]`, with offsets/sizes in bytes.
+These are the same caller-supplied LDS object-bound premises as the CLI's
+`--shared-allocation` and Python's `Config.add_shared_allocation`. Empty/duplicate
+names, empty/overlapping/overflowing ranges and unknown keys are rejected. Native
+execution also checks aggregate LDS capacity and each access against the supplied
+object bounds. PTX analysis rejects this native-only premise. The module docs
+give the full format.
 
 ## Module layout
 

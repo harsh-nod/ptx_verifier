@@ -38,12 +38,9 @@
 //! including ABI padding and pointer values, are supplied explicitly. PTX
 //! rejects this form.
 //!
-//! Native AMD launches may also provide `shared_allocations`, a list of
-//! `{"name": "tile", "offset": 0, "size": 256}` byte ranges. These optional
-//! caller-supplied LDS subobject boundaries have the same meaning as the CLI's
-//! `--shared-allocation` and Python's `Config.add_shared_allocation`. Names must
-//! be nonempty and unique; ranges must be nonempty, disjoint and fit the native
-//! kernel's LDS allocation. PTX rejects this native-only premise.
+//! Native AMD `shared_allocations` uses `{"name": "tile", "offset": 0, "size": 256}`
+//! byte ranges, matching CLI/Python LDS subobject premises. Names and disjoint
+//! nonempty ranges are validated; PTX rejects this native-only premise.
 
 use std::collections::BTreeMap;
 
