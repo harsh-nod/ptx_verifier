@@ -5326,6 +5326,10 @@ impl<'a> Interpreter<'a> {
             (0..=4095).contains(&offset)
         } else if scalar {
             (0..=(1 << 21) - 1).contains(&offset)
+        } else if self.architecture == AmdArchitecture::Gfx1250 && name.starts_with("global_") {
+            // LLVM FeatureFlatOffsetBits24 and VFLAT_Real encode a signed24
+            // immediate. scale_offset scales the VGPR index, not this byte offset.
+            (-8_388_608..=8_388_607).contains(&offset)
         } else {
             (-4096..=4095).contains(&offset)
         };
