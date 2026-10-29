@@ -119,6 +119,20 @@ class OriginalShapeContractTests(unittest.TestCase):
             with self.subTest(identifier=identifier), self.assertRaises(ValueError):
                 self.validate(data)
 
+    def test_convolution_keeps_full_pitches_dtype_and_native_fixed_lds(self):
+        for identifier, mutate in (
+            ("W19", lambda c: c["dimensions"].update(C=16)),
+            ("W19", lambda c: c.update(dynamic_shared_bytes=232448)),
+            ("W19", lambda c: c["shared_memory_mapping"].update(native_fixed=16384)),
+            ("W20", lambda c: c["arrays"][0].update(element_size=2, dtype="f16")),
+            ("W20", lambda c: c["output_projection"][0].update(length=128)),
+        ):
+            data = copy.deepcopy(self.registry)
+            case = next(c for c in data["cases"] if c["baseline_id"] == identifier)
+            mutate(case)
+            with self.subTest(identifier=identifier), self.assertRaises(ValueError):
+                self.validate(data)
+
     def test_existing_public_launch_fields_are_forwarded_without_zero_fill(self):
         case = copy.deepcopy(self.registry["cases"][0])
         case.update(
