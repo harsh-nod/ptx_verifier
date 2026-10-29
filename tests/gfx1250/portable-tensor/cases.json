@@ -1,0 +1,695 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "18 finite source-reference rows:5 tensor-edge and13 tensor metadata/lifetime. These are not18 independent positive workloads. All dispositions await coordinator validation.",
+  "completion": "pending_coordinator_validation",
+  "hardware_execution": false,
+  "source_reference_revision": "b3a3791",
+  "artifacts": {
+    "tests/gfx1250/portable-tensor/mutations.tsv": "8156c8e74ea50be55a92e9897f4e94d45542bec3c4a49b51939ade03adc0f87a",
+    "tests/gfx1250/portable-tensor/native-tensor-descriptor-bytes.hip": "a1226e5db26753b9ed02f358b859fd5f8cc6f4ab341dd38d7a46390f2c9cea4c",
+    "tests/gfx1250/portable-tensor/native-tensor-descriptor-bytes.s": "dbd72d48a0f4bbab026b03b7ddbfb376fa31e637e0396dbeb6a453b9e60a7862",
+    "tests/gfx1250/portable-tensor/native-tensor-edge.hip": "978074a1cec058a7fec9c8a14156cfa391e7f30dd3d33f40fff4220047cb063c",
+    "tests/gfx1250/portable-tensor/native-tensor-edge.s": "2ed3809b7bc1a9a7d862041ff5374944eede92439070587688c620b5c7a235ec",
+    "tests/gfx1250/portable-tensor/native-tensor-metadata.hip": "a1d18353fd0c3183fea8f4adc47b70bafec4bf7e3041e0f6720a963f17bd7066",
+    "tests/gfx1250/portable-tensor/native-tensor-metadata.s": "47b07da2ebc20e6fb47301adc7143911d90317d7f25cb77b09c59501a88b9bf7",
+    "tests/gfx1250/portable-tensor/native-tensor-publication.hip": "462a5e205bb9182390695fdf86807ecc07b0d4d8e61008e6c9a6b5c8516845b6",
+    "tests/gfx1250/portable-tensor/native-tensor-publication.s": "c1cd868abf53ddb2ab51f3b6dcd94acde60a9c8c8ac7d17112c307e6b0045aac",
+    "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs": "253810ad4ede2ab68a332ab051c61038d4ceb487cee198e61d88cfb3d4edb83b"
+  },
+  "native_edge_configuration": {
+    "block": [
+      64,
+      1,
+      1
+    ],
+    "grid": [
+      1,
+      1,
+      1
+    ],
+    "input": {
+      "name": "in",
+      "base": 65536,
+      "dtype": "F16",
+      "shape": [
+        8,
+        8
+      ],
+      "row_pitch_bytes": 16
+    },
+    "logical_tile_shape": [
+      4,
+      4
+    ],
+    "logical_tile_origin": [
+      6,
+      6
+    ],
+    "tdm_valid_crop": {
+      "shape": [
+        2,
+        2
+      ],
+      "global_base_index": 54,
+      "global_row_stride_elements": 8,
+      "explicit_software_zero_cells": 12
+    },
+    "output": {
+      "name": "out",
+      "base": 131072,
+      "dtype": "F16",
+      "length": 16
+    },
+    "original_output_projection": {
+      "out[0]": "native out[0] = in[54]",
+      "out[1]": "native out[15] =0"
+    },
+    "launch_difference": "Original cases use32 or64 threads; native uses64 threads/two wave32s and all16 outputs. No input, tile, datatype or pitch is reduced."
+  },
+  "native_descriptor_schema": {
+    "memory_fields": "D0 UInt4 at0; D1 Int8 at32; one zero Int4 at64 reused for D2/D3. Only64 meaningful bytes are copied, not the NVIDIA128-byte schema.",
+    "actual_tdm_operands": "4,8,4,4 scalar words; descriptor data consumed as register values. No NVIDIA memory-backed proxy read lifetime is implied."
+  },
+  "required_production_profiles": [
+    "TDM descriptor capture at issue with ordinary reads retained",
+    "Native DS_LOAD_2ADDR_B32 dual-address effects",
+    "Native B32 FLAT scale_offset in the genuine three-operand form"
+  ],
+  "rows": [
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_bulk_tensor_read_without_waiting_is_an_inflight_hazard.ptx",
+      "upstream_sha256": "23b323eff6f5dfdce929bcc778b72bb144b2fd7f346d5ee5c38cc3118ced1124",
+      "group": "TENSOR-EDGE-LAYOUT",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_cp_async_bulk_tensor_read_without_waiting_is_an_inflight_hazard",
+          "line": 288,
+          "function_region_sha256": "8374e551b0cf06fc68833616150fe764ee73baba70f4b8ae978068a40247f661",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "An in-flight asynchronous write cannot be read merely because execution reached a CTA barrier; its own completion is required.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_cta_barrier_without_tensor_completion_does_not_publish_the_cropped_tile",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::crosswave_shared_descriptor_publication_retains_the_complete_tensor_payload"
+      ],
+      "expected_outcome": "Complete candidate plus typed WriteRead conflict on actual TDM crop LDS byte128; waited positive verifies all16 F16 output cells.",
+      "target_only_residual": "PTX complete_tx/mbarrier completion is replaced by actual native Tensor0 plus CTA publication. The native TDM copies only the valid2x2 region; explicit LDS stores implement the complete4x4 zero-padded tile.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_fenceproxy_races_another_warps_replace.ptx",
+      "upstream_sha256": "8b1726b264003bf9f855e0efd260ca029efc2f33d16af4f09cb9dbca4cfcbafd",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_cp_fenceproxy_races_another_warps_replace",
+          "line": 606,
+          "function_region_sha256": "ad520f311d1eb4aab707b161a995ce5f00736ad36e709ec65c00b942cb3b10cb",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-descriptor-bytes.hip",
+        "native-tensor-descriptor-bytes.s",
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "The complete128-byte copy reads Shared source bytes and writes Global destination bytes; unordered replacements must conflict with both accesses.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::ordinary_native_descriptor_copy_preserves_all_128_bytes_in_both_outputs",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::the_full_metadata_copy_read_and_write_race_the_same_word_replacements",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_metadata_copy_racing_source_and_destination_replacements_has_both_witnesses"
+      ],
+      "expected_outcome": "Ordered full32-word destination plus32-word readback are exact independent seed identities. Harmful variant completes and carries source Shared WR/RW at byte0 and destination Global WW at0x20000.",
+      "target_only_residual": "The opaque NVIDIA128-byte tensor-map schema/proxy-copy collective differs from AMD register descriptors. Native ordinary memory copies retain all128 data bytes and both spaces; the separate native descriptor copy is explicitly only64 meaningful bytes and is not substituted for this footprint.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tensormap_replace_while_tma_in_flight.ptx",
+      "upstream_sha256": "98023f8ba5ce717afd4692b77c78fb41534bd2cf6ffb00ec0ff3828bf0967d3c",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_tensormap_replace_while_tma_in_flight",
+          "line": 465,
+          "function_region_sha256": "02b6486a28150aa01109794f08a84b1ef58ce3c3f0b882b9d4f66428981f6edc",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Metadata words must complete their actual ordinary reads before consumption/reuse; no asynchronous reader may gain visibility from an unrelated counter.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::descriptor_register_consumption_requires_the_correct_data_completion",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::old_metadata_memory_can_be_rewritten_after_its_descriptor_words_are_captured",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::crosswave_shared_descriptor_publication_retains_the_complete_tensor_payload"
+      ],
+      "expected_outcome": "Wrong DS-data completion yields typed ReadBeforeReady while the candidate completes. Rewriting the old metadata memory object after its words are captured preserves all16 output values.",
+      "target_only_residual": "TMA asynchronously reads a128-byte memory-backed NVIDIA map through its completion. AMD TDM receives descriptor register values captured at issue; no asynchronous read of that old LDS metadata object is invented. The TDM tile itself still requires Tensor completion and publication.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tensormap_replace_write_write_race.ptx",
+      "upstream_sha256": "40f2ddc26b3a65da87a9489b8ed14c750292343074cf4dc995b48687aa6e2ba0",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_tensormap_replace_write_write_race",
+          "line": 590,
+          "function_region_sha256": "68bc6a6d4e9687cbd4d7b45da6febd2f4678bbbad40d4d6b218c568a1a211b72",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Two unsynchronized metadata field writers must not be certified, including equal subfields.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::conflicting_descriptor_field_writes_are_not_hidden_by_a_later_barrier",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::crosswave_shared_descriptor_publication_retains_the_complete_tensor_payload"
+      ],
+      "expected_outcome": "Complete harmful candidate carries Shared WriteWrite on the actual native D0 words; ordered descriptor control preserves all16 cells.",
+      "target_only_residual": "Baseline writers are threads0/1 and an opaque128-byte map field; native writers are0/32 in distinct wave32s and write a real16-byte D0, including its actual address field. Native source and launch differences are explicit.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tma_acquires_another_tensor_map.ptx",
+      "upstream_sha256": "36b7cf085c8ddcb30757e4923586c3f826394b27e283ad8ff04fa61542bc404b",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/proxy_order_tests.rs",
+          "function": "test_tma_acquires_another_tensor_map",
+          "line": 60,
+          "function_region_sha256": "ad4cdf34d6de274f2b0c0815bd455b69658948682f0eb9fe4cc8b8d3a7f3e075",
+          "source_sha256": "7103b3f8f72d4e97175570ccddeae3c2e0605f01535b96c532b6c50ca2c36630"
+        }
+      ],
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Descriptor identity controls the actual source footprint; completion/publication must cover the metadata actually consumed.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::selecting_a_different_descriptor_changes_exactly_the_four_live_edge_cells",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::descriptor_register_consumption_requires_the_correct_data_completion",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_missing_crosswave_metadata_publication_retains_a_typed_shared_read_write_conflict"
+      ],
+      "expected_outcome": "Using the valid descriptor with base input+53 instead of+54 changes exactly native cells0,1,4,5. Missing native data wait or crosswave publication produces typed failures.",
+      "target_only_residual": "PTX MissingFence::TensormapAcquire for a different global map object is a keyed proxy-domain diagnostic. The native tests do not pretend a wait on an unrelated descriptor is an AMD proxy acquire; they separately test exact metadata binding and the real ordinary-data protocol.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tma_complete_tx_does_not_release_the_issuers_earlier_store.ptx",
+      "upstream_sha256": "b061431e326cba77ee2472065b35d1a0fd7bfc3b22b8ce8d369daf09227079ff",
+      "group": "TENSOR-EDGE-LAYOUT",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_tma_complete_tx_does_not_release_the_issuers_earlier_store",
+          "line": 531,
+          "function_region_sha256": "93344037a22204bb0e310983611c11c6f614b3067f940acb8fe23a8ddbb7774a",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-publication.hip",
+        "native-tensor-publication.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Completion of an asynchronous tensor tile does not transitively publish a distinct earlier ordinary LDS metadata store to another wave.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::tensor_completion_with_a_cta_barrier_publishes_the_distinct_ordinary_metadata_store",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::tensor_completion_alone_does_not_publish_an_unrelated_ordinary_lds_store"
+      ],
+      "expected_outcome": "Positive has complete out[0]=in[0]+scale[0]. The mutation retains Tensor0 and candidate values but removes only CTA publication; it must carry ordinary metadata WriteRead at Shared byte16 outside the16-byte TDM tile.",
+      "target_only_residual": "Exact NVIDIA complete_tx release semantics are not emulated by a native counter. The same distinct-store publication obligation is preserved using real Tensor completion and a separate CTA barrier.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tma_uses_another_warps_cp_fenceproxy_copy_without_sync.ptx",
+      "upstream_sha256": "9bc134e5cfbdec1cc2539b35a68cf9f76999b18754f7eed8c82e55fbfad8cf21",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_tma_uses_another_warps_cp_fenceproxy_copy_without_sync",
+          "line": 449,
+          "function_region_sha256": "3123575ed9f97bb4625d28ff0bee14795164d46f793e83226eb279f8d8493ea7",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s",
+        "native-tensor-descriptor-bytes.hip",
+        "native-tensor-descriptor-bytes.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Copying a descriptor object does not implicitly publish its destination to a different wave before actual metadata consumption.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_shared_metadata_object_copy_preserves_all_edge_payload_cells",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::copying_metadata_does_not_implicitly_publish_it_to_the_second_wave",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::ordinary_native_descriptor_copy_preserves_all_128_bytes_in_both_outputs",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::ordinary_native_descriptor_copy_preserves_all_128_bytes_in_both_outputs",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_complete_global_descriptor_copy_needs_publication_before_second_wave_readback"
+      ],
+      "expected_outcome": "Native descriptor copy plus correct CTA rendezvous yields all16 exact edge cells; removing only its crosswave publication keeps the candidate complete and gives Shared WriteRead. A separate actual Global128-byte copy requires all32 destination/readback words; removing its CTA publication retains a complete candidate and typed Global WriteRead at0x20000.",
+      "target_only_residual": "Original copied object is a128-byte global NVIDIA map and cp_fenceproxy supplies a target-specific proxy release. Native descriptor fields are ordinary LDS bytes; their different location/schema is disclosed, while full128-byte Shared-to-Global copy behavior is tested separately.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tma_uses_tensormap_built_by_other_thread_without_sync.ptx",
+      "upstream_sha256": "58d061cc54737a2bd9c31616d08da30fb9c00880be28860df710f481aad54d5a",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_tma_uses_tensormap_built_by_other_thread_without_sync",
+          "line": 429,
+          "function_region_sha256": "1cb5ae617a6986d5af3f7bd8cbb537d5cb0910ce7852eae29ffdc88472051344",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s",
+        "native-tensor-descriptor-bytes.hip",
+        "native-tensor-descriptor-bytes.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "A descriptor built by one participant must be published before another wave loads and uses its actual address/shape words.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::crosswave_shared_descriptor_publication_retains_the_complete_tensor_payload",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_missing_crosswave_metadata_publication_retains_a_typed_shared_read_write_conflict",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::ordinary_native_descriptor_copy_preserves_all_128_bytes_in_both_outputs",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_complete_global_descriptor_copy_needs_publication_before_second_wave_readback"
+      ],
+      "expected_outcome": "The waited/barrier control preserves all16 cells; removing the crosswave rendezvous yields typed Shared WriteRead while the harmful candidate completes. A separate actual Global128-byte copy requires all32 destination/readback words; removing its CTA publication retains a complete candidate and typed Global WriteRead at0x20000.",
+      "target_only_residual": "NVIDIA global map release/acquire instructions do not exist in this native path. AMD publication is the real ordinary LDS producer/completion/barrier/consumer protocol, not an assumed global proxy fence.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tma_without_tensormap_acquire_fence.ptx",
+      "upstream_sha256": "d01eef55d792b0cf085ed0ae8ee7385c95c4f95fffb7b164e7f6a3b02b735a69",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/proxy_order_tests.rs",
+          "function": "test_tma_without_tensormap_acquire_fence",
+          "line": 40,
+          "function_region_sha256": "620858e813bbf30220918e5f509898bf51b7dc3a20ee62ca71717a0074502a92",
+          "source_sha256": "7103b3f8f72d4e97175570ccddeae3c2e0605f01535b96c532b6c50ca2c36630"
+        }
+      ],
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s",
+        "native-tensor-descriptor-bytes.hip",
+        "native-tensor-descriptor-bytes.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Metadata consumption requires both its actual data completion and any necessary crosswave publication; omitted protocol steps cannot become Verified.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::descriptor_register_consumption_requires_the_correct_data_completion",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_missing_crosswave_metadata_publication_retains_a_typed_shared_read_write_conflict",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::crosswave_shared_descriptor_publication_retains_the_complete_tensor_payload",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::ordinary_native_descriptor_copy_preserves_all_128_bytes_in_both_outputs",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_complete_global_descriptor_copy_needs_publication_before_second_wave_readback"
+      ],
+      "expected_outcome": "Missing correct DS-data wait gives ReadBeforeReady; missing CTA publication gives Shared WriteRead; complete native protocol verifies the entire16-cell result. A separate actual Global128-byte copy requires all32 destination/readback words; removing its CTA publication retains a complete candidate and typed Global WriteRead at0x20000.",
+      "target_only_residual": "The exact MissingFence::TensormapAcquire diagnostic is a NVIDIA generic/tensormap proxy-domain contract. Native ordinary LDS fields use their real waits/barriers; no proxy instruction or identical fence name is fabricated.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tma_without_tensormap_release_fence.ptx",
+      "upstream_sha256": "4df0b78ba907c49c4a5133b20e72fb9568336c1a253fb68ee2ccf5ce95b6d2b1",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/proxy_order_tests.rs",
+          "function": "test_tma_without_tensormap_release_fence",
+          "line": 50,
+          "function_region_sha256": "fc34f19d663392cd642dd976648e32388f9d2e7576ff1dab6f663d832ed99f63",
+          "source_sha256": "7103b3f8f72d4e97175570ccddeae3c2e0605f01535b96c532b6c50ca2c36630"
+        }
+      ],
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s",
+        "native-tensor-descriptor-bytes.hip",
+        "native-tensor-descriptor-bytes.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Metadata consumption requires both its actual data completion and any necessary crosswave publication; omitted protocol steps cannot become Verified.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::descriptor_register_consumption_requires_the_correct_data_completion",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_missing_crosswave_metadata_publication_retains_a_typed_shared_read_write_conflict",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::crosswave_shared_descriptor_publication_retains_the_complete_tensor_payload",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::ordinary_native_descriptor_copy_preserves_all_128_bytes_in_both_outputs",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_complete_global_descriptor_copy_needs_publication_before_second_wave_readback"
+      ],
+      "expected_outcome": "Missing correct DS-data wait gives ReadBeforeReady; missing CTA publication gives Shared WriteRead; complete native protocol verifies the entire16-cell result. A separate actual Global128-byte copy requires all32 destination/readback words; removing its CTA publication retains a complete candidate and typed Global WriteRead at0x20000.",
+      "target_only_residual": "The exact MissingFence::TensormapRelease diagnostic is a NVIDIA generic/tensormap proxy-domain contract. Native ordinary LDS fields use their real waits/barriers; no proxy instruction or identical fence name is fabricated.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/cp_async_bulk_tensor_rejects_an_incomplete_tensor_map.ptx",
+      "upstream_sha256": "382ef4fd723ee082b914c338b471d8d776f525b4449e4ca4fe013f1b2a1ac084",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_cp_async_bulk_tensor_rejects_an_incomplete_tensor_map",
+          "line": 506,
+          "function_region_sha256": "6b2a4257f0e18e3605106de37fdf93a54ec71688df4bd166519f095df9593018",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Uninitialized descriptor bytes cannot silently become default address, shape or mode fields.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::missing_descriptor_bytes_are_not_filled_with_defaults",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::crosswave_shared_descriptor_publication_retains_the_complete_tensor_payload"
+      ],
+      "expected_outcome": "Removing only the native zero-field producer store is assembler-legal and reaches typed uninitialized LDS byte0x40/graphUnknown at the actual metadata read; complete initialized control verifies all16 cells.",
+      "target_only_residual": "TensorMapFieldMissing(fill_mode) names a field in the NVIDIA schema. AMD D2/D3 zero words are explicit initialized operands; the native path never invents the missing bytes or NVIDIA field layout.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/cp_fenceproxy_by_one_lane_of_a_warp_is_rejected.ptx",
+      "upstream_sha256": "51bb1dfd2aea3a53fb3df244efafb4235abc798d6feafacc2823a0e4363cb072",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_cp_fenceproxy_by_one_lane_of_a_warp_is_rejected",
+          "line": 467,
+          "function_region_sha256": "f6589b14acc651f06464a8023663af0b86b8dc73d3f20a80d5e4b9b827c4a6b6",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s",
+        "native-tensor-edge.hip",
+        "native-tensor-edge.s",
+        "native-tensor-descriptor-bytes.hip",
+        "native-tensor-descriptor-bytes.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Preserve the actual data footprint and executed participant set without adding a collective requirement absent from the native operation.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::genuine_tdm_crop_and_explicit_padding_preserve_every_4x4_half_coordinate",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::crosswave_shared_descriptor_publication_retains_the_complete_tensor_payload",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::ordinary_native_descriptor_copy_preserves_all_128_bytes_in_both_outputs"
+      ],
+      "expected_outcome": "Actual leader-only native TDM issue and ordinary full128-byte copy retain their complete payloads and normal CTA publication. No warp mismatch is invented.",
+      "target_only_residual": "The PTX tensormap.cp_fenceproxy.sync.aligned contract requires every warp lane. Native scalar TDM/ordinary copy can be issued by one active leader; only this exact collective restriction is target-specific, not the byte or publication obligations.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/cp_async_bulk_tensor_cta_and_cluster_destinations_copy_in_bounds.ptx",
+      "upstream_sha256": "bca0463a703f0cf44567c88d3d1d0c02e32e4d9d8288463ece70e83e86699ba1",
+      "group": "TENSOR-EDGE-LAYOUT",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_cp_async_bulk_tensor_cta_and_cluster_destinations_copy_in_bounds",
+          "line": 385,
+          "function_region_sha256": "3f01b5b373f5a5e55555a41957eda0425e65fc29abc0220f369f9fbd7304dfe8",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/cp_async_bulk_tensor_cta_and_cluster_destinations_copy_in_bounds.out",
+        "sha256": "850fe61b52a771387c7a75899fc6957564cfea895122026e508400f755a7a3d9",
+        "text": "out[0] = in[54]\nout[1] = 0\n",
+        "output_coordinates": {
+          "out": [
+            0,
+            1
+          ]
+        }
+      },
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s",
+        "native-tensor-edge.hip",
+        "native-tensor-edge.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Preserve original8x8 F16 storage,16-byte source row pitch and logical4x4 tile at(6,6), including all valid values and exact zero padding; original projected outputs remain in[54] and0.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::genuine_tdm_crop_and_explicit_padding_preserve_every_4x4_half_coordinate"
+      ],
+      "expected_outcome": "All16 native cells match independent coordinate formulas; the exact native projection[0,15] is compared directly to both original outputs[0,1] and their original PTX execution. Required original metadata lifecycle is paired with the real native wait/publication/reuse controls.",
+      "target_only_residual": "Original CTA/cluster destination spelling,128-byte memory map and proxy fences/complete_tx are NVIDIA mechanisms. Native uses bounded2x2 strided TDM for the valid crop and explicit LDS zero fill for all12 padded cells, while retaining the original full8x8 input and complete logical4x4 tile.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/cp_async_bulk_tensor_cta_and_cluster_destinations_copy_in_bounds_cta.ptx",
+      "upstream_sha256": "0e5768f1860525cd5e3eb9e5f977e364544497851dd9e68e7b9c3766478e69a3",
+      "group": "TENSOR-EDGE-LAYOUT",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_cp_async_bulk_tensor_cta_and_cluster_destinations_copy_in_bounds",
+          "line": 385,
+          "function_region_sha256": "3f01b5b373f5a5e55555a41957eda0425e65fc29abc0220f369f9fbd7304dfe8",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/cp_async_bulk_tensor_cta_and_cluster_destinations_copy_in_bounds_cta.out",
+        "sha256": "850fe61b52a771387c7a75899fc6957564cfea895122026e508400f755a7a3d9",
+        "text": "out[0] = in[54]\nout[1] = 0\n",
+        "output_coordinates": {
+          "out": [
+            0,
+            1
+          ]
+        }
+      },
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s",
+        "native-tensor-edge.hip",
+        "native-tensor-edge.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Preserve original8x8 F16 storage,16-byte source row pitch and logical4x4 tile at(6,6), including all valid values and exact zero padding; original projected outputs remain in[54] and0.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::genuine_tdm_crop_and_explicit_padding_preserve_every_4x4_half_coordinate"
+      ],
+      "expected_outcome": "All16 native cells match independent coordinate formulas; the exact native projection[0,15] is compared directly to both original outputs[0,1] and their original PTX execution. Required original metadata lifecycle is paired with the real native wait/publication/reuse controls.",
+      "target_only_residual": "Original CTA/cluster destination spelling,128-byte memory map and proxy fences/complete_tx are NVIDIA mechanisms. Native uses bounded2x2 strided TDM for the valid crop and explicit LDS zero fill for all12 padded cells, while retaining the original full8x8 input and complete logical4x4 tile.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/cp_async_bulk_tensor_without_fence_proxy_async_is_clean.ptx",
+      "upstream_sha256": "bca0463a703f0cf44567c88d3d1d0c02e32e4d9d8288463ece70e83e86699ba1",
+      "group": "TENSOR-EDGE-LAYOUT",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_cp_async_bulk_tensor_without_fence_proxy_async_is_clean",
+          "line": 1366,
+          "function_region_sha256": "e9f5d435c2ed6496ba739fa5244d7fddc32d7c1fffc1a954c9a9d203fec28ebf",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/cp_async_bulk_tensor_without_fence_proxy_async_is_clean.out",
+        "sha256": "850fe61b52a771387c7a75899fc6957564cfea895122026e508400f755a7a3d9",
+        "text": "out[0] = in[54]\nout[1] = 0\n",
+        "output_coordinates": {
+          "out": [
+            0,
+            1
+          ]
+        }
+      },
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s",
+        "native-tensor-edge.hip",
+        "native-tensor-edge.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Preserve original8x8 F16 storage,16-byte source row pitch and logical4x4 tile at(6,6), including all valid values and exact zero padding; original projected outputs remain in[54] and0.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::genuine_tdm_crop_and_explicit_padding_preserve_every_4x4_half_coordinate"
+      ],
+      "expected_outcome": "All16 native cells match independent coordinate formulas; the exact native projection[0,15] is compared directly to both original outputs[0,1] and their original PTX execution. Required original metadata lifecycle is paired with the real native wait/publication/reuse controls.",
+      "target_only_residual": "Original CTA/cluster destination spelling,128-byte memory map and proxy fences/complete_tx are NVIDIA mechanisms. Native uses bounded2x2 strided TDM for the valid crop and explicit LDS zero fill for all12 padded cells, while retaining the original full8x8 input and complete logical4x4 tile.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/tensormap_replace_after_tma_completes_is_accepted.ptx",
+      "upstream_sha256": "259bbddab718b960fd05d365d268d39a8975f516826242ed30b6a6ecd73388bd",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tensormap_replace_after_tma_completes_is_accepted",
+          "line": 1419,
+          "function_region_sha256": "6d2c357360d45de310d7d8eda51e8649e2eb1f4e5bbc37276e03490ae5b5590d",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/tensormap_replace_after_tma_completes_is_accepted.out",
+        "sha256": "850fe61b52a771387c7a75899fc6957564cfea895122026e508400f755a7a3d9",
+        "text": "out[0] = in[54]\nout[1] = 0\n",
+        "output_coordinates": {
+          "out": [
+            0,
+            1
+          ]
+        }
+      },
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s",
+        "native-tensor-edge.hip",
+        "native-tensor-edge.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Preserve original8x8 F16 storage,16-byte source row pitch and logical4x4 tile at(6,6), including all valid values and exact zero padding; original projected outputs remain in[54] and0.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::genuine_tdm_crop_and_explicit_padding_preserve_every_4x4_half_coordinate",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::old_metadata_memory_can_be_rewritten_after_its_descriptor_words_are_captured",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::descriptor_register_consumption_requires_the_correct_data_completion"
+      ],
+      "expected_outcome": "All16 native cells match independent coordinate formulas; the exact native projection[0,15] is compared directly to both original outputs[0,1] and their original PTX execution. Required original metadata lifecycle is paired with the real native wait/publication/reuse controls.",
+      "target_only_residual": "Original CTA/cluster destination spelling,128-byte memory map and proxy fences/complete_tx are NVIDIA mechanisms. Native uses bounded2x2 strided TDM for the valid crop and explicit LDS zero fill for all12 padded cells, while retaining the original full8x8 input and complete logical4x4 tile.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/tma_tensormap_built_by_other_thread_ordered_by_bar_sync_is_accepted.ptx",
+      "upstream_sha256": "1f372fa1f2f788a8ffa85e3ff0d060920125fd37ba317a15e8fbec73dad43b93",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tma_tensormap_built_by_other_thread_ordered_by_bar_sync_is_accepted",
+          "line": 1397,
+          "function_region_sha256": "a34bad0351e5f827bcba702a4e70ecf04ced6c67cf147c3da6e0aea744059bf2",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/tma_tensormap_built_by_other_thread_ordered_by_bar_sync_is_accepted.out",
+        "sha256": "850fe61b52a771387c7a75899fc6957564cfea895122026e508400f755a7a3d9",
+        "text": "out[0] = in[54]\nout[1] = 0\n",
+        "output_coordinates": {
+          "out": [
+            0,
+            1
+          ]
+        }
+      },
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s",
+        "native-tensor-edge.hip",
+        "native-tensor-edge.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Preserve original8x8 F16 storage,16-byte source row pitch and logical4x4 tile at(6,6), including all valid values and exact zero padding; original projected outputs remain in[54] and0.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::genuine_tdm_crop_and_explicit_padding_preserve_every_4x4_half_coordinate",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::crosswave_shared_descriptor_publication_retains_the_complete_tensor_payload",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_missing_crosswave_metadata_publication_retains_a_typed_shared_read_write_conflict"
+      ],
+      "expected_outcome": "All16 native cells match independent coordinate formulas; the exact native projection[0,15] is compared directly to both original outputs[0,1] and their original PTX execution. Required original metadata lifecycle is paired with the real native wait/publication/reuse controls.",
+      "target_only_residual": "Original CTA/cluster destination spelling,128-byte memory map and proxy fences/complete_tx are NVIDIA mechanisms. Native uses bounded2x2 strided TDM for the valid crop and explicit LDS zero fill for all12 padded cells, while retaining the original full8x8 input and complete logical4x4 tile.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/success/tma_uses_another_warps_cp_fenceproxy_copy_ordered_by_bar_sync_is_accepted.ptx",
+      "upstream_sha256": "a208e758e160b6146ac0f3f87e0b75793a4a396138969e7aa81b4074e0da1a25",
+      "group": "TENSOR-METADATA-LIFETIME",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tma_uses_another_warps_cp_fenceproxy_copy_ordered_by_bar_sync_is_accepted",
+          "line": 1408,
+          "function_region_sha256": "bf4d4a7f320a58c49399ad03278375223a3681936cad8fabd8248859237574a8",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "baseline_golden": {
+        "path": "crates/volta_pipeline/tests/ptx/success/tma_uses_another_warps_cp_fenceproxy_copy_ordered_by_bar_sync_is_accepted.out",
+        "sha256": "850fe61b52a771387c7a75899fc6957564cfea895122026e508400f755a7a3d9",
+        "text": "out[0] = in[54]\nout[1] = 0\n",
+        "output_coordinates": {
+          "out": [
+            0,
+            1
+          ]
+        }
+      },
+      "coordinator_validation": "pending",
+      "native_sources": [
+        "native-tensor-metadata.hip",
+        "native-tensor-metadata.s",
+        "native-tensor-edge.hip",
+        "native-tensor-edge.s",
+        "native-tensor-descriptor-bytes.hip",
+        "native-tensor-descriptor-bytes.s"
+      ],
+      "configuration": "Exact64-thread native configurations and complete coordinates are in the named Rust tests. Original launches/assertion references are retained, not inherited as native target behavior.",
+      "portable_obligation": "Preserve original8x8 F16 storage,16-byte source row pitch and logical4x4 tile at(6,6), including all valid values and exact zero padding; original projected outputs remain in[54] and0.",
+      "native_tests": [
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::genuine_tdm_crop_and_explicit_padding_preserve_every_4x4_half_coordinate",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::a_shared_metadata_object_copy_preserves_all_edge_payload_cells",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::copying_metadata_does_not_implicitly_publish_it_to_the_second_wave",
+        "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs::ordinary_native_descriptor_copy_preserves_all_128_bytes_in_both_outputs"
+      ],
+      "expected_outcome": "All16 native cells match independent coordinate formulas; the exact native projection[0,15] is compared directly to both original outputs[0,1] and their original PTX execution. Required original metadata lifecycle is paired with the real native wait/publication/reuse controls.",
+      "target_only_residual": "Original CTA/cluster destination spelling,128-byte memory map and proxy fences/complete_tx are NVIDIA mechanisms. Native uses bounded2x2 strided TDM for the valid crop and explicit LDS zero fill for all12 padded cells, while retaining the original full8x8 input and complete logical4x4 tile.",
+      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+    }
+  ]
+}

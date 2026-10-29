@@ -10,9 +10,9 @@ tensor_descriptor_bytes_ordered:        ; @tensor_descriptor_bytes_ordered
 	s_clause 0x1
 	s_load_b128 s[4:7], s[0:1], 0x0
 	s_load_b64 s[2:3], s[0:1], 0x10
-	v_cmp_gt_u32_e32 vcc_lo, 32, v0
 	s_wait_xcnt 0x0
-	s_and_saveexec_b32 s0, vcc_lo
+	s_mov_b32 s0, exec_lo
+	v_cmpx_gt_u32_e32 32, v0
 	s_cbranch_execz .LBB0_2
 ; %bb.1:
 	s_mov_b64 s[8:9], src_shared_base
@@ -362,9 +362,11 @@ tensor_descriptor_bytes_ordered:        ; @tensor_descriptor_bytes_ordered
 	s_wait_dscnt 0x0
 	s_barrier_signal -1
 	s_barrier_wait -1
-	s_and_saveexec_b32 s0, vcc_lo
+	s_mov_b32 s0, exec_lo
+	v_cmpx_lt_u32_e32 31, v0
 	s_cbranch_execz .LBB0_6
 ; %bb.5:
+	v_subrev_nc_u32_e32 v0, 32, v0
 	flat_load_b32 v1, v0, s[6:7] scale_offset scope:SCOPE_SYS
 	s_wait_loadcnt_dscnt 0x0
 	;;#ASMSTART
@@ -398,7 +400,7 @@ tensor_descriptor_bytes_ordered:        ; @tensor_descriptor_bytes_ordered
 		.amdhsa_next_free_vgpr 4
 		.amdhsa_next_free_sgpr 10
 		.amdhsa_named_barrier_count 0
-		.amdhsa_reserve_vcc 1
+		.amdhsa_reserve_vcc 0
 		.amdhsa_float_round_mode_32 0
 		.amdhsa_float_round_mode_16_64 0
 		.amdhsa_float_denorm_mode_32 3
@@ -425,15 +427,15 @@ tensor_descriptor_bytes_ordered:        ; @tensor_descriptor_bytes_ordered
 	.set tensor_descriptor_bytes_ordered.numbered_sgpr, 10
 	.set tensor_descriptor_bytes_ordered.num_named_barrier, 0
 	.set tensor_descriptor_bytes_ordered.private_seg_size, 0
-	.set tensor_descriptor_bytes_ordered.uses_vcc, 1
+	.set tensor_descriptor_bytes_ordered.uses_vcc, 0
 	.set tensor_descriptor_bytes_ordered.uses_flat_scratch, 0
 	.set tensor_descriptor_bytes_ordered.has_dyn_sized_stack, 0
 	.set tensor_descriptor_bytes_ordered.has_recursion, 0
 	.set tensor_descriptor_bytes_ordered.has_indirect_call, 0
 	.section	.AMDGPU.csdata,"",@progbits
 ; Kernel info:
-; codeLenInByte = 1588
-; TotalNumSgprs: 12
+; codeLenInByte = 1596
+; TotalNumSgprs: 10
 ; NumVgprs: 4
 ; ScratchSize: 0
 ; MemoryBound: 0
@@ -442,7 +444,7 @@ tensor_descriptor_bytes_ordered:        ; @tensor_descriptor_bytes_ordered
 ; LDSByteSize: 128 bytes/workgroup (compile time only)
 ; SGPRBlocks: 0
 ; VGPRBlocks: 0
-; NumSGPRsForWavesPerEU: 12
+; NumSGPRsForWavesPerEU: 10
 ; NumVGPRsForWavesPerEU: 4
 ; NamedBarCnt: 0
 ; Occupancy: 16
@@ -464,9 +466,9 @@ tensor_descriptor_bytes_replace_race:   ; @tensor_descriptor_bytes_replace_race
 	s_clause 0x1
 	s_load_b128 s[4:7], s[0:1], 0x0
 	s_load_b64 s[2:3], s[0:1], 0x10
-	v_cmp_gt_u32_e32 vcc_lo, 32, v0
 	s_wait_xcnt 0x0
-	s_and_saveexec_b32 s0, vcc_lo
+	s_mov_b32 s0, exec_lo
+	v_cmpx_gt_u32_e32 32, v0
 	s_cbranch_execz .LBB1_2
 ; %bb.1:
 	s_mov_b64 s[8:9], src_shared_base
@@ -484,28 +486,28 @@ tensor_descriptor_bytes_replace_race:   ; @tensor_descriptor_bytes_replace_race
 	s_wait_xcnt 0x0
 	s_or_b32 exec_lo, exec_lo, s0
 	s_delay_alu instid0(SALU_CYCLE_1)
-	s_mov_b32 s1, exec_lo
+	s_mov_b32 s0, exec_lo
 	s_wait_dscnt 0x0
 	s_barrier_signal -1
 	s_barrier_wait -1
 	v_cmpx_lt_i32_e32 31, v0
-	s_xor_b32 s1, exec_lo, s1
+	s_xor_b32 s0, exec_lo, s0
 	s_cbranch_execz .LBB1_6
 ; %bb.3:
-	s_mov_b32 s8, exec_lo
+	s_mov_b32 s1, exec_lo
 	v_cmpx_eq_u32_e32 32, v0
 	s_cbranch_execz .LBB1_5
 ; %bb.4:
 	v_mov_b32_e32 v1, 0
-	s_mov_b64 s[10:11], src_shared_base
-	s_mov_b32 s10, 0
+	s_mov_b64 s[8:9], src_shared_base
+	s_mov_b32 s8, 0
 	s_wait_kmcnt 0x0
 	global_load_b32 v2, v1, s[4:5] offset:128
 	s_wait_loadcnt 0x0
 	;;#ASMSTART
 	v_add_nc_u32 v2, 0, v2
 	;;#ASMEND
-	flat_store_b32 v1, v2, s[10:11] scope:SCOPE_SYS
+	flat_store_b32 v1, v2, s[8:9] scope:SCOPE_SYS
 	s_wait_storecnt 0x0
 	global_load_b32 v2, v1, s[4:5] offset:132
 	s_wait_loadcnt 0x0
@@ -516,9 +518,9 @@ tensor_descriptor_bytes_replace_race:   ; @tensor_descriptor_bytes_replace_race
 	s_wait_storecnt 0x0
 .LBB1_5:
 	s_wait_xcnt 0x0
-	s_or_b32 exec_lo, exec_lo, s8
+	s_or_b32 exec_lo, exec_lo, s1
 .LBB1_6:
-	s_and_not1_saveexec_b32 s8, s1
+	s_and_not1_saveexec_b32 s8, s0
 	s_cbranch_execz .LBB1_10
 ; %bb.7:
 	s_wait_kmcnt 0x0
@@ -854,9 +856,11 @@ tensor_descriptor_bytes_replace_race:   ; @tensor_descriptor_bytes_replace_race
 	s_wait_dscnt 0x0
 	s_barrier_signal -1
 	s_barrier_wait -1
-	s_and_saveexec_b32 s0, vcc_lo
+	s_mov_b32 s0, exec_lo
+	v_cmpx_lt_u32_e32 31, v0
 	s_cbranch_execz .LBB1_12
 ; %bb.11:
+	v_subrev_nc_u32_e32 v0, 32, v0
 	s_wait_kmcnt 0x0
 	flat_load_b32 v1, v0, s[6:7] scale_offset scope:SCOPE_SYS
 	s_wait_loadcnt_dscnt 0x0
@@ -889,9 +893,9 @@ tensor_descriptor_bytes_replace_race:   ; @tensor_descriptor_bytes_replace_race
 		.amdhsa_system_sgpr_workgroup_info 0
 		.amdhsa_system_vgpr_workitem_id 0
 		.amdhsa_next_free_vgpr 4
-		.amdhsa_next_free_sgpr 12
+		.amdhsa_next_free_sgpr 10
 		.amdhsa_named_barrier_count 0
-		.amdhsa_reserve_vcc 1
+		.amdhsa_reserve_vcc 0
 		.amdhsa_float_round_mode_32 0
 		.amdhsa_float_round_mode_16_64 0
 		.amdhsa_float_denorm_mode_32 3
@@ -915,18 +919,18 @@ tensor_descriptor_bytes_replace_race:   ; @tensor_descriptor_bytes_replace_race
                                         ; -- End function
 	.set tensor_descriptor_bytes_replace_race.num_vgpr, 4
 	.set tensor_descriptor_bytes_replace_race.num_agpr, 0
-	.set tensor_descriptor_bytes_replace_race.numbered_sgpr, 12
+	.set tensor_descriptor_bytes_replace_race.numbered_sgpr, 10
 	.set tensor_descriptor_bytes_replace_race.num_named_barrier, 0
 	.set tensor_descriptor_bytes_replace_race.private_seg_size, 0
-	.set tensor_descriptor_bytes_replace_race.uses_vcc, 1
+	.set tensor_descriptor_bytes_replace_race.uses_vcc, 0
 	.set tensor_descriptor_bytes_replace_race.uses_flat_scratch, 0
 	.set tensor_descriptor_bytes_replace_race.has_dyn_sized_stack, 0
 	.set tensor_descriptor_bytes_replace_race.has_recursion, 0
 	.set tensor_descriptor_bytes_replace_race.has_indirect_call, 0
 	.section	.AMDGPU.csdata,"",@progbits
 ; Kernel info:
-; codeLenInByte = 1728
-; TotalNumSgprs: 14
+; codeLenInByte = 1736
+; TotalNumSgprs: 10
 ; NumVgprs: 4
 ; ScratchSize: 0
 ; MemoryBound: 0
@@ -935,7 +939,7 @@ tensor_descriptor_bytes_replace_race:   ; @tensor_descriptor_bytes_replace_race
 ; LDSByteSize: 128 bytes/workgroup (compile time only)
 ; SGPRBlocks: 0
 ; VGPRBlocks: 0
-; NumSGPRsForWavesPerEU: 14
+; NumSGPRsForWavesPerEU: 10
 ; NumVGPRsForWavesPerEU: 4
 ; NamedBarCnt: 0
 ; Occupancy: 16
@@ -992,7 +996,7 @@ amdhsa.kernels:
     .max_flat_workgroup_size: 64
     .name:           tensor_descriptor_bytes_ordered
     .private_segment_fixed_size: 0
-    .sgpr_count:     12
+    .sgpr_count:     10
     .sgpr_spill_count: 0
     .symbol:         tensor_descriptor_bytes_ordered.kd
     .uniform_work_group_size: 1
@@ -1023,7 +1027,7 @@ amdhsa.kernels:
     .max_flat_workgroup_size: 64
     .name:           tensor_descriptor_bytes_replace_race
     .private_segment_fixed_size: 0
-    .sgpr_count:     14
+    .sgpr_count:     10
     .sgpr_spill_count: 0
     .symbol:         tensor_descriptor_bytes_replace_race.kd
     .uniform_work_group_size: 1

@@ -28,10 +28,10 @@
     {
       "source": "native-tensor-descriptor-bytes.hip",
       "assembly": "native-tensor-descriptor-bytes.s",
-      "source_sha256": "a4e77a542d2e7b6aec44c8e9034f15b8b053882388ba82e57f0356270b30bb4b",
-      "assembly_sha256": "f60a25a0d0e7a090c0bf0d230594bebd561fe7c3deae4ba554dd3633a3562c28",
-      "object_sha256": "821e9820df48bf5ff25cda45ea31078da94cfd9b7175fe10e5c8b22ed39f56d7",
-      "code_object_sha256": "16edf4b33c8ed6ef57e944a8cfb7e278ebee89796e9737e750bf846649335c4b",
+      "source_sha256": "a1226e5db26753b9ed02f358b859fd5f8cc6f4ab341dd38d7a46390f2c9cea4c",
+      "assembly_sha256": "dbd72d48a0f4bbab026b03b7ddbfb376fa31e637e0396dbeb6a453b9e60a7862",
+      "object_sha256": "b53476eb1e94c0726d874010a74762ad1d8924bac63d0f99b25f241158956955",
+      "code_object_sha256": "03bafb12c90858dae13765e12666a6f6c8f8ea478e3c618941929a12efe31f2e",
       "compile": {
         "argv": [
           "/opt/rocm-7.2.0/lib/llvm/bin/clang++",

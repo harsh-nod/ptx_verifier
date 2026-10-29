@@ -24,8 +24,8 @@ __device__ __forceinline__ void descriptor_bytes(const unsigned *seed,
     destination[0] = integer_value(seed[33]);
   }
   __syncthreads();
-  if (tid < 32)
-    out[tid] = integer_value(destination[tid]);
+  if (tid >= 32)
+    out[tid - 32] = integer_value(destination[tid - 32]);
 }
 
 extern "C" __global__ __launch_bounds__(64) void tensor_descriptor_bytes_ordered(
