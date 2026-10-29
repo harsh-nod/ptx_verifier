@@ -102,6 +102,9 @@ struct Wave {
     vcc_predicates: [Option<Value>; 2],
     scc: bool,
     scc_defined: bool,
+    // A uniform symbolic condition can select data, never concrete control,
+    // carry, addresses, or an architectural EXEC mask.
+    scc_condition: Option<ExprId>,
     m0: u32,
     scalar: Vec<Option<Value>>,
     temporary: [Option<Value>; 16],
@@ -130,6 +133,7 @@ impl Wave {
             vcc_predicates: [None; 2],
             scc: false,
             scc_defined: false,
+            scc_condition: None,
             m0: 0,
             scalar: vec![None; 128],
             temporary: [None; 16],
@@ -166,6 +170,12 @@ impl Wave {
         Ok(self.vcc)
     }
     fn read_scc(&self) -> Result<bool, EvalError> {
+        if self.scc_condition.is_some() {
+            return Err(self.fail(
+                None,
+                "symbolic SCC condition used as concrete control or carry",
+            ));
+        }
         if !self.scc_defined {
             return Err(self.fail(None, "uninitialized SCC flag"));
         }
@@ -174,6 +184,11 @@ impl Wave {
     fn set_scc(&mut self, value: bool) {
         self.scc = value;
         self.scc_defined = true;
+        self.scc_condition = None;
+    }
+    fn clear_scc(&mut self) {
+        self.scc_defined = false;
+        self.scc_condition = None;
     }
     fn reg(&self, reg: Register, lane: u8, component: u16) -> Result<Value, EvalError> {
         let index = reg.index + component;
@@ -2816,6 +2831,45 @@ impl<'a> Interpreter<'a> {
         if !instruction.modifiers.is_empty() {
             return Err(self.unsupported(wave, instruction));
         }
+        if self.architecture == AmdArchitecture::Gfx1250
+            && matches!(
+                name,
+                "s_add_i32"
+                    | "s_sub_i32"
+                    | "s_add_u32"
+                    | "s_sub_u32"
+                    | "s_add_nc_u32"
+                    | "s_sub_nc_u32"
+                    | "s_mul_i32"
+            )
+            && [1, 2].into_iter().any(|i| {
+                matches!(
+                    wave.value(&o[i], 0),
+                    Ok(Value::Input(_) | Value::IntExpr(_) | Value::NarrowInt { .. })
+                )
+            })
+        {
+            use super::scalar::{IntBinOp, IntType};
+            let ty = IntType {
+                bits: 32,
+                signed: name.ends_with("i32"),
+            };
+            let a = self.integer_expression(wave, &o[1], 0, ty)?;
+            let b = self.integer_expression(wave, &o[2], 0, ty)?;
+            let op = if name.starts_with("s_mul") {
+                IntBinOp::MulLo
+            } else if name.starts_with("s_sub") {
+                IntBinOp::Sub
+            } else {
+                IntBinOp::Add
+            };
+            let value = super::scalar::int_binary(&mut self.arena, ty, op, a, b)
+                .map_err(|e| wave.fail(None, e))?;
+            if !matches!(name, "s_mul_i32" | "s_add_nc_u32" | "s_sub_nc_u32") {
+                wave.clear_scc();
+            }
+            return wave.put_value(&o[0], 0, Value::IntExpr(value));
+        }
         if name.starts_with("s_bitcmp") {
             let bits = if name.ends_with("b64") {
                 wave.wide(&o[0], 0)?
@@ -2853,6 +2907,44 @@ impl<'a> Interpreter<'a> {
             )
             .ok_or_else(|| self.unsupported(wave, instruction))?;
             wave.set_scc(result);
+            return Ok(());
+        }
+        if self.architecture == AmdArchitecture::Gfx1250
+            && name.starts_with("s_cmp_")
+            && matches!(name.rsplit('_').next(), Some("i32" | "u32"))
+            && [0, 1].into_iter().any(|i| {
+                matches!(
+                    wave.value(&o[i], 0),
+                    Ok(Value::Input(_) | Value::IntExpr(_) | Value::NarrowInt { .. })
+                )
+            })
+        {
+            use super::scalar::{CmpOp, IntType, ScalarType};
+            let op = match name.trim_start_matches("s_cmp_").split('_').next() {
+                Some("eq") => CmpOp::Eq,
+                Some("lg" | "ne") => CmpOp::Ne,
+                Some("lt") => CmpOp::Lt,
+                Some("le") => CmpOp::Le,
+                Some("gt") => CmpOp::Gt,
+                Some("ge") => CmpOp::Ge,
+                _ => return Err(self.unsupported(wave, instruction)),
+            };
+            // Equality observes the same32 bits for signed/unsigned encodings.
+            // Use signed canonical constants consistently for symbolic words.
+            let ty = IntType {
+                bits: 32,
+                signed: name.ends_with("i32") || matches!(op, CmpOp::Eq | CmpOp::Ne),
+            };
+            let a = self.integer_expression(wave, &o[0], 0, ty)?;
+            let b = self.integer_expression(wave, &o[1], 0, ty)?;
+            let predicate = super::scalar::compare(&mut self.arena, ScalarType::Int(ty), op, a, b)
+                .map_err(|e| wave.fail(None, e))?;
+            if let Some(value) = self.arena.as_bool(predicate) {
+                wave.set_scc(value);
+            } else {
+                wave.clear_scc();
+                wave.scc_condition = Some(predicate);
+            }
             return Ok(());
         }
         if name.starts_with("s_cmp_") {
@@ -2929,6 +3021,36 @@ impl<'a> Interpreter<'a> {
         if name == "s_mov_b32" {
             let value = wave.value(&o[1], 0)?;
             return wave.put_value(dest, 0, value);
+        }
+        if name == "s_cselect_b32" && self.architecture == AmdArchitecture::Gfx1250 {
+            if let Some(mut condition) = wave.scc_condition {
+                let a = wave.value(&o[1], 0)?;
+                let b = wave.value(&o[2], 0)?;
+                if matches!(
+                    (a.bits(), b.bits()),
+                    (Ok(u32::MAX), Ok(0)) | (Ok(0), Ok(u32::MAX))
+                ) {
+                    if a.bits() == Ok(0) {
+                        condition = self.arena.not(condition);
+                    }
+                    return self.write_predicates(wave, Some(dest), [condition; 64]);
+                }
+                let ty = super::scalar::IntType {
+                    bits: 32,
+                    signed: false,
+                };
+                let a = self.integer_expression(wave, &o[1], 0, ty)?;
+                let b = self.integer_expression(wave, &o[2], 0, ty)?;
+                let expr = super::scalar::select(
+                    &mut self.arena,
+                    super::scalar::ScalarType::Int(ty),
+                    condition,
+                    a,
+                    b,
+                )
+                .map_err(|e| wave.fail(None, e))?;
+                return wave.put_value(dest, 0, Value::IntExpr(expr));
+            }
         }
         if name == "s_cselect_b32" || name == "s_cselect_b64" {
             let source = if wave.read_scc()? { &o[1] } else { &o[2] };
@@ -3066,7 +3188,7 @@ impl<'a> Interpreter<'a> {
             } else if defined == u32::MAX {
                 wave.set_scc(false);
             } else {
-                wave.scc_defined = false;
+                wave.clear_scc();
             }
             return wave.put_value(
                 dest,
@@ -3220,7 +3342,7 @@ impl<'a> Interpreter<'a> {
                 if sequence.form == crate::ir::GlobalAddressForm::Rel64 {
                     wave.put(pair, 0, 1, Value::Bits((address >> 32) as u32))?;
                 } else {
-                    wave.scc_defined = false;
+                    wave.clear_scc();
                 }
             }
             2 => {
@@ -3232,7 +3354,7 @@ impl<'a> Interpreter<'a> {
                 wave.put(pair, 0, 1, Value::Bits((address >> 32) as u32))?;
                 // The chosen abstract storage address determines the pointer,
                 // not the actual code address or linker carry/overflow bits.
-                wave.scc_defined = false;
+                wave.clear_scc();
             }
             _ => unreachable!(),
         }
@@ -3548,7 +3670,8 @@ impl<'a> Interpreter<'a> {
         if matches!(
             name,
             "v_readlane_b32" | "v_readfirstlane_b32" | "v_writelane_b32"
-        ) && !(name == "v_readlane_b32" && self.architecture == AmdArchitecture::Gfx1250)
+        ) && !(matches!(name, "v_readlane_b32" | "v_readfirstlane_b32")
+            && self.architecture == AmdArchitecture::Gfx1250)
         {
             return Err(EvalError::Unsupported {
                 pc: wave.pc,
@@ -4132,7 +4255,10 @@ impl<'a> Interpreter<'a> {
                 } else {
                     let ty = IntType {
                         bits: if kind == "u16" { 16 } else { 32 },
-                        signed: kind == "i32",
+                        signed: kind == "i32"
+                            || (self.architecture == AmdArchitecture::Gfx1250
+                                && kind == "u32"
+                                && matches!(operation, CmpOp::Eq | CmpOp::Ne)),
                     };
                     let a = self.integer_expression(wave, &o[start], lane, ty)?;
                     let b = self.integer_expression(wave, &o[start + 1], lane, ty)?;

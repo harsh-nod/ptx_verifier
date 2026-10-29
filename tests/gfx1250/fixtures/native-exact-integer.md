@@ -1,0 +1,7 @@
+These25 native kernels preserve the exact assertions of the original `INTEGER-BITS` group. The complete per-row mapping, original PTX and golden hashes, launch dimensions, widths, sparse written coordinates, compiler commands, and encoding observations are in `exact-integer-provenance.json`.
+
+`gfx1250_exact_integer_parity.rs` compares every original printed value/expression and every written coordinate, checks all native graph properties, and independently analyzes the original PTX for full-output equivalence. Extra controls forbid symbolic SCC from driving control flow, carry, EXEC or addresses, preserve SCC across multiplication, and check lowest-active-lane selection and pending-load hazards.
+
+The C++ source retains native runtime operations with register constraints. Explicit U32/F32 identity consumers establish the interpretation of untyped native stores; raw words are not guessed to be floats. Portable clipping/saturation logic implements PTX field/shift behavior where AMD instructions have different native semantics. Byte scratch kernels retain the original two-element output allocation but write only the single original coordinate.
+
+The cancellation test preserves all64 doubled input elements under the original model's never-steal premise. NVIDIA cluster cancellation/work stealing itself has no native AMD counterpart asserted here. Physical execution is a separate validation gate; this fixture receipt does not claim a hardware run.

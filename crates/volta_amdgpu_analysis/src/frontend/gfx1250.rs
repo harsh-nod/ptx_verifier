@@ -46,6 +46,15 @@ pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
 }
 
 fn validate_dual_pair(x: &Instruction, y: &Instruction) -> Result<(), String> {
+    if x.mnemonic == "v_max_i32" {
+        return Err("gfx1250 signed MAX is supported only in the VOPD Y slot".into());
+    }
+    if y.mnemonic == "v_max_i32" && (!y.modifiers.is_empty()
+        || y.operands.len()!=3
+        || y.operands.iter().any(|op| !matches!(op,Operand::Register(r) if r.class==RegisterClass::Vector && r.count==1)))
+    {
+        return Err("selected VOPD signed MAX requires three plain VGPR operands".into());
+    }
     for operation in [x, y] {
         if operation.mnemonic == "v_ashrrev_i32" {
             let count = match operation.operands.get(1) {
@@ -361,6 +370,7 @@ pub(super) fn parse_special(
                 "lshlrev_b32",
                 "lshrrev_b32",
                 "ashrrev_i32",
+                "max_i32",
                 "mov_b32",
                 "bitop2_b32",
                 "cndmask_b32",
