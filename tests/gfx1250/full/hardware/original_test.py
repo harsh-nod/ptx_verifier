@@ -11,6 +11,7 @@ import unittest
 SCRIPT = Path(__file__).with_name("original_run.py")
 SPEC = importlib.util.spec_from_file_location("original_run", SCRIPT)
 runner = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = runner
 SPEC.loader.exec_module(runner)
 
 
@@ -27,6 +28,20 @@ def result():
 
 
 class ReceiptControls(unittest.TestCase):
+    def test_matrix_gate_rejects_missing_padding_accounting(self):
+        from original_matrix_run import MATRIX
+        report = {**result(), "patterns": 4, "cases": []}
+        for name, (outputs, inputs, buffers) in MATRIX.contract.items():
+            report["cases"].append({"kernel": name, "outputs": outputs * 4, "launches": 4,
+                                    "unchanged_input_bytes": inputs * 4,
+                                    "unchanged_guard_bytes": buffers * 8192 * 4,
+                                    "unchanged_gap_bytes": MATRIX.gaps[name] * 4,
+                                    "max_absolute_error": 0})
+        runner.validate_result(report, 4, MATRIX)
+        report["cases"][0]["unchanged_gap_bytes"] -= 2
+        with self.assertRaises(ValueError):
+            runner.validate_result(report, 4, MATRIX)
+
     def test_rejects_incomplete_or_invalid_execution(self):
         baseline = result()
         runner.validate_result(baseline, 3)
