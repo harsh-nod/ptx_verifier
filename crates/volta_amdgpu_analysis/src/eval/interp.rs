@@ -2610,6 +2610,16 @@ impl<'a> Interpreter<'a> {
             }
         }
         if name == "v_bfi_b32" {
+            // Halfword copies have their own tagged path, which preserves an
+            // unavailable unselected half. Do not eagerly demand both sources
+            // merely to decide whether this is an F32 sign/magnitude idiom.
+            if wave
+                .value(&o[1], lane)?
+                .bits()
+                .is_ok_and(|mask| matches!(mask, 0xffff | 0xffff0000))
+            {
+                return Ok(None);
+            }
             let values = [
                 wave.value(&o[1], lane)?,
                 wave.value(&o[2], lane)?,

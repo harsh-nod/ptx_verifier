@@ -270,6 +270,17 @@ fn bfi_copies_encoded_halves_without_changing_order_or_defining_unknown_halves()
             }
         }
     }
+    // An unavailable base contributes only an undefined high half. A low-only
+    // consumer still observes exactly input[0], without requiring that base.
+    let source = half_copy_source("v_bfi_b32 v3,0xffff,v1,v2\nglobal_store_b16 v0,v3,s[6:7]");
+    let module = frontend::parse(&source).unwrap();
+    let checked = native_common::check(&source, &module, Some("k"), half_copy_config()).unwrap();
+    assert_eq!(checked.checks.conclusion(), GraphConclusion::Verified);
+    let actual = checked.analysis.symbolic_outputs().unwrap();
+    assert_eq!(actual.outputs[0].1.len(), 1);
+    assert_eq!(actual.outputs[0].1[0].0, 0);
+    assert!(matches!(actual.arena.node(actual.outputs[0].1[0].1),
+        volta_expr::ExprNode::InputElement {array,index:0} if actual.arena.string(*array)=="input"));
     // The BFI mask selects only the low half from input; the base register's
     // uninitialized high half must remain unobservable, rather than become 0.
     for consumer in [
