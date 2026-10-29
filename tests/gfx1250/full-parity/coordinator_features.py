@@ -250,8 +250,10 @@ def prepare(
             path = candidate.get("path", candidate.get("baseline_path"))
             baseline = originals[path]
             refs = native_references(candidate, document, manifest, root)
+            sources = native_sources(candidate, manifest, root)
             for overlay in overlays.get(path, {}).values():
                 review = overlay["row"]
+                sources.extend(native_sources(review, manifest, root))
                 if any(
                     review.get(field)
                     for field in [
@@ -267,7 +269,10 @@ def prepare(
                 {(ref["path"], ref.get("function")): ref for ref in refs}.values(),
                 key=lambda ref: (ref["path"], ref.get("function", "")),
             )
-            sources = native_sources(candidate, manifest, root)
+            sources = sorted(
+                {source["path"]: source for source in sources}.values(),
+                key=lambda source: source["path"],
+            )
             row_inventory = {}
             include_sources(root / path, root, row_inventory)
             for source in refs + sources:

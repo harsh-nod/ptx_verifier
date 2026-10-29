@@ -236,6 +236,28 @@ class CoordinatorFeatureReviewTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "stale coordinator"):
             self.candidate(mechanism_reviews=reviews, decisions=decisions)
 
+    def test_current_overlay_native_source_changes_invalidate_the_previous_decision(
+        self,
+    ):
+        (self.root / "native.ll").write_text("original LLVM source\n")
+        reviews = {
+            "rows": [
+                {
+                    "path": self.positive,
+                    "upstream_sha256": self.positive,
+                    "native_sources": ["native.ll"],
+                }
+            ]
+        }
+        result = self.candidate(mechanism_reviews=reviews)
+        decisions = self.decisions()
+        for decision in decisions["rows"]:
+            row = next(row for row in result["rows"] if row["path"] == decision["path"])
+            decision["proof_identity_sha256"] = row["proof_identity_sha256"]
+        (self.root / "native.ll").write_text("changed LLVM source\n")
+        with self.assertRaisesRegex(ValueError, "stale coordinator"):
+            self.candidate(mechanism_reviews=reviews, decisions=decisions)
+
     def test_known_portable_gap_cannot_be_overridden_by_candidate_ownership(self):
         reviews = {
             "rows": [
