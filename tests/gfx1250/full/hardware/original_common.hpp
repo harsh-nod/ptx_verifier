@@ -20,8 +20,68 @@ static void hip_check(hipError_t error, const char *operation) {
   require(error == hipSuccess, std::string(operation) + ": " + hipGetErrorString(error));
 }
 
-static void check_preserved(const std::vector<uint8_t> &before,
-                            const std::vector<uint8_t> &after,
+inline std::string quote_identity_text(const char *value) {
+  std::string result = "\"";
+  for (const unsigned char *p = reinterpret_cast<const unsigned char *>(value); *p; ++p) {
+    if (*p == '"' || *p == '\\') {
+      result += '\\';
+      result += char(*p);
+    } else if (*p < 0x20) {
+      char escaped[7];
+      std::snprintf(escaped, sizeof(escaped), "\\u%04x", unsigned(*p));
+      result += escaped;
+    } else {
+      result += char(*p);
+    }
+  }
+  return result + "\"";
+}
+
+inline std::string selected_device_identity_json() {
+  int ordinal = -1, visible = 0, runtime = 0, driver = 0;
+  hip_check(hipGetDevice(&ordinal), "get selected logical device");
+  hip_check(hipGetDeviceCount(&visible), "get visible device count");
+  hipDeviceProp_t properties{};
+  hip_check(hipGetDeviceProperties(&properties, ordinal), "get selected device properties");
+  hip_check(hipRuntimeGetVersion(&runtime), "get HIP runtime API version");
+  hip_check(hipDriverGetVersion(&driver), "get HIP driver API version");
+  char pci[64]{};
+  hip_check(hipDeviceGetPCIBusId(pci, sizeof(pci), ordinal), "get selected device PCI address");
+  hipDevice_t device{};
+  hip_check(hipDeviceGet(&device, ordinal), "get selected device handle");
+  hipUUID uuid{};
+  const hipError_t uuid_error = hipDeviceGetUuid(&uuid, device);
+  require(uuid_error == hipSuccess || uuid_error == hipErrorNotSupported,
+          std::string("get selected device UUID: ") + hipGetErrorString(uuid_error));
+  std::string uuid_hex;
+  bool any_uuid_byte = false;
+  if (uuid_error == hipSuccess) {
+    for (const unsigned char byte : uuid.bytes) {
+      char digits[3];
+      std::snprintf(digits, sizeof(digits), "%02x", unsigned(byte));
+      uuid_hex += digits;
+      any_uuid_byte |= byte != 0;
+    }
+  }
+  const char *uuid_status = uuid_error != hipSuccess ? "not_supported"
+                            : any_uuid_byte          ? "available"
+                                                     : "all_zero";
+  return "{\"logical_ordinal\":" + std::to_string(ordinal) +
+         ",\"visible_device_count\":" + std::to_string(visible) +
+         ",\"name\":" + quote_identity_text(properties.name) +
+         ",\"architecture\":" + quote_identity_text(properties.gcnArchName) +
+         ",\"wave_size\":" + std::to_string(properties.warpSize) +
+         ",\"pci_bus_id\":" + quote_identity_text(pci) +
+         ",\"uuid_status\":" + quote_identity_text(uuid_status) +
+         ",\"uuid_hex\":" + (any_uuid_byte ? quote_identity_text(uuid_hex.c_str()) : "null") +
+         ",\"uuid_hip_error\":" + std::to_string(int(uuid_error)) +
+         ",\"hip_runtime_version\":" + std::to_string(runtime) +
+         ",\"hip_driver_version\":" + std::to_string(driver) + "}";
+}
+
+#ifndef VOLTA_HARDWARE_IDENTITY_ONLY
+
+static void check_preserved(const std::vector<uint8_t> &before, const std::vector<uint8_t> &after,
                             bool output, size_t guard) {
   require(before.size() == after.size() && before.size() >= guard * 2, "invalid storage extent");
   for (size_t i = 0; i < before.size(); ++i) {
@@ -178,3 +238,5 @@ static void run(hipModule_t module, const std::string &name, dim3 block,
   launch(module, name, block, std::move(args), buffers, row);
   compare(name, out, expected, row, atol, rtol);
 }
+
+#endif // VOLTA_HARDWARE_IDENTITY_ONLY
