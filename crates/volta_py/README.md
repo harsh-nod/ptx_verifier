@@ -19,6 +19,14 @@ v = volta.verify(ptx_source, "dim N; array in[N]; array out[N]; out[i] = in[i];"
 assert v.equivalent and v.mismatches == []
 ```
 
+`result.outputs` is a fresh ordinary Python list of array-name/element-list
+tuples, with `(index, expression_string)` elements. Strings are formatted when
+this property is read; `analyze` retains the compact expression DAG internally.
+The text and existing 50 MiB per-expression display limit are unchanged. A
+complete large attention result can still require substantial Python memory
+when its expressions fit that limit. Graph checks and `verify` operate on the
+complete DAG independently of display formatting.
+
 ## Modules
 
 - `config.rs`: Python classes that wrap the Rust config types one to one

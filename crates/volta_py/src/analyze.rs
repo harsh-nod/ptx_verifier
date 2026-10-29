@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use pyo3::exceptions::PyRuntimeWarning;
 use pyo3::prelude::*;
+use pyo3::types::PyList;
 
 use volta_expr::SymbolicOutputs;
 use volta_graph_check::GraphConclusion;
@@ -65,9 +66,10 @@ pub struct StatsPy {
 pub struct AnalyzeResultPy {
     #[pyo3(get)]
     pub stats: StatsPy,
-    /// `[(array_name, [(index, pretty_printed_expr), ...]), ...]`
-    #[pyo3(get)]
-    pub outputs: Vec<(String, Vec<(u64, String)>)>,
+    // Retain the compact DAG, rather than a second complete copy of every
+    // expanded expression string. The getter still returns ordinary Python
+    // lists/tuples/strings and never exposes arena handles.
+    exprs: SymbolicOutputs,
     #[pyo3(get)]
     pub op_counts: BTreeMap<String, u64>,
     /// Whether graph verification is complete: the trace completed and the graph checks
@@ -79,6 +81,26 @@ pub struct AnalyzeResultPy {
     /// Why verification is incomplete; empty when `race_verified`.
     #[pyo3(get)]
     pub unresolved: Vec<String>,
+}
+
+#[pymethods]
+impl AnalyzeResultPy {
+    /// `[(array_name, [(index, pretty_printed_expr), ...]), ...]`
+    #[getter]
+    fn outputs<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
+        let outputs = PyList::empty(py);
+        for (name, elements) in &self.exprs.outputs {
+            let values = PyList::empty(py);
+            for (index, expr) in elements {
+                // Convert each string directly into its Python result. A
+                // whole Rust Vec<String> would retain or clone hundreds of
+                // GiB for original-size attention results before conversion.
+                values.append((*index, self.exprs.arena.display_expr(*expr)))?;
+            }
+            outputs.append((name, values))?;
+        }
+        Ok(outputs)
+    }
 }
 
 /// One kernel that ran to completion with no failed graph check.
@@ -143,26 +165,13 @@ pub fn analyze(
     let module = parse_module(source, config.1)?;
     let output = check_kernel(py, &module, kernel, config.0.clone())?;
 
-    let outputs = output
-        .exprs
-        .outputs
-        .iter()
-        .map(|(name, elems)| {
-            let elems = elems
-                .iter()
-                .map(|(index, expr)| (*index, output.exprs.arena.display_expr(*expr)))
-                .collect();
-            (name.clone(), elems)
-        })
-        .collect();
-
     Ok(AnalyzeResultPy {
         stats: StatsPy {
             instructions: output.stats.instructions,
             block_syncs: output.stats.block_syncs,
             warp_syncs: output.stats.warp_syncs,
         },
-        outputs,
+        exprs: output.exprs,
         op_counts: output
             .op_counts
             .iter()
