@@ -572,6 +572,10 @@ none turns an unsupported case into `Pass`. Depends only on `volta_graph`.
 
 **Path**: `crates/volta_pipeline/`
 
+The full-shape gfx1250 matrix corpus has a separate exact-assembly frontend
+gate; parsing/lowering and zero-scratch descriptor checks do not establish
+execution, mathematical equivalence, or safety acceptance.
+
 The integration point: `verify_source_kernel(&KernelModule, kernel, config)`
 dispatches to PTX or native AMD, then runs the applicable graph checks.
 `verify_kernel` remains the PTX-specific entry point. `Backend::select` keeps
