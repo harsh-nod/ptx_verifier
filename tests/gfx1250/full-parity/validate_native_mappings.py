@@ -32,13 +32,16 @@ def validate(document, ledger, root=ROOT):
         proposal = root / selection["path"]
         require(sha(proposal) == selection["sha256"], "reference selection changed")
         require(
-            selection["proposal"] == "portable_property_gap_with_target_residual",
+            selection["proposal"] == "native_property_candidate_with_target_residual"
+            and selection.get("previous_proposal")
+            == "portable_property_gap_with_target_residual",
             "unknown reference selection",
         )
         selected = {
             row["path"]
             for row in json.loads(proposal.read_text())["rows"]
             if row["proposal"] == selection["proposal"]
+            and row.get("previous_proposal") == selection["previous_proposal"]
         }
         selected.update(selection.get("additional_paths", []))
         require(

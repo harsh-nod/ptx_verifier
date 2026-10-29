@@ -249,11 +249,15 @@ residual and its remaining gate. These counts are not acceptance results, and
 the proposal does not change the coordinator's feature or completion ledger.
 
 [`mechanism-review-proposal.json`](mechanism-review-proposal.json) is a separate
-read-only audit of all 82 rows originally labeled as target-mechanism residuals.
+source-pinned review of all 82 rows originally labeled as target-mechanism residuals.
 It pins the actual upstream sources and 47 distinct assertion functions, retains
 every positive control, and names the exact target contract per row. Its 65
-precise residual candidates, six native-property candidates and eleven explicit
-portable gaps are proposals for coordinator review, not completed exclusions.
+precise residual candidates and seventeen native-property candidates are
+proposals for coordinator review, not completed exclusions. Eleven of those
+native candidates reconcile previously explicit portable gaps through the
+13-row [mechanism lifetime contract](../fixtures/mechanism-lifetime-contract.json).
+Their prior gap descriptions remain recorded; each current row names the exact
+source-backed property and the pending coordinator gate.
 Repeated native evidence is stored in a source-hashed catalog. The audit changes
 no production code, original workload source, canonical ledger or issue status.
 

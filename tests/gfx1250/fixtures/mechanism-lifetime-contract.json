@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "scope": "Thirteen exact remaining portable obligations: eleven mechanism proposal gaps plus two matrix graph directions. Source/test candidates only; no execution receipts or automatic coordinator acceptance. All original positives and native supersets remain explicit.",
+  "scope": "Thirteen exact portable obligations: eleven reconciled mechanism proposal candidates plus two matrix graph directions. Source/test candidates only; no execution receipts or automatic coordinator acceptance. All original positives and native supersets remain explicit.",
   "reference_groups": [
     "ASYNC-COPY-ORDER",
     "NVIDIA-TMEM-ENCODING",
@@ -10,13 +10,14 @@
   ],
   "source_selection": {
     "path": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-    "sha256": "e4cd5fad6325eea41630232272fd88a2765af1fa48ec40f914ec40cff15b760d",
-    "proposal": "portable_property_gap_with_target_residual",
+    "sha256": "5fecc7556bf4415b3ed487ef9c1b0d7393ed983a3b2de7047c2a0bcab398c564",
+    "proposal": "native_property_candidate_with_target_residual",
     "additional_paths": [
       "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_st_then_mma_without_thread_sync_fences_is_rejected.ptx",
       "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_commit_does_not_release_the_threads_earlier_store.ptx"
     ],
-    "required_rows": 13
+    "required_rows": 13,
+    "previous_proposal": "portable_property_gap_with_target_residual"
   },
   "test_sources": [
     "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs",

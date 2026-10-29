@@ -77,6 +77,7 @@ class MappingControls(unittest.TestCase):
         for mutate in (
             lambda d: d["rows"].pop(),
             lambda d: d["source_selection"].update(sha256="0" * 64),
+            lambda d: d["source_selection"].pop("previous_proposal"),
             lambda d: d["source_selection"].update(additional_paths=[]),
         ):
             changed = copy.deepcopy(document)
