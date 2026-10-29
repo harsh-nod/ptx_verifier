@@ -10,6 +10,12 @@ static void validate(hipModule_t module, bool fp8, unsigned patterns, std::vecto
   Buffer out(Type::Half, outputs * pitch, true);
   for (unsigned pattern = 0; pattern < patterns; ++pattern) {
     x.fill(pattern, 3); weight.fill(pattern + (pattern != 0), 7);
+    if (pattern == 4) {
+      // Last original spatial result, channel63, output127 and K575 (tap2,2).
+      const size_t last = spatial - 1;
+      x.basis(63 * height * width_in + (last / 54 + 2) * width_in + last % 54 + 2);
+      weight.basis(127 * channels * 9 + 63 * 9 + 8);
+    }
     std::vector<double> expected(outputs * pitch, NAN);
     for (size_t oc = 0; oc < outputs; ++oc) for (size_t s = 0; s < spatial; ++s) {
       double value = 0;
@@ -29,14 +35,15 @@ static void validate(hipModule_t module, bool fp8, unsigned patterns, std::vecto
 int main(int argc, char **argv) {
   try {
     validate_reference_controls();
+    validate_basis_controls();
     if (argc == 2 && std::string(argv[1]) == "--cpu-only") {
-      std::puts("PASS convolution host reference and storage controls; GPU launches=0"); return 0;
+      std::puts("PASS convolution host reference and storage and basis byte/guard controls; GPU launches=0"); return 0;
     }
     require(argc == 3, "usage: original_convolution_driver convolution.hsaco patterns");
     size_t consumed = 0;
     const std::string text = argv[2];
     const auto patterns = std::stoul(text, &consumed);
-    require(consumed == text.size() && patterns >= 2 && patterns <= 16, "patterns must be2..16");
+    require(consumed == text.size() && patterns >= 5 && patterns <= 16, "patterns must be5..16, including final-tap basis4");
     hipDeviceProp_t device{};
     hip_check(hipGetDeviceProperties(&device, 0), "device properties");
     const std::string architecture = device.gcnArchName;
