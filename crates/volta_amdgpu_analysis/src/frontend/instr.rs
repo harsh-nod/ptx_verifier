@@ -1362,12 +1362,15 @@ pub(super) fn validate_registers(
                 }
                 if architecture == crate::target::Architecture::Gfx1250
                     && modifiers.iter().any(|m| {
-                        !matches!(m.name.as_str(), "offset" | "scope")
+                        !matches!(m.name.as_str(), "offset" | "scope" | "scale_offset")
                             || (m.name == "scope" && m.value.as_deref() != Some("SCOPE_SYS"))
+                            || (m.name == "scale_offset"
+                                && (operands.len() != 3
+                                    || !matches!(stem, "flat_load_b32" | "flat_store_b32")))
                     })
                 {
                     return Err(
-                        "selected gfx1250 FLAT supports only byte offset and SCOPE_SYS".into(),
+                        "selected gfx1250 FLAT supports byte offset, SCOPE_SYS, and B32 scalar-base index scaling".into(),
                     );
                 }
             } else if buffer {
