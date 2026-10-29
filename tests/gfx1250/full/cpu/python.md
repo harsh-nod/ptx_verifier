@@ -39,3 +39,30 @@ The process tree runs on CPUs with empty GPU visibility, a128GiB RSS cap and
 complete serial suite; coordinate its memory allocation with other jobs. Runtime
 logging is a separate build/gate and is not implied by this default PyO3 replay.
 No current PASS is implied by checking in this runner.
+
+For independent case groups, repeat `--kernel NAME` for every member of one
+disjoint group and use a unique output directory. Every group still invokes the
+same existing heavy pytest case; it retains status `partial` even when all its
+tests pass. Coordinate the aggregate process-tree RSS budget before parallel
+launches. The bounded runner does not infer available memory from a count of
+groups.
+
+After all groups finish, aggregate on the host that retains their pinned source,
+interpreter, extension, runtime and JUnit/log artifacts:
+
+```bash
+python3 tests/gfx1250/full/cpu/test_aggregate_python.py -v
+python3 tests/gfx1250/full/cpu/aggregate_python.py \
+  --registry /owned/source-snapshot/tests/gfx1250/full/cases.json \
+  --receipt /unique/group-a/receipt.json \
+  --receipt /unique/group-b/receipt.json \
+  --output /unique/full32-aggregate.json
+```
+
+The aggregate passes only if the groups cover exactly32 distinct original
+cases and395,394 configured outputs, with no failed, missing, overlapping,
+skipped or incomplete test. It rechecks actual JUnit files and stdout/stderr,
+the unchanged pytest command, all original source/config/spec/baseline pins,
+and identical interpreter/ABI/extension/runtime hashes. It preserves individual
+partial receipts and rejects mixed revisions. Its own host refusal controls
+are synthetic accounting tests; they provide no native execution evidence.
