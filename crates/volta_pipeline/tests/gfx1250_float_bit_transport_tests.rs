@@ -276,3 +276,66 @@ fn scalar_raw_sign_xor_never_becomes_float_negation_or_decodes_a_real_result() {
     );
     assert!(mixed.analysis.symbolic_outputs().is_err());
 }
+
+#[test]
+fn symbolic_scalar_and_and_lshr_keep_exact_unsigned_width_and_data_only_scc() {
+    for (instruction, shift) in [("s_and_b32 s8,s8,-2", false), ("s_lshr_b32 s8,s8,1", true)] {
+        let checked = run(
+            &format!(
+                "s_load_b32 s8,s[4:5],0\ns_wait_kmcnt 0\n{instruction}\ns_cselect_b32 s9,7,11\nv_mov_b32 v2,s8\nv_mov_b32 v3,s9\nglobal_store_b64 v0,v[2:3],s[6:7]"
+            ),
+            4,
+            2,
+        );
+        assert_eq!(checked.checks.conclusion(), GraphConclusion::Verified);
+        let actual = checked.analysis.symbolic_outputs().unwrap();
+        let mut expected = actual.clone();
+        let name = expected.arena.intern_string("input");
+        let input = expected.arena.input_element(name, 0);
+        let mask = expected.arena.int(u32::MAX as i64);
+        let raw = if shift {
+            let word = expected.arena.bit_and(input, mask);
+            let count = expected.arena.int(1);
+            expected.arena.lshr(word, count)
+        } else {
+            let even = expected.arena.int((u32::MAX - 1) as i64);
+            expected.arena.bit_and(input, even)
+        };
+        let result = expected.arena.bit_and(raw, mask);
+        let zero = expected.arena.int(0);
+        let condition = expected.arena.ne(result, zero);
+        let seven = expected.arena.int(7);
+        let eleven = expected.arena.int(11);
+        let selected = expected.arena.select(condition, seven, eleven);
+        expected.outputs[0].1 = vec![(0, result), (1, selected)];
+        assert!(matches!(
+            check_output_equivalence(actual, &expected, &["out".into()]).unwrap(),
+            EquivOutcome::Equivalent
+        ));
+        let blocked = run(
+            &format!(
+                "s_load_b32 s8,s[4:5],0\ns_wait_kmcnt 0\n{instruction}\ns_cbranch_scc1 done\ndone:"
+            ),
+            4,
+            1,
+        );
+        assert!(blocked.analysis.symbolic_outputs().is_err());
+    }
+    for (instruction, expected) in [
+        ("s_lshr_b32 s8,s8,1", 3),
+        ("s_lshr_b32 s8,s8,33", 3),
+        ("s_and_b32 s8,s8,-2", 6),
+    ] {
+        let checked = run(
+            &format!("s_mov_b32 s8,7\n{instruction}\nv_mov_b32 v2,s8\n{STORE}"),
+            4,
+            1,
+        );
+        assert_eq!(checked.checks.conclusion(), GraphConclusion::Verified);
+        let out = checked.analysis.symbolic_outputs().unwrap();
+        assert_eq!(
+            out.arena.as_int_const(out.outputs[0].1[0].1),
+            Some(expected)
+        );
+    }
+}

@@ -3069,6 +3069,8 @@ impl<'a> Interpreter<'a> {
                     | "s_sub_nc_u32"
                     | "s_mul_i32"
                     | "s_xor_b32"
+                    | "s_and_b32"
+                    | "s_lshr_b32"
             )
             && [1, 2].into_iter().any(|i| {
                 matches!(
@@ -3086,6 +3088,10 @@ impl<'a> Interpreter<'a> {
             let b = self.integer_expression(wave, &o[2], 0, ty)?;
             let op = if name == "s_xor_b32" {
                 IntBinOp::Xor
+            } else if name == "s_and_b32" {
+                IntBinOp::And
+            } else if name == "s_lshr_b32" {
+                IntBinOp::LShr
             } else if name.starts_with("s_mul") {
                 IntBinOp::MulLo
             } else if name.starts_with("s_sub") {
@@ -3095,7 +3101,7 @@ impl<'a> Interpreter<'a> {
             };
             let value = super::scalar::int_binary(&mut self.arena, ty, op, a, b)
                 .map_err(|e| wave.fail(None, e))?;
-            if name == "s_xor_b32" {
+            if matches!(name, "s_xor_b32" | "s_and_b32" | "s_lshr_b32") {
                 let zero = self.arena.int(0);
                 let nonzero = self.arena.ne(value, zero);
                 if let Some(nonzero) = self.arena.as_bool(nonzero) {

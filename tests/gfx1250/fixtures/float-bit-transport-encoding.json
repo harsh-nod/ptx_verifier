@@ -151,6 +151,30 @@
       "assembler_accepted": true,
       "assembly_sha256": "03cddf7c7a777010f40a44749726af658354723255e9c6f452c5b2a5c05ad620",
       "diagnostic": ""
+    },
+    {
+      "name": "scalar_even_mask",
+      "instruction": "s_and_b32 s8,s8,-2",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "3b3b1f630c623523d831c2242a800a26f28f33c0964f389b4b608c24ccb34c04",
+      "diagnostic": ""
+    },
+    {
+      "name": "scalar_logical_shift",
+      "instruction": "s_lshr_b32 s8,s8,1",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "d70dd6ca5a4ce9ae1854c420a9f9eb3128d74881d2be80ff9a121b89ba4b02cb",
+      "diagnostic": ""
+    },
+    {
+      "name": "scalar_masked_shift",
+      "instruction": "s_lshr_b32 s8,s8,33",
+      "supported_model_profile": true,
+      "assembler_accepted": true,
+      "assembly_sha256": "04c91dd377160bc7988f579c0a21a02b6e84006562cbfe0ecaf6d95940f551d7",
+      "diagnostic": ""
     }
   ]
 }
