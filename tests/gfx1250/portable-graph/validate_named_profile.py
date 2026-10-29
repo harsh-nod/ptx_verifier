@@ -22,7 +22,7 @@ def command(argv):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--llvm", type=Path, default=Path("/opt/rocm-7.2.0/lib/llvm/bin"))
-    parser.add_argument("--module", choices=["native-named-barriers", "native-named-phases", "native-named-lifecycle"],
+    parser.add_argument("--module", choices=["native-named-barriers", "native-named-phases", "native-named-lifecycle", "native-named-consumers"],
                         default="native-named-barriers")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
@@ -31,7 +31,8 @@ def main():
     if args.output is None:
         args.output = directory / {"native-named-barriers": "named-profile-evidence.json",
                                    "native-named-phases": "named-phases-profile-evidence.json",
-                                   "native-named-lifecycle": "named-lifecycle-profile-evidence.json"}[args.module]
+                                   "native-named-lifecycle": "named-lifecycle-profile-evidence.json",
+                                   "native-named-consumers": "named-consumers-profile-evidence.json"}[args.module]
     assembly = source.with_suffix(".s")
     llc, mc, linker = [args.llvm / name for name in ("llc", "llvm-mc", "ld.lld")]
     receipt = {"schema_version": 1, "target": "gfx1250", "hardware_execution": False,
@@ -86,6 +87,12 @@ def main():
         receipt["runtime_control"] = {"kernel": "named_two_marker_ones",
             "scalar_parameter": "skip", "positive": 0, "cpu_only_deadlock": 1,
             "scope": "Same actual assembly; skip 1 suppresses only wave 1 arrival, leaving expected 2 and arrived 1"}
+    if args.module == "native-named-consumers":
+        mutations = []
+        receipt["runtime_control"] = {"kernel": "named_independent_consumers",
+            "scalar_parameter": "skip_consumer", "positive": 0,
+            "cpu_only_deadlocks": [1, 2],
+            "scope": "Same actual assembly; each bad input suppresses exactly one consumer's count-2 empty arrival"}
     with tempfile.TemporaryDirectory(prefix="gfx1250-named-profile-") as temp:
         temp = Path(temp)
         regenerated = temp / assembly.name
@@ -95,7 +102,7 @@ def main():
             raise RuntimeError("compiler output differs from the frozen assembly")
         text = assembly.read_text()
         kernels = {"native-named-barriers": 6, "native-named-phases": 4,
-                   "native-named-lifecycle": 6}[args.module]
+                   "native-named-lifecycle": 6, "native-named-consumers": 1}[args.module]
         if text.count(".amdhsa_named_barrier_count 1") != kernels:
             raise RuntimeError("each genuine kernel must allocate four named objects")
         obj, code = temp / "native.o", temp / "native.hsaco"

@@ -655,6 +655,13 @@ Its MC mutations and missing-arrival scalar input are CPU-only, and phase/count
 diagnostics retain every blocked workitem. Polling grammar and manual NVIDIA
 transaction-byte credits remain explicit mechanism residuals.
 
+`gfx1250_named_consumer_tests` separately preserves count-1 full/count-2 empty
+objects, two independent consumers and all four original output values. Only
+setup uses a workgroup rendezvous. Actual consumer-specific arrivals govern
+buffer reuse; suppressing either arrival is a CPU-only same-source scalar-input
+control recording all 96 blocked workitems. It is not replaced by a stronger
+workgroup-wide payload barrier.
+
 `examples/measure_native_export.rs` measures a completed native graph and its
 viewer export on CPU; its counts and GraphVerified guard are independent of
 mathematical equivalence and hardware evidence.

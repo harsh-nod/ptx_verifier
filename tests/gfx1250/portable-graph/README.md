@@ -211,3 +211,29 @@ skip control is also CPU-only. No hardware outcome is claimed. Hardware WAIT
 does not reproduce PTX scoped polling-loop grammar; AMD count-1 completion does
 not emulate manual NVIDIA transaction-byte credits or tensor-engine commits.
 Those mechanism residuals remain separate from the native marker assertions.
+
+## Independent consumers
+
+`native-named-consumers.ll` preserves the full-count-1/empty-count-2 roles of
+the baseline two-consumer loop. Its actual block-96 kernel
+`named_independent_consumers(in[2], out[4], skip_consumer:u32=0)` returns exactly
+`[in[0], in[1], in[0], in[1]]`. Only the producer arrives on `full`; each consumer
+waits on both full generations and separately arrives on `empty`. The producer
+waits for both releases before reusing the four-byte shared slot. Consumers join
+the next full phase before releasing the producer, so a fast producer cannot
+overtake their waits. No payload-phase workgroup barrier synchronizes consumers
+with one another; the two automatic rendezvous are initialization/join setup.
+
+```sh
+python3 tests/gfx1250/portable-graph/validate_named_profile.py --module native-named-consumers
+cargo test -p volta_pipeline --test gfx1250_named_consumer_tests
+```
+
+The two CPU tests check all four outputs, all eight input bytes, every shared
+read/write byte, actual reader IDs 32 and 64, full/empty counts and every native
+arrival/wait role. **Inputs `skip_consumer=1` and `2` are CPU-only**: each leaves
+one empty arrival missing, blocks the producer and both next-phase waiters, and
+records all 96 blocked workitems with their distinct object/phase/count reasons.
+These use the same unchanged MC-accepted assembly; the receipt claims no edited
+MC mutants or hardware execution. PTX parity pre-init polling is represented by
+an initially free buffer and explicit subsequent native handshakes.
