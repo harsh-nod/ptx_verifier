@@ -425,7 +425,7 @@
         }
       ],
       "coordinator_validation": "pending",
-      "portable_obligation": "A one-ULP-adjacent encoded constant change must differ; exact encoded rational coefficients are retained.",
+      "portable_obligation": "Changing the encoded F32 coefficient0x3f000000 to0x3f000002 must differ; both exact encoded rational coefficients are retained.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_constant_perturbation_retains_exact_original_pair_and_coordinates"
       ],
@@ -474,7 +474,7 @@
         }
       ],
       "coordinator_validation": "pending",
-      "portable_obligation": "A one-ULP-adjacent encoded constant change must differ; exact encoded rational coefficients are retained.",
+      "portable_obligation": "Changing the encoded F32 coefficient0x3f000000 to0x3f000002 must differ; both exact encoded rational coefficients are retained.",
       "native_tests": [
         "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs::native_constant_perturbation_retains_exact_original_pair_and_coordinates"
       ],
