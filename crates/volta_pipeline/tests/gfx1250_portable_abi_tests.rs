@@ -509,10 +509,17 @@ fn native_word_alignment_is_checked_without_importing_ptx_vector_alignment() {
     let mut cfg = config(4, 4, 4, 4, 4);
     cfg.params.push(ParamValue::Int(4));
     equal(&verified(COPY, "copy", cfg.clone()), inputs(&[0, 1, 2, 3]));
+    // HSA gfx1250 GLOBAL B32 is byte addressed. A byte-granule view preserves
+    // all cross-word bytes without inventing a bitcast of mathematical F32s.
+    let mut cfg = config(4, 1, 18, 1, 16);
+    cfg.params.push(ParamValue::Int(4));
     cfg.params[0] = ParamValue::Int(0x10002);
-    invalid(COPY, "copy", cfg, "align");
+    equal(
+        &verified(COPY, "copy", cfg),
+        inputs(&(2..18).collect::<Vec<_>>()),
+    );
     // Native SMEM masks low address bits. That distinct unmodeled behavior must
-    // not be mislabeled as the VMEM alignment violation established above.
+    // not be inferred from the byte-addressed GLOBAL profile above.
     let mut cfg = config(1, 4, 6, 4, 1);
     cfg.params[0] = ParamValue::Int(0x10002);
     let run = checked(TRANSFERS, "abi_upper_address", cfg).unwrap();
@@ -525,7 +532,7 @@ fn native_word_alignment_is_checked_without_importing_ptx_vector_alignment() {
     ));
     let mut cfg = config(4, 0, 0, 4, 4);
     cfg.params[0] = ParamValue::Int(0x20002);
-    invalid(TRANSFERS, "abi_rank_zero_offsets", cfg, "align");
+    invalid(TRANSFERS, "abi_rank_zero_offsets", cfg, "allocation");
 }
 
 #[test]

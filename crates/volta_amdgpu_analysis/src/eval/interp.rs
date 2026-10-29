@@ -6298,7 +6298,18 @@ impl<'a> Interpreter<'a> {
                     return Err(wave.fail(Some(lane), "load exceeds the declared ABI segment"));
                 }
                 if !abi {
-                    self.validate_address(wave, lane, effective_lds, addr, width, store)?;
+                    // HSA enables unaligned-access-mode, and gfx1250 has
+                    // UnalignedBufferAccess. Limit the established byte-addressed
+                    // profile to ordinary GLOBAL B32; SMEM/DS/FLAT, wider
+                    // transfers and older targets retain their existing gates.
+                    // Whole-instruction allocation bounds were checked above.
+                    if self.architecture == AmdArchitecture::Gfx1250
+                        && matches!(name, "global_load_b32" | "global_store_b32")
+                    {
+                        self.validate_memory_range(wave, lane, false, addr, width, store)?;
+                    } else {
+                        self.validate_address(wave, lane, effective_lds, addr, width, store)?;
+                    }
                 }
                 let value = if store {
                     let source_register = if dual && component >= registers_per_part {
@@ -6652,6 +6663,24 @@ impl<'a> Interpreter<'a> {
         width: u64,
         write: bool,
     ) -> Result<(), EvalError> {
+        self.validate_memory_range(wave, lane, lds, addr, width, write)?;
+        if addr % width.min(4) != 0 {
+            return Err(wave.fail(
+                Some(lane),
+                format!("misaligned access at {addr:#x} width {width}"),
+            ));
+        }
+        Ok(())
+    }
+    fn validate_memory_range(
+        &self,
+        wave: &Wave,
+        lane: u8,
+        lds: bool,
+        addr: u64,
+        width: u64,
+        write: bool,
+    ) -> Result<(), EvalError> {
         let valid = if lds {
             addr <= self.lds_size && width <= self.lds_size - addr
         } else {
@@ -6681,12 +6710,6 @@ impl<'a> Interpreter<'a> {
             })
         {
             return Err(wave.fail(Some(lane), "store to read-only module-global object"));
-        }
-        if addr % width.min(4) != 0 {
-            return Err(wave.fail(
-                Some(lane),
-                format!("misaligned access at {addr:#x} width {width}"),
-            ));
         }
         Ok(())
     }
