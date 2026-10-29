@@ -87,7 +87,7 @@ pub struct AmdReport {
     pub memory_conflict: MemoryConflictResult,
 }
 
-const CLASSES: usize = 12;
+const CLASSES: usize = 13;
 fn class_index(class: AmdMemoryClass) -> usize {
     // CDNA4 §4.4 orders same-type LDS instructions. §12.12's DS_(B)PERMUTE
     // uses LDS hardware, with no LDS memory footprint. LLVM AMDGPUHWEvents.cpp
@@ -108,6 +108,7 @@ fn class_index(class: AmdMemoryClass) -> usize {
         AmdMemoryClass::AsyncStoreFromLds => 9,
         AmdMemoryClass::TensorLoadToLds => 10,
         AmdMemoryClass::TensorStoreFromLds => 11,
+        AmdMemoryClass::GlobalAtomicAddF32NoReturn => 12,
     }
 }
 fn ordered(class: AmdMemoryClass) -> bool {
