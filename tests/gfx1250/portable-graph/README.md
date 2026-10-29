@@ -139,3 +139,36 @@ object still determines the wait. The runtime ID-mismatch control uses the same
 actual assembly with a different scalar input, not an edited descriptor. No
 hardware outcome is claimed here. The native payload lane is inactive elsewhere;
 this does not emulate PTX independent lane termination or PTX count rounding.
+
+## Copy completion and publication
+
+`copy-order/native-copy-order.hip` and its unchanged compiler output preserve
+ordinary memory obligations through the actual SMEM, GLOBAL and FLAT-to-LDS
+instructions selected by clang. These are native counterparts for portable
+payload and ordering assertions; they do not claim NVIDIA transaction-byte
+accounting, proxy fences, Tensor Memory, or native asynchronous DMA instructions.
+
+| Kernel | Launch and arrays | Complete assertion |
+| --- | --- | --- |
+| `copy_scalar_same_wave` | block 1, `in[1], out[1]` | Four input bytes and four LDS bytes; `out[0] = in[0]` after returned-value readiness |
+| `copy_scalar_cross_wave` | block 64, `in[1], out[1]` | Lane 0 produces four LDS bytes; lane 32 consumes after completion and workgroup publication; `out[0] = in[0]` |
+| `copy_both_regions_before_publication` | block 64, `in[8], out[64]` | Two disjoint 16-byte LDS regions complete before publication; all 64 outputs equal `in[4]` |
+| `copy_two_completed_regions` | block 1, `in[8], out[2]` | Two disjoint 16-byte copies observed in order; `out = [in[0], in[4]]` |
+| `copy_result_dependency_ids` | block 32, `out[256]` | All 32 IDs return through 128 bytes of LDS; only output indices 0 through 31 are written |
+| `copy_every_actual_reader_waits` | block 64, `in[4]`, no outputs | All 16 copied bytes complete before publication; exactly lanes 32 through 63 read the first LDS word |
+
+```sh
+python3 tests/gfx1250/compile_fixtures.py tests/gfx1250/portable-graph/copy-order
+python3 tests/gfx1250/portable-graph/copy-order/validate_mutations.py
+cargo test -p volta_pipeline --test gfx1250_portable_copy_tests
+```
+
+The eight CPU tests check full symbolic outputs, untouched output tails, exact
+input/LDS byte footprints and reader attribution. Three separately MC-accepted
+mutations replace the actual KM wait with a Load wait, replace a returned FLAT
+load wait with Store completion, or remove crosswave publication after LDS
+completion. Each has a passing unmodified payload control and a typed failing
+graph property. Independent scalar NOPs in the last mutation keep its candidate
+execution complete; they do not establish memory ordering. The mutations are
+CPU-only. Compiler and mutation receipts record source/tool/object hashes; no
+hardware result or completion of the entire portable feature group is claimed.

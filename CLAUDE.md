@@ -632,6 +632,14 @@ The separate `native-named-phases.ll` corpus preserves two-object handshakes,
 independent per-object counts, the three-arrival expression and selected-ID
 deadlocks; the runtime mismatch input is CPU-only.
 
+`gfx1250_portable_copy_tests` checks six genuinely compiled SMEM/GLOBAL/FLAT
+copy controls: exact input/LDS byte footprints, all payloads and output tails,
+crosswave publication, and every actual reader. Its three MC-accepted CPU-only
+mutations distinguish scalar KM readiness, returned Load/DS readiness and memory
+publication. The corpus and hash receipts live in
+`tests/gfx1250/portable-graph/copy-order`; native DMA/proxy/transaction-byte
+mechanisms are not inferred from these ordinary-memory controls.
+
 `examples/measure_native_export.rs` measures a completed native graph and its
 viewer export on CPU; its counts and GraphVerified guard are independent of
 mathematical equivalence and hardware evidence.
