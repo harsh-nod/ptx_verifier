@@ -21,7 +21,7 @@ wait/readiness witnesses, aborted/unsupported status, and deadlock export covera
 
 The event-graph viewer. It records kernel runs into a directory (a **run
 store**) and turns that store into **one self-contained HTML page** showing
-each run's event graph as a space-time diagram. The diagram has a lane per
+each run's displayed event graph as a space-time diagram. The diagram has a lane per
 thread, per issuing thread's async ops and per sync object; the typed edges;
 the graph checks' findings; and the PTX or native AMD source behind every event.
 
@@ -32,6 +32,26 @@ just viz   # records the complete pipeline suite, including thousands of numeric
 For a smaller store, use the [focused gfx1250 recipe](../../tests/gfx1250/README.md#software-acceptance-and-reproduction).
 Set `VOLTA_VIZ_DIR` to an absolute path: Cargo runs each test from its crate
 folder, so a relative store path may differ from the subsequent CLI invocation.
+
+For graphs above 50,000 events, `write_run` exports a display selection. Graph
+construction, all checks and the run's status still use the complete graph.
+The document preserves the complete source, target and launch metadata, and
+reports total/included/omitted event and finding counts in `display`.
+`meta.events` remains the full graph count; `events` contains displayed rows.
+`eventIds[row]` gives each row's original graph EventId. Edges, async operation
+links and finding event lists index the displayed rows; the UI displays original
+IDs and accepts them in event navigation. Records without these additive fields
+retain the original identity mapping.
+
+Selection prioritizes terminal notes and up to 128 findings per property,
+retaining each selected finding's complete witness endpoints. Findings whose
+endpoints cannot fit are omitted whole and counted. Remaining space covers
+first/last events per executed source instruction and lane, nearby witness
+context, and evenly spaced events. Async issue/completion endpoints stay
+together so filtering cannot invent a pending operation. The page discloses the
+selection and omitted counts. Diagram layers describe the retained display,
+not cycle timing or all paths in the full graph. `write_complete_run` keeps every
+event for archival consumers; such documents can exceed browser string limits.
 
 ## High-level logic
 

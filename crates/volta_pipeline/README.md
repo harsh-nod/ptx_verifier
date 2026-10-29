@@ -132,3 +132,8 @@ that supporting numerical evidence does not replace graph checks.
 `gfx1250_original_matrix_tests` separately checks parsing/lowering of the exact
 full K4096 six-kernel matrix corpus and its zero-scratch native descriptors.
 That frontend gate does not claim execution, equivalence, or graph acceptance.
+
+The CPU-only `measure_native_export` example accepts native source, launch JSON
+and an output directory. It requires a completed, graph-verified run, prints
+full event/output counts and export/page sizes, and records the viewer's display
+selection. It does not compare a mathematical specification or execute on a GPU.

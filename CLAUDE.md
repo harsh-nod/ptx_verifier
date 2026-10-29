@@ -589,6 +589,10 @@ none turns an unsupported case into `Pass`. Depends only on `volta_graph`.
 
 **Path**: `crates/volta_pipeline/`
 
+`examples/measure_native_export.rs` measures a completed native graph and its
+viewer export on CPU; its counts and GraphVerified guard are independent of
+mathematical equivalence and hardware evidence.
+
 The full-shape gfx1250 matrix corpus has a separate exact-assembly frontend
 gate; parsing/lowering and zero-scratch descriptor checks do not establish
 execution, mathematical equivalence, or safety acceptance.
@@ -748,6 +752,13 @@ The paper's canonicalizer, in Rust:
 ## Crate: volta_viz
 
 **Path**: `crates/volta_viz/`
+
+`write_run` bounds large browser displays at 50,000 events, with explicit full,
+included and omitted counts and original EventId mappings. It prioritizes
+selected finding witnesses, preserves actual async completion endpoints, and
+does not alter graph construction, checks, provenance or verdicts. Small records
+keep their existing representation. `write_complete_run` is the unbounded
+archival writer. Browser source/event navigation uses original event IDs.
 
 The event-graph viewer; depends only on `volta_graph`, `volta_graph_check`
 (findings, pipeline edges) and `volta_expr` (stored values). `write_run(dir,

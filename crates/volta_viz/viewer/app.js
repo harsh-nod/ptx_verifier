@@ -258,6 +258,8 @@
     mini: null,
   };
 
+  const originalEventId = (e) => state.doc && state.doc.eventIds ? state.doc.eventIds[e] : e;
+
   let colors = {};
   let fonts = { sans: "sans-serif", mono: "monospace" };
   function readColors() {
@@ -720,6 +722,14 @@
         m.events != null ? fact("events", fmt(m.events)) : null,
         fact("source", m.ptx || "built by the test", !!m.ptx),
       ),
+      doc.display ? h("div", {
+        class: "display-note",
+        role: "note",
+        text: "Display selection: " + fmt(doc.display.includedEvents) + " of " + fmt(doc.display.totalEvents)
+          + " events; " + fmt(doc.display.omittedEvents) + " omitted. Checks use the complete graph. "
+          + "Original event IDs are preserved. " + doc.display.selection
+          + (doc.display.omittedFindings ? ". " + fmt(doc.display.omittedFindings) + " findings omitted from this display." : "."),
+      }) : null,
     );
   }
 
@@ -803,11 +813,14 @@
       onkeydown: (e) => {
         if (e.key !== "Enter") return;
         const n = parseInt(e.target.value.trim().replace(/^e/i, ""), 10);
-        if (Number.isInteger(n) && n >= 0 && n < doc.events.length) {
-          select(n, { center: true });
+        const shown = doc.eventIds ? doc.eventIds.indexOf(n) : n;
+        if (Number.isInteger(n) && shown >= 0 && shown < doc.events.length) {
+          select(shown, { center: true });
           e.target.classList.remove("invalid");
+          e.target.title = "";
         } else {
           e.target.classList.add("invalid");
+          e.target.title = doc.display ? "This event is omitted from the display selection." : "No such event.";
         }
       },
       oninput: (e) => e.target.classList.remove("invalid"),
@@ -1088,7 +1101,7 @@
     else if (status === "unknown") setBadge("badge-checks", "?", "warn", name);
     else if (status === "race-free") setBadge("badge-checks", "✓", "ok", name);
     else setBadge("badge-checks", "");
-    setBadge("badge-event", state.selected >= 0 ? "e" + state.selected : "", "mono");
+    setBadge("badge-event", state.selected >= 0 ? "e" + originalEventId(state.selected) : "", "mono");
   }
 
   const section = (title, ...body) => h("section", { class: "panel-section" }, h("h2", null, title), body);
@@ -1105,7 +1118,7 @@
         onclick: () => select(e, { center: true }),
       },
       ev ? catDot(ev.cat) : null,
-      "e" + e,
+      "e" + originalEventId(e),
     );
   }
 
@@ -1243,6 +1256,7 @@
         h("span", { class: "check-name" }, c.name, h("span", { class: "algorithm", text: c.algorithm })),
       ),
       c.evidence ? evidenceView(c.evidence) : null,
+      c.totalFindings > c.findings.length ? h("p", { class: "hint", text: "Showing " + fmt(c.findings.length) + " of " + fmt(c.totalFindings) + " findings from the complete graph." }) : null,
       c.findings.length ? findingList(c.findings, severity, c.name) : null,
       events.length > 1 && state.g
         ? h(
@@ -1473,7 +1487,7 @@
           "div",
           { class: "event-title" },
           swatch(ev.cat, 18),
-          h("span", { class: "event-id", text: "e" + e }),
+          h("span", { class: "event-id", text: "e" + originalEventId(e) }),
           h("span", { class: "cat-name", text: spec.name }),
         ),
         h("div", { class: "event-label", text: ev.label }),
@@ -2574,7 +2588,7 @@
           "div",
           { class: "tip-title" },
           swatch(ev.cat, 12),
-          h("strong", { text: "e" + e }),
+          h("strong", { text: "e" + originalEventId(e) }),
           h("span", { class: "tip-cat", text: (CATEGORIES[ev.cat] || CATEGORIES.exit).name }),
         ),
         h("div", { class: "tip-label", text: ev.label }),
