@@ -27,15 +27,16 @@ coordinator dispositions remain pending in `references.json`.
 | `named_new_lifetime_count_change` | Released count-2 lifetime followed by an ordered count-1 lifetime; exactly `[7,7]` | Removing lifetime publication retains complete `[7,7]` and no live joins in the candidate, but produces a typed reinitialization ordering violation. The separate `named_count_mismatch_7` blocks all64 workitems at expected3/arrived2 |
 | `named_wait_without_first_arrival` | A new native object has no completed prior phase | All64 workitems block at expected1/arrived0; an initially free ordinary buffer is instead covered by the separate lifecycle handshake control |
 
-This selected native profile binds count at initialization; public native
-hardware additionally supports signal-time count updates, which remain a
-profile gap until implemented and tested separately. PTX's per-arrival thread
+These controls bind count at initialization; the separate
+[signal-count corpus](../signal-counts/README.md) implements and tests public
+signal-time count updates. PTX's per-arrival thread
 count and count changes within successive phases are distinct from the
 new-lifetime control. In particular, the
 expected3/arrived2 deadlock is supporting evidence for counted progress, and
 does not stand in for a mixed-count arrival instruction. The three baseline
-count rows therefore retain explicit portable-gap dispositions pending that
-signal-time implementation, rather than claiming absent hardware capability.
+count rows therefore cite those actual signal-time controls separately,
+including the disputed public equality boundary, rather than treating this
+new-lifetime control as an encoding of mixed per-arrival counts.
 
 Native whole-wave END and PTX individual-lane exit differ. These source controls
 retain the completed memory direction and 42 marker, while the existing

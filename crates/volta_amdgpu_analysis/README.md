@@ -19,8 +19,10 @@ The selected gfx1250 named-barrier profile supports shader IDs 1–16 within the
 descriptor's four-object allocation units, explicit M0 count/selector moves,
 INIT, JOIN, one-count SIGNAL, last-joined WAIT and LEAVE. NULL operations are
 no-ops except JOIN; END does not drop named objects. Reinitialization advances
-the trace incarnation after all joins have been left. Signal-time count updates,
-`_isfirst`, clustered objects and reinitialization with outstanding joins remain
+the trace incarnation after all joins have been left. Signal-time count updates
+use explicit M0 bits22:16 and one typed signal event; zero/NULL preserve their
+no-change/no-op rules. The public equality boundary remains Unsupported.
+Reserved M0 bits, `_isfirst`, clustered objects and reinitialization with outstanding joins remain
 unsupported. Genuine allocated LLVM inputs, compiler output and CPU-only harmful
 controls are in [portable-graph](../../tests/gfx1250/portable-graph).
 NULL waits require an explicit NULL join rather than an assumed initial selector.

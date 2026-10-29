@@ -196,6 +196,9 @@ spec syntax, with no implicit float bitcast or index-input substitution.
 
 ## Crate: volta_graph
 
+An appended `NamedBarrierSignalWithCount` carries one signal's explicit7-bit
+expected-count update, preserving all earlier event variants and layouts.
+
 **Path**: `crates/volta_graph/`
 
 Native named barriers retain object/incarnation/phase identities, descriptor
@@ -257,7 +260,9 @@ crate-level docs in `lib.rs` are the contract.
 `eval/named_barrier.rs` owns the selected gfx1250 shader named-barrier execution
 state. Explicit M0 dependencies, real descriptor allocation, NULL no-ops,
 last-joined WAIT, fresh reinitialization lifetimes and END-without-drop are
-preserved; signal-time count updates and clustered objects remain unsupported.
+preserved. Signal-time counts use explicit M0 bits22:16 and a single typed
+signal event; zero/NULL preserve no-change/no-op semantics. The disputed public
+equality boundary and clustered objects remain unsupported.
 
 The independent native AMD producer: `frontend::parse` builds typed LLVM AMDHSA
 assembly, `target::validate` checks generation-specific profiles, lowering keeps
@@ -496,6 +501,10 @@ native optional trailing commas and either wait-counter separator.
 
 ## Crate: volta_graph_check
 
+Native count setters require independent M0/domain/phase/lifetime validation.
+Different setters and drops require execution order across phases; identical
+explicit setters can commute. The public equality boundary stays inconclusive.
+
 Native named initialization and reinitialization must be execution-ordered
 against other-wave uses. Missing order produces a typed potential protocol
 violation; live-join reinit retains its separate unsupported boundary.
@@ -634,6 +643,10 @@ none turns an unsupported case into `Pass`. Depends only on `volta_graph`.
   generator's deadlock diagnostic; an aborted trace is inconclusive.
 
 ## Crate: volta_pipeline
+
+`gfx1250_signal_count_tests` preserves a same-lifetime count2-to-count1 phase
+change, both actual wave orders of a count3 deadlock, zero/NULL, all127 arrivals
+and distinct below-arrived invalid versus equal-arrived inconclusive controls.
 
 **Path**: `crates/volta_pipeline/`
 
@@ -842,6 +855,9 @@ The paper's canonicalizer, in Rust:
   for this fragment (the paper's own Schwartz-Zippel argument).
 
 ## Crate: volta_viz
+
+Count-updating native signals display the new expected count on one row and
+preserve arrival-to-release links without an extra operation claim.
 
 **Path**: `crates/volta_viz/`
 

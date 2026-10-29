@@ -538,6 +538,7 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
             AmdEventKind::NamedBarrierInit { object, .. }
             | AmdEventKind::NamedBarrierJoin { object, .. }
             | AmdEventKind::NamedBarrierSignal { object, .. }
+            | AmdEventKind::NamedBarrierSignalWithCount { object, .. }
             | AmdEventKind::NamedBarrierWait { object, .. }
             | AmdEventKind::NamedBarrierRelease { object, .. }
             | AmdEventKind::NamedBarrierLeave { object, .. } => {
@@ -550,7 +551,8 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                 let required = match record.kind {
                     AmdEventKind::NamedBarrierInit { .. } => Some("named init"),
                     AmdEventKind::NamedBarrierJoin { .. } => Some("named join"),
-                    AmdEventKind::NamedBarrierSignal { .. } => Some("named signal"),
+                    AmdEventKind::NamedBarrierSignal { .. }
+                    | AmdEventKind::NamedBarrierSignalWithCount { .. } => Some("named signal"),
                     AmdEventKind::NamedBarrierWait { encoded, .. } => {
                         if encoded > 16 {
                             unresolved.push(Unresolved::at(
@@ -578,7 +580,20 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                             "named INIT requires its implicit M0 expected-count source",
                         ));
                     }
-                    if let AmdEventKind::NamedBarrierSignal { exec_mask, .. } = record.kind
+                    if let AmdEventKind::NamedBarrierSignalWithCount {
+                        object, expected, ..
+                    } = record.kind
+                        && (object.id == 0
+                            || !(1..=127).contains(&expected)
+                            || !instruction
+                                .reads
+                                .iter()
+                                .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 124))
+                    {
+                        unresolved.push(Unresolved::at(record.event, "named count-updating signal requires non-NULL object, 7-bit nonzero expected count and explicit M0 source"));
+                    }
+                    if let AmdEventKind::NamedBarrierSignal { exec_mask, .. }
+                    | AmdEventKind::NamedBarrierSignalWithCount { exec_mask, .. } = record.kind
                         && (exec_mask != instruction.exec_mask || exec_mask & !physical_mask != 0)
                     {
                         unresolved.push(Unresolved::at(
@@ -1478,6 +1493,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
             AmdEventKind::NamedBarrierInit { .. }
             | AmdEventKind::NamedBarrierJoin { .. }
             | AmdEventKind::NamedBarrierSignal { .. }
+            | AmdEventKind::NamedBarrierSignalWithCount { .. }
             | AmdEventKind::NamedBarrierWait { .. }
             | AmdEventKind::NamedBarrierRelease { .. }
             | AmdEventKind::NamedBarrierLeave { .. } => {
