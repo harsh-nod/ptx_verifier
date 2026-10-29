@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "hardware_execution": false,
+  "scope": "Compiler/assembler provenance only; semantic negative gates are separate",
+  "source": "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-transfers.hip",
+  "source_sha256": "f7d064fdf8f66a956ebad7357845afea939f662022586cc8ca25ced253c55b2c",
+  "assembly": "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-transfers.s",
+  "assembly_sha256": "b09c8687f5e074a3216d7e18af32e6cce6b425fd7520cb886aa0f6bf1fde3192",
+  "compiler": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+  "compiler_sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+  "assembler": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+  "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "mutations": [
+    {
+      "name": "flat_destination_replaced_by_valu",
+      "kernel": "abi_pair_truncation",
+      "source_line": 498,
+      "original": "flat_load_u16 v1, v0, s[4:5] scope:SCOPE_SYS",
+      "replacement": "v_mov_b32_e32 v1, 0",
+      "mutated_sha256": "628a90e9a431aabcc08d4f365c1e8f13cbe12ee268b495251ebbde36e180be89",
+      "object_sha256": "8fa894396335b2909a344939c98441227a4f1043e831fb4f488766ad4ee75ea1",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-flat-profile-w2fuyso7/flat_destination_replaced_by_valu.s",
+          "-o",
+          "/tmp/gfx1250-flat-profile-w2fuyso7/flat_destination_replaced_by_valu.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "SourceReuse: a VALU write cannot inherit the generic FLAT destination translation dependency",
+      "semantic_validation": "pending independent native graph gate; MC success alone is not validation"
+    },
+    {
+      "name": "partial_wait_keeps_both_lds_loads_pending",
+      "kernel": "abi_scalar_granule",
+      "source_line": 375,
+      "original": "s_wait_loadcnt_dscnt 0x1",
+      "replacement": "s_wait_loadcnt_dscnt 0x2",
+      "mutated_sha256": "b1168df0cabb97dd664e12211b032fb129637cf922a6dddde4b5b28648764d4e",
+      "object_sha256": "499105c669ef7aac005a328c91bb37011a85ca10d4ea10143d543d283bbbf99e",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-flat-profile-w2fuyso7/partial_wait_keeps_both_lds_loads_pending.s",
+          "-o",
+          "/tmp/gfx1250-flat-profile-w2fuyso7/partial_wait_keeps_both_lds_loads_pending.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "ReadBeforeReady: Load0+Ds2 retires neither of two pending LDS data tokens",
+      "semantic_validation": "pending independent native graph gate; MC success alone is not validation"
+    }
+  ],
+  "pre_waitcnt_compile": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "-x",
+      "hip",
+      "--offload-device-only",
+      "--offload-arch=gfx1250",
+      "--rocm-path=/opt/rocm-7.2.0",
+      "-O2",
+      "-std=c++17",
+      "-mllvm",
+      "-stop-before=si-insert-waitcnts",
+      "-S",
+      "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-transfers.hip",
+      "-o",
+      "/tmp/gfx1250-flat-profile-w2fuyso7/native-transfers-before-waits.mir"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "mir_sha256": "01b74c152ec77a67a7eb62d05c2c56852106c428c1a149f3a7f2d3ea689b9eb7",
+  "profiles": [
+    {
+      "kernel": "abi_scalar_granule",
+      "memory_operations": [
+        "renamable $vgpr1 = FLAT_LOAD_USHORT_SADDR killed renamable $sgpr4_sgpr5, renamable $vgpr0, 0, 24, implicit $exec, implicit $flat_scr :: (volatile dereferenceable load (s16) from `ptr addrspacecast (ptr addrspace(3) @llvm.amdgcn.kernel.abi_scalar_granule.lds to ptr)`, align 4, !tbaa !14, !noalias.addrspace !12)",
+        "renamable $vgpr2 = FLAT_LOAD_USHORT_SADDR killed renamable $sgpr0_sgpr1, renamable $vgpr0, 0, 24, implicit $exec, implicit $flat_scr :: (volatile dereferenceable load (s16) from `ptr addrspacecast (ptr addrspace(3) getelementptr inbounds nuw (i8, ptr addrspace(3) @llvm.amdgcn.kernel.abi_scalar_granule.lds, i32 2) to ptr)`, !tbaa !14, !noalias.addrspace !12)",
+        "GLOBAL_STORE_DWORD_SADDR killed renamable $vgpr0, killed renamable $vgpr1, killed renamable $sgpr2_sgpr3, 0, 0, implicit $exec :: (store (s32) into %ir.9, !tbaa !8, addrspace 1)"
+      ],
+      "interpretation": "FLAT source MMOs retain generic address space; resolved Shared effect is not a LOCAL compiler MMO"
+    },
+    {
+      "kernel": "abi_pair_truncation",
+      "memory_operations": [
+        "renamable $vgpr1 = FLAT_LOAD_DWORD_SADDR renamable $sgpr2_sgpr3, renamable $vgpr0, 0, 24, implicit $exec, implicit $flat_scr :: (volatile dereferenceable load (s32) from `ptr addrspacecast (ptr addrspace(3) @llvm.amdgcn.kernel.abi_pair_truncation.lds to ptr)`, align 8, !tbaa !16, !noalias.addrspace !12)",
+        "renamable $vgpr1 = FLAT_LOAD_USHORT_SADDR killed renamable $sgpr2_sgpr3, renamable $vgpr0, 0, 24, implicit $exec, implicit $flat_scr :: (volatile dereferenceable load (s16) from `ptr addrspacecast (ptr addrspace(3) @llvm.amdgcn.kernel.abi_pair_truncation.lds to ptr)`, align 8, !tbaa !18, !noalias.addrspace !12)",
+        "GLOBAL_STORE_DWORD_SADDR renamable $vgpr0, killed renamable $vgpr1, renamable $sgpr0_sgpr1, 0, 0, implicit $exec :: (store (s32) into %ir.4, !tbaa !16, addrspace 1)",
+        "renamable $vgpr1 = FLAT_LOAD_USHORT_SADDR killed renamable $sgpr4_sgpr5, renamable $vgpr0, 0, 24, implicit $exec, implicit $flat_scr :: (volatile dereferenceable load (s16) from `ptr addrspacecast (ptr addrspace(3) getelementptr inbounds nuw (i8, ptr addrspace(3) @llvm.amdgcn.kernel.abi_pair_truncation.lds, i32 2) to ptr)`, !tbaa !18, !noalias.addrspace !12)",
+        "GLOBAL_STORE_DWORD_SADDR renamable $vgpr0, killed renamable $vgpr1, renamable $sgpr0_sgpr1, 4, 0, implicit $exec :: (store (s32) into %ir.13, !tbaa !16, addrspace 1)",
+        "renamable $vgpr1 = FLAT_LOAD_USHORT_SADDR killed renamable $sgpr6_sgpr7, renamable $vgpr0, 0, 24, implicit $exec, implicit $flat_scr :: (volatile dereferenceable load (s16) from `ptr addrspacecast (ptr addrspace(3) getelementptr inbounds nuw (i8, ptr addrspace(3) @llvm.amdgcn.kernel.abi_pair_truncation.lds, i32 4) to ptr)`, align 4, !tbaa !18, !noalias.addrspace !12)",
+        "GLOBAL_STORE_DWORD_SADDR killed renamable $vgpr0, killed renamable $vgpr1, killed renamable $sgpr0_sgpr1, 8, 0, implicit $exec :: (store (s32) into %ir.17, !tbaa !16, addrspace 1)"
+      ],
+      "interpretation": "FLAT source MMOs retain generic address space; resolved Shared effect is not a LOCAL compiler MMO"
+    }
+  ]
+}

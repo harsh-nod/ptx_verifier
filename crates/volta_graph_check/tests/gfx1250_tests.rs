@@ -1669,20 +1669,99 @@ fn flat_publication_keeps_global_and_lds_completion_frontiers_independent() {
 }
 
 #[test]
-fn partial_flat_data_waits_cannot_invent_a_mixed_segment_fifo_prefix() {
+fn partial_flat_data_waits_retire_only_the_target_fifo_prefix() {
+    for class in [AmdMemoryClass::FlatGlobalLoad, AmdMemoryClass::FlatLdsLoad] {
+        for second_ready in [false, true] {
+            let mut t = Trace::new(1);
+            t.issue(0, class, vec![v(1, 1)], vec![s(126)], 0);
+            t.wait(0, AmdCounter::Load, 0);
+            t.issue(0, class, vec![v(2, 1)], vec![s(126)], 4);
+            // Exact native combined0x1 decodes to Load0 plus Ds1, not1/1.
+            t.wait(0, AmdCounter::Load, 0);
+            t.wait(0, AmdCounter::Ds, 1);
+            t.ins(0, 0, vec![v(1, 1)], vec![]);
+            if second_ready {
+                t.wait(0, AmdCounter::Ds, 0);
+            }
+            t.ins(0, 0, vec![v(2, 1)], vec![]);
+            let r = check_graph(&t.finish());
+            assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+            assert_eq!(
+                r.verdict(Property::AmdWaitReadiness),
+                if second_ready {
+                    Verdict::Pass
+                } else {
+                    Verdict::Fail
+                },
+                "{class:?} second_ready{second_ready}"
+            );
+        }
+    }
+}
+
+#[test]
+fn generic_flat_lds_destination_retires_only_the_older_global_translation_it_needs() {
+    for (flat_receiver, overwrite_later) in [(true, false), (true, true), (false, false)] {
+        let mut t = Trace::new(1);
+        t.issue(
+            0,
+            AmdMemoryClass::VectorStore,
+            vec![],
+            vec![v(1, 1), s(126)],
+            0x1000,
+        );
+        t.issue(
+            0,
+            AmdMemoryClass::VectorStore,
+            vec![],
+            vec![v(2, 1), s(126)],
+            0x2000,
+        );
+        if flat_receiver {
+            t.issue(
+                0,
+                AmdMemoryClass::FlatLdsLoad,
+                vec![v(1, 1)],
+                vec![v(0, 1), s(126)],
+                0,
+            );
+        } else {
+            t.ins(0, 0, vec![], vec![v(1, 1)]);
+        }
+        if overwrite_later {
+            t.ins(0, 0, vec![], vec![v(2, 1)]);
+        }
+        t.wait(0, AmdCounter::Load, 0);
+        t.wait(0, AmdCounter::Ds, 0);
+        t.ins(0, 0, vec![v(1, 1)], vec![]);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(
+            r.verdict(Property::AmdWaitReadiness),
+            if overwrite_later || !flat_receiver {
+                Verdict::Fail
+            } else {
+                Verdict::Pass
+            }
+        );
+    }
+}
+
+#[test]
+fn nonzero_lds_flat_x_wait_cannot_invent_a_translation_prefix() {
     let mut t = Trace::new(1);
     t.issue(
         0,
-        AmdMemoryClass::FlatGlobalLoad,
-        vec![v(1, 1)],
-        vec![s(126)],
+        AmdMemoryClass::FlatLdsStore,
+        vec![],
+        vec![v(1, 1), s(126)],
         0,
     );
-    t.wait(0, AmdCounter::Load, 1);
-    let r = check_graph(&t.finish());
-    assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
-    assert_eq!(r.verdict(Property::AmdWaitReadiness), Verdict::Unknown);
-    assert!(matches!(r.conclusion(), GraphConclusion::Unknown { .. }));
+    t.wait(0, AmdCounter::X, 1);
+    assert_eq!(
+        check_graph(&t.finish()).verdict(Property::AmdWaitReadiness),
+        Verdict::Unknown
+    );
 }
 
 #[test]

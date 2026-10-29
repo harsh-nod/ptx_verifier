@@ -277,7 +277,10 @@ same-wave same-address effect order within their Global or Shared segment.
 LDS-aperture classes stay outside the scalar/VMEM replay groups; neither group
 switching nor GLOBAL destination aliases retire their held sources. Explicit
 source retirement remains separate from both-data completion/publication.
-Unresolved apertures and unpinned partial data waits remain inconclusive. Global
+Generic FLAT destinations can retire a required older GLOBAL translation prefix
+without changing their resolved effect Space or releasing older LDS source
+tokens. Target-pinned Load/Store/Ds FIFO prefixes remain separate from data
+completion. Unresolved apertures and nonzero LDS FLAT X prefixes remain inconclusive. Global
 cache publication is independent.
 Automatic-barrier drops on wave exit preserve execution progress, but completed
 memory publication through an implicit drop is unpinned. gfx1250 reports Unknown

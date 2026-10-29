@@ -59,9 +59,10 @@ fn charges(class: AmdMemoryClass) -> Option<Vec<(AmdCounter, u16)>> {
 }
 
 fn replay_group(class: AmdMemoryClass) -> Option<bool> {
-    // A resolved LDS aperture is not VMEM_GROUP (AMDGPUHWEvents.cpp and
-    // SIInstrInfo::mayAccessVMEMThroughFlat). Its conservative X/source token
-    // must not acquire GLOBAL's group-switch or destination-alias drains.
+    // This conservative source-group classification does not infer the
+    // compiler's LOCAL MMO from a resolved LDS effect. Generic FLAT encoding
+    // remains a possible receiver of older VMEM translation dependencies below.
+    // Older LDS source tokens still require their own explicit retirement.
     match class {
         AmdMemoryClass::ScalarLoad => Some(false),
         AmdMemoryClass::VectorLoad
@@ -910,6 +911,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     let mut waits = 0;
     let mut next_generation = vec![0; waves];
     let mut groups = HashMap::new();
+    let mut translation_receivers = HashSet::new();
     let mut instruction_at = HashMap::new();
     let mut wmma_at = HashMap::new();
     let mut valu_ordinal = vec![0u64; waves];
@@ -922,6 +924,13 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
             AmdEventKind::MemoryIssue { class, .. } => {
                 if let Some(group) = replay_group(class) {
                     groups.insert(instruction_at[&record.wave], group);
+                }
+                if replay_group(class) == Some(true) || class == AmdMemoryClass::FlatLdsLoad {
+                    // The generic FLAT encoding can return into a VGPR after
+                    // older VMEM translations, even when its concrete address
+                    // resolves to LDS. This does not retire older LDS leases
+                    // or establish any scalar/group-switch shortcut.
+                    translation_receivers.insert(instruction_at[&record.wave]);
                 }
             }
             AmdEventKind::WmmaIssue {
@@ -1037,7 +1046,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                         }
                     }
                 }
-                if groups.get(&record.event) == Some(&true) {
+                if translation_receivers.contains(&record.event) {
                     // VMEM translations issue in order. LLVM applies the X
                     // dependency when a later VMEM destination aliases an
                     // older source; neither operation's data completes here.
@@ -1194,19 +1203,18 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
             AmdEventKind::WaitCounters { thresholds } => {
                 waits += 1;
                 for &(counter, threshold) in thresholds {
-                    if threshold != 0
+                    if counter == AmdCounter::X
+                        && threshold != 0
                         && Some(threshold) != maximum(counter)
-                        && matches!(
-                            counter,
-                            AmdCounter::Load | AmdCounter::Store | AmdCounter::Ds
-                        )
                         && pending[wave].iter().any(|&index| {
-                            flat_profile(operations[index].class).is_some()
-                                && has(&operations[index], counter)
+                            matches!(
+                                operations[index].class,
+                                AmdMemoryClass::FlatLdsLoad | AmdMemoryClass::FlatLdsStore
+                            ) && has(&operations[index], counter)
                         })
                     {
                         unresolved.push(Unresolved::at(record.event,
-                            "nonzero wait with pending FLAT requires a pinned mixed-segment completion prefix"));
+                            "nonzero X wait with pending LDS-aperture FLAT tokens requires an unpinned translation prefix"));
                         continue;
                     }
                     if counter == AmdCounter::Tensor && threshold != 0 {

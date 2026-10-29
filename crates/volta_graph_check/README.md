@@ -263,15 +263,29 @@ and later GLOBAL destination aliases cannot release their source leases.
 An explicit own Load0/Store0 releases that operation's source token while its
 independent Ds token remains. Explicit X0 releases sources without completing
 either data token. Ds0 alone does not release this conservative source token.
-Nonzero waits with pending FLAT data tokens remain inconclusive
-until mixed-segment completion prefixes have a pinned contract; old CDNA FLAT
-events cannot certify this target. The frontend must reject unresolved apertures.
+Partial Load/Store/Ds waits retire only the oldest guaranteed target FIFO prefix;
+dual data tokens still must both retire. Nonzero X waits with pending LDS FLAT
+source tokens remain inconclusive. Old CDNA FLAT events cannot certify this
+target. The frontend must reject unresolved apertures.
 These distinctions follow the pinned LLVM
 [FLAT event classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/AMDGPUHWEvents.cpp#L119),
 [address-space classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInstrInfo.cpp#L4765)
 and [FLAT counter definition](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/FLATInstructions.td#L76),
 with explicit Load/Store waits and their X relationship from the
 [GFX125x memory model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md#memory-model-gfx125x).
+The pinned [target ordering helper](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNSubtarget.h#L396)
+and [wait-prefix construction](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInsertWaitcnts.cpp#L1369)
+establish the GFX1250 FLAT data-counter FIFO. A generic FLAT destination may also
+retire the required older GLOBAL translation prefix, even when its effect
+resolves to Shared. Encoding class and resolved effect space are separate: a
+Shared address does not establish a compiler LOCAL MMO. Actual pre-wait MIR
+retains generic pointer MMOs for the native ABI controls. The
+[VMEM translation dependency](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInsertWaitcnts.cpp#L2596)
+and its [FLAT classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInsertWaitcnts.cpp#L2671)
+support this asymmetric rule. It never retires a later GLOBAL translation or an
+older LDS source token, completes data, or establishes memory happens-before.
+An ordinary VALU overwrite still fails the source-lease check.
+
 The dual data tokens and retained LDS source token are conservative model
 requirements; they do not assert that a resolved LDS access uses VMEM_GROUP.
 Actual compiled static/dynamic LDS controls use Store0, then Ds0 before

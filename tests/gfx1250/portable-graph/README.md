@@ -34,3 +34,20 @@ transitive later phases, read/read and disjoint accesses, and an unrelated actua
 conflict that must remain a failure. These controls do not imply that arbitrary
 barrier objects, participant counts, asynchronous copies or all portable baseline
 rows are implemented.
+
+`validate_flat_profile.py` separately records actual compiler pre-waitcnt MIR
+for the unchanged portable ABI transfer source, plus two assemble-valid CPU-only
+mutations. Run it after the portable ABI fixture dependency is available:
+
+```sh
+python3 tests/gfx1250/portable-graph/validate_flat_profile.py
+```
+
+The MIR preserves generic FLAT memory operands even when the runtime resolver
+establishes a Shared aperture. `flat-profile-evidence.json` pins the exact input
+hashes, compiler command, MIR hash and MC outcomes. It distinguishes generic
+instruction translation ordering from resolved effect-space ordering. The
+combined wait immediate `0x1` means Load0+Ds1; target FIFO retirement completes
+only the older of two pending DS tokens. Replacing a FLAT destination by an
+ordinary VALU write must retain the older GLOBAL source-lease hazard. These MC
+receipts make no numerical, graph-safety or hardware claim by themselves.
