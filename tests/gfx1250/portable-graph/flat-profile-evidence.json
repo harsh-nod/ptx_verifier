@@ -26,9 +26,9 @@
           "--triple=amdgcn-amd-amdhsa",
           "--mcpu=gfx1250",
           "-filetype=obj",
-          "/tmp/gfx1250-flat-profile-w2fuyso7/flat_destination_replaced_by_valu.s",
+          "/tmp/gfx1250-flat-profile-wmc7smhs/flat_destination_replaced_by_valu.s",
           "-o",
-          "/tmp/gfx1250-flat-profile-w2fuyso7/flat_destination_replaced_by_valu.o"
+          "/tmp/gfx1250-flat-profile-wmc7smhs/flat_destination_replaced_by_valu.o"
         ],
         "exit_code": 0,
         "stdout": "",
@@ -51,9 +51,9 @@
           "--triple=amdgcn-amd-amdhsa",
           "--mcpu=gfx1250",
           "-filetype=obj",
-          "/tmp/gfx1250-flat-profile-w2fuyso7/partial_wait_keeps_both_lds_loads_pending.s",
+          "/tmp/gfx1250-flat-profile-wmc7smhs/partial_wait_keeps_both_lds_loads_pending.s",
           "-o",
-          "/tmp/gfx1250-flat-profile-w2fuyso7/partial_wait_keeps_both_lds_loads_pending.o"
+          "/tmp/gfx1250-flat-profile-wmc7smhs/partial_wait_keeps_both_lds_loads_pending.o"
         ],
         "exit_code": 0,
         "stdout": "",
@@ -78,13 +78,14 @@
       "-S",
       "/home/harsh/ptx-verifier-gfx1250-portable-abi/tests/gfx1250/portable-abi/native-transfers.hip",
       "-o",
-      "/tmp/gfx1250-flat-profile-w2fuyso7/native-transfers-before-waits.mir"
+      "/tmp/gfx1250-flat-profile-wmc7smhs/native-transfers-before-waits.mir"
     ],
     "exit_code": 0,
     "stdout": "",
     "stderr": ""
   },
-  "mir_sha256": "01b74c152ec77a67a7eb62d05c2c56852106c428c1a149f3a7f2d3ea689b9eb7",
+  "mir_sha256": "510688a5057833c3d60c1f688e93cc2d8d631ef6d13fcd643dda2e822be2acfa",
+  "mir_artifact": "/home/harsh/ptx-verifier-gfx1250-portable-graph/target/gfx1250-flat-profile/native-transfers-before-waits.mir",
   "profiles": [
     {
       "kernel": "abi_scalar_granule",

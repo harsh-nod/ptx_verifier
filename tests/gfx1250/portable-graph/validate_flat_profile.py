@@ -27,6 +27,8 @@ def main():
     parser.add_argument("--llvm", type=Path, default=Path("/opt/rocm-7.2.0/lib/llvm/bin"))
     parser.add_argument("--output", type=Path,
                         default=Path(__file__).with_name("flat-profile-evidence.json"))
+    parser.add_argument("--mir-output", type=Path,
+                        default=Path("target/gfx1250-flat-profile/native-transfers-before-waits.mir"))
     args = parser.parse_args()
     hip = args.directory / "native-transfers.hip"
     assembly = args.directory / "native-transfers.s"
@@ -55,6 +57,9 @@ def main():
             "--rocm-path=/opt/rocm-7.2.0", "-O2", "-std=c++17", "-mllvm",
             "-stop-before=si-insert-waitcnts", "-S", hip, "-o", mir])
         receipt["mir_sha256"] = sha(mir)
+        args.mir_output.parent.mkdir(parents=True, exist_ok=True)
+        args.mir_output.write_bytes(mir.read_bytes())
+        receipt["mir_artifact"] = str(args.mir_output.resolve())
         text = mir.read_text()
         profiles = []
         for kernel in ["abi_scalar_granule", "abi_pair_truncation"]:
