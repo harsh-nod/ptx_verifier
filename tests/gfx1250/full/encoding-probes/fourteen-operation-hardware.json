@@ -1,0 +1,35 @@
+{
+  "scope": "fourteen gfx1250 true16 e32/e64 destination-high-half probes; no inference for untested opcodes",
+  "host": "mi400",
+  "visible_device": "2",
+  "architecture": "gfx1250",
+  "wave_size": 32,
+  "launches": 1,
+  "active_workitems": 1,
+  "untouched_guard_words": 2,
+  "initial_destination": "0x35553c00",
+  "outputs": [
+    "0x35554700",
+    "0x35554500",
+    "0x35554600",
+    "0x35554700",
+    "0x35554500",
+    "0x35554600",
+    "0x3555bc00",
+    "0x3555bc00",
+    "0x35554200",
+    "0x35554200",
+    "0x35554000",
+    "0x35554000",
+    "0x35553d55",
+    "0x35553d55"
+  ],
+  "sources": {
+    "halfword.cpp": "bf34873dc8e60d00b3aa59d18ae7dbad1c50472202c3397428e9a1a7b2e4309c",
+    "halfword.hip": "a48e410e4d3e701472142d611bb54eb4e7d636cf40b7744b89c2471b276badc4",
+    "halfword.s": "bb02f3918059ea058f8702eec8eafc0695d428217f7e607b0e37f6c133f22c99"
+  },
+  "object_sha256": "ac7ab12cffd2e5d8baccf94b5d8c9b62c332a503dcbc4466d7b10766a4556ef3",
+  "code_object_sha256": "8cf0fa893db9b09dfae6bba1c8cb62c04284f089b293b9d76c5872043eb93314",
+  "outcome": "PASS: all fourteen exact destination words and two guard words match"
+}

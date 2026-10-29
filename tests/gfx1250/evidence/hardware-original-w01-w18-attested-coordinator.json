@@ -1,0 +1,551 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "invocation_id": "be8676ab-b181-4e4c-9d27-199c880b72b5",
+  "timestamp_utc": "2026-10-29T07:09:23.215981+00:00",
+  "commands": [
+    {
+      "argv": [
+        "hostname"
+      ],
+      "cwd": null,
+      "timeout_seconds": 10,
+      "exit_code": 0,
+      "stdout": "ctheliosr-rck-g02-e15-04\n",
+      "stderr": "",
+      "seconds": 0.0006820029811933637
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/llvm-mc",
+        "--version"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "AMD LLVM version 24.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn  - legacy name for amdgpu\n    amdgpu  - AMDGPU gfx6+\n    r600    - AMD GPUs HD2XXX-HD6XXX\n    spirv   - SPIR-V Logical\n    spirv32 - SPIR-V 32-bit\n    spirv64 - SPIR-V 64-bit\n    x86     - 32-bit X86: Pentium-Pro and above\n    x86-64  - 64-bit X86: EM64T and AMD64\n",
+      "stderr": "",
+      "seconds": 0.0036732659791596234
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/ld.lld",
+        "--version"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "AMD LLD 24.0.0 (https://github.com/ROCm/llvm-project.git c7ceccf9a5789b92fda4056b8501450d0b7a75de) (compatible with GNU linkers)\n",
+      "stderr": "",
+      "seconds": 0.004335448960773647
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/clang++",
+        "--version"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "AMD clang version 24.0.0git (https://github.com/ROCm/llvm-project.git c7ceccf9a5789b92fda4056b8501450d0b7a75de)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin\nConfiguration file: /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/clang++.cfg\n",
+      "stderr": "",
+      "seconds": 0.006362977030221373
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "--filetype=obj",
+        "/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f16.s",
+        "-o",
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/f16.o"
+      ],
+      "cwd": null,
+      "timeout_seconds": 60,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f16.s:8:1: warning: kernel 'relu_f16' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nrelu_f16:                               ; @relu_f16\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f16.s:125:1: warning: kernel 'silu_f16' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nsilu_f16:                               ; @silu_f16\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f16.s:259:1: warning: kernel 'sigmoid_f16' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nsigmoid_f16:                            ; @sigmoid_f16\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f16.s:390:1: warning: kernel 'swiglu_f16' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nswiglu_f16:                             ; @swiglu_f16\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f16.s:568:1: warning: kernel 'rope_f16' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nrope_f16:                               ; @rope_f16\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f16.s:699:1: warning: kernel 'reduction_f16' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nreduction_f16:                          ; @reduction_f16\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f16.s:898:1: warning: kernel 'softmax_f16' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nsoftmax_f16:                            ; @softmax_f16\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f16.s:1177:1: warning: kernel 'rmsnorm_f16' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nrmsnorm_f16:                            ; @rmsnorm_f16\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f16.s:1421:1: warning: kernel 'matvec_f16' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nmatvec_f16:                             ; @matvec_f16\n^\n",
+      "seconds": 0.005658104026224464
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/f16.o",
+        "-o",
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/f16.hsaco"
+      ],
+      "cwd": null,
+      "timeout_seconds": 60,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.004171776992734522
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "--filetype=obj",
+        "/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f8.s",
+        "-o",
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/f8.o"
+      ],
+      "cwd": null,
+      "timeout_seconds": 60,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f8.s:8:1: warning: kernel 'relu_f8' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nrelu_f8:                                ; @relu_f8\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f8.s:168:1: warning: kernel 'silu_f8' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nsilu_f8:                                ; @silu_f8\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f8.s:303:1: warning: kernel 'sigmoid_f8' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nsigmoid_f8:                             ; @sigmoid_f8\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f8.s:449:1: warning: kernel 'swiglu_f8' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nswiglu_f8:                              ; @swiglu_f8\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f8.s:592:1: warning: kernel 'rope_f8' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nrope_f8:                                ; @rope_f8\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f8.s:722:1: warning: kernel 'rmsnorm_f8' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nrmsnorm_f8:                             ; @rmsnorm_f8\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f8.s:952:1: warning: kernel 'matvec_f8' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nmatvec_f8:                              ; @matvec_f8\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f8.s:1250:1: warning: kernel 'reduction_f8' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nreduction_f8:                           ; @reduction_f8\n^\n/tmp/ptx-gfx1250-original.d13SRl/full/fixtures/original-f8.s:1595:1: warning: kernel 'softmax_f8' does not begin with the required prologue sequence: s_mov_b64 followed by v_nop and global_prefetch_b8\nsoftmax_f8:                             ; @softmax_f8\n^\n",
+      "seconds": 0.007204451016150415
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/ld.lld",
+        "-shared",
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/f8.o",
+        "-o",
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/f8.hsaco"
+      ],
+      "cwd": null,
+      "timeout_seconds": 60,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.00330505397869274
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/clang++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-D__HIP_PLATFORM_AMD__",
+        "-I/opt/rocm-10.2.0a20261013+bkc.20261019/include",
+        "/tmp/ptx-gfx1250-original.d13SRl/full/hardware/original.cpp",
+        "-L/opt/rocm-10.2.0a20261013+bkc.20261019/lib",
+        "-lamdhip64",
+        "-Wl,-rpath,/opt/rocm-10.2.0a20261013+bkc.20261019/lib",
+        "-o",
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/original_driver"
+      ],
+      "cwd": null,
+      "timeout_seconds": 120,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.3778502210043371
+    },
+    {
+      "argv": [
+        "ldd",
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/original_driver"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x000072677b41e000)\n\tlibamdhip64.so.7 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/libamdhip64.so.7 (0x000072677ac00000)\n\tlibstdc++.so.6 => /usr/lib/x86_64-linux-gnu/libstdc++.so.6 (0x000072677a800000)\n\tlibm.so.6 => /usr/lib/x86_64-linux-gnu/libm.so.6 (0x000072677b2d9000)\n\tlibgcc_s.so.1 => /usr/lib/x86_64-linux-gnu/libgcc_s.so.1 (0x000072677abd2000)\n\tlibc.so.6 => /usr/lib/x86_64-linux-gnu/libc.so.6 (0x000072677a400000)\n\tlibdl.so.2 => /usr/lib/x86_64-linux-gnu/libdl.so.2 (0x000072677b2d2000)\n\tlibrocm_kpack.so.0 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/librocm_kpack.so.0 (0x000072677ab8d000)\n\tlibrocprofiler-register.so.0 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/librocprofiler-register.so.0 (0x000072677aaaf000)\n\tlibrt.so.1 => /usr/lib/x86_64-linux-gnu/librt.so.1 (0x000072677aaaa000)\n\tlibamd_comgr.so.3 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/libamd_comgr.so.3 (0x0000726779600000)\n\tlibhsa-runtime64.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/libhsa-runtime64.so.1 (0x0000726779000000)\n\tlibpthread.so.0 => /usr/lib/x86_64-linux-gnu/libpthread.so.0 (0x000072677aaa5000)\n\t/lib64/ld-linux-x86-64.so.2 (0x000072677b420000)\n\tlibrocm_sysdeps_zstd.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_zstd.so.1 (0x000072677a731000)\n\tlibclang-cpp.so.24.0git => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/lib/libclang-cpp.so.24.0git (0x0000726774800000)\n\tlibrocm_sysdeps_z.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_z.so.1 (0x000072677a713000)\n\tlibLLVM.so.24.0git => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/lib/libLLVM.so.24.0git (0x000072676d600000)\n\tlibrocm_sysdeps_elf.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_elf.so.1 (0x000072677a6f7000)\n\tlibrocm_sysdeps_drm.so.2 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_drm.so.2 (0x000072677a6e2000)\n\tlibrocm_sysdeps_drm_amdgpu.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_drm_amdgpu.so.1 (0x000072677a6cd000)\n\tlibrocm_sysdeps_numa.so.1 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_numa.so.1 (0x000072677a6be000)\n\tlibrocm_sysdeps_liblzma.so.5 => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_liblzma.so.5 (0x000072677a68d000)\n\tlibrocm_sysdeps_bz2.so => /opt/rocm-10.2.0a20261013+bkc.20261019/lib/rocm_sysdeps/lib/librocm_sysdeps_bz2.so (0x000072677a674000)\n",
+      "stderr": "",
+      "seconds": 0.00399554701289162
+    },
+    {
+      "argv": [
+        "/opt/rocm-10.2.0a20261013+bkc.20261019/llvm/bin/clang++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-D__HIP_PLATFORM_AMD__",
+        "-I/opt/rocm-10.2.0a20261013+bkc.20261019/include",
+        "-I/tmp/ptx-gfx1250-original.d13SRl/full/hardware",
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/device_identity.cpp",
+        "-L/opt/rocm-10.2.0a20261013+bkc.20261019/lib",
+        "-lamdhip64",
+        "-Wl,-rpath,/opt/rocm-10.2.0a20261013+bkc.20261019/lib",
+        "-o",
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/device_identity"
+      ],
+      "cwd": null,
+      "timeout_seconds": 120,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "seconds": 0.239979267003946
+    },
+    {
+      "argv": [
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/device_identity"
+      ],
+      "cwd": null,
+      "timeout_seconds": 30,
+      "exit_code": 0,
+      "stdout": "{\"logical_ordinal\":0,\"visible_device_count\":1,\"name\":\"AMD Radeon Graphics\",\"architecture\":\"gfx1250\",\"wave_size\":32,\"pci_bus_id\":\"0003:01:00.0\",\"uuid_status\":\"available\",\"uuid_hex\":\"34366631333331623031623063363832\",\"uuid_hip_error\":0,\"hip_runtime_version\":71726405,\"hip_driver_version\":71726405}\n",
+      "stderr": "",
+      "seconds": 0.054037588997744024
+    },
+    {
+      "argv": [
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/original_driver",
+        "--cpu-only"
+      ],
+      "cwd": null,
+      "timeout_seconds": 15,
+      "exit_code": 0,
+      "stdout": "PASS independent OCP E4M3 and zero-activation reference controls; GPU launches=0\n",
+      "stderr": "",
+      "seconds": 0.016805961029604077
+    },
+    {
+      "argv": [
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/original_driver",
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/f16.hsaco",
+        "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp/f8.hsaco",
+        "9"
+      ],
+      "cwd": null,
+      "timeout_seconds": 600,
+      "exit_code": 0,
+      "stdout": "{\"status\":\"pass\",\"architecture\":\"gfx1250\",\"wave_size\":32,\"reference_controls\":\"pass\",\"patterns\":9,\"cases\":[{\"kernel\":\"relu_f16\",\"outputs\":9216,\"launches\":9,\"unchanged_input_bytes\":18432,\"unchanged_guard_bytes\":147456,\"max_absolute_error\":0},{\"kernel\":\"sigmoid_f16\",\"outputs\":9216,\"launches\":9,\"unchanged_input_bytes\":18432,\"unchanged_guard_bytes\":147456,\"max_absolute_error\":0.000218621587011},{\"kernel\":\"silu_f16\",\"outputs\":4608,\"launches\":9,\"unchanged_input_bytes\":9216,\"unchanged_guard_bytes\":147456,\"max_absolute_error\":0.000293534055456},{\"kernel\":\"swiglu_f16\",\"outputs\":9216,\"launches\":9,\"unchanged_input_bytes\":36864,\"unchanged_guard_bytes\":221184,\"max_absolute_error\":0.000951568239971},{\"kernel\":\"rope_f16\",\"outputs\":1152,\"launches\":9,\"unchanged_input_bytes\":6912,\"unchanged_guard_bytes\":294912,\"max_absolute_error\":0},{\"kernel\":\"rmsnorm_f16\",\"outputs\":36864,\"launches\":9,\"unchanged_input_bytes\":147456,\"unchanged_guard_bytes\":221184,\"max_absolute_error\":0.000969772215035},{\"kernel\":\"softmax_f16\",\"outputs\":36864,\"launches\":9,\"unchanged_input_bytes\":73728,\"unchanged_guard_bytes\":147456,\"max_absolute_error\":3.80014216809e-06},{\"kernel\":\"matvec_f16\",\"outputs\":288,\"launches\":9,\"unchanged_input_bytes\":2433024,\"unchanged_guard_bytes\":221184,\"max_absolute_error\":0.25},{\"kernel\":\"reduction_f16\",\"outputs\":9,\"launches\":9,\"unchanged_input_bytes\":4608,\"unchanged_guard_bytes\":147456,\"max_absolute_error\":0},{\"kernel\":\"relu_f8\",\"outputs\":18432,\"launches\":9,\"unchanged_input_bytes\":18432,\"unchanged_guard_bytes\":147456,\"max_absolute_error\":0},{\"kernel\":\"sigmoid_f8\",\"outputs\":9216,\"launches\":9,\"unchanged_input_bytes\":9216,\"unchanged_guard_bytes\":147456,\"max_absolute_error\":0.000191663693644},{\"kernel\":\"silu_f8\",\"outputs\":9216,\"launches\":9,\"unchanged_input_bytes\":9216,\"unchanged_guard_bytes\":147456,\"max_absolute_error\":0.000200785709535},{\"kernel\":\"swiglu_f8\",\"outputs\":18432,\"launches\":9,\"unchanged_input_bytes\":36864,\"unchanged_guard_bytes\":221184,\"max_absolute_error\":8.2391067899e-05},{\"kernel\":\"rope_f8\",\"outputs\":1152,\"launches\":9,\"unchanged_input_bytes\":3456,\"unchanged_guard_bytes\":294912,\"max_absolute_error\":0},{\"kernel\":\"rmsnorm_f8\",\"outputs\":36864,\"launches\":9,\"unchanged_input_bytes\":73728,\"unchanged_guard_bytes\":221184,\"max_absolute_error\":0.000408646989873},{\"kernel\":\"softmax_f8\",\"outputs\":36864,\"launches\":9,\"unchanged_input_bytes\":36864,\"unchanged_guard_bytes\":147456,\"max_absolute_error\":7.59851142845e-06},{\"kernel\":\"matvec_f8\",\"outputs\":576,\"launches\":9,\"unchanged_input_bytes\":2396160,\"unchanged_guard_bytes\":221184,\"max_absolute_error\":0.98046875},{\"kernel\":\"reduction_f8\",\"outputs\":9,\"launches\":9,\"unchanged_input_bytes\":18432,\"unchanged_guard_bytes\":147456,\"max_absolute_error\":0}]}\n",
+      "stderr": "",
+      "seconds": 0.26345793600194156
+    }
+  ],
+  "scope": "Exact-assembly numerical hardware gate for the enumerated original variants only; graph/equivalence and other workload variants require separate gates.",
+  "source_revision": "d846456f785b66b6f2a9052b290f2a76b89778c0",
+  "input_artifacts": {
+    "hardware/portable_run.py": "821f96ca50eb2e0adf7ef7e28729851af7564fe8640f3ce2b838b1b5ca672749",
+    "full/hardware/original_run.py": "3e1ee037a94e6d442a5c3d39c759eb0e6880856ef5e05a193f67f4a7c9aafd4d",
+    "full/hardware/original.cpp": "a6fcc5085ac5dd6b1560b770d43ed4571d12550a58b9e5dd0048b4abdd040128",
+    "full/hardware/original_common.hpp": "d5db21e2563323c3ec24e976180cda08e79751babd0ba4d6b0348b953a89e2cf",
+    "full/fixtures/original-f16.hip": "a95232488643982c54f17bbe4c85573b36816475bc83569290f8c9c67f589d27",
+    "full/fixtures/original-f16.s": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0",
+    "full/fixtures/original-f8.hip": "e81e64e5cf3ab07d425a72a47b511b2a0cc5c84382bad2abaa5499781885ea42",
+    "full/fixtures/original-f8.s": "5842efd29619494f51e164178af79dfb8440c29dcc1d7b6ebaa4232db812cdd6"
+  },
+  "selected_physical_device": 2,
+  "native_validation_contract": {
+    "relu_f16": [
+      1024,
+      2048,
+      2
+    ],
+    "relu_f8": [
+      2048,
+      2048,
+      2
+    ],
+    "sigmoid_f16": [
+      1024,
+      2048,
+      2
+    ],
+    "sigmoid_f8": [
+      1024,
+      1024,
+      2
+    ],
+    "silu_f16": [
+      512,
+      1024,
+      2
+    ],
+    "silu_f8": [
+      1024,
+      1024,
+      2
+    ],
+    "swiglu_f16": [
+      1024,
+      4096,
+      3
+    ],
+    "swiglu_f8": [
+      2048,
+      4096,
+      3
+    ],
+    "rope_f16": [
+      128,
+      768,
+      4
+    ],
+    "rope_f8": [
+      128,
+      384,
+      4
+    ],
+    "rmsnorm_f16": [
+      4096,
+      16384,
+      3
+    ],
+    "rmsnorm_f8": [
+      4096,
+      8192,
+      3
+    ],
+    "softmax_f16": [
+      4096,
+      8192,
+      2
+    ],
+    "softmax_f8": [
+      4096,
+      4096,
+      2
+    ],
+    "matvec_f16": [
+      32,
+      270336,
+      3
+    ],
+    "matvec_f8": [
+      64,
+      266240,
+      3
+    ],
+    "reduction_f16": [
+      1,
+      512,
+      2
+    ],
+    "reduction_f8": [
+      1,
+      2048,
+      2
+    ]
+  },
+  "original_output_projection": null,
+  "build_directory": "/tmp/ptx-gfx1250-original.d13SRl/original-build-1_8bx_gp",
+  "rocm_directory": "/opt/rocm-10.2.0a20261013+bkc.20261019",
+  "device_environment": {
+    "HIP_VISIBLE_DEVICES": "2"
+  },
+  "host": "ctheliosr-rck-g02-e15-04",
+  "toolchains": {
+    "llvm-mc": {
+      "path": "/opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/llvm-mc",
+      "sha256": "fd4483b0ad14a76beb97aad0b5015ad5ac0ca744ad70a638cb0c3480b1f98ca9",
+      "version": "AMD LLVM version 24.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn  - legacy name for amdgpu\n    amdgpu  - AMDGPU gfx6+\n    r600    - AMD GPUs HD2XXX-HD6XXX\n    spirv   - SPIR-V Logical\n    spirv32 - SPIR-V 32-bit\n    spirv64 - SPIR-V 64-bit\n    x86     - 32-bit X86: Pentium-Pro and above\n    x86-64  - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/lld",
+      "sha256": "646487af07dcdf9d3263849db8833136dfc10817e1fc8f61ae6daf93b1305cbe",
+      "version": "AMD LLD 24.0.0 (https://github.com/ROCm/llvm-project.git c7ceccf9a5789b92fda4056b8501450d0b7a75de) (compatible with GNU linkers)\n"
+    },
+    "clang++": {
+      "path": "/opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/clang-24",
+      "sha256": "7c0bca5771a9a9748ccf22aece01169f5e2dacbd64e9e4c2cfbe6678a6b405d5",
+      "version": "AMD clang version 24.0.0git (https://github.com/ROCm/llvm-project.git c7ceccf9a5789b92fda4056b8501450d0b7a75de)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin\nConfiguration file: /opt/rocm-10.2.0a20261013+bkc.20261019/lib/llvm/bin/clang++.cfg\n"
+    },
+    "HIP_runtime_library": {
+      "path": "/opt/rocm-10.2.0a20261013+bkc.20261019/lib/libamdhip64.so.7.17.26405-0000000",
+      "sha256": "6875790c48db4405a7fdc5ad68acf8ea2ee139d12d2155a9e04f74045af02a72"
+    }
+  },
+  "device_identity": {
+    "logical_ordinal": 0,
+    "visible_device_count": 1,
+    "name": "AMD Radeon Graphics",
+    "architecture": "gfx1250",
+    "wave_size": 32,
+    "pci_bus_id": "0003:01:00.0",
+    "uuid_status": "available",
+    "uuid_hex": "34366631333331623031623063363832",
+    "uuid_hip_error": 0,
+    "hip_runtime_version": 71726405,
+    "hip_driver_version": 71726405
+  },
+  "built_artifacts": {
+    "original_driver": "e722cf3aa9e60d2485bd555ca9a085cf821efab75e9477c7f2ea3a7ccc619f73",
+    "f16.o": "d08a20885b7b8b745f4b664a04d3adb5cbc9cf9c6e6cc5a38cf7d146e492cdc8",
+    "f8.o": "b47c4d78304b5e69a6ab3178ecce56a7afa6ca0af5ec3c4c36ea47bf44928966",
+    "f16.hsaco": "b2c2d479173fbc25f150c4b8a923c66326e59fb71cadbf386111414b1d177994",
+    "f8.hsaco": "890879e2de07f4e9f77bf6e1fcfc00767140d78c14abd868716c071edc1b8467",
+    "device_identity.cpp": "a26606dd40a134309c28ccce34e8d102e69184a835684968a758d40021ac1b0a",
+    "device_identity": "d5def70bd3d0b1dad6f334c58971e8ef3e3d1299b162fe71c5f9125940823575"
+  },
+  "validation": {
+    "status": "pass",
+    "architecture": "gfx1250",
+    "wave_size": 32,
+    "reference_controls": "pass",
+    "patterns": 9,
+    "cases": [
+      {
+        "kernel": "relu_f16",
+        "outputs": 9216,
+        "launches": 9,
+        "unchanged_input_bytes": 18432,
+        "unchanged_guard_bytes": 147456,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "sigmoid_f16",
+        "outputs": 9216,
+        "launches": 9,
+        "unchanged_input_bytes": 18432,
+        "unchanged_guard_bytes": 147456,
+        "max_absolute_error": 0.000218621587011
+      },
+      {
+        "kernel": "silu_f16",
+        "outputs": 4608,
+        "launches": 9,
+        "unchanged_input_bytes": 9216,
+        "unchanged_guard_bytes": 147456,
+        "max_absolute_error": 0.000293534055456
+      },
+      {
+        "kernel": "swiglu_f16",
+        "outputs": 9216,
+        "launches": 9,
+        "unchanged_input_bytes": 36864,
+        "unchanged_guard_bytes": 221184,
+        "max_absolute_error": 0.000951568239971
+      },
+      {
+        "kernel": "rope_f16",
+        "outputs": 1152,
+        "launches": 9,
+        "unchanged_input_bytes": 6912,
+        "unchanged_guard_bytes": 294912,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "rmsnorm_f16",
+        "outputs": 36864,
+        "launches": 9,
+        "unchanged_input_bytes": 147456,
+        "unchanged_guard_bytes": 221184,
+        "max_absolute_error": 0.000969772215035
+      },
+      {
+        "kernel": "softmax_f16",
+        "outputs": 36864,
+        "launches": 9,
+        "unchanged_input_bytes": 73728,
+        "unchanged_guard_bytes": 147456,
+        "max_absolute_error": 3.80014216809e-06
+      },
+      {
+        "kernel": "matvec_f16",
+        "outputs": 288,
+        "launches": 9,
+        "unchanged_input_bytes": 2433024,
+        "unchanged_guard_bytes": 221184,
+        "max_absolute_error": 0.25
+      },
+      {
+        "kernel": "reduction_f16",
+        "outputs": 9,
+        "launches": 9,
+        "unchanged_input_bytes": 4608,
+        "unchanged_guard_bytes": 147456,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "relu_f8",
+        "outputs": 18432,
+        "launches": 9,
+        "unchanged_input_bytes": 18432,
+        "unchanged_guard_bytes": 147456,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "sigmoid_f8",
+        "outputs": 9216,
+        "launches": 9,
+        "unchanged_input_bytes": 9216,
+        "unchanged_guard_bytes": 147456,
+        "max_absolute_error": 0.000191663693644
+      },
+      {
+        "kernel": "silu_f8",
+        "outputs": 9216,
+        "launches": 9,
+        "unchanged_input_bytes": 9216,
+        "unchanged_guard_bytes": 147456,
+        "max_absolute_error": 0.000200785709535
+      },
+      {
+        "kernel": "swiglu_f8",
+        "outputs": 18432,
+        "launches": 9,
+        "unchanged_input_bytes": 36864,
+        "unchanged_guard_bytes": 221184,
+        "max_absolute_error": 8.2391067899e-05
+      },
+      {
+        "kernel": "rope_f8",
+        "outputs": 1152,
+        "launches": 9,
+        "unchanged_input_bytes": 3456,
+        "unchanged_guard_bytes": 294912,
+        "max_absolute_error": 0
+      },
+      {
+        "kernel": "rmsnorm_f8",
+        "outputs": 36864,
+        "launches": 9,
+        "unchanged_input_bytes": 73728,
+        "unchanged_guard_bytes": 221184,
+        "max_absolute_error": 0.000408646989873
+      },
+      {
+        "kernel": "softmax_f8",
+        "outputs": 36864,
+        "launches": 9,
+        "unchanged_input_bytes": 36864,
+        "unchanged_guard_bytes": 147456,
+        "max_absolute_error": 7.59851142845e-06
+      },
+      {
+        "kernel": "matvec_f8",
+        "outputs": 576,
+        "launches": 9,
+        "unchanged_input_bytes": 2396160,
+        "unchanged_guard_bytes": 221184,
+        "max_absolute_error": 0.98046875
+      },
+      {
+        "kernel": "reduction_f8",
+        "outputs": 9,
+        "launches": 9,
+        "unchanged_input_bytes": 18432,
+        "unchanged_guard_bytes": 147456,
+        "max_absolute_error": 0
+      }
+    ]
+  },
+  "remote_execution": {
+    "ssh_host": "mi400",
+    "directory": "/tmp/ptx-gfx1250-original.d13SRl",
+    "argv": [
+      "python3",
+      "/tmp/ptx-gfx1250-original.d13SRl/full/hardware/original_run.py",
+      "--local",
+      "--fixture-directory",
+      "/tmp/ptx-gfx1250-original.d13SRl",
+      "--device",
+      "2",
+      "--patterns",
+      "9",
+      "--timeout",
+      "600",
+      "--rocm",
+      "/opt/rocm",
+      "--revision",
+      "d846456f785b66b6f2a9052b290f2a76b89778c0",
+      "--result",
+      "/tmp/ptx-gfx1250-original.d13SRl/result.json",
+      "--invocation-id",
+      "be8676ab-b181-4e4c-9d27-199c880b72b5"
+    ],
+    "staging_archive_sha256": "93984175f864d2ab47d68101c561f60361c5b883657638644c89690f49b328da"
+  }
+}

@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import tarfile
 import unittest
 
 SCRIPT = Path(__file__).with_name("original_run.py")
@@ -27,16 +28,117 @@ def result():
     }
 
 
+def identity():
+    return {
+        "logical_ordinal": 0,
+        "visible_device_count": 1,
+        "name": "AMD Instinct test device",
+        "architecture": "gfx1250:xnack+",
+        "wave_size": 32,
+        "pci_bus_id": "0000:43:00.0",
+        "uuid_status": "available",
+        "uuid_hex": "00112233445566778899aabbccddeeff",
+        "uuid_hip_error": 0,
+        "hip_runtime_version": 10020000,
+        "hip_driver_version": 10010000,
+    }
+
+
 class ReceiptControls(unittest.TestCase):
+    def test_staging_bundle_retains_exact_files_and_rejects_ambiguous_paths(self):
+        from dataclasses import replace
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "nested").mkdir()
+            (root / "nested/input.s").write_bytes(b"exact compiler output\n")
+            (root / "runner.py").write_bytes(b"print('gate')\n")
+            files = ("nested/input.s", "runner.py")
+            profile = replace(runner.BASIC, files=files)
+            destination = root / "inputs.tar.gz"
+            runner.staging_archive(root, destination, profile)
+            with tarfile.open(destination) as archive:
+                self.assertEqual(list(files), archive.getnames())
+                for name in files:
+                    self.assertEqual((root / name).read_bytes(), archive.extractfile(name).read())
+            for invalid in [(), (files[0], files[0]), ("../input.s",), ("/input.s",), ("./runner.py",)]:
+                with self.subTest(files=invalid), self.assertRaises(ValueError):
+                    runner.staging_archive(root, destination, replace(profile, files=invalid))
+            (root / "alias.py").symlink_to(root / "runner.py")
+            with self.assertRaises(ValueError):
+                runner.staging_archive(root, destination, replace(profile, files=("alias.py",)))
+
+    def test_device_identity_requires_actual_versions_target_and_physical_identifier(
+        self,
+    ):
+        runner.validate_device_identity(identity())
+        for status, error in (("not_supported", 801), ("all_zero", 0)):
+            value = identity()
+            value.update(uuid_status=status, uuid_hex=None, uuid_hip_error=error)
+            runner.validate_device_identity(value)
+        for field, bad in (
+            ("logical_ordinal", 1),
+            ("visible_device_count", 4),
+            ("wave_size", 64),
+            ("architecture", "gfx950"),
+            ("name", ""),
+            ("pci_bus_id", "unknown"),
+            ("hip_runtime_version", 0),
+            ("hip_driver_version", True),
+            ("uuid_status", "missing"),
+            ("uuid_hex", "0" * 32),
+            ("uuid_hex", "bad"),
+            ("uuid_hip_error", 1),
+        ):
+            value = identity()
+            value[field] = bad
+            with self.subTest(field=field, bad=bad), self.assertRaises(ValueError):
+                runner.validate_device_identity(value)
+        for field in identity():
+            value = identity()
+            del value[field]
+            with self.subTest(missing=field), self.assertRaises(ValueError):
+                runner.validate_device_identity(value)
+
+    def test_object_codeobject_and_identity_probe_artifacts_are_all_hashed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            paths = [
+                root / name
+                for name in (
+                    "driver",
+                    "attention.o",
+                    "attention.hsaco",
+                    "device_identity.cpp",
+                    "device_identity",
+                )
+            ]
+            for path in paths:
+                path.write_text(path.name)
+            hashes = runner.built_artifact_hashes(paths[0], [paths[2]], paths[3:])
+            self.assertEqual({path.name: runner.sha256(path) for path in paths}, hashes)
+            paths[1].unlink()
+            with self.assertRaises(FileNotFoundError):
+                runner.built_artifact_hashes(paths[0], [paths[2]], paths[3:])
+            with self.assertRaises(ValueError):
+                runner.built_artifact_hashes(paths[0], [], paths[3:])
+
     def test_matrix_gate_rejects_missing_padding_accounting(self):
         from original_matrix_run import MATRIX
+
         report = {**result(), "patterns": 4, "cases": []}
         for name, (outputs, inputs, buffers) in MATRIX.contract.items():
-            report["cases"].append({"kernel": name, "outputs": outputs * 4, "launches": 4,
-                                    "unchanged_input_bytes": inputs * 4,
-                                    "unchanged_guard_bytes": buffers * 8192 * 4,
-                                    "unchanged_gap_bytes": MATRIX.gaps[name] * 4,
-                                    "max_absolute_error": 0})
+            report["cases"].append(
+                {
+                    "kernel": name,
+                    "outputs": outputs * 4,
+                    "launches": 4,
+                    "unchanged_input_bytes": inputs * 4,
+                    "unchanged_guard_bytes": buffers * 8192 * 4,
+                    "unchanged_gap_bytes": MATRIX.gaps[name] * 4,
+                    "max_absolute_error": 0,
+                }
+            )
         runner.validate_result(report, 4, MATRIX)
         report["cases"][0]["unchanged_gap_bytes"] -= 2
         with self.assertRaises(ValueError):

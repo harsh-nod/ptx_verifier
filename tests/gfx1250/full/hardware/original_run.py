@@ -13,10 +13,12 @@ import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 import shlex
 import subprocess
 import sys
+import tarfile
 import tempfile
 import uuid
 
@@ -54,6 +56,7 @@ class Profile:
     minimum_patterns: int = 1
     maximum_patterns: int = 64
     gaps: dict[str, int] | None = None
+    original_outputs: dict[str, int] | None = None
 
 
 BASIC = Profile(CONTRACT, ("f16", "f8"), "full/hardware/original.cpp",
@@ -80,12 +83,121 @@ def validate_result(result: dict, patterns: int, profile: Profile = BASIC) -> No
         }
         if profile.gaps is not None:
             accounting["unchanged_gap_bytes"] = profile.gaps[row["kernel"]] * patterns
+        if profile.original_outputs is not None:
+            accounting["original_outputs"] = profile.original_outputs[row["kernel"]] * patterns
         for key, expected in accounting.items():
             if type(row.get(key)) is not int or row[key] != expected:
                 raise ValueError(f"{row['kernel']}: incomplete {key}")
         error = row.get("max_absolute_error")
         if type(error) not in (int, float) or not math.isfinite(error) or error < 0:
             raise ValueError("invalid numerical error metric")
+
+
+def validate_device_identity(identity: dict) -> None:
+    if not isinstance(identity, dict):
+        raise ValueError("selected HIP device identity must be an object")
+    for name, expected in (
+        ("logical_ordinal", 0),
+        ("visible_device_count", 1),
+        ("wave_size", 32),
+    ):
+        if type(identity.get(name)) is not int or identity[name] != expected:
+            raise ValueError(f"unexpected selected HIP device {name}")
+    architecture = identity.get("architecture")
+    if not isinstance(architecture, str) or architecture.split(":", 1)[0] != "gfx1250":
+        raise ValueError("actual selected HIP device is not gfx1250")
+    if not isinstance(identity.get("name"), str) or not identity["name"].strip():
+        raise ValueError("actual selected HIP device name is missing")
+    pci = identity.get("pci_bus_id")
+    if not isinstance(pci, str) or not re.fullmatch(
+        r"[0-9a-fA-F]{4,8}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-7]", pci
+    ):
+        raise ValueError(
+            "actual selected HIP device PCI identity is missing or malformed"
+        )
+    for name in ("hip_runtime_version", "hip_driver_version"):
+        if type(identity.get(name)) is not int or identity[name] <= 0:
+            raise ValueError(f"actual HIP {name} is missing")
+    status, value, error = (
+        identity.get(name) for name in ("uuid_status", "uuid_hex", "uuid_hip_error")
+    )
+    if type(error) is not int or error < 0:
+        raise ValueError("HIP UUID query status is missing")
+    if status == "available":
+        if (
+            error != 0
+            or not isinstance(value, str)
+            or not re.fullmatch(r"[0-9a-f]{32}", value)
+            or int(value, 16) == 0
+        ):
+            raise ValueError("actual selected HIP device UUID is invalid")
+    elif status == "all_zero":
+        if error != 0 or value is not None:
+            raise ValueError(
+                "all-zero UUID must be disclosed without claiming an identifier"
+            )
+    elif status == "not_supported":
+        if error == 0 or value is not None:
+            raise ValueError("unsupported UUID query must be disclosed")
+    else:
+        raise ValueError("HIP UUID availability is missing")
+
+
+def probe_device_identity(
+    tools: dict, rocm: Path, directory: Path, build: Path, env: dict, records: list
+) -> tuple[dict, list[Path]]:
+    source, probe = build / "device_identity.cpp", build / "device_identity"
+    source.write_text("""#define VOLTA_HARDWARE_IDENTITY_ONLY
+#include "original_common.hpp"
+int main() {
+  try {
+    std::puts(selected_device_identity_json().c_str());
+    return 0;
+  } catch (const std::exception &error) {
+    std::fprintf(stderr, "selected device identity failed: %s\\n", error.what());
+    return 1;
+  }
+}
+""")
+    checked_run(
+        [
+            str(tools["clang++"]),
+            "-std=c++17",
+            "-O2",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-D__HIP_PLATFORM_AMD__",
+            "-I" + str(rocm / "include"),
+            "-I" + str(directory / "full/hardware"),
+            str(source),
+            "-L" + str(rocm / "lib"),
+            "-lamdhip64",
+            "-Wl,-rpath," + str(rocm / "lib"),
+            "-o",
+            str(probe),
+        ],
+        timeout=120,
+        records=records,
+    )
+    result = checked_run([str(probe)], timeout=30, env=env, records=records)
+    identity = json.loads(result.stdout)
+    validate_device_identity(identity)
+    return identity, [source, probe]
+
+
+def built_artifact_hashes(
+    driver: Path, modules: list[Path], identity_artifacts: list[Path]
+) -> dict:
+    if not modules or len(set(modules)) != len(modules):
+        raise ValueError(
+            "each exact assembly module must have an object/codeobject pair"
+        )
+    objects = [module.with_suffix(".o") for module in modules]
+    return {
+        path.name: sha256(path)
+        for path in [driver, *objects, *modules, *identity_artifacts]
+    }
 
 
 def artifact_hashes(directory: Path, profile: Profile = BASIC) -> dict:
@@ -141,7 +253,9 @@ def run_local(args: argparse.Namespace, directory: Path, receipt: dict) -> None:
         raise ValueError("could not identify the resolved HIP runtime")
     library = Path(runtime[0].split("=>", 1)[1].split()[0]).resolve(strict=True)
     receipt["toolchains"]["HIP_runtime_library"] = {"path": str(library), "sha256": sha256(library)}
-    receipt["built_artifacts"] = {p.name: sha256(p) for p in [driver, *objects]}
+    identity, identity_artifacts = probe_device_identity(tools, rocm, directory, build, env, records)
+    receipt["device_identity"] = identity
+    receipt["built_artifacts"] = built_artifact_hashes(driver, objects, identity_artifacts)
     checked_run([str(driver), "--cpu-only"], timeout=15, env=env, records=records)
     completed = checked_run([str(driver), *map(str, objects), str(args.patterns)],
                             timeout=args.timeout, env=env, records=records)
@@ -150,15 +264,36 @@ def run_local(args: argparse.Namespace, directory: Path, receipt: dict) -> None:
     receipt["validation"] = result
 
 
+def staging_archive(directory: Path, destination: Path, profile: Profile) -> None:
+    files = profile.files
+    if not files or len(set(files)) != len(files):
+        raise ValueError("staging requires a nonempty unique input list")
+    with tarfile.open(destination, "w:gz", dereference=True) as archive:
+        for name in files:
+            relative = Path(name)
+            source = directory / relative
+            if (relative.is_absolute() or ".." in relative.parts or str(relative) != name
+                    or not source.is_file() or source.is_symlink()
+                    or not source.resolve().is_relative_to(directory.resolve())):
+                raise ValueError(f"invalid staging input: {name}")
+            archive.add(source, arcname=name, recursive=False)
+
+
 def run_remote(args: argparse.Namespace, directory: Path, receipt: dict) -> None:
     validate_revision(directory, args.revision, args.profile)
     remote = checked_run(["ssh", args.host, "mktemp -d /tmp/ptx-gfx1250-original.XXXXXX"], timeout=45).stdout.strip()
     if not remote.startswith("/tmp/ptx-gfx1250-original.") or any(c.isspace() for c in remote):
         raise ValueError("unexpected remote staging directory")
-    parents = sorted({str(Path(p).parent) for p in args.profile.files})
-    checked_run(["ssh", args.host, shlex.join(["mkdir", "-p", *[remote + "/" + p for p in parents]])], timeout=45)
-    for relative in args.profile.files:
-        checked_run(["scp", str(directory / relative), args.host + ":" + remote + "/" + relative], timeout=45)
+    # Transfer the source-pinned inputs together. A new SSH connection for each
+    # small file is both expensive and prone to proxy connection resets.
+    with tempfile.TemporaryDirectory(prefix="gfx1250-original-inputs-") as staging:
+        archive = Path(staging) / "inputs.tar.gz"
+        staging_archive(directory, archive, args.profile)
+        archive_sha256 = sha256(archive)
+        checked_run(["scp", str(archive), args.host + ":" + remote + "/inputs.tar.gz"], timeout=45)
+        checked_run(["ssh", args.host, shlex.join([
+            "tar", "--no-same-owner", "-xzf", remote + "/inputs.tar.gz", "-C", remote
+        ])], timeout=45)
     command = ["python3", remote + "/" + args.profile.runner, "--local",
                "--fixture-directory", remote, "--device", str(args.device), "--patterns", str(args.patterns),
                "--timeout", str(args.timeout), "--rocm", args.rocm, "--revision", args.revision,
@@ -176,7 +311,8 @@ def run_remote(args: argparse.Namespace, directory: Path, receipt: dict) -> None
             args.invocation_id, args.revision, receipt["input_artifacts"]):
         raise ValueError("remote receipt has different invocation, revision, or artifacts")
     receipt.update(result)
-    receipt["remote_execution"] = {"ssh_host": args.host, "directory": remote, "argv": command}
+    receipt["remote_execution"] = {"ssh_host": args.host, "directory": remote, "argv": command,
+                                   "staging_archive_sha256": archive_sha256}
     if error:
         raise error
     if receipt.get("status") != "pass":
@@ -218,7 +354,8 @@ def main(profile: Profile = BASIC) -> int:
         if len(args.revision) != 40 or any(c not in "0123456789abcdef" for c in args.revision):
             raise ValueError("revision must be an exact git object ID")
         receipt.update(source_revision=args.revision, input_artifacts=artifact_hashes(directory, profile),
-                       selected_physical_device=args.device, original_contract=profile.contract)
+                       selected_physical_device=args.device, native_validation_contract=profile.contract,
+                       original_output_projection=profile.original_outputs)
         if args.local:
             run_local(args, directory, receipt)
         else:
