@@ -780,6 +780,9 @@ concrete parameters, `Param.bytes([...])` and optional LDS subobject premises
 mirror existing Rust configuration. Failed native checks raise typed
 `DataRaceError`/`DeadlockError`; incomplete verification warns and sets
 `race_verified=False`. `just test-python` rebuilds the extension before testing.
+The original-workload test covers every W01–W18 output at its original shape
+and dtype; `VOLTA_GFX1250_ORIGINAL_FULL=1` requires all32 registrations and
+runs the separate heavy gate with no sampled/reduced fallback.
 
 ## Crate: volta_cli
 
@@ -791,6 +794,11 @@ The same launch, comparison, numeric, export, logging and viewer interfaces appl
 Native `--config` JSON supports the same optional `shared_allocations` byte ranges
 as `--shared-allocation` and Python; strict name/range validation and native LDS
 bounds apply, and PTX rejects these native-only premises.
+Original-workload CLI tests require complete first18 output footprints and
+unsampled specs, including exports, pair/replay and mismatch controls. The
+`VOLTA_GFX1250_ORIGINAL_FULL=1` heavy gate refuses missing original registrations.
+The original-dtype browser wrapper checks executed atomic and half/FP8 event/source
+navigation in a mixed store; rendering evidence remains separate from math/hardware.
 
 Commands:
 

@@ -70,3 +70,11 @@ failures exit 1, inconclusive checks exit 2, and success exits 0. Expression-onl
 replay reports equivalence without claiming any graph checks. See the
 [gfx1250 compiler corpus](../../tests/gfx1250/README.md) for the wave32/ABI subset
 and source-pinned gfx1250 hardware validation receipts.
+
+`gfx1250_original_workload_tests` exercises all18 first-family original shapes
+and storage dtypes: exact output coordinates, complete unsampled mathematical
+specs, graph/expression export, pair comparison, VC/expression replay and a
+full-size mismatch. `VOLTA_GFX1250_ORIGINAL_FULL=1` requests the separate heavy
+32-case gate and refuses missing registrations. See the [original-shape workflow
+recipes](../../tests/gfx1250/full-parity/README.md#public-workflow-gates); neither
+metadata registration nor expression replay attests a verified execution graph.

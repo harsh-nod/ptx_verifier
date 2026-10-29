@@ -38,14 +38,18 @@ RoPE, RMSNorm, softmax, matvec and atomic reduction sources from fixture commit
 outputs**, with original array names/addresses/widths/lengths/kinds, original
 blocks/grids and native argument order. The two trailing unused PTX dummy pointers
 are explicitly omitted. Both softmax variants retain all six meaningful arguments.
-W19–W32 remain explicitly unregistered; current registration is not full parity.
+W27–W32 add the six genuine full K4096 GEMM/fused-GEMM/BitDelta entries. Their
+native1024/256-thread partitions are explicitly mapped to the original CTA0,
+and named output row views retain every original byte address and pitch4096.
+W19–W26 remain explicitly unregistered; current registration is not full parity.
 
 Each case has an `original_shape`, explicit dtype labels, source/assembly/spec
 hashes, a public `launch_config`, and an `output_projection`. The first slice
 preserves the original arrays and launches directly. The validator fails closed
-on implicit renaming, launch or ABI changes; a later differently tiled/view-based
-port requires an explicit reviewed contract extension and corresponding tests.
-Its original sparse coordinate set is already recorded in the inventory.
+on implicit renaming, launch or ABI changes. The six matrix entries use a narrow
+validated mapping for their wave32 workgroup partitions, same-address output
+pointer and complete pitched row views; extra arrays, changed input words and
+shifted/missing output views fail the registration contract.
 
 The specs describe the existing Volta mathematical-real abstraction on decoded
 inputs. Native code retains the original F16/E4M3 storage and conversion points;
@@ -70,7 +74,7 @@ it explicitly makes no execution/proof claim. The final registration gate is:
 python3 tests/gfx1250/full-parity/contract.py --require-all
 ```
 
-That command currently fails because W19–W32 are missing. Required Unsupported,
+That command currently fails because W19–W26 are missing. Required Unsupported,
 Unknown, timeout/resource errors or smaller decoded-F32 computations do not
 satisfy original-shape acceptance. `--require-all` checks registration only; the
 coordinator must additionally reproduce every positive graph/math/public-workflow
@@ -96,3 +100,45 @@ access boundaries, and PTX rejects this native-only premise. Genuine gfx1250 LDS
 CLI tests verify all 64 exchange outputs and numeric math, plus omitted-last-word,
 over-capacity and PTX rejection controls. This API regression is independent of
 full workload completion.
+
+## Public workflow gates
+
+The CLI and Python regression tests check all W01–W18 original cases, **26,466
+outputs**, with no sampling. They parse the exact pinned assembly, analyze the
+full configured footprint, require verified graphs and compare every result
+against its complete mathematical specification with numeric confirmation.
+The CLI additionally exports graph/expression artifacts, compares identical
+kernels, exports/replays VCs and expressions, and rejects a full-size ReLU versus
+sigmoid mismatch. Expression-only replay proves no graph property.
+
+```bash
+cargo test --release -p volta_cli --test gfx1250_original_workload_tests
+uv run --reinstall-package volta pytest -q crates/volta_py/tests/test_gfx1250_original_workloads.py
+```
+
+The separate heavy full32 gate uses the **same original dimensions**, not smaller
+parameters. It refuses to start while any registration is missing. Full K4096
+matrices can require substantial host memory and runtime; a capacity error or
+required Unsupported/Unknown remains a failed gate.
+
+```bash
+VOLTA_GFX1250_ORIGINAL_FULL=1 cargo test --release -p volta_cli --test gfx1250_original_workload_tests
+VOLTA_GFX1250_ORIGINAL_FULL=1 uv run --reinstall-package volta pytest -q crates/volta_py/tests/test_gfx1250_original_workloads.py
+```
+
+`browser.cjs MIXED_HTML EVIDENCE_DIRECTORY` supplements the shared real-Chromium
+viewer regression with executed original F16/FP8 atomic reductions and F16/FP8
+RoPE conversions. Record the four runs as `original-reduction_f16`,
+`original-reduction_f8`, `original-rope_f16`, `original-rope_f8` using
+`volta_pipeline`'s `record_viewer_runs` example and the checked-in launch JSON.
+Append them to a copied mixed PTX/gfx942/gfx950/gfx1250 store, then run:
+
+```bash
+PLAYWRIGHT_MODULE=/path/to/playwright node tests/gfx1250/full-parity/browser.cjs mixed/index.html browser-evidence
+```
+
+The browser receipt checks all mixed runs and event/source navigation for these
+four actual new traces. It attests rendering only; symbolic/math and independent
+physical hardware receipts are separate. The first18 native hardware workload
+slice has its own coordinator validation; neither that numeric slice nor these
+workflow tests closes the other original families or issue #21.
