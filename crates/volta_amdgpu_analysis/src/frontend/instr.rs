@@ -1780,17 +1780,20 @@ pub(super) fn validate_vop_literal_positions(
     }
     let f64_source = stem.ends_with("_f64");
     let f16_source = stem.ends_with("_f16");
+    if architecture == crate::target::Architecture::Gfx1250
+        && explicit32
+        && matches!(stem, "v_add_f64" | "v_mul_f64")
+        && operands.iter().any(|operand| {
+            matches!(operand, Operand::Register(r) if matches!(r.class, RegisterClass::Vector | RegisterClass::Scalar) && r.index % 2 != 0)
+        })
+    {
+        return Err("gfx1250 F64 VOP2 requires aligned register pairs".into());
+    }
     let vop3_only = matches!(
         stem,
-        "v_mul_lo_u32"
-            | "v_fma_f32"
-            | "v_fma_f16"
-            | "v_fma_f64"
-            | "v_add_f64"
-            | "v_mul_f64"
-            | "v_min_f64"
-            | "v_max_f64"
-    );
+        "v_mul_lo_u32" | "v_fma_f32" | "v_fma_f16" | "v_fma_f64" | "v_min_f64" | "v_max_f64"
+    ) || (architecture != crate::target::Architecture::Gfx1250
+        && matches!(stem, "v_add_f64" | "v_mul_f64"));
     let src1_vgpr = matches!(
         operands.get(2),
         Some(Operand::Register(Register {

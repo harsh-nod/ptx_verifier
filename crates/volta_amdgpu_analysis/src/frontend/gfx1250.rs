@@ -45,6 +45,41 @@ pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
 }
 
 fn validate_dual_pair(x: &Instruction, y: &Instruction) -> Result<(), String> {
+    if matches!(x.mnemonic.as_str(), "v_add_f64" | "v_mul_f64")
+        || matches!(y.mnemonic.as_str(), "v_add_f64" | "v_mul_f64")
+    {
+        // LLVM VOPD3XPseudosExtraGFX1250 adds F64 only in the X slot.
+        // This selected profile covers the compiler's paired zero-address
+        // initialization, with aligned VGPR pairs and disjoint destinations.
+        if !matches!(x.mnemonic.as_str(), "v_add_f64" | "v_mul_f64")
+            || y.mnemonic != "v_mov_b32"
+            || x.operands.len() != 3
+            || y.operands.len() != 2
+            || y.operands.get(1) != Some(&Operand::Integer(0))
+            || !x.modifiers.is_empty()
+            || !y.modifiers.is_empty()
+        {
+            return Err("selected F64 VOPD3 requires an X-slot add/mul and Y-slot MOV zero".into());
+        }
+        for operand in &x.operands {
+            if !matches!(operand, Operand::Register(r) if r.class == RegisterClass::Vector && r.count == 2 && r.index % 2 == 0)
+            {
+                return Err("selected F64 VOPD3 requires aligned two-VGPR operands".into());
+            }
+        }
+        let (Some(Operand::Register(xd)), Some(Operand::Register(yd))) =
+            (x.operands.first(), y.operands.first())
+        else {
+            return Err("F64 VOPD3 requires physical VGPR destinations".into());
+        };
+        if yd.class != RegisterClass::Vector
+            || yd.count != 1
+            || (u32::from(xd.index)..u32::from(xd.index) + u32::from(xd.count))
+                .contains(&u32::from(yd.index))
+        {
+            return Err("F64 VOPD3 destinations must be disjoint".into());
+        }
+    }
     if x.mnemonic == "v_fmamk_f32" || y.mnemonic == "v_fmamk_f32" {
         // VOPD MADK carries one shared mandatory literal, unlike VOPD3.
         fn bits(operand: &Operand) -> Option<u32> {
@@ -294,6 +329,8 @@ pub(super) fn parse_special(
                 span,
             })?;
             if ![
+                "add_f64",
+                "mul_f64",
                 "add_f32",
                 "mul_f32",
                 "fma_f32",
