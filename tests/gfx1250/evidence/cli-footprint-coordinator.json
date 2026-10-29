@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "scope": "Coordinator CPU-only public CLI footprint/sampling counterpart controls. Not original32 workload completion or hardware evidence.",
+  "source_revision": "0ae7e9d7114528d55ec2b7647b2393566c15cf49",
+  "command": "CARGO_BUILD_JOBS=4 CARGO_TARGET_DIR=/home/harsh/ptx_verifier/target cargo test --release -p volta_cli --test gfx1250_output_footprint_tests",
+  "tests": 3,
+  "actual_cli_invocations": 6,
+  "expected_output_indices": [
+    0,
+    1
+  ],
+  "outcomes": [
+    {
+      "kernel": "output_complete",
+      "sample": 0,
+      "exit_code": 0,
+      "verdict": "ACCEPT"
+    },
+    {
+      "kernel": "output_complete",
+      "sample": 1,
+      "exit_code": 2,
+      "verdict": "UNKNOWN"
+    },
+    {
+      "kernel": "output_partial",
+      "sample": 0,
+      "exit_code": 1,
+      "missing": [
+        1
+      ]
+    },
+    {
+      "kernel": "output_partial",
+      "sample": 1,
+      "exit_code": 1,
+      "missing": [
+        1
+      ]
+    },
+    {
+      "kernel": "output_shifted",
+      "sample": 0,
+      "exit_code": 1,
+      "missing": [
+        1
+      ],
+      "extra": [
+        2
+      ]
+    },
+    {
+      "kernel": "output_shifted",
+      "sample": 1,
+      "exit_code": 1,
+      "missing": [
+        1
+      ],
+      "extra": [
+        2
+      ]
+    }
+  ],
+  "sha256": {
+    "crates/volta_cli/tests/gfx1250_output_footprint_tests.rs": "ee20db0b92913c43ee5b25c141296186a230adecdfe9dc27d6bf0cc68cbb1dcd",
+    "tests/gfx1250/fixtures/native-output-footprint.hip": "33bd623d0c421cf16ef80e44ffd2f8385d52d7568dd7f492df07a8d331540e5b",
+    "tests/gfx1250/fixtures/native-output-footprint.s": "b4e7e0accfb532130c61f0d25ae7b800a93ede51721030b2e78956fa7e608a7d",
+    "crates/volta_cli/tests/ptx/soundness/two_zeroes.spec": "34e2e3ec200524c66c891b630d44be97df2a9519125531c74cc1b483879b5f5f"
+  },
+  "test_output": "warning: variant `Rem` is never constructed\n  --> crates/volta_amdgpu_analysis/src/eval/scalar.rs:42:5\n   |\n37 | pub(crate) enum IntBinOp {\n   |                 -------- variant in this enum\n...\n42 |     Rem,\n   |     ^^^\n   |\n   = note: `IntBinOp` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: variants `Sub` and `Div` are never constructed\n  --> crates/volta_amdgpu_analysis/src/eval/scalar.rs:66:5\n   |\n64 | pub(crate) enum FloatBinOp {\n   |                 ---------- variants in this enum\n65 |     Add,\n66 |     Sub,\n   |     ^^^\n67 |     Mul,\n68 |     Div,\n   |     ^^^\n   |\n   = note: `FloatBinOp` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis\n\nwarning: variants `Neg`, `Abs`, `Exp`, and `Log` are never constructed\n  --> crates/volta_amdgpu_analysis/src/eval/scalar.rs:75:5\n   |\n74 | pub(crate) enum FloatUnOp {\n   |                 --------- variants in this enum\n75 |     Neg,\n   |     ^^^\n76 |     Abs,\n   |     ^^^\n...\n79 |     Exp,\n   |     ^^^\n80 |     Log,\n   |     ^^^\n   |\n   = note: `FloatUnOp` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis\n\nwarning: function `copysign` is never used\n   --> crates/volta_amdgpu_analysis/src/eval/scalar.rs:559:15\n    |\n559 | pub(crate) fn copysign(arena: &mut ExprArena, sign: ExprId, magnitude: ExprId) -> ExprId {\n    |               ^^^^^^^^\n\nwarning: `volta_amdgpu_analysis` (lib) generated 4 warnings\n   Compiling volta_ptx_analysis v0.1.0 (/home/harsh/ptx-verifier-gfx1250-full-integration/crates/volta_ptx_analysis)\n   Compiling volta_viz v0.1.0 (/home/harsh/ptx-verifier-gfx1250-full-integration/crates/volta_viz)\n   Compiling volta_pipeline v0.1.0 (/home/harsh/ptx-verifier-gfx1250-full-integration/crates/volta_pipeline)\n   Compiling volta_cli v0.1.0 (/home/harsh/ptx-verifier-gfx1250-full-integration/crates/volta_cli)\n    Finished `release` profile [optimized] target(s) in 18.27s\n     Running tests/gfx1250_output_footprint_tests.rs (/home/harsh/ptx_verifier/target/release/deps/gfx1250_output_footprint_tests-ff299a925333544f)\n\nrunning 3 tests\ntest native_same_count_shifted_output_names_both_missing_and_extra_indices ... ok\ntest complete_original_footprint_is_accepted_only_without_sampling ... ok\ntest sampled_and_unsampled_native_partial_output_preserve_upstream_rejection ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n"
+}

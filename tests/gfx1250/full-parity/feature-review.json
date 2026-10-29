@@ -55,12 +55,22 @@
       "portable_obligation": "Missing output coordinates and same-count shifted coordinates must never yield ACCEPT; sampled results must remain inconclusive.",
       "native_candidates": [
         {
-          "path": "crates/volta_cli/tests/gfx1250_tests.rs",
-          "function": "missing_wait_is_rejected_and_sampling_remains_inconclusive",
-          "scope": "Native missing-wait rejection and --sample1 inconclusive; not the exact missing/shifted-coordinate negative pairs."
+          "path": "crates/volta_cli/tests/gfx1250_output_footprint_tests.rs",
+          "function": "complete_original_footprint_is_accepted_only_without_sampling",
+          "scope": "Genuine gfx1250 one-work-item output[0,1]=0: full verification ACCEPT, sample1 UNKNOWN, using the unchanged upstream two_zeroes.spec."
+        },
+        {
+          "path": "crates/volta_cli/tests/gfx1250_output_footprint_tests.rs",
+          "function": "sampled_and_unsampled_native_partial_output_preserve_upstream_rejection",
+          "scope": "Genuine gfx1250 output[0]=0 only: both sample0 and sample1 reject the exact missing out[1] index."
+        },
+        {
+          "path": "crates/volta_cli/tests/gfx1250_output_footprint_tests.rs",
+          "function": "native_same_count_shifted_output_names_both_missing_and_extra_indices",
+          "scope": "Genuine gfx1250 out[0] and out[2], allocation length3/specification N2: both sample0 and sample1 name missing out[1] and extra out[2]."
         }
       ],
-      "remaining_gate": "Add genuine gfx1250 CLI controls matching partial out[0] vs expected2 and shifted out[0],out[2] vs expected indices0,1. Current full-output positive workflows do not replace those negatives.",
+      "remaining_gate": "Coordinator reproduced all three native CLI tests and six actual verdicts at0ae7e9d. Exact upstream specification and missing/extra-index diagnostics are preserved. Completion of this ledger is recorded separately from this narrow validated counterpart.",
       "target_specific_residual": "No NVIDIA-only mechanism in the footprint/sampling contract.",
       "completion": "coordinator_review_required",
       "reference_count": 3
@@ -95,9 +105,14 @@
           "path": "crates/volta_pipeline/tests/gfx1250_compiler_tests.rs",
           "function": "real_gfx1250_wmma_all_a_and_b_basis_coordinates_run_through_native_interpreter",
           "scope": "Full native WMMA A/B basis coverage independently proves lane math,not the missing original-shape adapter."
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_upstream_adapters.rs",
+          "function": "bf16_m16n8k16_preserves_original_fragments_and_checks_all_padded_native_outputs",
+          "scope": "Original BF16 lane fragments and four original lane0 cells, independently reconstructed complete16x8 product plus all256 padded native outputs; direct PTX/native four-cell equivalence."
         }
       ],
-      "remaining_gate": "Implement explicit zero padding to native N16/K32, prove the original four coordinates and all128 logical outputs without changing BF16 storage. Executor owns a distinct upcoming fixture.",
+      "remaining_gate": "Coordinator reproduced complete symbolic equivalence, unknown-half/conflicting-format controls and34 hardware patterns on each of two gfx1250 GPUs. Native N16/K32 padding and exact original four-cell projection remain explicit; ledger completion is separate.",
       "target_specific_residual": "mma.sync.m16n8k16 fragment register layout differs from native WMMA; padding and output projection need explicit proof.",
       "completion": "coordinator_review_required",
       "reference_count": 1
@@ -111,9 +126,14 @@
           "path": "crates/volta_pipeline/tests/gfx1250_compiler_tests.rs",
           "function": "real_gfx1250_wide_product_and_mad_match_exact_unsigned_and_signed_128bit_oracles",
           "scope": "686 signed/unsigned a/b/addend combinations,all4u64 outputs exact; no floating conversion. This candidate covers the primitive,not the magic-division pipeline."
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_upstream_adapters.rs",
+          "function": "exact_magic_division_uses_high64_then_shift_then_u32_projection",
+          "scope": "Exact original10/magic U64 product-high64, logical shift1 and U32 projection3, plus four independent128-bit boundary controls."
         }
       ],
-      "remaining_gate": "Add the complete native post-product shift/narrow-store sequence; existing686 product/mad boundary cases do not contain this operand pair/consumer. Executor owns a distinct upcoming fixture.",
+      "remaining_gate": "Coordinator reproduced exact native graph/integer evaluation and34 runtime operand pairs on each of two gfx1250 GPUs. This closes the missing primitive-consumer example implementation; ledger completion is separate.",
       "target_specific_residual": "PTX mul.hi spelling; native limb/mul_hi sequences must preserve the exact integer calculation.",
       "completion": "coordinator_review_required",
       "reference_count": 1
