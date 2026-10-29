@@ -45,15 +45,20 @@ W19–W20 register the genuine full K576 F16/E4M3 convolutions: all128/64
 original spatial positions across128 output channels, at pitch2916. Their native
 fixed24576/16384-byte two-slot LDS staging replaces the original232448-byte
 dynamic budget explicitly, without changing input/output storage or claiming
-an enlarged FP8 tile. W21–W26 remain explicitly unregistered; current registration
-is not full parity.
+an enlarged FP8 tile. W21–W26 register the full Sinkhorn, attention and Mamba
+sources, retaining signed-I8/per64-key scales, all null ABI arguments, both sparse
+scan outputs and original source pitches. FlashAttention retains grid.x16/T1024;
+selected CTA0 covers128 query rows, while physical full-grid replay requires1024
+query/output rows and the source's genuine no-op odd CTAs. All32 are registered,
+covering395,394 configured output coordinates. Registration is not full parity.
 
 Each case has an `original_shape`, explicit dtype labels, source/assembly/spec
 hashes, a public `launch_config`, and an `output_projection`. The first slice
 preserves the original arrays and launches directly. The validator fails closed
 on implicit renaming, launch or ABI changes. The six matrix entries use a narrow
 validated mapping for their wave32 workgroup partitions, same-address output
-pointer and complete pitched row views; extra arrays, changed input words and
+pointer and complete pitched row views; Mamba scan similarly retains both1024-pitch
+outputs. Extra arrays, changed input words/scales, altered logical grids and
 shifted/missing output views fail the registration contract.
 
 The specs describe the existing Volta mathematical-real abstraction on decoded
@@ -79,7 +84,7 @@ it explicitly makes no execution/proof claim. The final registration gate is:
 python3 tests/gfx1250/full-parity/contract.py --require-all
 ```
 
-That command currently fails because W21–W26 are missing. Required Unsupported,
+That metadata command now passes all32 registrations. Required Unsupported,
 Unknown, timeout/resource errors or smaller decoded-F32 computations do not
 satisfy original-shape acceptance. `--require-all` checks registration only; the
 coordinator must additionally reproduce every positive graph/math/public-workflow
