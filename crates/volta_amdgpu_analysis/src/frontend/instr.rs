@@ -1417,6 +1417,57 @@ pub(super) fn validate_registers(
                 return Ok(());
             }
             let comparison = stem.starts_with("v_cmp");
+            if architecture == crate::target::Architecture::Gfx1250 && mnemonic.ends_with("_e32") {
+                if comparison && stem.ends_with("_f16") {
+                    let cmpx = stem.starts_with("v_cmpx_");
+                    let start = usize::from(!cmpx);
+                    if !cmpx
+                        && !matches!(operands.first(), Some(Operand::Register(r))
+                        if r.special == Some(SpecialRegister::VccLo) && r.count == 1 && r.class == Special)
+                    {
+                        return Err(
+                            "gfx1250 F16 e32 comparison writes the fixed VCC_LO destination".into(),
+                        );
+                    }
+                    if !matches!(operands.get(start + 1), Some(Operand::Register(r))
+                        if r.class == Vector && r.count == 1)
+                    {
+                        return Err("gfx1250 F16 e32 comparison SRC1 requires a VGPR".into());
+                    }
+                    let src0 = match operands.get(start) {
+                        Some(Operand::Register(r)) => r.count == 1,
+                        Some(Operand::Integer(n)) => {
+                            (i16::MIN as i64..=u16::MAX as i64).contains(n)
+                        }
+                        Some(Operand::Float(_)) => true,
+                        _ => false,
+                    };
+                    if !src0 {
+                        return Err("gfx1250 F16 e32 comparison SRC0 requires an unmodified source with a16-bit literal".into());
+                    }
+                }
+                let all_half = matches!(
+                    stem,
+                    "v_add_f16"
+                        | "v_sub_f16"
+                        | "v_mul_f16"
+                        | "v_min_f16"
+                        | "v_max_f16"
+                        | "v_max_num_f16"
+                        | "v_fmac_f16"
+                        | "v_cvt_f16_i16"
+                ) || comparison && stem.ends_with("_f16");
+                for (index, operand) in operands.iter().enumerate() {
+                    let half_operand = all_half
+                        || stem == "v_cvt_f16_f32" && index == 0
+                        || matches!(stem, "v_cvt_f32_f16" | "v_cvt_f32_bf16") && index == 1;
+                    if half_operand
+                        && register(operand).is_some_and(|r| r.class == Vector && r.index >= 128)
+                    {
+                        return Err("gfx1250 true16 e32 operands require VGPRs below v128".into());
+                    }
+                }
+            }
             let carry = stem.starts_with("v_add_co_")
                 || stem.starts_with("v_addc_co_")
                 || stem.starts_with("v_sub_co_")
