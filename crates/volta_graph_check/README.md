@@ -226,8 +226,9 @@ effects; missing data waits remain hazards. WMMA operand roles and dependencies
 use gfx1250 layouts. Missing waves, wrong masks/register classes, forged memory
 associations and incomplete traces stay inconclusive or fail their typed
 obligation. Advanced barrier/cache/tensor modes outside the documented subset
-cannot inherit gfx942/gfx950 certificates. The documented positive corpus has
-passed independent gfx1250 hardware replay; numerical agreement remains separate
+cannot inherit gfx942/gfx950 certificates. Independent gfx1250 hardware evidence
+is recorded separately in `tests/gfx1250/evidence`; extending a graph profile
+does not establish a hardware result. Numerical agreement remains separate
 from these graph obligations.
 
 A later VMEM destination that aliases an older VMEM replay source establishes
