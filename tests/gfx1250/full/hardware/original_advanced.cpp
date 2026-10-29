@@ -39,6 +39,21 @@ static void attention(hipModule_t module, unsigned mode, unsigned patterns, std:
       ks.set(1, double(5 + pattern % 3) / 2048);
     } else { small(q, pattern, 3); small(k, pattern, 7); }
     small(v, pattern, 11); small(lambda, pattern, 13);
+    if (pattern == 4) {
+      // D63 basis vectors retain every query/key, including both Sage scale blocks.
+      q.fill(0, 0); k.fill(0, 0); v.fill(0, 0);
+      for (size_t r = 0; r < queries; ++r)
+        q.set(r * 64 + 63, mode == 2 ? (r % 2 ? -128. : 127.) : (r % 7 + 1) / 16.);
+      for (size_t key = 0; key < keys; ++key)
+        k.set(key * 64 + 63, mode == 2 ? (key % 2 ? -128. : 127.) : (key % 5 + 1) / 16.);
+      v.set(63 * 64, 1.);
+      v.set(64 * 64 + 31, -.5);
+      v.set((keys - 1) * 64 + 63, .25);
+    } else if (pattern == 5) {
+      // First feature/key, last original query and the additional Flash tail row.
+      q.basis(127 * 64); k.basis(0); v.basis(63);
+      if (queries > 128) q.set((queries - 1) * 64, -1.);
+    }
     std::vector<double> expected(queries * 64, 0), expected_lse(queries), scores(keys), probabilities;
     for (size_t r = 0; r < queries; ++r) {
       for (size_t key = 0; key < keys; ++key) {
@@ -77,6 +92,8 @@ static void sinkhorn(hipModule_t module, unsigned patterns, std::vector<Row> &ro
   for (unsigned pattern = 0; pattern < patterns; ++pattern) {
     small(x, pattern, 3); small(y, pattern, 7); small(f, pattern, 11);
     small(g, pattern, 13); small(lb, pattern, 17);
+    if (pattern == 4) { x.basis(31 * 64 + 63); y.basis(1023 * 64 + 63); }
+    else if (pattern == 5) { x.basis(0); y.basis(0); }
     std::vector<double> expected(32), score(1024), p;
     for (size_t r = 0; r < 32; ++r) {
       for (size_t key = 0; key < 1024; ++key) {
@@ -99,6 +116,8 @@ static void state(hipModule_t module, unsigned patterns, std::vector<Row> &rows)
   void *unused = nullptr;
   for (unsigned pattern = 0; pattern < patterns; ++pattern) {
     small(x, pattern, 3); small(b, pattern, 7); small(da, pattern, 11);
+    if (pattern == 4) { x.basis(255 * 512 + 63); b.basis(255 * 512 + 127); }
+    else if (pattern == 5) { x.basis(0); b.basis(0); }
     da.set(255, 0);
     for (size_t t = 0; t < 256; ++t) dt.set(t, (16 + (t * 7 + pattern) % 17) / 64.);
     std::vector<double> expected(64 * 128, 0);
@@ -125,6 +144,15 @@ static void scan(hipModule_t module, unsigned patterns, std::vector<Row> &rows) 
   for (unsigned pattern = 0; pattern < patterns; ++pattern) {
     small(cb, pattern == 1 ? 0 : pattern, 3); small(x, pattern, 7);
     small(c, pattern, 11); small(prev, pattern == 2 ? 0 : pattern, 13); small(da, pattern, 17);
+    if (pattern == 4) {
+      // Last current-chunk time/row/feature; no prior-state contribution.
+      cb.basis(31 * 128 + 127); x.basis(127 * 1024 + 127);
+      c.fill(0, 0); prev.fill(0, 0);
+    } else if (pattern == 5) {
+      // Distinct prior-state basis, including state31 and its F32-to-F16 cast.
+      cb.fill(0, 0); x.fill(0, 0);
+      c.basis(31 * 64 + 31); prev.basis(127 * 32 + 31);
+    }
     for (size_t t = 0; t < 128; ++t) dt.set(t, (8 + (t * 7 + pattern) % 17) / 64.);
     std::vector<double> expected(32 * 1024, NAN), zeros(32 * 1024, NAN);
     for (size_t r = 0; r < 32; ++r) for (size_t f = 0; f < 128; ++f) {
@@ -152,16 +180,17 @@ static void scan(hipModule_t module, unsigned patterns, std::vector<Row> &rows) 
 int main(int argc, char **argv) {
   try {
     validate_reference_controls();
+    validate_basis_controls();
     std::vector<double> p;
     require(softmax({0, 0, 0, 0}, false, p) == std::log(4.) && p == std::vector<double>(4, .25), "dense softmax control failed");
     if (argc == 2 && std::string(argv[1]) == "--cpu-only") {
-      std::puts("PASS advanced host reference and storage controls; GPU launches=0"); return 0;
+      std::puts("PASS advanced host reference and storage and basis byte/guard controls; GPU launches=0"); return 0;
     }
     require(argc == 5, "usage: original_advanced_driver attention.hsaco sinkhorn.hsaco mamba.hsaco patterns");
     size_t consumed = 0;
     const std::string text = argv[4];
     const auto patterns = std::stoul(text, &consumed);
-    require(consumed == text.size() && patterns >= 4 && patterns <= 16, "advanced patterns must be4..16");
+    require(consumed == text.size() && patterns >= 6 && patterns <= 16, "advanced patterns must be6..16, including current/prior bases4/5");
     hipDeviceProp_t device{};
     hip_check(hipGetDeviceProperties(&device, 0), "device properties");
     const std::string architecture = device.gcnArchName;

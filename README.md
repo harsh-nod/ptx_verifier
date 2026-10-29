@@ -87,7 +87,8 @@ with `--backend amdgpu --target gfx1250` or Python
 The analysis envelope is a single
 unclustered workgroup, code-object 6,
 metadata 1.2, and the selected compiler instruction subset. Strict/neighbor
-targets, named/cluster barriers and advanced tensor modes remain unsupported.
+targets, cluster barriers and advanced tensor modes remain unsupported. Selected
+allocated named shader barriers have separate participant and lifetime checks.
 
 ```bash
 volta verify tests/gfx1250/fixtures/native-copy-add.s tests/gfx1250/specs/copy.spec \
@@ -99,8 +100,10 @@ volta verify tests/gfx1250/fixtures/native-copy-add.s tests/gfx1250/specs/copy.s
 See the [gfx1250 contract and validation corpus](tests/gfx1250/README.md) for
 complete configured matrix/tensor checks, bounded ports of twenty workload
 families, independent mutation/oracle controls and hardware reproduction commands.
-These ports preserve each documented mathematical computation at bounded sizes;
-they do not claim all original PTX shapes, dtypes or device execution behavior.
+The bounded issue #13 ports remain separate from the
+[original32 workload and portable-feature contract](tests/gfx1250/full-parity/README.md).
+That contract preserves original dimensions, storage dtypes and sparse output
+projections; registration and individual test results do not imply full acceptance.
 
 Launch arguments follow the selected kernel's descriptor and argument metadata.
 `--global NAME=value` overrides a writable defined module object;

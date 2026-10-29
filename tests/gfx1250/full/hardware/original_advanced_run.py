@@ -22,7 +22,7 @@ ADVANCED = Profile(
            "full/fixtures/original-attention.s", "full/fixtures/original-sinkhorn.hip",
            "full/fixtures/original-sinkhorn.s", "full/fixtures/original-mamba.hip",
            "full/fixtures/original-mamba.s"),
-    patterns=4, minimum_patterns=4, maximum_patterns=16,
+    patterns=6, minimum_patterns=6, maximum_patterns=16,
     gaps={"flash_attention_original": 0, "forgetting_attention_original": 0,
           "sage_attention_original": 0, "sinkhorn_original": 0,
           "mamba_state_original": 0, "mamba_scan_original": 114688},

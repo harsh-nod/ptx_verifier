@@ -1,0 +1,461 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Thirteen exact portable obligations: eleven reconciled mechanism proposal candidates plus two matrix graph directions. Source/test candidates only; no execution receipts or automatic coordinator acceptance. All original positives and native supersets remain explicit.",
+  "reference_groups": [
+    "ASYNC-COPY-ORDER",
+    "NVIDIA-TMEM-ENCODING",
+    "NVIDIA-TMEM-RESOURCE",
+    "PTX-SYNTAX"
+  ],
+  "source_selection": {
+    "path": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
+    "sha256": "5fecc7556bf4415b3ed487ef9c1b0d7393ed983a3b2de7047c2a0bcab398c564",
+    "proposal": "native_property_candidate_with_target_residual",
+    "additional_paths": [
+      "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_st_then_mma_without_thread_sync_fences_is_rejected.ptx",
+      "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_commit_does_not_release_the_threads_earlier_store.ptx"
+    ],
+    "required_rows": 13,
+    "previous_proposal": "portable_property_gap_with_target_residual"
+  },
+  "test_sources": [
+    "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs",
+    "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs"
+  ],
+  "rows": [
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_dealloc_with_an_mma_in_flight_is_rejected.ptx",
+      "baseline_sha256": "d1239220e92bcbcf7f57c495f7e68b67659ebb742740541919d70b80a37abb11",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/resource_lifetime_tests.rs",
+          "function": "test_tcgen05_dealloc_with_an_mma_in_flight_is_rejected",
+          "line": 96,
+          "function_region_sha256": "221748ecb99252ad9de89425c9c7eb28fbdac9a23126ebb57adeded385314fda",
+          "source_sha256": "08388ca6c403bddbdd0435f01ad2c2b353cdbdfe0b55578f83f5ee9c077d33bb"
+        }
+      ],
+      "group": "NVIDIA-TMEM-RESOURCE",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::completed_zero_mma_keeps_every_result_and_rejects_early_destination_reuse",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "native_assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "kernel": "matrix_zero_128x256",
+      "expected_native_outcome": "complete_outputs",
+      "native_outputs": {
+        "out": 32768,
+        "native": 32768
+      },
+      "native_property": "Early destination overwrite has a complete65536-coordinate candidate and typed MatrixDestinationReuse; the safe zero matrix finishes every output before storage reuse/release.",
+      "reason": "Early destination overwrite has a complete65536-coordinate candidate and typed MatrixDestinationReuse; the safe zero matrix finishes every output before storage reuse/release.",
+      "target_residual": "Exact NVIDIA TMEM allocate/deallocate columns and descriptor fields do not name native VGPR/LDS storage. Native operand/result storage, full zero computations, explicit original projection and completed-effect lifetime remain required."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_dealloc_with_an_unwaited_ld_or_st_is_rejected_ld.ptx",
+      "baseline_sha256": "d4f6b56990bd951c0d2fd7e4f46609dcc7edede8cb116ea035710e0ca6d242ba",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/resource_lifetime_tests.rs",
+          "function": "test_tcgen05_dealloc_with_an_unwaited_ld_or_st_is_rejected",
+          "line": 72,
+          "function_region_sha256": "3dde0854c25fd4030479ee11f6f1a934627f252803365558e5dbdf31814ba523",
+          "source_sha256": "08388ca6c403bddbdd0435f01ad2c2b353cdbdfe0b55578f83f5ee9c077d33bb"
+        }
+      ],
+      "group": "NVIDIA-TMEM-RESOURCE",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::a_full128_byte_source_borrow_finishes_before_cross_wave_reuse",
+      "native_source": "tests/gfx1250/fixtures/native-lifetime-boundaries.hip",
+      "native_source_sha256": "773d9b38d9cd46d865f14b82653f8b7d318cd805e8ac2c26da7d10ec6b09b8c3",
+      "native_assembly": "tests/gfx1250/fixtures/native-lifetime-boundaries.s",
+      "native_assembly_sha256": "d819c2fac7c42fb2b6c5712c3b4869b9271204e7c2f5231da3110c6e4a117e0b",
+      "kernel": "async_source128_reuse",
+      "expected_native_outcome": "complete_outputs",
+      "native_outputs": {
+        "out": 64
+      },
+      "native_property": "Actual TDM reads all128 LDS source bytes and writes128 global bytes before cross-wave source reuse; all64 identity outputs and Shared ReadWrite harmful mutants are checked.",
+      "reason": "Actual TDM reads all128 LDS source bytes and writes128 global bytes before cross-wave source reuse; all64 identity outputs and Shared ReadWrite harmful mutants are checked.",
+      "target_residual": "Exact NVIDIA TMEM allocate/deallocate columns and descriptor fields do not name native VGPR/LDS storage. Native operand/result storage, full zero computations, explicit original projection and completed-effect lifetime remain required."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_dealloc_with_an_unwaited_ld_or_st_is_rejected_st.ptx",
+      "baseline_sha256": "06fbee9d28f5a7924d5996aa0714f50c07503353d3ce3da74d7ad8e73751597e",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/resource_lifetime_tests.rs",
+          "function": "test_tcgen05_dealloc_with_an_unwaited_ld_or_st_is_rejected",
+          "line": 72,
+          "function_region_sha256": "3dde0854c25fd4030479ee11f6f1a934627f252803365558e5dbdf31814ba523",
+          "source_sha256": "08388ca6c403bddbdd0435f01ad2c2b353cdbdfe0b55578f83f5ee9c077d33bb"
+        }
+      ],
+      "group": "NVIDIA-TMEM-RESOURCE",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::no_output_does_not_remove_the_full_128_byte_destination_lifetime",
+      "native_source": "tests/gfx1250/portable-graph/async-memory/native-async-memory.hip",
+      "native_source_sha256": "91e4f42be452b4012b07bc2b8e021df00e623208b291c4a44d67daac39029aeb",
+      "native_assembly": "tests/gfx1250/portable-graph/async-memory/native-async-memory.s",
+      "native_assembly_sha256": "d29023ac7e0256323fe026ac102838b9e93921d82efd120a2ed7b2d618116fe4",
+      "kernel": "async_no_output128_reuse",
+      "expected_native_outcome": "verified_empty_outputs",
+      "native_outputs": {},
+      "native_property": "Actual TDM writes all128 LDS destination bytes before the second wave reuses them. A complete empty-output candidate still requires typed Shared WriteWrite rejection.",
+      "reason": "Actual TDM writes all128 LDS destination bytes before the second wave reuses them. A complete empty-output candidate still requires typed Shared WriteWrite rejection.",
+      "target_residual": "Exact NVIDIA TMEM allocate/deallocate columns and descriptor fields do not name native VGPR/LDS storage. Native operand/result storage, full zero computations, explicit original projection and completed-effect lifetime remain required."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_init_count_out_of_range.ptx",
+      "baseline_sha256": "b325cad7ca4699fe924635006d46f6edc6a3782d3c3271f6055248141798a7c3",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_init_must_reject_a_count_above_the_ptx_limit",
+          "line": 183,
+          "function_region_sha256": "07a9e79984fb2190995d3b7ed0c623d5cc1a4018d54770ef1c6e7ec61545d6fc",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "group": "PTX-SYNTAX",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::non_null_named_expected_count_preserves_one_and_the_actual16_bit_maximum",
+      "native_source": "tests/gfx1250/fixtures/native-named-count-boundaries.ll",
+      "native_source_sha256": "2828992a5ea87147c3d7baeac4b4f150285325ec82bd3bb08d138011e2cae687",
+      "native_assembly": "tests/gfx1250/fixtures/native-named-count-boundaries.s",
+      "native_assembly_sha256": "fd5552bd00a10386c41fd96c1660547c437a27e7e174e32ef9b00306ed5fa68e",
+      "kernel": "named_expected_maximum",
+      "expected_native_outcome": "verified_empty_outputs",
+      "native_outputs": {},
+      "native_property": "Genuine allocated non-NULL native fields preserve expected1 and65535 without truncation; count0 is typed invalid, while NULL0 remains a valid no-op.",
+      "reason": "Genuine allocated non-NULL native fields preserve expected1 and65535 without truncation; count0 is typed invalid, while NULL0 remains a valid no-op.",
+      "target_residual": "PTX20-bit arrival/byte-credit ranges do not define the native16-bit M0 expected-count field. Manual transaction-byte credits are target-specific; actual native fields, completion classes and128-byte borrow footprints are tested separately.",
+      "related_tests": [
+        "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::zero_expected_count_is_rejected_only_for_a_non_null_object"
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_init_zero_count.ptx",
+      "baseline_sha256": "c3114f576d0d893e577b2a38c65d43775dfb31fe4492915cbd5fc6e433a0f2c8",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_init_must_reject_a_zero_count",
+          "line": 174,
+          "function_region_sha256": "48f47527fa3f3a2b6216c7ad9618ac70ab2d42fc2400130ad80cf3fe373d0dce",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "group": "PTX-SYNTAX",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::zero_expected_count_is_rejected_only_for_a_non_null_object",
+      "native_source": "tests/gfx1250/fixtures/native-named-count-boundaries.ll",
+      "native_source_sha256": "2828992a5ea87147c3d7baeac4b4f150285325ec82bd3bb08d138011e2cae687",
+      "native_assembly": "tests/gfx1250/fixtures/native-named-count-boundaries.s",
+      "native_assembly_sha256": "fd5552bd00a10386c41fd96c1660547c437a27e7e174e32ef9b00306ed5fa68e",
+      "kernel": "named_expected_zero",
+      "expected_native_outcome": "typed_domain_refusal",
+      "native_outputs": {},
+      "native_property": "Genuine allocated non-NULL native fields preserve expected1 and65535 without truncation; count0 is typed invalid, while NULL0 remains a valid no-op.",
+      "reason": "Genuine allocated non-NULL native fields preserve expected1 and65535 without truncation; count0 is typed invalid, while NULL0 remains a valid no-op.",
+      "target_residual": "PTX20-bit arrival/byte-credit ranges do not define the native16-bit M0 expected-count field. Manual transaction-byte credits are target-specific; actual native fields, completion classes and128-byte borrow footprints are tested separately.",
+      "related_tests": [
+        "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::zero_expected_count_is_rejected_only_for_a_non_null_object"
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/mbarrier_tx_count_out_of_range.ptx",
+      "baseline_sha256": "1c916ba56a64a91cc6d5e931ef81b9d685657895ceff53f3e51fcdfed2002a3c",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/soundness_tests.rs",
+          "function": "mbarrier_tx_count_must_stay_in_the_isa_range",
+          "line": 475,
+          "function_region_sha256": "338353fc340e6b12da302ce6e6835be1115fb5df7d5a337f33087c713e4c1ee8",
+          "source_sha256": "139df787464e2b9a47160eb7c02b42b1184f089ffbf450d11d8dca153a250f80"
+        }
+      ],
+      "group": "PTX-SYNTAX",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::original_transaction_credit_boundary_positive_is_retained_separately",
+      "native_source": "tests/gfx1250/fixtures/native-named-count-boundaries.ll",
+      "native_source_sha256": "2828992a5ea87147c3d7baeac4b4f150285325ec82bd3bb08d138011e2cae687",
+      "native_assembly": "tests/gfx1250/fixtures/native-named-count-boundaries.s",
+      "native_assembly_sha256": "fd5552bd00a10386c41fd96c1660547c437a27e7e174e32ef9b00306ed5fa68e",
+      "kernel": "named_expected_maximum",
+      "expected_native_outcome": "verified_empty_outputs",
+      "native_outputs": {},
+      "native_property": "Genuine allocated non-NULL native fields preserve expected1 and65535 without truncation; count0 is typed invalid, while NULL0 remains a valid no-op. The hidden original2^20-1 positive and exact2^20 overflow refusal are independently retained; no native2^20 credit counter is fabricated.",
+      "reason": "Genuine allocated non-NULL native fields preserve expected1 and65535 without truncation; count0 is typed invalid, while NULL0 remains a valid no-op. The hidden original2^20-1 positive and exact2^20 overflow refusal are independently retained; no native2^20 credit counter is fabricated.",
+      "target_residual": "PTX20-bit arrival/byte-credit ranges do not define the native16-bit M0 expected-count field. Manual transaction-byte credits are target-specific; actual native fields, completion classes and128-byte borrow footprints are tested separately.",
+      "related_tests": [
+        "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::zero_expected_count_is_rejected_only_for_a_non_null_object"
+      ]
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_dealloc_after_the_mma_completed_is_accepted.ptx",
+      "baseline_sha256": "e9d5f6dd6ad2cb5673c80b339bd45fe0484399ad04cacfd49aedb22472c377e4",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_dealloc_after_the_mma_completed_is_accepted",
+          "line": 550,
+          "function_region_sha256": "b6b3f0eec8704f60204af6749611e33350780db7f2c4c9c40e7ca8a5abd6202f",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "NVIDIA-TMEM-RESOURCE",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::original_zero_boundary_math_has_explicit_complete_native_projections_and_superset",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "native_assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "kernel": "matrix_zero_128x256",
+      "expected_native_outcome": "complete_outputs",
+      "native_outputs": {
+        "out": 32768,
+        "native": 32768
+      },
+      "native_property": "Native zero M128N256/K32 computation checks32768 outputs in each view. Original F16 K16 is zero-padded to native K32; complete original logical projection and every additional native output remain checked.",
+      "reason": "Native zero M128N256/K32 computation checks32768 outputs in each view. Original F16 K16 is zero-padded to native K32; complete original logical projection and every additional native output remain checked.",
+      "target_residual": "Exact NVIDIA TMEM allocate/deallocate columns and descriptor fields do not name native VGPR/LDS storage. Native operand/result storage, full zero computations, explicit original projection and completed-effect lifetime remain required.",
+      "original_math_projection": {
+        "original_M": 128,
+        "original_N": 8,
+        "native_M": 128,
+        "native_N": 256,
+        "rule": "row*256+column for row<128,column<8",
+        "original_math_cells": 1024
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_dealloc_after_the_mma_completed_is_accepted.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {}
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_dealloc_after_waiting_is_accepted.ptx",
+      "baseline_sha256": "901c2570d0ef11eac3490f8fbc25577171b9d6aed78a4a6f3224a9e5e0340d0e",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_dealloc_after_waiting_is_accepted",
+          "line": 374,
+          "function_region_sha256": "566e0a58ef8f95d3d0e82e9f55d6272f13268bfbaf1c2a647859d02361f57903",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "NVIDIA-TMEM-RESOURCE",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::a_full128_byte_source_borrow_finishes_before_cross_wave_reuse",
+      "native_source": "tests/gfx1250/fixtures/native-lifetime-boundaries.hip",
+      "native_source_sha256": "773d9b38d9cd46d865f14b82653f8b7d318cd805e8ac2c26da7d10ec6b09b8c3",
+      "native_assembly": "tests/gfx1250/fixtures/native-lifetime-boundaries.s",
+      "native_assembly_sha256": "d819c2fac7c42fb2b6c5712c3b4869b9271204e7c2f5231da3110c6e4a117e0b",
+      "kernel": "async_source128_reuse",
+      "expected_native_outcome": "complete_outputs",
+      "native_outputs": {
+        "out": 64
+      },
+      "native_property": "Actual TDM reads all128 LDS source bytes and writes128 global bytes before cross-wave source reuse; all64 identity outputs and Shared ReadWrite harmful mutants are checked.",
+      "reason": "Actual TDM reads all128 LDS source bytes and writes128 global bytes before cross-wave source reuse; all64 identity outputs and Shared ReadWrite harmful mutants are checked.",
+      "target_residual": "Exact NVIDIA TMEM allocate/deallocate columns and descriptor fields do not name native VGPR/LDS storage. Native operand/result storage, full zero computations, explicit original projection and completed-effect lifetime remain required.",
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_dealloc_after_waiting_is_accepted.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {}
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_d_lane0_col8.ptx",
+      "baseline_sha256": "fd9f56e62941bc9320f0622ba1fcd396229ccc11b751e481ab5a058fda2d6ad4",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_accepts_boundary_encodings",
+          "line": 1799,
+          "function_region_sha256": "203721a02d16f19a1b1f447baf0430af8ed028b495c8e0144fdf34a77038b067",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "NVIDIA-TMEM-ENCODING",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::original_zero_boundary_math_has_explicit_complete_native_projections_and_superset",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "native_assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "kernel": "matrix_zero_128x256",
+      "expected_native_outcome": "complete_outputs",
+      "native_outputs": {
+        "out": 32768,
+        "native": 32768
+      },
+      "native_property": "Native zero M128N256/K32 computation checks32768 outputs in each view. Original F16 K16 is zero-padded to native K32; complete original logical projection and every additional native output remain checked.",
+      "reason": "Native zero M128N256/K32 computation checks32768 outputs in each view. Original F16 K16 is zero-padded to native K32; complete original logical projection and every additional native output remain checked.",
+      "target_residual": "Exact NVIDIA TMEM allocate/deallocate columns and descriptor fields do not name native VGPR/LDS storage. Native operand/result storage, full zero computations, explicit original projection and completed-effect lifetime remain required.",
+      "original_math_projection": {
+        "original_M": 128,
+        "original_N": 256,
+        "native_M": 128,
+        "native_N": 256,
+        "rule": "row*256+column; native result base differs explicitly from TMEM column8",
+        "original_math_cells": 32768
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_d_lane0_col8.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {}
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_idesc_max_shift_ws.ptx",
+      "baseline_sha256": "c11c217a1cc84019c4385b8203433f4d9fe13811465dbd7494a865fad5f541d4",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_accepts_boundary_encodings",
+          "line": 1799,
+          "function_region_sha256": "203721a02d16f19a1b1f447baf0430af8ed028b495c8e0144fdf34a77038b067",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "NVIDIA-TMEM-ENCODING",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::original_zero_boundary_math_has_explicit_complete_native_projections_and_superset",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "native_assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "kernel": "matrix_zero_128x256",
+      "expected_native_outcome": "complete_outputs",
+      "native_outputs": {
+        "out": 32768,
+        "native": 32768
+      },
+      "native_property": "Native zero M128N256/K32 computation checks32768 outputs in each view. Original F16 K16 is zero-padded to native K32; complete original logical projection and every additional native output remain checked.",
+      "reason": "Native zero M128N256/K32 computation checks32768 outputs in each view. Original F16 K16 is zero-padded to native K32; complete original logical projection and every additional native output remain checked.",
+      "target_residual": "Exact NVIDIA TMEM allocate/deallocate columns and descriptor fields do not name native VGPR/LDS storage. Native operand/result storage, full zero computations, explicit original projection and completed-effect lifetime remain required. B-reuse max shift is a NVIDIA performance hint; it changes no mathematical operand value in the original zero computation.",
+      "original_math_projection": {
+        "original_M": 128,
+        "original_N": 64,
+        "native_M": 128,
+        "native_N": 256,
+        "rule": "row*256+column for row<128,column<64",
+        "original_math_cells": 8192
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_idesc_max_shift_ws.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {}
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_shape_ws_m32_n64.ptx",
+      "baseline_sha256": "ec2baf4a60f993450748f16148d850a6b6b4989893f77ce6eca9e617bfb7fbad",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/accepted_tests.rs",
+          "function": "test_tcgen05_mma_accepts_boundary_encodings",
+          "line": 1799,
+          "function_region_sha256": "203721a02d16f19a1b1f447baf0430af8ed028b495c8e0144fdf34a77038b067",
+          "source_sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+        }
+      ],
+      "group": "NVIDIA-TMEM-ENCODING",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::original_zero_boundary_math_has_explicit_complete_native_projections_and_superset",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-numeric.hip",
+      "native_source_sha256": "a713501d76938f36e80ea8eb63c071c3bc9d398ae0a7f28835dba37d831424cd",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-numeric.s",
+      "native_assembly_sha256": "9f80c6a6c7eda480054ac97d3da0ca67605dd7b53d34a81a2a2f4e2196411cbf",
+      "kernel": "matrix_zero_128x256",
+      "expected_native_outcome": "complete_outputs",
+      "native_outputs": {
+        "out": 32768,
+        "native": 32768
+      },
+      "native_property": "Native zero M128N256/K32 computation checks32768 outputs in each view. Original F16 K16 is zero-padded to native K32; complete original logical projection and every additional native output remain checked.",
+      "reason": "Native zero M128N256/K32 computation checks32768 outputs in each view. Original F16 K16 is zero-padded to native K32; complete original logical projection and every additional native output remain checked.",
+      "target_residual": "Exact NVIDIA TMEM allocate/deallocate columns and descriptor fields do not name native VGPR/LDS storage. Native operand/result storage, full zero computations, explicit original projection and completed-effect lifetime remain required.",
+      "original_math_projection": {
+        "original_M": 32,
+        "original_N": 64,
+        "native_M": 128,
+        "native_N": 256,
+        "rule": "row*256+column for row<32,column<64",
+        "original_math_cells": 2048
+      },
+      "golden_path": "crates/volta_pipeline/tests/ptx/success/tcgen05_mma_encoding_shape_ws_m32_n64.out",
+      "golden_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_output_coordinates": {}
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_st_then_mma_without_thread_sync_fences_is_rejected.ptx",
+      "baseline_sha256": "92e8d38dcead57762adc848df211daa66b14ca1db003b1b8eabd1a967112d1f8",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/tensor_order_tests.rs",
+          "function": "test_tcgen05_st_then_mma_without_thread_sync_fences_is_rejected",
+          "line": 193,
+          "function_region_sha256": "0a4f55cd05b684ed4c86a096a01bf024e7909a5d885eb1ecce86ccb45e53212b",
+          "source_sha256": "5604195e4700728b3ac2dc44c46d93c55c78a8b136c332154e07ff35279d8b1a"
+        }
+      ],
+      "group": "ASYNC-COPY-ORDER",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::cross_wave_lds_production_is_published_before_all_wmma_operand_reads",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-ordering.hip",
+      "native_source_sha256": "165a7e2db4c591fa416d4e0365201d112fcefb4bbfc69b16fc6d83b6f2a45133",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-ordering.s",
+      "native_assembly_sha256": "18ac6bcafd8b9365190ee0e0be247c8409619cb65ca94491bacf470af7a3e449",
+      "kernel": "matrix_input_cross_wave",
+      "expected_native_outcome": "complete_outputs",
+      "native_outputs": {
+        "out": 256
+      },
+      "native_property": "Wave0 publishes512 operand bytes to wave1 WMMA reads. Full256 weighted outputs are checked; missing completion/publication produces complete typed Shared WriteRead candidates.",
+      "reason": "Wave0 publishes512 operand bytes to wave1 WMMA reads. Full256 weighted outputs are checked; missing completion/publication produces complete typed Shared WriteRead candidates.",
+      "target_residual": "NVIDIA TCGEN/TMEM proxy-fence spelling is target-specific. Cross-wave LDS producer/consumer publication and unrelated metadata order remain required independently of WMMA completion."
+    },
+    {
+      "baseline_path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_commit_does_not_release_the_threads_earlier_store.ptx",
+      "baseline_sha256": "ea591838430876a6be164172876366a933dc38640e3d0750342fb3c49c6acbc8",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_tcgen05_commit_does_not_release_the_threads_earlier_store",
+          "line": 549,
+          "function_region_sha256": "ac91d983b460ed0f36d65b61baffefe1c8b5c78503fbe11d8f8bd60e797945d8",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "group": "ASYNC-COPY-ORDER",
+      "candidate_kind": "portable_feature",
+      "coordinator_acceptance": "pending",
+      "test": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs::matrix_completion_cannot_publish_an_unrelated_earlier_metadata_store",
+      "native_source": "tests/gfx1250/fixtures/native-matrix-ordering.hip",
+      "native_source_sha256": "165a7e2db4c591fa416d4e0365201d112fcefb4bbfc69b16fc6d83b6f2a45133",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-ordering.s",
+      "native_assembly_sha256": "18ac6bcafd8b9365190ee0e0be247c8409619cb65ca94491bacf470af7a3e449",
+      "kernel": "matrix_completion_keeps_metadata_separate",
+      "expected_native_outcome": "complete_outputs",
+      "native_outputs": {
+        "out": 256,
+        "metadata_out": 1
+      },
+      "native_property": "Unrelated metadata stays one independent raw-U32 value. All256 WMMA outputs and metadata0 are checked; matrix readiness passes while absent metadata publication yields typed Shared WriteRead at byte0.",
+      "reason": "Unrelated metadata stays one independent raw-U32 value. All256 WMMA outputs and metadata0 are checked; matrix readiness passes while absent metadata publication yields typed Shared WriteRead at byte0.",
+      "target_residual": "NVIDIA TCGEN/TMEM proxy-fence spelling is target-specific. Cross-wave LDS producer/consumer publication and unrelated metadata order remain required independently of WMMA completion."
+    }
+  ],
+  "positive_abi_inventory": "tests/gfx1250/fixtures/mechanism-positive-cases.json",
+  "positive_abi_inventory_sha256": "a25cff50f8863e7340540b979667e897993e520d48ce1f48e52ebda6ca2fabd4"
+}

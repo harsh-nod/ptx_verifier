@@ -9,7 +9,6 @@ import hashlib
 import json
 from pathlib import Path
 import re
-import socket
 import subprocess
 
 
@@ -58,7 +57,7 @@ def main():
                          "code_object_sha256": sha(source.with_suffix(".hsaco")),
                          "compile": compile_result, "assemble": assemble_result,
                          "link": link_result})
-    result = {"schema_version": 1, "target": "gfx1250", "host": socket.gethostname(),
+    result = {"schema_version": 1, "target": "gfx1250",
               "scope": "Genuine native compiler outputs, not edited or retargeted assembly; compilation/assembly alone make no semantic verification claim.",
               "hardware_validation": "not_performed_by_this_compiler_only_workflow",
               "tools": tools, "fixtures": fixtures}

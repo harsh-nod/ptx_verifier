@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Safe positive source/ABI inventory only; no runtime/hardware observations or coordinator acceptance. Harmful and count0/refusal entries excluded.",
+  "cases": [
+    {
+      "kernel": "async_source128_reuse",
+      "native_assembly": "tests/gfx1250/fixtures/native-lifetime-boundaries.s",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "input",
+        "out"
+      ],
+      "arrays": [
+        {
+          "name": "input",
+          "kind": "in",
+          "element_width": 4,
+          "elements": 64,
+          "storage_dtype": "F32"
+        },
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 64,
+          "storage_dtype": "F32"
+        }
+      ],
+      "independent_reference": "out[i]=input[i] for all64 coordinates. First32 words travel through one128-byte LDS->global TDM transfer; second32 validate completed source reuse."
+    },
+    {
+      "kernel": "named_expected_one",
+      "native_assembly": "tests/gfx1250/fixtures/native-named-count-boundaries.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [],
+      "arrays": [],
+      "independent_reference": "Safe init-only source with no numerical outputs; hardware launch does not observe internal expected-count state."
+    },
+    {
+      "kernel": "named_expected_maximum",
+      "native_assembly": "tests/gfx1250/fixtures/native-named-count-boundaries.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [],
+      "arrays": [],
+      "independent_reference": "Safe init-only source with no numerical outputs; hardware launch does not observe internal expected-count state."
+    },
+    {
+      "kernel": "named_null_zero",
+      "native_assembly": "tests/gfx1250/fixtures/native-named-count-boundaries.s",
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [],
+      "arrays": [],
+      "independent_reference": "Safe init-only source with no numerical outputs; hardware launch does not observe internal expected-count state."
+    },
+    {
+      "kernel": "matrix_input_cross_wave",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-ordering.s",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "input",
+        "out"
+      ],
+      "arrays": [
+        {
+          "name": "input",
+          "kind": "in",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "F16"
+        },
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 256,
+          "storage_dtype": "F32"
+        }
+      ],
+      "independent_reference": "out[row*16+column]=sum(input[row*16+k]*(k+1), k=0..15); all256 outputs. Operand producer wave0, WMMA consumer wave1."
+    },
+    {
+      "kernel": "matrix_completion_keeps_metadata_separate",
+      "native_assembly": "tests/gfx1250/fixtures/native-matrix-ordering.s",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "arguments": [
+        "input",
+        "out",
+        "metadata_in",
+        "metadata_out"
+      ],
+      "arrays": [
+        {
+          "name": "input",
+          "kind": "in",
+          "element_width": 2,
+          "elements": 256,
+          "storage_dtype": "F16"
+        },
+        {
+          "name": "out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 256,
+          "storage_dtype": "F32"
+        },
+        {
+          "name": "metadata_in",
+          "kind": "in",
+          "element_width": 4,
+          "elements": 1,
+          "storage_dtype": "U32"
+        },
+        {
+          "name": "metadata_out",
+          "kind": "out",
+          "element_width": 4,
+          "elements": 1,
+          "storage_dtype": "U32"
+        }
+      ],
+      "independent_reference": "out[row*16+column]=sum(input[row*16+k]*(k+1), k=0..15); all256 outputs. metadata_out[0]=metadata_in[0], exact raw32 equality."
+    }
+  ]
+}

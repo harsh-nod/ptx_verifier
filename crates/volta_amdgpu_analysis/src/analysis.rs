@@ -148,8 +148,6 @@ pub fn analyze(
                             == Some(crate::target::Architecture::Gfx1250))
                 {
                     "xcnt drain"
-                } else if instruction.mnemonic.starts_with("v_wmma_") {
-                    "WMMA"
                 } else if instruction.mnemonic == "s_delay_alu" {
                     "s_delay_alu"
                 } else if instruction.mnemonic == "s_barrier_signal" {
@@ -201,7 +199,7 @@ pub fn analyze(
                 ) {
                     "trans ALU"
                 } else {
-                    super::eval::interp_kind(instruction.opcode)
+                    super::eval::interp_kind(instruction.opcode, &instruction.mnemonic)
                 },
                 span: Some((instruction.span.start, instruction.span.end)),
             })

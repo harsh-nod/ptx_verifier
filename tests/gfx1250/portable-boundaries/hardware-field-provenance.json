@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "source": "tests/gfx1250/full/fixtures/original-f16.s",
+  "source_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0",
+  "scope": "Actual native hardware-field encoding probes. Legal encoding does not imply supported value semantics; Rust tests keep every unmodeled field Unsupported. No GPU execution.",
+  "hardware_execution": false,
+  "completion": "coordinator_review_required",
+  "assembler": {
+    "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+    "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771"
+  },
+  "variants": [
+    {
+      "field": "HW_REG_IB_STS2, 6, 4",
+      "supported_value_semantics": true,
+      "assembly_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-hwreg-field-a03r774q/field_6_4.s",
+        "-o",
+        "/tmp/ptx-hwreg-field-a03r774q/field_6_4.o"
+      ],
+      "exit_code": 0
+    },
+    {
+      "field": "HW_REG_IB_STS2, 6, 5",
+      "supported_value_semantics": false,
+      "assembly_sha256": "dd755a903428b946789b8ff77bf3480b646acf927da00e613d54e6d24bbc8bd6",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-hwreg-field-a03r774q/field_6_5.s",
+        "-o",
+        "/tmp/ptx-hwreg-field-a03r774q/field_6_5.o"
+      ],
+      "exit_code": 0
+    },
+    {
+      "field": "HW_REG_IB_STS2, 5, 4",
+      "supported_value_semantics": false,
+      "assembly_sha256": "7f20f57d837276667ac7a63970140f809e0bd18bcbf6478a87ccd879a66868c8",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-hwreg-field-a03r774q/field_5_4.s",
+        "-o",
+        "/tmp/ptx-hwreg-field-a03r774q/field_5_4.o"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

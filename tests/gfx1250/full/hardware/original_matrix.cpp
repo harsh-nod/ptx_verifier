@@ -15,6 +15,35 @@ static int coordinate(unsigned row, unsigned col, unsigned pattern, uint32_t dom
                        (row + 7) * (col + 11) ^ (pattern + 1) * 0xc2b2ae35U;
   return int(mix(key) % 15) - 7;
 }
+static size_t boundary_k(size_t column) {
+  static constexpr size_t coordinates[] = {0, 31, 32, 4095};
+  return coordinates[column % 4];
+}
+static uint32_t bitdelta_word(size_t group, size_t column, unsigned pattern) {
+  if (pattern == 0 || pattern == 2) return 0;
+  if (pattern == 1) return UINT32_MAX;
+  if (pattern == 4) return group == 127 && column % 2 ? UINT32_C(0x80000000) : 0;
+  if (pattern == 5) {
+    const size_t selected = boundary_k(column);
+    return group == selected / 32 ? uint32_t(1) << (selected % 32) : 0;
+  }
+  return mix(uint32_t(group + 1) * 0x9e3779b9U ^ uint32_t(column + 3) * 0x85ebca6bU ^ pattern * 0xc2b2ae35U);
+}
+static void validate_matrix_basis_controls() {
+  const std::vector<size_t> boundaries{0, 31, 32, 4095};
+  for (size_t column = 0; column < boundaries.size(); ++column) {
+    for (unsigned pattern : {4U, 5U}) {
+      std::vector<size_t> positive;
+      for (size_t group = 0; group < 128; ++group)
+        for (unsigned bit = 0; bit < 32; ++bit)
+          if ((bitdelta_word(group, column, pattern) >> bit) & 1)
+            positive.push_back(group * 32 + bit);
+      const std::vector<size_t> expected = pattern == 5 ? std::vector<size_t>{boundaries[column]}
+          : column % 2 ? std::vector<size_t>{4095} : std::vector<size_t>{};
+      require(positive == expected, "packed basis lost its exact bit/group boundary");
+    }
+  }
+}
 static void encode(Buffer &buffer, size_t index, int numerator) {
   if (buffer.type != Type::E4M3) { buffer.set(index, numerator / 16.); return; }
   static const std::vector<uint8_t> codes = [] {
@@ -40,12 +69,16 @@ static void gemm(hipModule_t module, bool fp8, unsigned patterns, std::vector<Ro
   for (unsigned pattern = 0; pattern < patterns; ++pattern) {
     for (size_t r = 0; r < M; ++r) for (size_t k = 0; k < K; ++k) {
       const size_t i = r * K + k;
-      encode(a, i, coordinate(unsigned(r), unsigned(k), pattern, 0x41d2c3b4U));
+      const int value = pattern == 4 ? (k == K - 1 ? int(r % 7) + 1 : 0)
+                                    : coordinate(unsigned(r), unsigned(k), pattern, 0x41d2c3b4U);
+      encode(a, i, value);
       a_values[i] = a.get(i);
     }
     for (size_t k = 0; k < K; ++k) for (size_t col = 0; col < pitch; ++col) {
       const size_t i = k * pitch + col;
-      encode(b, i, coordinate(unsigned(k), unsigned(col), pattern, 0xb8632791U));
+      const int value = pattern == 5 ? (k == boundary_k(col) ? int(col % 7) + 1 : 0)
+                                    : coordinate(unsigned(k), unsigned(col), pattern, 0xb8632791U);
+      encode(b, i, value);
       if (col < N) b_values[k * N + col] = b.get(i);
     }
     for (size_t r = 0; r < M; ++r) for (size_t col = 0; col < pitch; ++col)
@@ -80,12 +113,14 @@ static void bitdelta(hipModule_t module, bool batched, unsigned patterns, std::v
   for (unsigned pattern = 0; pattern < patterns; ++pattern) {
     for (size_t r = 0; r < M; ++r) for (size_t k = 0; k < K; ++k) {
       const size_t i = r * K + k;
-      a.set(i, coordinate(unsigned(r), unsigned(k), pattern, 0x57d108afU) / 16.);
+      const size_t active_k = pattern == 4 ? K - 1 : (r % 2 ? 32 : 31);
+      const int value = pattern >= 4 && pattern <= 5 ? (k == active_k ? int(r % 7) + 1 : 0)
+                                                   : coordinate(unsigned(r), unsigned(k), pattern, 0x57d108afU);
+      a.set(i, value / 16.);
       a_values[i] = a.get(i);
     }
     for (size_t group = 0; group < 128; ++group) for (size_t col = 0; col < pitch; ++col) {
-      const uint32_t word = pattern == 0 || pattern == 2 ? 0 : pattern == 1 ? UINT32_MAX
-          : mix(uint32_t(group + 1) * 0x9e3779b9U ^ uint32_t(col + 3) * 0x85ebca6bU ^ pattern * 0xc2b2ae35U);
+      const uint32_t word = bitdelta_word(group, col, pattern);
       packed.set(group * pitch + col, word);
       if (col < N) words[group * N + col] = word;
     }
@@ -106,14 +141,16 @@ static void bitdelta(hipModule_t module, bool batched, unsigned patterns, std::v
 int main(int argc, char **argv) {
   try {
     validate_reference_controls();
+    validate_basis_controls();
+    validate_matrix_basis_controls();
     if (argc == 2 && std::string(argv[1]) == "--cpu-only") {
-      std::puts("PASS matrix host reference and storage controls; GPU launches=0"); return 0;
+      std::puts("PASS matrix host reference and storage and basis byte/guard controls; GPU launches=0"); return 0;
     }
     require(argc == 3, "usage: original_matrix_driver matrix.hsaco patterns");
     size_t consumed = 0;
     const std::string text = argv[2];
     const auto patterns = std::stoul(text, &consumed);
-    require(consumed == text.size() && patterns >= 4 && patterns <= 16, "matrix patterns must be4..16");
+    require(consumed == text.size() && patterns >= 6 && patterns <= 16, "matrix patterns must be6..16, including operand/packed bases4/5");
     hipDeviceProp_t device{};
     hip_check(hipGetDeviceProperties(&device, 0), "device properties");
     const std::string architecture = device.gcnArchName;

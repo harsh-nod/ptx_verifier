@@ -1,7 +1,6 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "host": "XSJHARMENON01",
   "scope": "Genuine unchanged compiler outputs for exact native CLI footprint controls. No hardware execution or numerical acceptance is claimed by compilation.",
   "tools": {
     "clang++": {

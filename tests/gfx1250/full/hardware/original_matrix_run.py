@@ -21,7 +21,7 @@ MATRIX = Profile(
            "full/hardware/original_matrix_run.py", "full/hardware/original_common.hpp",
            "full/hardware/original_matrix.cpp", "full/fixtures/original-matrix.hip",
            "full/fixtures/original-matrix.s"),
-    patterns=4, minimum_patterns=4, maximum_patterns=16, gaps=GAPS,
+    patterns=6, minimum_patterns=6, maximum_patterns=16, gaps=GAPS,
 )
 
 

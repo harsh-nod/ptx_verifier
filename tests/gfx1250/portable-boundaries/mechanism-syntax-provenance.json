@@ -1,0 +1,494 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Actual LLVM MC syntax probes for native barrier operand counterparts. No hardware execution or coordinator acceptance.",
+  "hardware_execution": false,
+  "source": "tests/gfx1250/portable-graph/native-named-barriers.s",
+  "source_sha256": "9d0cb5c25fd6de069f6f6ba1170eccd1409b004ab0ccb85387f3afd10e87f495",
+  "table": "tests/gfx1250/portable-boundaries/mechanism-syntax-mutations.tsv",
+  "table_sha256": "40a3d68f1eabf224756a36bfec1c911aa33b5b3395eacbf0b5f84af053e98d4d",
+  "assembler": {
+    "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+    "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+    "version": "AMD LLVM version 22.0.0git"
+  },
+  "controls": [
+    {
+      "id": "canonical_compiler_module",
+      "assembly_sha256": "9d0cb5c25fd6de069f6f6ba1170eccd1409b004ab0ccb85387f3afd10e87f495",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/canonical_compiler_module.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/canonical_compiler_module.o"
+      ],
+      "exit_code": 0,
+      "expected_accepted": true,
+      "accepted": true,
+      "diagnostic": ""
+    },
+    {
+      "id": "barrier_init_missing_live",
+      "assembly_sha256": "c40735679620aa3da3b685b710f5946c118e81808857123df4bd59296351e3ae",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_missing_live.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_missing_live.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_missing_live.s:16:2: error: too few operands for instruction\n        s_barrier_init \n        ^\n"
+    },
+    {
+      "id": "barrier_init_missing_unreachable",
+      "assembly_sha256": "2de4646292f8367b7171c2c0dd39f47aa8e4dd06e22d4f7b50eaaa24e35f4521",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_missing_unreachable.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_missing_unreachable.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_missing_unreachable.s:17:1: error: too few operands for instruction\ns_barrier_init\n^\n"
+    },
+    {
+      "id": "barrier_init_missing_empty_exec",
+      "assembly_sha256": "8fb6220fc3681c1e8084a1358ed509a63d786fb2e14c50d3153353330022eb04",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_missing_empty_exec.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_missing_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_missing_empty_exec.s:17:1: error: too few operands for instruction\ns_barrier_init \n^\n"
+    },
+    {
+      "id": "barrier_join_missing_live",
+      "assembly_sha256": "2b5e4c07c6e0dc0e2367f44c28f15236a78661112bc16039e8fbab43b432b35d",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_missing_live.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_missing_live.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_missing_live.s:25:2: error: too few operands for instruction\n        s_barrier_join \n        ^\n"
+    },
+    {
+      "id": "barrier_join_missing_unreachable",
+      "assembly_sha256": "234a8a613003e9d33b512e8c5c1f3f944093833d7be51c9903243e78c7261dc0",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_missing_unreachable.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_missing_unreachable.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_missing_unreachable.s:26:1: error: too few operands for instruction\ns_barrier_join\n^\n"
+    },
+    {
+      "id": "barrier_join_missing_empty_exec",
+      "assembly_sha256": "3c3e7765989c31a09d91f772b2ab5a55313b86df87a5c56803cf0fadf6ba243b",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_missing_empty_exec.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_missing_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_missing_empty_exec.s:26:1: error: too few operands for instruction\ns_barrier_join \n^\n"
+    },
+    {
+      "id": "barrier_signal_missing_live",
+      "assembly_sha256": "3146c7861a2384fd86356d53f614c603031a49015b60d8bc711a3356c744b79c",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_missing_live.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_missing_live.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_missing_live.s:41:2: error: too few operands for instruction\n        s_barrier_signal \n        ^\n"
+    },
+    {
+      "id": "barrier_signal_missing_unreachable",
+      "assembly_sha256": "3faded77e6ab387d9a146b93b0ef303ba18e7afd8b2220ebad365c9ff8c5d8f3",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_missing_unreachable.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_missing_unreachable.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_missing_unreachable.s:42:1: error: too few operands for instruction\ns_barrier_signal\n^\n"
+    },
+    {
+      "id": "barrier_signal_missing_empty_exec",
+      "assembly_sha256": "5b81265486aa18ad5c83e9b300b1f5d88dc87a70b64d754b6c0fc9756d2a1b18",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_missing_empty_exec.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_missing_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_missing_empty_exec.s:42:1: error: too few operands for instruction\ns_barrier_signal \n^\n"
+    },
+    {
+      "id": "barrier_wait_missing_live",
+      "assembly_sha256": "79073b08e6cdaef8863d640a511d23ea15454cd4e8e60462ee984945af911539",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_missing_live.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_missing_live.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_missing_live.s:42:2: error: too few operands for instruction\n        s_barrier_wait\n        ^\n"
+    },
+    {
+      "id": "barrier_wait_missing_unreachable",
+      "assembly_sha256": "b1a3426b75eaa6af17882a0791b5f07c44b49b638ee9164ce34252e77f7c3a78",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_missing_unreachable.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_missing_unreachable.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_missing_unreachable.s:43:1: error: too few operands for instruction\ns_barrier_wait\n^\n"
+    },
+    {
+      "id": "barrier_wait_missing_empty_exec",
+      "assembly_sha256": "24e3519f9c021a6262906b323dc9a2a279221affc83c108077ce67dcb3072b92",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_missing_empty_exec.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_missing_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_missing_empty_exec.s:43:1: error: too few operands for instruction\ns_barrier_wait\n^\n"
+    },
+    {
+      "id": "barrier_init_extra_live",
+      "assembly_sha256": "8adf0bab55835735974002c5ba11a9b400f6bdd8372ca76413eed3978c31d6f2",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_extra_live.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_extra_live.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_extra_live.s:16:21: error: invalid operand for instruction\n        s_barrier_init m0, 0 \n                           ^\n"
+    },
+    {
+      "id": "barrier_init_extra_unreachable",
+      "assembly_sha256": "e5460a559504081ba7c42194950bc457ccbc9ac84126359c0223bcfce595e4d7",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_extra_unreachable.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_extra_unreachable.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_extra_unreachable.s:17:20: error: invalid operand for instruction\ns_barrier_init m0, 0\n                   ^\n"
+    },
+    {
+      "id": "barrier_init_extra_empty_exec",
+      "assembly_sha256": "9588a94d73c9c9c480b73b882d7f7a24dbfea164db3cf4b7b50359d8a12331dc",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_extra_empty_exec.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_extra_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_init_extra_empty_exec.s:17:20: error: invalid operand for instruction\ns_barrier_init m0, 0 \n                   ^\n"
+    },
+    {
+      "id": "barrier_join_extra_live",
+      "assembly_sha256": "c4d6b63c3810d7a8d6b81e320fb86cf3b1b40928a84548a7ee724f0daca63102",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_extra_live.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_extra_live.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_extra_live.s:25:21: error: invalid operand for instruction\n        s_barrier_join m0, 0 \n                           ^\n"
+    },
+    {
+      "id": "barrier_join_extra_unreachable",
+      "assembly_sha256": "67bd481231e0f5a2a1525c1ccf5cbb7f7da81116133d0017a533c091a7844b57",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_extra_unreachable.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_extra_unreachable.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_extra_unreachable.s:26:20: error: invalid operand for instruction\ns_barrier_join m0, 0\n                   ^\n"
+    },
+    {
+      "id": "barrier_join_extra_empty_exec",
+      "assembly_sha256": "3c90ff62d9f418db6b6a476d2d4990a7f3593404e12ff29e95e183c4a77317c1",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_extra_empty_exec.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_extra_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_join_extra_empty_exec.s:26:20: error: invalid operand for instruction\ns_barrier_join m0, 0 \n                   ^\n"
+    },
+    {
+      "id": "barrier_signal_extra_live",
+      "assembly_sha256": "e1224384279f8c92580a42b5966757c819fbb9418bea0109c9fbbbe8ac5741c6",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_extra_live.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_extra_live.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_extra_live.s:41:23: error: invalid operand for instruction\n        s_barrier_signal m0, 0 \n                             ^\n"
+    },
+    {
+      "id": "barrier_signal_extra_unreachable",
+      "assembly_sha256": "b006ddc11be37ff95cdfa24a1fa9a1bbc1a87f686fd2087649869e04935f6f0a",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_extra_unreachable.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_extra_unreachable.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_extra_unreachable.s:42:22: error: invalid operand for instruction\ns_barrier_signal m0, 0\n                     ^\n"
+    },
+    {
+      "id": "barrier_signal_extra_empty_exec",
+      "assembly_sha256": "3798243a76bb76560e8847a47666c8eced2a559afe14d20de52125e67c311010",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_extra_empty_exec.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_extra_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_signal_extra_empty_exec.s:42:22: error: invalid operand for instruction\ns_barrier_signal m0, 0 \n                     ^\n"
+    },
+    {
+      "id": "barrier_wait_extra_live",
+      "assembly_sha256": "70ebb931ac5bc8e4934a1b23828e1c32340ea22f9afb6f47ad40d8a8d3f41e9e",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_extra_live.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_extra_live.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_extra_live.s:42:20: error: invalid operand for instruction\n        s_barrier_wait 1, 0\n                          ^\n"
+    },
+    {
+      "id": "barrier_wait_extra_unreachable",
+      "assembly_sha256": "72042f46517809bee7cead541425a732dd5b4e503c5103bb9f71a2e84023ee1b",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_extra_unreachable.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_extra_unreachable.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_extra_unreachable.s:43:19: error: invalid operand for instruction\ns_barrier_wait 1, 0\n                  ^\n"
+    },
+    {
+      "id": "barrier_wait_extra_empty_exec",
+      "assembly_sha256": "7efeb9c788c491f847e2fbdfe13f678da4d3ef670661a6471580a21df3f410a1",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_extra_empty_exec.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_extra_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_wait_extra_empty_exec.s:43:19: error: invalid operand for instruction\ns_barrier_wait 1, 0\n                  ^\n"
+    },
+    {
+      "id": "barrier_leave_extra_live",
+      "assembly_sha256": "2d2ea08d54022d84989e9c54e3b9375b30d9ac3567aa311a5857a3158ecc39b5",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_leave_extra_live.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_leave_extra_live.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_leave_extra_live.s:53:18: error: invalid operand for instruction\n        s_barrier_leave 0\n                        ^\n"
+    },
+    {
+      "id": "barrier_leave_extra_unreachable",
+      "assembly_sha256": "b5fb8cbf60788b5c5d2a7309267765df08834194f93e3cc208745001f47d7507",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_leave_extra_unreachable.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_leave_extra_unreachable.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_leave_extra_unreachable.s:54:17: error: invalid operand for instruction\ns_barrier_leave 0\n                ^\n"
+    },
+    {
+      "id": "barrier_leave_extra_empty_exec",
+      "assembly_sha256": "f8952b81bc6e95b2fca917bbc26926bcbe8d54342063a77aeb80b2c906cf420f",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_leave_extra_empty_exec.s",
+        "-o",
+        "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_leave_extra_empty_exec.o"
+      ],
+      "exit_code": 1,
+      "expected_accepted": false,
+      "accepted": false,
+      "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_leave_extra_empty_exec.s:54:17: error: invalid operand for instruction\ns_barrier_leave 0\n                ^\n"
+    }
+  ],
+  "completion": "coordinator_review_required"
+}
