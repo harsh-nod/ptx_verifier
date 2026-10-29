@@ -1,0 +1,125 @@
+{
+  "scope": "gfx1250 exact encoded low16 AND transport, high-half FLAT store, per-component packed F32 source negation. No arbitrary float bitcast; undefined selected bits fail. No hardware claim.",
+  "references": [
+    {
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/VOP3PInstructions.td",
+      "sha256": "311b6f254e5cdc603f639af6a87ed5eb9affde953da2cef78663da7c8be349c0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/FLATInstructions.td",
+      "sha256": "13c4ea21c7c617a23ba2615549dfcc510697fe7af32cf62efb87265f784788a7"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/VOPInstructions.td",
+      "sha256": "52d9402687afbd417fcf13377daff86da1443ec5c9eeb9d3ff4f7c3fd5b106d9"
+    }
+  ],
+  "llvm_mc_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "probes": [
+    {
+      "instruction": "flat_store_d16_hi_b16 v0,v1,s[6:7] scope:SCOPE_SYS",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-packed-subword-0.s",
+        "-o",
+        "/tmp/gfx1250-packed-subword-0.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "flat_store_d16_hi_b16 v0,v[1:2],s[6:7] scope:SCOPE_SYS",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-packed-subword-1.s",
+        "-o",
+        "/tmp/gfx1250-packed-subword-1.o"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "/tmp/gfx1250-packed-subword-1.s:2:26: error: invalid operand for instruction\nflat_store_d16_hi_b16 v0,v[1:2],s[6:7] scope:SCOPE_SYS\n                         ^\n"
+    },
+    {
+      "instruction": "v_pk_add_f32 v[8:9],v[2:3],v[4:5] neg_lo:[1,0] neg_hi:[0,1]",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-packed-subword-2.s",
+        "-o",
+        "/tmp/gfx1250-packed-subword-2.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "v_pk_mul_f32 v[8:9],v[2:3],v[4:5] neg_lo:[1,0] neg_hi:[0,1]",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-packed-subword-3.s",
+        "-o",
+        "/tmp/gfx1250-packed-subword-3.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "v_pk_fma_f32 v[8:9],v[2:3],v[4:5],v[6:7] neg_lo:[1,0,1] neg_hi:[0,1,0]",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-packed-subword-4.s",
+        "-o",
+        "/tmp/gfx1250-packed-subword-4.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "v_pk_add_f32 v[8:9],v[2:3],v[4:5] neg_lo:[0,2]",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-packed-subword-5.s",
+        "-o",
+        "/tmp/gfx1250-packed-subword-5.o"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "/tmp/gfx1250-packed-subword-5.s:2:45: error: invalid neg_lo value.\nv_pk_add_f32 v[8:9],v[2:3],v[4:5] neg_lo:[0,2]\n                                            ^\n"
+    },
+    {
+      "instruction": "v_and_b32_e32 v22,0xffff,v21",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-packed-subword-6.s",
+        "-o",
+        "/tmp/gfx1250-packed-subword-6.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

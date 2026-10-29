@@ -68,6 +68,42 @@ pub(super) enum Value {
 }
 
 impl Value {
+    /// Exact full-word AND with 0xffff. Encoded low halves retain their format
+    /// identity and the cleared upper half becomes known zero. This performs
+    /// no numeric conversion and never reads unknown discarded bits.
+    pub fn mask_low16(self) -> Result<Option<Self>, String> {
+        Ok(match self {
+            Self::Half(_) | Self::Byte(_) | Self::BytePair(..) => Some(self),
+            Self::Halves(low, _) | Self::PartialHalves(Some(low), _) => Some(Self::Half(low)),
+            Self::PartialHalves(None, _) => return Err("AND observes an undefined low half".into()),
+            Self::PartialBytePair(low, high) => Some(Self::BytePair(low, high)),
+            Self::Bytes(bytes) => Some(Self::BytePair(bytes[0], bytes[1])),
+            Self::PartialBits { bits, defined } if defined & 0xffff == 0xffff => {
+                Some(Self::Integer(bits & 0xffff))
+            }
+            Self::PartialBits { .. } => return Err("AND observes undefined low16 bits".into()),
+            _ => None,
+        })
+    }
+
+    /// Encoded bits31:16 selected by the native high-half store. The result
+    /// remains raw or typed exactly as its source; no F32-to-F16 bitcast occurs.
+    pub fn high16(self) -> Result<Self, String> {
+        match self {
+            Self::Halves(_, high) | Self::PartialHalves(_, Some(high)) => Ok(Self::Half(high)),
+            Self::Half(_) | Self::Byte(_) | Self::BytePair(..) => Ok(Self::Bits(0)),
+            Self::Bytes(bytes) => Ok(Self::BytePair(bytes[2], bytes[3])),
+            Self::Integer(word) => Ok(Self::Integer(word >> 16)),
+            Self::SignedInteger(word) => Ok(Self::Integer(word as u32 >> 16)),
+            Self::Bits(word) => Ok(Self::Bits(word >> 16)),
+            value @ Self::PartialBits { .. } => Ok(Self::Bits(value.selected_bits(16, 16)?)),
+            Self::PartialHalves(_, None) | Self::PartialBytePair(..) | Self::Low16Integer(_) => {
+                Err("high-half store observes undefined upper16 bits".into())
+            }
+            _ => Err("unsupported high16 reinterpretation of mathematical data".into()),
+        }
+    }
+
     pub fn bits(self) -> Result<u32, String> {
         match self {
             Self::Bits(bits) | Self::Integer(bits) => Ok(bits),

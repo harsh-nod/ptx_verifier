@@ -2571,6 +2571,25 @@ impl<'a> Interpreter<'a> {
             return Ok(None);
         }
         let o = &instruction.operands;
+        if name == "v_and_b32" {
+            let a = wave.value(&o[1], lane)?;
+            let b = wave.value(&o[2], lane)?;
+            let source = if a.bits() == Ok(0xffff) {
+                Some(b)
+            } else if b.bits() == Ok(0xffff) {
+                Some(a)
+            } else {
+                None
+            };
+            if let Some(source) = source {
+                if let Some(masked) = source
+                    .mask_low16()
+                    .map_err(|error| wave.fail(Some(lane), error))?
+                {
+                    return Ok(Some(masked));
+                }
+            }
+        }
         if matches!(name, "v_and_b32" | "v_xor_b32") {
             let mask = if name == "v_and_b32" {
                 0x7fff_ffff
@@ -4313,7 +4332,16 @@ impl<'a> Interpreter<'a> {
         {
             return Err(self.unsupported(wave, instruction));
         }
-        let valid_modifiers = if packed || mix {
+        let native_packed_f32 = self.architecture == AmdArchitecture::Gfx1250
+            && matches!(name, "v_pk_mul_f32" | "v_pk_add_f32" | "v_pk_fma_f32");
+        let valid_modifiers = if native_packed_f32 {
+            instruction.modifiers.iter().all(|modifier| {
+                matches!(
+                    modifier.name.as_str(),
+                    "op_sel" | "op_sel_hi" | "neg_lo" | "neg_hi"
+                )
+            })
+        } else if packed || mix {
             instruction
                 .modifiers
                 .iter()
@@ -4498,6 +4526,20 @@ impl<'a> Interpreter<'a> {
             return Ok(());
         }
         if matches!(name, "v_pk_mul_f32" | "v_pk_add_f32" | "v_pk_fma_f32") {
+            if ["neg_lo", "neg_hi"].iter().any(|name| {
+                instruction
+                    .modifiers
+                    .iter()
+                    .filter(|modifier| modifier.name == *name)
+                    .count()
+                    > 1
+            }) {
+                return Err(self.unsupported(wave, instruction));
+            }
+            let low_neg = selectors(instruction, "neg_lo", o.len() - 1, 0)
+                .ok_or_else(|| self.unsupported(wave, instruction))?;
+            let high_neg = selectors(instruction, "neg_hi", o.len() - 1, 0)
+                .ok_or_else(|| self.unsupported(wave, instruction))?;
             let destination = wave.destination(&o[0])?;
             if destination.count != 2 {
                 return Err(self.unsupported(wave, instruction));
@@ -4510,13 +4552,23 @@ impl<'a> Interpreter<'a> {
                     } else {
                         &high_select
                     };
-                    let a = self.real_component(wave, &o[1], lane, select[0])?;
-                    let b = self.real_component(wave, &o[2], lane, select[1])?;
+                    let negate = if component == 0 { &low_neg } else { &high_neg };
+                    let mut a = self.real_component(wave, &o[1], lane, select[0])?;
+                    let mut b = self.real_component(wave, &o[2], lane, select[1])?;
+                    if negate[0] == 1 {
+                        a = self.arena.neg(a);
+                    }
+                    if negate[1] == 1 {
+                        b = self.arena.neg(b);
+                    }
                     results.push(match name {
                         "v_pk_mul_f32" => self.arena.mul(a, b),
                         "v_pk_add_f32" => self.arena.add(a, b),
                         _ => {
-                            let c = self.real_component(wave, &o[3], lane, select[2])?;
+                            let mut c = self.real_component(wave, &o[3], lane, select[2])?;
+                            if negate[2] == 1 {
+                                c = self.arena.neg(c);
+                            }
                             self.arena.fma(a, b, c)
                         }
                     });
@@ -6003,7 +6055,10 @@ impl<'a> Interpreter<'a> {
         let scalar = instruction.opcode == Opcode::ScalarMemory;
         let lds = instruction.opcode == Opcode::Lds;
         let dual = name.starts_with("ds_read2") || name.starts_with("ds_write2");
-        if name.contains("_d16") && !matches!(name, "ds_write_b16_d16_hi" | "ds_write_b8_d16_hi") {
+        if name.contains("_d16")
+            && !matches!(name, "ds_write_b16_d16_hi" | "ds_write_b8_d16_hi")
+            && !(self.architecture == AmdArchitecture::Gfx1250 && name == "flat_store_d16_hi_b16")
+        {
             return Err(self.unsupported(wave, instruction));
         }
         if !scalar && wave.exec == 0 {
@@ -6456,7 +6511,11 @@ impl<'a> Interpreter<'a> {
                     } else {
                         component
                     };
-                    let value = if name == "ds_write_b8_d16_hi" {
+                    let value = if name == "flat_store_d16_hi_b16" {
+                        wave.reg(source_register, lane, source_component)?
+                            .high16()
+                            .map_err(|error| wave.fail(Some(lane), error))?
+                    } else if name == "ds_write_b8_d16_hi" {
                         match wave.reg(source_register, lane, source_component)? {
                             Value::Bytes(bytes) => Value::Byte(bytes[2]),
                             Value::Byte(_) => Value::Bits(0),
