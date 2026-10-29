@@ -260,7 +260,7 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "portable_obligation": "Native wrapping address subtraction reaches u64MAX-3 when subtracting4 from base0; bounded lookup rejects it.",
+      "portable_obligation": "Native wrapping address subtraction reaches u64MAX-3 when subtracting4 from base0. Computing the exclusive end of the complete four-byte transfer overflows; the exact native control must abort with EvalError::Invalid at wave0/lane0/pc3 and a footprint-overflow witness, rather than Unsupported or a generic failure.",
       "native_kernels": [
         "abi_negative_index"
       ],

@@ -376,7 +376,20 @@ fn negative_index_wrap_never_escapes_the_configured_array() {
     );
     cfg.arrays[0].base = 0;
     cfg.params[0] = ParamValue::ArrayPtr("x".into());
-    invalid(TRANSFERS, "abi_negative_index", cfg, "overflow");
+    let run = checked(TRANSFERS, "abi_negative_index", cfg).unwrap();
+    assert!(matches!(
+        run.analysis.symbolic_outputs(),
+        Err(OutputsUnavailable::Aborted(EvalError::Invalid {
+            wave: 0,
+            lane: Some(0),
+            pc: 3,
+            what,
+        })) if what == "shared instruction footprint overflow"
+    ));
+    assert!(matches!(
+        run.checks.conclusion(),
+        GraphConclusion::Unknown { .. }
+    ));
 }
 
 #[test]
