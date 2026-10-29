@@ -183,6 +183,22 @@ class CoordinatorFeatureReviewTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "stale coordinator"):
             self.candidate(decisions=decisions)
 
+    def test_changed_baseline_assertion_selection_invalidates_the_previous_decision(
+        self,
+    ):
+        (self.root / "baseline.rs").write_text(
+            "fn original_assertion() {}\nfn different_assertion() {}\n"
+        )
+        self.ledger["rows"][0]["baseline_assertions"] = [
+            {"path": "baseline.rs", "function": "original_assertion"}
+        ]
+        decisions = self.decisions()
+        self.ledger["rows"][0]["baseline_assertions"][0]["function"] = (
+            "different_assertion"
+        )
+        with self.assertRaisesRegex(ValueError, "stale coordinator"):
+            self.candidate(decisions=decisions)
+
     def test_changed_current_adjudication_invalidates_the_previous_decision(self):
         reviews = {
             "rows": [

@@ -303,6 +303,14 @@ def prepare(
                 "upstream_sha256": baseline["upstream_sha256"],
                 "current_reference": current_reference,
                 "owner_manifest_identity": manifest_identity,
+                "baseline_contract": {
+                    "group": baseline["group"],
+                    "baseline_assertions": baseline.get("baseline_assertions", []),
+                    "baseline_golden": baseline.get("baseline_golden"),
+                    "portable_obligation": portable_obligation(
+                        candidate, baseline, refs, groups
+                    ),
+                },
                 "current_references": refs,
                 "native_sources": sources,
                 "complete_input_inventory_sha256": input_identity,
