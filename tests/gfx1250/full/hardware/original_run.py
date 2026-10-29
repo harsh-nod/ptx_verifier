@@ -54,6 +54,7 @@ class Profile:
     minimum_patterns: int = 1
     maximum_patterns: int = 64
     gaps: dict[str, int] | None = None
+    original_outputs: dict[str, int] | None = None
 
 
 BASIC = Profile(CONTRACT, ("f16", "f8"), "full/hardware/original.cpp",
@@ -80,6 +81,8 @@ def validate_result(result: dict, patterns: int, profile: Profile = BASIC) -> No
         }
         if profile.gaps is not None:
             accounting["unchanged_gap_bytes"] = profile.gaps[row["kernel"]] * patterns
+        if profile.original_outputs is not None:
+            accounting["original_outputs"] = profile.original_outputs[row["kernel"]] * patterns
         for key, expected in accounting.items():
             if type(row.get(key)) is not int or row[key] != expected:
                 raise ValueError(f"{row['kernel']}: incomplete {key}")
@@ -218,7 +221,8 @@ def main(profile: Profile = BASIC) -> int:
         if len(args.revision) != 40 or any(c not in "0123456789abcdef" for c in args.revision):
             raise ValueError("revision must be an exact git object ID")
         receipt.update(source_revision=args.revision, input_artifacts=artifact_hashes(directory, profile),
-                       selected_physical_device=args.device, original_contract=profile.contract)
+                       selected_physical_device=args.device, native_validation_contract=profile.contract,
+                       original_output_projection=profile.original_outputs)
         if args.local:
             run_local(args, directory, receipt)
         else:

@@ -125,15 +125,16 @@ struct Buffer {
 
 struct Row {
   std::string kernel;
-  size_t outputs{}, launches{}, unchanged_input_bytes{}, unchanged_guard_bytes{}, unchanged_gap_bytes{};
+  size_t outputs{}, launches{}, unchanged_input_bytes{}, unchanged_guard_bytes{}, unchanged_gap_bytes{}, original_outputs{};
   double maximum{};
 };
 static void launch(hipModule_t module, const std::string &name, dim3 block,
-                   std::vector<void *> args, const std::vector<Buffer *> &buffers, Row &row) {
+                   std::vector<void *> args, const std::vector<Buffer *> &buffers, Row &row,
+                   dim3 grid = dim3(1)) {
   for (Buffer *buffer : buffers) buffer->upload();
   hipFunction_t function{};
   hip_check(hipModuleGetFunction(&function, module, name.c_str()), "get kernel");
-  hip_check(hipModuleLaunchKernel(function, 1, 1, 1, block.x, block.y, block.z,
+  hip_check(hipModuleLaunchKernel(function, grid.x, grid.y, grid.z, block.x, block.y, block.z,
                                  0, nullptr, args.data(), nullptr), "launch");
   hip_check(hipDeviceSynchronize(), "synchronize");
   for (Buffer *buffer : buffers) {
