@@ -39,7 +39,6 @@ pub(crate) enum IntBinOp {
     Sub,
     MulLo,
     Div,
-    Rem,
     And,
     Or,
     Xor,
@@ -63,21 +62,15 @@ pub(crate) enum CmpOp {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum FloatBinOp {
     Add,
-    Sub,
     Mul,
-    Div,
     Min,
     Max,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum FloatUnOp {
-    Neg,
-    Abs,
     Rcp,
     Sqrt,
-    Exp,
-    Log,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -143,12 +136,12 @@ pub(crate) fn int_binary(
     {
         return Err("native scalar shifts in this model require 32 or 64 bits".into());
     }
-    if matches!(op, IntBinOp::Div | IntBinOp::Rem)
+    if op == IntBinOp::Div
         && arena
             .as_int_const(b)
             .is_some_and(|b| low_bits(b, ty.bits) == 0)
     {
-        return Err("integer division/remainder by zero".into());
+        return Err("integer division by zero".into());
     }
     if let (Some(a), Some(b)) = (arena.as_int_const(a), arena.as_int_const(b)) {
         let ua = low_bits(a, ty.bits);
@@ -160,13 +153,8 @@ pub(crate) fn int_binary(
             IntBinOp::Add => ua.wrapping_add(ub),
             IntBinOp::Sub => ua.wrapping_sub(ub),
             IntBinOp::MulLo => ua.wrapping_mul(ub),
-            IntBinOp::Div | IntBinOp::Rem if ub == 0 => {
-                return Err("integer division/remainder by zero".into());
-            }
             IntBinOp::Div if ty.signed => sa.wrapping_div(sb) as u64,
             IntBinOp::Div => ua / ub,
-            IntBinOp::Rem if ty.signed => sa.wrapping_rem(sb) as u64,
-            IntBinOp::Rem => ua % ub,
             IntBinOp::And => ua & ub,
             IntBinOp::Or => ua | ub,
             IntBinOp::Xor => ua ^ ub,
@@ -202,7 +190,6 @@ pub(crate) fn int_binary(
         IntBinOp::Xor => arena.bit_xor(a, b),
         IntBinOp::Min => return Ok(arena.min(a, b)),
         IntBinOp::Max => return Ok(arena.max(a, b)),
-        IntBinOp::Rem => return Ok(arena.rem(a, b)),
         IntBinOp::Shl | IntBinOp::LShr | IntBinOp::AShr => {
             let count_mask = arena.int((ty.bits - 1) as i64);
             let count = arena.bit_and(b, count_mask);
@@ -530,9 +517,7 @@ pub(crate) fn decode_float(
 pub(crate) fn float_binary(arena: &mut ExprArena, op: FloatBinOp, a: ExprId, b: ExprId) -> ExprId {
     match op {
         FloatBinOp::Add => arena.add(a, b),
-        FloatBinOp::Sub => arena.sub(a, b),
         FloatBinOp::Mul => arena.mul(a, b),
-        FloatBinOp::Div => arena.div(a, b),
         FloatBinOp::Min => arena.min(a, b),
         FloatBinOp::Max => arena.max(a, b),
     }
@@ -540,12 +525,8 @@ pub(crate) fn float_binary(arena: &mut ExprArena, op: FloatBinOp, a: ExprId, b: 
 
 pub(crate) fn float_unary(arena: &mut ExprArena, op: FloatUnOp, a: ExprId) -> ExprId {
     match op {
-        FloatUnOp::Neg => arena.neg(a),
-        FloatUnOp::Abs => arena.abs(a),
         FloatUnOp::Rcp => arena.rcp(a),
         FloatUnOp::Sqrt => arena.sqrt(a),
-        FloatUnOp::Exp => arena.exp(a),
-        FloatUnOp::Log => arena.log(a),
     }
 }
 
@@ -719,9 +700,7 @@ mod tests {
         let mut arena = ExprArena::new();
         let x = arena.param_symbol("x");
         let two = arena.int(2);
-        for op in [IntBinOp::Div] {
-            assert!(int_binary(&mut arena, ty(32, false), op, x, two).is_err());
-        }
+        assert!(int_binary(&mut arena, ty(32, false), IntBinOp::Div, x, two).is_err());
         let real = arena.float_from_f64(1.5).unwrap();
         let boolean = arena.bool_val(true);
         assert!(int_binary(&mut arena, ty(32, false), IntBinOp::Add, real, two).is_err());
@@ -731,9 +710,7 @@ mod tests {
         }
         assert!(int_binary(&mut arena, ty(16, false), IntBinOp::Shl, two, two).is_err());
         let zero = arena.int(0);
-        for op in [IntBinOp::Div, IntBinOp::Rem] {
-            assert!(int_binary(&mut arena, ty(32, true), op, two, zero).is_err());
-        }
+        assert!(int_binary(&mut arena, ty(32, true), IntBinOp::Div, two, zero).is_err());
     }
 
     #[test]
@@ -851,7 +828,7 @@ mod tests {
                 };
                 let a = arena.int(input as i64);
                 let b = arena.int(amount as i64);
-                let masked = amount % (bits as u32);
+                let masked = amount % bits;
                 for (operation, expected) in [
                     (IntBinOp::Shl, input.wrapping_shl(masked)),
                     (IntBinOp::LShr, input >> masked),
@@ -888,9 +865,7 @@ mod tests {
         let a = arena.int(-7);
         let b = arena.int(3);
         let quotient = int_binary(&mut arena, ty(32, true), IntBinOp::Div, a, b).unwrap();
-        let remainder = int_binary(&mut arena, ty(32, true), IntBinOp::Rem, a, b).unwrap();
         assert_eq!(arena.as_int_const(quotient), Some(-2));
-        assert_eq!(arena.as_int_const(remainder), Some(-1));
     }
 
     #[test]
@@ -985,10 +960,6 @@ mod tests {
             decode_float(&mut arena, FloatType::F64, (0.1f64 * 0.2 + 0.3).to_bits()).unwrap();
         assert_eq!(arena.node(fma), arena.node(separate));
         assert_ne!(arena.node(fma), arena.node(rounded));
-        let difference = float_binary(&mut arena, FloatBinOp::Sub, separate, fma);
-        assert_eq!(arena.as_f64(difference), Some(0.0));
-        let ratio = float_binary(&mut arena, FloatBinOp::Div, b, a);
-        assert_eq!(arena.as_f64(ratio), Some(2.0));
         let minimum = float_binary(&mut arena, FloatBinOp::Min, a, b);
         let maximum = float_binary(&mut arena, FloatBinOp::Max, a, b);
         assert_eq!(arena.node(minimum), arena.node(a));
@@ -1028,23 +999,11 @@ mod tests {
     fn unary_math_builds_shared_nodes_without_ieee_approximation() {
         let mut arena = ExprArena::new();
         let x = arena.param_symbol("x");
-        for operation in [
-            FloatUnOp::Neg,
-            FloatUnOp::Abs,
-            FloatUnOp::Rcp,
-            FloatUnOp::Sqrt,
-            FloatUnOp::Exp,
-            FloatUnOp::Log,
+        for (operation, expected) in [
+            (FloatUnOp::Rcp, ExprNode::Rcp(x)),
+            (FloatUnOp::Sqrt, ExprNode::Sqrt(x)),
         ] {
             let output = float_unary(&mut arena, operation, x);
-            let expected = match operation {
-                FloatUnOp::Neg => ExprNode::Neg(x),
-                FloatUnOp::Abs => ExprNode::Abs(x),
-                FloatUnOp::Rcp => ExprNode::Rcp(x),
-                FloatUnOp::Sqrt => ExprNode::Sqrt(x),
-                FloatUnOp::Exp => ExprNode::Exp(x),
-                FloatUnOp::Log => ExprNode::Log(x),
-            };
             assert_eq!(arena.node(output), &expected);
         }
     }
@@ -1118,7 +1077,7 @@ mod bit_expression_tests {
                             } else {
                                 operand
                             };
-                            let shift = (b as u32) % (bits as u32);
+                            let shift = (b as u32) % bits;
                             let value = match op {
                                 IntBinOp::And => a & b,
                                 IntBinOp::Or => a | b,

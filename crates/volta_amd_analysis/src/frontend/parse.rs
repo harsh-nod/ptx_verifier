@@ -35,10 +35,8 @@ fn operand(text: &str) -> Option<Operand> {
     }
     let (file, rest) = if let Some(rest) = text.strip_prefix('s') {
         (RegFile::Scalar, rest)
-    } else if let Some(rest) = text.strip_prefix('v') {
-        (RegFile::Vector, rest)
     } else {
-        return None;
+        (RegFile::Vector, text.strip_prefix('v')?)
     };
     let (first, last): (u32, u32) = match rest.strip_prefix('[').and_then(|r| r.strip_suffix(']')) {
         Some(range) => {
