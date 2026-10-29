@@ -3134,7 +3134,6 @@
         "bytes": 32768
       },
       "full_baseline_shape": true,
-      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "complete128spatial x128channel CTA tile",
         "all64x3x3=576 reduction terms",
@@ -6307,7 +6306,6 @@
         "bytes": 32768
       },
       "full_baseline_shape": false,
-      "status": "coordinator_validated_declared_native_scope",
       "preserved_patterns": [
         "complete original64spatial x128channel CTA tile within a native128spatial x128channel tile",
         "all64x3x3=576 reduction terms",
@@ -6351,7 +6349,7 @@
           "elements": 8192,
           "channel_pitch_elements": 2916
         },
-        "validation": "Coordinator graph/mathematical validation is recorded in local run artifacts (not retained) and physical numerical validation in local run artifacts (not retained); current full40 replay remains a separate revision-pinned gate. Compilation alone does not validate the mapping."
+        "validation": "Compilation alone does not validate the mapping."
       },
       "expected_native_outcome": "RACE-FREE",
       "validation_evidence": {

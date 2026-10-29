@@ -1,9 +1,9 @@
 # Native gfx1250 adapter controls
 
 The external race and mutation adapters accept an explicit gfx1250 target.
-They analyze native assembly on the CPU. These recipes make no hardware or
-HipKittens application-support claim. The separate positive-corpus hardware
-replay is documented in [the gfx1250 hardware guide](../../tests/gfx1250/hardware/README.md).
+They analyze native assembly on the CPU, independently of external library
+extraction. Exact-assembly numerical checks are documented in
+[the gfx1250 hardware guide](../../tests/gfx1250/hardware/README.md).
 
 The pinned HipKittens extraction recipe remains a gfx950/CDNA4 recipe. Running
 `python3 external/extraction/hipkittens.py --target gfx1250` reports `UNSUPPORTED`
@@ -22,7 +22,7 @@ python3 ai_compiler_kernels/check_races.py --backend amdgpu --target gfx1250 \
 
 The first command reads `tests/gfx1250/cases.json`, preserves native ABI byte
 payloads through its launch configurations, and checks all declared outputs.
-Twelve configurations also run their mathematical specifications. The two
+Configurations with a `.spec` also run their mathematical references. The
 wide-integer configurations have exact native Rust oracles instead of a `.spec`;
 this race adapter checks their graph and complete four-element footprints.
 The second command removes each of the copy kernel's three waits. Each removal

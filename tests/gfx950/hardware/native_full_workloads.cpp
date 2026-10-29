@@ -8,8 +8,7 @@
 //   ./native-full-workloads native-full-gemm.hsaco
 //   native-full-convolution.hsaco
 // Record source/assembly/object/code-object/driver hashes and tool versions
-// with the output. The coordinator independently reproduces the run before
-// signoff.
+// with the output to identify the artifacts used by a numerical check.
 
 #include <hip/hip_runtime.h>
 

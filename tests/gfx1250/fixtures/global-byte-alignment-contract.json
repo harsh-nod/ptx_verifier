@@ -82,7 +82,7 @@
     }
   ],
   "scope_distinctions": {
-    "GLOBAL": "This patch enables only ordinary GLOBAL B32 on gfx1250 HSA, matching the compiler capability chain and exact coordinator physical probes.",
+    "GLOBAL": "",
     "SMEM": "This GLOBAL lowering predicate does not define scalar instruction low-bit component masking. Existing explicit unsupported SMEM boundary remains separate.",
     "DS": "Separate capability and opcode-specific width/offset/hardware-bug checks exist in SIISelLowering lines2042-2148; this review proposes no DS model expansion.",
     "FLAT": "Separate path in SIISelLowering lines2150-2164 conservatively treats unknown aperture as potentially scratch. This review proposes no FLAT model expansion.",
@@ -113,129 +113,5 @@
     "tests/gfx1250/fixtures/unaligned-global-provenance.json",
     "tests/gfx1250/full/hardware/unaligned_global.cpp",
     "tests/gfx1250/full/hardware/unaligned_global_run.py"
-  ],
-  "hardware_coordinator_receipts": [
-    {
-      "artifact_name": "gfx1250-unaligned-global-root-gpu2.json",
-      "sha256": "2e66ebee48e7d9cbe4823b6f84f990317b90a1cf5e5c044d9ec2afb0547f3ac5",
-      "status": "pass",
-      "source_revision": "8c9d140037bbf58abd35032ebff2a324a1aef6b6",
-      "selected_physical_device": 2,
-      "validation": {
-        "status": "pass",
-        "architecture": "gfx1250",
-        "wave_size": 32,
-        "reference_controls": "pass",
-        "patterns": 8,
-        "cases": [
-          {
-            "kernel": "global_unaligned_1",
-            "outputs": 32,
-            "launches": 8,
-            "unchanged_input_bytes": 128,
-            "unchanged_guard_bytes": 131072,
-            "unchanged_gap_bytes": 96,
-            "max_absolute_error": 0
-          },
-          {
-            "kernel": "global_unaligned_2",
-            "outputs": 32,
-            "launches": 8,
-            "unchanged_input_bytes": 128,
-            "unchanged_guard_bytes": 131072,
-            "unchanged_gap_bytes": 96,
-            "max_absolute_error": 0
-          },
-          {
-            "kernel": "global_unaligned_3",
-            "outputs": 32,
-            "launches": 8,
-            "unchanged_input_bytes": 128,
-            "unchanged_guard_bytes": 131072,
-            "unchanged_gap_bytes": 96,
-            "max_absolute_error": 0
-          },
-          {
-            "kernel": "global_unaligned_5",
-            "outputs": 32,
-            "launches": 8,
-            "unchanged_input_bytes": 128,
-            "unchanged_guard_bytes": 131072,
-            "unchanged_gap_bytes": 96,
-            "max_absolute_error": 0
-          },
-          {
-            "kernel": "global_unaligned_7",
-            "outputs": 32,
-            "launches": 8,
-            "unchanged_input_bytes": 128,
-            "unchanged_guard_bytes": 131072,
-            "unchanged_gap_bytes": 96,
-            "max_absolute_error": 0
-          }
-        ]
-      }
-    },
-    {
-      "artifact_name": "gfx1250-unaligned-global-root-gpu3.json",
-      "sha256": "718dd69c3ba041dc01d198676748711cf3a26b795933c8916278902335365e45",
-      "status": "pass",
-      "source_revision": "8c9d140037bbf58abd35032ebff2a324a1aef6b6",
-      "selected_physical_device": 3,
-      "validation": {
-        "status": "pass",
-        "architecture": "gfx1250",
-        "wave_size": 32,
-        "reference_controls": "pass",
-        "patterns": 8,
-        "cases": [
-          {
-            "kernel": "global_unaligned_1",
-            "outputs": 32,
-            "launches": 8,
-            "unchanged_input_bytes": 128,
-            "unchanged_guard_bytes": 131072,
-            "unchanged_gap_bytes": 96,
-            "max_absolute_error": 0
-          },
-          {
-            "kernel": "global_unaligned_2",
-            "outputs": 32,
-            "launches": 8,
-            "unchanged_input_bytes": 128,
-            "unchanged_guard_bytes": 131072,
-            "unchanged_gap_bytes": 96,
-            "max_absolute_error": 0
-          },
-          {
-            "kernel": "global_unaligned_3",
-            "outputs": 32,
-            "launches": 8,
-            "unchanged_input_bytes": 128,
-            "unchanged_guard_bytes": 131072,
-            "unchanged_gap_bytes": 96,
-            "max_absolute_error": 0
-          },
-          {
-            "kernel": "global_unaligned_5",
-            "outputs": 32,
-            "launches": 8,
-            "unchanged_input_bytes": 128,
-            "unchanged_guard_bytes": 131072,
-            "unchanged_gap_bytes": 96,
-            "max_absolute_error": 0
-          },
-          {
-            "kernel": "global_unaligned_7",
-            "outputs": 32,
-            "launches": 8,
-            "unchanged_input_bytes": 128,
-            "unchanged_guard_bytes": 131072,
-            "unchanged_gap_bytes": 96,
-            "max_absolute_error": 0
-          }
-        ]
-      }
-    }
   ]
 }

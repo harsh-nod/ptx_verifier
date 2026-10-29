@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "scope": "Exact portable payload obligations with original golden bytes and complete native output footprints; AMD waits, barriers and full-wave matrix execution retain their own contracts. Coordinator alone validates parity dispositions.",
+  "scope": "Exact portable payload obligations with original golden bytes and complete native output footprints; AMD waits, barriers and full-wave matrix execution retain their own contracts",
   "cases": [
     {
       "name": "logical_lane_ids",

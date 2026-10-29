@@ -1,28 +1,8 @@
 {
   "schema_version": 1,
-  "scope": "Source-pinned proposal for59 individual graph/barrier/copy rows, reconciled with genuine native asynchronous, tensor, matrix and protocol controls; not a coordinator disposition or proof-completion ledger.",
+  "scope": "Exact upstream graph, barrier and asynchronous-copy reference mappings to native source and typed controls.",
   "upstream_commit": "b3a37911b8bd87352996403e8471a1fe18c4e975",
-  "input_ledger_commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
-  "input_ledger_sha256": "cb183efe4f65ae65f42263e1ee669b0ace6a1859206e89405142d4b30573a2ce",
-  "policy": {
-    "coordinator_only_completion": true,
-    "unchanged_original32": true,
-    "nvidia_mechanism_is_not_mathematical_exclusion": true,
-    "positive_unsupported_stays_gap": true,
-    "hardware_results_claimed": false
-  },
-  "owned_checkpoints": [
-    "011799c973a0ec922cafc0a7a419004da32ca0bc",
-    "82ee61491b235b8582ffd190df43cd0407b882cb",
-    "c20964b5e1c953be212a5efb8929c40876bb4ec7",
-    "17f08d8fab1506b2a7e8dee45133bb336d9eca37",
-    "9fcb53fd0f87effc2d5f3f6c1f3a2e9f837e01f0",
-    "84be9d963fd72dd998f6dfef926e16cf23d4735b"
-  ],
-  "counts": {
-    "native_assertion_candidate": 46,
-    "native_contract_difference_candidate": 13
-  },
+  "counts": {},
   "rows": [
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/clusterlaunchcontrol_response_read_without_waiting_is_an_inflight_hazard.ptx",
@@ -41,8 +21,6 @@
       "portable_obligation": "An asynchronous16-byte response must not be read by another wave before completion.",
       "native_scope": "An asynchronous16-byte response must not be read by another wave before completion. Actual compiler TDM source, complete payloads and typed CPU-only completion/publication adverse controls are retained.",
       "target_contract_residual": "NVIDIA cluster scheduler cancellation response is not a native gfx1250 scheduler API.",
-      "remaining_gate": "Coordinator review of current source-backed asynchronous-memory assertions and target encoding residual.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs",
@@ -50,7 +28,7 @@
           "source_sha256": "cba80da7fcc2b24dc309b7b511750dd4a64e0c32bbaac5340b640d2bd36e430f"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_bulk_bar_sync_before_completion_orders_nothing.ptx",
@@ -69,20 +47,16 @@
       "portable_obligation": "A pre-completion WG barrier cannot let an unrelated gate publish16-byte copy destination.",
       "native_scope": "A pre-completion WG barrier cannot let an unrelated gate publish16-byte copy destination. Actual compiler TDM source, complete payloads and typed CPU-only completion/publication adverse controls are retained.",
       "target_contract_residual": "Native Tensor/Async data completion and source/destination lifetime are distinct from NVIDIA cp.async groups. Ordinary returned-register readiness is not this memory borrow.",
-      "remaining_gate": "Coordinator review of current source-backed asynchronous-memory assertions and target encoding residual.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs",
@@ -90,7 +64,7 @@
           "source_sha256": "cba80da7fcc2b24dc309b7b511750dd4a64e0c32bbaac5340b640d2bd36e430f"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_bulk_read_after_bar_sync_is_an_inflight_hazard.ptx",
@@ -109,20 +83,16 @@
       "portable_obligation": "Crosswave read of a16-byte copy destination remains unsafe after barrier without actual copy completion.",
       "native_scope": "Crosswave read of a16-byte copy destination remains unsafe after barrier without actual copy completion. Actual compiler TDM source, complete payloads and typed CPU-only completion/publication adverse controls are retained.",
       "target_contract_residual": "Native Tensor/Async data completion and source/destination lifetime are distinct from NVIDIA cp.async groups. Ordinary returned-register readiness is not this memory borrow.",
-      "remaining_gate": "Coordinator review of current source-backed asynchronous-memory assertions and target encoding residual.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs",
@@ -130,7 +100,7 @@
           "source_sha256": "cba80da7fcc2b24dc309b7b511750dd4a64e0c32bbaac5340b640d2bd36e430f"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_cross_thread_read_of_locked_destination_is_hazard.ptx",
@@ -149,20 +119,16 @@
       "portable_obligation": "Another actor cannot read4-byte copy destination while its asynchronous write remains outstanding.",
       "native_scope": "Another actor cannot read4-byte copy destination while its asynchronous write remains outstanding. Actual compiler TDM source, complete payloads and typed CPU-only completion/publication adverse controls are retained.",
       "target_contract_residual": "Native Tensor/Async data completion and source/destination lifetime are distinct from NVIDIA cp.async groups. Ordinary returned-register readiness is not this memory borrow.",
-      "remaining_gate": "Coordinator review of current source-backed asynchronous-memory assertions and target encoding residual.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs",
@@ -170,7 +136,7 @@
           "source_sha256": "cba80da7fcc2b24dc309b7b511750dd4a64e0c32bbaac5340b640d2bd36e430f"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_cross_thread_write_of_locked_source_is_hazard.ptx",
@@ -189,20 +155,16 @@
       "portable_obligation": "Another actor cannot overwrite4-byte Global source while its asynchronous read remains outstanding.",
       "native_scope": "Another actor cannot overwrite4-byte Global source while its asynchronous read remains outstanding. Actual compiler TDM source, complete payloads and typed CPU-only completion/publication adverse controls are retained.",
       "target_contract_residual": "Native Tensor/Async data completion and source/destination lifetime are distinct from NVIDIA cp.async groups. Ordinary returned-register readiness is not this memory borrow.",
-      "remaining_gate": "Coordinator review of current source-backed asynchronous-memory assertions and target encoding residual.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs",
@@ -210,7 +172,7 @@
           "source_sha256": "cba80da7fcc2b24dc309b7b511750dd4a64e0c32bbaac5340b640d2bd36e430f"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_mbarrier_arrive_does_not_release_the_threads_earlier_store.ptx",
@@ -229,8 +191,6 @@
       "portable_obligation": "Async completion must not publish prior unrelated metadata store; baseline consumer reads both metadata and copy word.",
       "native_scope": "Actual TDM completion preserves full cropped tensor output while an unrelated earlier ordinary metadata store remains a separate typed Shared WriteRead obligation.",
       "target_contract_residual": "NVIDIA system-triggered arrive-on differs from native issuer data completion and explicit CTA publication.",
-      "remaining_gate": "Coordinator review of completed tensor metadata source controls.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_tensor_parity_tests.rs",
@@ -238,7 +198,7 @@
           "source_sha256": "b3bd8a1d4c38ed1e5ae3ba152473f2f0a54ab77281c9e17613a4a74aed4a1cc2"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_post_wait_cross_thread_read_without_sync_is_data_race.ptx",
@@ -257,17 +217,14 @@
       "portable_obligation": "Completion on issuer does not publish copied4bytes to another wave.",
       "native_scope": "Actual4-byte copy; remove only publication after issuer completion, keep complete candidate by independent scalar NOPs; typed Shared conflict with passing identity twin.",
       "target_contract_residual": "Native ordinary copy completion/publication replaces cp.async, not a proxy-certificate import.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "completing_lds_is_distinct_from_publishing_it_to_another_wave",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_same_thread_peek_before_wait_is_hazard.ptx",
@@ -286,20 +243,16 @@
       "portable_obligation": "Same actor cannot read4-byte copied destination before copy completion.",
       "native_scope": "Same actor cannot read4-byte copied destination before copy completion. Actual compiler TDM source, complete payloads and typed CPU-only completion/publication adverse controls are retained.",
       "target_contract_residual": "Native Tensor/Async data completion and source/destination lifetime are distinct from NVIDIA cp.async groups. Ordinary returned-register readiness is not this memory borrow.",
-      "remaining_gate": "Coordinator review of current source-backed asynchronous-memory assertions and target encoding residual.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs",
@@ -307,7 +260,7 @@
           "source_sha256": "cba80da7fcc2b24dc309b7b511750dd4a64e0c32bbaac5340b640d2bd36e430f"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_async_same_thread_store_before_wait_is_hazard.ptx",
@@ -326,20 +279,16 @@
       "portable_obligation": "Same actor cannot overwrite4-byte copy destination before its asynchronous write completes.",
       "native_scope": "Same actor cannot overwrite4-byte copy destination before its asynchronous write completes. Actual compiler TDM source, complete payloads and typed CPU-only completion/publication adverse controls are retained.",
       "target_contract_residual": "Native Tensor/Async data completion and source/destination lifetime are distinct from NVIDIA cp.async groups. Ordinary returned-register readiness is not this memory borrow.",
-      "remaining_gate": "Coordinator review of current source-backed asynchronous-memory assertions and target encoding residual.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs",
@@ -347,7 +296,7 @@
           "source_sha256": "cba80da7fcc2b24dc309b7b511750dd4a64e0c32bbaac5340b640d2bd36e430f"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/exited_reader_unordered_by_bar_warp_sync.ptx",
@@ -366,8 +315,6 @@
       "portable_obligation": "An exited reader cannot lend its read frontier to a later survivor write.",
       "native_scope": "Completed ordinary4-byte reader, whole-waveEND and survivor write; missing explicit publication gives typed Shared ReadWrite.",
       "target_contract_residual": "Native END ends a whole wave. PTX individually exited lanes and warp member masks remain a separate mechanism.",
-      "remaining_gate": "Coordinator review of the source-backed native obligation and precise target residual; no automatic completion or hardware claim.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
@@ -375,7 +322,7 @@
           "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/exited_writer_unordered_by_bar_sync.ptx",
@@ -394,23 +341,19 @@
       "portable_obligation": "Exiting a writer without arrival must not silently publish its Shared128byte payload to surviving reader wave.",
       "native_scope": "Actual completed native LDS write then END without arrival yields memory Unknown; explicit arrived twin verifies.",
       "target_contract_residual": "Pinned LLVM does not establish END-drop release of completed LDS; conservative Unknown is a proof limit, not an architectural race claim.",
-      "remaining_gate": "Need exact128-byte writer/reader footprint counterpart if root requires source-byte equality; current smaller native control only establishes the exit-publication contract.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_graph_tests.rs",
           "function": "completed_lds_then_exit_without_arrival_keeps_only_publication_inconclusive",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "a7cdbe0c1fe3af85c6c200c74a561214a896f21a970f1954ea53bbdb9c523b3d"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_graph_tests.rs",
           "function": "an_explicit_arrived_writer_can_exit_after_its_publication_phase",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "a7cdbe0c1fe3af85c6c200c74a561214a896f21a970f1954ea53bbdb9c523b3d"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "target_contract_difference"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/exited_writer_unordered_by_bar_warp_sync.ptx",
@@ -429,13 +372,10 @@
       "portable_obligation": "An exited lane writer of word42 is unordered with survivor read under PTX warp synchronization.",
       "native_scope": "Explicit publication before END preserves exactly word42; completed END-only writer has typed Shared WriteRead.",
       "target_contract_residual": "Native whole-waveEND versus PTX per-lane exit; the separate automatic-drop source still keeps implicit-drop publication Unknown.",
-      "remaining_gate": "Coordinator review of the source-backed native obligation and precise target residual; no automatic completion or hardware claim.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_graph_tests.rs",
           "function": "completed_lds_then_exit_without_arrival_keeps_only_publication_inconclusive",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "a7cdbe0c1fe3af85c6c200c74a561214a896f21a970f1954ea53bbdb9c523b3d"
         },
         {
@@ -444,7 +384,7 @@
           "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/mbarrier_init_write_races_plain_store_load.ptx",
@@ -463,8 +403,6 @@
       "portable_obligation": "An8-byte backing-object initialization cannot race another actor plain8-byte store/load and certify its value.",
       "native_scope": "Actual ordinary8-byte metadata initialization and scratch store/load, complete raw64-bit42 output as[42,0]; unordered pair gives typed Shared WriteWrite.",
       "target_contract_residual": "Native allocated named resources do not alias an ordinary8-byte memory-backed PTX mbarrier. The portable overlapping metadata memory obligation is checked separately.",
-      "remaining_gate": "Coordinator review of the source-backed native obligation and precise target residual; no automatic completion or hardware claim.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
@@ -472,7 +410,7 @@
           "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_commit_does_not_release_the_threads_earlier_store.ptx",
@@ -491,8 +429,6 @@
       "portable_obligation": "Matrix system completion must not publish prior unrelated metadata store; baseline consumer reads metadata only.",
       "native_scope": "Unrelated metadata stays one independent raw-U32 value. All256 WMMA outputs and metadata0 are checked; matrix readiness passes while absent metadata publication yields typed Shared WriteRead at byte0.",
       "target_contract_residual": "NVIDIA TCGEN/TMEM proxy-fence spelling is target-specific. Cross-wave LDS producer/consumer publication and unrelated metadata order remain required independently of WMMA completion.",
-      "remaining_gate": "Coordinator review of exact source-backed matrix ordering assertions.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs",
@@ -500,7 +436,7 @@
           "source_sha256": "341aec349a62faffad1b887c0f01f5c372ff195efa1eeb8a6fd65b2d0e03e1c1"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_st_then_mma_without_thread_sync_fences_is_rejected.ptx",
@@ -519,8 +455,6 @@
       "portable_obligation": "Prior storage writes must be ordered into matrix reads before the result is accepted.",
       "native_scope": "Wave0 publishes512 operand bytes to wave1 WMMA reads. Full256 weighted outputs are checked; missing completion/publication produces complete typed Shared WriteRead candidates.",
       "target_contract_residual": "NVIDIA TCGEN/TMEM proxy-fence spelling is target-specific. Cross-wave LDS producer/consumer publication and unrelated metadata order remain required independently of WMMA completion.",
-      "remaining_gate": "Coordinator review of exact source-backed matrix ordering assertions.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_mechanism_lifetime.rs",
@@ -528,7 +462,7 @@
           "source_sha256": "341aec349a62faffad1b887c0f01f5c372ff195efa1eeb8a6fd65b2d0e03e1c1"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_arrive_and_bar_sync_split_in_one_warp.ptx",
@@ -547,17 +481,14 @@
       "portable_obligation": "PTX aligned arrival/wait sites split one warp and leave48threads blocked.",
       "native_scope": "Existing native scalar-arrival control has one active payload lane and explicit phases; it is not an exact42/20-lane source counterpart.",
       "target_contract_residual": "AMD shader barrier operations are scalar per wave; PTX per-lane aligned versus unaligned rendezvous is a different execution contract.",
-      "remaining_gate": "Coordinator must review precise execution-granularity residual; add native same-wave payload/partial-EXEC control if that portable obligation is retained. No inherited PTX failure is marked fixed.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "three_single_participant_arrivals_preserve_the_exact_baseline_expression",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "target_contract_difference"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_arrive_register_id_count_mismatch.ptx",
@@ -576,13 +507,10 @@
       "portable_obligation": "Same PTX object sees conflicting64/32 counts across wait/arrive.",
       "native_scope": "Actual public M0 signal-time update: same incarnation phase0 count2 then phase1 count1 preserves exactly[7,7]; zero/NULL, all127 arrivals, stable expected3/arrived2 deadlock in both actual wave orders, and below-arrived typed-invalid controls are separate.",
       "target_contract_residual": "PTX thread counts64/32 map separately to native wave-arrival counts2/1. Exact count2-to-count1 after one arrival is retained as an actual Unsupported/Unknown boundary: pinned public formal and code-sequence rules disagree at equality. Supporting count3 deadlock is not substituted for that instruction.",
-      "remaining_gate": "Coordinator review of actual source-backed signal updates, full payload/progress controls and precise public equality/ordering residual; completion is not automatic.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "distinct_named_objects_keep_independent_counts_across_phases",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         },
         {
@@ -621,8 +549,7 @@
           "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         }
       ],
-      "completion": "coordinator_review_required",
-      "previous_portable_gap": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
+      "mapping_kind": "target_contract_difference"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_arrive_twice_before_the_barrier_fires.ptx",
@@ -641,23 +568,19 @@
       "portable_obligation": "Baseline rejects duplicate PTX warp arrival before its paired phase protocol completes.",
       "native_scope": "Actual named_two_arrivals_one_wave legally completes native count2 with two operations; missing full/empty handshake independently fails Shared ordering.",
       "target_contract_residual": "Native count is number of scalar arrival operations: duplicate operations can be valid, unlike the PTX warp-count rule.",
-      "remaining_gate": "Coordinator must preserve the semantic difference while reviewing native phase/reuse controls; do not invent a blanket duplicate-arrival rejection.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "missing_consumer_handshake_does_not_authorize_reusing_the_payload_buffer",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "target_contract_difference"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_changes_between_phases.ptx",
@@ -676,13 +599,10 @@
       "portable_obligation": "PTX allows a new phase count, but the baseline tool rejects its unsupported count change.",
       "native_scope": "Actual public M0 signal-time update: same incarnation phase0 count2 then phase1 count1 preserves exactly[7,7]; zero/NULL, all127 arrivals, stable expected3/arrived2 deadlock in both actual wave orders, and below-arrived typed-invalid controls are separate.",
       "target_contract_residual": "Native signal-time counts update within one initialization lifetime and successive phases. PTX first-arrival-pinned tool behavior and thread-count granularity differ; the actual native phase-change positive preserves both word7 outputs.",
-      "remaining_gate": "Coordinator review of actual source-backed signal updates, full payload/progress controls and precise public equality/ordering residual; completion is not automatic.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "distinct_named_objects_keep_independent_counts_across_phases",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         },
         {
@@ -721,8 +641,7 @@
           "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         }
       ],
-      "completion": "coordinator_review_required",
-      "previous_portable_gap": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_mismatch.ptx",
@@ -741,13 +660,10 @@
       "portable_obligation": "Conflicting32/64 counts cannot certify Shared word7 transfer.",
       "native_scope": "Actual public M0 signal-time update: same incarnation phase0 count2 then phase1 count1 preserves exactly[7,7]; zero/NULL, all127 arrivals, stable expected3/arrived2 deadlock in both actual wave orders, and below-arrived typed-invalid controls are separate.",
       "target_contract_residual": "PTX thread counts64/32 map separately to native wave-arrival counts2/1. Exact count2-to-count1 after one arrival is retained as an actual Unsupported/Unknown boundary: pinned public formal and code-sequence rules disagree at equality. Supporting count3 deadlock is not substituted for that instruction.",
-      "remaining_gate": "Coordinator review of actual source-backed signal updates, full payload/progress controls and precise public equality/ordering residual; completion is not automatic.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "distinct_named_objects_keep_independent_counts_across_phases",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         },
         {
@@ -786,8 +702,7 @@
           "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         }
       ],
-      "completion": "coordinator_review_required",
-      "previous_portable_gap": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
+      "mapping_kind": "target_contract_difference"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_split_across_two_instructions_in_one_warp.ptx",
@@ -806,17 +721,14 @@
       "portable_obligation": "Two PTX aligned sites cannot publish lane0 word42 to lane20 in one warp.",
       "native_scope": "Existing native scalar-arrival control has one active payload lane and explicit phases; it is not an exact42/20-lane source counterpart.",
       "target_contract_residual": "AMD shader barrier operations are scalar per wave; PTX per-lane aligned versus unaligned rendezvous is a different execution contract.",
-      "remaining_gate": "Coordinator must review precise execution-granularity residual; add native same-wave payload/partial-EXEC control if that portable obligation is retained. No inherited PTX failure is marked fixed.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "three_single_participant_arrivals_preserve_the_exact_baseline_expression",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "target_contract_difference"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/bulk_copy_complete_tx_lands_in_earlier_phase.ptx",
@@ -835,23 +747,19 @@
       "portable_obligation": "A copy issued for phase1 before observing phase0 cannot accidentally satisfy phase0 or certify either buffer read.",
       "native_scope": "Safe native two16-byte regions produce[in0,in4]; independent named phase misuse is rejected.",
       "target_contract_residual": "Native data counters do not attach asynchronous byte-credit completion to ambiguous parity epochs.",
-      "remaining_gate": "Need native two-transfer wrong-completion/prefix source negative if this portable completion attribution remains required; no source-only PTX ReleaseOrder test is called complete.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "later_copy_issues_after_the_previous_region_has_been_observed",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "named_phases_cannot_interleave_between_an_arrival_and_its_wait",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "target_contract_difference"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/half_warps_count_as_whole_warps_at_a_counted_barrier.ptx",
@@ -870,17 +778,14 @@
       "portable_obligation": "Counting32 live PTX lanes across two half-exited warps must not hide the word42 race.",
       "native_scope": "One native active payload lane still issues one scalar count1 arrival; no exact crosswave42 race is claimed.",
       "target_contract_residual": "Native END is whole-wave; inactive EXEC lanes do not implement PTX independent lane termination or PTX whole-warp count rounding.",
-      "remaining_gate": "Need coordinator-approved execution-granularity residual plus native partial-EXEC counted-publication control; portable race is not closed by expression math.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "three_single_participant_arrivals_preserve_the_exact_baseline_expression",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "target_contract_difference"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/inflight_complete_tx_lets_parity_wait_return_early.ptx",
@@ -899,29 +804,24 @@
       "portable_obligation": "A late first parity1 wait must not mistakenly certify metadata7 through an earlier copy phase.",
       "native_scope": "Actual16-byte phase0 and metadata7phase1 positive; missing phase1 arrival is a typed native deadlock; independent graph rejects phase misuse.",
       "target_contract_residual": "Native WAIT resolves last-joined object/full phase rather than a PTX parity poll that can observe pre-init.",
-      "remaining_gate": "Coordinator must review this exact binding difference; native phase guard does not reproduce PTX ReleaseOrderLateStart diagnostic.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "observing_copy_phase_zero_precedes_the_distinct_metadata_phase_one_marker_seven",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "a_completed_earlier_phase_cannot_satisfy_the_later_metadata_wait",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "named_phases_cannot_interleave_between_an_arrival_and_its_wait",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "target_contract_difference"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_announcement_unordered_before_another_threads_arrival.ptx",
@@ -940,13 +840,10 @@
       "portable_obligation": "Another actor cannot complete an announcement phase before both16-byte copies are accounted, even if candidate output happens correct.",
       "native_scope": "Another actor cannot complete an announcement phase before both16-byte copies are accounted, even if candidate output happens correct. Actual compiler TDM source, complete payloads and typed CPU-only completion/publication adverse controls are retained.",
       "target_contract_residual": "Manual expect_tx/complete_tx announcements are NVIDIA object state; native issuer completion/publication is separate.",
-      "remaining_gate": "Coordinator review of current source-backed asynchronous-memory assertions and target encoding residual.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "both_sixteen_byte_regions_complete_before_all_64_consumers_publish",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         },
         {
@@ -955,7 +852,7 @@
           "source_sha256": "cba80da7fcc2b24dc309b7b511750dd4a64e0c32bbaac5340b640d2bd36e430f"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_init_of_live_object_is_rejected.ptx",
@@ -974,23 +871,19 @@
       "portable_obligation": "Baseline rejects second init of live PTX object without inval.",
       "native_scope": "Native ordered reinitialization after all leaves has distinct incarnation and exact two-element identity; old violations cannot disappear.",
       "target_contract_residual": "AMD resource reinit after proper use separation differs from PTX live-LDS-object UB; native outstanding joins remain unsupported.",
-      "remaining_gate": "Need actual compiler negative for reinit with outstanding join/order violation before closing the portable lifetime gate.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "named_reinitialization_cannot_erase_an_earlier_phase_violation",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "target_contract_difference"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_init_unordered_with_other_threads_arrive.ptx",
@@ -1009,25 +902,16 @@
       "portable_obligation": "Initialization must precede other actor arrival; candidate order alone cannot certify word42.",
       "native_scope": "Allocated native init and exact index1 marker42 positive; removing only initialization rendezvous retains complete candidate42 but produces typed AmdBarrierViolation.",
       "target_contract_residual": "The native allocated resource does not inherit PTX mbarrier transaction-byte credits or its backing-memory representation.",
-      "remaining_gate": "Coordinator review of the source-backed native obligation and precise target residual; no automatic completion or hardware claim.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "named_initialization_without_crosswave_execution_order_is_a_typed_violation",
-          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085",
-          "historical_reference": {
-            "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
-            "function": "named_initialization_without_crosswave_execution_order_is_inconclusive",
-            "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
-            "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc"
-          }
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "named_reinitialization_cannot_erase_an_earlier_phase_violation",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
@@ -1035,7 +919,7 @@
           "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_pre_init_wait_unseparated_from_the_first_arrival.ptx",
@@ -1054,19 +938,15 @@
       "portable_obligation": "Candidate pre-init waits must not accept a protocol whose alternate schedule binds the next phase and deadlocks.",
       "native_scope": "Actual allocated new-objectWAIT blocks all64 workitems at phase0/expected1/arrived0. Existing first-free ordinary buffer source retains the subsequent consumer release handshake.",
       "target_contract_residual": "Native allocated namedWAIT has no PTX odd-parity immediately-preceding pre-init generation. An initially free ordinary buffer is modeled as ordinary resource state, not a fabricated completed native generation.",
-      "remaining_gate": "Coordinator review of the source-backed native obligation and precise target residual; no automatic completion or hardware claim.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "producer_starts_with_a_free_buffer_then_observes_the_actual_consumer_release",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "unbound_null_wait_preserves_the_honest_hardware_state_limit",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         },
         {
@@ -1080,7 +960,7 @@
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "target_contract_difference"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_reinit_of_live_object_races_arrive.ptx",
@@ -1099,25 +979,16 @@
       "portable_obligation": "Unordered reinitialization must not discard another actor arrival or certify word42.",
       "native_scope": "Actual old lifetime release followed by reinitialization preserves complete[7,7]; removing only the cross-wave lifetime publication creates a typed reinitialization-order violation despite no live candidate joins. Separate live-join reinit remains Unsupported.",
       "target_contract_residual": "Native allocated object resources differ from memory-backed PTX mbarriers; typed ordering controls retain the reset-vs-other-wave-use hazard without asserting general live-join reinit support.",
-      "remaining_gate": "Coordinator review of the source-backed native obligation and precise target residual; no automatic completion or hardware claim.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "named_initialization_without_crosswave_execution_order_is_a_typed_violation",
-          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085",
-          "historical_reference": {
-            "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
-            "function": "named_initialization_without_crosswave_execution_order_is_inconclusive",
-            "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364",
-            "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc"
-          }
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "named_reinitialization_cannot_erase_an_earlier_phase_violation",
-          "commit": "011799c973a0ec922cafc0a7a419004da32ca0bc",
-          "source_sha256": "2c7249ed8196931931d8a7fcebfdc4434752884d71aa1b8997004505f08cd364"
+          "source_sha256": "4b5891a0e5e7df72a34f12bbf11c2f65c90aff88025c61e39024cb66ee42b085"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
@@ -1130,7 +1001,7 @@
           "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_wait_never_satisfied_deadlocks.ptx",
@@ -1156,17 +1027,14 @@
       "portable_obligation": "Expected2 with one arrival must record every blocked participant, not accept or disappear.",
       "native_scope": "Same actual source skip=1: both native waves wait on object1phase0 expected2/arrived1; all64thread IDs retained.",
       "target_contract_residual": "Baseline two threads become two native waves; no imaginary END drop.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "a_live_wait_with_expected_two_and_one_arrival_records_every_blocked_thread",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/mismatched_barriers_deadlock.ptx",
@@ -1185,17 +1053,14 @@
       "portable_obligation": "Different required synchronization objects cannot release either live participant.",
       "native_scope": "Same-source scalar different=1: two allocated IDs, expected2/arrived1 on each, all64threads blocked; different=0 full identity control.",
       "target_contract_residual": "Baseline two threads map to two native waves; IDs0/1 become allocated non-NULL native IDs1/2.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "runtime_named_id_mismatch_blocks_the_exact_native_participants",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/shfl_from_exited_lane_is_undefined.ptx",
@@ -1214,8 +1079,6 @@
       "portable_obligation": "A shuffle result sourced from an exited lane must stay undefined and never prove output values.",
       "native_scope": "Complete original16 output projection out[i]=input[i+8]; actual ds_bpermute uninitialized VGPR20 at wave0/lane16 aborts and supplies no outputs.",
       "target_contract_residual": "Native END ends waves, not individual lanes. The source intentionally leaves actual lane-source register data uninitialized; it does not substitute inactive but initialized data.",
-      "remaining_gate": "Coordinator review of the source-backed native obligation and precise target residual; no automatic completion or hardware claim.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
@@ -1223,7 +1086,7 @@
           "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/false_positive/aligned_bar_sync_reached_on_different_iterations.ptx",
@@ -1242,17 +1105,14 @@
       "portable_obligation": "Aligned sites reached on different iterations must not certify the word42 transfer; baseline has the inherited failing regression.",
       "native_scope": "Existing native scalar-arrival control has one active payload lane and explicit phases; it is not an exact42/20-lane source counterpart.",
       "target_contract_residual": "AMD shader barrier operations are scalar per wave; PTX per-lane aligned versus unaligned rendezvous is a different execution contract.",
-      "remaining_gate": "Coordinator must review precise execution-granularity residual; add native same-wave payload/partial-EXEC control if that portable obligation is retained. No inherited PTX failure is marked fixed.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "three_single_participant_arrivals_preserve_the_exact_baseline_expression",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "target_contract_difference"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/bar_arrive_twice_with_a_handshake_between_generations.ptx",
@@ -1276,23 +1136,19 @@
       "portable_obligation": "A producer cannot overtake consumer reuse between two completed generations.",
       "native_scope": "Two waves, separate full/empty count2 objects; both payload values checked; removing handshake exposes Shared conflict.",
       "target_contract_residual": "Native counts are scalar arrival operations, not PTX counted lane arrivals; payload is an explicit strict extension of baseline no-output control.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "two_named_objects_handshake_between_complete_producer_generations",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "missing_consumer_handshake_does_not_authorize_reusing_the_payload_buffer",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/bar_sync_register_id_count_matches.ptx",
@@ -1320,17 +1176,14 @@
       "portable_obligation": "Matching selected object/count publishes producer4bytes to consumer and out[0]=in[0].",
       "native_scope": "named_identity: count2, producerlane0/consumerlane32, full4-byte identity.",
       "target_contract_residual": "Native selected M0 object versus PTX register barrier ID; one native wave per baseline participant warp.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "genuine_allocated_named_objects_preserve_complete_payloads_and_lifetimes",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/bar_sync_register_ids_pin_one_count_per_id.ptx",
@@ -1354,17 +1207,14 @@
       "portable_obligation": "Distinct IDs retain independent counts across phases.",
       "native_scope": "Two waves; count1 object completes phases0,1 around count2 object phase0; no outputs.",
       "target_contract_residual": "PTX32/64thread counts map to native1/2wave arrival operations.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "distinct_named_objects_keep_independent_counts_across_phases",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/bulk_copy_issued_after_the_previous_phase_completes.ptx",
@@ -1393,17 +1243,14 @@
       "portable_obligation": "Observe first16-byte copy before issuing second16-byte copy; outputs[in0,in4].",
       "native_scope": "Actual32inputbytes, two disjoint16-byte LDS regions and exact two outputs.",
       "target_contract_residual": "Ordinary native data completion replaces PTX bulk complete_tx epochs; no native ADMA claim.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "later_copy_issues_after_the_previous_region_has_been_observed",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/cp_async_bulk_bar_sync_after_completion_orders_the_read.ptx",
@@ -1427,17 +1274,14 @@
       "portable_obligation": "A complete16-byte copy is safely consumed by actual readers32..63; no outputs.",
       "native_scope": "Exact16input/16Sharedwrite/4Sharedreadbytes, no output extraction, reader attribution exactly32..63.",
       "target_contract_residual": "Native producer completion plus workgroup publication and each consumer returned-load wait replace PTX per-reader mbarrier polling; consumer wait does not drain another wave counter.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "every_actual_reader_observes_the_complete_sixteen_byte_copy",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/cp_async_bulk_every_reader_waiting_is_accepted.ptx",
@@ -1475,17 +1319,14 @@
       "portable_obligation": "A complete16-byte copy is safely consumed by actual readers32..63; no outputs.",
       "native_scope": "Exact16input/16Sharedwrite/4Sharedreadbytes, no output extraction, reader attribution exactly32..63.",
       "target_contract_residual": "Native producer completion plus workgroup publication and each consumer returned-load wait replace PTX per-reader mbarrier polling; consumer wait does not drain another wave counter.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "every_actual_reader_observes_the_complete_sixteen_byte_copy",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/cp_async_cross_thread_pattern_without_fence_is_clean.ptx",
@@ -1513,17 +1354,14 @@
       "portable_obligation": "Completed4-byte copy is published to a different actor and out[0]=in[0].",
       "native_scope": "copy_scalar_cross_wave: exact4bytes, producer0consumer32, complete identity.",
       "target_contract_residual": "Native explicit SMEM/FLAT/DS counters and workgroup publication replace cp.async group completion; native wave versus baseline thread role mapping is disclosed.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "four_byte_copies_preserve_both_single_wave_and_crosswave_payloads",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/cp_async_post_wait_cross_thread_read_with_sync_succeeds.ptx",
@@ -1558,17 +1396,14 @@
       "portable_obligation": "Completed4-byte copy is published to a different actor and out[0]=in[0].",
       "native_scope": "copy_scalar_cross_wave: exact4bytes, producer0consumer32, complete identity.",
       "target_contract_residual": "Native explicit SMEM/FLAT/DS counters and workgroup publication replace cp.async group completion; native wave versus baseline thread role mapping is disclosed.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "four_byte_copies_preserve_both_single_wave_and_crosswave_payloads",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/cp_async_wait_group_completes_copy.ptx",
@@ -1596,17 +1431,14 @@
       "portable_obligation": "A same-actor complete4-byte copy returns exactly out[0]=in[0].",
       "native_scope": "copy_scalar_same_wave: block1,4input/4Sharedwrite/readbytes, complete one-element output.",
       "target_contract_residual": "Native scalar/KM plus FLAT/DS readiness replaces cp.async groups. NVIDIA generic/async proxy fences are not invented for ordinary native memory.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "four_byte_copies_preserve_both_single_wave_and_crosswave_payloads",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/cp_async_with_fence_proxy_async_succeeds.ptx",
@@ -1634,17 +1466,14 @@
       "portable_obligation": "A same-actor complete4-byte copy returns exactly out[0]=in[0].",
       "native_scope": "copy_scalar_same_wave: block1,4input/4Sharedwrite/readbytes, complete one-element output.",
       "target_contract_residual": "Native scalar/KM plus FLAT/DS readiness replaces cp.async groups. NVIDIA generic/async proxy fences are not invented for ordinary native memory.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "four_byte_copies_preserve_both_single_wave_and_crosswave_payloads",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/cp_async_without_fence_proxy_async_is_clean.ptx",
@@ -1672,17 +1501,14 @@
       "portable_obligation": "A same-actor complete4-byte copy returns exactly out[0]=in[0].",
       "native_scope": "copy_scalar_same_wave: block1,4input/4Sharedwrite/readbytes, complete one-element output.",
       "target_contract_residual": "Native scalar/KM plus FLAT/DS readiness replaces cp.async groups. NVIDIA generic/async proxy fences are not invented for ordinary native memory.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "four_byte_copies_preserve_both_single_wave_and_crosswave_payloads",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/exited_thread_releases_barrier.ptx",
@@ -1713,17 +1539,14 @@
       "portable_obligation": "Exiting an actor without a payload allows the remaining full-barrier execution to finish.",
       "native_scope": "Native whole-wave exit plus surviving wave rendezvous; complete extra identity payload strengthens no-output progress control.",
       "target_contract_residual": "PTX one-lane exit maps to one whole native wave; no per-lane END emulation.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_graph_tests.rs",
           "function": "an_exited_wave_with_no_payload_allows_the_remaining_wave_to_finish",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "a7cdbe0c1fe3af85c6c200c74a561214a896f21a970f1954ea53bbdb9c523b3d"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/lone_lane_bar_arrives_complete_whole_warp_generations.ptx",
@@ -1751,17 +1574,14 @@
       "portable_obligation": "Three arrivals preserve the only out[0]=(in0+in1)*in2-in0; capacity3 tail untouched.",
       "native_scope": "One32-lane wave, one active payload lane, three count1 scalar phases.",
       "target_contract_residual": "Other native lanes are inactive, not individually terminated; PTX exited-lane whole-warp counting is not emulated.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "three_single_participant_arrivals_preserve_the_exact_baseline_expression",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/mbarrier_announcements_before_the_same_threads_arrival_are_accepted.ptx",
@@ -1852,17 +1672,14 @@
       "portable_obligation": "Both16-byte copied regions must be ready before all64 outputs equal in[4].",
       "native_scope": "Actual32inputbytes, two16-byte FLAT-to-LDS stores, producer completion/publication, all64outputs and exact returned word footprint.",
       "target_contract_residual": "Ordinary native SMEM/FLAT completion replaces manual transaction announcements; no Tensor/Async instruction or byte-credit accounting is claimed.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "both_sixteen_byte_regions_complete_before_all_64_consumers_publish",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/mbarrier_arrive_wait_establishes_happens_before.ptx",
@@ -1890,23 +1707,19 @@
       "portable_obligation": "Producer-only arrival/count1 publishes4bytes to consumer-only WAIT; only out[1]=42.",
       "native_scope": "Exact output index1/capacity2,4Sharedbytes, native producerwave0 and consumerwave1; wrongDScompletion typed Shared failure.",
       "target_contract_residual": "Native allocated object is separate from LDS. Finite42 is typed with explicit F32 zero identity; arbitrary raw MOV/store output typing remains unsupported.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "only_the_consumer_waits_and_writes_the_original_index_one_marker_42",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "consumer_only_wait_cannot_replace_actual_lds_completion",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/mbarrier_expect_tx_blocks_until_complete_tx.ptx",
@@ -1933,24 +1746,20 @@
       },
       "portable_obligation": "A satisfied completion wait precedes only out[0]=1; no actual data copy occurs in baseline.",
       "native_scope": "One workitem, initialized count1 scalar arrival plus actual hardware WAIT; no Shared transfer invented; no-arrival control deadlocks.",
-      "target_contract_residual": "Manual NVIDIA16-byte transaction credit accounting is not modeled by native count1 completion. Coordinator must separately approve this narrow mechanism residual.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
+      "target_contract_residual": "Manual NVIDIA16-byte transaction credit accounting is not modeled by native count1 completion",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "completed_single_arrival_preserves_the_only_marker_one",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "marker_one_requires_the_named_completion_instead_of_falling_through",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/mbarrier_producer_starts_through_the_pre_init_phase.ptx",
@@ -1979,23 +1788,19 @@
       "portable_obligation": "Initially free buffer supports two producer/consumer handoffs with out=[in0,in1].",
       "native_scope": "Full/empty both count1, producer-only full signal and consumer-only empty signal, Shared4 reused only after actual release; no phantom initial wait.",
       "target_contract_residual": "Explicit initially-free control replaces PTX parity1 pre-init polling; join/wait phases remain native full identities.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "producer_starts_with_a_free_buffer_then_observes_the_actual_consumer_release",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "initially_free_buffer_does_not_remove_the_later_consumer_handshake",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/mbarrier_two_consumers_wait_on_one_full_barrier.ptx",
@@ -2026,23 +1831,19 @@
       "portable_obligation": "Two consumers independently observe both generations; full count1/empty count2 and exact four outputs.",
       "native_scope": "Three native waves; producer-only full arrivals, two separate consumer empty arrivals; no payload WG rendezvous; out=[in0,in1,in0,in1], exact8input/4Shared/16output bytes.",
       "target_contract_residual": "PTX pre-init parity poll maps to initially-free buffer. Older full-WG-barrier four-output test is deliberately not the exact role evidence.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_consumer_tests.rs",
           "function": "both_consumers_observe_both_values_with_separate_counted_release_operations",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "55a41dd443698983a682bcf22df85f4295dbf45a3fb4c369e28cd167a78a992b"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_consumer_tests.rs",
           "function": "either_missing_consumer_release_blocks_the_producer_and_both_next_phase_waiters",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "55a41dd443698983a682bcf22df85f4295dbf45a3fb4c369e28cd167a78a992b"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/mbarrier_wait_loop_with_an_exit_label.ptx",
@@ -2070,17 +1871,14 @@
       "portable_obligation": "A satisfied wait permits the exit path and exact out[0]=in[0].",
       "native_scope": "One workitem, count1 actual hardware WAIT then one completed4-byte scalar input load/copy.",
       "target_contract_residual": "Native WAIT replaces PTX scoped predicate polling and bra.uni exit grammar.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "actual_wait_then_exit_path_copies_the_complete_single_input",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/mbarrier_wait_wakes_on_another_threads_arrive.ptx",
@@ -2109,17 +1907,14 @@
       "portable_obligation": "Both participants arrive then wait and write both original marker ones.",
       "native_scope": "Two native waves, count2, exactly out=[1,1].",
       "target_contract_residual": "Each baseline thread maps to one native wave; finite markers use explicit typed F32 identity.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "another_participant_arrival_releases_both_original_marker_ones",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/parity_1_wait_after_observing_the_copy_phase.ptx",
@@ -2147,23 +1942,19 @@
       "portable_obligation": "Observe16-byte copy phase0 before separate4-byte metadata phase1; only out[0]=7 in capacity8.",
       "native_scope": "Input8capacity with exactly16bytes read, Shared[0,16)copy and[16,20)metadata, consumer releases phases0then1; missing phase1 signal leaves32threads blocked.",
       "target_contract_residual": "Native explicit generation identity and completion-before-signal replace parity-bit/complete_tx binding;7 uses typed F32 identity.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "observing_copy_phase_zero_precedes_the_distinct_metadata_phase_one_marker_seven",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "a_completed_earlier_phase_cannot_satisfy_the_later_metadata_wait",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_commit_satisfies_mbarrier_wait.ptx",
@@ -2191,23 +1982,19 @@
       "portable_obligation": "An empty completed system operation permits a completion wait and only marker out[0]=1.",
       "native_scope": "Count1 native signal/actualWAIT marker1; baseline issues no MMA computation, so no matrix result is fabricated.",
       "target_contract_residual": "NVIDIA tcgen commit-to-mbarrier operation is replaced by explicit native completion; finite marker has typed F32 identity.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "completed_single_arrival_preserves_the_only_marker_one",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         },
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
           "function": "marker_one_requires_the_named_completion_instead_of_falling_through",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_ld_result_ordered_by_register_dependency.ptx",
@@ -2266,17 +2053,14 @@
       "portable_obligation": "All32 lane IDs traverse storage and return in out[0..31]; out[32..255] untouched.",
       "native_scope": "Exact128Sharedread/writebytes and all32 ID outputs with256capacity tail; actual native FLAT returned data wait.",
       "target_contract_residual": "Native LDS/returned-load readiness uses its own explicit counters; it does not inherit NVIDIA TMEM implicit pipeline or omission of wait::ld.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "all_32_lane_ids_return_through_the_real_lds_dependency_and_no_tail_is_written",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_st_then_ld_is_implicitly_pipelined.ptx",
@@ -2335,17 +2119,14 @@
       "portable_obligation": "All32 lane IDs traverse storage and return in out[0..31]; out[32..255] untouched.",
       "native_scope": "Exact128Sharedread/writebytes and all32 ID outputs with256capacity tail; actual native FLAT returned data wait.",
       "target_contract_residual": "Native LDS/returned-load readiness uses its own explicit counters; it does not inherit NVIDIA TMEM implicit pipeline or omission of wait::ld.",
-      "remaining_gate": "Coordinator source review and independent replay; this proposal assigns no completion.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "all_32_lane_ids_return_through_the_real_lds_dependency_and_no_tail_is_written",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_wait_before_sync_is_accepted.ptx",
@@ -2369,13 +2150,10 @@
       "portable_obligation": "Complete storage reads/writes before synchronization and resource reuse; no numerical outputs.",
       "native_scope": "No-output128-byte TDM destination reuse and matching128-byte source reuse retain both memory directions and missing-completion controls. Numerical outputs are not invented.",
       "target_contract_residual": "Native static LDS has no TMEM alloc/dealloc instruction. Kernel exit alone is not claimed as an explicit equivalent resource-release protocol.",
-      "remaining_gate": "Coordinator review of both exact128-byte resource directions and the explicit TMEM deallocation encoding residual.",
-      "proposal": "native_assertion_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
           "function": "all_32_lane_ids_return_through_the_real_lds_dependency_and_no_tail_is_written",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "63cd021b38e37363e27a142f07fa813e7cec9b1d1effaa72e8e4ecebaa2e05b9"
         },
         {
@@ -2389,7 +2167,7 @@
           "source_sha256": "341aec349a62faffad1b887c0f01f5c372ff195efa1eeb8a6fd65b2d0e03e1c1"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/unaligned_barrier_sync_split_across_two_instructions_in_one_warp.ptx",
@@ -2413,17 +2191,18 @@
       "portable_obligation": "PTX unaligned sites permit lane0 word42 transfer to lane20; no outputs are asserted.",
       "native_scope": "Existing native scalar-arrival control has one active payload lane and explicit phases; it is not an exact42/20-lane source counterpart.",
       "target_contract_residual": "AMD shader barrier operations are scalar per wave; PTX per-lane aligned versus unaligned rendezvous is a different execution contract.",
-      "remaining_gate": "Coordinator must review precise execution-granularity residual; add native same-wave payload/partial-EXEC control if that portable obligation is retained. No inherited PTX failure is marked fixed.",
-      "proposal": "native_contract_difference_candidate",
       "native_evidence": [
         {
           "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
           "function": "three_single_participant_arrivals_preserve_the_exact_baseline_expression",
-          "commit": "84be9d963fd72dd998f6dfef926e16cf23d4735b",
           "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         }
       ],
-      "completion": "coordinator_review_required"
+      "mapping_kind": "target_contract_difference"
     }
-  ]
+  ],
+  "mapping_counts": {
+    "native_assertion": 46,
+    "target_contract_difference": 13
+  }
 }

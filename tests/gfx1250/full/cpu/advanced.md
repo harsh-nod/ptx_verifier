@@ -34,8 +34,7 @@ successful cases yield `pass`.
 The defaults cap each process at7200 wall seconds,6900 CPU seconds,384GiB RSS
 and512GiB address space. They measure the process tree and terminate the entire
 owned process group on a wall/RSS limit. Coordinate concurrent jobs on the host
-before selecting caps; do not infer acceptance from a process that is still
-running. `receipt.json` is initialized as incomplete before operational preflight,
+before selecting caps. `receipt.json` is initialized as incomplete before operational preflight,
 so a failed invocation cannot retain an earlier success. Host controls validate
 these refusal paths; their synthetic text and short Python children are not
 native proof evidence.

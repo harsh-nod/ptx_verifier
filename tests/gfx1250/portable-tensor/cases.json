@@ -1,8 +1,7 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "scope": "18 finite source-reference rows:5 tensor-edge and13 tensor metadata/lifetime. These are not18 independent positive workloads. All dispositions await coordinator validation.",
-  "completion": "pending_coordinator_validation",
+  "scope": "18 finite source-reference rows:5 tensor-edge and13 tensor metadata/lifetime. These are not18 independent positive workloads",
   "hardware_execution": false,
   "source_reference_revision": "b3a3791",
   "artifacts": {
@@ -90,7 +89,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s"
@@ -103,7 +101,7 @@
       ],
       "expected_outcome": "Complete candidate plus typed WriteRead conflict on actual TDM crop LDS byte128; waited positive verifies all16 F16 output cells.",
       "target_only_residual": "PTX complete_tx/mbarrier completion is replaced by actual native Tensor0 plus CTA publication. The native TDM copies only the valid2x2 region; explicit LDS stores implement the complete4x4 zero-padded tile.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/cp_fenceproxy_races_another_warps_replace.ptx",
@@ -118,7 +116,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-descriptor-bytes.hip",
         "native-tensor-descriptor-bytes.s",
@@ -134,7 +131,7 @@
       ],
       "expected_outcome": "Ordered full32-word destination plus32-word readback are exact independent seed identities. Harmful variant completes and carries source Shared WR/RW at byte0 and destination Global WW at0x20000.",
       "target_only_residual": "The opaque NVIDIA128-byte tensor-map schema/proxy-copy collective differs from AMD register descriptors. Native ordinary memory copies retain all128 data bytes and both spaces; the separate native descriptor copy is explicitly only64 meaningful bytes and is not substituted for this footprint.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tensormap_replace_while_tma_in_flight.ptx",
@@ -149,7 +146,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s"
@@ -163,7 +159,7 @@
       ],
       "expected_outcome": "Wrong DS-data completion yields typed ReadBeforeReady while the candidate completes. Rewriting the old metadata memory object after its words are captured preserves all16 output values.",
       "target_only_residual": "TMA asynchronously reads a128-byte memory-backed NVIDIA map through its completion. AMD TDM receives descriptor register values captured at issue; no asynchronous read of that old LDS metadata object is invented. The TDM tile itself still requires Tensor completion and publication.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tensormap_replace_write_write_race.ptx",
@@ -178,7 +174,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s"
@@ -191,7 +186,7 @@
       ],
       "expected_outcome": "Complete harmful candidate carries Shared WriteWrite on the actual native D0 words; ordered descriptor control preserves all16 cells.",
       "target_only_residual": "Baseline writers are threads0/1 and an opaque128-byte map field; native writers are0/32 in distinct wave32s and write a real16-byte D0, including its actual address field. Native source and launch differences are explicit.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tma_acquires_another_tensor_map.ptx",
@@ -206,7 +201,6 @@
           "source_sha256": "7103b3f8f72d4e97175570ccddeae3c2e0605f01535b96c532b6c50ca2c36630"
         }
       ],
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s"
@@ -220,7 +214,7 @@
       ],
       "expected_outcome": "Using the valid descriptor with base input+53 instead of+54 changes exactly native cells0,1,4,5. Missing native data wait or crosswave publication produces typed failures.",
       "target_only_residual": "PTX MissingFence::TensormapAcquire for a different global map object is a keyed proxy-domain diagnostic. The native tests do not pretend a wait on an unrelated descriptor is an AMD proxy acquire; they separately test exact metadata binding and the real ordinary-data protocol.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tma_complete_tx_does_not_release_the_issuers_earlier_store.ptx",
@@ -235,7 +229,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-publication.hip",
         "native-tensor-publication.s"
@@ -248,7 +241,7 @@
       ],
       "expected_outcome": "Positive has complete out[0]=in[0]+scale[0]. The mutation retains Tensor0 and candidate values but removes only CTA publication; it must carry ordinary metadata WriteRead at Shared byte16 outside the16-byte TDM tile.",
       "target_only_residual": "Exact NVIDIA complete_tx release semantics are not emulated by a native counter. The same distinct-store publication obligation is preserved using real Tensor completion and a separate CTA barrier.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tma_uses_another_warps_cp_fenceproxy_copy_without_sync.ptx",
@@ -263,7 +256,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s",
@@ -281,7 +273,7 @@
       ],
       "expected_outcome": "Native descriptor copy plus correct CTA rendezvous yields all16 exact edge cells; removing only its crosswave publication keeps the candidate complete and gives Shared WriteRead. A separate actual Global128-byte copy requires all32 destination/readback words; removing its CTA publication retains a complete candidate and typed Global WriteRead at0x20000.",
       "target_only_residual": "Original copied object is a128-byte global NVIDIA map and cp_fenceproxy supplies a target-specific proxy release. Native descriptor fields are ordinary LDS bytes; their different location/schema is disclosed, while full128-byte Shared-to-Global copy behavior is tested separately.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tma_uses_tensormap_built_by_other_thread_without_sync.ptx",
@@ -296,7 +288,6 @@
           "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
         }
       ],
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s",
@@ -313,7 +304,7 @@
       ],
       "expected_outcome": "The waited/barrier control preserves all16 cells; removing the crosswave rendezvous yields typed Shared WriteRead while the harmful candidate completes. A separate actual Global128-byte copy requires all32 destination/readback words; removing its CTA publication retains a complete candidate and typed Global WriteRead at0x20000.",
       "target_only_residual": "NVIDIA global map release/acquire instructions do not exist in this native path. AMD publication is the real ordinary LDS producer/completion/barrier/consumer protocol, not an assumed global proxy fence.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tma_without_tensormap_acquire_fence.ptx",
@@ -328,7 +319,6 @@
           "source_sha256": "7103b3f8f72d4e97175570ccddeae3c2e0605f01535b96c532b6c50ca2c36630"
         }
       ],
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s",
@@ -346,7 +336,7 @@
       ],
       "expected_outcome": "Missing correct DS-data wait gives ReadBeforeReady; missing CTA publication gives Shared WriteRead; complete native protocol verifies the entire16-cell result. A separate actual Global128-byte copy requires all32 destination/readback words; removing its CTA publication retains a complete candidate and typed Global WriteRead at0x20000.",
       "target_only_residual": "The exact MissingFence::TensormapAcquire diagnostic is a NVIDIA generic/tensormap proxy-domain contract. Native ordinary LDS fields use their real waits/barriers; no proxy instruction or identical fence name is fabricated.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tma_without_tensormap_release_fence.ptx",
@@ -361,7 +351,6 @@
           "source_sha256": "7103b3f8f72d4e97175570ccddeae3c2e0605f01535b96c532b6c50ca2c36630"
         }
       ],
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s",
@@ -379,7 +368,7 @@
       ],
       "expected_outcome": "Missing correct DS-data wait gives ReadBeforeReady; missing CTA publication gives Shared WriteRead; complete native protocol verifies the entire16-cell result. A separate actual Global128-byte copy requires all32 destination/readback words; removing its CTA publication retains a complete candidate and typed Global WriteRead at0x20000.",
       "target_only_residual": "The exact MissingFence::TensormapRelease diagnostic is a NVIDIA generic/tensormap proxy-domain contract. Native ordinary LDS fields use their real waits/barriers; no proxy instruction or identical fence name is fabricated.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/cp_async_bulk_tensor_rejects_an_incomplete_tensor_map.ptx",
@@ -394,7 +383,6 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s"
@@ -407,7 +395,7 @@
       ],
       "expected_outcome": "Removing only the native zero-field producer store is assembler-legal and reaches typed uninitialized LDS byte0x40/graphUnknown at the actual metadata read; complete initialized control verifies all16 cells.",
       "target_only_residual": "TensorMapFieldMissing(fill_mode) names a field in the NVIDIA schema. AMD D2/D3 zero words are explicit initialized operands; the native path never invents the missing bytes or NVIDIA field layout.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/cp_fenceproxy_by_one_lane_of_a_warp_is_rejected.ptx",
@@ -422,7 +410,6 @@
           "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
         }
       ],
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s",
@@ -440,7 +427,7 @@
       ],
       "expected_outcome": "Actual leader-only native TDM issue and ordinary full128-byte copy retain their complete payloads and normal CTA publication. No warp mismatch is invented.",
       "target_only_residual": "The PTX tensormap.cp_fenceproxy.sync.aligned contract requires every warp lane. Native scalar TDM/ordinary copy can be issued by one active leader; only this exact collective restriction is target-specific, not the byte or publication obligations.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/cp_async_bulk_tensor_cta_and_cluster_destinations_copy_in_bounds.ptx",
@@ -466,7 +453,6 @@
           ]
         }
       },
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s",
@@ -480,7 +466,7 @@
       ],
       "expected_outcome": "All16 native cells match independent coordinate formulas; the exact native projection[0,15] is compared directly to both original outputs[0,1] and their original PTX execution. Required original metadata lifecycle is paired with the real native wait/publication/reuse controls.",
       "target_only_residual": "Original CTA/cluster destination spelling,128-byte memory map and proxy fences/complete_tx are NVIDIA mechanisms. Native uses bounded2x2 strided TDM for the valid crop and explicit LDS zero fill for all12 padded cells, while retaining the original full8x8 input and complete logical4x4 tile.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/cp_async_bulk_tensor_cta_and_cluster_destinations_copy_in_bounds_cta.ptx",
@@ -506,7 +492,6 @@
           ]
         }
       },
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s",
@@ -520,7 +505,7 @@
       ],
       "expected_outcome": "All16 native cells match independent coordinate formulas; the exact native projection[0,15] is compared directly to both original outputs[0,1] and their original PTX execution. Required original metadata lifecycle is paired with the real native wait/publication/reuse controls.",
       "target_only_residual": "Original CTA/cluster destination spelling,128-byte memory map and proxy fences/complete_tx are NVIDIA mechanisms. Native uses bounded2x2 strided TDM for the valid crop and explicit LDS zero fill for all12 padded cells, while retaining the original full8x8 input and complete logical4x4 tile.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/cp_async_bulk_tensor_without_fence_proxy_async_is_clean.ptx",
@@ -546,7 +531,6 @@
           ]
         }
       },
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s",
@@ -560,7 +544,7 @@
       ],
       "expected_outcome": "All16 native cells match independent coordinate formulas; the exact native projection[0,15] is compared directly to both original outputs[0,1] and their original PTX execution. Required original metadata lifecycle is paired with the real native wait/publication/reuse controls.",
       "target_only_residual": "Original CTA/cluster destination spelling,128-byte memory map and proxy fences/complete_tx are NVIDIA mechanisms. Native uses bounded2x2 strided TDM for the valid crop and explicit LDS zero fill for all12 padded cells, while retaining the original full8x8 input and complete logical4x4 tile.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/tensormap_replace_after_tma_completes_is_accepted.ptx",
@@ -586,7 +570,6 @@
           ]
         }
       },
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s",
@@ -602,7 +585,7 @@
       ],
       "expected_outcome": "All16 native cells match independent coordinate formulas; the exact native projection[0,15] is compared directly to both original outputs[0,1] and their original PTX execution. Required original metadata lifecycle is paired with the real native wait/publication/reuse controls.",
       "target_only_residual": "Original CTA/cluster destination spelling,128-byte memory map and proxy fences/complete_tx are NVIDIA mechanisms. Native uses bounded2x2 strided TDM for the valid crop and explicit LDS zero fill for all12 padded cells, while retaining the original full8x8 input and complete logical4x4 tile.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/tma_tensormap_built_by_other_thread_ordered_by_bar_sync_is_accepted.ptx",
@@ -628,7 +611,6 @@
           ]
         }
       },
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s",
@@ -644,7 +626,7 @@
       ],
       "expected_outcome": "All16 native cells match independent coordinate formulas; the exact native projection[0,15] is compared directly to both original outputs[0,1] and their original PTX execution. Required original metadata lifecycle is paired with the real native wait/publication/reuse controls.",
       "target_only_residual": "Original CTA/cluster destination spelling,128-byte memory map and proxy fences/complete_tx are NVIDIA mechanisms. Native uses bounded2x2 strided TDM for the valid crop and explicit LDS zero fill for all12 padded cells, while retaining the original full8x8 input and complete logical4x4 tile.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/tma_uses_another_warps_cp_fenceproxy_copy_ordered_by_bar_sync_is_accepted.ptx",
@@ -670,7 +652,6 @@
           ]
         }
       },
-      "coordinator_validation": "pending",
       "native_sources": [
         "native-tensor-metadata.hip",
         "native-tensor-metadata.s",
@@ -689,7 +670,10 @@
       ],
       "expected_outcome": "All16 native cells match independent coordinate formulas; the exact native projection[0,15] is compared directly to both original outputs[0,1] and their original PTX execution. Required original metadata lifecycle is paired with the real native wait/publication/reuse controls.",
       "target_only_residual": "Original CTA/cluster destination spelling,128-byte memory map and proxy fences/complete_tx are NVIDIA mechanisms. Native uses bounded2x2 strided TDM for the valid crop and explicit LDS zero fill for all12 padded cells, while retaining the original full8x8 input and complete logical4x4 tile.",
-      "proposal": "exact_portable_counterpart_with_narrow_target_residual_for_coordinator_review"
+      "mapping_kind": "native_assertion"
     }
-  ]
+  ],
+  "mapping_counts": {
+    "native_assertion": 18
+  }
 }

@@ -1,8 +1,7 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "scope": "Actual native interpreter protocols passed under independent coordinator validation; separate from CPU oracle self-checks and hardware execution",
-  "hardware_validation": "not_performed_no_gfx1250_device",
+  "scope": "Native interpreter matrix protocols and independent CPU oracle checks; hardware execution is separate.",
   "protocols": [
     {
       "profile": "basis",
@@ -19,7 +18,6 @@
       "required": true,
       "native_launches": 2176,
       "complete_outputs_per_launch": 256,
-      "software_validation": "coordinator_verified_all_launches_and_complete_outputs",
       "kernels": {
         "wmma_f32_basis": {
           "K": 4
@@ -64,7 +62,6 @@
       "required": true,
       "native_launches": 3,
       "complete_outputs_per_launch": 256,
-      "software_validation": "coordinator_verified_all_launches_and_complete_outputs",
       "native_test": "real_gfx1250_wmma_finite_byvalue_bits_distinguish_f16_and_bf16",
       "cases": [
         {

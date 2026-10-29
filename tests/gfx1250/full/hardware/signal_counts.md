@@ -24,5 +24,4 @@ The shared runner checks source revision/hashes, real wave32 target and selected
 physical-device identity, object/code-object hashes, numerical accounting and
 full guards. Keep generated receipts outside the repository. A matching second
 reserved device requires a separate invocation and receipt. Hardware numerical
-agreement does not replace the symbolic protocol/ordering controls or complete
-coordinator acceptance.
+agreement does not replace the symbolic protocol and ordering controls.

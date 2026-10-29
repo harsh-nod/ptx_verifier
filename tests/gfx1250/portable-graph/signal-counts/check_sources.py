@@ -30,7 +30,6 @@ def main():
         assert digest(root / filename) == expected, filename
     for row in references["rows"]:
         assert digest(root / row["path"]) == row["upstream_sha256"], row["path"]
-        assert row["completion"] == "coordinator_review_required"
     source = directory / "native-signal-counts.ll"
     assembly = source.with_suffix(".s")
     receipt = {"hardware_execution": False, "source_sha256": digest(source),

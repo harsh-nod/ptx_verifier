@@ -4,7 +4,8 @@
 allocated-object kernels. One typed `NamedBarrierSignalWithCount` records the
 signal and its M0 bits22:16 update; the original signal event layout is
 unchanged. Zero updates and NULL signals retain the original no-change/no-op
-semantics. Nonzero reserved M0 bits remain unsupported.
+semantics. Reserved M0 bits are unsupported for non-NULL selectors; NULL
+ignores those fields.
 
 ```sh
 python3 tests/gfx1250/portable-graph/signal-counts/check_sources.py --output /tmp/signal-count-source-check.json
@@ -34,10 +35,12 @@ tracks changed-count signals across phases and also orders every explicit
 setter against drops, including setters numerically unchanged in this chosen
 schedule. Identical explicit updates can commute; a legacy zero/no-change
 signal is distinct. Independent three-wave, drop and cross-phase controls
-reject scheduler-only acceptance while preserving ordered controls.
+prevent a chosen schedule from certifying unordered updates while preserving
+ordered controls.
 
 PTX thread counts64/32 map separately to native wave-arrival counts2/1. The
 mixed-count rows retain the exact2/1 boundary control and its explicit public
 ambiguity. The stable count3 deadlock is supporting progress evidence; it is
-not described as the same conflicting-count instruction. All dispositions
-remain coordinator candidates. No GPU run or machine metadata is retained.
+not an implementation of the same conflicting-count instruction. See the
+[safe hardware runner](../../full/hardware/signal_counts.md) for numerical
+checks of the supported positive entries.

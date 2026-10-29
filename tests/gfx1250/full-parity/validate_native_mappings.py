@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate exact source/test mappings; metadata is not runtime acceptance."""
+"""Validate exact source/test mappings; including original output projections and native source pins."""
 
 import argparse
 import hashlib
@@ -31,18 +31,13 @@ def validate(document, ledger, root=ROOT):
         selection = document["source_selection"]
         proposal = root / selection["path"]
         require(sha(proposal) == selection["sha256"], "reference selection changed")
+        selected = set(selection["reference_paths"])
+        source_paths = {row["path"] for row in json.loads(proposal.read_text())["rows"]}
         require(
-            selection["proposal"] == "native_property_candidate_with_target_residual"
-            and selection.get("previous_proposal")
-            == "portable_property_gap_with_target_residual",
-            "unknown reference selection",
+            len(selected) == len(selection["reference_paths"])
+            and selected <= source_paths,
+            "explicit reference selection changed",
         )
-        selected = {
-            row["path"]
-            for row in json.loads(proposal.read_text())["rows"]
-            if row["proposal"] == selection["proposal"]
-            and row.get("previous_proposal") == selection["previous_proposal"]
-        }
         selected.update(selection.get("additional_paths", []))
         require(
             len(selected) == selection["required_rows"]
@@ -76,18 +71,9 @@ def validate(document, ledger, root=ROOT):
             "wrong original assertions",
         )
         require(
-            row["coordinator_acceptance"] == "pending",
-            "mapping is not coordinator acceptance",
-        )
-        require(
-            row["candidate_kind"]
-            in (
-                "positive_computation",
-                "model_domain_refusal",
-                "target_storage_residual_with_native_payload",
-                "portable_feature",
-            ),
-            "unreviewed exclusion",
+            row["mapping_kind"]
+            in {"native_assertion", "model_refusal", "target_contract_difference"},
+            "unknown computation/property mapping",
         )
         test, name = row["test"].rsplit("::", 1)
         sources = document.get("test_sources", [document.get("test_source")])
@@ -109,7 +95,16 @@ def validate(document, ledger, root=ROOT):
             ),
             "missing native compiler entry",
         )
-        if row["candidate_kind"] == "positive_computation":
+        if row["mapping_kind"] == "native_assertion":
+            require(
+                ("comparison" in row) != ("expected_native_outcome" in row),
+                "native assertion requires one explicit complete-output contract",
+            )
+        if "comparison" in row:
+            require(
+                isinstance(row["comparison"], str) and row["comparison"].strip(),
+                "missing complete-output comparison contract",
+            )
             golden = reference["baseline_golden"]
             require(
                 row["golden_path"] == golden["path"]
@@ -136,7 +131,7 @@ def validate(document, ledger, root=ROOT):
             require(
                 row.get("reason", "").strip(), "missing exact domain/storage residual"
             )
-        if row["candidate_kind"] == "portable_feature":
+        if "expected_native_outcome" in row:
             outcome = row["expected_native_outcome"]
             require(
                 outcome
@@ -208,11 +203,9 @@ def main():
     args = parser.parse_args()
     count = validate(
         json.loads(args.contract.read_text()),
-        json.loads(Path(__file__).with_name("feature-review.json").read_text()),
+        json.loads(Path(__file__).with_name("reference-contract.json").read_text()),
     )
-    print(
-        f"Source/test metadata consistent: {count} mapping candidates. Coordinator acceptance remains pending."
-    )
+    print(f"Source/test contracts match: {count} mappings.")
 
 
 if __name__ == "__main__":

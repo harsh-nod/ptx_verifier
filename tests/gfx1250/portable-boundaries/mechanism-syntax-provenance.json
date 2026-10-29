@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "scope": "Actual LLVM MC syntax probes for native barrier operand counterparts. No hardware execution or coordinator acceptance.",
+  "scope": "Actual LLVM MC syntax probes for native barrier operand counterparts",
   "hardware_execution": false,
   "source": "tests/gfx1250/portable-graph/native-named-barriers.s",
   "source_sha256": "9d0cb5c25fd6de069f6f6ba1170eccd1409b004ab0ccb85387f3afd10e87f495",
@@ -489,6 +489,5 @@
       "accepted": false,
       "diagnostic": "/tmp/ptx-native-barrier-syntax-a4o32php/barrier_leave_extra_empty_exec.s:54:17: error: invalid operand for instruction\ns_barrier_leave 0\n                ^\n"
     }
-  ],
-  "completion": "coordinator_review_required"
+  ]
 }

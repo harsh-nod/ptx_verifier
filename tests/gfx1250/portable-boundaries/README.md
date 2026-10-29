@@ -1,11 +1,9 @@
 # gfx1250 model, parser and equivalence controls
 
-This finite inventory reviews 46 existing source-reference rows: 11 model-boundary
-rows, 11 parser/static-validation rows and 24 equivalence rows. They are not 46
-independent successful workloads. `cases.json` preserves every original source
-hash and Rust assertion reference, the exact portable obligation, native controls
-and the remaining target-specific contract. Every disposition remains pending
-coordinator validation; this directory changes no issue checkbox or parent ledger.
+This directory tests model limits, parser/static validation and equivalence.
+`cases.json` maps reference source hashes and Rust assertions to exact native
+controls and target-specific differences. Deliberately rejected inputs are
+separate from successful numerical programs.
 
 Four genuine HIP modules compile to the checked-in, unchanged gfx1250 assembly.
 `compiler-provenance.json` records the compiler, assembler and linker binary
@@ -59,9 +57,9 @@ semantics. Separate native F32 copysign controls retain the actual operand roles
 Floating expressions use the project's disclosed real-arithmetic abstraction;
 the mathematical FMA/exponent controls do not claim physical rounding identity.
 The six-byte F16 ReLU input includes the compiler's ordinary GLOBAL B32 load at
-byte offset 2. Its narrow gfx1250 HSA byte-alignment profile has separate primary
-LLVM and two-device evidence; no SMEM, DS, FLAT or older-target alignment rule is
-relaxed by this fixture.
+byte offset 2. Its narrow gfx1250 HSA byte-alignment profile follows the pinned
+LLVM contract and separate byte-alignment tests; no SMEM, DS, FLAT or
+older-target alignment rule is relaxed by this fixture.
 
 ## Reproduction
 
@@ -73,8 +71,7 @@ python3 tests/gfx1250/portable-boundaries/check_syntax.py \
   --output /tmp/gfx1250-boundary-syntax.json
 python3 tests/gfx1250/portable-boundaries/check_inventory.py
 python3 -m unittest discover -s tests/gfx1250/portable-boundaries -p 'test_*.py'
-CARGO_HTTP_CAINFO=/home/harsh/.codex-openai/ca-combined.pem \
-  cargo test --release -p volta_pipeline --test gfx1250_boundary_parity_tests
+cargo test --release -p volta_pipeline --test gfx1250_boundary_parity_tests
 ```
 
 `syntax-mutations.tsv` is shared by the Rust parser tests and actual LLVM-MC

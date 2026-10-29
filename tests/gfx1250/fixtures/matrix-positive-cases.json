@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "scope": "Safe positive source/ABI inventory only, not execution evidence or coordinator acceptance. Original/natively padded outputs are checked separately. All harmful synchronization, overlap, undefinedness and unmodeled-mode kernels are excluded.",
+  "scope": "Original/natively padded outputs are checked separately. All harmful synchronization, overlap, undefinedness and unmodeled-mode kernels are excluded.",
   "cases": [
     {
       "kernel": "matrix_stride32",

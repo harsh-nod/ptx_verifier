@@ -1,106 +1,108 @@
-This corpus is reconstructed HIP source, not recovered original CUDA source.
-The evidence is the actual checked-in ai_compiler_kernels/<family>/*Float16*.ptx
-and companion JSON at baseline e8f819919e5d4628b68aa735deacaaa48d46cf23.
-All mathematical references use the repository's real-number abstraction:
-conversion/rounding and approximate exponential/reciprocal errors are abstracted.
-IEEE NaN behavior is outside that contract, including max.NaN versus maxnum.
+Portable compiler corpus
+========================
 
-portable-f16.hip correspondence (one workgroup unless specified):
+The HIP sources reconstruct mathematical workloads from the checked-in
+ai_compiler_kernels/<family> PTX and companion JSON. They are not recovered
+CUDA source. Each target's manifests and launch files define its native block,
+ABI, storage dtype, output coordinates and mathematical reference.
+
+All symbolic references use Volta's mathematical-real abstraction. Floating
+conversion/rounding, approximate instruction error and IEEE NaN behavior are
+outside that model. Compiling a source or accepting its syntax does not prove
+its output formula or graph safety. Pipeline tests check those independently;
+exact-assembly hardware drivers check numerical behavior separately.
+
+portable-f16.hip correspondence
+------------------------------
 
 relu_f16: ReLUKernel/NVIDIA_B200_Float16_1.0000x.ptx
-  block=128, 8 adjacent halves/thread, 1024 outputs; max(input,0).
+  block=128; eight adjacent halves/thread; 1024 outputs; max(x,0).
 silu_f16: SiLUKernel/NVIDIA_B200_Float16_1.0000x.ptx
-  block=128, 4 halves/thread, 512 outputs; x/(1+exp(-x)).
+  block=128; four halves/thread; 512 outputs; x/(1+exp(-x)).
 sigmoid_f16: SigmoidKernel/NVIDIA_B200_Float16_1.0001x.ptx
-  block=256, 4 halves/thread, 1024 outputs; 1/(1+exp(-x)).
+  block=256; four halves/thread; 1024 outputs; 1/(1+exp(-x)).
 swiglu_f16: SwiGLUKernel/NVIDIA_B200_Float16_1.0001x.ptx
-  block=128, 8 halves/thread, 1024 outputs; gate*value/(1+exp(-gate)).
+  block=128; eight halves/thread; 1024 outputs; gate*value/(1+exp(-gate)).
 rope_f16: RoPEKernel/NVIDIA_B200_Float16_1.0000x.ptx
-  block=128, input/output=128 halves; first/second 64-element halves paired.
-  cos/sin indexed by global element modulo 32768; paired lane permutation is
-  preserved: element=(thread>>1)|((thread&1)<<6), negation for even threads.
+  block=128; input/output=128 halves; first/second 64-element halves paired.
+  cos/sin index is the global element modulo 32768. The permutation is
+  element=(thread>>1)|((thread&1)<<6), with negation for even threads.
 reduction_f16: ReductionSumKernel/NVIDIA_B200_Float16_1.0828x.ptx
-  block=128 but first32 active; 256 halves/tile; ATOMIC ADD into existing FP32
-  output[blockIdx.y]. Input offset = blockIdx.y*4096+blockIdx.x*256 elements.
-  This is an inout/atomic case, not a plain sum overwrite. Atomics remain a
-  required unsupported feature until correctly modeled by the AMD evaluator.
+  block=128, first 32 active; 256 halves/tile; atomic add into existing FP32
+  output[blockIdx.y]. Input offset=blockIdx.y*4096+blockIdx.x*256 elements.
+  This is an inout atomic case; it cannot be modeled as a plain sum overwrite.
 softmax_f16: SoftmaxKernel/NVIDIA_B200_Float16_1.2702x.ptx
-  block=128, four rows/block; runtime input/output row strides; fixed256 cols;
-  row loop stride=4*gridDim.x. Half subtraction precedes FP32 exp/sum/division.
+  block=128; four rows/block; runtime row strides; fixed 256 columns;
+  row-loop stride=4*gridDim.x. Half subtraction precedes FP32 exp/sum/division.
 rmsnorm_f16: RMSNormKernel/NVIDIA_B200_Float16_1.0000x.ptx
-  block=512, row4096 halves; y=x*rsqrt(sum(x*x)/4096+1e-6)*weight.
-  Native wave64 changes 16 warp32 partials to 8 wave64 partials in LDS; complete
-  row math, half input/output, cross-wave reduction, and barrier remain.
+  block=512; row=4096 halves; y=x*rsqrt(sum(x*x)/4096+1e-6)*weight.
+  Native wave64 uses eight partials in LDS instead of sixteen warp32 partials,
+  retaining the complete row, half input/output and cross-wave barrier.
 matvec_f16: MatrixVectorMultiplicationKernel/NVIDIA_B200_Float16_1.0103x.ptx
-  block=128, M tile32, K4096, half input/output and FP32 accumulation.
-  Reference implementation uses wave reductions and LDS vector tile. It does
-  NOT cover the baseline's matrix-pipelining property: that remains an open
-  MFMA/direct-to-LDS corpus requirement. This file alone cannot close parity.
+  block=128; M tile=32; K=4096; half input/output; FP32 accumulation.
+  Uses wave reductions and an LDS vector tile. Its arithmetic correspondence
+  does not establish the PTX kernel's distinct matrix-pipelining properties.
 
-No Float8 row is covered merely by these Float16 kernels. portable-f8.hip/.s
-and its dedicated cases supply separate OCP E4M3 storage/conversion evidence.
-Instruction/layout tests and full-shape validation remain separate obligations.
-Full shape capacity, numerical hardware validation and symbolic equivalence
-results must be attached independently; compilation/assembly is parser evidence.
+portable-f8.hip/.s supplies separate OCP E4M3 storage and conversion cases;
+Float16 sources alone say nothing about Float8 storage semantics.
 
-Full original GEMM and fused add+SiLU corpus (native-full-gemm.hip/.s):
-  Four unchanged compiler kernels cover both F16 and OCP E4M3 inputs, full
-  256x256 CTA tile and K4096, retaining every original4096-element row pitch.
-  Native block1024 replaces the original PTX block256;16 wave64s retain64
-  FP32 accumulators/lane. All four kernels have zero private_segment_fixed_size
-  and zero VGPR spills. Double-buffer LDS totals65536 bytes.
-  F16 uses16x16x32 MFMA; OCP E4M3 uses unit-scaled32x32x64 MFMA.
-  The FP8 next-buffer packed bytes cross an empty tied-register inline-asm
-  constraint to prevent premature byte expansion; no instruction is emitted.
-  Full pitched output footprints and mathematical references are recorded in
-  full-gemm-cases.json and specs/full_gemm*.spec. These compilation receipts
-  alone do not claim symbolic graph/safety or hardware correctness.
+Full matrix sources
+-------------------
 
-Full positive advanced sources (advanced-cases.json):
-  native-mamba2-state: complete64x128 F32 state,256 time steps, original512
-  element X/B row pitch, actual batch/chunk/head permutation. B is weighted as
-  dt*exp(min(last_dA-dA,0)) inF32 and converted toF16 before matrix consumption.
-  Native block128,16 K16 stages,two LDS buffers totaling12288bytes,no spills.
-  native-forgetting-attention:128 queries x1024 keys,D64, actual key log-lambda
-  bias and final per-query offset. Raw base2 coefficients and encoded LN2_F32
-  are retained. Native block128,64 K/V16 tiles,9216bytes LDS,no spills.
-  native-flash-sinkhorn:32 fixed rows against1024 reduction rows,D64. Native
-  matrix dot, potential/log-weight bias,online max/sum,exact denominator floor
-  0x000116c2 and encoded LN2_F32. The symmetric g-update pointer selection is
-  present; the declared baseline case is CTA0's f-update. Native block128,
-  4096bytes LDS,no spills.
-  native-sage-attention:128 queries x128 keys,D64,signed-I8 Q/K,F16 V/output,
-  exact per64-key scales and base2 softmax. Coordinator selected exact I8->F16
-  conversion followed by native F16 MFMA: all I8 values are exactly represented
-  and the64-term dot magnitude is bounded by2^20. Native I8 MFMA is not claimed.
-  Native block128,9216bytes LDS,no spills. Online/PV tiling and physical rounding
-  differ from PTX; the existing symbolic real-number model abstracts rounding.
+native-full-gemm.hip/.s contains F16 and OCP E4M3 GEMM and fused add+SiLU
+kernels with a 256x256 workgroup tile, K=4096 and original 4096-element pitches.
+The native block is 1024 threads: sixteen wave64s with 64 F32 accumulators/lane.
+Double-buffered LDS totals 65536 bytes. F16 uses 16x16x32 MFMA; OCP E4M3 uses
+unit-scaled 32x32x64 MFMA. A tied-register empty inline-assembly constraint
+preserves packed FP8 bytes without emitting an instruction. The launch and
+reference definitions are in full-gemm-cases.json and specs/full_gemm*.spec.
 
-Full convolution (full-convolution-cases.json):
-  Both native input dtypes compute128spatial x128channel outputs and all576
-  reduction terms, original56x56 NCHW/OIHW data and2916-element output-channel
-  pitch. The original F16 CTA has this same128x128 output tile. The original
-  FP8 CTA has64spatial x128channels (8192 outputs), so its native128x128 tile
-  is an explicit tile superset, not an equal CTA/output footprint: spatial
-  positions0..63 in each of128 channel slices cover original CTA0, and64..127
-  cover its neighboring spatial tile. This distinction is recorded explicitly
-  in the manifest and requires coordinator-reviewed mapping evidence.
-  The first128 spatial positions cross54+54+20 output rows; affine reference
-  slices retain all16384 native outputs without flattening away pitches.
-  Native block512,8wave64s,16384bytes double-buffer LDS,no private spills.
-  Volatile half stores preserve actual2-byte transfers across reference-slice
-  boundaries. Whole-grid tail behavior requires separate validation. Source
-  comments describing a shared original128x128 tile predate this corrected
-  mapping; sources/assembly stay byte-identical to pinned compiler provenance.
+Advanced sources
+----------------
 
-Scalar portability fixture clang22-scalar-types provides genuine compiler
-signed/unsigned32-bit ring arithmetic and F64 add/mul/FMAC/reciprocal/sqrt and
-F64->F32->F64 forms. Its syntax is parser evidence, not completed semantic parity.
-All source/object/assembly hashes and pinned commands are in compiler-provenance.
+advanced-cases.json defines the configured source/launch/reference mapping.
 
-General exp2/lg2 base conversion follows the repository's disclosed shared
-abstraction using reciprocal(LOG2_E_F32), separately from the exact compiler
-exp2 idiom. LSE specs retain LOG2_E_F32 * LN2_F32 rather than silently cancelling
-two rounded constants into a natural-log identity. Compilation/assembly and
-spec grammar checks alone do not establish symbolic safety/equivalence or
-physical hardware correctness; coordinator validation and parity statuses govern.
+native-mamba2-state: complete 64x128 F32 state over 256 time steps, original
+  512-element X/B row pitch and batch/chunk/head permutation. B is weighted
+  as dt*exp(min(last_dA-dA,0)) in F32, then converted to F16 before MFMA.
+  block=128; sixteen K16 stages; two LDS buffers totaling 12288 bytes.
+native-forgetting-attention: 128 queries x1024 keys, D=64; key log-lambda bias
+  and final per-query offset; original base2 coefficients and encoded LN2_F32.
+  block=128; 64 K/V16 tiles; 9216 bytes LDS.
+native-flash-sinkhorn: 32 rows against 1024 reduction rows, D=64; matrix dot,
+  potential/log-weight bias, online max/sum, exact denominator floor 0x000116c2
+  and encoded LN2_F32. Both pointer selections exist; the declared case is
+  workgroup zero's f-update. block=128; 4096 bytes LDS.
+native-sage-attention: 128 queries x128 keys, D=64; signed-I8 Q/K; F16 V/output;
+  per-64-key scales and base2 softmax. Exact I8-to-F16 conversion feeds F16
+  MFMA; I8 MFMA is not used. All I8 inputs are representable and the 64-term
+  dot magnitude is bounded by 2^20. block=128; 9216 bytes LDS.
+
+Convolution sources
+-------------------
+
+full-convolution-cases.json defines both input dtypes. The native kernels
+compute 128 spatial x128 output-channel elements and all 576 reduction terms,
+with original 56x56 NCHW/OIHW layouts and 2916-element output-channel pitch.
+The F16 PTX workgroup has the same output tile. The FP8 PTX workgroup has
+64 spatial x128 output-channel elements; the native tile is an explicit
+superset. Positions 0..63 in every channel slice match the original workgroup;
+positions 64..127 cover the neighboring tile. Reference slices preserve both
+original projections and all native outputs, including the 54+54+20 row split.
+
+block=512; eight wave64s; 16384 bytes double-buffered LDS. Volatile half stores
+preserve 2-byte transfers at reference-slice boundaries. Whole-grid tail
+behavior is outside the selected-workgroup contract. Some immutable source
+comments use a shared 128x128 shorthand; use the manifest's explicit projection.
+
+Scalar and transcendental fixtures
+----------------------------------
+
+clang22-scalar-types supplies genuine compiler signed/unsigned 32-bit ring
+arithmetic and F64 add/mul/FMAC/reciprocal/sqrt and F64-to-F32-to-F64 forms.
+Compiler provenance records source, assembly and object hashes and commands.
+
+General exp2/lg2 conversion uses reciprocal(LOG2_E_F32), separately from the
+recognized compiler exponential idiom. LSE references retain the product
+LOG2_E_F32*LN2_F32 instead of cancelling two rounded constants. These model
+choices do not establish physical rounding equivalence.

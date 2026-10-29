@@ -28,7 +28,7 @@
         }
       ],
       "target_specific_residual": "PTX declaration/empty-kernel spelling is not a native runtime obligation.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/config_rejects_misaligned_array_base.ptx",
@@ -54,7 +54,7 @@
         }
       ],
       "target_specific_residual": "No NVIDIA-only mechanism.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/extern_only_shared_placement_and_bounds.ptx",
@@ -80,7 +80,7 @@
         }
       ],
       "target_specific_residual": "Native descriptor plus dynamic byte count replaces PTX external declaration syntax.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/extern_only_shared_placement_and_bounds_past_end.ptx",
@@ -106,7 +106,7 @@
         }
       ],
       "target_specific_residual": "Native descriptor plus dynamic byte count replaces PTX external declaration syntax.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/extern_shared_store_invisible_through_static_shared.ptx",
@@ -132,7 +132,7 @@
         }
       ],
       "target_specific_residual": "Native fixed32-byte aligned prefix differs from PTX symbol sizes but disjointness is retained.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/hostile_shared_declaration_size_rejected.ptx",
@@ -158,7 +158,7 @@
         }
       ],
       "target_specific_residual": "PTX static array declaration grammar is target-specific; native LDS capacity is327680 bytes.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/misaligned_scalar_load.ptx",
@@ -184,7 +184,7 @@
         }
       ],
       "target_specific_residual": "The direct VMEM DWORD load rejects misalignment. Native SMEM has a distinct low-bit masking contract, which stays explicitly Unsupported rather than being mislabeled as the PTX-style alignment violation.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "native_artifacts": [
         {
           "assembly": "tests/gfx1250/fixtures/native-copy-add.s",
@@ -219,7 +219,7 @@
         }
       ],
       "target_specific_residual": "No NVIDIA-only mechanism.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/misaligned_vector_load.ptx",
@@ -245,7 +245,7 @@
         }
       ],
       "target_specific_residual": "PTX vector natural16-byte alignment is stricter than the supported native word-alignment contract and is explicitly not imposed on native code.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/negative_index_wrap_is_out_of_bounds.ptx",
@@ -271,7 +271,7 @@
         }
       ],
       "target_specific_residual": "No NVIDIA-only mechanism.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/out_of_bounds_shared_access.ptx",
@@ -304,7 +304,7 @@
         }
       ],
       "target_specific_residual": "Native dynamic window replaces the PTX static symbol; the out-of-bounds property is preserved.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/pair_sub_width_store_rejected.ptx",
@@ -330,7 +330,7 @@
         }
       ],
       "target_specific_residual": "The baseline engine rejects its Pair representation; native positive narrow-store support is documented rather than inheriting that representation failure.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/shared_array_overflow_read_is_out_of_bounds.ptx",
@@ -356,7 +356,7 @@
         }
       ],
       "target_specific_residual": "Wave32 changes physical wave ownership; all original failing lanes remain included.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/tcgen05_access_past_an_allocation_into_an_adjacent_one_is_rejected.ptx",
@@ -382,7 +382,7 @@
         }
       ],
       "target_specific_residual": "TMEM handle-relative column ownership is NVIDIA-specific; native assembly lacks a TMEM handle and does not infer scalar pointer provenance from adjacent raw addresses.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/undefined_value_nested_in_output.ptx",
@@ -408,7 +408,7 @@
         }
       ],
       "target_specific_residual": "No NVIDIA-only mechanism.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/uninitialized_shared_read_flows_to_output.ptx",
@@ -434,7 +434,7 @@
         }
       ],
       "target_specific_residual": "Native subword profile is tested independently of the PTX undefined-register representation.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/vector_straddling_adjacent_shared_arrays.ptx",
@@ -460,7 +460,7 @@
         }
       ],
       "target_specific_residual": "Native object boundaries are explicit configured premises because raw assembly metadata exposes only aggregate LDS bytes.",
-      "validation": "pending_native_end_to_end_and_coordinator_review"
+      "validation": ""
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/success/aligned_u16_access_at_2_mod_4.ptx",
@@ -486,7 +486,7 @@
         }
       ],
       "target_specific_residual": "No NVIDIA-only mechanism.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/aligned_u16_access_at_2_mod_4.out",
         "sha256": "f995988c0f4c8440dfbcab06aa89cfd862021809aef5e326116ee60794303427",
@@ -522,7 +522,7 @@
         }
       ],
       "target_specific_residual": "Native alignment is checked by its own instruction contract.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/aligned_vector_load.out",
         "sha256": "6f496dadf71970327e70b8e7781bab3897831e19e8aa87b23ebbf0aca19280ba",
@@ -558,7 +558,7 @@
         }
       ],
       "target_specific_residual": "PTX declaration/empty-kernel spelling is not a native runtime obligation.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/array_overlapping_module_global_window_rejected.out",
         "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -591,7 +591,7 @@
         }
       ],
       "target_specific_residual": "The PTX named byte-pair representation is not reused; both actual native widths receive direct tests.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/byte_pair_round_trips_through_shared_memory_at_native_16_bit_width.out",
         "sha256": "919a0eddad629f9170302544f365428ad9954939ced15f1a3fb75f75a7d6b831",
@@ -628,7 +628,7 @@
         }
       ],
       "target_specific_residual": "The nine cluster-local CTA coordinates, member counts/ranks and explicit-cluster flag outputs at baseline indices0..7,14 describe NVIDIA cluster mechanisms. No native clustered launch is claimed; only the six ordinary grid/group values receive a direct projection.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/cluster_special_registers_describe_a_single_cta_cluster.out",
         "sha256": "9ad3f64b2186eeb59499b8c4932817bad3cf8bab4b132e251b4c2176ac3bbc3c",
@@ -686,7 +686,7 @@
         }
       ],
       "target_specific_residual": "No NVIDIA-only mechanism.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/concrete_scalar_granule_splits_for_half_width_access.out",
         "sha256": "f65fa8563da5ed98bfd366d715c5eb3775fff9e1969bf0c9a33c48cb284bc63e",
@@ -722,7 +722,7 @@
         }
       ],
       "target_specific_residual": "PTX cvta grammar and its no-op address-space cast spelling are target-specific.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/cvta_to_global_accepted.out",
         "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -754,7 +754,7 @@
         }
       ],
       "target_specific_residual": "Native descriptor plus dynamic byte count replaces PTX external declaration syntax.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/extern_only_shared_placement_and_bounds.out",
         "sha256": "fdcb56374540e43d8b9fd4ad3f2b5d13f539a97673f092a279c6cd89f783f97a",
@@ -790,7 +790,7 @@
         }
       ],
       "target_specific_residual": "Native static padding and wave32 partition differ; no alias or false race is introduced.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/extern_vs_static_shared_no_false_race.out",
         "sha256": "3bc72b5b156278940b4820d48fbab9f61bbed3c8ed7477b861be54ca2dce4ac2",
@@ -826,7 +826,7 @@
         }
       ],
       "target_specific_residual": "Native FLAT-to-LDS128 transfer replaces the PTX ld.shared.v4 encoding.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/ld_shared_b128_reads_four_stored_words.out",
         "sha256": "8fd66d8d075a2bd1e07dc36318ddba2db1e588de4a13f3608150d3bda8e5ea96",
@@ -865,7 +865,7 @@
         }
       ],
       "target_specific_residual": "Cross-CTA distributed shared mapping and mapa encoding are NVIDIA-specific; no distributed LDS access is claimed.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/mapa_rank_zero_is_the_identity.out",
         "sha256": "7641216c838d34c87a54fb0579784970984ae66241528ac1adfb90485f407046",
@@ -904,7 +904,7 @@
         }
       ],
       "target_specific_residual": "No NVIDIA-only mechanism.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/region_edge_exact_fit_accesses_pass.out",
         "sha256": "6cb55571634b0a792c505d82aafd7a92b2b037631b439c194e21a957608e4393",
@@ -941,7 +941,7 @@
         }
       ],
       "target_specific_residual": "TMEM warp-quadrant addressing is NVIDIA-specific; physical wave32 ownership is disclosed, not claimed equivalent to TMEM resources.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/tcgen05_st_ld_respects_warp_quadrant_addressing.out",
         "sha256": "2e92f1ed3225964fef161f9a7be6ee522af3a898ce6b27e0332019d513899e37",
@@ -1040,7 +1040,7 @@
         }
       ],
       "target_specific_residual": "No NVIDIA-only mechanism.",
-      "validation": "pending_native_end_to_end_and_coordinator_review",
+      "validation": "",
       "baseline_golden": {
         "path": "crates/volta_pipeline/tests/ptx/success/upper_half_address_space_access_in_bounds.out",
         "sha256": "1e69a22e803655ec8236957a80b6941f84e8e3b4000420434b2ba5820b795210",

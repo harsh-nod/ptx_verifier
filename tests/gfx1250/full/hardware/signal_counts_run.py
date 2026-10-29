@@ -25,7 +25,7 @@ SIGNAL_COUNTS = Profile(
     ),
     patterns=8, minimum_patterns=8, maximum_patterns=8,
     gaps={name: 4 for name in KERNELS},
-    scope="Four source-verified safe named signal-count positives only: expected count 2 to 1 within one initialization lifetime, zero/no-change, NULL no-op and all 127 arrivals at the 7-bit maximum. Eight repetitions check all 40 constant F32 outputs exactly, 128 untouched tail bytes and 262144 allocation-guard bytes, with zero input bytes. No ambiguous equality, reserved-bit, invalid or deadlock source is launched; software proof and coordinator acceptance are separate gates.",
+    scope="Four source-verified safe named signal-count positives only: expected count 2 to 1 within one initialization lifetime, zero/no-change, NULL no-op and all 127 arrivals at the 7-bit maximum. Eight repetitions check all 40 constant F32 outputs exactly, 128 untouched tail bytes and 262144 allocation-guard bytes, with zero input bytes. No ambiguous equality, reserved-bit, invalid or deadlock source is launched. Software proof uses separate graph and mathematical checks.",
 )
 
 if __name__ == "__main__":

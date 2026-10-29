@@ -53,7 +53,6 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "coordinator_validated_declared_native_scope",
       "notes": [],
       "expected_output_footprint": {
         "array": "out",
@@ -113,7 +112,6 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "coordinator_validated_declared_native_scope",
       "notes": [],
       "expected_output_footprint": {
         "array": "out",
@@ -173,7 +171,6 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "coordinator_validated_declared_native_scope",
       "notes": [],
       "expected_output_footprint": {
         "array": "out",
@@ -241,7 +238,6 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "coordinator_validated_declared_native_scope",
       "notes": [],
       "expected_output_footprint": {
         "array": "out",
@@ -318,7 +314,6 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "coordinator_validated_declared_native_scope",
       "notes": [],
       "expected_output_footprint": {
         "array": "out",
@@ -387,7 +382,6 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "coordinator_validated_declared_native_scope",
       "notes": [],
       "expected_output_footprint": {
         "array": "out",
@@ -456,7 +450,6 @@
         "ptr:out"
       ],
       "dtype": "OCP E4M3 1byte inputs; F16 2byte outputs; F32 arithmetic",
-      "status": "coordinator_validated_declared_native_scope",
       "notes": [
         "Preserves all64 output rows, OCP E4M3 external inputs and the fullK4096 reduction with an ordinary wave-ALU/LDS implementation. Native FP8 MFMA pipeline mechanics are exercised separately; this kernel does not use MFMA or claim equal PTX instruction scheduling."
       ],

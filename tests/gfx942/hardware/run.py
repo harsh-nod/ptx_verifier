@@ -38,7 +38,6 @@ def main():
     for suffix in ("hip", "s", "o", "hsaco"):
         names += [p.name for p in sorted(directory.glob("*."+suffix))]
     result = {"schema_version": 1, "target": "gfx942", "host": socket.gethostname(),
-              "validated_by": "fixture agent; coordinator independent review/replay required",
               "scope": "Exact genuinely compiled assembly loaded through HIP. All output elements, output guards and unchanged inputs checked. Independent ordinary CPU references; no symbolic safety/equivalence claim or whole-target parity claim.",
               "commands": [compile_result, observed],
               "sha256": {name: sha(directory/name) for name in names},

@@ -34,8 +34,7 @@ all earlier writes, including writes hidden under an intervening read node.
 Missing completion or publication still produces an actual Global ReadWrite
 conflict. Native scope rules and all legacy AMD rules remain separate.
 
-`references.json` pins supporting source-reference rows and keeps their
-completion pending coordinator review. Shared-source transport is explicitly
+`references.json` pins supporting reference sources and exact native assertions. Shared-source transport is explicitly
 separate from the original Global-source obligation. The no-output destination
 test alone does not establish the opposite read-side storage lifetime or a
 target-specific deallocation API.

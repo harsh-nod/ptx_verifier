@@ -311,7 +311,7 @@ def validate_registry(
         require(
             case["block"] == (native_block if matrix else original["block"])
             and case["grid"] == original["grid"],
-            f"{identifier}: native launch requires an explicitly reviewed mapping, not an implicit override",
+            f"{identifier}: native launch requires an explicit mapping, not an implicit override",
         )
         dimensions = expected_dimensions(row)
         require(
@@ -413,7 +413,7 @@ def validate_registry(
         params = [pointer_mapping.get(p, p) for p in original["params"]]
         require(
             case["params"] == params,
-            f"{identifier}: native ABI requires an explicit reviewed mapping",
+            f"{identifier}: native ABI requires an explicit mapping",
         )
         if plans:
             require(
@@ -484,10 +484,10 @@ def validate_registry(
             == (launch_config(case) | {"description": case["mapping"]}),
             f"{identifier}: public launch JSON differs from registration",
         )
-    pending = sorted(set(rows) - registered)
+    missing = sorted(set(rows) - registered)
     require(
-        data.get("pending_baseline_ids") == pending,
-        "pending original cases were hidden",
+        data.get("missing_baseline_ids") == missing,
+        "missing original cases were hidden",
     )
     require(
         data.get("registered_original_outputs")
@@ -495,10 +495,10 @@ def validate_registry(
         "registered output count changed",
     )
     require(
-        not require_all or not pending,
-        "full original 32 registration is incomplete: " + ",".join(pending),
+        not require_all or not missing,
+        "full original 32 registration is incomplete: " + ",".join(missing),
     )
-    return pending
+    return missing
 
 
 def main() -> int:
@@ -509,14 +509,14 @@ def main() -> int:
     args = parser.parse_args()
     try:
         rows = validate_inventory(json.loads(args.inventory.read_text()))
-        pending = validate_registry(
+        missing = validate_registry(
             json.loads(args.registry.read_text()),
             rows,
             args.registry.parent,
             require_all=args.require_all,
         )
         print(
-            f"Metadata consistent: original 32 cases /395394 outputs; registered={32 - len(pending)}, missing={len(pending)}. No execution/proof claim."
+            f"Metadata consistent: original 32 cases /395394 outputs; registered={32 - len(missing)}, missing={len(missing)}. No execution/proof claim."
         )
         return 0
     except (KeyError, TypeError, ValueError, OSError) as error:

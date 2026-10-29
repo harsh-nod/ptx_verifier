@@ -1,12 +1,9 @@
 # Native gfx942 compiler and hardware controls
 
-Local validation run artifacts are not retained. Source fixtures and reproduction workflows remain available; removed observations do not establish current acceptance.
-
-These four HIP translation units were compiled for `gfx942` on an actual
-MI300X host. Their `.s` files are unchanged compiler output, assembled with
-`llvm-mc --mcpu=gfx942` and loaded through the HIP module API. This is bounded
-CDNA3 coverage. It does not establish complete gfx942 instruction support or
-parity with every gfx950 workload and integration fixture.
+These HIP translation units and unchanged compiler assembly exercise the CDNA3
+backend. CPU tests use the native analyzer, graph checker and equivalence
+engine; the device runner loads code objects through the HIP module API.
+The fixtures cover selected forms rather than complete gfx942 ISA support.
 
 `cases.json` contains eight kernel configurations and independent mathematical
 specifications. `fixtures/compiler-provenance.json` pins HIP, assembly, object
@@ -16,7 +13,7 @@ establish value semantics or safety.
 
 | Native behavior | Checked footprint |
 | --- | --- |
-| Copy and add | Symbolic tails at blocks 1, 63, 64, 65, 128 and 256; hardware also covers complete grids with lengths 1, 65 and 257, three input patterns |
+| Copy and add | Symbolic tails at blocks 1, 63, 64, 65, 128 and 256; the device runner checks complete grids with lengths 1, 65 and 257, three input patterns |
 | Cross-wave LDS exchange | All 128 outputs equal the opposite wave's inputs; removing the actual publication barrier produces a typed Shared conflict |
 | Wave reduction | Two outputs, each containing its own 64 input values exactly once |
 | Packed local IDs | All 24 coordinates of block 4×3×2 |
@@ -42,14 +39,16 @@ volta verify tests/gfx942/fixtures/native-copy-add.s tests/gfx942/specs/copy.spe
   --param ptr:x --param ptr:out --param int:65
 ```
 
-To reproduce physical validation, copy the four `fixtures/native-*.hip` files,
-`compile_fixtures.py`, `hardware/native.cpp`, `hardware/run.py` and
-`validate_mutations.py` into a new directory on an MI300X machine, then run:
+For compilation and numerical checks on a matching gfx942 host, use a temporary
+directory. Compilation and mutation assembly need ROCm LLVM; `hardware/run.py`
+also needs a GPU and the HIP runtime:
 
 ```sh
-python3 compile_fixtures.py "$fixture_dir"
-python3 run.py "$fixture_dir"
-python3 validate_mutations.py "$fixture_dir"
+fixture_dir="$(mktemp -d /tmp/gfx942-fixtures.XXXXXX)"
+cp tests/gfx942/fixtures/*.hip tests/gfx942/hardware/native.cpp "$fixture_dir/"
+python3 tests/gfx942/compile_fixtures.py "$fixture_dir"
+python3 tests/gfx942/validate_mutations.py "$fixture_dir"
+python3 tests/gfx942/hardware/run.py "$fixture_dir"
 ```
 
 `fixtures/mutations.json` records successful assembly of four exact native
@@ -63,4 +62,4 @@ CDNA4 OCP value semantics. No FP8 support is claimed by this fixture set.
 The symbolic tests retain the existing mathematical-real contract, excluding
 IEEE rounding/NaN/denormal equivalence. They analyze workgroup zero. Complete
 physical copy/add grids and guarded numeric tests do not extend that proof
-scope. Existing gfx950 corpus and historical evidence remain unchanged.
+scope. Keep generated logs and device receipts outside the repository.

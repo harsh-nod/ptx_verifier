@@ -11,9 +11,9 @@ ROOT = Path(__file__).resolve().parents[3] / "tests/gfx1250/full"
 MANIFEST = json.loads((ROOT / "cases.json").read_text())
 CASES = MANIFEST["cases"]
 assert CASES, "an empty native registry is not acceptance"
-assert len(CASES) + len(MANIFEST["pending_baseline_ids"]) == 32
+assert len(CASES) + len(MANIFEST["missing_baseline_ids"]) == 32
 if "VOLTA_GFX1250_ORIGINAL_FULL" in os.environ:
-    assert not MANIFEST["pending_baseline_ids"], "full32 gate requires all original registrations"
+    assert not MANIFEST["missing_baseline_ids"], "full32 gate requires all original registrations"
 else:
     CASES = [case for case in CASES if case["baseline_id"] <= "W18"]
     assert len(CASES) == 18, "fast gate requires every first-family original case"

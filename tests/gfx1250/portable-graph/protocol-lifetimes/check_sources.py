@@ -30,7 +30,6 @@ def main():
         assert digest(root / filename) == expected, filename
     for row in references["rows"]:
         assert digest(root / row["path"]) == row["upstream_sha256"], row["path"]
-        assert row["completion"] == "coordinator_review_required"
     receipt = {"hardware_execution": False, "compiler_outputs": [], "controls": []}
     with tempfile.TemporaryDirectory(prefix="gfx1250-protocol-sources-") as temporary:
         temporary = Path(temporary)

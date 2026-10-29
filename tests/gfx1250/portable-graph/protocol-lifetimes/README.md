@@ -13,8 +13,8 @@ cargo test --release -p volta_pipeline --test gfx1250_protocol_lifetime_tests
 ```
 
 All scalar inputs that select a harmful protocol are CPU-only test controls.
-Compilation does not validate execution. No hardware run is claimed, and
-coordinator dispositions remain pending in `references.json`.
+Compilation does not validate execution. `references.json` links source
+contracts and complete output/negative assertions.
 
 | Source control | Complete safe behavior | Adverse behavior |
 | --- | --- | --- |
@@ -33,10 +33,9 @@ signal-time count updates. PTX's per-arrival thread
 count and count changes within successive phases are distinct from the
 new-lifetime control. In particular, the
 expected3/arrived2 deadlock is supporting evidence for counted progress, and
-does not stand in for a mixed-count arrival instruction. The three baseline
-count rows therefore cite those actual signal-time controls separately,
-including the disputed public equality boundary, rather than treating this
-new-lifetime control as an encoding of mixed per-arrival counts.
+does not stand in for a mixed-count arrival instruction. The reference mappings cite signal-time controls separately, including the
+disputed public equality boundary; a new-lifetime control does not implement
+mixed per-arrival counts.
 
 Native whole-wave END and PTX individual-lane exit differ. These source controls
 retain the completed memory direction and 42 marker, while the existing

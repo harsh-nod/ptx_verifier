@@ -57,7 +57,7 @@ class PythonProofControls(unittest.TestCase):
             elif kind == "duplicate":
                 data["cases"][-1] = data["cases"][0]
             else:
-                data["pending_baseline_ids"] = ["W32"]
+                data["missing_baseline_ids"] = ["W32"]
             with self.assertRaises(ValueError):
                 DRIVER.selected_cases(data, [])
 

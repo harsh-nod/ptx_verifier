@@ -143,6 +143,5 @@
       "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
       "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)"
     }
-  },
-  "completion": "coordinator_review_required"
+  }
 }

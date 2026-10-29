@@ -10,7 +10,7 @@ no other Volta crate.
   by-value payload sizes and execution restrictions stay in the selected analyzer.
   Both producers re-export these shared types for compatibility.
 - **`Span`** (`lib.rs`): a source location as a `(low, high)` byte-offset pair.
-- **`Locate<E>`** (`lib.rs`): an error wrapper that adds an optional span and
+- **`report::Locate<E>`** (`report.rs`): an error wrapper that adds an optional span and
   file path to an error kind `E`. Each crate defines an error kind enum and
   aliases `Locate<Kind>` as its error type. As an error travels up,
   `locate_span` and `locate_path` attach a span or path if none is set yet, so
@@ -25,3 +25,7 @@ no other Volta crate.
   `volta` binary writes (`<unix-seconds>-<pid>-<command>.log` under
   `--log-dir`, default `volta-logs/`). With the `logging` feature, `tee`
   mirrors an `env_logger` target into it.
+
+```sh
+cargo test -p volta_common
+```

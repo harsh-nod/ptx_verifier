@@ -146,7 +146,7 @@
       "buffer": "Buffer-fat/resource robust-OOB path lines2176-2188 has its own conditions and cannot be inferred from ordinary GLOBAL."
     },
     "required_before_change": [
-      "Coordinator safe physical in-bounds positive probe on gfx1250",
+      "",
       "Narrow target+ordinaryGLOBAL context, not a global validate_address relaxation",
       "Whole named-allocation footprint, initialized-byte definedness and read-only bounds unchanged",
       "Retain legacy gfx942/gfx950 current modeled envelope unless separately reviewed"

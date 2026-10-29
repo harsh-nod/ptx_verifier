@@ -50,12 +50,12 @@ fn cases() -> Vec<Value> {
         32
     );
     assert_eq!(
-        cases.len() + manifest["pending_baseline_ids"].as_array().unwrap().len(),
+        cases.len() + manifest["missing_baseline_ids"].as_array().unwrap().len(),
         32
     );
     if std::env::var_os("VOLTA_GFX1250_ORIGINAL_FULL").is_some() {
         assert!(
-            manifest["pending_baseline_ids"]
+            manifest["missing_baseline_ids"]
                 .as_array()
                 .unwrap()
                 .is_empty(),
@@ -83,7 +83,7 @@ fn all_original_spec_registrations_parse_and_declare_the_complete_output_shapes(
     let cases = manifest["cases"].as_array().unwrap();
     assert_eq!(cases.len(), 32);
     assert!(
-        manifest["pending_baseline_ids"]
+        manifest["missing_baseline_ids"]
             .as_array()
             .unwrap()
             .is_empty()

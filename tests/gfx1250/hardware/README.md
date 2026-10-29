@@ -77,8 +77,7 @@ reject incomplete manifests, changed sources, wrong ABI/layout, incomplete
 results, identity overrides and stale PASS receipts. The common discovery
 command above runs these alongside the seven core-runner controls.
 
-## Coordinator acceptance
+## Generated results
 
-Device-run records and machine-specific observations are not retained. Run the
-commands above on a matching device to obtain results for the revision under
-review; software acceptance and hardware numerical checks remain separate.
+Keep device-run records and machine identities outside the repository. Software
+graph/equivalence checks and numerical device checks exercise different behavior.

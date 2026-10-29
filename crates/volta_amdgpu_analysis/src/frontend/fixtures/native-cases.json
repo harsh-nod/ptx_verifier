@@ -67,7 +67,6 @@
         "two MFMA tiles",
         "repeated workgroup barriers"
       ],
-      "status": "coordinator_validated_declared_native_scope",
       "notes": [
         "Reduced matrix mechanism coverage; does not close full-shape baseline workload parity."
       ],
@@ -145,7 +144,6 @@
         "two MFMA tiles",
         "repeated workgroup barriers"
       ],
-      "status": "coordinator_validated_declared_native_scope",
       "notes": [
         "Reduced matrix mechanism coverage; does not close full-shape baseline workload parity."
       ],
@@ -218,7 +216,6 @@
         "bytes": 1024
       },
       "reduced_case": true,
-      "status": "coordinator_validated_declared_native_scope",
       "expected_native_outcome": "RACE-FREE*",
       "validation_evidence": {
         "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
@@ -273,7 +270,6 @@
         "bytes": 96
       },
       "reduced_case": false,
-      "status": "coordinator_validated_declared_native_scope",
       "expected_native_outcome": "RACE-FREE",
       "validation_evidence": {
         "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",

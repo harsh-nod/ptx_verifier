@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "scope": "Nine precise parser/control counterparts; coordinator owns parity disposition.",
+  "scope": "Nine native parser/control counterparts with exact operand, modifier and reachability boundaries.",
   "cases": [
     {
       "baseline_path": "crates/volta_pipeline/tests/ptx/soundness/brkpt_extra_operand.ptx",

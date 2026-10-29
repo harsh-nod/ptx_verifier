@@ -49,8 +49,6 @@
       "spec": "specs/copy.spec",
       "expected_outputs": 65,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "source_sha256": "23e509c17429f8a65722928df3271b6102906ae7afc86263cd288fea444cb136",
       "assembly_sha256": "d24b4c3c354d99405265eccef632e2108e4a5719faed14de2d69e721a1b4aff9",
       "spec_sha256": "035ae94161202624eb5cd4580136b470f6f7e44439ab9d55a85dee5737402456"
@@ -109,8 +107,6 @@
       "spec": "specs/add.spec",
       "expected_outputs": 65,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "source_sha256": "23e509c17429f8a65722928df3271b6102906ae7afc86263cd288fea444cb136",
       "assembly_sha256": "d24b4c3c354d99405265eccef632e2108e4a5719faed14de2d69e721a1b4aff9",
       "spec_sha256": "aa5269c5cdc8232618fc8c63705d77cd79f896cfbda0f3e6be83356565ded080"
@@ -161,8 +157,6 @@
       "spec": "specs/exchange.spec",
       "expected_outputs": 64,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "source_sha256": "139885bae4ac30332eacdbe9e39a68da60b2a350815028eece67fd3ab7dde535",
       "assembly_sha256": "845841d12d12f785a0e0bdd70ca8afdf7a21d31687d2d0593f4d4c7fe001f176",
       "spec_sha256": "fbcd282e02d953af4bcd7ee20b52b1811cb92fe7a55623fe06e04962a414864d"
@@ -213,8 +207,6 @@
       "spec": "specs/reduce.spec",
       "expected_outputs": 2,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "source_sha256": "139885bae4ac30332eacdbe9e39a68da60b2a350815028eece67fd3ab7dde535",
       "assembly_sha256": "845841d12d12f785a0e0bdd70ca8afdf7a21d31687d2d0593f4d4c7fe001f176",
       "spec_sha256": "541c057a722aa829e9da05a39cd9ad8b40f230f3c2d6b0c4109190f88bcc699b"
@@ -258,8 +250,6 @@
       "spec": "specs/ids.spec",
       "expected_outputs": 24,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "source_sha256": "139885bae4ac30332eacdbe9e39a68da60b2a350815028eece67fd3ab7dde535",
       "assembly_sha256": "845841d12d12f785a0e0bdd70ca8afdf7a21d31687d2d0593f4d4c7fe001f176",
       "spec_sha256": "13e6b33467f4ddf2888e7797dbdd93aacb67be0e16ed8ea991dba559b3457b88"
@@ -322,8 +312,6 @@
       "spec": "specs/wmma-f32.spec",
       "expected_outputs": 256,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "input_dtype": "f32",
       "layout_reference": "Public FlyDSL f37f7a2 MmaAtom.cpp AB and CD layouts; independent oracles.py",
       "complete_logical_shape": [
@@ -394,8 +382,6 @@
       "spec": "specs/wmma-b16.spec",
       "expected_outputs": 256,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "input_dtype": "f16",
       "layout_reference": "Public FlyDSL f37f7a2 MmaAtom.cpp AB and CD layouts; independent oracles.py",
       "complete_logical_shape": [
@@ -466,8 +452,6 @@
       "spec": "specs/wmma-b16.spec",
       "expected_outputs": 256,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "input_dtype": "bf16",
       "layout_reference": "Public FlyDSL f37f7a2 MmaAtom.cpp AB and CD layouts; independent oracles.py",
       "complete_logical_shape": [
@@ -534,8 +518,6 @@
       "spec": "specs/gemm-pipeline.spec",
       "expected_outputs": 512,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "input_dtype": "f16",
       "complete_logical_shape": [
         32,
@@ -592,8 +574,6 @@
       "spec": "specs/tensor-roundtrip.spec",
       "expected_outputs": 128,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "descriptor_profile": "F32 2D64x1 stride64 no pad/iterate/atomic/multicast; LDS256B reused2stages; full128output",
       "source_sha256": "845a99a7f59f8db92d0bed7b0feccd3ce30f8183814fa6c5927d14482d65e4b5",
       "assembly_sha256": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
@@ -662,8 +642,6 @@
       "spec": "specs/attention-small.spec",
       "expected_outputs": 512,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "complete_logical_shape": [
         16,
         32,
@@ -720,8 +698,6 @@
       "spec": "specs/transpose.spec",
       "expected_outputs": 64,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "transport_scope": "All64 16-bit elements = all32 packedwords, exactbits transported through LDS, native lane layout differs NVIDIA movmatrix",
       "source_sha256": "e6ce43b03bd3c7532960ff8065625cf4191b2fb6047d8b5acd2a7f68ac17e059",
       "assembly_sha256": "34e66779492f5474dd3e412a44d4d81e82ebf51909943c8c87255672ea9adaa3",
@@ -801,8 +777,6 @@
       ],
       "expected_outputs": 4,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "launch_config": "launch/high64_mul_mad.json",
       "expected_constants": [
         18446744073709551614,
@@ -891,8 +865,6 @@
       ],
       "expected_outputs": 4,
       "required": true,
-      "software_validation": "coordinator_verified_complete_graph_and_outputs; independent_full_spec_or_exact_integer_oracle",
-      "hardware_validation": "not_retained",
       "launch_config": "launch/high64_signed_mul_mad.json",
       "expected_constants": [
         0,

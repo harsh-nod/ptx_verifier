@@ -1,17 +1,14 @@
 # Native tensor edge and metadata counterparts
 
-`cases.json` reviews 18 existing source-reference fixtures: five tensor edge/layout
-rows and 13 metadata/lifetime rows. It preserves their source hashes, original
-assertions and goldens, with literal native test mappings and narrow target-specific
-residuals. All dispositions await coordinator validation. No issue or parent ledger
-completion status is changed here.
+`cases.json` maps tensor edge/layout and metadata/lifetime reference fixtures
+to their native controls. It pins source hashes, assertions, complete goldens
+and the exact target-specific differences.
 
 Four genuine HIP modules, ten entry points and their unchanged compiler assembly
 are pinned in `compiler-provenance.json`. The compiler, assembler and linker
 identities, commands, source/assembly/object/code-object hashes and successful
-encoding stages are recorded. Encoding alone is not a semantic acceptance gate.
-The harmful variants and all seven assembler-legal mutations are CPU-only. This
-directory supplies no hardware acceptance receipt.
+encoding stages are recorded. Encoding alone does not establish graph safety
+or equivalence. Harmful variants and assembler-legal mutations are CPU-only.
 
 ## Exact payload and launch
 
@@ -49,7 +46,7 @@ genuine compiler emits explicit `scope:SCOPE_SYS` FLAT accesses, completed with
 their actual counters before the CTA rendezvous. This requires the distinct
 gfx125x cache-forwarding contract in the pinned LLVM memory-model reference. A
 legacy CDNA workgroup-scope or single-CU assumption cannot substitute for it;
-an `Unknown` ordered-copy result does not satisfy this positive test.
+the positive test requires a verified ordered copy.
 
 ## Ordering and boundary obligations
 

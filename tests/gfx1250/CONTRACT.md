@@ -1,13 +1,10 @@
 # Implemented gfx1250 contract
 
-This is the selected native model, including the later issue #21 extensions.
-The bounded issue #13 acceptance corpus remains distinct from the
-[original32 and portable-feature contract](full-parity/README.md).
-See [hardware reproduction](hardware/README.md)
-for optional numerical checks; device-run records are not retained. CPU analysis
-is usable without ROCm once built.
-Compiler encodings, independent semantic checks and device execution are separate
-evidence classes.
+This document defines the selected native execution and checking model.
+[Full-workload mappings](full-parity/README.md) and smaller mechanism fixtures
+use the same target model with different input/output contracts. CPU analysis
+is usable without ROCm once built. [Device runners](hardware/README.md) provide
+separate numerical checks.
 
 | Boundary | Implemented envelope |
 | --- | --- |
@@ -34,16 +31,16 @@ Initial ABI state includes only defined architected TTMP fields, descriptor
 user-SGPR inputs, packed local IDs and recognized hidden launch values. Runtime
 facilities and padding remain undefined unless metadata/configuration defines
 them. Argument count/layout, required dimensions, descriptor resources and
-static/dynamic LDS bounds are checked before acceptance.
+static/dynamic LDS bounds are checked before execution.
 
 Unsupported or inconclusive modes include clusters/multiple workgroups,
 `tg_split`, expert scheduling, `_isfirst`, reinitialization with live named joins,
 privileged barriers, arbitrary raw symbolic format
 reinterpretation, legacy CDNA cache visibility certificates, advanced tensor
 padding/multicast/gather/iteration/atomic-barrier modes and nonzero tensor waits.
-They are not projected into a weaker workgroup-zero safety claim. A required
-positive becoming unsupported fails acceptance; deliberate unsupported controls
-remain a distinct corpus category.
+They are not projected into a weaker workgroup-zero safety claim. Positive
+tests require a complete verified execution; deliberate unsupported controls
+remain a distinct test category.
 
 The signal-time count field supports explicit M0 bits22:16 with nonzero values
 1–127; zero preserves the current count and NULL remains a no-op. Equality
@@ -54,16 +51,15 @@ pairs also remain inconclusive; identical explicit setters may commute.
 Each instruction records target-selected source spans, physical masks and
 register accesses. Semantic records identify exact counter charges, memory
 footprints, sources, destinations and instruction associations. Complete traces
-must end each wave. Missing/forged records cannot turn an empty check suite into
-acceptance. Waits can establish completion; a barrier or ordinary trace order
+must end each wave. Missing or forged records prevent positive graph
+verification. Waits can establish completion; a barrier or ordinary trace order
 cannot fabricate it. Only completed memory effects participate in split-barrier
 publication, and replay-source retention is a separate readiness obligation.
 
 The source pins in `fixtures/semantic-references.json` provide reachable public
 LLVM ABI, counter, execution, memory and DMA contracts plus independent FlyDSL
-layout formulas. Local compiler-source snapshots are secondary comparisons.
-Compiler probes in `fixtures/boundary-assembler.json` do not certify semantic
-execution. Full native tests use independent dense/basis formulas and typed
+layout formulas. Compiler probes in `fixtures/boundary-assembler.json` do not
+certify semantic execution. Full native tests use independent dense/basis formulas and typed
 assemble-valid harmful mutations. Exact integers are compared without f64
 coercion. All positive tests require every configured output, not a sample.
 
@@ -72,7 +68,7 @@ F32 mathematical inputs. Their dimensions and dtype/shape exclusions are explici
 in `portable-cases.json`; BitDelta uses concrete index-generated packed words.
 These ports are family coverage, not original PTX binary/shape/dtype equivalence.
 The separate original32 source registry retains all original configured extents,
-storage widths and output coordinates through explicit reviewed native mappings.
+storage widths and output coordinates through explicit native mappings.
 Its [stage table](full-parity/stage-support.md) identifies parser, lowering,
 value, event and checker obligations; source registration alone proves none of
 the required full-workload gates.

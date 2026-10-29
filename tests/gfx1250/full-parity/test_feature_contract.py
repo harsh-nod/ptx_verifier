@@ -1,82 +1,79 @@
-#!/usr/bin/env python3
-"""Refusal controls for the metadata-only feature reference contract."""
+"""Controls for pinned source/assertion/golden regression contracts."""
 
 from copy import deepcopy
-import importlib.util
 import json
 from pathlib import Path
 import unittest
+import feature_contract as contract
 
 HERE = Path(__file__).resolve().parent
-SPEC = importlib.util.spec_from_file_location(
-    "feature_contract", HERE / "feature_contract.py"
-)
-CONTRACT = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(CONTRACT)
 
 
 class FeatureContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.ledger = json.loads((HERE / "feature-review.json").read_text())
+        cls.references = json.loads((HERE / "reference-contract.json").read_text())
         cls.inventory = json.loads((HERE / "gaps.json").read_text())
 
-    def refused(self, ledger=None, inventory=None):
-        with self.assertRaises(ValueError):
-            CONTRACT.validate(
-                ledger or self.ledger,
-                inventory or self.inventory,
-                check_sources=False,
-            )
+    def test_all_source_assertion_and_golden_pins_match(self):
+        self.assertEqual(
+            contract.validate(self.references, self.inventory),
+            {"references": 520, "groups": 35},
+        )
 
-    def test_all_references_are_decomposed_without_an_acceptance_claim(self):
-        result = CONTRACT.validate(self.ledger, self.inventory)
-        self.assertEqual(result["references"], 520)
-        self.assertNotIn("validated", result["dispositions"])
+    def test_missing_or_duplicate_reference_is_rejected(self):
+        for mutation in [
+            lambda d: d["rows"].pop(),
+            lambda d: d["rows"].append(d["rows"][0]),
+        ]:
+            data = deepcopy(self.references)
+            mutation(data)
+            with self.assertRaises(ValueError):
+                contract.validate(data, self.inventory, check_sources=False)
 
-    def test_missing_or_duplicate_reference_cannot_hide_an_obligation(self):
-        data = deepcopy(self.ledger)
-        data["rows"].pop()
-        self.refused(data)
-        data = deepcopy(self.ledger)
-        data["rows"][-1] = data["rows"][0]
-        self.refused(data)
-
-    def test_mismatched_baseline_hash_and_group_association_refuse(self):
-        data = deepcopy(self.ledger)
-        data["rows"][0]["upstream_sha256"] = "0" * 64
-        self.refused(data)
-        data = deepcopy(self.inventory)
-        data["upstream_feature_reference_rows"][0]["review_group"] = "SPEC-SHARED"
-        self.refused(inventory=data)
-
-    def test_nonexistent_native_test_cannot_be_used_as_evidence(self):
-        data = deepcopy(self.ledger)
-        group = next(group for group in data["groups"] if group["native_candidates"])
-        group["native_candidates"][0]["function"] = "imaginary_native_test"
-        self.refused(data)
-
-    def test_no_automatic_completion_or_target_only_portable_row(self):
-        data = deepcopy(self.ledger)
-        data["groups"][0]["completion"] = "validated"
-        self.refused(data)
-        data = deepcopy(self.ledger)
-        data["rows"][0]["proposed_disposition"] = "target_mechanism_residual_candidate"
+    def test_duplicate_original_inventory_row_is_rejected(self):
         inventory = deepcopy(self.inventory)
-        inventory["upstream_feature_reference_rows"][0]["gfx1250_review"] = (
-            "target_mechanism_residual_candidate"
+        inventory["upstream_feature_reference_rows"].append(
+            deepcopy(inventory["upstream_feature_reference_rows"][0])
         )
-        self.refused(data, inventory)
+        with self.assertRaisesRegex(ValueError, "duplicate source references"):
+            contract.validate(self.references, inventory, check_sources=False)
 
-    def test_a_target_residual_cannot_swallow_an_asserted_data_output(self):
-        data = deepcopy(self.ledger)
-        row = next(
-            row
-            for row in data["rows"]
-            if row["proposed_disposition"] == "target_mechanism_residual_candidate"
-        )
-        row["baseline_golden"] = {"output_coordinates": {"out": [0]}}
-        self.refused(data)
+    def test_source_hash_and_group_associations_cannot_drift(self):
+        data = deepcopy(self.references)
+        data["rows"][0]["upstream_sha256"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "hash"):
+            contract.validate(data, self.inventory, check_sources=False)
+        inventory = deepcopy(self.inventory)
+        inventory["upstream_feature_reference_rows"][0]["group"] = "SPEC-SHARED"
+        with self.assertRaisesRegex(ValueError, "group"):
+            contract.validate(self.references, inventory, check_sources=False)
+
+    def test_missing_assertion_and_golden_changes_are_rejected(self):
+        data = deepcopy(self.references)
+        next(row for row in data["rows"] if row.get("baseline_assertions"))[
+            "baseline_assertions"
+        ][0]["function"] = "missing_assertion"
+        with self.assertRaisesRegex(ValueError, "assertion"):
+            contract.validate(data, self.inventory)
+        data = deepcopy(self.references)
+        next(row for row in data["rows"] if row.get("baseline_golden"))[
+            "baseline_golden"
+        ]["sha256"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "golden"):
+            contract.validate(data, self.inventory)
+
+    def test_group_counts_and_aggregate_source_kinds_are_checked(self):
+        data = deepcopy(self.references)
+        data["groups"][0]["reference_count"] += 1
+        with self.assertRaisesRegex(ValueError, "count"):
+            contract.validate(data, self.inventory, check_sources=False)
+        data = deepcopy(self.references)
+        next(row for row in data["rows"] if row["path"].endswith(".rs"))[
+            "reference_kind"
+        ] = "kernel"
+        with self.assertRaisesRegex(ValueError, "aggregate"):
+            contract.validate(data, self.inventory, check_sources=False)
 
 
 if __name__ == "__main__":

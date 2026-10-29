@@ -1,3 +1,5 @@
+# Full K4096 matrix fixtures
+
 These six native kernels retain the W27–W32 input storage and full K4096
 computations. `matrix-compiler-provenance.json` pins the actual gfx1250 compiler,
 assembly, object and linked code object. Compilation and assembly establish no
@@ -30,8 +32,8 @@ reads its result or overwrites a source/result register. Scalar instructions,
 memory waits and split barriers do not count. The compile uses the default
 gfx1250 wave32 mode without feature overrides or source mode-register writes;
 the spacing does not depend on an unverified mode exemption. The exact-assembly
-frontend test checks all WMMA sites retain it. Regenerated assembly and code
-object hashes invalidate earlier numerical receipts for these kernels.
+frontend test checks all WMMA sites retain it. Regeneration must update the
+registered assembly and code-object hashes.
 `ctaid.x/y` select 256-row/column tiles. A selected CTA0 launch uses grid1x1x1;
 the source has no dependency on grid extent. Grid16x16 covers the full matrix.
 

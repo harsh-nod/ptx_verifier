@@ -1,6 +1,6 @@
-//! Python bindings for the Volta PTX and native AMD analysis engines (v0: `parse`,
-//! `analyze`, and `verify` - see `crates/volta_cli` for the full command
-//! set this will grow towards, notably `compare`).
+//! Python bindings for PTX and native AMD parsing, analysis and specification
+//! verification through `parse`, `analyze` and `verify`. Kernel comparison and
+//! expression/VC replay are exposed through `volta_cli`.
 
 use pyo3::prelude::*;
 

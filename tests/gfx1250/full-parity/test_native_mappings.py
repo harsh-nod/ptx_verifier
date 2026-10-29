@@ -1,4 +1,4 @@
-"""Finite source-mapping controls, independent of native runtime acceptance."""
+"""Finite source-mapping controls, for source pins, complete projections and native test references."""
 
 import copy
 import json
@@ -13,10 +13,10 @@ class MappingControls(unittest.TestCase):
     def setUpClass(cls):
         cls.contract = json.loads(mapping.DEFAULT.read_text())
         cls.ledger = json.loads(
-            Path(mapping.__file__).with_name("feature-review.json").read_text()
+            Path(mapping.__file__).with_name("reference-contract.json").read_text()
         )
 
-    def test_all24_original_rows_have_exact_source_and_test_candidates(self):
+    def test_all24_original_rows_have_exact_source_and_test_mappings(self):
         self.assertEqual(mapping.validate(self.contract, self.ledger), 24)
 
     def test_all32_matrix_references_have_pinned_properties_and_original_projections(
@@ -44,7 +44,7 @@ class MappingControls(unittest.TestCase):
             with self.assertRaises(ValueError):
                 mapping.validate(changed, self.ledger)
 
-    def test_incomplete_duplicate_stale_or_unreviewed_mappings_fail(self):
+    def test_incomplete_duplicate_stale_or_unknown_mappings_fail(self):
         mutations = {
             "missing": lambda d: d["rows"].pop(),
             "duplicate": lambda d: d["rows"].append(d["rows"][0]),
@@ -52,12 +52,7 @@ class MappingControls(unittest.TestCase):
             "unknown_test": lambda d: d["rows"][0].update(
                 test=d["test_source"] + "::missing"
             ),
-            "accepted": lambda d: d["rows"][0].update(
-                coordinator_acceptance="complete"
-            ),
-            "blanket_exclusion": lambda d: d["rows"][0].update(
-                candidate_kind="ptx_only"
-            ),
+            "unknown_kind": lambda d: d["rows"][0].update(mapping_kind="unknown"),
             "shifted_output": lambda d: d["rows"][2]["output"].update(
                 written_indices=[1, 2]
             ),
@@ -68,6 +63,49 @@ class MappingControls(unittest.TestCase):
             with self.subTest(name=name), self.assertRaises(ValueError):
                 mapping.validate(document, self.ledger)
 
+    def test_packed_output_contract_cannot_be_deleted_or_blanked(self):
+        for comparison in [None, ""]:
+            document = copy.deepcopy(self.contract)
+            row = next(
+                row
+                for row in document["rows"]
+                if row["mapping_kind"] == "native_assertion"
+            )
+            if comparison is None:
+                row.pop("comparison")
+            else:
+                row["comparison"] = comparison
+            row["reason"] = "Native counterpart"
+            row["output"]["written_indices"] = []
+            with (
+                self.subTest(comparison=comparison),
+                self.assertRaisesRegex(ValueError, "contract"),
+            ):
+                mapping.validate(document, self.ledger)
+
+    def test_property_output_contract_cannot_be_deleted_or_confused(self):
+        for name in [
+            "matrix-feature-contract.json",
+            "mechanism-lifetime-contract.json",
+        ]:
+            for mutation in ["missing", "ambiguous"]:
+                document = json.loads(mapping.DEFAULT.with_name(name).read_text())
+                row = next(
+                    row
+                    for row in document["rows"]
+                    if row["mapping_kind"] == "native_assertion"
+                )
+                if mutation == "missing":
+                    row.pop("expected_native_outcome")
+                    row["native_outputs"] = {}
+                else:
+                    row["comparison"] = "Different output schema"
+                with (
+                    self.subTest(contract=name, mutation=mutation),
+                    self.assertRaisesRegex(ValueError, "contract"),
+                ):
+                    mapping.validate(document, self.ledger)
+
     def test_remaining13_obligations_preserve_the_pinned_selection_and_original_positives(
         self,
     ):
@@ -77,7 +115,7 @@ class MappingControls(unittest.TestCase):
         for mutate in (
             lambda d: d["rows"].pop(),
             lambda d: d["source_selection"].update(sha256="0" * 64),
-            lambda d: d["source_selection"].pop("previous_proposal"),
+            lambda d: d["source_selection"].update(reference_paths=[]),
             lambda d: d["source_selection"].update(additional_paths=[]),
         ):
             changed = copy.deepcopy(document)

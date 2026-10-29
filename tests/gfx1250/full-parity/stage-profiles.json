@@ -1,14 +1,13 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "completion": "coordinator_review_required",
-  "scope": "Actual original32 typed opcode/operand-shape/modifier profiles, including both VOPD component slots. Static frontend and lowering were run; this index is not runtime PC coverage, a hardware result, or coordinator acceptance.",
+  "scope": "Original workload opcode/operand-shape/modifier profiles, including both VOPD component slots. This index validates frontend and lowering forms; it does not execute the workloads.",
   "profile_identity": "Mnemonic, typed family, operand shapes, exact named modifier values and optional VOPD slot. Register indices and immediate data values remain source-specific; their legality/semantics are never generalized from a shape.",
   "registry": {
     "path": "tests/gfx1250/full/cases.json",
-    "sha256": "5f3b7ee4dd0a18d7c5ee80909e735e29a6a7c38f61dc6f308b9e6e86f72f2fff"
+    "sha256": "92d820459b5424ab460e729b6f12bea35c8e2ab12c19b154fb3840dd7153ad3f"
   },
-  "generator_sha256": "3d88eaab050e4c99af3760ec7d937af8e8f6958423aacaca6333cc40186346c3",
+  "generator_sha256": "9ba6ee0f9ca8d4548547f819d666aaf8cdf16141aae06767d2df982db694128c",
   "inventory_example_sha256": "f583ffbf4c1ee7af758ec51be0fa9ff490d02f8400208d220c30cbf94a8521de",
   "source_pins": {
     "tests/gfx1250/full/fixtures/original-attention.hip": "a6f79415b4677af7b7d1d425661227682ddf03ebcac58ca8ea18f348e0443de3",
@@ -1008,8 +1007,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W02",
@@ -1072,8 +1070,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W03",
@@ -1134,8 +1131,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W04",
@@ -1197,8 +1193,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W05",
@@ -1260,8 +1255,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W06",
@@ -1327,8 +1321,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W07",
@@ -1397,8 +1390,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W08",
@@ -1464,8 +1456,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W09",
@@ -1534,8 +1525,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W10",
@@ -1598,8 +1588,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W11",
@@ -1695,8 +1684,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W12",
@@ -1798,8 +1786,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W13",
@@ -1905,8 +1892,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W14",
@@ -2016,8 +2002,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W15",
@@ -2144,8 +2129,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W16",
@@ -2258,8 +2242,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W17",
@@ -2348,8 +2331,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W18",
@@ -2440,8 +2422,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W19",
@@ -2590,8 +2571,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W20",
@@ -2719,8 +2699,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W21",
@@ -2881,8 +2860,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W22",
@@ -3063,8 +3041,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W23",
@@ -3276,8 +3253,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W24",
@@ -3466,8 +3442,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W25",
@@ -3648,8 +3623,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W26",
@@ -3834,8 +3808,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W27",
@@ -3977,8 +3950,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W28",
@@ -4092,8 +4064,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W29",
@@ -4223,8 +4194,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W30",
@@ -4342,8 +4312,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W31",
@@ -4501,8 +4470,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     },
     {
       "baseline_id": "W32",
@@ -4657,8 +4625,7 @@
         "path": "tests/gfx1250/full/cpu/test_prove_cli.py",
         "function": "test_snapshot_runtime_and_log_mutations_fail",
         "line": 281
-      },
-      "execution_status": "separate_coordinator_gate_not_inferred_from_inventory"
+      }
     }
   ],
   "profiles": [

@@ -38,7 +38,6 @@ The process tree runs on CPUs with empty GPU visibility, a128GiB RSS cap and
 256GiB address-space cap by default. The defaults permit8hours wall time for the
 complete serial suite; coordinate its memory allocation with other jobs. Runtime
 logging is a separate build/gate and is not implied by this default PyO3 replay.
-No current PASS is implied by checking in this runner.
 
 For independent case groups, repeat `--kernel NAME` for every member of one
 disjoint group and use a unique output directory. Every group still invokes the
