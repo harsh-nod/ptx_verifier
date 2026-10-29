@@ -156,6 +156,12 @@ these workflow tests alone do not close the original families or issue #21.
 
 ## Reviewed feature references
 
+The remaining-obligation paragraphs below and `feature-review.json` retain
+planning history. The separate [current coordinator ledger](coordinator-feature-review.md)
+records source-bound per-row decisions after independent review. Only explicitly
+accepted current rows supersede their historical planning status; preparing
+candidate rows leaves every decision pending.
+
 `feature-review.json` decomposes the 520 pinned upstream reference files into
 35 stable obligation groups. These are **365 PTX fixtures, 136 shared equivalence
 specifications, one CLI reference spec and 18 aggregate Rust source files**,

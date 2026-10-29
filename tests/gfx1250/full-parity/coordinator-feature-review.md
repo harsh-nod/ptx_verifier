@@ -14,7 +14,13 @@ python3 tests/gfx1250/full-parity/coordinator_features.py \
 Each of the 520 output rows identifies its exact owner, current native/shared
 control references and native source hashes. Historical reference hashes are
 preserved separately when source changed. The proof identity binds the canonical
-owner manifest and all those current sources. Missing actual test names, changed
+owner manifest, the current portable-review and mechanism-adjudication overlays
+for each affected row, baseline assertions/goldens, recursively included literal
+Rust fixtures/helper modules, and the finite shared Rust/Cargo implementation
+inventory. Every row retains its exact baseline assertion and computation or
+property obligation; packed positives also retain their typed complete output
+and pinned golden contract. The output shows the current overlay reasoning and
+its native assertions separately from historical planning. Missing actual test names, changed
 native source pins, overlapping owners or malformed source mappings fail the
 preparation. Preparing this artifact runs no GPU program or mathematical proof.
 

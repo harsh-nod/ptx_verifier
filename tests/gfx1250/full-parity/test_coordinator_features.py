@@ -49,13 +49,14 @@ class CoordinatorFeatureReviewTests(unittest.TestCase):
             )
         ]
 
-    def candidate(self, reviews=None, decisions=None):
+    def candidate(self, reviews=None, decisions=None, mechanism_reviews=None):
         return prepare(
             self.ledger,
             self.manifests,
             reviews or {"rows": []},
             decisions,
             root=self.root,
+            mechanism_reviews=mechanism_reviews,
         )
 
     def decisions(self):
@@ -103,6 +104,117 @@ class CoordinatorFeatureReviewTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "stale coordinator"):
             self.candidate(decisions=decisions)
 
+    def test_changed_literal_included_assembly_invalidates_the_previous_decision(self):
+        (self.root / "native.rs").write_text(
+            'const SOURCE: &str = include_str!("native.s");\n#[test]\nfn actual_control() {}\n'
+        )
+        (self.root / "native.s").write_text("original native instruction\n")
+        decisions = self.decisions()
+        (self.root / "native.s").write_text("changed native instruction\n")
+        with self.assertRaisesRegex(ValueError, "stale coordinator"):
+            self.candidate(decisions=decisions)
+
+    def test_recursive_helper_module_and_byte_includes_are_bound(self):
+        (self.root / "native.rs").write_text(
+            '#[path = "helper.rs"]\nmod helper;\n#[test]\nfn actual_control() {}\n'
+        )
+        (self.root / "helper.rs").write_text(
+            'const DATA: &[u8] = include_bytes!(r#"native.bin"#);\n'
+        )
+        (self.root / "native.bin").write_bytes(b"original")
+        decisions = self.decisions()
+        (self.root / "native.bin").write_bytes(b"changed")
+        with self.assertRaisesRegex(ValueError, "stale coordinator"):
+            self.candidate(decisions=decisions)
+
+    def test_packed_positive_keeps_its_pinned_assertion_and_typed_golden_contract(self):
+        assertion = {
+            "path": "baseline.rs",
+            "function": "packed_original",
+            "source_sha256": "historical-original-source",
+        }
+        self.ledger["rows"][0]["baseline_assertions"] = [assertion]
+        (self.root / "baseline.rs").write_text("fn packed_original() {}\n")
+        (self.root / "original.out").write_text("out[0] = 1\n")
+        self.manifests[0][1]["rows"][0].update(
+            {
+                "comparison": "every original index and no additional indices",
+                "reason": "",
+                "kernel": "packed_halves",
+                "output": {
+                    "element_width": 2,
+                    "elements": 2,
+                    "written_indices": [0, 1],
+                },
+                "golden_path": "original.out",
+                "golden_sha256": "pinned-golden",
+            }
+        )
+        row = next(
+            row for row in self.candidate()["rows"] if row["path"] == self.positive
+        )
+        self.assertEqual(row["baseline_assertions"], [assertion])
+        for detail in [
+            self.positive,
+            "packed_original",
+            "packed_halves",
+            '"element_width": 2',
+            "original.out",
+            "pinned-golden",
+        ]:
+            self.assertIn(detail, row["portable_obligation"])
+        self.assertEqual(row["coordinator_status"], "pending")
+
+    def test_changed_current_adjudication_invalidates_the_previous_decision(self):
+        reviews = {
+            "rows": [
+                {
+                    "path": self.positive,
+                    "upstream_sha256": self.positive,
+                    "status": "resolved_candidate",
+                    "completion": "coordinator_review_required",
+                    "current_observation": "Actual typed negative and complete positive",
+                }
+            ]
+        }
+        result = self.candidate(reviews=reviews)
+        decisions = self.decisions()
+        for decision in decisions["rows"]:
+            row = next(row for row in result["rows"] if row["path"] == decision["path"])
+            decision["proof_identity_sha256"] = row["proof_identity_sha256"]
+        self.candidate(reviews=reviews, decisions=decisions)
+        reviews["rows"][0]["current_observation"] = "Different boundary reasoning"
+        with self.assertRaisesRegex(ValueError, "stale coordinator"):
+            self.candidate(reviews=reviews, decisions=decisions)
+
+    def test_mechanism_adjudication_binds_its_exact_reasoning_and_source(self):
+        reviews = {
+            "rows": [
+                {
+                    "path": self.positive,
+                    "upstream_sha256": self.positive,
+                    "current_adjudication": "Exact operand grammar with actual native negative",
+                    "native_evidence": [
+                        {"path": "native.rs", "function": "actual_control"}
+                    ],
+                }
+            ]
+        }
+        result = self.candidate(mechanism_reviews=reviews)
+        row = next(row for row in result["rows"] if row["path"] == self.positive)
+        self.assertEqual(
+            row["current_review_overlays"]["mechanism_adjudication"]["row"],
+            reviews["rows"][0],
+        )
+        decisions = self.decisions()
+        for decision in decisions["rows"]:
+            row = next(row for row in result["rows"] if row["path"] == decision["path"])
+            decision["proof_identity_sha256"] = row["proof_identity_sha256"]
+        self.candidate(mechanism_reviews=reviews, decisions=decisions)
+        reviews["rows"][0]["current_adjudication"] = "Changed exact residual"
+        with self.assertRaisesRegex(ValueError, "stale coordinator"):
+            self.candidate(mechanism_reviews=reviews, decisions=decisions)
+
     def test_known_portable_gap_cannot_be_overridden_by_candidate_ownership(self):
         reviews = {
             "rows": [
@@ -114,8 +226,13 @@ class CoordinatorFeatureReviewTests(unittest.TestCase):
                 }
             ]
         }
+        result = self.candidate(reviews=reviews)
+        decisions = self.decisions()
+        for decision in decisions["rows"]:
+            row = next(row for row in result["rows"] if row["path"] == decision["path"])
+            decision["proof_identity_sha256"] = row["proof_identity_sha256"]
         with self.assertRaisesRegex(ValueError, "unresolved portable obligation"):
-            self.candidate(reviews=reviews, decisions=self.decisions())
+            self.candidate(reviews=reviews, decisions=decisions)
 
     def test_authority_and_duplicate_decisions_are_checked(self):
         decisions = self.decisions()
