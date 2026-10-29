@@ -758,6 +758,21 @@ impl Parser {
             message: message.into(),
             span,
         };
+        if directive == ".ascii" {
+            // LLVM emits printable lookup-table bytes as .ascii. Keep this
+            // profile exact: one quoted literal, no escapes or terminator.
+            let literal = args
+                .strip_prefix('"')
+                .and_then(|text| text.strip_suffix('"'))
+                .filter(|text| {
+                    text.bytes()
+                        .all(|byte| (0x20..=0x7e).contains(&byte) && !matches!(byte, b'\\' | b'"'))
+                })
+                .ok_or_else(|| {
+                    fail("module .ascii requires one plain printable ASCII string without escapes")
+                })?;
+            return self.append_object_bytes(literal.as_bytes(), span);
+        }
         let parts = instr::split_top_level(args, ',').map_err(|_| fail("malformed module data"))?;
         let numbers = parts
             .iter()
@@ -810,14 +825,21 @@ impl Parser {
         } else {
             return Err(fail("unsupported module object data directive"));
         }
+        self.append_object_bytes(&bytes, span)
+    }
+
+    fn append_object_bytes(&mut self, bytes: &[u8], span: SourceSpan) -> Result<(), ParseError> {
         let object = &mut self.module.globals[self.data_object.unwrap()];
         if (object.initial_bytes.len() as u64)
             .checked_add(bytes.len() as u64)
             .is_none_or(|size| size > MAX_OBJECT_BYTES)
         {
-            return Err(fail("module object exceeds bounded16MiB data envelope"));
+            return Err(ParseError {
+                message: "module object exceeds bounded16MiB data envelope".into(),
+                span,
+            });
         }
-        object.initial_bytes.extend(bytes);
+        object.initial_bytes.extend_from_slice(bytes);
         Ok(())
     }
 }

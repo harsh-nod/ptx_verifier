@@ -127,6 +127,56 @@ fn module_object_data_never_silently_loses_size_bytes_or_identity() {
 }
 
 #[test]
+fn plain_ascii_module_tables_preserve_every_byte_without_a_terminator() {
+    let object = ".type table,@object\n.section .rodata.cst16,\"aM\",@progbits,16\n.p2align 4\ntable:\n.ascii \"8@DHJLNPQRSTUVWX\"\n.size table,16\n";
+    let module = parse(&format!("{}\n{object}", program("s_endpgm"))).unwrap();
+    let table = &module.globals[0];
+    assert_eq!(table.symbol, "table");
+    assert_eq!(
+        (table.size, table.alignment, table.read_only),
+        (16, 16, true)
+    );
+    assert_eq!(table.initial_bytes, b"8@DHJLNPQRSTUVWX");
+    let object = ".type table,@object\n.section .rodata,\"a\",@progbits\ntable:\n.byte 1\n.ascii \"A;/*#, \"\n.ascii \"Z\"\n.size table,9\n";
+    let module = parse(&format!("{}\n{object}", program("s_endpgm"))).unwrap();
+    assert_eq!(module.globals[0].initial_bytes, b"\x01A;/*#, Z");
+    assert!(
+        parse(&format!(
+            "{}\n{}",
+            program("s_endpgm"),
+            object.replace(".size table,9", ".size table,8")
+        ))
+        .is_err()
+    );
+}
+
+#[test]
+fn ascii_profile_does_not_guess_escapes_encodings_or_string_terminators() {
+    for directive in [
+        r#".ascii missing_quotes"#,
+        r#".ascii "unterminated"#,
+        r#".ascii "two" "strings""#,
+        r#".ascii "two", "strings""#,
+        r#".ascii "a\nb""#,
+        r#".ascii "a\x41""#,
+        r#".ascii "a\"b""#,
+        ".ascii \"non-ASCII é\"",
+        ".ascii \"tab\tbyte\"",
+        r#".asciz "not modeled""#,
+        r#".string "not modeled""#,
+    ] {
+        let object = format!(
+            ".type table,@object\n.section .rodata,\"a\",@progbits\ntable:\n{directive}\n.size table,16\n"
+        );
+        assert!(
+            parse(&format!("{}\n{object}", program("s_endpgm"))).is_err(),
+            "{directive}"
+        );
+    }
+    assert!(parse(&program(".ascii \"executable data\"\ns_endpgm")).is_err());
+}
+
+#[test]
 fn shared_aperture_source_has_only_the_pinned_64bit_move_profile() {
     let module = parse(&program("s_mov_b64 s[2:3], src_shared_base\ns_endpgm")).unwrap();
     assert!(matches!(
