@@ -220,3 +220,218 @@ fn original_f16_relu_preserves_both_symbolically_selected_halves() {
     ));
     result.graph().validate().unwrap();
 }
+
+#[test]
+fn original_advanced_compiler_entries_preserve_wave32_and_have_no_scratch() {
+    for (source, count) in [
+        (
+            include_str!("../../../tests/gfx1250/full/fixtures/original-convolution.s"),
+            2,
+        ),
+        (
+            include_str!("../../../tests/gfx1250/full/fixtures/original-attention.s"),
+            3,
+        ),
+        (
+            include_str!("../../../tests/gfx1250/full/fixtures/original-sinkhorn.s"),
+            1,
+        ),
+        (
+            include_str!("../../../tests/gfx1250/full/fixtures/original-mamba.s"),
+            2,
+        ),
+    ] {
+        let module =
+            frontend::parse(source).unwrap_or_else(|error| panic!("{count} kernels: {error}"));
+        assert_eq!(module.kernels.len(), count);
+        assert_eq!(module.target.as_deref(), Some("gfx1250"));
+        for kernel in &module.kernels {
+            assert!(kernel.descriptor.flag("wavefront_size32"));
+            assert_eq!(kernel.descriptor.value("private_segment_fixed_size", 0), 0);
+        }
+    }
+}
+
+#[test]
+fn native_packed_integer_address_operations_wrap_each_selected_half() {
+    for (instruction, expected) in [
+        ("v_pk_mul_lo_u16 v1,v2,v3", 0xfffe8000u32),
+        ("v_pk_mul_lo_u16 v1,v2,v3 op_sel_hi:[1,0]", 0xfffd8000u32),
+        ("v_pk_sub_i16 v1,v2,v3", 0xfffd7ffdu32),
+    ] {
+        let source = native(&format!(
+            "v_mov_b32 v2,0xffff8000\nv_mov_b32 v3,0x00020003\n{instruction}\nv_mov_b32 v0,0\nglobal_store_b32 v0,v1,s[4:5]\ns_wait_storecnt 0\ns_wait_xcnt 0"
+        ));
+        let module = frontend::parse(&source).unwrap();
+        let mut config = AnalysisConfig::new((1, 1, 1));
+        config.arrays.push(ArrayDef {
+            name: "out".into(),
+            base: 65536,
+            elem_width: 4,
+            len: 1,
+            kind: ArrayKind::Output,
+        });
+        config
+            .params
+            .push(volta_amdgpu_analysis::ParamValue::ArrayPtr("out".into()));
+        let analysis = analyze(&module, Some("k"), config).unwrap();
+        let output = analysis.symbolic_outputs().unwrap();
+        assert_eq!(
+            output.arena.as_int_const(output.outputs[0].1[0].1),
+            Some(i64::from(expected))
+        );
+    }
+    for instruction in [
+        "v_pk_mul_lo_u16_e32 v1,v2,v3",
+        "v_ashrrev_i16_e32 v1,8,v2",
+        "v_xad_u32_e32 v1,v2,v3,v4",
+        "s_addk_co_i32 s4,65536",
+    ] {
+        assert!(
+            frontend::parse(&native(instruction)).is_err(),
+            "accepted {instruction}"
+        );
+    }
+}
+
+#[test]
+fn native_signed16_shift_consumes_only_low16_and_never_exposes_a_fabricated_upper_half() {
+    for (shift, expected) in [(0, -32768.), (1, -16384.), (8, -128.), (15, -1.)] {
+        let source = native(&format!(
+            "v_mov_b32 v2,0x55558000\nv_ashrrev_i16 v1,{shift},v2\nv_cvt_f16_i16 v1,v1\nv_cvt_f32_f16 v1,v1\nv_mov_b32 v0,0\nglobal_store_b32 v0,v1,s[4:5]\ns_wait_storecnt 0\ns_wait_xcnt 0"
+        ));
+        let module = frontend::parse(&source).unwrap();
+        let mut config = AnalysisConfig::new((1, 1, 1));
+        config.arrays.push(ArrayDef {
+            name: "out".into(),
+            base: 65536,
+            elem_width: 4,
+            len: 1,
+            kind: ArrayKind::Output,
+        });
+        config
+            .params
+            .push(volta_amdgpu_analysis::ParamValue::ArrayPtr("out".into()));
+        let analysis = analyze(&module, Some("k"), config).unwrap();
+        let output = analysis.symbolic_outputs().unwrap();
+        assert_eq!(
+            output.arena.as_f64(output.outputs[0].1[0].1),
+            Some(expected)
+        );
+    }
+    for consumer in ["v_cvt_f32_i32 v1,v1", "v_add_u32 v1,0,v1"] {
+        let source = native(&format!(
+            "v_mov_b32 v2,0x55558000\nv_ashrrev_i16 v1,8,v2\n{consumer}\nv_mov_b32 v0,0\nglobal_store_b32 v0,v1,s[4:5]"
+        ));
+        let module = frontend::parse(&source).unwrap();
+        let mut config = AnalysisConfig::new((1, 1, 1));
+        config.arrays.push(ArrayDef {
+            name: "out".into(),
+            base: 65536,
+            elem_width: 4,
+            len: 1,
+            kind: ArrayKind::Output,
+        });
+        config
+            .params
+            .push(volta_amdgpu_analysis::ParamValue::ArrayPtr("out".into()));
+        let analysis = analyze(&module, Some("k"), config).unwrap();
+        assert!(
+            analysis.symbolic_outputs().is_err(),
+            "upper half escaped via {consumer}"
+        );
+    }
+}
+
+#[test]
+fn native_signed_byte_extracts_preserve_four_independent_input_identities() {
+    let mut body = String::from(
+        "s_load_b64 s[6:7],s[0:1],8\ns_wait_kmcnt 0\nv_mov_b32 v0,0\nglobal_load_b32 v1,v0,s[6:7]\ns_wait_loadcnt 0\n",
+    );
+    for byte in 0..4 {
+        if byte == 1 {
+            body += "v_ashrrev_i16 v2,8,v1\n";
+        } else {
+            body += &format!("v_bfe_i32 v2,v1,{},8\n", byte * 8);
+        }
+        body += &format!(
+            "v_cvt_f16_i16 v2,v2\nv_cvt_f32_f16 v2,v2\nglobal_store_b32 v0,v2,s[4:5] offset:{}\ns_wait_xcnt 0\ns_wait_storecnt 0\n",
+            byte * 4
+        );
+    }
+    let source=native(&body).replace(".amdhsa_kernarg_size 8", ".amdhsa_kernarg_size 16").replace("        .value_kind: global_buffer\n", "        .value_kind: global_buffer\n      - .name: bytes\n        .offset: 8\n        .size: 8\n        .value_kind: global_buffer\n");
+    let module = frontend::parse(&source).unwrap();
+    let mut config = AnalysisConfig::new((1, 1, 1));
+    config.arrays = vec![
+        ArrayDef {
+            name: "out".into(),
+            base: 65536,
+            elem_width: 4,
+            len: 4,
+            kind: ArrayKind::Output,
+        },
+        ArrayDef {
+            name: "bytes".into(),
+            base: 131072,
+            elem_width: 1,
+            len: 4,
+            kind: ArrayKind::Input,
+        },
+    ];
+    config.params = vec![
+        volta_amdgpu_analysis::ParamValue::ArrayPtr("out".into()),
+        volta_amdgpu_analysis::ParamValue::ArrayPtr("bytes".into()),
+    ];
+    let analysis = analyze(&module, Some("k"), config).unwrap();
+    let output = analysis.symbolic_outputs().unwrap();
+    assert_eq!(output.outputs[0].1.len(), 4);
+    for (index, expr) in &output.outputs[0].1 {
+        let volta_expr::ExprNode::InputElement {
+            array,
+            index: source_index,
+        } = output.arena.node(*expr)
+        else {
+            panic!("byte identity lost")
+        };
+        assert_eq!(output.arena.string(*array), "bytes");
+        assert_eq!(index, source_index);
+    }
+}
+
+#[test]
+fn vopd_fmamk_pair_has_one_shared_literal_and_exact_snapshot_inputs() {
+    frontend::parse(&native(
+        "v_dual_fmamk_f32 v2,v4,0x3e38aa3b,v1 :: v_dual_fmamk_f32 v3,v5,0x3e38aa3b,v1",
+    ))
+    .unwrap();
+    assert!(
+        frontend::parse(&native(
+            "v_dual_fmamk_f32 v2,v4,0x3e38aa3b,v1 :: v_dual_fmamk_f32 v3,v5,0x3e000000,v1"
+        ))
+        .is_err()
+    );
+}
+
+#[test]
+fn signed16_variable_shift_does_not_broadcast_lane_zero_shift() {
+    let source = native(
+        "v_mov_b32 v2,0x8000\nv_lshlrev_b32 v3,3,v0\nv_sub_u32 v3,8,v3\nv_ashrrev_i16 v1,v3,v2\nv_cvt_f16_i16 v1,v1\nv_cvt_f32_f16 v1,v1\nv_lshlrev_b32 v0,2,v0\nglobal_store_b32 v0,v1,s[4:5]\ns_wait_storecnt 0\ns_wait_xcnt 0",
+    );
+    let module = frontend::parse(&source).unwrap();
+    let mut config = AnalysisConfig::new((2, 1, 1));
+    config.arrays.push(ArrayDef {
+        name: "out".into(),
+        base: 65536,
+        elem_width: 4,
+        len: 2,
+        kind: ArrayKind::Output,
+    });
+    config
+        .params
+        .push(volta_amdgpu_analysis::ParamValue::ArrayPtr("out".into()));
+    let analysis = analyze(&module, Some("k"), config).unwrap();
+    let output = analysis.symbolic_outputs().unwrap();
+    assert_eq!(output.outputs[0].1.len(), 2);
+    assert_eq!(output.arena.as_f64(output.outputs[0].1[0].1), Some(-128.));
+    assert_eq!(output.arena.as_f64(output.outputs[0].1[1].1), Some(-32768.));
+}

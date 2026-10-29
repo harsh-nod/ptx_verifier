@@ -2456,6 +2456,7 @@ impl<'a> Interpreter<'a> {
             Value::Byte(expr) if byte == Some(0) || selector == "DWORD" => Some(expr),
             Value::Byte(_) if byte.is_some() => return Ok(self.arena.int(0)),
             Value::Bytes(bytes) if byte.is_some() => Some(bytes[byte.unwrap()]),
+            Value::Low16Integer(expr) if selector == "DWORD" => return Ok(expr),
             Value::NarrowInt { expr, bits, signed }
                 if selector == "DWORD" && bits <= 16 && signed =>
             {
@@ -2576,6 +2577,7 @@ impl<'a> Interpreter<'a> {
             | Value::SharedApertureHi
             | Value::PartialBits { .. }
             | Value::NarrowInt { .. }
+            | Value::Low16Integer(_)
             | Value::WidePart { .. }
             | Value::Real(_)
             | Value::Byte(_)
@@ -3534,6 +3536,130 @@ impl<'a> Interpreter<'a> {
             let a = self.real(wave, &o[1], 0)?;
             let value = self.exp2(a);
             return wave.put_value(&o[0], 0, Value::Real(value));
+        }
+        if self.architecture == AmdArchitecture::Gfx1250
+            && (name == "v_ashrrev_i16" || name == "v_bfe_i32")
+        {
+            if !instruction.modifiers.is_empty()
+                || o.iter()
+                    .any(|operand| matches!(operand, Operand::Modified { .. }))
+            {
+                return Err(self.unsupported(wave, instruction));
+            }
+            let uniform_bits = |operand: &Operand| {
+                if matches!(operand, Operand::Register(register) if matches!(register.class, RegisterClass::Vector | RegisterClass::Accumulator))
+                {
+                    None
+                } else {
+                    wave.bits(operand, 0).ok()
+                }
+            };
+            let (operand, byte) = if name == "v_ashrrev_i16" && uniform_bits(&o[1]) == Some(8) {
+                (&o[2], Some(1))
+            } else if name == "v_bfe_i32" && uniform_bits(&o[3]) == Some(8) {
+                let offset = uniform_bits(&o[2]);
+                (
+                    &o[1],
+                    offset
+                        .filter(|offset| *offset < 32 && *offset % 8 == 0)
+                        .map(|offset| offset / 8),
+                )
+            } else {
+                (&o[1], None)
+            };
+            if let Some(byte) = byte {
+                let lanes = wave.active().collect::<Vec<_>>();
+                let mut decoded = Vec::new();
+                for lane in &lanes {
+                    let value = wave.value(operand, *lane)?;
+                    let zero = self.arena.int(0);
+                    let expr = match value {
+                        Value::Bytes(values) => Some(values[byte as usize]),
+                        Value::Byte(expr) => Some(if byte == 0 { expr } else { zero }),
+                        Value::BytePair(a, b) => Some(match byte {
+                            0 => a,
+                            1 => b,
+                            _ => zero,
+                        }),
+                        _ => None,
+                    };
+                    if let Some(expr) = expr {
+                        self.claim_byte_format(wave, expr, ByteFormat::SignedI8)?;
+                        decoded.push((*lane, expr));
+                    } else {
+                        break;
+                    }
+                }
+                if decoded.len() == lanes.len() {
+                    for (lane, expr) in decoded {
+                        wave.put_value(
+                            &o[0],
+                            lane,
+                            if name == "v_ashrrev_i16" {
+                                Value::Low16Integer(expr)
+                            } else {
+                                Value::NarrowInt {
+                                    expr,
+                                    bits: 8,
+                                    signed: true,
+                                }
+                            },
+                        )?;
+                    }
+                    return Ok(());
+                }
+            }
+            if name == "v_ashrrev_i16" {
+                if !instruction.modifiers.is_empty() {
+                    return Err(self.unsupported(wave, instruction));
+                }
+                for lane in wave.active().collect::<Vec<_>>() {
+                    let shift = wave.bits(&o[1], lane)? & 15;
+                    let source = wave
+                        .value(&o[2], lane)?
+                        .selected_bits(0, 16)
+                        .map_err(|e| wave.fail(Some(lane), e))?;
+                    let result = self.arena.int(((source as i16) >> shift) as i64);
+                    wave.put_value(&o[0], lane, Value::Low16Integer(result))?;
+                }
+                return Ok(());
+            }
+        }
+        if self.architecture == AmdArchitecture::Gfx1250
+            && matches!(name, "v_pk_mul_lo_u16" | "v_pk_sub_i16")
+        {
+            if !instruction
+                .modifiers
+                .iter()
+                .all(|m| matches!(m.name.as_str(), "op_sel" | "op_sel_hi"))
+            {
+                return Err(self.unsupported(wave, instruction));
+            }
+            let low = selectors(instruction, "op_sel", 2, 0)
+                .ok_or_else(|| self.unsupported(wave, instruction))?;
+            let high = selectors(instruction, "op_sel_hi", 2, 1)
+                .ok_or_else(|| self.unsupported(wave, instruction))?;
+            for lane in wave.active().collect::<Vec<_>>() {
+                let mut result = 0u32;
+                for (half, selection) in [low.as_slice(), high.as_slice()].into_iter().enumerate() {
+                    let a = wave
+                        .value(&o[1], lane)?
+                        .selected_bits(u32::from(selection[0]) * 16, 16)
+                        .map_err(|e| wave.fail(Some(lane), e))?;
+                    let b = wave
+                        .value(&o[2], lane)?
+                        .selected_bits(u32::from(selection[1]) * 16, 16)
+                        .map_err(|e| wave.fail(Some(lane), e))?;
+                    let bits = if name == "v_pk_mul_lo_u16" {
+                        a.wrapping_mul(b)
+                    } else {
+                        a.wrapping_sub(b)
+                    };
+                    result |= (bits & 65535) << (half * 16);
+                }
+                wave.put_value(&o[0], lane, Value::Integer(result))?;
+            }
+            return Ok(());
         }
         if self.architecture == AmdArchitecture::Gfx1250
             && matches!(
@@ -4622,6 +4748,7 @@ impl<'a> Interpreter<'a> {
                         "v_or3_b32" => a | b | wave.bits(&o[3], lane)?,
                         "v_and_or_b32" => (a & b) | wave.bits(&o[3], lane)?,
                         "v_add3_u32" => a.wrapping_add(b).wrapping_add(wave.bits(&o[3], lane)?),
+                        "v_xad_u32" => (a ^ b).wrapping_add(wave.bits(&o[3], lane)?),
                         "v_bfe_u32" | "v_bfe_i32" => {
                             super::scalar::bfe32(a, b, wave.bits(&o[3], lane)?, name == "v_bfe_i32")
                         }
@@ -5127,7 +5254,10 @@ impl<'a> Interpreter<'a> {
         wave: &mut Wave,
         instruction: &Instruction,
     ) -> Result<(), EvalError> {
-        let name = instruction.mnemonic.as_str();
+        let name = match instruction.mnemonic.as_str() {
+            "ds_store_b16_d16_hi" => "ds_write_b16_d16_hi",
+            name => name,
+        };
         let o = &instruction.operands;
         if name == "global_atomic_add_f32" {
             return self.atomic_add_f32_no_return(wave, instruction);
@@ -5636,7 +5766,8 @@ impl<'a> Interpreter<'a> {
                             | Value::PredicateWord { .. }
                             | Value::RelocationWord { .. }
                             | Value::SharedApertureHi
-                            | Value::PartialBits { .. } => StoredValue::Opaque,
+                            | Value::PartialBits { .. }
+                            | Value::Low16Integer(_) => StoredValue::Opaque,
                         }))
                     } else {
                         None
@@ -5909,12 +6040,15 @@ fn selectors(
 fn canonical_alu(name: &str) -> &str {
     match name {
         "s_add_co_i32" => "s_add_i32",
+        "s_addk_co_i32" => "s_addk_i32",
         "s_add_co_u32" => "s_add_u32",
         "s_add_co_ci_u32" => "s_addc_u32",
         "s_and_not1_b32" => "s_andn2_b32",
+        "s_and_not1_saveexec_b32" => "s_andn2_saveexec_b32",
         "s_ctz_i32_b32" => "s_ff1_i32_b32",
         "v_add_nc_u32" => "v_add_u32",
         "v_sub_nc_u32" => "v_sub_u32",
+        "v_subrev_nc_u32" => "v_subrev_u32",
         "v_sub_nc_u16" => "v_sub_u16",
         "v_max_num_f32" => "v_max_f32",
         "v_max_num_f16" => "v_max_f16",

@@ -42,6 +42,9 @@ pub(super) enum Value {
         bits: u8,
         signed: bool,
     },
+    /// Signed integer in low16 only; the upper half has no modeled value.
+    /// Only a selected-low16 consumer may read this tag.
+    Low16Integer(ExprId),
     Real(ExprId),
     /// One ordered word of a whole mathematical 64-bit value. These tags are
     /// data, never concrete register/address bits or packed independent f32s.
@@ -118,6 +121,7 @@ impl Value {
             | Self::RelocationWord { .. }
             | Self::SharedApertureHi
             | Self::NarrowInt { .. }
+            | Self::Low16Integer(_)
             | Self::WidePart { .. }
             | Self::Half(..)
             | Self::Halves(..)

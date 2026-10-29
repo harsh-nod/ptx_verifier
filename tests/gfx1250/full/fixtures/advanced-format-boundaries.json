@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "target": "gfx1250",
+  "status": "assembler-observations-only-no-hardware-or-execution-claim",
+  "tool": {
+    "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+    "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+    "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+  },
+  "command_template": [
+    "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+    "--triple=amdgcn-amd-amdhsa",
+    "--mcpu=gfx1250",
+    "-filetype=obj",
+    "<source>",
+    "-o",
+    "<object>"
+  ],
+  "observations": [
+    {
+      "instruction": "v_pk_mul_lo_u16 v1,v2,v3",
+      "source_sha256": "c98bb6187986bd613e20819d0892270af0646a2b5131fa33e791c06cb6f510d6",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "8b6e63dc897512a0f951922237256b1e9c9b28536a59f7bbbbe4d4866c1c5a0f"
+    },
+    {
+      "instruction": "v_pk_mul_lo_u16 v1,v2,v3 op_sel_hi:[1,0]",
+      "source_sha256": "a916353968572e07856062ae4df9a89effcd82a7258e63c9cce082831730c24b",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "e58bb7c6889e6a2c2382ce02b3de43ceaa1c73a727abc648e70ac7910ffdee2c"
+    },
+    {
+      "instruction": "v_pk_sub_i16 v1,v2,v3",
+      "source_sha256": "43b12ee904c2ce26190a44f59a77c54288b07cefef4c3ad6995607218d38f911",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "c8fc601a62d5a241b8907e9b4bf788049d855a94b1cc2982e68b515faf8cad74"
+    },
+    {
+      "instruction": "v_pk_mul_lo_u16_e32 v1,v2,v3",
+      "source_sha256": "7ab62b66a07b1f10c2b6365836d5cdaa8158452d12a3e9dd447a26ae18d56693",
+      "assembler_accepted": false,
+      "exit_code": 1,
+      "diagnostics": "<tempdir>/3.s:5:1: error: e32 variant of this instruction is not supported\nv_pk_mul_lo_u16_e32 v1,v2,v3\n^\n",
+      "object_sha256": null
+    },
+    {
+      "instruction": "v_pk_sub_i16_e32 v1,v2,v3",
+      "source_sha256": "a1ea75a2b90c65b1a93a21dfe67344007654515982f0314ec20d64293e7a239d",
+      "assembler_accepted": false,
+      "exit_code": 1,
+      "diagnostics": "<tempdir>/4.s:5:1: error: e32 variant of this instruction is not supported\nv_pk_sub_i16_e32 v1,v2,v3\n^\n",
+      "object_sha256": null
+    },
+    {
+      "instruction": "v_ashrrev_i16 v1,8,v2",
+      "source_sha256": "1521a11f59c7933b7ae9d73cd76084a66ce608a234b740324705f60b9546cc00",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "d10be8cc6e1b395bba4e0e4a1ea8048904a599d7a9ea35846904fc95cd3e6dc7"
+    },
+    {
+      "instruction": "v_ashrrev_i16_e32 v1,8,v2",
+      "source_sha256": "24feecc2e6f8bc9f8bfaa4b0da78d6dc604f54af1265e025e8afdd766de3226f",
+      "assembler_accepted": false,
+      "exit_code": 1,
+      "diagnostics": "<tempdir>/6.s:5:1: error: e32 variant of this instruction is not supported\nv_ashrrev_i16_e32 v1,8,v2\n^\n",
+      "object_sha256": null
+    },
+    {
+      "instruction": "v_ashrrev_i16_e64 v1,8,v2",
+      "source_sha256": "8041d8314ee4fa0cd5952a94dac6b7749cc45b187431f078d803c7e2cf59631e",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "d10be8cc6e1b395bba4e0e4a1ea8048904a599d7a9ea35846904fc95cd3e6dc7"
+    },
+    {
+      "instruction": "v_xad_u32 v1,0x800,s5,v2",
+      "source_sha256": "3e08b77790f739e8e79f3d45576954955595b866f46262c987c150c8f30a85fc",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "0d1aad7a98dff813fd73a27853076643da9a4dbbb7f3e7eae379629699f65034"
+    },
+    {
+      "instruction": "v_xad_u32_e32 v1,v2,v3,v4",
+      "source_sha256": "6d4c73e0f5fa88e3fb5838ae4e153953bdf99512681b48a2fb775c6bc4d2ad46",
+      "assembler_accepted": false,
+      "exit_code": 1,
+      "diagnostics": "<tempdir>/9.s:5:1: error: e32 variant of this instruction is not supported\nv_xad_u32_e32 v1,v2,v3,v4\n^\n",
+      "object_sha256": null
+    },
+    {
+      "instruction": "s_addk_co_i32 s5,0x400",
+      "source_sha256": "d63b1a9f53c2247a491fcb6853696747993d5d35dc2b415779d0261ce5930a08",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "48ff69173005f76cd807671393782a00feb7c61d5f520460975589b16ebe00fa"
+    },
+    {
+      "instruction": "s_addk_co_i32 s5,65536",
+      "source_sha256": "e1538aaf36fe233232182032bb34b3c374e15a50201d4cd57e14177ac292ccb3",
+      "assembler_accepted": false,
+      "exit_code": 1,
+      "diagnostics": "<tempdir>/11.s:5:18: error: invalid operand for instruction\ns_addk_co_i32 s5,65536\n                 ^\n",
+      "object_sha256": null
+    },
+    {
+      "instruction": "s_and_not1_saveexec_b32 s5,s5",
+      "source_sha256": "cfa43dfe5a312cb26e3b7b2295e9a0186fe09ce067ac6f2a634b81f56a3fb040",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "aae622412fef7a3c91f1f4763bec0d9c5109e1c724bfec008d6d823fa810b075"
+    },
+    {
+      "instruction": "global_load_i8 v1,v2,s[4:5] scale_offset",
+      "source_sha256": "847eed6e3a3670283d9e171d2d27767a75a0952628233e769dacd967ad8f2b4b",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "41f13aea080e6f0fa41adf09dc67a9ddf99bb165cddccffa3dec93790334543c"
+    },
+    {
+      "instruction": "global_load_b96 v[0:2],v3,s[4:5]",
+      "source_sha256": "7b929a48b6f77092d1994468101b099553b9e40234c77f68ddc3b242e44756a4",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "b6c90a9f786e7861c494b8f7b792a8ed37029b3150b9aabd209531aefb9c4c70"
+    },
+    {
+      "instruction": "ds_load_b96 v[0:2],v3",
+      "source_sha256": "ac86c55c856603d3e7770f3e96c6d91e6a1adbd4b75575ca5e7990e434e1aeda",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "9540820e9e3a4d12de8da4210c7bcc91401f816c8dbba84e5912175f3b6d89cb"
+    },
+    {
+      "instruction": "ds_store_b16_d16_hi v0,v1",
+      "source_sha256": "cf2b91f16770b4cf72ff6dbf3fd53fcb5d8b753fc982ec907ea54fe541d1504a",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "fb65c49628dbd038c2c28f4ab4488a0e50b706c3e0c103e62f60aebebb0db83a"
+    },
+    {
+      "instruction": "v_subrev_nc_u32_e32 v1,1,v2",
+      "source_sha256": "c23e16f7f01981e4d97c31c2d538f8fa45c0ef8e76ee94ebf01b0374ff170338",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "0493df227d6eafd7b89d1ccdbf346623b586b36cbdfc81edd60c2e3aa5c6391a"
+    },
+    {
+      "instruction": "v_dual_fmamk_f32 v2,v4,0x3e38aa3b,v1 :: v_dual_fmamk_f32 v3,v5,0x3e38aa3b,v1",
+      "source_sha256": "91a8093e39b334e6b4678cdf2da79a7597bd43404848bb63f9883f4139933eb2",
+      "assembler_accepted": true,
+      "exit_code": 0,
+      "diagnostics": "",
+      "object_sha256": "5b19a3dbe573962e4751b4a0b92348dc59744ac8afb37a7bb80eece6886436bd"
+    },
+    {
+      "instruction": "v_dual_fmamk_f32 v2,v4,0x3e38aa3b,v1 :: v_dual_fmamk_f32 v3,v5,0x3e000000,v1",
+      "source_sha256": "974a374856264852a8f33d3cddf923604408bfe743f0800d8a1d8aa483a7aa2f",
+      "assembler_accepted": false,
+      "exit_code": 1,
+      "diagnostics": "<tempdir>/19.s:5:64: error: only one unique literal operand is allowed\nv_dual_fmamk_f32 v2,v4,0x3e38aa3b,v1 :: v_dual_fmamk_f32 v3,v5,0x3e000000,v1\n                                                               ^\n",
+      "object_sha256": null
+    }
+  ]
+}

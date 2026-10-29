@@ -24,12 +24,16 @@ pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
                 stem,
                 "v_lshlrev_b16"
                     | "v_sub_nc_u16"
+                    | "v_ashrrev_i16"
                     | "v_s_exp_f32"
                     | "v_bitop3_b16"
                     | "v_max3_num_f32"
                     | "v_max3_num_f16"
                     | "v_pk_max_num_f16"
+                    | "v_pk_mul_lo_u16"
+                    | "v_pk_sub_i16"
                     | "v_mad_u32"
+                    | "v_xad_u32"
                     | "v_bitop2_b32"
             ))
     {
@@ -40,12 +44,69 @@ pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn validate_dual_pair(x: &Instruction, y: &Instruction) -> Result<(), String> {
+    if x.mnemonic == "v_fmamk_f32" || y.mnemonic == "v_fmamk_f32" {
+        // VOPD MADK carries one shared mandatory literal, unlike VOPD3.
+        fn bits(operand: &Operand) -> Option<u32> {
+            match operand {
+                Operand::Integer(value) if (i32::MIN as i64..=u32::MAX as i64).contains(value) => {
+                    Some(*value as u32)
+                }
+                Operand::Float(value) => Some((*value as f32).to_bits()),
+                Operand::Modified { value, .. } => bits(value),
+                _ => None,
+            }
+        }
+        let mut shared_literal = None;
+        for instruction in [x, y] {
+            if instruction.mnemonic == "v_fmamk_f32" {
+                let literal = instruction
+                    .operands
+                    .get(2)
+                    .and_then(bits)
+                    .ok_or("VOPD FMAMK requires its encoded K literal")?;
+                if shared_literal.is_some_and(|old| old != literal) {
+                    return Err("VOPD FMAMK halves require the same shared literal".into());
+                }
+                shared_literal = Some(literal);
+            } else if matches!(
+                instruction.mnemonic.as_str(),
+                "v_fma_f32" | "v_cndmask_b32_e64"
+            ) {
+                return Err("selected VOPD FMAMK cannot pair with VOPD3 sources".into());
+            }
+        }
+        let literal = shared_literal.expect("at least one FMAMK");
+        let inline = |word: u32| {
+            word <= 64
+                || word >= (-16i32 as u32)
+                || [
+                    0x3f000000, 0xbf000000, 0x3f800000, 0xbf800000, 0x40000000, 0xc0000000,
+                    0x40800000, 0xc0800000, 0x3e22f983,
+                ]
+                .contains(&word)
+        };
+        for instruction in [x, y] {
+            for (index, operand) in instruction.operands.iter().enumerate().skip(1) {
+                if instruction.mnemonic == "v_fmamk_f32" && index == 2 {
+                    continue;
+                }
+                if bits(operand).is_some_and(|word| !inline(word) && word != literal) {
+                    return Err("VOPD source conflicts with the shared FMAMK literal".into());
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Apply the same selected instruction contract to caller-built typed modules.
 pub(crate) fn validate_typed_profile(instruction: &Instruction) -> Result<(), String> {
     if let [Operand::Dual(x, y)] = instruction.operands.as_slice() {
         if instruction.opcode != Opcode::VectorAlu || !instruction.mnemonic.starts_with("v_dual_") {
             return Err("typed dual operands require a native VOPD vector instruction".into());
         }
+        validate_dual_pair(x, y)?;
         validate_typed_profile(x)?;
         validate_typed_profile(y)?;
         return Ok(());
@@ -55,6 +116,11 @@ pub(crate) fn validate_typed_profile(instruction: &Instruction) -> Result<(), St
         && (instruction.operands != [Operand::Integer(3)] || !instruction.modifiers.is_empty())
     {
         return Err("gfx1250 only supports terminal MSG_DEALLOC_VGPRS (message3)".into());
+    }
+    if instruction.mnemonic == "s_addk_co_i32"
+        && !matches!(instruction.operands.get(1), Some(Operand::Integer(value)) if (-32768..=65535).contains(value))
+    {
+        return Err("s_addk_co_i32 requires one native 16-bit immediate".into());
     }
     let byte_selectors = instruction
         .modifiers
@@ -118,12 +184,24 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
         match name.trim_end_matches("_e32").trim_end_matches("_e64") {
             "s_load_b32" | "s_load_b64" | "s_load_b96" | "s_load_b128" | "s_load_b256"
             | "s_load_b512" => (ScalarMemory, 3, 3),
-            "global_load_u16" | "global_load_u8" | "global_store_b16" | "global_store_b8"
-            | "global_load_b32" | "global_load_b64" | "global_load_b128" | "global_store_b32"
-            | "global_store_b64" | "global_store_b128" => (VectorMemory, 3, 3),
-            "ds_load_u16" | "ds_load_i16" | "ds_load_u8" | "ds_load_i8" | "ds_store_b16"
-            | "ds_store_b8" | "ds_load_b32" | "ds_load_b64" | "ds_load_b128" | "ds_store_b32"
-            | "ds_store_b64" | "ds_store_b128" => (Lds, 2, 2),
+            "global_load_u16" | "global_load_u8" | "global_load_i8" | "global_load_i16"
+            | "global_store_b16" | "global_store_b8" | "global_load_b32" | "global_load_b64"
+            | "global_load_b96" | "global_load_b128" | "global_store_b32" | "global_store_b64"
+            | "global_store_b128" => (VectorMemory, 3, 3),
+            "ds_load_u16"
+            | "ds_load_i16"
+            | "ds_load_u8"
+            | "ds_load_i8"
+            | "ds_store_b16"
+            | "ds_store_b16_d16_hi"
+            | "ds_store_b8"
+            | "ds_load_b96"
+            | "ds_load_b32"
+            | "ds_load_b64"
+            | "ds_load_b128"
+            | "ds_store_b32"
+            | "ds_store_b64"
+            | "ds_store_b128" => (Lds, 2, 2),
             "s_wait_loadcnt_dscnt"
             | "s_wait_storecnt_dscnt"
             | "s_wait_loadcnt"
@@ -141,21 +219,25 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
             | "s_and_not1_b32" | "s_add_co_i32" | "s_add_nc_u32" | "s_sub_nc_u32" => {
                 (ScalarAlu, 3, 3)
             }
-            "s_and_saveexec_b32" | "s_andn2_saveexec_b32" | "s_or_saveexec_b32" => {
-                (ScalarAlu, 2, 2)
-            }
+            "s_and_saveexec_b32"
+            | "s_andn2_saveexec_b32"
+            | "s_and_not1_saveexec_b32"
+            | "s_or_saveexec_b32" => (ScalarAlu, 2, 2),
             "s_add_f32" | "s_sub_f32" | "s_mul_f32" | "s_min_num_f32" => (ScalarAlu, 3, 3),
-            "s_ctz_i32_b32" => (ScalarAlu, 2, 2),
+            "s_ctz_i32_b32" | "s_addk_co_i32" => (ScalarAlu, 2, 2),
             "v_fmac_f16" => (VectorAlu, 3, 3),
             "v_s_exp_f32" => (VectorAlu, 2, 2),
-            "v_pk_max_num_f16" | "v_max_num_f16" => (VectorAlu, 3, 3),
+            "v_pk_max_num_f16" | "v_max_num_f16" | "v_pk_mul_lo_u16" | "v_pk_sub_i16" => {
+                (VectorAlu, 3, 3)
+            }
             "v_max3_num_f16" => (VectorAlu, 4, 4),
             "v_cmp_ne_u16" | "v_cmp_u_f32" | "v_min_num_f32" | "v_max_num_f32"
-            | "v_lshlrev_b16" | "v_sub_nc_u16" => (VectorAlu, 3, 3),
+            | "v_lshlrev_b16" | "v_sub_nc_u16" | "v_ashrrev_i16" => (VectorAlu, 3, 3),
             "v_bitop3_b16" | "v_max3_num_f32" | "v_fmaak_f32" => (VectorAlu, 4, 4),
-            "v_mad_u32" => (VectorAlu, 4, 4),
+            "v_mad_u32" | "v_xad_u32" => (VectorAlu, 4, 4),
             "v_add_co_ci_u32" => (VectorAlu, 5, 5),
-            "v_add_nc_u64" | "v_add_nc_u32" | "v_sub_nc_u32" | "v_bitop2_b32" => (VectorAlu, 3, 3),
+            "v_add_nc_u64" | "v_add_nc_u32" | "v_sub_nc_u32" | "v_subrev_nc_u32"
+            | "v_bitop2_b32" => (VectorAlu, 3, 3),
             "v_wmma_f32_16x16x4_f32" | "v_wmma_f32_16x16x32_f16" | "v_wmma_f32_16x16x32_bf16" => {
                 (Matrix, 4, 4)
             }
@@ -215,6 +297,7 @@ pub(super) fn parse_special(
                 "add_f32",
                 "mul_f32",
                 "fma_f32",
+                "fmamk_f32",
                 "lshlrev_b32",
                 "lshrrev_b32",
                 "mov_b32",
@@ -247,6 +330,7 @@ pub(super) fn parse_special(
         }
         let x = half(x, span)?;
         let y = half(y, span)?;
+        validate_dual_pair(&x, &y).map_err(|message| ParseError { message, span })?;
         if x.operands[0] == y.operands[0] {
             return Err(fail("VOPD destinations must be distinct"));
         }

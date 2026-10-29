@@ -171,6 +171,14 @@ impl Memory {
 
     pub fn write(&mut self, addr: u64, width: u64, value: Value) -> Result<Value, String> {
         let value = match (width, value) {
+            (2, Value::Low16Integer(expr)) => Value::NarrowInt {
+                expr,
+                bits: 16,
+                signed: true,
+            },
+            (_, Value::Low16Integer(_)) => {
+                return Err("store observes undefined upper half of true16 integer".into());
+            }
             (1, Value::BytePair(lo, _)) => Value::Byte(lo),
             (2, Value::Bytes(bytes)) => Value::BytePair(bytes[0], bytes[1]),
             (1 | 2, value @ Value::PartialBits { .. }) => {
@@ -349,6 +357,7 @@ impl Memory {
             };
         }
         match self.read(addr, width)? {
+            Value::Low16Integer(_) => Err("output observes undefined upper half of true16 integer".into()),
             Value::Input(expr) | Value::IntExpr(expr) | Value::NarrowInt{expr,..} | Value::Real(expr) | Value::Half(expr)|Value::Byte(expr) => Ok(expr),
             Value::Integer(bits) => Ok(arena.int(bits as i64)),
             Value::SignedInteger(value)=>Ok(arena.int(value as i64)),
