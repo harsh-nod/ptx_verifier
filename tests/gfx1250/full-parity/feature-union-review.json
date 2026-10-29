@@ -10,72 +10,15 @@
   "duplicate_rows_within_manifest": [],
   "unexpected_rows": [],
   "policy_violations": [],
-  "explicit_portable_native_gaps": [
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/bar_arrive_register_id_count_mismatch.ptx",
-      "group": "BARRIER-SPLIT-PHASE",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_changes_between_phases.ptx",
-      "group": "BARRIER-SPLIT-PHASE",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_mismatch.ptx",
-      "group": "BARRIER-SPLIT-PHASE",
-      "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "candidate_status": "explicit_portable_native_gap",
-      "proposal": "portable_native_gap",
-      "completion": "coordinator_review_required",
-      "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
-    }
-  ],
+  "explicit_portable_native_gaps": [],
   "target_residual_review_gates": [],
-  "pending_current_portable_reviews": [
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/bar_arrive_register_id_count_mismatch.ptx",
-      "upstream_sha256": "f7f001c17f91d9b005a09c36861e5cb6d4365b8adb8edc517b9663e521f853f9",
-      "group": "BARRIER-SPLIT-PHASE",
-      "status": "pending",
-      "completion": "coordinator_review_required",
-      "current_observation": "Native fresh initialization lifetimes do not yet implement the required signal-time expected-count update counterpart. Target-specific spelling alone does not close this portable progress/count obligation.",
-      "required_gate": "Pinned public M0 signal-time count-update semantics, typed producer/event/checker support and actual native matching safe/count-mismatch/count-change controls."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_changes_between_phases.ptx",
-      "upstream_sha256": "2de9110a2941b27da9c2e9c5c76a6f319a897bc253314be3d1403c829ad5dd81",
-      "group": "BARRIER-SPLIT-PHASE",
-      "status": "pending",
-      "completion": "coordinator_review_required",
-      "current_observation": "Native fresh initialization lifetimes do not yet implement the required signal-time expected-count update counterpart. Target-specific spelling alone does not close this portable progress/count obligation.",
-      "required_gate": "Pinned public M0 signal-time count-update semantics, typed producer/event/checker support and actual native matching safe/count-mismatch/count-change controls."
-    },
-    {
-      "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_mismatch.ptx",
-      "upstream_sha256": "5d3e556415aa56d7eae93e382cf0a0753111b8ef518ff8c4d13c2a85896f0dbd",
-      "group": "BARRIER-SPLIT-PHASE",
-      "status": "pending",
-      "completion": "coordinator_review_required",
-      "current_observation": "Native fresh initialization lifetimes do not yet implement the required signal-time expected-count update counterpart. Target-specific spelling alone does not close this portable progress/count obligation.",
-      "required_gate": "Pinned public M0 signal-time count-update semantics, typed producer/event/checker support and actual native matching safe/count-mismatch/count-change controls."
-    }
-  ],
-  "known_current_review_blockers_resolved": false,
+  "pending_current_portable_reviews": [],
+  "known_current_review_blockers_resolved": true,
   "candidate_status_counts": {
     "completed_typed_native_negative_candidate": 8,
-    "explicit_portable_native_gap": 3,
     "intentional_negative_model_control": 1,
-    "native_target_contract_difference_candidate": 12,
-    "native_test_candidate_requires_coordinator_review": 277,
+    "native_target_contract_difference_candidate": 14,
+    "native_test_candidate_requires_coordinator_review": 278,
     "precise_target_residual_candidate": 65,
     "retained_shared_source_guard": 154
   },
@@ -2928,10 +2871,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
+          "candidate_status": "native_target_contract_difference_candidate",
+          "proposal": "native_contract_difference_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -2955,10 +2897,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
+          "candidate_status": "native_test_candidate_requires_coordinator_review",
+          "proposal": "native_assertion_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -2969,10 +2910,9 @@
       "claims": [
         {
           "source": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-          "candidate_status": "explicit_portable_native_gap",
-          "proposal": "portable_native_gap",
-          "completion": "coordinator_review_required",
-          "remaining_gate": "Implement and test actual native signal-time count changes, including safe phase changes, zero/no-change, mixed counts, deadlock and invalid boundaries. Existing new-lifetime controls alone do not close this operation."
+          "candidate_status": "native_target_contract_difference_candidate",
+          "proposal": "native_contract_difference_candidate",
+          "completion": "coordinator_review_required"
         }
       ],
       "completion": "coordinator_review_required"
@@ -7029,12 +6969,12 @@
     },
     {
       "path": "tests/gfx1250/portable-graph/feature-review-proposal.json",
-      "sha256": "8392c5b9f0069bf212b8767707a2e6170aebf0f5086277f34206e24c4df39c15",
+      "sha256": "b1e4c040e5a48d3e41055857c23a26c10ce5bcdf9c2ba0768c048c31719f166c",
       "state": "repository_contract"
     },
     {
       "path": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-      "sha256": "37067a94b0540eb9d4173375379a26bc0b785b2cc20e2f804909e31c14cc12c0",
+      "sha256": "4a01b4aaf5f7349328db30fb081eaa13a4e2e679474bca4e3bfbafa792cb5e68",
       "state": "repository_contract"
     },
     {
@@ -7059,7 +6999,7 @@
     },
     {
       "path": "tests/gfx1250/full-parity/portable-review-blockers.json",
-      "sha256": "ea81e98376530468a817f1c460196fea4e6b17ebe165e9663c1c2ba24892d600",
+      "sha256": "0ccd98f9957adbd05a38b98b27d45f635cb207de4ac09c419ad82a4557b1c0e8",
       "state": "current_review_overlay_not_duplicate_ownership"
     }
   ]

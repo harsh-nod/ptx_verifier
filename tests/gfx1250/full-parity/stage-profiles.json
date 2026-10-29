@@ -100,7 +100,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 773
+          "line": 774
         }
       ],
       "primary_sources": [
@@ -172,7 +172,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 773
+          "line": 774
         }
       ],
       "primary_sources": [
@@ -220,7 +220,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "vector",
-          "line": 4015
+          "line": 4018
         }
       ],
       "event_semantics": [
@@ -244,7 +244,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 773
+          "line": 774
         }
       ],
       "primary_sources": [
@@ -302,7 +302,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "memory_instruction",
-          "line": 6054
+          "line": 6057
         }
       ],
       "event_semantics": [
@@ -326,7 +326,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 773
+          "line": 774
         }
       ],
       "primary_sources": [
@@ -349,7 +349,7 @@
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "system_scope_visibility_requires_both_endpoints_completion_and_publication",
-          "line": 1698
+          "line": 1712
         }
       ],
       "control_scope": "Named controls test the selected semantic family. They do not establish execution of every indexed PC or arbitrary immediate/modifier combinations."
@@ -379,7 +379,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "permute",
-          "line": 6876
+          "line": 6879
         }
       ],
       "event_semantics": [
@@ -403,7 +403,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 773
+          "line": 774
         }
       ],
       "primary_sources": [
@@ -451,7 +451,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "atomic_add_f32_no_return",
-          "line": 5946
+          "line": 5949
         }
       ],
       "event_semantics": [
@@ -475,7 +475,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 773
+          "line": 774
         }
       ],
       "primary_sources": [
@@ -493,12 +493,12 @@
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "atomic_and_non_atomic_cross_wave_writes_have_typed_conflicts",
-          "line": 613
+          "line": 627
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "atomic_trace_cannot_forge_return_results_counter_classes_or_rmw_effects",
-          "line": 663
+          "line": 677
         }
       ],
       "control_scope": "Named controls test the selected semantic family. They do not establish execution of every indexed PC or arbitrary immediate/modifier combinations."
@@ -552,7 +552,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 773
+          "line": 774
         }
       ],
       "primary_sources": [
@@ -624,7 +624,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 773
+          "line": 774
         }
       ],
       "primary_sources": [
@@ -642,12 +642,12 @@
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "scalar_nop_data_wait_and_delay_alu_do_not_replace_wmma_valu_spacing",
-          "line": 1276
+          "line": 1290
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "completed_prefix_and_progress_after_endpgm_cannot_claim_a_complete_native_trace",
-          "line": 1582
+          "line": 1596
         }
       ],
       "control_scope": "Named controls test the selected semantic family. They do not establish execution of every indexed PC or arbitrary immediate/modifier combinations."
@@ -677,7 +677,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "wait",
-          "line": 5653
+          "line": 5656
         }
       ],
       "event_semantics": [
@@ -701,7 +701,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 773
+          "line": 774
         }
       ],
       "primary_sources": [
@@ -712,14 +712,14 @@
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "separate_data_counters_and_thresholds_control_register_readiness",
-          "line": 775
+          "line": 789
         }
       ],
       "negative_controls": [
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "replay_lease_blocks_source_overwrite_but_xcnt_wait_does_not_complete_data",
-          "line": 862
+          "line": 876
         }
       ],
       "control_scope": "Named controls test the selected semantic family. They do not establish execution of every indexed PC or arbitrary immediate/modifier combinations."
@@ -773,7 +773,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 773
+          "line": 774
         }
       ],
       "primary_sources": [
@@ -796,7 +796,7 @@
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "split_barrier_publishes_only_completed_effects_and_needs_all_live_waves",
-          "line": 902
+          "line": 916
         }
       ],
       "control_scope": "Named controls test the selected semantic family. They do not establish execution of every indexed PC or arbitrary immediate/modifier combinations."
@@ -826,7 +826,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "wmma",
-          "line": 3779
+          "line": 3782
         }
       ],
       "event_semantics": [
@@ -850,7 +850,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 773
+          "line": 774
         }
       ],
       "primary_sources": [
@@ -874,7 +874,7 @@
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "malformed_wmma_roles_partial_waves_and_missing_implicit_exec_stay_unknown",
-          "line": 1363
+          "line": 1377
         }
       ],
       "control_scope": "Named controls test the selected semantic family. They do not establish execution of every indexed PC or arbitrary immediate/modifier combinations."
@@ -928,7 +928,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 773
+          "line": 774
         }
       ],
       "primary_sources": [

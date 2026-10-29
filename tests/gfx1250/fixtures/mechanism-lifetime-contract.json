@@ -10,7 +10,7 @@
   ],
   "source_selection": {
     "path": "tests/gfx1250/portable-graph/mechanism-review-proposal.json",
-    "sha256": "5fecc7556bf4415b3ed487ef9c1b0d7393ed983a3b2de7047c2a0bcab398c564",
+    "sha256": "4a01b4aaf5f7349328db30fb081eaa13a4e2e679474bca4e3bfbafa792cb5e68",
     "proposal": "native_property_candidate_with_target_residual",
     "additional_paths": [
       "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_st_then_mma_without_thread_sync_fences_is_rejected.ptx",
