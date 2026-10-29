@@ -50,6 +50,18 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
         }
     }
     for kernel in &module.kernels {
+        if kernel.descriptor.value("named_barrier_count", 0)
+            > if architecture == Architecture::Gfx1250 {
+                4
+            } else {
+                0
+            }
+        {
+            return Err(ParseError {
+                message: "named barrier allocation exceeds the target descriptor profile".into(),
+                span: SourceSpan::default(),
+            });
+        }
         let wave32 = architecture == Architecture::Gfx1250;
         if kernel.descriptor.flag("wavefront_size32") != wave32 {
             return Err(ParseError {

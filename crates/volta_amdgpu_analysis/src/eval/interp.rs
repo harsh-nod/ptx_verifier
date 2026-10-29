@@ -10,6 +10,9 @@ use std::{collections::BTreeMap, error::Error, fmt};
 use volta_expr::{ExprArena, ExprId, ExprNode};
 use volta_graph::*;
 
+#[path = "named_barrier.rs"]
+mod named_barrier;
+
 const KERNARG_BASE: u64 = 0xffff_0000_0000;
 const DISPATCH_BASE: u64 = 0xffff_1000_0000;
 #[cfg(test)]
@@ -106,6 +109,9 @@ struct Wave {
     // carry, addresses, or an architectural EXEC mask.
     scc_condition: Option<ExprId>,
     m0: u32,
+    m0_defined: bool,
+    named_join: Option<named_barrier::Joined>,
+    named_wait: Option<named_barrier::Joined>,
     scalar: Vec<Option<Value>>,
     temporary: [Option<Value>; 16],
     vector: BTreeMap<(u16, u8), Value>,
@@ -135,6 +141,9 @@ impl Wave {
             scc_defined: false,
             scc_condition: None,
             m0: 0,
+            m0_defined: false,
+            named_join: None,
+            named_wait: None,
             scalar: vec![None; 128],
             temporary: [None; 16],
             vector: BTreeMap::new(),
@@ -244,6 +253,9 @@ impl Wave {
                     }
                     Some(SpecialRegister::Scc) => self.read_scc()? as u64,
                     Some(SpecialRegister::M0) => {
+                        if self.width == 32 && self.m0_defined {
+                            return Ok(Value::Bits(self.m0));
+                        }
                         return Err(EvalError::Unsupported {
                             pc: self.pc,
                             what: "initial M0 value is not part of the modeled kernel ABI".into(),
@@ -328,6 +340,11 @@ impl Wave {
                     }
                     Some(SpecialRegister::Scc) => self.set_scc(bits != 0),
                     Some(SpecialRegister::M0) => {
+                        if self.width == 32 {
+                            self.m0 = bits as u32;
+                            self.m0_defined = true;
+                            return Ok(());
+                        }
                         return Err(EvalError::Unsupported {
                             pc: self.pc,
                             what: "explicit M0 writes need software dependency-spacing checks"
@@ -433,6 +450,7 @@ pub(crate) struct Interpreter<'a> {
     float_bit_patterns: BTreeMap<ExprId, FloatBitPattern>,
     xnack_replay_enabled: bool,
     module_globals: BTreeMap<String, GlobalAllocation>,
+    named: named_barrier::State,
 }
 #[derive(Debug, Clone, Copy)]
 struct GlobalAllocation {
@@ -712,6 +730,7 @@ impl<'a> Interpreter<'a> {
             float_bit_patterns: BTreeMap::new(),
             xnack_replay_enabled,
             module_globals,
+            named: named_barrier::State::default(),
         };
         result
             .builder
@@ -1100,6 +1119,53 @@ impl<'a> Interpreter<'a> {
                 let outputs = self.extract().map_err(OutputsUnavailable::Extraction);
                 (Terminal::Completed, outputs)
             }
+            Err(EvalError::Invalid { ref what, .. })
+                if what == "workgroup rendezvous made no progress"
+                    && self.waves.iter().any(|w| w.named_wait.is_some())
+                    && self
+                        .waves
+                        .iter()
+                        .all(|w| w.exited || w.named_wait.is_some() || w.at_barrier.is_some()) =>
+            {
+                let mut blocked = Vec::new();
+                for wave in self.waves.iter().filter(|w| !w.exited) {
+                    let on = if let Some(wait) = wave.named_wait {
+                        let (expected, arrived) = self.named.counts(wait);
+                        BlockedOn::AmdNamedBarrier {
+                            object: wait.object,
+                            phase: wait.phase,
+                            expected,
+                            arrived,
+                        }
+                    } else {
+                        let generation = wave.at_barrier.unwrap();
+                        BlockedOn::AmdBarrier {
+                            generation,
+                            missing_waves: self
+                                .waves
+                                .iter()
+                                .filter(|w| !w.exited && w.signal_generation != Some(generation))
+                                .map(|w| w.id)
+                                .collect(),
+                        }
+                    };
+                    for lane in 0..wave.valid.count_ones() {
+                        blocked.push(BlockedThread {
+                            thread: ThreadIx(wave.id * wave.width + lane),
+                            pc: ProgramPoint(wave.pc as u32),
+                            on: on.clone(),
+                        });
+                    }
+                }
+                let locations = blocked
+                    .iter()
+                    .map(|b| (ThreadId(b.thread.0), b.pc.0 as usize))
+                    .collect();
+                (
+                    Terminal::Stuck { blocked },
+                    Err(OutputsUnavailable::Stuck { blocked: locations }),
+                )
+            }
             Err(error) => {
                 let cause = if matches!(error, EvalError::Unsupported { .. }) {
                     AbortCause::Unsupported
@@ -1195,7 +1261,10 @@ impl<'a> Interpreter<'a> {
             }
             let mut progress = false;
             for index in 0..self.waves.len() {
-                if self.waves[index].exited || self.waves[index].at_barrier.is_some() {
+                if self.waves[index].exited
+                    || self.waves[index].at_barrier.is_some()
+                    || self.waves[index].named_wait.is_some()
+                {
                     continue;
                 }
                 if self.stats.instructions >= self.config.max_instructions {
@@ -1213,6 +1282,7 @@ impl<'a> Interpreter<'a> {
                 progress = true;
             }
             if self.architecture == AmdArchitecture::Gfx1250 {
+                progress |= self.release_named_barriers();
                 // SIGNAL snapshots one phase without blocking. A WAIT can
                 // complete as soon as every surviving wave has signalled it,
                 // even if another participant has not reached its WAIT yet.
@@ -1323,6 +1393,7 @@ impl<'a> Interpreter<'a> {
                             Some(SpecialRegister::Exec) => (AmdRegisterFile::Scalar, 126, 2),
                             Some(SpecialRegister::ExecLo) => (AmdRegisterFile::Scalar, 126, 1),
                             Some(SpecialRegister::ExecHi) => (AmdRegisterFile::Scalar, 127, 1),
+                            Some(SpecialRegister::M0) => (AmdRegisterFile::Scalar, 124, 1),
                             _ => return,
                         },
                     };
@@ -1544,6 +1615,18 @@ impl<'a> Interpreter<'a> {
                 lanes: u64::MAX,
             });
         }
+        if instruction.mnemonic == "s_barrier_init"
+            && !matches!(instruction.operands.as_slice(), [Operand::Integer(0)])
+            && !reads
+                .iter()
+                .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 124)
+        {
+            reads.push(AmdRegister {
+                file: AmdRegisterFile::Scalar,
+                index: 124,
+                lanes: u64::MAX,
+            });
+        }
         (reads, writes)
     }
     fn scalar_mask_reads(&self, instruction: &Instruction, wave: &Wave) -> Vec<AmdRegister> {
@@ -1721,44 +1804,47 @@ impl<'a> Interpreter<'a> {
             Opcode::Wait => self.wait(wave, &instruction)?,
             Opcode::Barrier if self.architecture == AmdArchitecture::Gfx1250 => {
                 if !matches!(instruction.operands.as_slice(), [Operand::Integer(-1)]) {
-                    return Err(self.unsupported(wave, &instruction));
-                }
-                match name {
-                    "s_barrier_signal" => {
-                        if wave.signal_generation == Some(wave.generation) {
-                            return Err(wave.fail(
-                                None,
-                                "duplicate workgroup barrier signal before phase wait",
-                            ));
-                        }
-                        self.builder.amd_event(
-                            wave.id,
-                            ProgramPoint(wave.pc as u32),
-                            AmdEventKind::SplitBarrierSignal {
-                                barrier: -1,
-                                generation: wave.generation,
-                                exec_mask: wave.exec,
-                            },
-                        );
-                        wave.signal_generation = Some(wave.generation);
-                    }
-                    "s_barrier_wait" => {
-                        if wave.signal_generation != Some(wave.generation) {
-                            return Err(self.unsupported(wave, &instruction));
-                        }
-                        self.builder.amd_event(
-                            wave.id,
-                            ProgramPoint(wave.pc as u32),
-                            AmdEventKind::SplitBarrierWait {
-                                barrier: -1,
-                                generation: wave.generation,
-                            },
-                        );
-                        wave.at_barrier = Some(wave.generation);
-                        self.stats.block_syncs += 1;
+                    if self.named_barrier(wave, &instruction)? {
                         return Ok(());
                     }
-                    _ => return Err(self.unsupported(wave, &instruction)),
+                } else {
+                    match name {
+                        "s_barrier_signal" => {
+                            if wave.signal_generation == Some(wave.generation) {
+                                return Err(wave.fail(
+                                    None,
+                                    "duplicate workgroup barrier signal before phase wait",
+                                ));
+                            }
+                            self.builder.amd_event(
+                                wave.id,
+                                ProgramPoint(wave.pc as u32),
+                                AmdEventKind::SplitBarrierSignal {
+                                    barrier: -1,
+                                    generation: wave.generation,
+                                    exec_mask: wave.exec,
+                                },
+                            );
+                            wave.signal_generation = Some(wave.generation);
+                        }
+                        "s_barrier_wait" => {
+                            if wave.signal_generation != Some(wave.generation) {
+                                return Err(self.unsupported(wave, &instruction));
+                            }
+                            self.builder.amd_event(
+                                wave.id,
+                                ProgramPoint(wave.pc as u32),
+                                AmdEventKind::SplitBarrierWait {
+                                    barrier: -1,
+                                    generation: wave.generation,
+                                },
+                            );
+                            wave.at_barrier = Some(wave.generation);
+                            self.stats.block_syncs += 1;
+                            return Ok(());
+                        }
+                        _ => return Err(self.unsupported(wave, &instruction)),
+                    }
                 }
             }
             Opcode::Barrier => {

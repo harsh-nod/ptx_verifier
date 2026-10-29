@@ -102,6 +102,10 @@ pub fn analyze(
         == Some(crate::target::Architecture::Gfx1250)
     {
         assumptions.push(Assumption::UnclusteredWorkgroup);
+        let named = kernel.descriptor.value("named_barrier_count", 0);
+        if named != 0 {
+            assumptions.push(Assumption::AllocatedNamedBarriers((named * 4) as u8));
+        }
     } else if !replay_enabled {
         assumptions.push(Assumption::XnackReplayDisabled);
     }
@@ -149,9 +153,29 @@ pub fn analyze(
                 } else if instruction.mnemonic == "s_delay_alu" {
                     "s_delay_alu"
                 } else if instruction.mnemonic == "s_barrier_signal" {
-                    "barrier signal"
+                    if matches!(
+                        instruction.operands.as_slice(),
+                        [crate::frontend::Operand::Integer(-1)]
+                    ) {
+                        "barrier signal"
+                    } else {
+                        "named barrier signal"
+                    }
                 } else if instruction.mnemonic == "s_barrier_wait" {
-                    "barrier wait"
+                    if matches!(
+                        instruction.operands.as_slice(),
+                        [crate::frontend::Operand::Integer(-1)]
+                    ) {
+                        "barrier wait"
+                    } else {
+                        "named barrier wait"
+                    }
+                } else if instruction.mnemonic == "s_barrier_init" {
+                    "named barrier init"
+                } else if instruction.mnemonic == "s_barrier_join" {
+                    "named barrier join"
+                } else if instruction.mnemonic == "s_barrier_leave" {
+                    "named barrier leave"
                 } else if instruction.mnemonic == "s_nop" {
                     "s_nop"
                 } else if instruction.mnemonic == "s_endpgm" {

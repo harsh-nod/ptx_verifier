@@ -9,6 +9,7 @@
 
 use super::*;
 use volta_graph::{AccessMode, AmdWmmaKind, Assumption, ThreadIx};
+mod named;
 
 const WAVE: usize = 32;
 
@@ -94,6 +95,11 @@ fn expected(kind: &str, mask: u64) -> Option<Option<&'static str>> {
         "s_delay_alu" => Some("delay alu"),
         "barrier signal" => Some("signal"),
         "barrier wait" => Some("barrier wait"),
+        "named barrier init" => Some("named init"),
+        "named barrier join" => Some("named join"),
+        "named barrier signal" => Some("named signal"),
+        "named barrier wait" => Some("named wait"),
+        "named barrier leave" => Some("named leave"),
         "WMMA" => Some("wmma"),
         "scalar ALU"
         | "vector ALU"
@@ -116,7 +122,7 @@ fn expected(kind: &str, mask: u64) -> Option<Option<&'static str>> {
 fn registers(regs: &[AmdRegister], mask: u64, event: EventId, unresolved: &mut Vec<Unresolved>) {
     for reg in regs {
         let valid = match reg.file {
-            AmdRegisterFile::Scalar => reg.index <= 106 || reg.index == 126,
+            AmdRegisterFile::Scalar => reg.index <= 106 || matches!(reg.index, 124 | 126),
             AmdRegisterFile::Temporary => reg.index < 16,
             AmdRegisterFile::Vector => reg.index < 1024 && reg.lanes != 0 && reg.lanes & !mask == 0,
             AmdRegisterFile::Accumulator => false,
@@ -180,6 +186,28 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
         );
     }
     let mut unresolved = Vec::new();
+    let named_allocations: Vec<_> = graph
+        .provenance()
+        .assumptions
+        .iter()
+        .filter_map(|a| {
+            if let Assumption::AllocatedNamedBarriers(count) = a {
+                Some(*count)
+            } else {
+                None
+            }
+        })
+        .collect();
+    if named_allocations.len() > 1
+        || named_allocations
+            .iter()
+            .any(|count| !matches!(count, 4 | 8 | 12 | 16))
+    {
+        unresolved.push(Unresolved::global(
+            "invalid or duplicate gfx1250 named barrier allocation premise",
+        ));
+    }
+    let named_capacity = named_allocations.first().copied().unwrap_or(0);
     let mut atomic_pairs =
         HashMap::<(EventId, ThreadIx), (Option<(EventId, u64)>, Option<(EventId, u64)>)>::new();
     if graph.provenance().assumes(Assumption::XnackReplayDisabled) {
@@ -212,6 +240,7 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
     }
     let waves = (graph.threads() as usize).div_ceil(WAVE);
     let mut seen = vec![false; waves];
+    let mut m0_defined = vec![false; waves];
     let mut instructions = HashMap::<u32, InstructionRecord>::new();
     let mut issues = HashMap::new();
     let mut instruction_count = 0;
@@ -255,6 +284,37 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                 }
                 let pc = graph.event(record.event).pc;
                 let kind = pc.map(|p| graph.provenance().instructions[p.0 as usize].kind);
+                let uses_m0 = reads
+                    .iter()
+                    .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 124);
+                let writes_m0 = writes
+                    .iter()
+                    .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 124);
+                if uses_m0
+                    && (!m0_defined[record.wave as usize]
+                        || !matches!(
+                            kind,
+                            Some(
+                                "named barrier init"
+                                    | "named barrier join"
+                                    | "named barrier signal"
+                            )
+                        ))
+                {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "M0 read is uninitialized or outside the selected named barrier role",
+                    ));
+                }
+                if writes_m0 {
+                    if kind != Some("scalar ALU") {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "M0 write is not a scalar move",
+                        ));
+                    }
+                    m0_defined[record.wave as usize] = true;
+                }
                 let required = kind.and_then(|k| expected(k, *exec_mask));
                 if kind == Some("s_endpgm") {
                     ended.insert(record.wave);
@@ -459,6 +519,59 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                         record.event,
                         "unsupported gfx1250 barrier release object",
                     ));
+                }
+            }
+            AmdEventKind::NamedBarrierInit { object, .. }
+            | AmdEventKind::NamedBarrierJoin { object, .. }
+            | AmdEventKind::NamedBarrierSignal { object, .. }
+            | AmdEventKind::NamedBarrierWait { object, .. }
+            | AmdEventKind::NamedBarrierRelease { object, .. }
+            | AmdEventKind::NamedBarrierLeave { object, .. } => {
+                if object.id > named_capacity || object.id > 16 {
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "named object exceeds the explicit native descriptor allocation",
+                    ));
+                }
+                let required = match record.kind {
+                    AmdEventKind::NamedBarrierInit { .. } => Some("named init"),
+                    AmdEventKind::NamedBarrierJoin { .. } => Some("named join"),
+                    AmdEventKind::NamedBarrierSignal { .. } => Some("named signal"),
+                    AmdEventKind::NamedBarrierWait { encoded, .. } => {
+                        if encoded > 16 {
+                            unresolved.push(Unresolved::at(
+                                record.event,
+                                "invalid encoded named WAIT selector",
+                            ));
+                        }
+                        Some("named wait")
+                    }
+                    AmdEventKind::NamedBarrierLeave { .. } => Some("named leave"),
+                    _ => None,
+                };
+                if let Some(required) = required
+                    && let Some(instruction) =
+                        claim(graph, record, &mut instructions, required, &mut unresolved)
+                {
+                    if matches!(record.kind, AmdEventKind::NamedBarrierInit { object, .. } if object.id != 0)
+                        && !instruction
+                            .reads
+                            .iter()
+                            .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 124)
+                    {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "named INIT requires its implicit M0 expected-count source",
+                        ));
+                    }
+                    if let AmdEventKind::NamedBarrierSignal { exec_mask, .. } = record.kind
+                        && (exec_mask != instruction.exec_mask || exec_mask & !physical_mask != 0)
+                    {
+                        unresolved.push(Unresolved::at(
+                            record.event,
+                            "named signal EXEC differs from the instruction record",
+                        ));
+                    }
                 }
             }
             AmdEventKind::Delay { cycles } => {
@@ -894,6 +1007,9 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     }
     let waves = (graph.threads() as usize).div_ceil(WAVE);
     let mut clocks = vec![vec![0; waves * CLASSES]; waves];
+    let mut execution_clocks = vec![vec![0; waves]; waves];
+    let mut execution_signals = HashMap::new();
+    let mut named = named::State::new(waves);
     let mut arrival_clocks: Option<Vec<Vec<u32>>> = None;
     let mut arrival_signals = HashMap::new();
     let mut sequences = vec![0; waves * CLASSES];
@@ -945,6 +1061,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     }
     for record in graph.amd_events() {
         let wave = record.wave as usize;
+        execution_clocks[wave][wave] += 1;
         if let Some((object, phase, _)) = blocked[wave] {
             if !matches!(record.kind, AmdEventKind::SplitBarrierRelease { barrier, generation } if (barrier, generation) == (object, phase))
             {
@@ -958,6 +1075,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
         }
         match &record.kind {
             AmdEventKind::Instruction { reads, writes, .. } => {
+                named.instruction(record);
                 let kind = graph
                     .event(record.event)
                     .pc
@@ -1034,7 +1152,13 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                 }
                 if matches!(
                     kind,
-                    "branch" | "s_endpgm" | "xcnt drain" | "barrier signal" | "barrier wait"
+                    "branch"
+                        | "s_endpgm"
+                        | "xcnt drain"
+                        | "barrier signal"
+                        | "barrier wait"
+                        | "named barrier signal"
+                        | "named barrier wait"
                 ) {
                     wait(AmdCounter::X, 0, &pending[wave], &mut operations);
                 }
@@ -1241,6 +1365,10 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                     .entry((*barrier, *generation))
                     .or_default()
                     .insert(wave, clocks[wave].clone());
+                execution_signals.insert(
+                    (*barrier, *generation, wave),
+                    execution_clocks[wave].clone(),
+                );
                 if let Some(clocks) = &arrival_clocks {
                     arrival_signals.insert((*barrier, *generation, wave), clocks[wave].clone());
                 }
@@ -1295,6 +1423,10 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                     }
                     for (&participant, clock) in phase {
                         join(&mut clocks[wave], clock);
+                        join(
+                            &mut execution_clocks[wave],
+                            &execution_signals[&(*barrier, *generation, participant)],
+                        );
                         if let Some(clocks) = &mut arrival_clocks {
                             join(
                                 &mut clocks[wave],
@@ -1308,11 +1440,39 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                         if exited(w) {
                             let frontier = clocks[w].clone();
                             join(&mut clocks[wave], &frontier);
+                            let frontier = execution_clocks[w].clone();
+                            join(&mut execution_clocks[wave], &frontier);
                         }
                     }
                     blocked[wave] = None;
                     signals[wave] = None;
                     next_generation[wave] += 1;
+                }
+            }
+            AmdEventKind::NamedBarrierInit { .. }
+            | AmdEventKind::NamedBarrierJoin { .. }
+            | AmdEventKind::NamedBarrierSignal { .. }
+            | AmdEventKind::NamedBarrierWait { .. }
+            | AmdEventKind::NamedBarrierRelease { .. }
+            | AmdEventKind::NamedBarrierLeave { .. } => {
+                let arrivals = arrival_clocks.as_ref().map_or(&clocks[wave], |a| &a[wave]);
+                if let Some(release) = named.event(
+                    record,
+                    graph.event(record.event).pc,
+                    &mut execution_clocks,
+                    &clocks[wave],
+                    arrivals,
+                ) {
+                    if release.drops
+                        && release.memory != release.arrivals
+                        && arrival_clocks.is_none()
+                    {
+                        arrival_clocks = Some(clocks.clone());
+                    }
+                    clocks[wave] = release.memory;
+                    if let Some(clocks) = &mut arrival_clocks {
+                        clocks[wave] = release.arrivals;
+                    }
                 }
             }
             AmdEventKind::WmmaIssue {
@@ -1372,14 +1532,16 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
         hazards,
         unresolved,
     );
+    named.finish(graph);
+    barrier_violations.extend(named.violations);
     let barrier = PropertyResult::from_findings(
         AmdBarrierEvidence {
-            generations: barriers.len(),
-            arrivals,
-            releases: released.len(),
+            generations: barriers.len() + named.phases,
+            arrivals: arrivals + named.signals,
+            releases: released.len() + named.releases,
         },
         barrier_violations,
-        Vec::new(),
+        named.unresolved,
     );
     let memory_conflict = if barrier.verdict() == Verdict::Pass
         && wait_readiness.verdict() != Verdict::Unknown
@@ -1389,7 +1551,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
             match memory_conflicts_with_clock(graph, &operations, &issue_index, true) {
                 PropertyResult::Pass(_) => candidate,
                 PropertyResult::Fail(conflicts) => {
-                    let reason = "gfx1250 memory ordering depends on an exited wave's implicit barrier drop; drop publication is not pinned";
+                    let reason = "gfx1250 memory ordering depends on an implicit barrier drop or named-barrier drop; drop publication is not pinned";
                     PropertyResult::Unknown(
                         conflicts
                             .iter()

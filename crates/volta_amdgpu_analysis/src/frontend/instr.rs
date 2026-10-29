@@ -1216,6 +1216,16 @@ pub(super) fn validate_registers(
         return Err("SCC cannot be used as an explicit general-purpose register operand".into());
     }
     for (index, operand) in operands.iter().enumerate() {
+        if architecture == crate::target::Architecture::Gfx1250
+            && register(operand).is_some_and(|r| r.special == Some(SpecialRegister::M0))
+            && index == 0
+            && !matches!(
+                stem,
+                "s_mov_b32" | "s_barrier_init" | "s_barrier_join" | "s_barrier_signal"
+            )
+        {
+            return Err("gfx1250 M0 writes are modeled only for explicit s_mov_b32".into());
+        }
         if register(operand)
             .is_some_and(|register| register.special == Some(SpecialRegister::SharedBase))
         {
@@ -1234,6 +1244,15 @@ pub(super) fn validate_registers(
         return Ok(());
     }
     match opcode {
+        Opcode::Barrier if architecture == crate::target::Architecture::Gfx1250 => {
+            match (stem, operands) {
+                ("s_barrier_leave", []) => {},
+                ("s_barrier_signal" | "s_barrier_wait", [Operand::Integer(id)]) if *id == -1 || (0..=16).contains(id) => {},
+                ("s_barrier_init" | "s_barrier_join", [Operand::Integer(id)]) if (0..=16).contains(id) => {},
+                ("s_barrier_init" | "s_barrier_join" | "s_barrier_signal", [Operand::Register(r)]) if r.special == Some(SpecialRegister::M0) => {},
+                _ => return Err("unsupported gfx1250 barrier operand; shader IDs are -1 or 0..16, with M0 only on init/join/signal".into()),
+            }
+        }
         Opcode::ScalarAlu => {
             if operands
                 .iter()

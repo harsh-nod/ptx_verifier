@@ -291,6 +291,14 @@ impl AmdRegister {
     }
 }
 
+/// A physical named object and its initialization lifetime. Reinitialization
+/// creates a new incarnation even when the hardware ID is reused.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct AmdNamedBarrier {
+    pub id: u8,
+    pub incarnation: u32,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AmdEventKind {
     WmmaIssue {
@@ -360,6 +368,34 @@ pub enum AmdEventKind {
     SplitBarrierRelease {
         barrier: i16,
         generation: u32,
+    },
+    NamedBarrierInit {
+        object: AmdNamedBarrier,
+        expected: u16,
+    },
+    NamedBarrierJoin {
+        object: AmdNamedBarrier,
+        phase: u32,
+    },
+    NamedBarrierSignal {
+        object: AmdNamedBarrier,
+        phase: u32,
+        exec_mask: u64,
+    },
+    /// The encoded ID is preserved. For named waits the hardware actually uses
+    /// the last joined object, which may differ from that encoded operand.
+    NamedBarrierWait {
+        encoded: u8,
+        object: AmdNamedBarrier,
+        phase: u32,
+    },
+    NamedBarrierRelease {
+        object: AmdNamedBarrier,
+        phase: u32,
+    },
+    NamedBarrierLeave {
+        object: AmdNamedBarrier,
+        phase: u32,
     },
     /// One arrival per live wave. The mask is recorded for diagnostics, not a requirement
     /// that EXEC be all ones: S_BARRIER is a scalar instruction.

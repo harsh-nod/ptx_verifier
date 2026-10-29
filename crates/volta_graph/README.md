@@ -33,6 +33,15 @@ and publication.
 A producer must resolve the aperture before selecting a class; an unknown
 pointer segment does not become global merely because its address is concrete.
 
+Gfx1250 shader named barriers use `AmdNamedBarrier { id, incarnation }` plus an
+explicit phase on joins, signals, waits, releases and leaves. Every successful
+reinitialization advances the incarnation. INIT records its expected arrival
+count, WAIT retains both the encoded selector and resolved last-joined object,
+and the descriptor's allocated capacity is an explicit provenance premise.
+M0 is scalar register 124 in instruction dependency roles. Named deadlocks retain
+object, incarnation, phase and actual expected/arrived counts in `BlockedOn`.
+These records describe candidate associations; they do not certify publication.
+
 Text dumps without native AMD events retain `volta-graph 1`; graphs with AMD events use
 `volta-graph 2` and include their sidecar associations. The text dump is a diagnostic
 format, not an executable replay input. AMD rendezvous deadlocks use

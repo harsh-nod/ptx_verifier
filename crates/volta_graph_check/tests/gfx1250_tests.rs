@@ -2,7 +2,7 @@
 use volta_graph::*;
 use volta_graph_check::{GraphConclusion, Property, Verdict, check_graph};
 
-const KINDS: [&str; 17] = [
+const KINDS: [&str; 23] = [
     "vector ALU",
     "vector memory",
     "scalar memory",
@@ -20,6 +20,12 @@ const KINDS: [&str; 17] = [
     "xcnt drain",
     "atomic f32 add no return",
     "flat memory",
+    "named barrier init",
+    "named barrier join",
+    "named barrier signal",
+    "named barrier wait",
+    "named barrier leave",
+    "scalar ALU",
 ];
 fn v(index: u16, lanes: u64) -> AmdRegister {
     AmdRegister {
@@ -40,6 +46,86 @@ struct Trace {
     threads: u32,
 }
 impl Trace {
+    fn named(threads: u32) -> Self {
+        Self::with_assumptions(
+            threads,
+            vec![
+                Assumption::UnclusteredWorkgroup,
+                Assumption::AllocatedNamedBarriers(16),
+            ],
+        )
+    }
+    fn n_init(&mut self, wave: u32, object: AmdNamedBarrier, expected: u16) {
+        self.ins(wave, 22, vec![], vec![s(124)]);
+        self.ins(wave, 17, vec![s(124)], vec![]);
+        self.b.amd_event(
+            wave,
+            ProgramPoint(17),
+            AmdEventKind::NamedBarrierInit { object, expected },
+        );
+    }
+    fn n_join(&mut self, wave: u32, object: AmdNamedBarrier, phase: u32) {
+        self.ins(wave, 18, vec![], vec![]);
+        self.b.amd_event(
+            wave,
+            ProgramPoint(18),
+            AmdEventKind::NamedBarrierJoin { object, phase },
+        );
+    }
+    fn n_signal(&mut self, wave: u32, object: AmdNamedBarrier, phase: u32) {
+        self.ins(wave, 19, vec![], vec![]);
+        self.b.amd_event(
+            wave,
+            ProgramPoint(19),
+            AmdEventKind::NamedBarrierSignal {
+                object,
+                phase,
+                exec_mask: self.mask(wave),
+            },
+        );
+    }
+    fn n_wait(
+        &mut self,
+        wave: u32,
+        encoded: u8,
+        object: AmdNamedBarrier,
+        phase: u32,
+        release: bool,
+    ) {
+        self.ins(wave, 20, vec![], vec![]);
+        self.b.amd_event(
+            wave,
+            ProgramPoint(20),
+            AmdEventKind::NamedBarrierWait {
+                encoded,
+                object,
+                phase,
+            },
+        );
+        if release {
+            self.b.amd_event(
+                wave,
+                ProgramPoint(20),
+                AmdEventKind::NamedBarrierRelease { object, phase },
+            );
+        }
+    }
+    fn n_leave(&mut self, wave: u32, object: AmdNamedBarrier, phase: u32) {
+        self.ins(wave, 21, vec![], vec![]);
+        self.b.amd_event(
+            wave,
+            ProgramPoint(21),
+            AmdEventKind::NamedBarrierLeave { object, phase },
+        );
+    }
+    fn publish_init(&mut self) {
+        for wave in 0..self.threads.div_ceil(32) {
+            self.signal(wave, 0);
+        }
+        for wave in 0..self.threads.div_ceil(32) {
+            self.barrier_wait(wave, 0, true);
+        }
+    }
     fn atomic(&mut self, wave: u32, mask: u64, read_addr: u64, write_addr: u64) -> EventId {
         let sources = vec![v(0, mask), v(1, mask), s(2), s(3), s(126)];
         self.ins_mask(wave, 15, mask, sources.clone(), vec![]);
@@ -2172,4 +2258,388 @@ fn an_unrelated_real_conflict_is_not_hidden_by_an_unpinned_exit_frontier() {
     assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
     assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Pass);
     assert_eq!(r.verdict(Property::AmdMemoryConflict), Verdict::Fail);
+}
+
+fn named_object(id: u8, incarnation: u32) -> AmdNamedBarrier {
+    AmdNamedBarrier { id, incarnation }
+}
+
+#[test]
+fn named_ids_counts_and_encoded_waits_have_independent_object_identity() {
+    for id in 1..=16 {
+        let mut t = Trace::named(1);
+        let o = named_object(id, 0);
+        t.n_init(0, o, 1);
+        t.n_join(0, o, 0);
+        t.n_signal(0, o, 0);
+        t.n_wait(0, if id == 1 { 16 } else { 1 }, o, 0, true);
+        t.n_leave(0, o, 1);
+        assert_eq!(
+            check_graph(&t.finish()).conclusion(),
+            GraphConclusion::Verified,
+            "id{id}"
+        );
+    }
+    let mut t = Trace::named(1);
+    let a = named_object(1, 0);
+    let b = named_object(2, 0);
+    t.n_init(0, a, 1);
+    t.n_init(0, b, 1);
+    t.n_join(0, a, 0);
+    t.n_signal(0, a, 0);
+    t.n_wait(0, 2, b, 0, true);
+    assert_eq!(
+        check_graph(&t.finish()).verdict(Property::AmdBarrier),
+        Verdict::Fail
+    );
+}
+
+#[test]
+fn named_init_resource_and_m0_roles_cannot_be_fabricated() {
+    for mutation in 0..4 {
+        let mut t = if mutation == 1 {
+            Trace::new(1)
+        } else {
+            Trace::named(1)
+        };
+        let o = named_object(if mutation == 2 { 17 } else { 1 }, 0);
+        if mutation != 3 {
+            t.ins(0, 22, vec![], vec![s(124)]);
+        }
+        t.ins(
+            0,
+            17,
+            if mutation == 0 { vec![] } else { vec![s(124)] },
+            vec![],
+        );
+        t.b.amd_event(
+            0,
+            ProgramPoint(17),
+            AmdEventKind::NamedBarrierInit {
+                object: o,
+                expected: 1,
+            },
+        );
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdTrace),
+            Verdict::Unknown,
+            "mutation{mutation}"
+        );
+    }
+}
+
+#[test]
+fn named_publication_needs_the_actual_data_wait_and_matching_object_phase() {
+    for completed in [false, true] {
+        let mut t = Trace::named(64);
+        let o = named_object(1, 0);
+        t.n_init(0, o, 2);
+        t.publish_init();
+        t.n_join(0, o, 0);
+        t.n_join(1, o, 0);
+        t.issue(0, AmdMemoryClass::Ds, vec![], vec![], 0);
+        if completed {
+            t.wait(0, AmdCounter::Ds, 0);
+        }
+        t.n_signal(0, o, 0);
+        t.n_signal(1, o, 0);
+        t.n_wait(0, 2, o, 0, true);
+        t.n_wait(1, 16, o, 0, true);
+        t.issue(
+            1,
+            AmdMemoryClass::Ds,
+            vec![v(1, u32::MAX as u64)],
+            vec![],
+            0,
+        );
+        t.wait(1, AmdCounter::Ds, 0);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Pass);
+        assert_eq!(
+            r.verdict(Property::AmdMemoryConflict),
+            if completed {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            }
+        );
+    }
+}
+
+#[test]
+fn named_reinitialization_creates_a_fresh_lifetime_and_stale_records_fail() {
+    for stale in [false, true] {
+        let mut t = Trace::named(1);
+        let old = named_object(1, 0);
+        let new = named_object(1, 1);
+        t.n_init(0, old, 1);
+        t.n_join(0, old, 0);
+        t.n_signal(0, old, 0);
+        t.n_wait(0, 1, old, 0, true);
+        t.n_leave(0, old, 1);
+        t.n_init(0, new, 1);
+        t.n_join(0, new, 0);
+        t.n_signal(0, if stale { old } else { new }, 0);
+        t.n_wait(0, 1, new, 0, true);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(
+            r.verdict(Property::AmdBarrier),
+            if stale { Verdict::Fail } else { Verdict::Pass }
+        );
+    }
+}
+
+#[test]
+fn named_null_join_unjoins_without_dropping_and_null_waits_publish_nothing() {
+    let mut t = Trace::named(1);
+    let o = named_object(1, 0);
+    let null = named_object(0, 0);
+    t.n_leave(0, null, 0);
+    t.n_init(0, o, 1);
+    t.n_join(0, o, 0);
+    t.n_join(0, null, 0);
+    t.n_wait(0, 16, null, 0, true);
+    t.n_leave(0, null, 0);
+    t.n_wait(0, 1, null, 0, true);
+    // The former object's expected count remains one, so one signal completes.
+    t.n_join(0, o, 0);
+    t.n_signal(0, o, 0);
+    t.n_wait(0, 0, o, 0, true);
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
+    );
+}
+
+#[test]
+fn named_uninitialized_unjoined_and_arrive_then_drop_behaviors_fail() {
+    for mutation in 0..4 {
+        let mut t = Trace::named(1);
+        let o = named_object(1, 0);
+        if mutation != 0 {
+            t.n_init(0, o, 2);
+        }
+        match mutation {
+            0 => t.n_signal(0, o, 0),
+            1 => t.n_wait(0, 1, o, 0, false),
+            2 => t.n_leave(0, o, 0),
+            3 => {
+                t.n_join(0, o, 0);
+                t.n_signal(0, o, 0);
+                t.n_leave(0, o, 0);
+            }
+            _ => unreachable!(),
+        }
+        assert_eq!(
+            check_graph(&t.finish()).verdict(Property::AmdBarrier),
+            Verdict::Fail,
+            "mutation{mutation}"
+        );
+    }
+}
+
+#[test]
+fn named_drop_counts_operations_and_can_complete_the_remaining_participants() {
+    let mut t = Trace::named(96);
+    let o = named_object(1, 0);
+    t.n_init(0, o, 3);
+    t.publish_init();
+    for wave in 0..3 {
+        t.n_join(wave, o, 0);
+    }
+    t.n_signal(0, o, 0);
+    t.n_signal(1, o, 0);
+    t.n_leave(2, o, 0);
+    t.n_wait(0, 1, o, 0, true);
+    t.n_wait(1, 1, o, 0, true);
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
+    );
+}
+
+#[test]
+fn named_initialization_without_crosswave_execution_order_is_inconclusive() {
+    let mut t = Trace::named(64);
+    let o = named_object(1, 0);
+    t.n_init(0, o, 2);
+    t.n_join(0, o, 0);
+    t.n_join(1, o, 0);
+    t.n_signal(0, o, 0);
+    t.n_signal(1, o, 0);
+    t.n_wait(0, 1, o, 0, true);
+    t.n_wait(1, 1, o, 0, true);
+    let r = check_graph(&t.finish());
+    assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+    assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Unknown);
+}
+
+#[test]
+fn named_release_requires_the_wait_point_and_cannot_be_duplicated() {
+    for duplicate in [false, true] {
+        let mut t = Trace::named(1);
+        let o = named_object(1, 0);
+        t.n_init(0, o, 1);
+        t.n_join(0, o, 0);
+        t.n_signal(0, o, 0);
+        t.n_wait(0, 1, o, 0, duplicate);
+        t.b.amd_event(
+            0,
+            ProgramPoint(if duplicate { 20 } else { 18 }),
+            AmdEventKind::NamedBarrierRelease {
+                object: o,
+                phase: 0,
+            },
+        );
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Fail);
+    }
+}
+
+#[test]
+fn named_arrival_count_is_not_a_distinct_wave_count() {
+    let mut t = Trace::named(1);
+    let o = named_object(1, 0);
+    t.n_init(0, o, 2);
+    t.n_join(0, o, 0);
+    t.n_signal(0, o, 0);
+    t.n_signal(0, o, 0);
+    t.n_wait(0, 1, o, 0, true);
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
+    );
+}
+
+#[test]
+fn named_phases_cannot_interleave_between_an_arrival_and_its_wait() {
+    for interleaved in [false, true] {
+        let mut t = Trace::named(64);
+        let o = named_object(1, 0);
+        t.n_init(0, o, 2);
+        t.publish_init();
+        for wave in 0..2 {
+            t.n_join(wave, o, 0);
+            t.n_signal(wave, o, 0);
+        }
+        t.n_wait(0, 1, o, 0, true);
+        if !interleaved {
+            t.n_wait(1, 1, o, 0, true);
+        }
+        for wave in 0..2 {
+            t.n_signal(wave, o, 1);
+        }
+        t.n_wait(0, 1, o, 1, true);
+        if interleaved {
+            t.n_wait(1, 1, o, 0, true);
+        }
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(
+            r.verdict(Property::AmdBarrier),
+            if interleaved {
+                Verdict::Fail
+            } else {
+                Verdict::Pass
+            }
+        );
+    }
+}
+
+#[test]
+fn named_drop_progress_does_not_certify_unpinned_memory_publication() {
+    let mut t = Trace::named(96);
+    let o = named_object(1, 0);
+    t.n_init(0, o, 3);
+    t.publish_init();
+    for wave in 0..3 {
+        t.n_join(wave, o, 0);
+    }
+    t.issue(2, AmdMemoryClass::Ds, vec![], vec![], 0);
+    t.wait(2, AmdCounter::Ds, 0);
+    t.n_leave(2, o, 0);
+    for wave in 0..2 {
+        t.n_signal(wave, o, 0);
+    }
+    t.n_wait(0, 1, o, 0, true);
+    t.n_wait(1, 1, o, 0, true);
+    t.issue(
+        1,
+        AmdMemoryClass::Ds,
+        vec![v(1, u32::MAX as u64)],
+        vec![],
+        0,
+    );
+    t.wait(1, AmdCounter::Ds, 0);
+    let r = check_graph(&t.finish());
+    assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+    assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Pass);
+    assert_eq!(r.verdict(Property::AmdMemoryConflict), Verdict::Unknown);
+}
+
+#[test]
+fn null_init_and_unjoined_leave_do_not_require_a_fabricated_m0_source() {
+    let mut t = Trace::named(1);
+    t.ins(0, 17, vec![], vec![]);
+    t.b.amd_event(
+        0,
+        ProgramPoint(17),
+        AmdEventKind::NamedBarrierInit {
+            object: named_object(0, 0),
+            expected: 0,
+        },
+    );
+    t.n_leave(0, named_object(0, 0), 0);
+    t.n_join(0, named_object(0, 0), 0);
+    t.n_wait(0, 0, named_object(0, 0), 0, true);
+    assert_eq!(
+        check_graph(&t.finish()).conclusion(),
+        GraphConclusion::Verified
+    );
+}
+
+#[test]
+fn an_unbound_null_wait_cannot_invent_the_initial_last_joined_selector() {
+    let mut t = Trace::named(1);
+    t.n_wait(0, 0, named_object(0, 0), 0, true);
+    let r = check_graph(&t.finish());
+    assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+    assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Unknown);
+    assert_ne!(r.conclusion(), GraphConclusion::Verified);
+}
+
+#[test]
+fn named_reinitialization_cannot_erase_an_earlier_phase_violation() {
+    let mut t = Trace::named(64);
+    let old = named_object(1, 0);
+    t.n_init(0, old, 2);
+    t.publish_init();
+    for wave in 0..2 {
+        t.n_join(wave, old, 0);
+        t.n_signal(wave, old, 0);
+    }
+    t.n_wait(0, 1, old, 0, true);
+    for wave in 0..2 {
+        t.n_signal(wave, old, 1);
+    }
+    t.n_wait(0, 1, old, 1, true);
+    t.n_wait(1, 1, old, 0, true);
+    for wave in 0..2 {
+        t.n_leave(wave, old, 2);
+        t.signal(wave, 1);
+    }
+    for wave in 0..2 {
+        t.barrier_wait(wave, 1, true);
+    }
+    let new = named_object(1, 1);
+    t.n_init(0, new, 1);
+    t.n_join(0, new, 0);
+    t.n_signal(0, new, 0);
+    t.n_wait(0, 1, new, 0, true);
+    let r = check_graph(&t.finish());
+    assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
+    assert_eq!(r.verdict(Property::AmdBarrier), Verdict::Fail);
 }

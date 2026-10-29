@@ -1,0 +1,220 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "hardware_execution": false,
+  "scope": "Compiler/MC/link provenance; Rust graph and payload gates are separate",
+  "input": "/home/harsh/ptx-verifier-gfx1250-named-barriers/tests/gfx1250/portable-graph/native-named-barriers.ll",
+  "input_sha256": "10449c66153a3ad3aa7f5b4d8db8278fd531a5563ba11a1c0a0fc88164c89dad",
+  "assembly": "/home/harsh/ptx-verifier-gfx1250-named-barriers/tests/gfx1250/portable-graph/native-named-barriers.s",
+  "assembly_sha256": "9d0cb5c25fd6de069f6f6ba1170eccd1409b004ab0ccb85387f3afd10e87f495",
+  "tools": {
+    "llc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+      "sha256": "88b786477a6f2db121523da927bc176f84f209c2bca2ba2c9e870e2202f0f5f6",
+      "version": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+          "--version"
+        ],
+        "exit_code": 0,
+        "stdout": "AMD LLVM version 22.0.0git\n  Optimized build.\n  Default target: x86_64-unknown-linux-gnu\n  Host CPU: znver5\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n",
+        "stderr": ""
+      }
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--version"
+        ],
+        "exit_code": 0,
+        "stdout": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n",
+        "stderr": ""
+      }
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+          "--version"
+        ],
+        "exit_code": 0,
+        "stdout": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n",
+        "stderr": ""
+      }
+    }
+  },
+  "mutations": [
+    {
+      "name": "wrong_expected_count",
+      "kernel": "named_identity",
+      "source_line": 15,
+      "original": "s_mov_b32 m0, 0x20001",
+      "replacement": "s_mov_b32 m0, 0x30001",
+      "assembly_sha256": "e0479951292ef00b9082a34a3ae0097977a02b0ac2f4d2a3beac143ca9d52408",
+      "object_sha256": "1ddfe0898e7774b2f8672e71f13d81329550bfb6f9318393c78c9a14b72f5362",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-named-profile-_x5zgrwv/wrong_expected_count.s",
+          "-o",
+          "/tmp/gfx1250-named-profile-_x5zgrwv/wrong_expected_count.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "named deadlock: expected 3, arrived 2",
+      "hardware_execution": false
+    },
+    {
+      "name": "missing_signal",
+      "kernel": "named_identity",
+      "source_line": 41,
+      "original": "s_barrier_signal m0",
+      "replacement": "s_nop 0",
+      "assembly_sha256": "edeffb56f9ddfc8984a60c7a3a87b0d77e6b0f1884f9ea7f74bcc99b0ec9d1dc",
+      "object_sha256": "3f6a66ccc92da3aa3feaec35fdd021d8314c100dc8f81ee3f6255308b48c5295",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-named-profile-_x5zgrwv/missing_signal.s",
+          "-o",
+          "/tmp/gfx1250-named-profile-_x5zgrwv/missing_signal.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "named deadlock: no named arrival",
+      "hardware_execution": false
+    },
+    {
+      "name": "end_does_not_drop_named",
+      "kernel": "named_subset_drop",
+      "source_line": 475,
+      "original": "s_barrier_leave",
+      "replacement": "s_nop 0",
+      "assembly_sha256": "6f792c6284905d3176e85832e1f4a60e967eadf7de874b6a0afdfecde0e6795b",
+      "object_sha256": "08454dde980d7f92f72ff9adec2b289ee6803ef6dcf92d51b527012df1c84a4a",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-named-profile-_x5zgrwv/end_does_not_drop_named.s",
+          "-o",
+          "/tmp/gfx1250-named-profile-_x5zgrwv/end_does_not_drop_named.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "named deadlock: ended wave contributes no drop",
+      "hardware_execution": false
+    },
+    {
+      "name": "missing_join",
+      "kernel": "named_identity",
+      "source_line": 25,
+      "original": "s_barrier_join m0",
+      "replacement": "s_nop 0",
+      "assembly_sha256": "b3b7013df18dd7cb48f6c09cb5f28e9e695cdca9ab6ce001f89d7e3477a2c27f",
+      "object_sha256": "36ce0bd89243c5d5b8c8a56a38be431020a3f7fd2d410d6ffb53f62306f24cfe",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-named-profile-_x5zgrwv/missing_join.s",
+          "-o",
+          "/tmp/gfx1250-named-profile-_x5zgrwv/missing_join.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "barrier failure: wait has no last joined named object",
+      "hardware_execution": false
+    },
+    {
+      "name": "wrong_completion_class",
+      "kernel": "named_identity",
+      "source_line": 37,
+      "original": "s_wait_dscnt 0\n",
+      "replacement": "s_wait_loadcnt 0\n",
+      "assembly_sha256": "e956bfd81e1182f81b6e641dc3bdea5eeb5a989620eb6c9ec4559c1b81f47324",
+      "object_sha256": "2219b1abd2bfbedf60ec19694c7c9af2ff56a8048ae4356b6775d129e806f332",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-named-profile-_x5zgrwv/wrong_completion_class.s",
+          "-o",
+          "/tmp/gfx1250-named-profile-_x5zgrwv/wrong_completion_class.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected_obligation": "Shared memory conflict: named arrival does not complete DS",
+      "hardware_execution": false
+    }
+  ],
+  "compile": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+      "-mtriple=amdgcn-amd-amdhsa",
+      "-mcpu=gfx1250",
+      "-O2",
+      "/home/harsh/ptx-verifier-gfx1250-named-barriers/tests/gfx1250/portable-graph/native-named-barriers.ll",
+      "-o",
+      "/tmp/gfx1250-named-profile-_x5zgrwv/native-named-barriers.s"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "assemble": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "--triple=amdgcn-amd-amdhsa",
+      "--mcpu=gfx1250",
+      "-filetype=obj",
+      "/home/harsh/ptx-verifier-gfx1250-named-barriers/tests/gfx1250/portable-graph/native-named-barriers.s",
+      "-o",
+      "/tmp/gfx1250-named-profile-_x5zgrwv/native.o"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "link": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "-shared",
+      "/tmp/gfx1250-named-profile-_x5zgrwv/native.o",
+      "-o",
+      "/tmp/gfx1250-named-profile-_x5zgrwv/native.hsaco"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "object_sha256": "42e9346aeb483d5e9eafdabdef870ae12a3c8ffeb65249c750a59b5a24d69359",
+  "code_object_sha256": "5e7950c9d2bdaaccc8e7ffc7e82a085a858988bf0bf19a2b493f7323dd8e9348"
+}

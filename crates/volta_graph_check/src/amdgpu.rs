@@ -155,6 +155,16 @@ fn unknown<E, V>(reason: &str) -> PropertyResult<E, V> {
 
 fn trace_contract(graph: &EventGraph, architecture: AmdArchitecture) -> AmdTraceResult {
     let mut unresolved = Vec::new();
+    if graph
+        .provenance()
+        .assumptions
+        .iter()
+        .any(|a| matches!(a, volta_graph::Assumption::AllocatedNamedBarriers(_)))
+    {
+        unresolved.push(Unresolved::global(
+            "shader named barrier allocation requires gfx1250",
+        ));
+    }
     if let Err(defects) = graph.validate() {
         unresolved.extend(defects.into_iter().map(|d| {
             Unresolved {

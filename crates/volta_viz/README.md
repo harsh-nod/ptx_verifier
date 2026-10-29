@@ -7,6 +7,12 @@ LDS/tensor footprints and barrier generations. Typed AMD findings
 link the issuing and consuming events back to their source lines. AMD barrier deadlocks
 name missing waves directly.
 
+Gfx1250 named-barrier rows retain physical ID, initialization incarnation and
+phase, including INIT counts and WAIT's encoded versus last-joined selector.
+Candidate signal/drop-to-release edges remain separate from checked findings.
+Named deadlocks display expected and observed arrival counts; they do not invent
+a PTX synchronization object or treat END as a named drop.
+
 The wire format remains `volta-viz 1`: `launch.wave_size` and
 `launch.source_language` and `launch.wave_kind` are additive fields. Legacy
 stores without geometry/language metadata use the warp32 fallback; stored AMD

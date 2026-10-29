@@ -303,6 +303,16 @@ impl EventGraph {
                 for b in blocked {
                     write!(out, "  blocked t{} pc{} ", b.thread.0, b.pc.0)?;
                     match &b.on {
+                        BlockedOn::AmdNamedBarrier {
+                            object,
+                            phase,
+                            expected,
+                            arrived,
+                        } => writeln!(
+                            out,
+                            "amd-named-barrier {} incarnation {} phase {phase} arrived={arrived} expected={expected}",
+                            object.id, object.incarnation
+                        )?,
                         BlockedOn::AmdBarrier {
                             generation,
                             missing_waves,

@@ -199,6 +199,10 @@ spec syntax, with no implicit float bitcast or index-input substitution.
 
 **Path**: `crates/volta_graph/`
 
+Native named barriers retain object/incarnation/phase identities, descriptor
+capacity, encoded versus last-joined WAIT selectors, and counted deadlock state.
+These additive records never imply a synchronization certificate.
+
 The typed operation/event graph of one candidate execution, recorded by the
 analysis and consumed by the graph checks; depends only on
 `volta_expr` (stored values are `ExprId`s of the analysis's arena). The
@@ -250,6 +254,11 @@ crate-level docs in `lib.rs` are the contract.
 ## Crate: volta_amdgpu_analysis
 
 **Path**: `crates/volta_amdgpu_analysis/`
+
+`eval/named_barrier.rs` owns the selected gfx1250 shader named-barrier execution
+state. Explicit M0 dependencies, real descriptor allocation, NULL no-ops,
+last-joined WAIT, fresh reinitialization lifetimes and END-without-drop are
+preserved; signal-time count updates and clustered objects remain unsupported.
 
 The independent native AMD producer: `frontend::parse` builds typed LLVM AMDHSA
 assembly, `target::validate` checks generation-specific profiles, lowering keeps
@@ -485,6 +494,10 @@ native optional trailing commas and either wait-counter separator.
 
 **Path**: `crates/volta_graph_check/`
 
+`amdgpu/gfx1250/named.rs` independently reconstructs named object lifetimes,
+operation counts, joins, releases and phase separation. Its execution frontiers
+are distinct from completed-memory frontiers; drop-only publication stays Unknown.
+
 For PTX, the seven checks of the Volta v2 design's data-race freedom check (§1.3 of the
 design document), then three beyond it (allocation order and allocation permit,
 PTX ISA rules, and mbarrier release order), one
@@ -609,6 +622,10 @@ none turns an unsupported case into `Pass`. Depends only on `volta_graph`.
 ## Crate: volta_pipeline
 
 **Path**: `crates/volta_pipeline/`
+
+The allocated LLVM named-barrier corpus has complete native payload and typed
+deadlock/conflict controls in `gfx1250_named_barrier_tests`; harmful assembly
+mutations are CPU-only and separately validated with llvm-mc.
 
 `examples/measure_native_export.rs` measures a completed native graph and its
 viewer export on CPU; its counts and GraphVerified guard are independent of
@@ -773,6 +790,9 @@ The paper's canonicalizer, in Rust:
 ## Crate: volta_viz
 
 **Path**: `crates/volta_viz/`
+
+Named AMD barrier rows and candidate edges retain object/incarnation/phase,
+encoded WAIT selectors and counted terminal waits without changing proof status.
 
 `write_run` bounds large browser displays at 50,000 events, with explicit full,
 included and omitted counts and original EventId mappings. It prioritizes

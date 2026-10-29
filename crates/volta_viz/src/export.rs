@@ -638,8 +638,32 @@ fn edges(graph: &EventGraph, view: &DisplayEvents) -> Json {
     let mut amd_arrivals = HashMap::<u32, Vec<EventId>>::new();
     let mut split_arrivals = HashMap::<(i16, u32), Vec<EventId>>::new();
     let mut split_waits = HashMap::new();
+    let mut named_arrivals = HashMap::<(volta_graph::AmdNamedBarrier, u32), Vec<EventId>>::new();
+    let mut named_waits = HashMap::new();
     for record in graph.amd_events() {
         match record.kind {
+            volta_graph::AmdEventKind::NamedBarrierSignal { object, phase, .. }
+            | volta_graph::AmdEventKind::NamedBarrierLeave { object, phase }
+                if object.id != 0 =>
+            {
+                named_arrivals
+                    .entry((object, phase))
+                    .or_default()
+                    .push(record.event);
+            }
+            volta_graph::AmdEventKind::NamedBarrierWait { object, phase, .. } => {
+                named_waits.insert((object, phase, record.wave), record.event);
+            }
+            volta_graph::AmdEventKind::NamedBarrierRelease { object, phase } => {
+                if let Some(arrivals) = named_arrivals.get(&(object, phase)) {
+                    for &arrival in arrivals {
+                        push("amd-barrier", arrival, record.event);
+                    }
+                }
+                if let Some(&wait) = named_waits.get(&(object, phase, record.wave)) {
+                    push("amd-barrier", wait, record.event);
+                }
+            }
             volta_graph::AmdEventKind::SplitBarrierSignal {
                 barrier,
                 generation,
@@ -811,6 +835,48 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
                     (
                         "resume",
                         format!("barrier {barrier} phase {generation} released"),
+                    )
+                }
+                volta_graph::AmdEventKind::NamedBarrierInit { object, expected } => {
+                    info.push((
+                        "named object",
+                        format!("{} incarnation {}", object.id, object.incarnation),
+                    ));
+                    info.push(("expected arrivals", expected.to_string()));
+                    ("sync", format!("named init {} count {expected}", object.id))
+                }
+                volta_graph::AmdEventKind::NamedBarrierJoin { object, phase }
+                | volta_graph::AmdEventKind::NamedBarrierSignal { object, phase, .. }
+                | volta_graph::AmdEventKind::NamedBarrierWait { object, phase, .. }
+                | volta_graph::AmdEventKind::NamedBarrierRelease { object, phase }
+                | volta_graph::AmdEventKind::NamedBarrierLeave { object, phase } => {
+                    info.push((
+                        "named object",
+                        format!("{} incarnation {}", object.id, object.incarnation),
+                    ));
+                    info.push(("phase", phase.to_string()));
+                    let operation = match record.kind {
+                        volta_graph::AmdEventKind::NamedBarrierJoin { .. } => "join",
+                        volta_graph::AmdEventKind::NamedBarrierSignal { exec_mask, .. } => {
+                            info.push(("EXEC", format!("{exec_mask:#x}")));
+                            "signal"
+                        }
+                        volta_graph::AmdEventKind::NamedBarrierWait { encoded, .. } => {
+                            info.push(("encoded WAIT selector", encoded.to_string()));
+                            "wait"
+                        }
+                        volta_graph::AmdEventKind::NamedBarrierRelease { .. } => "release",
+                        _ => "leave",
+                    };
+                    (
+                        if operation == "wait" {
+                            "wait"
+                        } else if operation == "release" {
+                            "resume"
+                        } else {
+                            "sync"
+                        },
+                        format!("named {operation} {} phase {phase}", object.id),
                     )
                 }
                 volta_graph::AmdEventKind::MatrixIssue {
@@ -1200,6 +1266,7 @@ fn terminal(graph: &EventGraph) -> Json {
             .iter()
             .map(|b| {
                 let on = match &b.on {
+                    BlockedOn::AmdNamedBarrier { object, phase, expected, arrived } => format!("waits at AMD named barrier {} incarnation {} phase {phase}: {arrived}/{expected} arrivals", object.id, object.incarnation),
                     BlockedOn::AmdBarrier {
                         generation,
                         missing_waves,

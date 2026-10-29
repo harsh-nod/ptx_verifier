@@ -490,6 +490,12 @@ pub enum BlockedOn {
         generation: u32,
         missing_waves: Vec<u32>,
     },
+    AmdNamedBarrier {
+        object: crate::AmdNamedBarrier,
+        phase: u32,
+        expected: u16,
+        arrived: u16,
+    },
     /// Waiting in a named barrier generation.
     Barrier { generation: GenerationId },
     /// Waiting at a collective instance's entry for the missing live lanes.
@@ -532,6 +538,9 @@ pub enum Assumption {
     SingleCuWorkgroup,
     /// Workgroup clustering and cluster-dependent ABI fields are disabled.
     UnclusteredWorkgroup,
+    /// Number of shader named barrier objects allocated by the native kernel
+    /// descriptor (four times NAMED_BAR_CNT), not the number used by a trace.
+    AllocatedNamedBarriers(u8),
     /// Native LDS object boundaries are supplied explicitly by configuration.
     ConfiguredSharedAllocationLayout,
     /// Symbolic arithmetic uses mathematical reals, not bit-exact floating-point.
@@ -576,6 +585,21 @@ impl Assumption {
             }
             Assumption::UnclusteredWorkgroup => {
                 "workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result"
+            }
+            Assumption::AllocatedNamedBarriers(4) => {
+                "the native kernel descriptor allocates four shader named barrier objects"
+            }
+            Assumption::AllocatedNamedBarriers(8) => {
+                "the native kernel descriptor allocates eight shader named barrier objects"
+            }
+            Assumption::AllocatedNamedBarriers(12) => {
+                "the native kernel descriptor allocates twelve shader named barrier objects"
+            }
+            Assumption::AllocatedNamedBarriers(16) => {
+                "the native kernel descriptor allocates sixteen shader named barrier objects"
+            }
+            Assumption::AllocatedNamedBarriers(_) => {
+                "the recorded native named barrier allocation is outside the supported descriptor profile"
             }
             Assumption::MathematicalRealArithmetic => {
                 "arithmetic is modeled over mathematical reals, not bit-exact floating-point"

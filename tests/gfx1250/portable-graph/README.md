@@ -51,3 +51,50 @@ combined wait immediate `0x1` means Load0+Ds1; target FIFO retirement completes
 only the older of two pending DS tokens. Replacing a FLAT destination by an
 ordinary VALU write must retain the older GLOBAL source-lease hazard. These MC
 receipts make no numerical, graph-safety or hardware claim by themselves.
+
+## Allocated shader named objects
+
+`native-named-barriers.ll` uses the toolchain's allocated
+`target("amdgcn.named.barrier", 0)` object type. The actual llc 22 toolchain uses
+address space 3 for this type; the public reference has since assigned a
+dedicated address space. This is compiler input, not an edited descriptor or a
+pointer literal masquerading as an allocation. All six unchanged compiler
+outputs declare `.amdhsa_named_barrier_count 1`, allocating four shader objects.
+The selected controls use object 1 and independent ordinary LDS payload storage.
+
+```sh
+python3 tests/gfx1250/portable-graph/validate_named_profile.py
+cargo test -p volta_pipeline --test gfx1250_named_barrier_tests
+cargo test -p volta_graph_check --test gfx1250_tests
+```
+
+`named-profile-evidence.json` pins the actual input/output/tool hashes and exact
+llc, MC and link commands. It also assembles five harmful mutations; they run
+only in the CPU graph tests, never on a GPU. Their positive controls must first
+produce GraphVerified and the complete symbolic payload.
+
+| Native control | Participants and obligation | Complete output |
+| --- | --- | --- |
+| `named_identity` | Two waves; INIT count 2, JOIN, DS completion, SIGNAL, WAIT, LEAVE | `in[0]` |
+| `named_encoded_wait_uses_last_join` | Encoded WAIT 2 resolves to joined object 1 | `in[0]` |
+| `named_reinitialized_identity` | Two initialized lifetimes separated by all leaves and a workgroup rendezvous | `in[0], in[1]` |
+| `named_subset_drop` | Three joined waves; one explicitly drops and two arrive/wait | `in[0]` |
+| `named_null_unjoin` | Join NULL without dropping former object; NULL LEAVE preserves the NULL join across another WAIT | `in[0]` |
+| `named_two_arrivals_one_wave` | One wave issues both arrivals of a count-2 phase | `in[0]` |
+
+The mutations exercise a wrong expected count, a missing signal, END without a
+named drop, WAIT without JOIN, and replacing DS completion by an unrelated Load
+wait. Independent event graphs additionally test all IDs 1–16, malformed M0 and
+allocation roles, stale incarnations, forged/duplicate releases, phase
+interleaving, unordered initialization and drop-dependent memory Unknown.
+
+The checker follows the pinned LLVM
+[execution model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md).
+Arrivals are wave-uniform operations, not distinct waves or PTX per-lane counts.
+INIT reads its expected count from M0, and each reinitialization receives a fresh
+trace incarnation. END does not implicitly drop a named object. This selected
+slice does not cover signal-time count changes, `_isfirst`, clustered objects,
+or reinitialization with outstanding joins, and does not complete every portable
+barrier, lifetime or asynchronous-copy obligation. No hardware result is claimed.
+NULL waits require an explicit NULL join; an unbound initial last-joined selector
+is not inferred from the encoded operand and remains Unknown.

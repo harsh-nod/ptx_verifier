@@ -279,7 +279,10 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
             | "s_wait_xcnt"
             | "s_wait_asynccnt"
             | "s_wait_tensorcnt" => (Wait, 1, 1),
-            "s_barrier_signal" | "s_barrier_wait" => (Barrier, 1, 1),
+            "s_barrier_signal" | "s_barrier_wait" | "s_barrier_init" | "s_barrier_join" => {
+                (Barrier, 1, 1)
+            }
+            "s_barrier_leave" => (Barrier, 0, 0),
             "s_clause" => (Control, 1, 1),
             "v_nop" => (Control, 0, 0),
             "tensor_load_to_lds" | "tensor_store_from_lds" => (VectorMemory, 4, 4),

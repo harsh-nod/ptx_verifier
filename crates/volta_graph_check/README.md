@@ -309,3 +309,26 @@ atomic/atomic serialization and returning/multi-lane profiles remain inconclusiv
 These rules follow LLVM's [hardware-event classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/AMDGPUHWEvents.cpp),
 [wait insertion](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInsertWaitcnts.cpp),
 and GFX125x memory-model replay requirements in AMDGPUUsage.md at that revision.
+
+Shader named barriers are reconstructed independently in `gfx1250/named.rs`.
+The checker validates descriptor capacity, initialized M0 roles, object
+incarnations, operation counts, last-joined WAIT resolution, matching wait/release
+source points, join-before-contribution and phase separation. Counts refer to
+arrival operations, not distinct waves or PTX lane participants. A separate
+execution frontier validates initialization and reuse without manufacturing a
+memory completion. Completed memory at actual arrivals can publish; paths that
+need a drop's memory frontier remain Unknown because that publication is unpinned.
+NULL LEAVE preserves a NULL join; an unjoined LEAVE produces no drop. Named END
+never supplies a missing contribution. Fresh lifetimes cannot consume stale
+signals or waits from an earlier initialization.
+NULL WAIT requires an explicit NULL join; an initial or cleared last-joined
+selector is not inferred from its encoded operand.
+
+This selected profile follows LLVM's pinned
+[named barrier execution model](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md#named-barriers-model-extensions)
+and [instruction sequences](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md#code-sequences-1).
+Unordered initialization/reuse, outstanding joins at reinitialization and missing
+native sideband state stay inconclusive. Signal-time expected-count updates,
+`_isfirst`, and clustered objects are outside this profile. The native allocated
+controls and independent malformed graphs are separate tests; no GPU execution
+of a harmful mutation is required or claimed.

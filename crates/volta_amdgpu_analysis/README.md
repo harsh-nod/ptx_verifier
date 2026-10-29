@@ -13,6 +13,16 @@ under `src/frontend/fixtures`; gfx1250 fixtures live under
 [`tests/gfx1250`](../../tests/gfx1250). CPU analysis of checked-in assembly
 requires no ROCm installation or GPU.
 
+The selected gfx1250 named-barrier profile supports shader IDs 1–16 within the
+descriptor's four-object allocation units, explicit M0 count/selector moves,
+INIT, JOIN, one-count SIGNAL, last-joined WAIT and LEAVE. NULL operations are
+no-ops except JOIN; END does not drop named objects. Reinitialization advances
+the trace incarnation after all joins have been left. Signal-time count updates,
+`_isfirst`, clustered objects and reinitialization with outstanding joins remain
+unsupported. Genuine allocated LLVM inputs, compiler output and CPU-only harmful
+controls are in [portable-graph](../../tests/gfx1250/portable-graph).
+NULL waits require an explicit NULL join rather than an assumed initial selector.
+
 `frontend::parse` and `parse_module` preserve the original source, instruction
 spans, globals, descriptors and argument metadata. Descriptors and AMDHSA metadata
 identify the entry kernels in compiler modules. Unrelated functions are excluded
