@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import tarfile
 import unittest
 
 SCRIPT = Path(__file__).with_name("original_run.py")
@@ -44,6 +45,29 @@ def identity():
 
 
 class ReceiptControls(unittest.TestCase):
+    def test_staging_bundle_retains_exact_files_and_rejects_ambiguous_paths(self):
+        from dataclasses import replace
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "nested").mkdir()
+            (root / "nested/input.s").write_bytes(b"exact compiler output\n")
+            (root / "runner.py").write_bytes(b"print('gate')\n")
+            files = ("nested/input.s", "runner.py")
+            profile = replace(runner.BASIC, files=files)
+            destination = root / "inputs.tar.gz"
+            runner.staging_archive(root, destination, profile)
+            with tarfile.open(destination) as archive:
+                self.assertEqual(list(files), archive.getnames())
+                for name in files:
+                    self.assertEqual((root / name).read_bytes(), archive.extractfile(name).read())
+            for invalid in [(), (files[0], files[0]), ("../input.s",), ("/input.s",), ("./runner.py",)]:
+                with self.subTest(files=invalid), self.assertRaises(ValueError):
+                    runner.staging_archive(root, destination, replace(profile, files=invalid))
+            (root / "alias.py").symlink_to(root / "runner.py")
+            with self.assertRaises(ValueError):
+                runner.staging_archive(root, destination, replace(profile, files=("alias.py",)))
+
     def test_device_identity_requires_actual_versions_target_and_physical_identifier(
         self,
     ):

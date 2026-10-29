@@ -18,6 +18,7 @@ from pathlib import Path
 import shlex
 import subprocess
 import sys
+import tarfile
 import tempfile
 import uuid
 
@@ -263,15 +264,36 @@ def run_local(args: argparse.Namespace, directory: Path, receipt: dict) -> None:
     receipt["validation"] = result
 
 
+def staging_archive(directory: Path, destination: Path, profile: Profile) -> None:
+    files = profile.files
+    if not files or len(set(files)) != len(files):
+        raise ValueError("staging requires a nonempty unique input list")
+    with tarfile.open(destination, "w:gz", dereference=True) as archive:
+        for name in files:
+            relative = Path(name)
+            source = directory / relative
+            if (relative.is_absolute() or ".." in relative.parts or str(relative) != name
+                    or not source.is_file() or source.is_symlink()
+                    or not source.resolve().is_relative_to(directory.resolve())):
+                raise ValueError(f"invalid staging input: {name}")
+            archive.add(source, arcname=name, recursive=False)
+
+
 def run_remote(args: argparse.Namespace, directory: Path, receipt: dict) -> None:
     validate_revision(directory, args.revision, args.profile)
     remote = checked_run(["ssh", args.host, "mktemp -d /tmp/ptx-gfx1250-original.XXXXXX"], timeout=45).stdout.strip()
     if not remote.startswith("/tmp/ptx-gfx1250-original.") or any(c.isspace() for c in remote):
         raise ValueError("unexpected remote staging directory")
-    parents = sorted({str(Path(p).parent) for p in args.profile.files})
-    checked_run(["ssh", args.host, shlex.join(["mkdir", "-p", *[remote + "/" + p for p in parents]])], timeout=45)
-    for relative in args.profile.files:
-        checked_run(["scp", str(directory / relative), args.host + ":" + remote + "/" + relative], timeout=45)
+    # Transfer the source-pinned inputs together. A new SSH connection for each
+    # small file is both expensive and prone to proxy connection resets.
+    with tempfile.TemporaryDirectory(prefix="gfx1250-original-inputs-") as staging:
+        archive = Path(staging) / "inputs.tar.gz"
+        staging_archive(directory, archive, args.profile)
+        archive_sha256 = sha256(archive)
+        checked_run(["scp", str(archive), args.host + ":" + remote + "/inputs.tar.gz"], timeout=45)
+        checked_run(["ssh", args.host, shlex.join([
+            "tar", "--no-same-owner", "-xzf", remote + "/inputs.tar.gz", "-C", remote
+        ])], timeout=45)
     command = ["python3", remote + "/" + args.profile.runner, "--local",
                "--fixture-directory", remote, "--device", str(args.device), "--patterns", str(args.patterns),
                "--timeout", str(args.timeout), "--rocm", args.rocm, "--revision", args.revision,
@@ -289,7 +311,8 @@ def run_remote(args: argparse.Namespace, directory: Path, receipt: dict) -> None
             args.invocation_id, args.revision, receipt["input_artifacts"]):
         raise ValueError("remote receipt has different invocation, revision, or artifacts")
     receipt.update(result)
-    receipt["remote_execution"] = {"ssh_host": args.host, "directory": remote, "argv": command}
+    receipt["remote_execution"] = {"ssh_host": args.host, "directory": remote, "argv": command,
+                                   "staging_archive_sha256": archive_sha256}
     if error:
         raise error
     if receipt.get("status") != "pass":
