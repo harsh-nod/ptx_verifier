@@ -2501,6 +2501,29 @@ impl<'a> Interpreter<'a> {
         };
         Ok(self.arena.int(number))
     }
+    /// Copy an encoded half without assigning a numeric format. Symbolic
+    /// global halfwords remain untyped until F16/BF16 arithmetic consumes them.
+    /// Raw nonzero constants retain the existing F16 interpretation and the
+    /// BF16 matrix input guard rejects their cross-format reinterpretation.
+    fn copied_half(
+        &mut self,
+        wave: &Wave,
+        operand: &Operand,
+        lane: u8,
+        high: bool,
+    ) -> Result<ExprId, EvalError> {
+        match wave.value(operand, lane)? {
+            Value::Half(expr) => Ok(if high { self.arena.int(0) } else { expr }),
+            Value::Halves(lo, hi) => Ok(if high { hi } else { lo }),
+            Value::PartialHalves(lo, hi) => {
+                if high { hi } else { lo }.ok_or_else(|| EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "unknown half after partial register write".into(),
+                })
+            }
+            _ => self.half(wave, operand, lane, high),
+        }
+    }
     fn half(
         &mut self,
         wave: &Wave,
@@ -4224,10 +4247,56 @@ impl<'a> Interpreter<'a> {
                                     return Err(self.unsupported(wave, instruction));
                                 }
                                 let source = if lo < 4 { &o[2] } else { &o[1] };
-                                halves.push(self.half(wave, source, lane, lo % 4 == 2)?);
+                                halves.push(self.copied_half(wave, source, lane, lo % 4 == 2)?);
                             }
                         }
                         Value::Halves(halves[0], halves[1])
+                    }
+                }
+                "v_bfi_b32"
+                    if self.architecture == AmdArchitecture::Gfx1250
+                        && matches!(wave.bits(&o[1], lane)?, 0xffff | 0xffff0000)
+                        && [&o[2], &o[3]].iter().any(|operand| {
+                            matches!(
+                                wave.value(operand, lane),
+                                Ok(Value::Half(_) | Value::Halves(..) | Value::PartialHalves(..))
+                            )
+                        }) =>
+                {
+                    if !instruction.modifiers.is_empty()
+                        || o.iter()
+                            .any(|operand| matches!(operand, Operand::Modified { .. }))
+                    {
+                        return Err(self.unsupported(wave, instruction));
+                    }
+                    let mask = wave.bits(&o[1], lane)?;
+                    let zero = self.arena.int(0);
+                    // BFI copies encoded halves. Do not decode an untyped BF16
+                    // input as IEEE F16 while transporting it into a fragment.
+                    let component = |value: Option<Value>, high: bool| match value {
+                        Some(Value::Half(expr)) => Some(if high { zero } else { expr }),
+                        Some(Value::Halves(lo, hi)) => Some(if high { hi } else { lo }),
+                        Some(Value::PartialHalves(lo, hi)) => {
+                            if high {
+                                hi
+                            } else {
+                                lo
+                            }
+                        }
+                        Some(Value::Bits(bits) | Value::Integer(bits))
+                            if ((bits >> if high { 16 } else { 0 }) & 65535) == 0 =>
+                        {
+                            Some(zero)
+                        }
+                        _ => None,
+                    };
+                    let insert = wave.value(&o[2], lane).ok();
+                    let base = wave.value(&o[3], lane).ok();
+                    let lo = component(if mask == 0xffff { insert } else { base }, false);
+                    let hi = component(if mask == 0xffff { base } else { insert }, true);
+                    match (lo, hi) {
+                        (Some(lo), Some(hi)) => Value::Halves(lo, hi),
+                        (lo, hi) => Value::PartialHalves(lo, hi),
                     }
                 }
                 "v_fma_f16" => {
@@ -4431,8 +4500,8 @@ impl<'a> Interpreter<'a> {
                     Value::Halves(self.real(wave, &o[1], lane)?, self.real(wave, &o[2], lane)?)
                 }
                 "v_pack_b32_f16" => Value::Halves(
-                    self.half(wave, &o[1], lane, false)?,
-                    self.half(wave, &o[2], lane, false)?,
+                    self.copied_half(wave, &o[1], lane, false)?,
+                    self.copied_half(wave, &o[2], lane, false)?,
                 ),
                 "v_add_f16" | "v_sub_f16" | "v_mul_f16" | "v_max_f16" | "v_min_f16" => {
                     let a = self.half(wave, &o[1], lane, half_select_high)?;
