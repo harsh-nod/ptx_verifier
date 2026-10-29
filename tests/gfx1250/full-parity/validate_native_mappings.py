@@ -27,6 +27,26 @@ def validate(document, ledger, root=ROOT):
     )
     groups = set(document["reference_groups"])
     references = {row["path"]: row for row in ledger["rows"] if row["group"] in groups}
+    if "source_selection" in document:
+        selection = document["source_selection"]
+        proposal = root / selection["path"]
+        require(sha(proposal) == selection["sha256"], "reference selection changed")
+        require(
+            selection["proposal"] == "portable_property_gap_with_target_residual",
+            "unknown reference selection",
+        )
+        selected = {
+            row["path"]
+            for row in json.loads(proposal.read_text())["rows"]
+            if row["proposal"] == selection["proposal"]
+        }
+        selected.update(selection.get("additional_paths", []))
+        require(
+            len(selected) == selection["required_rows"]
+            and selected <= references.keys(),
+            "explicit obligation selection changed",
+        )
+        references = {path: row for path, row in references.items() if path in selected}
     rows = {row["baseline_path"]: row for row in document["rows"]}
     require(len(rows) == len(document["rows"]), "duplicate native mapping")
     require(rows.keys() == references.keys(), "dropped or extra reference mapping")
@@ -116,7 +136,12 @@ def validate(document, ledger, root=ROOT):
         if row["candidate_kind"] == "portable_feature":
             outcome = row["expected_native_outcome"]
             require(
-                outcome in ("complete_outputs", "typed_domain_refusal"),
+                outcome
+                in (
+                    "complete_outputs",
+                    "verified_empty_outputs",
+                    "typed_domain_refusal",
+                ),
                 "missing explicit output/refusal contract",
             )
             require(
@@ -124,10 +149,12 @@ def validate(document, ledger, root=ROOT):
                 "native output obligation was dropped",
             )
             require(
-                outcome != "typed_domain_refusal" or "/failing/" in path,
+                outcome != "typed_domain_refusal"
+                or "/failing/" in path
+                or "/soundness/" in path,
                 "required positive cannot become a domain refusal",
             )
-            if row["kernel"] in positive_cases and outcome == "complete_outputs":
+            if row["kernel"] in positive_cases and outcome != "typed_domain_refusal":
                 case = positive_cases[row["kernel"]]
                 require(
                     row["native_outputs"]
@@ -145,6 +172,10 @@ def validate(document, ledger, root=ROOT):
             )
             golden = reference.get("baseline_golden")
             if golden:
+                require(
+                    not golden["output_coordinates"] or outcome == "complete_outputs",
+                    "original output-bearing positive cannot become empty",
+                )
                 require(
                     row["golden_path"] == golden["path"]
                     and row["golden_sha256"] == golden["sha256"]

@@ -68,6 +68,22 @@ class MappingControls(unittest.TestCase):
             with self.subTest(name=name), self.assertRaises(ValueError):
                 mapping.validate(document, self.ledger)
 
+    def test_remaining13_obligations_preserve_the_pinned_selection_and_original_positives(
+        self,
+    ):
+        path = mapping.DEFAULT.with_name("mechanism-lifetime-contract.json")
+        document = json.loads(path.read_text())
+        self.assertEqual(mapping.validate(document, self.ledger), 13)
+        for mutate in (
+            lambda d: d["rows"].pop(),
+            lambda d: d["source_selection"].update(sha256="0" * 64),
+            lambda d: d["source_selection"].update(additional_paths=[]),
+        ):
+            changed = copy.deepcopy(document)
+            mutate(changed)
+            with self.assertRaises(ValueError):
+                mapping.validate(changed, self.ledger)
+
 
 if __name__ == "__main__":
     unittest.main()
