@@ -1,7 +1,6 @@
 {
   "schema_version": 1,
   "target": "gfx1250",
-  "host": "XSJHARMENON01",
   "scope": "Genuine native compiler outputs, not edited or retargeted assembly; compilation/assembly alone make no semantic verification claim.",
   "hardware_validation": "not_performed_by_this_compiler_only_workflow",
   "tools": {
