@@ -235,6 +235,19 @@ requires `SingleWorkgroupAnalyzed`: the result covers only the selected workgrou
 including its launch-coordinate inputs, and makes no claim about other groups.
 The unclustered premise and full selected-block trace remain required.
 
+Tensor descriptor SGPRs are captured by the issuing instruction. They remain
+ordinary instruction reads, so descriptor values returned by an unfinished KM
+load fail readiness at issue. The Tensor memory issue has no completion-held
+register sources; a later SGPR overwrite does not complete its memory effects.
+Tensor waits still govern LDS/global buffer lifetime, and completed effects
+still require publication before another wave consumes them. Load, DS and X
+waits cannot replace Tensor completion. The selected contract follows pinned
+LLVM's [TDM operand definitions](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/MIMGInstructions.td#L2291),
+[Tensor-only event classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/AMDGPUHWEvents.cpp#L140)
+and [register score handling](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInsertWaitcnts.cpp#L985).
+Independent graph tests cover descriptor overwrite, pending-KM inputs, LDS
+source/destination reuse, publication and malformed held-source records.
+
 An exiting wave drops its automatic workgroup-barrier participation, so an
 otherwise independent surviving wave can still finish. The pinned LLVM
 [execution-barrier description](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md)

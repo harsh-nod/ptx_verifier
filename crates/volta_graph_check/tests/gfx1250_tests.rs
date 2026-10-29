@@ -367,6 +367,32 @@ impl Trace {
         }
         issue
     }
+    fn tensor(
+        &mut self,
+        wave: u32,
+        class: AmdMemoryClass,
+        reads: Vec<AmdRegister>,
+        held_sources: Vec<AmdRegister>,
+    ) {
+        let store = match class {
+            AmdMemoryClass::TensorLoadToLds => false,
+            AmdMemoryClass::TensorStoreFromLds => true,
+            _ => panic!("requires a Tensor class"),
+        };
+        self.ins(wave, 10, reads, vec![]);
+        let issue = self.b.amd_event(
+            wave,
+            ProgramPoint(10),
+            AmdEventKind::MemoryIssue {
+                class,
+                counters: vec![(AmdCounter::Tensor, 1)],
+                destinations: vec![],
+                held_sources,
+            },
+        );
+        self.effect(issue, wave * 32, 10, Space::Global, store, 64);
+        self.effect(issue, wave * 32, 10, Space::Shared, !store, 0);
+    }
     fn effect(
         &mut self,
         issue: EventId,
@@ -897,26 +923,15 @@ fn split_signal_is_nonblocking_and_wait_is_blocking() {
 fn tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes() {
     for counter in [AmdCounter::Tensor, AmdCounter::Load, AmdCounter::Ds] {
         let mut t = Trace::new(1);
-        t.issue(
-            0,
-            AmdMemoryClass::TensorStoreFromLds,
-            vec![],
-            vec![s(4)],
-            64,
-        );
-        t.wait(0, counter, 0);
+        t.tensor(0, AmdMemoryClass::TensorStoreFromLds, vec![s(4)], vec![]);
+        // The descriptor has been captured, while the borrowed LDS bytes remain
+        // live until Tensor completion. A register overwrite is not a byte write.
         t.ins(0, 0, vec![], vec![s(4)]);
+        t.wait(0, counter, 0);
         t.issue(0, AmdMemoryClass::Ds, vec![], vec![], 0);
         let r = check_graph(&t.finish());
         assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
-        assert_eq!(
-            r.verdict(Property::AmdWaitReadiness),
-            if counter == AmdCounter::Tensor {
-                Verdict::Pass
-            } else {
-                Verdict::Fail
-            }
-        );
+        assert_eq!(r.verdict(Property::AmdWaitReadiness), Verdict::Pass);
         assert_eq!(
             r.verdict(Property::AmdMemoryConflict),
             if counter == AmdCounter::Tensor {
@@ -926,6 +941,121 @@ fn tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes() {
             },
             "{r:?}"
         );
+    }
+}
+
+#[test]
+fn tensor_descriptor_capture_does_not_complete_its_lds_destination() {
+    for counter in [AmdCounter::Tensor, AmdCounter::X, AmdCounter::Load] {
+        let mut t = Trace::new(1);
+        t.tensor(0, AmdMemoryClass::TensorLoadToLds, vec![s(1)], vec![]);
+        t.ins(0, 0, vec![], vec![s(1)]);
+        t.wait(0, counter, 0);
+        t.issue(0, AmdMemoryClass::Ds, vec![v(0, 1)], vec![], 0);
+        let report = check_graph(&t.finish());
+        assert_eq!(report.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(report.verdict(Property::AmdWaitReadiness), Verdict::Pass);
+        assert_eq!(
+            report.verdict(Property::AmdMemoryConflict),
+            if counter == AmdCounter::Tensor {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            },
+            "{report:?}"
+        );
+    }
+}
+
+#[test]
+fn descriptor_capture_still_requires_pending_km_inputs_to_be_ready_at_issue() {
+    for counter in [AmdCounter::Km, AmdCounter::Load, AmdCounter::X] {
+        let mut t = Trace::new(1);
+        t.issue(
+            0,
+            AmdMemoryClass::ScalarLoad,
+            vec![s(1)],
+            vec![s(20), s(21)],
+            128,
+        );
+        t.wait(0, counter, 0);
+        t.tensor(0, AmdMemoryClass::TensorLoadToLds, vec![s(1)], vec![]);
+        t.wait(0, AmdCounter::Tensor, 0);
+        let report = check_graph(&t.finish());
+        assert_eq!(report.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(
+            report.verdict(Property::AmdWaitReadiness),
+            if counter == AmdCounter::Km {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            },
+            "{report:?}"
+        );
+        if counter == AmdCounter::Km {
+            assert_eq!(report.conclusion(), GraphConclusion::Verified);
+        } else {
+            assert!(matches!(
+                &report.amd.as_ref().unwrap().wait_readiness,
+                volta_graph_check::PropertyResult::Fail(hazards)
+                if hazards.iter().any(|h| h.register == s(1)
+                    && h.kind == volta_graph_check::amdgpu::AmdRegisterHazardKind::ReadBeforeReady)
+            ));
+        }
+    }
+}
+
+#[test]
+fn captured_tensor_descriptors_do_not_publish_completed_memory_to_other_waves() {
+    for publish in [false, true] {
+        let mut t = Trace::new(64);
+        t.tensor(0, AmdMemoryClass::TensorLoadToLds, vec![s(1)], vec![]);
+        t.ins(0, 0, vec![], vec![s(1)]);
+        t.wait(0, AmdCounter::Tensor, 0);
+        if publish {
+            t.signal(0, 0);
+            t.signal(1, 0);
+            t.barrier_wait(0, 0, true);
+            t.barrier_wait(1, 0, true);
+        }
+        t.issue(
+            1,
+            AmdMemoryClass::Ds,
+            vec![v(0, u32::MAX as u64)],
+            vec![],
+            0,
+        );
+        t.wait(1, AmdCounter::Ds, 0);
+        let report = check_graph(&t.finish());
+        assert_eq!(report.verdict(Property::AmdTrace), Verdict::Pass);
+        assert_eq!(report.verdict(Property::AmdWaitReadiness), Verdict::Pass);
+        assert_eq!(
+            report.verdict(Property::AmdMemoryConflict),
+            if publish {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            },
+            "{report:?}"
+        );
+    }
+}
+
+#[test]
+fn malformed_tensor_completion_held_descriptor_roles_are_unknown() {
+    for class in [
+        AmdMemoryClass::TensorLoadToLds,
+        AmdMemoryClass::TensorStoreFromLds,
+    ] {
+        let mut t = Trace::new(1);
+        t.tensor(0, class, vec![s(1)], vec![s(1)]);
+        t.wait(0, AmdCounter::Tensor, 0);
+        let report = check_graph(&t.finish());
+        assert_eq!(report.verdict(Property::AmdTrace), Verdict::Unknown);
+        assert!(matches!(
+            report.conclusion(),
+            GraphConclusion::Unknown { .. }
+        ));
     }
 }
 #[test]

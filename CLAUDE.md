@@ -291,6 +291,11 @@ without changing their resolved effect Space or releasing older LDS source
 tokens. Target-pinned Load/Store/Ds FIFO prefixes remain separate from data
 completion. Unresolved apertures and nonzero LDS FLAT X prefixes remain inconclusive. Global
 cache publication is independent.
+Tensor descriptor SGPRs are captured at issue and remain ordinary Instruction
+reads for pending-KM readiness; Tensor MemoryIssue has no completion-held
+register sources. Its memory effects still require Tensor completion and
+crosswave publication, independently of register reuse. The checker rejects
+fabricated Tensor source-lease roles instead of importing GLOBAL/X rules.
 Automatic-barrier drops on wave exit preserve execution progress, but completed
 memory publication through an implicit drop is unpinned. gfx1250 reports Unknown
 only for a conflicting memory dependency needing that edge; actual explicit

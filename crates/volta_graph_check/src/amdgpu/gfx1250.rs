@@ -348,6 +348,20 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
                     claim(graph, record, &mut instructions, "memory", &mut unresolved);
                 registers(destinations, physical_mask, record.event, &mut unresolved);
                 registers(held_sources, physical_mask, record.event, &mut unresolved);
+                if matches!(
+                    class,
+                    AmdMemoryClass::TensorLoadToLds | AmdMemoryClass::TensorStoreFromLds
+                ) && !held_sources.is_empty()
+                {
+                    // Tensor descriptors are SReg inputs consumed at issue.
+                    // LLVM classifies TDM as TENSOR_ACCESS without X/VMEM_GROUP
+                    // and scores no source registers against Tensor completion.
+                    // Read readiness still comes from the Instruction record.
+                    unresolved.push(Unresolved::at(
+                        record.event,
+                        "tensor descriptors are captured at issue and have no completion-held register sources",
+                    ));
+                }
                 let correct_destinations = match class {
                     AmdMemoryClass::ScalarLoad => {
                         !destinations.is_empty() && destinations.iter().all(|r| r.is_uniform())
