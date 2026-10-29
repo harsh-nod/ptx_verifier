@@ -4,6 +4,17 @@
 typedef _Float16 mamba_half16 __attribute__((ext_vector_type(16)));
 typedef float mamba_float8 __attribute__((ext_vector_type(8)));
 
+// WMMA input fragments remain live through four subsequent VALU states. Tie
+// both inputs and the accumulator to this compiler barrier so register reuse
+// cannot move before the four native VALU no-ops (LLVM checkWMMAHazards).
+__device__ __forceinline__ void mamba_wmma_spacing(mamba_float8 &accumulator,
+                                                   mamba_half16 a, mamba_half16 b) {
+  asm volatile("v_nop\nv_nop\nv_nop\nv_nop"
+               : "+v"(accumulator)
+               : "v"(a), "v"(b)
+               : "memory");
+}
+
 __device__ __forceinline__ void state_stage(const _Float16 *x, const _Float16 *b, const float *dt,
                                             const float *da, float last, unsigned base,
                                             unsigned thread, _Float16 *sx, _Float16 *sb) {
@@ -58,6 +69,7 @@ __launch_bounds__(64) void mamba_state_original(const _Float16 *x, const _Float1
         }
         accumulator[row_tile][column_tile] = __builtin_amdgcn_wmma_f32_16x16x32_f16(
             false, a, false, bv, 0, accumulator[row_tile][column_tile], false, false);
+        mamba_wmma_spacing(accumulator[row_tile][column_tile], a, bv);
       }
     }
     __syncthreads();
@@ -131,6 +143,7 @@ __device__ __forceinline__ void scan_product(const float *cb, const _Float16 *x,
       }
       accumulator[column_tile] = __builtin_amdgcn_wmma_f32_16x16x32_f16(
           false, av, false, bv, 0, accumulator[column_tile], false, false);
+      mamba_wmma_spacing(accumulator[column_tile], av, bv);
     }
     __syncthreads();
   }
