@@ -303,8 +303,9 @@ This follows LLVM's pinned [X-drain classification](https://github.com/llvm/llvm
 Selected WMMA forms cover F32 16x16x4 and F16/BF16 16x16x32 with F32
 accumulators, full-wave legality, separately derived lane layouts and dependency
 rules. TDM covers bounded plain 2D global-to-LDS and LDS-to-global transfers,
-both directions, two-stage reuse and unnamed shader split barriers. Named,
-cluster, multicast, padding, gather and atomic-barrier tensor modes are outside
+both directions, two-stage reuse and unnamed shader split barriers. Selected
+allocated named shader barriers are described above. Cluster, multicast,
+descriptor padding, gather and atomic-barrier tensor modes are outside
 this profile; nonzero tensor wait thresholds remain inconclusive.
 
 The existing mathematical-real abstraction applies, including disclosed native

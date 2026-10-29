@@ -15,6 +15,8 @@ coverage and gfx950 reference candidates. All 32 **new full-parity** statuses st
 pending. The 520 upstream reference-file rows (365 PTX, 137 specs, 18 Rust files)
 are a finite review inventory, not already-adjudicated architecture exclusions.
 Each needs its actual portable obligation and exact NVIDIA-only residual reviewed.
+The [stage-support table](stage-support.md) separates frontend legality,
+lowering, values, events and checker obligations for the selected native forms.
 
 The original configured footprints contain **395,394 output elements**. Some are
 sparse: GEMM/BitDelta retain a 4096-element row pitch, convolution retains a
