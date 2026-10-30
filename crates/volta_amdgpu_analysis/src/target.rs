@@ -7,6 +7,14 @@
 use crate::frontend::{Module, Opcode, ParseError, SourceSpan};
 pub use volta_graph::AmdArchitecture as Architecture;
 
+/// The nonnegative subset of the native signed SMEM immediate encoding.
+pub(crate) fn scalar_memory_offset_max(architecture: Architecture) -> i64 {
+    match architecture {
+        Architecture::Gfx942 | Architecture::Gfx950 => 0x0f_ffff,
+        Architecture::Gfx1250 => 0x7f_ffff,
+    }
+}
+
 /// Validate target-specific syntax even for caller-constructed typed modules.
 /// A missing directive retains the original gfx950 default.
 pub fn validate(module: &Module) -> Result<Architecture, ParseError> {

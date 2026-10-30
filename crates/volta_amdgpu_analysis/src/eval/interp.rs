@@ -6089,7 +6089,7 @@ impl<'a> Interpreter<'a> {
         } else if flat {
             (0..=4095).contains(&offset)
         } else if scalar {
-            (0..=(1 << 21) - 1).contains(&offset)
+            (0..=crate::target::scalar_memory_offset_max(self.architecture)).contains(&offset)
         } else if self.architecture == AmdArchitecture::Gfx1250 && name.starts_with("global_") {
             // LLVM FeatureFlatOffsetBits24 and VFLAT_Real encode a signed24
             // immediate. scale_offset scales the VGPR index, not this byte offset.
@@ -6138,16 +6138,18 @@ impl<'a> Interpreter<'a> {
         } else {
             3
         };
-        if scalar
-            && ((wave.wide(&o[1], 0)? & 3) != 0
-                || ((scalar_displacement | offset as u64) & scalar_alignment) != 0)
-        {
-            return Err(EvalError::Unsupported {
-                pc: wave.pc,
-                what: "unaligned SMEM address components require native low-bit masking semantics"
-                    .into(),
-            });
-        }
+        // SMEM discards each component's low bits before addition. Scaling
+        // applies to the SGPR displacement before those byte-address masks.
+        let scalar_address = if scalar {
+            Some(
+                (wave.wide(&o[1], 0)? & !scalar_alignment)
+                    .checked_add(scalar_displacement & !scalar_alignment)
+                    .and_then(|address| address.checked_add(offset as u64 & !scalar_alignment))
+                    .ok_or_else(|| wave.fail(None, "scalar load address overflow"))?,
+            )
+        } else {
+            None
+        };
         let flat_scale = if flat
             && instruction
                 .modifiers()
@@ -6294,10 +6296,7 @@ impl<'a> Interpreter<'a> {
             let mut effective_lds = lds;
             let (address, data_operand) = if scalar {
                 (
-                    wave.wide(&o[1], lane)?
-                        .checked_add(scalar_displacement)
-                        .and_then(|addr| addr.checked_add(offset as u64))
-                        .ok_or_else(|| wave.fail(Some(lane), "scalar load address overflow"))?,
+                    scalar_address.expect("scalar address computed before issuance"),
                     &o[0],
                 )
             } else if lds {

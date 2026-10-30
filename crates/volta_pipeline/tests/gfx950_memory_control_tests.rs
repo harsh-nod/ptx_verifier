@@ -1077,6 +1077,108 @@ fn distinct_static_barrier_instructions_are_not_a_matching_rendezvous() {
 }
 
 #[test]
+fn scalar_load_offsets_obey_the_native_encoding_for_text_and_direct_ast() {
+    for target in ["gfx942", "gfx950"] {
+        for offset in ["0", "0xfffff", "s8", "m0"] {
+            let assembly = source(&format!("s_load_dword s12, s[4:5], {offset}"), 0)
+                .replace("--gfx950\"", &format!("--{target}\""));
+            frontend::parse(&assembly).unwrap();
+        }
+        for offset in ["0x100000", "0x200000", "-1", "1.0", "4 offset:4"] {
+            let assembly = source(&format!("s_load_dword s12, s[4:5], {offset}"), 0)
+                .replace("--gfx950\"", &format!("--{target}\""));
+            assert!(frontend::parse(&assembly).is_err(), "{target}: {offset}");
+        }
+        for offset in [
+            frontend::Operand::Integer(0x100000),
+            frontend::Operand::Float(1.0),
+        ] {
+            let assembly = source("s_load_dword s12, s[4:5], 0", 0)
+                .replace("--gfx950\"", &format!("--{target}\""));
+            let mut module = frontend::parse(&assembly).unwrap();
+            let instruction = module.kernels[0]
+                .instructions
+                .iter_mut()
+                .find(|instruction| instruction.mnemonic == "s_load_dword")
+                .unwrap();
+            instruction.operands[2] = offset;
+            assert!(volta_amdgpu_analysis::analyze(&module, Some("k"), config(1, 16)).is_err());
+        }
+    }
+}
+
+#[test]
+fn smem_discards_each_component_low_bits_before_addition() {
+    for target in ["gfx942", "gfx950"] {
+        for base_low in 0..4 {
+            for register_low in 0..4 {
+                for immediate_low in 0..4 {
+                    let body = format!(
+                        "s_add_u32 s4, s4, {base_low}\n\
+                         s_addc_u32 s5, s5, 0\n\
+                         s_mov_b32 s8, {}\n\
+                         s_load_dword s12, s[4:5], s8 offset:{}\n\
+                         s_waitcnt lgkmcnt(0)\n\
+                         v_mov_b32 v8, s12\n\
+                         global_store_dword v2, v8, s[6:7]",
+                        16 + register_low,
+                        16 + immediate_low,
+                    );
+                    let result = run_target(&body, 0, config(1, 16), target);
+                    assert_verified(&result);
+                    assert_single_symbolic_output(&result, |arena| {
+                        let x = arena.intern_string("x");
+                        arena.input_element(x, 8)
+                    });
+                }
+            }
+        }
+        let body = "s_add_u32 s4, s4, 3\ns_addc_u32 s5, s5, 0\n\
+                    s_load_dword s12, s[4:5], 19\ns_waitcnt lgkmcnt(0)\n\
+                    v_mov_b32 v8, s12\nglobal_store_dword v2, v8, s[6:7]";
+        let result = run_target(body, 0, config(1, 16), target);
+        assert_verified(&result);
+        assert_single_symbolic_output(&result, |arena| {
+            let x = arena.intern_string("x");
+            arena.input_element(x, 4)
+        });
+    }
+}
+
+#[test]
+fn smem_masking_preserves_readiness_bounds_and_exec_independence() {
+    let load = "s_add_u32 s4, s4, 3\ns_addc_u32 s5, s5, 0\n\
+                s_load_dword s12, s[4:5], 19\ns_waitcnt lgkmcnt(0)\n\
+                v_mov_b32 v8, s12\nglobal_store_dword v2, v8, s[6:7]";
+    for target in ["gfx942", "gfx950"] {
+        assert_readiness(
+            &run_target(
+                &load.replace("s_waitcnt lgkmcnt(0)\n", ""),
+                0,
+                config(1, 16),
+                target,
+            ),
+            AmdRegisterHazardKind::ReadBeforeReady,
+        );
+        assert_invalid(&run_target(load, 0, config(1, 4), target), "out-of-bounds");
+        let scalar_without_exec = load
+            .replace(
+                "s_load_dword s12, s[4:5], 19",
+                "s_mov_b64 exec, 0\ns_load_dword s12, s[4:5], 19",
+            )
+            .replace("v_mov_b32 v8, s12", "s_mov_b64 exec, 1\nv_mov_b32 v8, s12");
+        let result = run_target(&scalar_without_exec, 0, config(1, 16), target);
+        assert_verified(&result);
+        assert_single_symbolic_output(&result, |arena| {
+            let x = arena.intern_string("x");
+            arena.input_element(x, 4)
+        });
+        let overflow = "s_mov_b64 s[4:5], -1\ns_load_dword s12, s[4:5], 4";
+        assert_invalid(&run_target(overflow, 0, config(1, 16), target), "overflow");
+    }
+}
+
+#[test]
 fn unaligned_ordinary_accesses_remain_outside_the_current_memory_model() {
     // This is an explicit verifier restriction, not a claim that all AMD memory
     // instruction families trap on unaligned addresses. In particular, SMEM

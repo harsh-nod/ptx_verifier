@@ -1418,13 +1418,20 @@ pub(super) fn validate_registers(
             }
         }
         Opcode::ScalarMemory => {
-            if architecture == crate::target::Architecture::Gfx1250
-                && matches!(stem, "s_load_u8" | "s_load_u16")
-            {
-                if !matches!(operands.get(2),Some(Operand::Integer(value)) if (0..=0xffffff).contains(value))
-                    && !matches!(operands.get(2),Some(Operand::Register(r)) if r.class==Scalar && r.count==1)
+            if stem.starts_with("s_load_") {
+                let limit = crate::target::scalar_memory_offset_max(architecture);
+                if !matches!(operands.get(2), Some(Operand::Integer(value)) if (0..=limit).contains(value))
+                    && !matches!(operands.get(2), Some(Operand::Register(r))
+                        if r.count == 1 && (r.class == Scalar || r.special == Some(SpecialRegister::M0)))
                 {
-                    return Err("selected subword SMEM requires an unsigned24 immediate byte offset or one numbered SGPR".into());
+                    return Err(format!(
+                        "scalar load offset requires a nonnegative encoded immediate at most {limit:#x}, one SGPR or M0"
+                    ));
+                }
+                if modifiers.iter().any(|modifier| modifier.name == "offset")
+                    && matches!(operands.get(2), Some(Operand::Integer(_)))
+                {
+                    return Err("scalar load has one immediate offset; an additional offset requires a register source".into());
                 }
             }
             if architecture == crate::target::Architecture::Gfx1250

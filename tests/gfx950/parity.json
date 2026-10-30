@@ -23078,7 +23078,7 @@
         "native scalar/vector ALU and concrete address/control operations",
         "native GLOBAL/DS/FLAT forms and waits/barriers selected by the exact named test"
       ],
-      "reason": "This documents current modeled alignment restrictions, not architectural equivalence to PTX. SMEM low-bit masking and scratch unaligned accesses have different rules.",
+      "reason": "This documents the modeled ordinary GLOBAL/DS alignment restrictions. SMEM independently masks address components before addition; scratch execution remains outside the profile.",
       "amd_tests": [
         "crates/volta_pipeline/tests/gfx950_memory_control_tests.rs::unaligned_ordinary_accesses_remain_outside_the_current_memory_model"
       ],

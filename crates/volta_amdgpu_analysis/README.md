@@ -91,6 +91,22 @@ resolved-shared FLAT transfer must fit one object and aggregate LDS. Empty
 configuration retains aggregate bounds. Raw descriptors do not infer
 source-language LDS objects.
 
+Scalar loads discard low address bits in **each component before addition**:
+DWORD and wider loads clear two bits; gfx1250 U16 clears one and U8 preserves
+all bits. With `scale_offset`, the SGPR index is multiplied by the complete
+load width before alignment; the instruction offset remains byte-valued.
+The executable profile accepts nonnegative encoded immediate offsets through
+`0xfffff` on gfx942/gfx950 and `0x7fffff` on gfx1250. Signed offsets remain
+unsupported. Masking preserves allocation bounds, defined-byte checks and
+independent counter/readiness obligations.
+
+These rules follow AMD's
+[CDNA3 ISA §8.2.1.1](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-mi300-cdna3-instruction-set-architecture.pdf),
+[CDNA4 ISA §8.2.1.1](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf),
+[CDNA5 ISA §8.1.1](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf)
+and LLVM's pinned
+[SMEM encoding limits](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/Utils/AMDGPUBaseInfo.cpp#L3038).
+
 Defined module globals retain exact initialized bytes and bounds.
 `global_values` may bind a writable scalar object of one, two, four or eight
 bytes. Selected PC-relative relocation sequences resolve object addresses

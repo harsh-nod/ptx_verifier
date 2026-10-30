@@ -133,6 +133,94 @@ fn scalar_subword_loads_use_real_byte_offsets_and_keep_original_raw_identity() {
     }
 }
 #[test]
+fn scalar_address_masks_follow_payload_width_and_scale_the_register_index_first() {
+    for (opcode, base, register, immediate, scaled, width, first) in [
+        ("s_load_u8", 1, 1, 1, false, 1, 3),
+        ("s_load_u16", 1, 1, 1, false, 2, 0),
+        ("s_load_u16", 3, 3, 3, false, 2, 6),
+        ("s_load_b32", 3, 3, 3, false, 4, 0),
+        ("s_load_b32", 7, 7, 7, false, 4, 12),
+        ("s_load_u8", 1, 3, 1, true, 1, 5),
+        ("s_load_u16", 3, 3, 3, true, 2, 10),
+        ("s_load_b32", 3, 3, 3, true, 4, 12),
+    ] {
+        let body = format!(
+            "s_add_u32 s4,s4,{base}\ns_addc_u32 s5,s5,0\n\
+             s_mov_b32 s12,{register}\n\
+             {opcode} s8,s[4:5],s12 offset:{immediate} {}\n\
+             s_wait_kmcnt 0\nv_mov_b32 v1,s8\nglobal_store_b{} v0,v1,s[6:7]",
+            if scaled { "scale_offset" } else { "" },
+            width * 8,
+        );
+        let assembly = source(&body);
+        let module = frontend::parse(&assembly).unwrap();
+        let mut config = config();
+        config.arrays[0].len = 32;
+        config.arrays[1].elem_width = 1;
+        config.arrays[1].len = width;
+        let result = native_common::check(&assembly, &module, Some("k"), config).unwrap();
+        assert_eq!(
+            result.checks.conclusion(),
+            GraphConclusion::Verified,
+            "{body}: {:#?}",
+            result.checks
+        );
+        let outputs = result.analysis.symbolic_outputs().unwrap();
+        assert_eq!(outputs.outputs[0].1.len(), width as usize);
+        for index in 0..width {
+            assert_eq!(
+                outputs
+                    .arena
+                    .display_expr(outputs.element("out", index).unwrap()),
+                format!("scratch[{}]", first + index)
+            );
+        }
+    }
+}
+
+#[test]
+fn scalar_scaling_uses_the_complete_payload_and_retains_products_above_32_bits() {
+    for (load, index, immediate, input_base, input_len, first) in [
+        ("s_load_b96 s[8:10]", 1u64, 4, 0x10000u64, 28, 16),
+        ("s_load_b32 s8", 0x40000000, 0, 0x100010000, 4, 0),
+    ] {
+        let body = format!(
+            "s_mov_b32 s12,{index}\n{load},s[4:5],s12 offset:{immediate} scale_offset\n\
+             s_wait_kmcnt 0\nv_mov_b32 v1,s8\nglobal_store_b32 v0,v1,s[6:7]",
+        );
+        let assembly = source(&body);
+        let module = frontend::parse(&assembly).unwrap();
+        let mut config = config();
+        config.params[0] = ParamValue::Int(0x10000);
+        config.arrays[0].base = input_base;
+        config.arrays[0].len = input_len;
+        config.arrays[1].elem_width = 1;
+        config.arrays[1].len = 4;
+        let result = native_common::check(&assembly, &module, Some("k"), config.clone()).unwrap();
+        assert_eq!(
+            result.checks.conclusion(),
+            GraphConclusion::Verified,
+            "{body}"
+        );
+        let outputs = result.analysis.symbolic_outputs().unwrap();
+        for index in 0..4 {
+            assert_eq!(
+                outputs
+                    .arena
+                    .display_expr(outputs.element("out", index).unwrap()),
+                format!("scratch[{}]", first + index)
+            );
+        }
+        if input_len == 28 {
+            config.arrays[0].len = 27;
+            let short = native_common::check(&assembly, &module, Some("k"), config).unwrap();
+            assert!(short.analysis.symbolic_outputs().is_err());
+            assert_ne!(short.checks.conclusion(), GraphConclusion::Verified);
+        }
+    }
+}
+
+#[test]
 fn upper_byte_conversion_selects_only_encoded_bits_and_keeps_format_alias_guards() {
     let run = run_with(
         "v_mov_b32 v1,0xfa123456\nv_cvt_f32_ubyte3_e32 v1,v1\nglobal_store_b32 v0,v1,s[6:7]",
