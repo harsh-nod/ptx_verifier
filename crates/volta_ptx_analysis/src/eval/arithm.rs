@@ -286,6 +286,17 @@ impl<'p> Interpreter<'p> {
         })
     }
 
+    /// `2^a` as Volta models PTX `ex2`: `exp(a * ln 2)`, or `exp(v)` for the
+    /// `ex2(v * log2(e))` idiom.
+    pub(in crate::eval) fn ex2(&mut self, pc: InstrId, a: ExprId) -> EvalResult<ExprId> {
+        if let Some(folded) = self.fold_exp_idiom(a) {
+            return Ok(folded);
+        }
+        let ln2 = self.ln2_constant(pc)?;
+        let scaled = self.arena.mul(a, ln2);
+        Ok(self.arena.exp(scaled))
+    }
+
     /// Folds the PTX `exp(v)` idiom `ex2(v * c)`, `c` within float32 rounding of
     /// ±log2(e) (possibly spread per term over an `Fma`/`Add` chain, see
     /// [`Self::factor_log2e`]), to an exact `exp(...)`; `None` if `a` doesn't factor.
@@ -405,15 +416,7 @@ impl<'p> Interpreter<'p> {
             // 2^x = e^(x*ln2) keeps this in the exp fragment. The `ex2(v * log2e)`
             // exp idiom (a float32 log2e, so exp(v * 0.99999999...) over the
             // reals) is first folded to an exact exp(v), like ex2.approx as 2^x.
-            UnaryOp::Ex2 => {
-                if let Some(folded) = self.fold_exp_idiom(a) {
-                    folded
-                } else {
-                    let ln2 = self.ln2_constant(pc)?;
-                    let scaled = self.arena.mul(a, ln2);
-                    self.arena.exp(scaled)
-                }
-            }
+            UnaryOp::Ex2 => self.ex2(pc, a)?,
             // tanh(x) = (e^2x - 1) / (e^2x + 1), so this too stays in the
             // interpreted exp fragment rather than becoming an opaque atom
             // (same approach as `Ex2` above).
@@ -477,9 +480,14 @@ impl<'p> Interpreter<'p> {
         src_reg_bits: Option<u32>,
         v: Value,
     ) -> EvalResult<Value> {
-        // A pair's width is its source register's (fp8 pairs live in 16-bit
-        // registers, f16x2 in 32-bit), so gate on `src_reg_bits`: only a narrower
-        // store would need the half-extraction we don't model.
+        // PTX ISA 9.4.1: "When a source operand has a size that exceeds the instruction-type
+        // size, the source data is truncated (chopped) to the appropriate number of bits
+        // specified by the instruction type-size": a half-width store keeps a pair's low lane.
+        if let Value::Pair(lo, _) = v
+            && src_reg_bits == Some(2 * ty.bits())
+        {
+            return Ok(Value::Scalar(lo));
+        }
         if matches!(v, Value::Pair(..)) && src_reg_bits.is_none_or(|reg_bits| ty.bits() < reg_bits)
         {
             return Err(EvalError::Unsupported {
@@ -575,6 +583,12 @@ impl<'p> Interpreter<'p> {
         }
         if ty.is_float() || ty.is_predicate() {
             return Ok(v);
+        }
+        // A 64-bit load's quad is the 4x16 one `Memory::read` builds from two f16x2 words.
+        if let Value::Quad(l0, l1, l2, l3) = v
+            && ty.bits() == 64
+        {
+            return Ok(self.pack_b64_lanes([l0, l1, l2, l3]));
         }
         let Value::Scalar(e) = v else {
             return Ok(v); // packed f16 pairs
@@ -794,8 +808,9 @@ impl<'p> Interpreter<'p> {
     }
 
     /// 64-bit bitwise ops with a packed-pair operand, evaluated lane-wise with
-    /// exact bit semantics (the nvcc/Triton `f32x2` assembly idiom). `None` if
-    /// no operand is a pair; errors on inexact patterns.
+    /// exact bit semantics (the nvcc/Triton `f32x2` assembly idiom), and 32-bit
+    /// shifts of an `f16x2` pair by one half (Triton's split of a 4-byte load).
+    /// `None` if no operand is a pair; errors on inexact patterns.
     pub(in crate::eval) fn pair_bitwise_binop(
         &mut self,
         t: ThreadId,
@@ -805,7 +820,13 @@ impl<'p> Interpreter<'p> {
         src_a: &Operand,
         src_b: &Operand,
     ) -> EvalResult<Option<Value>> {
-        if ty.bits() != 64 || !matches!(op, BinOp::Shl | BinOp::Shr | BinOp::And | BinOp::Or) {
+        let shift = matches!(op, BinOp::Shl | BinOp::Shr);
+        let supported = match ty.bits() {
+            64 => shift || matches!(op, BinOp::And | BinOp::Or),
+            32 => shift,
+            _ => false,
+        };
+        if !supported {
             return Ok(None);
         }
         let a = self.operand_value(t, pc, src_a)?;
@@ -851,9 +872,10 @@ impl<'p> Interpreter<'p> {
                         "packed pair shifted by a packed pair".to_string(),
                     ));
                 };
-                if self.arena.as_int_const(amount) != Some(32) || ty.is_signed_int() {
+                let half_bits = i64::from(ty.bits() / 2);
+                if self.arena.as_int_const(amount) != Some(half_bits) || ty.is_signed_int() {
                     return Err(unsupported(format!(
-                        "packed pair shifted by other than a logical 32 ({:?} on {:?})",
+                        "packed pair shifted by other than a logical {half_bits} ({:?} on {:?})",
                         op, ty
                     )));
                 }
@@ -1085,6 +1107,50 @@ impl<'p> Interpreter<'p> {
         let b2 = apply(self, lanes.2, (mask >> 16) & 0xff)?;
         let b3 = apply(self, lanes.3, (mask >> 24) & 0xff)?;
         Ok(Some(Value::Quad(b0, b1, b2, b3)))
+    }
+
+    /// A logical `shr.b64`/`shl.b64` of a 4x16 quad by whole lanes moves the
+    /// lanes, zero-filling the vacated ones (TileLang's `shr.u64 %rd, %rd, 16`
+    /// before `cvt.u16.u64`). `None` unless the shifted operand is a quad.
+    pub(in crate::eval) fn quad_shift_binop(
+        &mut self,
+        t: ThreadId,
+        pc: InstrId,
+        op: BinOp,
+        ty: ScalarType,
+        src_a: &Operand,
+        src_b: &Operand,
+    ) -> EvalResult<Option<Value>> {
+        if ty.bits() != 64 || !matches!(op, BinOp::Shl | BinOp::Shr) {
+            return Ok(None);
+        }
+        let Value::Quad(l0, l1, l2, l3) = self.operand_value(t, pc, src_a)? else {
+            return Ok(None);
+        };
+
+        let amount = self.concrete_operand(t, pc, src_b, "packed quad shift amount")?;
+        let unsupported = || EvalError::Unsupported {
+            pc,
+            what: format!(
+                "packed quad shifted by other than a logical 16, 32 or 48 ({op:?} by {amount} on {ty:?})"
+            ),
+        };
+        if ty.is_signed_int() {
+            return Err(unsupported());
+        }
+
+        // Lane 0 is the lowest: a right shift moves the lanes down, a left shift up.
+        let zero = self.arena.int(0);
+        let shifted = match (op, amount) {
+            (BinOp::Shr, 16) => Value::Quad(l1, l2, l3, zero),
+            (BinOp::Shr, 32) => Value::Quad(l2, l3, zero, zero),
+            (BinOp::Shr, 48) => Value::Quad(l3, zero, zero, zero),
+            (BinOp::Shl, 16) => Value::Quad(zero, l0, l1, l2),
+            (BinOp::Shl, 32) => Value::Quad(zero, zero, l0, l1),
+            (BinOp::Shl, 48) => Value::Quad(zero, zero, zero, l0),
+            _ => return Err(unsupported()),
+        };
+        Ok(Some(shifted))
     }
 }
 

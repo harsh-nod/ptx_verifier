@@ -19,7 +19,11 @@ let graph = &result.graph;                  // always present (partial on abort)
 let outputs = result.symbolic_outputs()?;   // only if the run completed
 ```
 
-The analyzer rejects native AMD `shared_allocations`; PTX declares its own shared objects.
+Launch configuration is shared through `volta_common`. PTX structured parameters
+provide typed fields for by-value aggregates, including host tensor maps;
+uncovered bytes remain undefined. Native AMD byte payloads and
+`shared_allocations` are rejected because PTX declares its own parameter and shared objects.
+
 ## Frontend (`frontend/`)
 
 `frontend/` turns PTX source text into a typed AST. It is the one public module

@@ -3,6 +3,8 @@ use crate::frontend::ast::{self, Operand as AstOperand, ScalarType};
 use id_collections::Id;
 
 use crate::ir::symbols::SpecialRegKind;
+use crate::ir::tcgen05::Tcgen05LdStShape;
+use crate::ir::tensor_map::TensorLoadMode;
 use crate::ir::{Clamp, CpAsyncSrcSize, InstrId, LoweredInstr, LoweredProgram, Operand};
 
 use super::context::LoweringContext;
@@ -864,7 +866,9 @@ fn test_bar_rejections() {
         "bar.sync %r1, 64;\n    bar.sync %r2, 128;",
         "too restrictive",
     );
-    assert_rejected("bar.sync 0, %r1;", "register thread count");
+    // A register count is only known at eval, which pins it there.
+    assert_lowers("bar.sync 0, %r1;");
+    assert_lowers("bar.sync 0, 64;\n    bar.sync 0, %r1;\n    bar.arrive %r2, %r3;");
 }
 
 #[test]
@@ -1207,6 +1211,31 @@ fn test_mbarrier_wait_outside_the_retry_loop_is_rejected() {
     );
 }
 
+/// Triton interleaves `.loc` directives with the retry loop; they lower to
+/// nothing, so they do not split the loop's window.
+#[test]
+fn test_mbarrier_wait_loop_lowers_across_loc_directives() {
+    let program = lower_body(
+        "
+        .loc 1 332 9
+        WAIT:
+        .loc 1 333 9
+        mbarrier.try_wait.parity.shared::cta.b64 %p1, [smem], 0;
+        .loc 1 333 9
+        @!%p1 bra.uni WAIT;
+        ",
+    )
+    .expect("the loop lowers across .loc directives");
+    assert!(
+        matches!(
+            program.instructions.values().collect::<Vec<_>>().as_slice(),
+            [LoweredInstr::MbarrierWaitParity { .. }, LoweredInstr::Ret]
+        ),
+        "{:?}",
+        program.instructions
+    );
+}
+
 /// ThunderKittens' retry loop leaves on the same condition as nvcc's
 /// (`@!p bra L`), through an exit label: it lowers to the one blocking wait.
 #[test]
@@ -1227,4 +1256,206 @@ fn test_mbarrier_wait_loop_with_an_exit_label_lowers_to_a_blocking_wait() {
         .filter(|(_, instr)| matches!(instr, LoweredInstr::Bra { .. }))
         .count();
     assert_eq!((waits, branches), (1, 0));
+}
+
+/// `tcgen05.alloc`/`.dealloc`'s `nCols` is a 32-bit integer immediate or register (its value
+/// is checked at eval); a float, a negative or 64-bit value, a float register and an address are
+/// rejected.
+#[test]
+fn test_tcgen05_alloc_column_count_is_a_32_bit_integer() {
+    let forms = [
+        "tcgen05.alloc.cta_group::1.sync.aligned.shared::cta.b32 [%r1], NCOLS;",
+        "tcgen05.dealloc.cta_group::1.sync.aligned.b32 %r1, NCOLS;",
+    ];
+    for form in forms {
+        for num_cols in ["32", "%r2"] {
+            assert_lowers(&form.replace("NCOLS", num_cols));
+        }
+
+        for num_cols in ["32.0", "-32", "4294967328", "%f1", "%rd1", "[%r2]"] {
+            let body = form.replace("NCOLS", num_cols);
+            assert!(
+                matches!(
+                    lower_body(&body),
+                    Err(LowerError::InvalidOperand { .. } | LowerError::TypeMismatch { .. })
+                ),
+                "{body:?} must be rejected"
+            );
+        }
+    }
+}
+
+/// `.16x32bx2` takes its `immHalfSplitoff` operand (after the destination
+/// vector of `tcgen05.ld`, before the source vector of `tcgen05.st`), and
+/// only that shape takes one.
+#[test]
+fn test_tcgen05_16x32bx2_takes_a_half_split_offset() {
+    let shape = |body: &str| {
+        let program = lower_body(body).unwrap_or_else(|e| panic!("{body}: {e:?}"));
+        match program.instructions.values().next() {
+            Some(LoweredInstr::Tcgen05Ld { shape, .. } | LoweredInstr::Tcgen05St { shape, .. }) => {
+                *shape
+            }
+            other => panic!("{body}: {other:?}"),
+        }
+    };
+    let half_split = Tcgen05LdStShape::S16x32bx2 { half_split_off: 32 };
+
+    assert_eq!(
+        shape("tcgen05.ld.sync.aligned.16x32bx2.x2.b32 {%r1, %r2}, [%r3], 32;"),
+        half_split
+    );
+    assert_eq!(
+        shape("tcgen05.st.sync.aligned.16x32bx2.x2.b32 [%r3], 32, {%r1, %r2};"),
+        half_split
+    );
+
+    for body in [
+        "tcgen05.ld.sync.aligned.16x32bx2.x2.b32 {%r1, %r2}, [%r3];",
+        "tcgen05.ld.sync.aligned.32x32b.x2.b32 {%r1, %r2}, [%r3], 32;",
+    ] {
+        assert!(
+            matches!(lower_body(body), Err(LowerError::InvalidOperand { .. })),
+            "{body}"
+        );
+    }
+}
+
+/// Threads 0-15 take the first `.16x32b` half, threads 16-31 the same lanes
+/// `immHalfSplitoff` columns further (PTX ISA Figure 190).
+#[test]
+fn test_tcgen05_16x32bx2_cells() {
+    let shape = Tcgen05LdStShape::S16x32bx2 { half_split_off: 32 };
+    assert_eq!(shape.cell(5, 3), (5, 3));
+    assert_eq!(shape.cell(21, 3), (5, 35));
+    assert_eq!((shape.num_lanes(), shape.num_cols(32)), (16, 64));
+}
+
+/// TMA loads and stores share one `.dim` parser: every rank of the ISA lowers
+/// in both directions.
+#[test]
+fn test_tma_every_rank_lowers_as_load_and_store() {
+    for rank in 1..=5 {
+        let coords = vec!["%r1"; rank].join(", ");
+        assert_lowers(&format!(
+            "cp.async.bulk.tensor.{rank}d.shared::cta.global.mbarrier::complete_tx::bytes \
+             [smem], [%rd1, {{{coords}}}], [smem];"
+        ));
+        assert_lowers(&format!(
+            "cp.async.bulk.tensor.{rank}d.global.shared::cta.bulk_group [%rd1, {{{coords}}}], [smem];"
+        ));
+    }
+}
+
+/// `.tile` is the TMA store's default load mode, so it may be omitted.
+#[test]
+fn test_tma_store_without_tile_lowers() {
+    assert_lowers(
+        "cp.async.bulk.tensor.2d.global.shared::cta.bulk_group [%rd1, {%r1, %r2}], [smem];",
+    );
+}
+
+/// An `.im2col` load lowers for the ISA's 3-D to 5-D tensors with one 16-bit offset per
+/// spatial dimension, innermost first; other ranks, offset lists and the W-only modes do not.
+#[test]
+fn test_tma_im2col_load_forms() {
+    let load = |mode: &str, dim: usize, offsets: &str| {
+        let coords = vec!["%r1"; dim].join(", ");
+        format!(
+            "cp.async.bulk.tensor.{dim}d.shared::cta.global.{mode}.mbarrier::complete_tx::bytes \
+             [smem], [%rd1, {{{coords}}}], [smem]{offsets};"
+        )
+    };
+
+    assert_lowers(&load("im2col", 3, ", {%rs1}"));
+    assert_lowers(&load("im2col", 5, ", {%rs1, %rs2, 7}"));
+
+    let prog = lower_body(&load("im2col", 4, ", {%rs1, 3}")).unwrap();
+    let modes: Vec<_> = prog
+        .instructions
+        .values()
+        .filter_map(|instr| match instr {
+            LoweredInstr::CpAsyncBulkTensorLoad { mode, .. } => Some(mode.clone()),
+            _ => None,
+        })
+        .collect();
+    let [TensorLoadMode::Im2col { offsets }] = &modes[..] else {
+        panic!("expected one im2col load, got {modes:?}");
+    };
+    assert_eq!(offsets.len(), 2);
+
+    assert_rejected(&load("im2col", 2, ", {%rs1}"), ".im2col of a .2d tensor");
+    assert_rejected(
+        &load("tile.im2col", 4, ", {%rs1, %rs2}"),
+        "more than one .load_mode",
+    );
+    assert_rejected(&load("im2col::w", 4, ", {%rs1, %rs2}"), "im2col::w");
+
+    for (offsets, why) in [
+        ("", "no im2colOffsets"),
+        (", {%rs1}", "one offset for two spatial dims"),
+        (", %rs1", "not a vector"),
+    ] {
+        let body = load("im2col", 4, offsets);
+        assert!(
+            matches!(lower_body(&body), Err(LowerError::InvalidOperand { .. })),
+            "{why}: {body:?} must be rejected"
+        );
+    }
+
+    assert!(matches!(
+        lower_body(&load("im2col", 4, ", {%r1, %r2}")),
+        Err(LowerError::TypeMismatch { .. })
+    ));
+}
+
+/// `setmaxnreg`'s count is an integer constant in [24, 256], a multiple of 8 (PTX ISA
+/// 9.7.21.5).
+#[test]
+fn test_setmaxnreg_count_must_be_a_valid_immediate() {
+    for count in ["24", "232", "256"] {
+        assert_lowers(&format!("setmaxnreg.inc.sync.aligned.u32 {count};"));
+    }
+    for count in ["16", "100", "264", "%r1"] {
+        let body = format!("setmaxnreg.dec.sync.aligned.u32 {count};");
+        assert!(
+            matches!(lower_body(&body), Err(LowerError::InvalidOperand { .. })),
+            "{body:?} must be rejected"
+        );
+    }
+}
+
+/// `.kind::mxf8f6f4` lowers only with `.block_scale` (and `.block32`, `.scale_vec::1X` or no
+/// size), its `[scale-A-tmem], [scale-B-tmem]` where other kinds have `disable-output-lane`.
+#[test]
+fn test_tcgen05_mma_block_scale_forms() {
+    let mma = |qualifiers: &str, operands: &str| {
+        format!("tcgen05.mma.cta_group::1.{qualifiers} [%r1], %rd1, %rd2, %r2, {operands};")
+    };
+    let scales = "[%r3], [%r4], %p1";
+    for qualifiers in [
+        "kind::mxf8f6f4.block_scale.block32",
+        "kind::mxf8f6f4.block_scale.scale_vec::1X",
+        "kind::mxf8f6f4.block_scale",
+    ] {
+        assert_lowers(&mma(qualifiers, scales));
+    }
+
+    let invalid = |body: String| {
+        matches!(
+            lower_body(&body),
+            Err(LowerError::InvalidInstruction { .. })
+        )
+    };
+    assert!(invalid(mma("kind::mxf8f6f4", "%p1")));
+    assert!(invalid(mma("kind::f8f6f4.block_scale", scales)));
+    assert!(invalid(mma("kind::f16.block32", "%p1")));
+    let block16 = mma("kind::mxf8f6f4.block_scale.block16", scales);
+    assert_rejected(&block16, ".block16");
+    let masked = format!("{{0, 0, 0, 0}}, {scales}");
+    let masked = mma("kind::mxf8f6f4.block_scale", &masked);
+    assert!(matches!(
+        lower_body(&masked),
+        Err(LowerError::InvalidOperand { .. })
+    ));
 }

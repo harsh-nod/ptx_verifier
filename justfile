@@ -52,6 +52,13 @@ format-python:
 loc *args:
     python3 scripts/loc.py {{args}}
 
+# Print the IR the AMD copy kernel lowers to, or the error that stops it
+amd:
+    cargo test -q -p volta_amd_analysis --test copy -- --nocapture
+
+external:
+    python3 external/races.py
+
 # Check the ThunderKittens kernels for data races
 kittens:
     python3 external/races.py --framework thunderkittens
@@ -63,3 +70,26 @@ extract-hipkittens *args:
 # Check the HipKittens native kernels for data races
 hipkittens *args:
     python3 external/races.py --framework hipkittens {{args}}
+
+# Check the TritonBench kernels for data races
+tritonbench:
+    python3 external/races.py --framework tritonbench
+
+# Check the Gluon tutorials' kernels for data races
+gluon:
+    python3 external/races.py --framework gluon
+
+# Check the TileLang examples' kernels for data races
+tilelang:
+    python3 external/races.py --framework tilelang
+
+# Analyze TileLang's warp-specialized copy-GEMM kernel, printing volta's full report
+tilelang-ws-gemm *args:
+    cargo run --release -q -p volta_cli -- analyze external/tilelang/warp_specialize/matmul_warp_specialize_copy_gemm_0_1_kernel.ptx --config external/tilelang/warp_specialize/matmul_warp_specialize_copy_gemm_0_1_kernel.m128n128k64.launch.json --no-profile {{args}}
+
+# Compile the external kernels to PTX again (in Docker on macOS); most TileLang ones are downloaded
+setup:
+    uv run external/extraction/tritonbench.py
+    uv run external/extraction/thunderkittens.py
+    uv run external/extraction/gluon.py
+    uv run external/extraction/tilelang_kernels.py

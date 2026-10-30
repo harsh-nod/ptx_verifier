@@ -24,6 +24,7 @@ use crate::frontend::instr::InstrKind;
 use crate::frontend::instr_parse::parse_instruction;
 use id_collections::{Id, IdVec};
 
+use crate::ir::symbols::ParamLayout;
 use crate::ir::types::ScalarTypeExt;
 use crate::ir::{BarrierAlignment, BinOp, InstrId, LoweredInstr, LoweredProgram, Predicate};
 
@@ -55,11 +56,12 @@ use tcgen05::{
 };
 use tma::{
     lower_cp_async_bulk, lower_cp_async_bulk_tensor, lower_fence_proxy_tensormap,
-    lower_tensormap_cp_fenceproxy, lower_tensormap_replace,
+    lower_prefetch_tensormap, lower_tensormap_cp_fenceproxy, lower_tensormap_replace,
 };
 use warp::{
     lower_bar_warp_sync, lower_elect_sync, lower_ldmatrix, lower_mma, lower_movmatrix,
-    lower_shfl_sync, lower_stmatrix, lower_wmma_load, lower_wmma_mma, lower_wmma_store,
+    lower_setmaxnreg, lower_shfl_sync, lower_stmatrix, lower_wmma_load, lower_wmma_mma,
+    lower_wmma_store,
 };
 
 /// Lower a PTX function to a LoweredProgram
@@ -108,7 +110,17 @@ fn collect_declarations(
 ) -> LowerResult<()> {
     // Collect kernel parameters
     for param in params {
-        ctx.symbols.declare_param(&param.name.to_string())?;
+        let element =
+            param.ty.scalar.size_bytes() as u64 * param.ty.vec.map_or(1, |v| v.count() as u64);
+        let count = param.array_dims.iter().map(|&d| d as u64).product::<u64>();
+        let layout = if param.array_dims.is_empty() {
+            ParamLayout::Scalar
+        } else {
+            ParamLayout::Aggregate
+        };
+        let alignment = param.align.map_or(element, |a| a as u64);
+        ctx.symbols
+            .declare_param(&param.name.to_string(), element * count, alignment, layout)?;
     }
 
     // Collect declarations from body
@@ -198,6 +210,12 @@ fn lower_body(ctx: &mut LoweringContext, body: &FunctionBody) -> LowerResult<()>
 /// idiom matches a window (see [`match_mbarrier_wait_loop`]). Windows span
 /// only consecutive statements.
 fn lower_statements(ctx: &mut LoweringContext, stmts: &[Statement]) -> LowerResult<()> {
+    // Directives such as `.loc` lower to nothing, so they can be ignored.
+    let stmts: Vec<Statement> = stmts
+        .iter()
+        .filter(|stmt| !matches!(stmt, Statement::Directive(_)))
+        .cloned()
+        .collect();
     let mut i = 0;
     while i < stmts.len() {
         if let Some(wait_loop) = match_mbarrier_wait_loop(ctx, &stmts[i..]) {
@@ -373,6 +391,7 @@ fn lower_parsed_instruction(
             lower_bar(ctx, *mode, alignment, operands, predicate)
         }
         ParsedInstruction::BarWarpSync(bws) => lower_bar_warp_sync(ctx, bws, predicate),
+        ParsedInstruction::Setmaxnreg(setmaxnreg) => lower_setmaxnreg(ctx, setmaxnreg, predicate),
         ParsedInstruction::Membar(ast::MembarInstr::Level(_)) => {
             ctx.emit(LoweredInstr::Membar, predicate)
         }
@@ -523,6 +542,11 @@ fn lower_parsed_instruction(
             modifiers,
             operands,
         } => lower_fence_proxy_tensormap(ctx, modifiers, operands, predicate),
+        ParsedInstruction::Other {
+            kind: InstrKind::Prefetch,
+            modifiers,
+            operands,
+        } => lower_prefetch_tensormap(ctx, modifiers, operands, predicate),
         ParsedInstruction::Other {
             kind: InstrKind::CpAsyncBulkTensor,
             modifiers,

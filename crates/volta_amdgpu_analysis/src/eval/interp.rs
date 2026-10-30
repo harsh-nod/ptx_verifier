@@ -878,6 +878,11 @@ impl<'a> Interpreter<'a> {
                 }
                 match param {
                     ParamValue::Bytes(_) => unreachable!("native byte payload bound above"),
+                    ParamValue::Struct(_) => {
+                        return Err(EvalError::InvalidConfig(
+                            "structured parameters require the PTX backend; use exact ABI bytes for native AMD aggregates".into(),
+                        ));
+                    }
                     ParamValue::Int(value) => Some((*value as u64, None)),
                     ParamValue::Float(value) => Some((
                         if arg.size == 8 {

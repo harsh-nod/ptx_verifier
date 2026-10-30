@@ -1,6 +1,7 @@
 //! Warp-cooperative ops (`bar.warp.sync`, `shfl.sync`, `ldmatrix`, `mma.sync`, `wmma`, the
-//! warp-scoped `tcgen05` ops, `tensormap.cp_fenceproxy`): run once all lanes reach the same pc
-//! and mask, with each memory access attributed to its owning lane (`fragments` tables).
+//! warp-scoped `tcgen05` ops, `tensormap.cp_fenceproxy`, `setmaxnreg`): run once all lanes
+//! reach the same pc and mask, with each memory access attributed to its owning lane
+//! (`fragments` tables).
 
 use crate::frontend::ast::ScalarType;
 
@@ -17,9 +18,10 @@ use crate::eval::tensor_map_table::TENSOR_MAP_BYTES;
 use crate::eval::value::Value;
 use crate::eval::{ThreadId, WARP_SIZE};
 use crate::ir::mma::{MmaLayout, MmaOperand, MmaShape};
-use crate::ir::symbols::RegId;
+use crate::ir::symbols::{RegId, shared_operand_addr};
+use crate::ir::tcgen05::Tcgen05LdStShape;
 use crate::ir::types::ScalarTypeExt;
-use crate::ir::{InstrId, LoweredInstr, MemSpace, Operand, ShflMode, Tcgen05LdStShape};
+use crate::ir::{InstrId, LoweredInstr, MemSpace, Operand, ShflMode};
 use volta_expr::ExprId;
 
 /// A dense matrix of expressions being assembled from lane fragments.
@@ -159,15 +161,16 @@ impl Interpreter<'_> {
                 dst_offset,
                 num_cols,
             } => {
-                self.exec_tcgen05_alloc(pc, members, dst_base, *dst_offset, *num_cols)?;
+                self.exec_tcgen05_alloc(pc, members, dst_base, *dst_offset, num_cols)?;
             }
             LoweredInstr::Tcgen05Dealloc { taddr, num_cols } => {
-                self.exec_tcgen05_dealloc(pc, members, taddr, *num_cols)?;
+                self.exec_tcgen05_dealloc(pc, members, taddr, num_cols)?;
             }
             LoweredInstr::Tcgen05RelinquishAllocPermit => {
                 self.tensor.relinquish_alloc_permit();
                 self.graph.tmem_relinquish(tix(members[0]), point(pc));
             }
+            LoweredInstr::Setmaxnreg => {}
             LoweredInstr::Tcgen05Ld {
                 shape,
                 dst,
@@ -316,6 +319,18 @@ impl Interpreter<'_> {
                 })
             }
             LoweredInstr::TensormapCpFenceproxy { .. } => Ok(()),
+            // `.aligned`: every thread of the warpgroup must execute the same `setmaxnreg`.
+            LoweredInstr::Setmaxnreg if members.len() != WARP_SIZE as usize => {
+                Err(EvalError::WarpMismatch {
+                    pc,
+                    reason: format!(
+                        "setmaxnreg is .aligned, so all 32 warp lanes must execute it, but only \
+                         {} are live",
+                        members.len()
+                    ),
+                })
+            }
+            LoweredInstr::Setmaxnreg => Ok(()),
             other => Err(EvalError::Unsupported {
                 pc,
                 what: format!("warp-op dispatch for {:?}", other),
@@ -1049,10 +1064,11 @@ impl Interpreter<'_> {
         members: &[ThreadId],
         dst_base: &Operand,
         dst_offset: i64,
-        num_cols: u32,
+        num_cols: &Operand,
     ) -> EvalResult<()> {
         let base = self.uniform_concrete(pc, members, dst_base, "tcgen05.alloc dst address")?;
-        let dst_addr = (base as u64).wrapping_add(dst_offset as u64);
+        let num_cols = self.uniform_concrete(pc, members, num_cols, "tcgen05.alloc nCols")? as u32;
+        let dst_addr = shared_operand_addr((base as u64).wrapping_add(dst_offset as u64));
         let leader = members[0];
         let taddr = self
             .tensor
@@ -1113,9 +1129,11 @@ impl Interpreter<'_> {
         pc: InstrId,
         members: &[ThreadId],
         taddr: &Operand,
-        num_cols: u32,
+        num_cols: &Operand,
     ) -> EvalResult<()> {
         let taddr = self.uniform_concrete(pc, members, taddr, "tcgen05.dealloc taddr")? as u32;
+        let num_cols =
+            self.uniform_concrete(pc, members, num_cols, "tcgen05.dealloc nCols")? as u32;
         self.tensor
             .dealloc(taddr, num_cols)
             .map_err(|e| EvalError::from_tensor_mem(members[0], pc, e))?;

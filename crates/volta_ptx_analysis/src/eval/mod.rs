@@ -9,12 +9,15 @@ mod cp_async;
 mod error;
 mod float_bits;
 mod fragments;
+mod im2col;
 mod interp;
 mod mbarrier;
 mod memory;
+mod param_space;
 mod record;
 mod schedule;
 mod tcgen05;
+mod tcgen05_block_scale;
 mod tcgen05_mma;
 mod tensor_map_table;
 mod tensor_memory;
@@ -38,5 +41,5 @@ impl std::fmt::Display for ThreadId {
 /// Number of threads in a warp.
 pub const WARP_SIZE: u32 = 32;
 
-pub use error::{ClcMisuse, EvalError};
+pub use error::{ClcMisuse, EvalError, TmaMisuse};
 pub use interp::{Interpreter, OutputsUnavailable, RunArtifacts, Stats};

@@ -5,6 +5,7 @@
 pub mod mma;
 pub mod source_map;
 pub mod symbols;
+pub mod tcgen05;
 pub mod tensor_map;
 pub mod types;
 
@@ -16,8 +17,13 @@ use id_collections::{IdVec, id_type};
 
 use crate::ir::source_map::SourceMap;
 use crate::ir::symbols::{ParamId, RegId, SpecialRegKind, SymbolTable};
-use crate::ir::tensor_map::TensormapFieldWrite;
+use crate::ir::tcgen05::{
+    Tcgen05Collector, Tcgen05FenceDirection, Tcgen05LdStShape, Tcgen05MmaA, Tcgen05MmaKind,
+    Tcgen05MmaScales,
+};
+use crate::ir::tensor_map::{TensorLoadMode, TensormapFieldWrite};
 use crate::ir::types::RegCounts;
+pub use volta_graph::BulkWaitScope;
 
 /// Instruction index (program counter)
 #[id_type]
@@ -189,115 +195,6 @@ pub enum MemSpace {
     Local,
     Param,
     Const,
-}
-
-/// `tcgen05.mma`'s `.kind` qualifier: selects the
-/// operand element types `idesc`'s type fields are interpreted against and
-/// the fixed `K` of one dense `.cta_group::1` operation (Table 42).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Tcgen05MmaKind {
-    /// `.kind::f16`: f16/bf16 operands, `K = 16`.
-    F16,
-    /// `.kind::f8f6f4`: 8/6/4-bit float operands, `K = 32`.
-    F8f6f4,
-}
-
-/// `tcgen05.ld`/`.st`'s shape qualifier (PTX ISA 9.7.17.8, Tables 52/53):
-/// the rectangle of Tensor Memory one `.x1` unit of the access covers, and
-/// hence how a thread's registers map onto `(lane, column)` cells.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Tcgen05LdStShape {
-    /// `.32x32b`: the warp's full 32-lane quadrant, one column per `.x1`.
-    S32x32b,
-    /// `.16x256b`: half a quadrant (16 lanes) by 8 columns per `.x1`, so
-    /// four registers per thread per unit.
-    S16x256b,
-}
-
-impl Tcgen05LdStShape {
-    /// Registers each thread supplies/receives per `.x1` unit.
-    pub fn regs_per_unit(self) -> u32 {
-        match self {
-            Self::S32x32b => 1,
-            Self::S16x256b => 4,
-        }
-    }
-
-    /// Tensor Memory columns one `.x1` unit spans.
-    pub fn cols_per_unit(self) -> u32 {
-        match self {
-            Self::S32x32b => 1,
-            Self::S16x256b => 8,
-        }
-    }
-
-    /// Tensor Memory lanes the access spans, starting at the `taddr` lane.
-    pub fn num_lanes(self) -> u32 {
-        match self {
-            Self::S32x32b => 32,
-            Self::S16x256b => 16,
-        }
-    }
-
-    /// Tensor Memory columns an access of `regs` registers per thread
-    /// spans: one `.x1` unit per `regs_per_unit` registers, each unit
-    /// `cols_per_unit` columns wide.
-    pub fn num_cols(self, regs: usize) -> u32 {
-        (regs as u32 / self.regs_per_unit()) * self.cols_per_unit()
-    }
-
-    /// `(lane, column)` offsets from taddr of register `reg` of thread `t =
-    /// lane_in_warp`: identity for `.32x32b`; for `.16x256b`, lane `t / 4 + 8
-    /// * (reg / 2)` and column `2 * (t % 4) + reg % 2`.
-    pub fn cell(self, lane_in_warp: u32, reg: u32) -> (u32, u32) {
-        match self {
-            Self::S32x32b => (lane_in_warp, reg),
-            Self::S16x256b => {
-                let (unit, within) = (reg / 4, reg % 4);
-                let lane = lane_in_warp / 4 + 8 * (within / 2);
-                let col = unit * 8 + 2 * (lane_in_warp % 4) + within % 2;
-                (lane, col)
-            }
-        }
-    }
-}
-
-/// `tcgen05.mma`'s `A` operand: a shared-memory matrix descriptor (`a-desc`)
-/// or a Tensor Memory address (`[a-tmem]`), told apart by the brackets.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Tcgen05MmaA {
-    Desc(Operand),
-    Tmem { base: Operand, offset: i64 },
-}
-
-/// `tcgen05.mma.ws`'s `.collector::bN::op` qualifier (PTX ISA
-/// 9.7.17.10.10.3): how the `B` matrix interacts with collector buffer
-/// `buffer` (0-3). Absent on the instruction = `b0::discard`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Tcgen05Collector {
-    pub buffer: u8,
-    pub op: Tcgen05CollectorOp,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Tcgen05CollectorOp {
-    /// Fill the buffer with the `B` read from memory.
-    Fill,
-    /// `B` may be read from the buffer; it stays valid.
-    Use,
-    /// `B` may be read from the buffer, which is then discarded.
-    LastUse,
-    /// Discard the buffer's contents.
-    Discard,
-}
-
-/// Which side of a thread synchronization a `tcgen05.fence` orders.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Tcgen05FenceDirection {
-    /// `::before_thread_sync`
-    BeforeThreadSync,
-    /// `::after_thread_sync`
-    AfterThreadSync,
 }
 
 /// Which side of the generic-to-tensor-map-proxy ordering a `fence.proxy.tensormap::generic`
@@ -597,9 +494,9 @@ pub enum LoweredInstr {
         ty: ScalarType,
     },
 
-    /// `mov.b32`/`mov.b64 dst, {lo, hi}`: always a `Value::Pair`, since bit
-    /// ops on real halves build nonsense. Concrete integer halves recombine
-    /// on demand; symbolic ones used as a scalar fail.
+    /// `mov.b32`/`mov.b64 dst, {lo, hi}`: a `Value::Pair`, since bit ops on real
+    /// halves build nonsense (concrete integer halves recombine on demand); two f16x2
+    /// halves of a `.b64` are its four 16-bit lanes (see `pack_b64_lanes`).
     PackHalves {
         dst: RegId,
         lo: Operand,
@@ -674,6 +571,10 @@ pub enum LoweredInstr {
 
     /// Warp barrier: bar.warp.sync mask
     BarWarpSync { mask: Operand },
+
+    /// `setmaxnreg.{inc,dec}.sync.aligned.u32 count`: a full-warp rendezvous.
+    /// Its effect on the warp's register count is not modeled.
+    Setmaxnreg,
 
     /// Memory fence
     Membar,
@@ -821,12 +722,12 @@ pub enum LoweredInstr {
     Tcgen05Alloc {
         dst_base: Operand,
         dst_offset: i64,
-        num_cols: u32,
+        num_cols: Operand,
     },
 
     /// `tcgen05.dealloc.cta_group::1...taddr, nCols`: deallocate the Tensor
     /// Memory range starting at `taddr`.
-    Tcgen05Dealloc { taddr: Operand, num_cols: u32 },
+    Tcgen05Dealloc { taddr: Operand, num_cols: Operand },
 
     /// `tcgen05.relinquish_alloc_permit.cta_group::1...`: this CTA gives up
     /// the right to allocate any further Tensor Memory.
@@ -862,12 +763,14 @@ pub enum LoweredInstr {
     // =========================================================================
     // TensorCore 5th Generation - Matrix Multiply and Accumulate (PTX ISA 9.7.17.10)
     // =========================================================================
-    /// Single-thread `tcgen05.mma` (dense `.kind::{f16,f8f6f4}`): `D = A*B
-    /// (+D)` into Tensor Memory, skipping `disable_output_lane` lanes
-    /// (9.7.17.10.9.1); `collector` is `Some` iff `.ws`.
+    /// Single-thread `tcgen05.mma` (dense `.kind::{f16,f8f6f4,mxf8f6f4}`): `D =
+    /// A*B (+D)` into Tensor Memory, skipping `disable_output_lane` lanes
+    /// (9.7.17.10.9.1); `collector` is `Some` iff `.ws`, `scales` iff
+    /// `.kind::mxf8f6f4`.
     Tcgen05Mma {
         kind: Tcgen05MmaKind,
         collector: Option<Tcgen05Collector>,
+        scales: Option<Tcgen05MmaScales>,
         d_tmem_base: Operand,
         d_tmem_offset: i64,
         a: Tcgen05MmaA,
@@ -920,19 +823,37 @@ pub enum LoweredInstr {
     /// [addr], 128}`: a proxy-ordering fence with no data effect.
     FenceProxyTensormap { fence: TensormapFence },
 
-    /// `cp.async.bulk.tensor...tile.mbarrier::complete_tx::bytes`: TMA copy,
-    /// global to the executing CTA's shared memory (no remote/multicast).
-    /// `tensormap_space` must be `.global`.
+    /// `cp.async.bulk.tensor...{.tile,.im2col}.mbarrier::complete_tx::bytes`: TMA
+    /// copy, global to the executing CTA's shared memory (no remote/multicast).
     CpAsyncBulkTensorLoad {
         dst_base: Operand,
         dst_offset: i64,
-        tensormap_space: MemSpace,
         tensormap_base: Operand,
         tensormap_offset: i64,
         coords: Vec<Operand>,
+        mode: TensorLoadMode,
         mbar_base: Operand,
         mbar_offset: i64,
     },
+
+    /// `cp.async.bulk.tensor...global.shared::cta.tile.bulk_group`: TMA
+    /// store from the executing CTA's shared memory to global, tracked by the
+    /// issuer's bulk async-groups.
+    CpAsyncBulkTensorStore {
+        tensormap_base: Operand,
+        tensormap_offset: i64,
+        coords: Vec<Operand>,
+        src_base: Operand,
+        src_offset: i64,
+    },
+
+    /// `cp.async.bulk.commit_group`: seal the thread's TMA stores since the
+    /// last commit into a bulk async-group.
+    CpAsyncBulkCommitGroup,
+
+    /// `cp.async.bulk.wait_group{.read} n`: complete the thread's bulk
+    /// groups but the newest `n` (with `.read`, only their source reads).
+    CpAsyncBulkWaitGroup { n: u32, scope: BulkWaitScope },
 
     /// `cp.async.bulk...mbarrier::complete_tx::bytes`: non-tensor copy of
     /// `size` contiguous bytes, global to shared, completing `size` tx-bytes
@@ -1109,6 +1030,7 @@ define_instr_kinds!(
     BarSync,
     BarArrive,
     BarWarpSync,
+    Setmaxnreg,
     Membar,
     Fence,
     FenceProxyAsync,
@@ -1137,6 +1059,9 @@ define_instr_kinds!(
     TensormapCpFenceproxy,
     FenceProxyTensormap,
     CpAsyncBulkTensorLoad,
+    CpAsyncBulkTensorStore,
+    CpAsyncBulkCommitGroup,
+    CpAsyncBulkWaitGroup,
     CpAsyncBulkLoad,
     ClcTryCancel,
     ClcQueryIsCanceled,

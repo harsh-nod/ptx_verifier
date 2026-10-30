@@ -119,7 +119,7 @@ impl Trace {
                     .summary(Property::AmdBarrier)
                     .findings
                     .iter()
-                    .any(|s| s.contains("implicit drop"))
+                    .any(|s| s.text.contains("implicit drop"))
             );
         }
     }

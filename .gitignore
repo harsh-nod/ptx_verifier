@@ -22,3 +22,5 @@
 /tests/gfx950/evidence/
 /tests/gfx1250/evidence/
 /tests/gfx1250/full/encoding-probes/*-hardware.json
+# The Gluon tutorials, downloaded by `external/extraction/gluon.py`
+/external/sources/gluon/

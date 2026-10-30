@@ -178,9 +178,9 @@ impl LoweringContext {
         }
     }
 
-    /// Require every arrival at one barrier to name the same count (register
-    /// ids share a single count; register counts can't be compared). Stricter
-    /// than the ISA, which only requires agreement within one barrier phase.
+    /// Require every immediate-count arrival at one barrier to name the same
+    /// count (register ids share a single count). A register count is left to
+    /// the evaluator, which pins each id's first concrete count for the run.
     pub(super) fn check_barrier_arrivals(
         &mut self,
         mnemonic: &str,
@@ -203,15 +203,7 @@ impl LoweringContext {
             None => ArrivalCount::FullCta,
             Some(op) => match immediate(op) {
                 Some(count) => ArrivalCount::Threads(count),
-                None => {
-                    return Err(unsupported(
-                        mnemonic,
-                        "a register thread count cannot be checked against the \
-                         other arrivals at this barrier (Volta pins one arrival \
-                         count per barrier id; this may be stricter than your \
-                         kernel needs)",
-                    ));
-                }
+                None => return Ok(()),
             },
         };
 
@@ -313,6 +305,9 @@ impl LoweringContext {
         }
         if let Some(info) = self.symbols.get_global_var(name) {
             return Some(Operand::ImmU64(info.addr));
+        }
+        if let Some(id) = self.symbols.get_param(name) {
+            return Some(Operand::ImmU64(self.symbols.param_slot(id).offset));
         }
         None
     }

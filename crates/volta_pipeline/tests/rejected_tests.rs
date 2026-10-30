@@ -10,7 +10,7 @@ use volta_equivalence::check_output_equivalence;
 use volta_graph_check::{Deadlock, GraphConclusion};
 use volta_ptx_analysis::{
     AnalysisConfig, AnalysisError, ArrayDef, ArrayKind, ClcMisuse, EvalError, LowerError,
-    ParamValue, ThreadId,
+    ParamValue, ThreadId, TmaMisuse,
 };
 
 use common::*;
@@ -263,6 +263,17 @@ fn test_bar_sync_register_id_count_mismatch() {
     );
 }
 
+/// Barrier 0 is reached with a register count of 32 and with count 64: the evaluator pins the
+/// first, so the run stops at warp 1's arrival.
+#[test]
+fn test_bar_sync_register_count_mismatch() {
+    expect_inconclusive_barrier_mismatch(
+        &ptx!(parse "failing/bar_sync_register_count_mismatch"),
+        "t32 arrives at barrier 0 expecting 64 threads, but an earlier arrival at it expected \
+         32 threads",
+    );
+}
+
 /// The same mismatch on a `bar.arrive`: warp 1 arrives through a register id with count 32 at
 /// the barrier warp 0 waits on for 64 threads.
 #[test]
@@ -385,6 +396,33 @@ fn test_bar_and_barrier_reject_a_missing_operation() {
             other => panic!("expected {form} rejected for its missing operation, got: {other}"),
         }
     }
+}
+
+/// A register `nCols` is checked like an immediate one.
+#[test]
+fn test_tcgen05_alloc_rejects_an_invalid_register_size() {
+    let mut config = AnalysisConfig::new((32, 1, 1));
+    config.arrays = vec![ArrayDef {
+        name: "out".to_string(),
+        base: 0x20000,
+        elem_width: 4,
+        len: 1,
+        kind: ArrayKind::Output,
+    }];
+    config.params = vec![ParamValue::ArrayPtr("out".to_string())];
+    let err = run_kernel(
+        &parse(&ptx!("failing/tcgen05_alloc_register_column_count_48")),
+        None,
+        config,
+    )
+    .unwrap_err();
+    assert!(
+        matches!(
+            err,
+            AnalysisError::Eval(EvalError::Tcgen05InvalidColumnCount { num_cols: 48, .. })
+        ),
+        "{err}"
+    );
 }
 
 /// `nCols` below the 32-column allocation unit is invalid even when it is
@@ -553,6 +591,56 @@ fn test_cp_async_bulk_tensor_rejects_an_incomplete_tensor_map() {
         }
         other => panic!("expected TensorMapFieldMissing, got: {}", other),
     }
+}
+
+/// Run a one-load kernel from `tests/ptx/failing/tma_*` through the im2col map of a
+/// 4x4-pixel image whose bounding box spans H, W in [-1, 2], and return how it misused it.
+fn tma_misuse(module: &Ptx) -> TmaMisuse {
+    let config = im2col_config([4, 4, 4, 1], [1; 4], [-1, -1], [-1, -1], 16);
+
+    match run_kernel(module, None, config) {
+        Err(AnalysisError::Eval(EvalError::TmaMisuse { misuse, .. })) => misuse,
+        Err(other) => panic!("expected TmaMisuse, got: {other}"),
+        Ok(_) => panic!("expected TmaMisuse, got Ok"),
+    }
+}
+
+/// The ISA requires an im2col load's filter base inside the bounding box.
+#[test]
+fn test_tma_im2col_filter_base_outside_the_bounding_box_is_rejected() {
+    let module = ptx!(parse "failing/tma_im2col_filter_base_outside_the_bounding_box_is_rejected");
+
+    assert_eq!(
+        tma_misuse(&module),
+        TmaMisuse::FilterBaseOutsideBoundingBox {
+            dim: 1,
+            coord: 3,
+            lower: -1,
+            upper: 2
+        }
+    );
+}
+
+/// An im2col map has no box, so a `.tile` copy through it is undefined.
+#[test]
+fn test_tma_tile_copy_through_an_im2col_map_is_rejected() {
+    let module = ptx!(parse "failing/tma_tile_copy_through_an_im2col_map_is_rejected");
+
+    assert_eq!(tma_misuse(&module), TmaMisuse::TileCopyOfIm2colMap);
+}
+
+/// A 4-D tensor's im2col offsets lie in [0, 255].
+#[test]
+fn test_tma_im2col_offset_out_of_range_is_rejected() {
+    let module = ptx!(parse "failing/tma_im2col_offset_out_of_range_is_rejected");
+
+    assert_eq!(
+        tma_misuse(&module),
+        TmaMisuse::Im2colOffsetOutOfRange {
+            offset: 256,
+            max: 255
+        }
+    );
 }
 
 /// Like `test_tcgen05_mma_numeric_correctness`, but `disable-output-lane`
@@ -1192,9 +1280,9 @@ fn test_e4m3x2_scalar_source_high_lane_is_undefined_not_fabricated() {
     );
 }
 
-/// Storing a packed f16x2 pair (a 32-bit value) at a sub-4-byte width would
-/// stuff both halves into one 2-byte granule: a loud error, not silent
-/// nonsense.
+/// Storing one byte of a packed f16x2 pair (a 32-bit value) would split its
+/// low half: a loud error, not silent nonsense. A 2-byte store keeps the low
+/// half whole and is modeled.
 #[test]
 fn test_pair_sub_width_store_rejected() {
     let module = ptx!(parse "failing/pair_sub_width_store_rejected");
@@ -1426,8 +1514,8 @@ fn test_hostile_shared_declaration_size_rejected() {
 }
 
 /// Other cvta forms are rejected by name: `cvta.global` is compatible but
-/// unused by the corpus, while shared/local forms would mint addresses in the
-/// wrong space.
+/// unused by the corpus, while the 32-bit shared forms (and any local one)
+/// have no generic window: only the 64-bit shared and param forms are modeled.
 #[test]
 fn test_cvta_other_forms_rejected() {
     for (expect, reason_fragment, (form, src)) in [
@@ -1438,12 +1526,12 @@ fn test_cvta_other_forms_rejected() {
         ),
         (
             "cvta.shared",
-            "per-space windows",
+            "cvta{.to}.{shared,param}.u64",
             ptx_case!("failing/cvta_other_forms_rejected_shared"),
         ),
         (
             "cvta.to.shared",
-            "per-space windows",
+            "cvta{.to}.{shared,param}.u64",
             ptx_case!("failing/cvta_other_forms_rejected_to_shared"),
         ),
     ] {
@@ -1517,6 +1605,19 @@ fn test_clusterlaunchcontrol_unguarded_get_first_ctaid_is_rejected() {
     }
 }
 
+/// The persistent loop reading the response as two 64-bit halves, with
+/// `get_first_ctaid` run before branching on `is_canceled`, as Gluon does.
+#[test]
+fn test_clusterlaunchcontrol_unguarded_get_first_ctaid_of_two_halves_is_rejected() {
+    let module = ptx!(parse "failing/clusterlaunchcontrol_unguarded_get_first_ctaid_of_two_halves_is_rejected");
+    match run_kernel(&module, None, in_out_config(64, 64)) {
+        Err(AnalysisError::Eval(EvalError::ClusterLaunchControlMisuse { misuse, .. })) => {
+            assert_eq!(misuse, ClcMisuse::CtaidOfDeclinedResponse);
+        }
+        other => panic!("expected ClusterLaunchControlMisuse, got {other:?}"),
+    }
+}
+
 /// A second `try_cancel` after `is_canceled` observed the first one declined
 /// is undefined behavior.
 #[test]
@@ -1547,13 +1648,11 @@ fn test_clusterlaunchcontrol_query_of_a_fabricated_response_is_rejected() {
     let module =
         ptx!(parse "failing/clusterlaunchcontrol_query_of_a_fabricated_response_is_rejected");
     match analyze_one_thread(&module) {
-        Err(AnalysisError::Eval(EvalError::Unsupported { what, .. })) => {
-            assert!(
-                what.contains("not a declined try_cancel response"),
-                "{what}"
-            );
-        }
-        other => panic!("expected Unsupported, got {other:?}"),
+        Err(AnalysisError::Eval(EvalError::ClusterLaunchControlUndeclinedResponse {
+            thread: ThreadId(0),
+            ..
+        })) => {}
+        other => panic!("expected ClusterLaunchControlUndeclinedResponse, got {other:?}"),
     }
 }
 
@@ -1592,5 +1691,83 @@ fn test_mapa_generic_is_rejected() {
             assert!(reason.contains("generic addressing"), "{reason}");
         }
         other => panic!("expected UnsupportedInstruction, got {other:?}"),
+    }
+}
+
+/// `setmaxnreg` is `.sync`: lanes 0-15 and 16-31 of the one warp at two `setmaxnreg`s wait for
+/// each other forever.
+#[test]
+fn test_setmaxnreg_split_across_two_instructions_in_one_warp_deadlocks() {
+    let blocked = deadlock(
+        &ptx!(parse "failing/setmaxnreg_split_across_two_instructions_in_one_warp_deadlocks"),
+        32,
+    )
+    .blocked;
+    assert_eq!(blocked.len(), 32, "every lane stays blocked: {blocked:?}");
+}
+
+/// `setmaxnreg` is `.aligned`: a warp whose lane 31 exited before it is undefined behavior.
+#[test]
+fn test_setmaxnreg_with_an_exited_lane_is_rejected() {
+    let module = ptx!(parse "failing/setmaxnreg_with_an_exited_lane_is_rejected");
+    match run_kernel(&module, None, AnalysisConfig::new((32, 1, 1))) {
+        Err(AnalysisError::Eval(EvalError::WarpMismatch { reason, .. })) => {
+            assert!(reason.contains("setmaxnreg is .aligned"), "{reason}");
+        }
+        other => panic!("expected a WarpMismatch, got {other:?}"),
+    }
+}
+
+/// Run the `.kind::mxf8f6f4` kernel whose `scale_A` copies differ between Tensor Memory's
+/// 32-lane partitions, with its `idesc` replaced by `idesc`.
+fn run_block_scaled_mma(idesc: Option<u32>) -> Result<Completed, AnalysisError> {
+    let name = "failing/tcgen05_mma_kind_mxf8f6f4_scale_copies_differ";
+    let src = std::fs::read_to_string(ptx_path(name)).expect("the test kernel exists");
+    let src = match idesc {
+        Some(idesc) => src.replace("mov.u32 %r2, 142737408;", &format!("mov.u32 %r2, {idesc};")),
+        None => src,
+    };
+    run_kernel(&parse(&src), None, AnalysisConfig::new((128, 1, 1)))
+}
+
+/// Assert `result` is an `Unsupported` whose message contains `needle`.
+fn expect_unsupported(result: Result<Completed, AnalysisError>, needle: &str) {
+    match result {
+        Err(AnalysisError::Eval(EvalError::Unsupported { what, .. })) => {
+            assert!(what.contains(needle), "expected {needle:?} in: {what}");
+        }
+        Err(other) => panic!("expected Unsupported ({needle}), got: {other}"),
+        Ok(_) => panic!("expected Unsupported ({needle}), got Ok"),
+    }
+}
+
+/// Every 32-lane partition of Tensor Memory must hold a copy of the `.kind::mxf8f6f4` scale
+/// factors, and which copy the hardware reads is unspecified: warp 1's differing copy of
+/// row 0's `scale_A` factor is rejected.
+#[test]
+fn test_tcgen05_mma_kind_mxf8f6f4_scale_copies_differ() {
+    expect_unsupported(
+        run_block_scaled_mma(None),
+        "MmaScaleA factor 0 differs between Tensor Memory's four 32-lane partitions",
+    );
+}
+
+/// `.kind::mxf8f6f4` has its own `idesc` layout (PTX ISA Table 54): a clear UE8M0 bit (23), M
+/// = 256 (`.cta_group::2` only) and reserved bit 24 are invalid; the `sm_107f` 128-lane
+/// `scale_A` layout (bit 26) and K = 64 (bit 31) are not modeled.
+#[test]
+fn test_tcgen05_mma_kind_mxf8f6f4_rejects_idesc_fields() {
+    for (idesc, needle) in [
+        (134348800, "Scale Matrix Type bit (23)"),
+        (276955136, "M = 256, N = 8 is not a valid .cta_group::1"),
+        (159514624, "reserved bit 24"),
+    ] {
+        expect_invalid_encoding(run_block_scaled_mma(Some(idesc)), needle);
+    }
+    for (idesc, needle) in [
+        (209846272, "128-lane scale_A layout"),
+        (2290221056, "K Dimension bit (31)"),
+    ] {
+        expect_unsupported(run_block_scaled_mma(Some(idesc)), needle);
     }
 }

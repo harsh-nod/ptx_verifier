@@ -31,8 +31,8 @@ sys.path.insert(0, str(EXTERNAL_ROOT.parent / "ai_compiler_kernels"))
 import check_races  # noqa: E402
 from check_races import BOLD, GREEN, OUTCOME_CODES, OUTCOME_WIDTH, RED, Outcome, Style  # noqa: E402
 
-# TritonBench-G (`extraction/tritonbench.py`) and ThunderKittens' educational GEMMs (`extraction/thunderkittens.py`).
-FRAMEWORKS = ("tritonbench", "thunderkittens", "hipkittens")
+# Native AMD and PTX extraction adapters share the workload runner.
+FRAMEWORKS = ("tritonbench", "thunderkittens", "hipkittens", "gluon", "tilelang")
 FAILURES = {Outcome.RACE_CONDITION, Outcome.CHECK_FAILED, Outcome.DEADLOCK, Outcome.ERROR}
 INCONCLUSIVE = {Outcome.UNKNOWN, Outcome.UNSUPPORTED}
 

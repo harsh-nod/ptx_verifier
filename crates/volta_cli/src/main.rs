@@ -17,7 +17,7 @@ use volta_equivalence::equiv::DEFAULT_RECYCLE_TERMS;
 use volta_equivalence::vc_dump::{VcDump, read_vc_dump, write_vc_dump};
 use volta_equivalence::{EquivCheckOptions, EquivOutcome};
 use volta_expr::SymbolicOutputs;
-use volta_graph::EventGraph;
+use volta_graph::{EventGraph, EventId, ExecContext};
 use volta_graph_check::{GraphConclusion, GraphReport};
 use volta_pipeline::{
     Backend, Decision, EquivalenceVerdict, KernelEvidence, KernelModule, SourceAnalysisParts,
@@ -540,14 +540,18 @@ impl KernelSide {
 }
 
 /// Print the graph branch's per-check verdicts for one kernel, with each failed check's
-/// witnesses and the trace generator's deadlock.
-fn print_graph_report(side: &KernelSide) {
+/// witnesses (each event under its finding, with its PTX line in `source`) and the trace
+/// generator's deadlock.
+fn print_graph_report(side: &KernelSide, source: &str) {
     println!("{}: graph verification", side.label);
     for s in side.report.summaries() {
         let check = format!("{} ({})", s.property.name(), s.property.algorithm());
         println!("  {:<55} {}", check, s.verdict.name());
         for f in s.findings.iter().take(3) {
             println!("      {}", f);
+            for &e in &f.events {
+                println!("        {}", event_source(&side.graph, source, e));
+            }
         }
         if s.findings.len() > 3 {
             println!("      ... ({} more)", s.findings.len() - 3);
@@ -559,6 +563,29 @@ fn print_graph_report(side: &KernelSide) {
             deadlock.blocked.len()
         );
     }
+}
+
+/// `e<id> <context>  line <n>: <PTX statement>` for one event of `graph`.
+fn event_source(graph: &EventGraph, source: &str, id: EventId) -> String {
+    let event = graph.event(id);
+    let context = match event.ctx {
+        ExecContext::Thread(t) => format!("t{}", t.0),
+        ExecContext::Async(op) => format!("async op {}", op.0),
+        ExecContext::Generation(g) => format!("generation {}", g.0),
+    };
+    let span = event
+        .pc
+        .and_then(|pc| graph.provenance().instructions.get(pc.0 as usize))
+        .and_then(|info| info.span);
+    let at = match span {
+        Some((low, _)) if low <= source.len() => {
+            let line = source[..low].matches('\n').count() + 1;
+            let text = source[low..].lines().next().unwrap_or("");
+            format!("line {}: {}", line, text.trim())
+        }
+        _ => "no source line".to_string(),
+    };
+    format!("e{} {:<12} {}", id.0, context, at)
 }
 
 fn print_decision(decision: &Decision) -> ExitCode {
@@ -613,7 +640,7 @@ fn run_kernel(
 
 fn cmd_analyze(args: AnalyzeArgs, log: &mut run_log::RunLog, backend: Backend) -> ExitCode {
     let file = &args.file;
-    let module = match load_module(file, backend) {
+    let (module, source) = match load_module(file, backend) {
         Ok(m) => m,
         Err(code) => return code,
     };
@@ -682,7 +709,7 @@ fn cmd_analyze(args: AnalyzeArgs, log: &mut run_log::RunLog, backend: Backend) -
         println!("Wrote output expressions to {}", path.display());
     }
 
-    print_graph_report(&side);
+    print_graph_report(&side, &source);
     let (verdict, reasons) = match side.report.conclusion() {
         GraphConclusion::Verified => (Verdict::Accept, Vec::new()),
         GraphConclusion::Rejected { failed, deadlock } => (
@@ -784,11 +811,11 @@ fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog, backend: Backend) -
                 return ExitCode::FAILURE;
             };
 
-            let module1 = match load_module(file1, backend) {
+            let (module1, source1) = match load_module(file1, backend) {
                 Ok(m) => m,
                 Err(code) => return code,
             };
-            let module2 = match load_module(file2, backend) {
+            let (module2, source2) = match load_module(file2, backend) {
                 Ok(m) => m,
                 Err(code) => return code,
             };
@@ -855,8 +882,8 @@ fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog, backend: Backend) -
                 run2.stats.block_syncs,
                 run2.stats.warp_syncs
             );
-            print_graph_report(&side1);
-            print_graph_report(&side2);
+            print_graph_report(&side1, &source1);
+            print_graph_report(&side2, &source2);
             let (reference, optimized) = match (run1.outputs, run2.outputs) {
                 (Ok(r), Ok(o)) => (r, o),
                 (r, o) => {
@@ -1019,7 +1046,7 @@ fn parse_dim(s: &str) -> Result<(String, u64), String> {
 }
 
 fn cmd_verify(args: VerifyArgs, log: &mut run_log::RunLog, backend: Backend) -> ExitCode {
-    let module = match load_module(&args.file, backend) {
+    let (module, source) = match load_module(&args.file, backend) {
         Ok(m) => m,
         Err(code) => return code,
     };
@@ -1134,7 +1161,7 @@ fn cmd_verify(args: VerifyArgs, log: &mut run_log::RunLog, backend: Backend) -> 
         "Exec: {:.3}s  instructions: {}  block syncs: {}  warp syncs: {}",
         exec_secs, run.stats.instructions, run.stats.block_syncs, run.stats.warp_syncs
     );
-    print_graph_report(&side);
+    print_graph_report(&side, &source);
     let mut kernel_exprs = match run.outputs {
         Ok(exprs) => exprs,
         Err(why) => {
@@ -1275,9 +1302,9 @@ fn cmd_verify(args: VerifyArgs, log: &mut run_log::RunLog, backend: Backend) -> 
 }
 
 /// Load and parse a module, reporting errors nicely.
-fn load_module(file: &Path, backend: Backend) -> Result<KernelModule, ExitCode> {
+fn load_module(file: &Path, backend: Backend) -> Result<(KernelModule, String), ExitCode> {
     if backend == Backend::Ptx {
-        return load_ptx_module(file).map(KernelModule::Ptx);
+        return load_ptx_module(file).map(|(module, source)| (KernelModule::Ptx(module), source));
     }
     let source = std::fs::read_to_string(file).map_err(|error| {
         eprintln!("error: failed to read {}: {error}", file.display());
@@ -1297,10 +1324,10 @@ fn load_module(file: &Path, backend: Backend) -> Result<KernelModule, ExitCode> 
                 ExitCode::FAILURE
             })?;
     }
-    Ok(module)
+    Ok((module, source))
 }
 
-fn load_ptx_module(file: &Path) -> Result<Module, ExitCode> {
+fn load_ptx_module(file: &Path) -> Result<(Module, String), ExitCode> {
     let mut files = FileCache::new();
     let contents = match files.read(file) {
         Ok(c) => c,
@@ -1318,7 +1345,7 @@ fn load_ptx_module(file: &Path) -> Result<Module, ExitCode> {
     };
     let mut parser = parse::Parser::new(ascii_src);
     match parser.parse_module().map_err(locate_path(file)) {
-        Ok(module) => Ok(module),
+        Ok(module) => Ok((module, contents.to_string())),
         Err(e) => {
             let _ = report_error(
                 &mut std::io::stderr(),
@@ -1363,7 +1390,7 @@ fn cmd_viz(args: &VizArgs) -> ExitCode {
 fn cmd_parse(file: &Path, backend: Backend) -> ExitCode {
     if backend != Backend::Ptx {
         return match load_module(file, backend) {
-            Ok(KernelModule::Amdgpu(module)) => {
+            Ok((KernelModule::Amdgpu(module), _)) => {
                 println!(
                     "Parsed successfully: {} ({})",
                     file.display(),

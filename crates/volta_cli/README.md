@@ -79,3 +79,5 @@ full-workload tests and refuses missing registrations. See the
 [original-shape workflows](../../tests/gfx1250/full-parity/README.md).
 Registering a workload or replaying its expressions does not establish graph
 safety; analysis must complete and the applicable graph checks must pass.
+
+Graph-check witnesses include the source instruction when a source span is available.
