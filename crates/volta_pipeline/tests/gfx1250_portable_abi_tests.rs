@@ -518,18 +518,10 @@ fn native_word_alignment_is_checked_without_importing_ptx_vector_alignment() {
         &verified(COPY, "copy", cfg),
         inputs(&(2..18).collect::<Vec<_>>()),
     );
-    // Native SMEM masks low address bits. That distinct unmodeled behavior must
-    // not be inferred from the byte-addressed GLOBAL profile above.
+    // SMEM discards component low bits independently of GLOBAL byte addressing.
     let mut cfg = config(1, 4, 6, 4, 1);
     cfg.params[0] = ParamValue::Int(0x10002);
-    let run = checked(TRANSFERS, "abi_upper_address", cfg).unwrap();
-    assert!(matches!(run.analysis.symbolic_outputs(),
-        Err(OutputsUnavailable::Aborted(EvalError::Unsupported { what, .. }))
-            if what.contains("SMEM") && what.contains("low-bit masking")));
-    assert!(matches!(
-        run.checks.conclusion(),
-        GraphConclusion::Unknown { .. }
-    ));
+    equal(&verified(TRANSFERS, "abi_upper_address", cfg), inputs(&[4]));
     let mut cfg = config(4, 0, 0, 4, 4);
     cfg.params[0] = ParamValue::Int(0x20002);
     invalid(TRANSFERS, "abi_rank_zero_offsets", cfg, "allocation");

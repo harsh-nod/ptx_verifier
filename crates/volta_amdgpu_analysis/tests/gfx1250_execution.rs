@@ -479,6 +479,22 @@ fn malformed_typed_scalar_exp_cannot_read_a_vector_lane() {
 }
 
 #[test]
+fn scalar_load_immediates_reject_sign_bit_overflow_and_float_reinterpretation() {
+    for opcode in ["s_load_b32", "s_load_u8", "s_load_u16"] {
+        for offset in ["0", "0x7fffff", "s4"] {
+            frontend::parse(&tiny_native(&format!("{opcode} s5, s[0:1], {offset}"))).unwrap();
+        }
+        for offset in ["0x800000", "0xffffff", "0x1000000", "-1", "1.0"] {
+            let assembly = tiny_native(&format!("{opcode} s5, s[0:1], {offset}"));
+            assert!(frontend::parse(&assembly).is_err(), "{opcode}: {offset}");
+        }
+        let mut module = frontend::parse(&tiny_native(&format!("{opcode} s5, s[0:1], 0"))).unwrap();
+        module.kernels[0].instructions[2].operands[2] = frontend::Operand::Integer(0x800000);
+        assert!(analyze(&module, None, simple_config(1, &[("out", 1, 4, false)])).is_err());
+    }
+}
+
+#[test]
 fn scalar_memory_has_one_immediate_or_a_pinned_sgpr_offset_profile() {
     for body in [
         "s_load_b32 s2, s[0:1], 4 offset:4 scale_offset",
