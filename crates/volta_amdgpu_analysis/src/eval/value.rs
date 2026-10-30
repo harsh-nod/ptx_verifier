@@ -68,6 +68,18 @@ pub(super) enum Value {
 }
 
 impl Value {
+    /// A word whose unspecified bits remain unreadable until exact selection.
+    pub fn partial_bits(bits: u32, defined: u32) -> Self {
+        if defined == u32::MAX {
+            Self::Integer(bits)
+        } else {
+            Self::PartialBits {
+                bits: bits & defined,
+                defined,
+            }
+        }
+    }
+
     /// Exact full-word AND with 0xffff. Encoded low halves retain their format
     /// identity and the cleared upper half becomes known zero. This performs
     /// no numeric conversion and never reads unknown discarded bits.

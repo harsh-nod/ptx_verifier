@@ -75,12 +75,19 @@ pub struct AnalyzeResultPy {
     /// Whether graph verification is complete: the trace completed and the graph checks
     /// (barrier epochs, mbarrier ordering, memory conflicts, proxy and tensor ordering, resource
     /// lifetime, allocation order and permit, mbarrier release order) all passed. A failed check
-    /// or a deadlock raises instead.
+    /// or a deadlock raises instead. For AMD this covers only `workgroup_id`,
+    /// including when `grid` is larger.
     #[pyo3(get)]
     pub race_verified: bool,
     /// Why verification is incomplete; empty when `race_verified`.
     #[pyo3(get)]
     pub unresolved: Vec<String>,
+    /// Native AMD checks cover only this workgroup, not other groups or their conflicts.
+    #[pyo3(get)]
+    pub workgroup_id: (u32, u32, u32),
+    /// Modeling assumptions of the execution whose outputs are returned.
+    #[pyo3(get)]
+    pub assumptions: Vec<String>,
 }
 
 #[pymethods]
@@ -105,6 +112,8 @@ impl AnalyzeResultPy {
 
 /// One kernel that ran to completion with no failed graph check.
 pub(crate) struct CheckedKernel {
+    pub workgroup_id: (u32, u32, u32),
+    pub assumptions: Vec<String>,
     pub exprs: SymbolicOutputs,
     pub stats: Stats,
     pub op_counts: BTreeMap<&'static str, u64>,
@@ -140,10 +149,19 @@ pub(crate) fn check_kernel(
         }
     };
     let parts = verified.analysis;
+    let provenance = parts.graph.provenance();
+    let workgroup_id = provenance.workgroup_id;
+    let assumptions = provenance
+        .assumptions
+        .iter()
+        .map(|a| a.describe().to_owned())
+        .collect();
     let exprs = parts
         .outputs
         .map_err(|why| VoltaError::new_err(why.to_string()))?;
     Ok(CheckedKernel {
+        workgroup_id,
+        assumptions,
         exprs,
         stats: parts.stats,
         op_counts: parts.op_counts,
@@ -166,6 +184,8 @@ pub fn analyze(
     let output = check_kernel(py, &module, kernel, config.0.clone())?;
 
     Ok(AnalyzeResultPy {
+        workgroup_id: output.workgroup_id,
+        assumptions: output.assumptions,
         stats: StatsPy {
             instructions: output.stats.instructions,
             block_syncs: output.stats.block_syncs,

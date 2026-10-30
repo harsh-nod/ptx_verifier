@@ -198,6 +198,7 @@ impl Trace {
                 kernel: "independent_gfx1250_graph".into(),
                 block_dim: (threads, 1, 1),
                 grid_dim,
+                workgroup_id: (0, 0, 0),
                 targets: vec!["gfx1250".into()],
                 assumptions,
                 instructions: KINDS

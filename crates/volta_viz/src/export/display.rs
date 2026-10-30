@@ -277,6 +277,7 @@ mod tests {
             kernel: "projection".into(),
             block_dim: (2, 1, 1),
             grid_dim: (1, 1, 1),
+            workgroup_id: (0, 0, 0),
             targets: vec!["Sm100a".into()],
             assumptions: vec![],
             instructions: vec![

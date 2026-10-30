@@ -91,7 +91,9 @@ impl ArrayDefPy {
 }
 
 /// Full launch/memory configuration for analyzing one kernel; mirrors
-/// `AnalysisConfig` field-for-field.
+/// `AnalysisConfig` field-for-field. `workgroup_id` selects one native AMD group,
+/// defaulting to zero; other groups and their conflicts are outside its results.
+/// PTX currently requires zero.
 #[pyclass(name = "Config", from_py_object)]
 #[derive(Clone)]
 pub struct ConfigPy(pub(crate) AnalysisConfig, pub(crate) Backend);
@@ -99,7 +101,7 @@ pub struct ConfigPy(pub(crate) AnalysisConfig, pub(crate) Backend);
 #[pymethods]
 impl ConfigPy {
     #[new]
-    #[pyo3(signature = (block, grid=(1, 1, 1), dynamic_shared_bytes=0, max_instructions=2_000_000_000, *, backend="ptx", target=None))]
+    #[pyo3(signature = (block, grid=(1, 1, 1), dynamic_shared_bytes=0, max_instructions=2_000_000_000, *, backend="ptx", target=None, workgroup_id=(0, 0, 0)))]
     fn new(
         block: (u32, u32, u32),
         grid: (u32, u32, u32),
@@ -107,9 +109,11 @@ impl ConfigPy {
         max_instructions: u64,
         backend: &str,
         target: Option<&str>,
+        workgroup_id: (u32, u32, u32),
     ) -> PyResult<Self> {
         let mut config = AnalysisConfig::new(block);
         config.grid_dim = grid;
+        config.workgroup_id = workgroup_id;
         config.dynamic_shared_bytes = dynamic_shared_bytes;
         config.max_instructions = max_instructions;
         let backend = Backend::select(backend, target).map_err(PyValueError::new_err)?;
@@ -124,6 +128,12 @@ impl ConfigPy {
     #[getter]
     fn target(&self) -> Option<&'static str> {
         self.1.target()
+    }
+
+    /// The single native AMD workgroup selected for this analysis.
+    #[getter]
+    fn workgroup_id(&self) -> (u32, u32, u32) {
+        self.0.workgroup_id
     }
 
     /// Declare a global-memory array visible to the kernel.

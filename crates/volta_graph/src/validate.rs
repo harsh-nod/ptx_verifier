@@ -49,6 +49,18 @@ impl EventGraph {
     /// Check every representation invariant; `Err` lists all violations found.
     pub fn validate(&self) -> Result<(), Vec<GraphDefect>> {
         let mut d = Defects(Vec::new());
+        let p = &self.provenance;
+        for (axis, coordinate, groups) in [
+            ("x", p.workgroup_id.0, p.grid_dim.0),
+            ("y", p.workgroup_id.1, p.grid_dim.1),
+            ("z", p.workgroup_id.2, p.grid_dim.2),
+        ] {
+            if coordinate >= groups {
+                d.global(format!(
+                    "workgroup_id.{axis} {coordinate} is outside grid dimension {groups}"
+                ));
+            }
+        }
         self.validate_contexts(&mut d);
         let access_events = self.validate_accesses(&mut d);
         self.validate_program_order(&mut d);

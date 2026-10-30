@@ -607,7 +607,7 @@ impl Assumption {
                 "the analyzed AMD execution has XNACK memory replay disabled; replay-enabled executions are outside this result"
             }
             Assumption::SingleWorkgroupAnalyzed => {
-                "one AMD workgroup is analyzed; other workgroups are outside this result"
+                "only the selected AMD workgroup is analyzed; other workgroups and inter-workgroup conflicts are outside this result"
             }
             Assumption::SingleCuWorkgroup => {
                 "all waves of the analyzed AMD workgroup share one CU; threadgroup splitting is disabled"
@@ -660,6 +660,8 @@ pub struct Provenance {
     pub kernel: String,
     pub block_dim: (u32, u32, u32),
     pub grid_dim: (u32, u32, u32),
+    /// The analyzed block/workgroup coordinate; native AMD verifies only this group.
+    pub workgroup_id: (u32, u32, u32),
     pub targets: Vec<String>,
     pub assumptions: Vec<Assumption>,
     /// Per [`ProgramPoint`]: the instruction kind and its source byte span.

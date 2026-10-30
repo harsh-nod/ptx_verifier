@@ -12,6 +12,7 @@ fn provenance(threads: u32) -> Provenance {
         kernel: "gfx950_view".into(),
         block_dim: (threads, 1, 1),
         grid_dim: (1, 1, 1),
+        workgroup_id: (0, 0, 0),
         targets: vec!["gfx950".into()],
         assumptions: vec![
             Assumption::SingleWorkgroupAnalyzed,
@@ -139,6 +140,21 @@ fn exported(name: &str, graph: &EventGraph) -> String {
     .unwrap();
     write_page(&dir, &dir.join("index.html")).unwrap();
     std::fs::read_to_string(dir.join(format!("{}.json", id.key()))).unwrap()
+}
+
+#[test]
+fn selected_workgroup_and_its_scope_are_preserved_in_viewer_launch_metadata() {
+    let mut p = provenance(1);
+    p.grid_dim = (2, 3, 4);
+    p.workgroup_id = (1, 2, 3);
+    let mut builder = GraphBuilder::new(p);
+    builder.exit(ThreadIx(0), ProgramPoint(3));
+    let graph = builder.finish(Terminal::Completed);
+    let text = exported("selected_group", &graph);
+    assert!(text.contains("\"workgroup_id\":[1,2,3]"), "{text}");
+    assert!(text.contains("\"grid\":[2,3,4]"));
+    assert!(text.contains("only the selected AMD workgroup"));
+    assert!(text.contains("inter-workgroup conflicts are outside this result"));
 }
 
 #[test]

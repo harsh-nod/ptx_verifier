@@ -196,10 +196,12 @@ pub fn validate_shared_allocations(layout: &[SharedAllocation]) -> Result<(), St
 /// Full configuration for analyzing one kernel.
 #[derive(Debug, Clone)]
 pub struct AnalysisConfig {
-    /// Threads per block; the CTA under analysis is block (0,0,0)
+    /// Threads per block or workgroup.
     pub block_dim: (u32, u32, u32),
-    /// Grid dimensions (only used for `%nctaid`)
+    /// Dispatch grid dimensions, measured in blocks or workgroups.
     pub grid_dim: (u32, u32, u32),
+    /// The single native AMD workgroup to analyze. PTX currently requires zero.
+    pub workgroup_id: (u32, u32, u32),
     /// Parameter values in `ParamId` (declaration) order
     pub params: Vec<ParamValue>,
     /// Global-memory arrays
@@ -220,6 +222,7 @@ impl AnalysisConfig {
         Self {
             block_dim,
             grid_dim: (1, 1, 1),
+            workgroup_id: (0, 0, 0),
             params: Vec::new(),
             arrays: Vec::new(),
             global_values: Vec::new(),
@@ -253,6 +256,17 @@ impl AnalysisConfig {
         }
         if self.grid_dim.0 == 0 || self.grid_dim.1 == 0 || self.grid_dim.2 == 0 {
             return Err("grid dimensions must be nonzero".into());
+        }
+        for (axis, coordinate, groups) in [
+            ("x", self.workgroup_id.0, self.grid_dim.0),
+            ("y", self.workgroup_id.1, self.grid_dim.1),
+            ("z", self.workgroup_id.2, self.grid_dim.2),
+        ] {
+            if coordinate >= groups {
+                return Err(format!(
+                    "workgroup_id.{axis} {coordinate} is outside grid dimension {groups}"
+                ));
+            }
         }
         validate_shared_allocations(&self.shared_allocations)?;
         // Per-array checks first, so the pairwise pass below may safely
@@ -459,6 +473,20 @@ fn validate_im2col(rank: usize, im2col: &Im2colBox) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn selected_workgroup_defaults_to_zero_and_must_be_inside_each_grid_axis() {
+        let mut config = AnalysisConfig::new((4, 3, 2));
+        assert_eq!(config.workgroup_id, (0, 0, 0));
+        config.validate().unwrap();
+        config.grid_dim = (2, 3, 4);
+        config.workgroup_id = (1, 2, 3);
+        config.validate().unwrap();
+        for selection in [(2, 2, 3), (1, 3, 3), (1, 2, 4), (u32::MAX, 0, 0)] {
+            config.workgroup_id = selection;
+            assert!(config.validate().unwrap_err().contains("workgroup_id"));
+        }
+    }
 
     #[test]
     fn launch_geometry_requires_positive_dimensions_and_a_representable_thread_count() {

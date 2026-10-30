@@ -9,6 +9,7 @@ fn completed_threads_without_native_wave_evidence_never_verify_gfx1250() {
             kernel: "missing-wave-evidence".into(),
             block_dim: (threads, 1, 1),
             grid_dim: (1, 1, 1),
+            workgroup_id: (0, 0, 0),
             targets: vec!["gfx1250".into()],
             assumptions: vec![],
             instructions: vec![InstructionInfo {

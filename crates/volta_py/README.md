@@ -62,6 +62,13 @@ config = volta.Config(block=(64, 1, 1), backend="amdgpu", target="gfx1250")
 # Add arrays and parameters matching the selected kernel's ABI.
 ```
 
+`Config(..., grid=(2,3,4), workgroup_id=(1,2,3))` selects one native group.
+All three coordinates must lie inside the grid; the default is `(0,0,0)`.
+Results expose `workgroup_id` and `assumptions`. Graph verification covers only
+that group, with no claim about other groups or their conflicts. Output indices
+remain absolute, and partial tiles still fail whole-array specification checks
+even with sampling. PTX currently rejects nonzero selection.
+
 Supported target profiles are gfx942 and gfx950 with wave64, and gfx1250 with
 wave32. Omitting an AMD target selects gfx950; source and selection must match.
 `Param.bytes(...)` supplies metadata-sized native by-value arguments, including

@@ -24,7 +24,7 @@ impl EventGraph {
         )?;
         writeln!(
             out,
-            "kernel {:?} block {},{},{} grid {},{},{} targets {}",
+            "kernel {:?} block {},{},{} grid {},{},{} workgroup {},{},{} targets {}",
             p.kernel,
             p.block_dim.0,
             p.block_dim.1,
@@ -32,6 +32,9 @@ impl EventGraph {
             p.grid_dim.0,
             p.grid_dim.1,
             p.grid_dim.2,
+            p.workgroup_id.0,
+            p.workgroup_id.1,
+            p.workgroup_id.2,
             p.targets.join(",")
         )?;
         for a in &p.assumptions {

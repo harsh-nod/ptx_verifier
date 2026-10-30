@@ -361,6 +361,7 @@ fn graph_fields(
                 ),
                 ("block", dims(p.block_dim)),
                 ("grid", dims(p.grid_dim)),
+                ("workgroup_id", dims(p.workgroup_id)),
                 (
                     "targets",
                     Json::Arr(p.targets.iter().map(|t| Json::str(t.clone())).collect()),
@@ -1755,6 +1756,7 @@ mod tests {
                 kernel: "large_display".into(),
                 block_dim: (2, 1, 1),
                 grid_dim: (1, 1, 1),
+                workgroup_id: (0, 0, 0),
                 targets: vec!["Sm100a".into()],
                 assumptions: vec![],
                 instructions: vec![InstructionInfo {

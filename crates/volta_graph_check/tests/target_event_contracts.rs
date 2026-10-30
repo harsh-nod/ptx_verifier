@@ -35,6 +35,7 @@ fn cdna_targets_refuse_every_allocated_named_barrier_event() {
                 kernel: "target_event_contract".into(),
                 block_dim: (1, 1, 1),
                 grid_dim: (1, 1, 1),
+                workgroup_id: (0, 0, 0),
                 targets: vec![target.into()],
                 assumptions: vec![],
                 instructions: vec![InstructionInfo {

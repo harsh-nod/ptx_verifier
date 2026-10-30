@@ -19,7 +19,8 @@ must resolve from concrete configuration and thread indices.
 > This is a best-effort bug-finding tool, not a sound formal verifier. Results
 > depend on supported instructions and the reported modeling assumptions. A
 > successful result does not guarantee hardware correctness. Analysis covers
-> workgroup zero, not the whole grid or physical floating-point rounding.
+> one selected native workgroup (zero by default), not the whole grid or
+> physical floating-point rounding. PTX currently analyzes only block zero.
 
 ## Build and run
 
@@ -79,7 +80,9 @@ describes the supported instruction and ABI profiles.
 
 Launch configuration defines array extents, argument values, geometry and shared
 memory. These are analysis premises and must match the actual kernel. The grid
-may affect the computation even though only workgroup zero is analyzed. Optional
+may affect the computation even though only one selected native workgroup is
+analyzed. Set `workgroup_id` in launch JSON or `--workgroup-id X,Y,Z`; it defaults
+to zero and must lie inside the grid. Optional
 native LDS allocation ranges preserve subobject bounds when assembly no longer
 contains source-level object boundaries.
 
