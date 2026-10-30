@@ -195,6 +195,15 @@ impl Wave {
         self.scc_defined = true;
         self.scc_condition = None;
     }
+    fn set_partial_scc(&mut self, bits: u32, defined: u32) {
+        if bits & defined != 0 {
+            self.set_scc(true);
+        } else if defined == u32::MAX {
+            self.set_scc(false);
+        } else {
+            self.clear_scc();
+        }
+    }
     fn clear_scc(&mut self) {
         self.scc_defined = false;
         self.scc_condition = None;
@@ -601,6 +610,13 @@ impl<'a> Interpreter<'a> {
         let architecture = AmdArchitecture::from_targets(&provenance.targets).ok_or_else(|| {
             EvalError::InvalidConfig("expected one supported native AMD target".into())
         })?;
+        if architecture == AmdArchitecture::Gfx1250
+            && (config.workgroup_id.1 > u16::MAX as u32 || config.workgroup_id.2 > u16::MAX as u32)
+        {
+            return Err(EvalError::InvalidConfig(
+                "gfx1250 workgroup_id Y/Z must fit the 16-bit architected ABI fields".into(),
+            ));
+        }
         if lds_size > architecture.lds_capacity() {
             return Err(EvalError::InvalidConfig(format!(
                 "requested LDS exceeds {} capacity of {} bytes",
@@ -1028,16 +1044,36 @@ impl<'a> Interpreter<'a> {
     }
     fn initialize_wave(&self, wave: &mut Wave) -> Result<(), EvalError> {
         if self.architecture == AmdArchitecture::Gfx1250 {
-            // Single unclustered workgroup0, LLVM architected-SGPR ABI.
+            // CDNA5 ISA3.5.3.1: an unclustered launch does not initialize TTMP6.
+            // PartialBits allows unused compiler fallback calculations to remain
+            // unknown; it never supplies concrete address, control or output bits.
             wave.temporary[6] = Some(Value::PartialBits {
                 bits: 0,
-                defined: 0x0fff_ffff,
+                defined: 0,
             });
-            wave.temporary[7] = Some(Value::Integer(0));
-            wave.temporary[9] = Some(Value::Integer(0));
+            let yz_valid = self.program.descriptor.flag("system_sgpr_workgroup_id_y")
+                || self.program.descriptor.flag("system_sgpr_workgroup_id_z");
+            wave.temporary[7] = Some(if yz_valid {
+                Value::Integer(
+                    self.config.workgroup_id.1
+                        | if self.program.descriptor.flag("system_sgpr_workgroup_id_z") {
+                            self.config.workgroup_id.2 << 16
+                        } else {
+                            0
+                        },
+                )
+            } else {
+                Value::PartialBits {
+                    bits: 0,
+                    defined: 0,
+                }
+            });
+            wave.temporary[9] = Some(Value::Integer(self.config.workgroup_id.0));
             wave.temporary[8] = Some(Value::PartialBits {
-                bits: wave.id << 25,
-                defined: 0x3e00_0000,
+                bits: (wave.id << 25) | (u32::from(yz_valid) << 30),
+                // DebugMark=0, GridYZvalid and waveID are known. The runtime
+                // dispatch packet index in bits0..24 is not inferred.
+                defined: 0xfe00_0000,
             });
         }
         let mut sgpr = 0usize;
@@ -1073,13 +1109,13 @@ impl<'a> Interpreter<'a> {
                 "descriptor user_sgpr_count disagrees with enabled ABI inputs: expected {sgpr}"
             )));
         }
-        for field in [
-            "system_sgpr_workgroup_id_x",
-            "system_sgpr_workgroup_id_y",
-            "system_sgpr_workgroup_id_z",
+        for (field, coordinate) in [
+            ("system_sgpr_workgroup_id_x", self.config.workgroup_id.0),
+            ("system_sgpr_workgroup_id_y", self.config.workgroup_id.1),
+            ("system_sgpr_workgroup_id_z", self.config.workgroup_id.2),
         ] {
             if descriptor.flag(field) && self.architecture != AmdArchitecture::Gfx1250 {
-                wave.scalar[sgpr] = Some(Value::Integer(0));
+                wave.scalar[sgpr] = Some(Value::Integer(coordinate));
                 sgpr += 1;
             }
         }
@@ -3471,7 +3507,14 @@ impl<'a> Interpreter<'a> {
             let control = wave.bits(&o[2], 0)?;
             let offset = control & 31;
             let width = (control >> 16) & 127;
-            if let Value::PartialBits { .. } = wave.value(&o[1], 0)? {
+            if let Value::PartialBits { bits, defined } = wave.value(&o[1], 0)? {
+                if self.architecture == AmdArchitecture::Gfx1250 {
+                    let mask = u32::MAX.checked_shr(32 - width.min(32)).unwrap_or(0);
+                    let result = (bits >> offset) & mask;
+                    let defined = (defined >> offset) | !(u32::MAX >> offset) | !mask;
+                    wave.set_partial_scc(result, defined);
+                    return wave.put_value(dest, 0, Value::partial_bits(result, defined));
+                }
                 let value = wave
                     .value(&o[1], 0)?
                     .selected_bits(offset, width)
@@ -3480,6 +3523,7 @@ impl<'a> Interpreter<'a> {
                 return wave.put_value(dest, 0, Value::Integer(value));
             }
         }
+
         if self.architecture == AmdArchitecture::Gfx1250
             && matches!(
                 name,
@@ -3539,6 +3583,46 @@ impl<'a> Interpreter<'a> {
                     }
                 },
             );
+        }
+        // LLVM's unclustered prologue calculates a cluster fallback before
+        // a concrete CSELECT discards it. Preserve unknown system bits through
+        // only these32-bit SALU operations; observing them still fails.
+        if self.architecture == AmdArchitecture::Gfx1250
+            && matches!(
+                name,
+                "s_add_i32"
+                    | "s_add_u32"
+                    | "s_sub_i32"
+                    | "s_sub_u32"
+                    | "s_mul_i32"
+                    | "s_lshl_b32"
+                    | "s_lshr_b32"
+            )
+        {
+            let a = wave.value(&o[1], 0)?;
+            let b = wave.value(&o[2], 0)?;
+            if matches!(a, Value::PartialBits { .. }) || matches!(b, Value::PartialBits { .. }) {
+                let (bits, defined) = if matches!(name, "s_lshl_b32" | "s_lshr_b32") {
+                    let count = b.bits().map_err(|e| wave.fail(None, e))? & 31;
+                    let (bits, defined) = match a {
+                        Value::PartialBits { bits, defined } => (bits, defined),
+                        value => (value.bits().map_err(|e| wave.fail(None, e))?, u32::MAX),
+                    };
+                    if name == "s_lshl_b32" {
+                        (bits << count, (defined << count) | !(u32::MAX << count))
+                    } else {
+                        (bits >> count, (defined >> count) | !(u32::MAX >> count))
+                    }
+                } else if name == "s_mul_i32" && (a.bits() == Ok(0) || b.bits() == Ok(0)) {
+                    (0, u32::MAX)
+                } else {
+                    (0, 0)
+                };
+                if name != "s_mul_i32" {
+                    wave.set_partial_scc(bits, defined);
+                }
+                return wave.put_value(dest, 0, Value::partial_bits(bits, defined));
+            }
         }
         let a = wave.bits(&o[1], 0)?;
         let b = if o.len() > 2 { wave.bits(&o[2], 0)? } else { 0 };

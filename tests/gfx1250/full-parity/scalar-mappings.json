@@ -2873,7 +2873,7 @@
         }
       ],
       "mapping_source": "tests/gfx1250/portable-abi/cases.json",
-      "target_specific_residual": "The direct VMEM DWORD load rejects misalignment. Native SMEM has a distinct low-bit masking contract, which stays explicitly Unsupported rather than being mislabeled as the PTX-style alignment violation.",
+      "target_specific_residual": "The direct VMEM DWORD load rejects misalignment. Native SMEM independently masks each address component before addition and retains allocation-bounds and readiness checks.",
       "mapping_kind": "native_assertion"
     },
     {

@@ -30,6 +30,7 @@ fn interpreter(program: &LoweredKernel) -> Interpreter<'_> {
             kernel: program.name.clone(),
             block_dim: (1, 1, 1),
             grid_dim: (1, 1, 1),
+            workgroup_id: (0, 0, 0),
             targets: vec!["gfx1250".into()],
             assumptions: Vec::new(),
             instructions: Vec::new(),

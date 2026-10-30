@@ -31,7 +31,7 @@ cannot substitute one output array or coordinate for another. Native supersets
 and changed workgroup partitions have explicit projections and must preserve
 all original coordinates, masks, scales and storage conversions.
 
-The analysis selects workgroup `(0,0,0)`. Configured grid dimensions remain ABI
+These original-workload registrations select workgroup `(0,0,0)`. Configured grid dimensions remain ABI
 inputs: FlashAttention uses grid.x=16 to retain sequence length 1024. The native
 full-grid hardware runner checks all 1024 query/output rows, including the
 source's no-op odd CTAs. A selected-workgroup proof does not establish
@@ -65,7 +65,11 @@ arguments, shifted output views and invalid test references. They validate
 metadata; they do not execute a kernel or prove graph safety or equivalence.
 When changing a source, update its adjacent provenance and the affected manifest
 pins together. The default mapping check compares its generated source inventory
-with the checked-in index, including fixtures imported by Rust tests. After an
+with the checked-in index, including fixtures imported by Rust tests. The index
+records the frozen upstream revision separately. Historical references are
+always validated from Git at that revision; their current copies are optional
+drift inputs, and deleted copies are listed as historical-only sources. Current
+native/shared tests and their imported fixtures must still exist. After an
 intentional source or mapping change, regenerate the index and review its diff:
 
 ```sh

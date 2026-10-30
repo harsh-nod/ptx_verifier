@@ -30,9 +30,16 @@ pub struct VerifyResultPy {
     /// The kernel's own execution statistics (the spec has none to report).
     #[pyo3(get)]
     pub stats: StatsPy,
-    /// Whether the kernel's graph verification is complete (see `AnalyzeResult`).
+    /// Whether this execution's graph verification is complete (see `AnalyzeResult`);
+    /// native AMD checks cover only `workgroup_id`.
     #[pyo3(get)]
     pub race_verified: bool,
+    /// Native AMD graph checks cover only this selected workgroup.
+    #[pyo3(get)]
+    pub workgroup_id: (u32, u32, u32),
+    /// Modeling assumptions of the execution compared with the specification.
+    #[pyo3(get)]
+    pub assumptions: Vec<String>,
 }
 
 /// Check `kernel` against `spec` (grammar in `volta_spec`) given every `dim`.
@@ -137,6 +144,8 @@ pub fn verify(
     };
 
     Ok(VerifyResultPy {
+        workgroup_id: kernel_output.workgroup_id,
+        assumptions: kernel_output.assumptions,
         equivalent,
         mismatches,
         elements_checked: report.elements_checked,

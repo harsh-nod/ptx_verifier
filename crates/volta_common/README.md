@@ -11,6 +11,10 @@ no other Volta crate.
   Parameters include PTX structured fields and native AMD byte payloads; each
   analyzer rejects forms outside its ABI. Both producers re-export the shared
   types for compatibility.
+- **Selected native workgroup** (`AnalysisConfig.workgroup_id`) defaults to
+  `(0,0,0)` and must be inside `grid_dim`. AMD analysis executes only this group;
+  PTX rejects nonzero selection. Array indices and dispatch dimensions retain
+  their original meaning.
 - **Tensor-map fields** (`tensor_map.rs`): host descriptor values used by launch
   configuration and PTX lowering, independent of interpreter operands.
 - **`Span`** (`lib.rs`): a source location as a `(low, high)` byte-offset pair.

@@ -1,5 +1,12 @@
 {
   "schema_version": 1,
+  "upstream_commit": "b3a37911b8bd87352996403e8471a1fe18c4e975",
+  "historical_only_sources": [
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_reader_without_fence_after_thread_sync_is_rejected.ptx",
+      "sha256": "86de880448966bd4c9995f0c4f5a31a14f84a20e7077259e73c3f8fc2ff68813"
+    }
+  ],
   "reference_count": 520,
   "mapping_counts": {
     "model_refusal": 1,
@@ -16,7 +23,7 @@
     },
     {
       "path": "crates/volta_amdgpu_analysis/tests/gfx1250_execution.rs",
-      "sha256": "4cd9ccc8f346d4fc00153911b7f9881165966498b997cabde8451f078ef0fe5a"
+      "sha256": "6b264a0c16ca9b253a87e70b9a68a5efef57b8b6e0b81c34fa0bce58762f43c4"
     },
     {
       "path": "crates/volta_cli/tests/gfx1250_output_footprint_tests.rs",
@@ -596,11 +603,11 @@
     },
     {
       "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
-      "sha256": "4c774a2a4bc5d2829bfdc1676240bbf301bf0f7b69d14e8e8b09ca90d06d5e6d"
+      "sha256": "9683f46b11245c539cf032a9d2076545fc2e58933c6a26b4608c9f1d5f6b0789"
     },
     {
       "path": "crates/volta_pipeline/tests/accepted_tests.rs",
-      "sha256": "f979dd5ddcf3191c0f80b2f9c20ffec7428e5c06c5b2f866eb6929ab2e9ae9a0"
+      "sha256": "856dc0f3f74419812c3d5a834bc9441340ee4d9b0d185d3b6ae9afa55841d76a"
     },
     {
       "path": "crates/volta_pipeline/tests/aggregation_tests.rs",
@@ -620,7 +627,7 @@
     },
     {
       "path": "crates/volta_pipeline/tests/common/mod.rs",
-      "sha256": "b7325d2ae9d37fffabad6c8170457d4c033bfa97079eda66e4670d209ec3ab0b"
+      "sha256": "33d8c90b30740ed86cea57a14f96336f8e47c123f2116ec6e7aff00bddb7c71e"
     },
     {
       "path": "crates/volta_pipeline/tests/false_positive_tests.rs",
@@ -704,7 +711,7 @@
     },
     {
       "path": "crates/volta_pipeline/tests/gfx1250_portable_abi_tests.rs",
-      "sha256": "807170ea9e218affa0ad588e8d221697e1ae94e24dcbfb9ded426348c63454db"
+      "sha256": "7e409f7e03d2ecab6acbd28fae76a5ed41a14bd12587bfeb9c3be164da6bf0b8"
     },
     {
       "path": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs",
@@ -744,7 +751,7 @@
     },
     {
       "path": "crates/volta_pipeline/tests/mbarrier_ordering_tests.rs",
-      "sha256": "2bf1141535c4f7986a21f20fd806cdf753a4581c65df4ad4af8a80eeaaa88f5a"
+      "sha256": "9ee9bd9b099db14c19011696ecd41b87049421c994b07b173d9968f2123f803e"
     },
     {
       "path": "crates/volta_pipeline/tests/mbarrier_release_order_tests.rs",
@@ -752,7 +759,7 @@
     },
     {
       "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
-      "sha256": "af98d7efe0c470b7f6690711a25c7848255838ada66516849ded59983d1e11cf"
+      "sha256": "09d3540efbe3fd9ad25ceb1ac27cdee772e74b7d6545bd2f896c3e01171df5b5"
     },
     {
       "path": "crates/volta_pipeline/tests/negative_equivalence_tests.rs",
@@ -899,10 +906,6 @@
       "sha256": "9b455fc8eb0de799df39456071dd29eca58e3802177b35ee64bb53e1e1a52e2c"
     },
     {
-      "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_reader_without_fence_after_thread_sync_is_rejected.ptx",
-      "sha256": "86de880448966bd4c9995f0c4f5a31a14f84a20e7077259e73c3f8fc2ff68813"
-    },
-    {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_relinquish_unordered_with_other_warps_alloc.ptx",
       "sha256": "8e0892bc2157d9c28339c6353819f27d2fd56ff28e310cd5d8ed132ace5edeac"
     },
@@ -1032,11 +1035,11 @@
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/cvta_other_forms_rejected_shared.ptx",
-      "sha256": "eb53b3392a2f692fa92c71ca6fb61feb1bffe3899d2cfab85574de2041552b49"
+      "sha256": "c0b7569ed86113afb1fd17b5924bffd69762fb87ae2ab97e27008111f599e52c"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/cvta_other_forms_rejected_to_shared.ptx",
-      "sha256": "1b13727424b316b14b20a5927d8d13f7560057bdd7c269410c456d1e3f8bbe59"
+      "sha256": "0d936f87195532c129bc21cb27284415c5c108333073143c5d288e0967309f1c"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/e4m3x2_rejects_the_concrete_nan_byte_pattern.ptx",
@@ -1196,7 +1199,7 @@
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/pair_sub_width_store_rejected.ptx",
-      "sha256": "ad61eaeb7005cfa3f532c8f6d010be542ee5a298794cf2ce7a6bf1fab671b3e6"
+      "sha256": "292d24e58deffffdbb5db132e9853a92a050a1371fdcab228e9f28f10ec43d3c"
     },
     {
       "path": "crates/volta_pipeline/tests/ptx/failing/shared_array_overflow_read_is_out_of_bounds.ptx",
@@ -2844,7 +2847,7 @@
     },
     {
       "path": "crates/volta_pipeline/tests/rejected_tests.rs",
-      "sha256": "1d8651375b993e864b6e62b99f82dcf11baa99f714a794b9f1be3b7fdb027a07"
+      "sha256": "e128af491424612267e90bfb98252ecc99039c53f9e62750a5bc4b2abf8da774"
     },
     {
       "path": "crates/volta_pipeline/tests/resource_lifetime_tests.rs",
@@ -2856,7 +2859,7 @@
     },
     {
       "path": "crates/volta_pipeline/tests/tensor_order_tests.rs",
-      "sha256": "5604195e4700728b3ac2dc44c46d93c55c78a8b136c332154e07ff35279d8b1a"
+      "sha256": "ebf21e45d98f6958ba59c605e785ebc2078716b65bbfe5323597ba73b51b7a11"
     },
     {
       "path": "tests/gfx1250/fixtures/native-attention-small.s",

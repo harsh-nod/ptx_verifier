@@ -19,6 +19,12 @@ class MappingControls(unittest.TestCase):
     def test_all24_original_rows_have_exact_source_and_test_mappings(self):
         self.assertEqual(mapping.validate(self.contract, self.ledger), 24)
 
+    def test_baseline_sources_require_the_recorded_git_revision(self):
+        ledger = copy.deepcopy(self.ledger)
+        ledger["upstream_commit"] = "missing-baseline-revision-for-test"
+        with self.assertRaisesRegex(ValueError, "missing pinned source"):
+            mapping.validate(self.contract, ledger)
+
     def test_all32_matrix_references_have_pinned_properties_and_original_projections(
         self,
     ):

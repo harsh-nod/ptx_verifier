@@ -138,7 +138,7 @@ struct LaunchArgs {
     #[arg(
         long,
         value_name = "FILE",
-        conflicts_with_all = ["block", "grid", "arrays", "params", "globals", "dyn_shared", "shared_allocations"]
+        conflicts_with_all = ["block", "grid", "workgroup_id", "arrays", "params", "globals", "dyn_shared", "shared_allocations"]
     )]
     config: Option<PathBuf>,
 
@@ -149,6 +149,10 @@ struct LaunchArgs {
     /// Grid dimensions, e.g. "64,64"
     #[arg(short, long, default_value = "1")]
     grid: String,
+
+    /// Native AMD workgroup to analyze, exactly "X,Y,Z"; other groups are outside the result.
+    #[arg(long, default_value = "0,0,0")]
+    workgroup_id: String,
 
     /// Global array: "name:base:elem_width:len:kind" where kind is
     /// in|out|inout|index (e.g. "in:0x10000:4:128:in"). Repeatable.
@@ -372,6 +376,15 @@ fn parse_dims(s: &str) -> Result<(u32, u32, u32), String> {
     Ok((dims[0], dims[1], dims[2]))
 }
 
+fn parse_workgroup_id(value: &str) -> Result<(u32, u32, u32), String> {
+    let fields: Vec<_> = value.split(',').collect();
+    let [x, y, z] = fields.as_slice() else {
+        return Err("expected exactly three coordinates X,Y,Z".into());
+    };
+    let parse = |field: &str| field.trim().parse::<u32>().map_err(|e| e.to_string());
+    Ok((parse(x)?, parse(y)?, parse(z)?))
+}
+
 fn parse_u64_value(s: &str) -> Result<u64, String> {
     if let Some(hex) = s.strip_prefix("0x") {
         u64::from_str_radix(hex, 16).map_err(|e| e.to_string())
@@ -461,6 +474,8 @@ fn build_config(input: &LaunchArgs) -> Result<AnalysisConfig, String> {
     let block_dim = parse_dims(&input.block).map_err(|e| format!("invalid --block: {}", e))?;
     let mut config = AnalysisConfig::new(block_dim);
     config.grid_dim = parse_dims(&input.grid).map_err(|e| format!("invalid --grid: {}", e))?;
+    config.workgroup_id = parse_workgroup_id(&input.workgroup_id)
+        .map_err(|e| format!("invalid --workgroup-id: {e}"))?;
     config.dynamic_shared_bytes = input.dyn_shared;
     for value in &input.shared_allocations {
         let fields: Vec<_> = value.split(':').collect();
@@ -544,6 +559,16 @@ impl KernelSide {
 /// generator's deadlock.
 fn print_graph_report(side: &KernelSide, source: &str) {
     println!("{}: graph verification", side.label);
+    if side
+        .graph
+        .provenance()
+        .assumes(volta_graph::Assumption::SingleWorkgroupAnalyzed)
+    {
+        let (x, y, z) = side.graph.provenance().workgroup_id;
+        println!(
+            "  selected workgroup: ({x}, {y}, {z}); other workgroups and inter-workgroup conflicts are outside this result"
+        );
+    }
     for s in side.report.summaries() {
         let check = format!("{} ({})", s.property.name(), s.property.algorithm());
         println!("  {:<55} {}", check, s.verdict.name());

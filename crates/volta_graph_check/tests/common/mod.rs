@@ -18,6 +18,7 @@ pub fn provenance(threads: u32) -> Provenance {
         kernel: "k".to_string(),
         block_dim: (threads, 1, 1),
         grid_dim: (1, 1, 1),
+        workgroup_id: (0, 0, 0),
         targets: vec!["Sm100a".to_string()],
         assumptions: vec![Assumption::StructuredCta, Assumption::ExitedThreadsArrive],
         instructions: vec![

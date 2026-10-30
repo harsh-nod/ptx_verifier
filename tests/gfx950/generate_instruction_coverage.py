@@ -314,15 +314,17 @@ def main():
     )
     value(
         "M",
-        "Typed global/kernarg/LDS byte storage, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. XNACK replay, atomics, buffers, arbitrary apertures and equal-offset dual DS are outside the envelope.",
+        "Typed global/kernarg/LDS byte storage, per-component SMEM low-bit masking, encoded nonnegative scalar offsets, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. XNACK replay, atomics, buffers, arbitrary apertures and equal-offset dual DS are outside the envelope.",
         ["memory_instruction", "flat_memory_address", "validate_address"],
         [
             (MEM, "compiler_static_and_dynamic_lds_share_bytes_through_flat_and_ds"),
             (MEM, "an_lds_128_bit_read_preserves_four_independently_stored_words"),
+            (MEM, "smem_discards_each_component_low_bits_before_addition"),
         ],
         [
             (MEM, "vector_transfers_check_every_component_at_the_region_end"),
             (MEM, "initialized_bytes_and_halves_do_not_define_the_rest_of_a_word"),
+            (MEM, "smem_masking_preserves_readiness_bounds_and_exec_independence"),
         ],
     )
     value(

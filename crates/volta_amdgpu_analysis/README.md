@@ -62,13 +62,30 @@ combinations have executable coverage.
 
 ## Execution and memory contract
 
-Only workgroup `(0,0,0)` executes. The configured logical grid remains in
-provenance and supplies launch-coordinate values; the result makes no claim
-about races between workgroups. Each wave has one PC, a scalar register file,
+`AnalysisConfig.workgroup_id` selects one native workgroup and defaults to
+`(0,0,0)`. Coordinates must be inside `grid_dim`; this result covers no other
+workgroups or inter-workgroup conflicts. Written output indices stay absolute,
+and full-array specification checks still require the full expected footprint.
+CLI launch JSON uses `"workgroup_id": [x,y,z]`; the CLI flag is
+`--workgroup-id x,y,z`, and Python uses the keyword `workgroup_id=(x,y,z)`.
+
+Gfx942/gfx950 initialize only enabled workgroup-ID SGPRs in packed ABI order.
+Gfx1250 uses TTMP9 for X and TTMP7 for 16-bit Y/Z fields. TTMP7 is initialized
+when either Y/Z descriptor enable is present; disabled Z receives zero. The
+unclustered TTMP6 and TTMP8's runtime dispatch index remain undefined. Exact
+scalar selections and discarded compiler fallback calculations can carry unknown
+bits; observing them as concrete output, addresses or control fails. TTMP8's
+DebugMark, GridYZvalid and local wave-ID fields remain defined. These rules follow
+the public [CDNA5 ISA, section 3.5.3.1](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf)
+and the pinned [LLVM architected ABI lowering](https://github.com/ROCm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIISelLowering.cpp#L2772-L2858).
+
+The selected workgroup executes with its configured coordinates; the default is
+`(0,0,0)`. Dispatch grid dimensions retain their original meaning. Each wave has
+one PC, a scalar register file,
 EXEC/VCC/SCC state and lane-indexed vector storage. Addresses, branches and
 EXEC changes must be concrete. Symbolic comparisons may select data through
 supported masks, but cannot control addresses, branches or carry inputs.
-Undefined flags and unavailable ABI fields stop execution.
+Observing undefined flags or unavailable ABI fields stops execution.
 
 Kernel descriptors determine user/system register assignments and LDS limits.
 AMDHSA argument offsets and sizes determine explicit kernarg layout. By-value
@@ -211,3 +228,18 @@ Compiler sources and provenance are under `src/frontend/fixtures` and the
 [gfx1250](../../tests/gfx1250/README.md) corpora. End-to-end pipeline tests
 check complete symbolic outputs and typed safety controls. Exact-assembly
 hardware drivers check numerical values separately from symbolic proof.
+
+## Extending instruction semantics
+
+When extending native semantics, validate each separate contract:
+
+- Check the public target-specific encoding, signed field widths and supported modifiers.
+- Track which operand bits are defined; unknown bits must not become concrete data or control.
+- Apply address component masking and scaling in architectural order, check overflow,
+  and validate the complete transfer footprint against allocation bounds.
+- Preserve EXEC participation and local lane/wave identities, including empty and partial waves.
+- Record issue/wait completion, retained sources and flag dependencies independently of data calculation.
+
+Use positive cases with independently expected values and absolute output indices,
+alongside malformed, unsupported, undefined-input and missing-synchronization controls.
+A refusal test establishes a boundary; it does not replace the positive semantics check.

@@ -83,7 +83,7 @@
   ],
   "scope_distinctions": {
     "GLOBAL": "",
-    "SMEM": "This GLOBAL lowering predicate does not define scalar instruction low-bit component masking. Existing explicit unsupported SMEM boundary remains separate.",
+    "SMEM": "GLOBAL byte addressing is independent of SMEM component masking. Scalar loads use the width-specific component masks specified by the public CDNA5 ISA section 8.1.1.",
     "DS": "Separate capability and opcode-specific width/offset/hardware-bug checks exist in SIISelLowering lines2042-2148; this review proposes no DS model expansion.",
     "FLAT": "Separate path in SIISelLowering lines2150-2164 conservatively treats unknown aperture as potentially scratch. This review proposes no FLAT model expansion.",
     "buffer": "Buffer-fat/resource robust-OOB path lines2176-2188 has its own conditions and cannot be inferred from ordinary GLOBAL."
@@ -98,7 +98,7 @@
     "alignment_bytes": 1,
     "bounds": "Entire four-byte transfer must fit one configured array or module object before any component effect. Initialized-byte definedness and read-only checks remain unchanged.",
     "unchanged_profiles": [
-      "SMEM low-bit component masking boundary",
+      "SMEM width-specific component masking",
       "DS natural-width checks",
       "FLAT alignment checks",
       "GLOBAL B64/B96/B128",

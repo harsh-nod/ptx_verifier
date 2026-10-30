@@ -46,9 +46,21 @@ JSON fields, invalid geometry and overlapping allocation ranges are errors.
 An optional `kernel` sets the default entry for `analyze` and `verify`. Omit that
 field for `compare`, which selects entries with `--kernel1` and `--kernel2`.
 
+Native AMD analysis selects one workgroup. Its `workgroup_id` defaults to
+`[0,0,0]`; set exactly three coordinates, for example `"workgroup_id": [1,2,3]`
+inside `"grid": [2,3,4]`, or use `--workgroup-id 1,2,3` with launch flags.
+Each coordinate must lie inside the grid. Local thread and wave indices remain
+local to this group. Other workgroups and inter-workgroup conflicts are outside
+the result. PTX currently rejects nonzero selection. Gfx1250's Y/Z coordinates
+must fit its 16-bit architected fields.
+
+Output indices remain absolute within the declared arrays. A selected tile that
+writes only part of an array cannot pass a whole-array specification, including
+with sampling. Selection never rebases outputs or fills missing ones.
+
 `--config FILE` replaces launch flags and cannot be combined with `--block`,
 `--grid`, `--array`, `--param`, `--global`, `--dyn-shared` or
-`--shared-allocation`. Backend and target selection remain separate options.
+`--shared-allocation` or `--workgroup-id`. Backend and target selection remain separate options.
 See [launch_file.rs](../crates/volta_ptx_analysis/src/launch_file.rs) for the
 shared JSON schema and validation rules.
 

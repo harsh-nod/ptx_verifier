@@ -51,6 +51,11 @@
 //!
 //! Native AMD aggregates may use `{"bytes": [0, 1, ...]}` with exact ABI size.
 //! Native `shared_allocations` supplies named LDS byte ranges; PTX rejects both forms.
+//!
+//! Native AMD `workgroup_id: [x,y,z]` selects one group, defaulting to `[0,0,0]`.
+//! Exactly three nonnegative coordinates are required, each inside `grid`.
+//! Other groups and inter-workgroup conflicts are outside the result; output
+//! indices stay absolute. PTX currently rejects nonzero selection.
 
 use std::collections::BTreeMap;
 
@@ -89,6 +94,8 @@ impl LaunchFile {
             config.grid_dim = grid.resolve("grid")?;
         }
 
+        let [x, y, z] = raw.workgroup_id;
+        config.workgroup_id = (x, y, z);
         config.dynamic_shared_bytes = raw.dynamic_shared_bytes;
         config.shared_allocations = raw
             .shared_allocations
@@ -158,6 +165,8 @@ struct RawLaunch {
     kernel: Option<String>,
     block: RawDims,
     grid: Option<RawDims>,
+    #[serde(default)]
+    workgroup_id: [u32; 3],
     #[serde(default)]
     dynamic_shared_bytes: u64,
     #[serde(default)]
@@ -576,6 +585,33 @@ fn tensor_elem_type(dtype: &str) -> Result<TensorElemType, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn selected_workgroup_json_is_an_exact_three_coordinate_launch_field() {
+        assert_eq!(
+            LaunchFile::from_json(r#"{"block":1}"#)
+                .unwrap()
+                .config
+                .workgroup_id,
+            (0, 0, 0)
+        );
+        let selected =
+            LaunchFile::from_json(r#"{"block":1,"grid":[2,3,4],"workgroup_id":[1,2,3]}"#).unwrap();
+        assert_eq!(selected.config.workgroup_id, (1, 2, 3));
+        for selection in [
+            "1",
+            "[]",
+            "[1]",
+            "[1,2]",
+            "[1,2,3,0]",
+            "[-1,0,0]",
+            "[4294967296,0,0]",
+            "[2,0,0]",
+        ] {
+            let source = format!(r#"{{"block":1,"grid":[2,3,4],"workgroup_id":{selection}}}"#);
+            assert!(LaunchFile::from_json(&source).is_err(), "{selection}");
+        }
+    }
 
     #[test]
     fn rejects_zero_and_overflowing_launch_dimensions() {

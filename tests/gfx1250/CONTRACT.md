@@ -11,7 +11,7 @@ separate numerical checks.
 | Target | Bare `gfx1250`; no strict/neighbor alias or feature-suffix fallback |
 | Compiler | ROCm 7.2 AMD LLVM 22, revision `7b800a19466229b8479a78de19143dc33c3ab9b5` |
 | Object/metadata | Tested AMDHSA code-object 6, metadata 1.2 |
-| Launch | One selected unclustered workgroup `(0,0,0)`, configured nonzero grid retained as ABI input, 1..1024 workitems |
+| Launch | One selected unclustered workgroup, default `(0,0,0)`, configured nonzero grid retained as ABI input, 1..1024 workitems |
 | Geometry | Wave32; only low 32 bits of stored EXEC/VCC masks are physical lanes |
 | Registers | s0..s105, logical VGPR allocation 1024, encoded operands v0..v255, TTMP0..15; no AGPR namespace |
 | LDS | Aggregate static plus dynamic capacity up to 327,680 bytes; explicit subobjects optional |
@@ -38,7 +38,7 @@ Unsupported or inconclusive modes include clusters/multiple workgroups,
 privileged barriers, arbitrary raw symbolic format
 reinterpretation, legacy CDNA cache visibility certificates, advanced tensor
 padding/multicast/gather/iteration/atomic-barrier modes and nonzero tensor waits.
-They are not projected into a weaker workgroup-zero safety claim. Positive
+They are not projected into a weaker selected-workgroup safety claim. Positive
 tests require a complete verified execution; deliberate unsupported controls
 remain a distinct test category.
 

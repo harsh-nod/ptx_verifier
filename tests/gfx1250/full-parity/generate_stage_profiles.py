@@ -126,12 +126,20 @@ def implementation_contracts():
         ),
         "memory": (
             "memory_instruction",
-            "Actual byte widths, configured allocations/subobjects, initialized data, source leases and native completion classes. Scope annotations do not create happens-before or whole-device guarantees.",
+            "Actual byte widths, per-component scalar address masking after register scaling, encoded nonnegative scalar offsets, configured allocations/subobjects, initialized data, source leases and native completion classes. Scope annotations do not create happens-before or whole-device guarantees.",
             [
                 test(
                     "gfx1250_portable_abi_tests",
                     "complete_native_vector_transfer_keeps_last_input_and_whole_bounds",
-                )
+                ),
+                test(
+                    "gfx1250_byte_definedness_tests",
+                    "scalar_address_masks_follow_payload_width_and_scale_the_register_index_first",
+                ),
+                test(
+                    "gfx1250_byte_definedness_tests",
+                    "scalar_scaling_uses_the_complete_payload_and_retains_products_above_32_bits",
+                ),
             ],
             [
                 test(
@@ -300,6 +308,9 @@ def implementation_contracts():
             "negative_controls": negatives,
             "control_scope": "Named controls test the selected semantic family. They do not establish execution of every indexed PC or arbitrary immediate/modifier combinations.",
         }
+    result["memory"]["primary_sources"].append(
+        "https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf"
+    )
     result["matrix"]["primary_sources"].append(
         "https://github.com/ROCm/FlyDSL/blob/f37f7a2b98f295902240f9f96612222003578b40/lib/Dialect/FlyROCDL/GFX1250/MmaAtom.cpp"
     )

@@ -119,6 +119,7 @@ pub fn analyze(
         kernel: kernel.name.clone(),
         block_dim: config.block_dim,
         grid_dim: config.grid_dim,
+        workgroup_id: config.workgroup_id,
         targets: vec![target],
         assumptions,
         instructions: program
