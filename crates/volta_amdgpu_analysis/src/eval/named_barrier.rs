@@ -29,7 +29,7 @@ impl State {
 
 impl Interpreter<'_> {
     fn named_id(&self, wave: &Wave, instruction: &Instruction) -> Result<u8, EvalError> {
-        let value = match instruction.operands.as_slice() {
+        let value = match instruction.operands() {
             [Operand::Integer(id)] if (0..=16).contains(id) => *id as u32,
             [Operand::Register(r)] if r.special == Some(SpecialRegister::M0) => {
                 if !wave.m0_defined {
@@ -38,7 +38,7 @@ impl Interpreter<'_> {
                 if wave.m0 & 0xffff > 16 {
                     return Err(self.unsupported(wave, instruction));
                 }
-                if instruction.mnemonic == "s_barrier_signal"
+                if instruction.mnemonic() == "s_barrier_signal"
                     && wave.m0 & 0xffff != 0
                     && wave.m0 & 0xff80_0000 != 0
                 {
@@ -49,7 +49,7 @@ impl Interpreter<'_> {
             _ => return Err(self.unsupported(wave, instruction)),
         };
         let allocated = self.program.descriptor.value("named_barrier_count", 0) * 4;
-        if instruction.mnemonic != "s_barrier_wait" && value as u64 > allocated {
+        if instruction.mnemonic() != "s_barrier_wait" && value as u64 > allocated {
             return Err(wave.fail(None, "named barrier ID exceeds descriptor allocation"));
         }
         Ok(value as u8)
@@ -59,7 +59,7 @@ impl Interpreter<'_> {
         wave: &mut Wave,
         instruction: &Instruction,
     ) -> Result<bool, EvalError> {
-        let name = instruction.mnemonic.as_str();
+        let name = instruction.mnemonic().as_str();
         let id = if name == "s_barrier_leave" {
             wave.named_join.map_or(0, |j| j.object.id)
         } else {
@@ -137,7 +137,7 @@ impl Interpreter<'_> {
                 wave.named_join = Some(Joined { object, phase });
             }
             "s_barrier_signal" => {
-                let expected = match instruction.operands.as_slice() {
+                let expected = match instruction.operands() {
                     [Operand::Register(r)] if r.special == Some(SpecialRegister::M0) && id != 0 => {
                         ((wave.m0 >> 16) & 0x7f) as u16
                     }

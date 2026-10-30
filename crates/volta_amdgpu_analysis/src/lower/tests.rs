@@ -14,10 +14,10 @@ fn resolves_forward_branch_and_native_clang_labels() {
     ))
     .unwrap();
     let lowered = lower_kernel(&module.kernels[0]).unwrap();
-    assert_eq!(
-        lowered.instructions[0].operands[0],
-        Operand::BranchTarget(2)
-    );
+    assert!(matches!(
+        lowered.instructions[0].operation(),
+        crate::ir::Operation::Branch(crate::ir::BranchInstruction { target: 2, .. })
+    ));
     let module = frontend::parse(include_str!("../frontend/fixtures/clang22-copy-add.s")).unwrap();
     for kernel in &module.kernels {
         let lowered = lower_kernel(kernel).unwrap();
@@ -25,8 +25,11 @@ fn resolves_forward_branch_and_native_clang_labels() {
             lowered
                 .instructions
                 .iter()
-                .filter(|instruction| instruction.opcode == Opcode::Branch)
-                .all(|instruction| matches!(instruction.operands[0], Operand::BranchTarget(_)))
+                .filter_map(|instruction| match instruction.operation() {
+                    crate::ir::Operation::Branch(branch) => Some(branch),
+                    _ => None,
+                })
+                .all(|branch| branch.target < lowered.instructions.len())
         );
     }
 }
@@ -64,12 +67,24 @@ fn native_module_relocations_preserve_all_original_instructions() {
     ))
     .unwrap();
     let lowered = lower_kernel_in_module(&module, &module.kernels[0]).unwrap();
-    assert_eq!(lowered.instructions, module.kernels[0].instructions);
+    for (lowered, source) in lowered
+        .instructions
+        .iter()
+        .zip(&module.kernels[0].instructions)
+    {
+        assert_eq!(lowered.mnemonic(), &source.mnemonic);
+        assert_eq!(lowered.span(), source.span);
+        assert_eq!(lowered.modifiers(), &source.modifiers);
+    }
+    assert_eq!(
+        lowered.instructions.len(),
+        module.kernels[0].instructions.len()
+    );
     assert_eq!(lowered.globals, module.globals);
     assert_eq!(lowered.global_address_sequences.len(), 3);
     for (pc, sequence) in lowered.global_address_sequences {
         assert_eq!(pc, sequence.anchor_pc);
-        assert_eq!(lowered.instructions[pc].mnemonic, "s_getpc_b64");
+        assert_eq!(lowered.instructions[pc].mnemonic(), "s_getpc_b64");
     }
     assert!(
         lower_kernel(&module.kernels[0]).is_err(),
@@ -134,9 +149,13 @@ fn rel64_module() -> Module {
         count: 2,
         special: None,
     };
-    let instruction = |mnemonic: &str, operands: Vec<Operand>| crate::ir::Instruction {
+    let instruction = |mnemonic: &str, operands: Vec<Operand>| crate::frontend::Instruction {
         mnemonic: mnemonic.into(),
-        opcode: Opcode::ScalarAlu,
+        opcode: if mnemonic == "s_endpgm" {
+            Opcode::Control
+        } else {
+            Opcode::ScalarAlu
+        },
         operands,
         modifiers: Vec::new(),
         span: SourceSpan::default(),
@@ -182,14 +201,26 @@ fn rel64_module() -> Module {
 fn native_rel64_preserves_source_pcs_and_requires_module_globals_and_target_gate() {
     let module = rel64_module();
     let kernel = &module.kernels[0];
-    let lowered = lower_with_globals(kernel, &module.globals, true).unwrap();
-    assert_eq!(lowered.instructions, kernel.instructions);
+    let lowered = lower_with_globals(
+        kernel,
+        &module.globals,
+        crate::target::Architecture::Gfx1250,
+    )
+    .unwrap();
+    assert_eq!(lowered.instructions.len(), kernel.instructions.len());
+    for (lowered, source) in lowered.instructions.iter().zip(&kernel.instructions) {
+        assert_eq!(lowered.mnemonic(), &source.mnemonic);
+        assert_eq!(lowered.span(), source.span);
+        assert_eq!(lowered.modifiers(), &source.modifiers);
+    }
     let sequence = &lowered.global_address_sequences[&0];
     assert_eq!(sequence.form, GlobalAddressForm::Rel64);
     assert_eq!(sequence.symbol, "object");
     assert_eq!(sequence.form.mnemonics().len(), 2);
     assert!(lower_kernel(kernel).is_err());
-    assert!(lower_with_globals(kernel, &module.globals, false).is_err());
+    assert!(
+        lower_with_globals(kernel, &module.globals, crate::target::Architecture::Gfx950).is_err()
+    );
 }
 
 #[test]
@@ -229,7 +260,12 @@ fn native_rel64_rejects_unbounded_mismatched_and_branch_entered_profiles() {
             _ => unreachable!(),
         }
         assert!(
-            lower_with_globals(&module.kernels[0], &module.globals, true).is_err(),
+            lower_with_globals(
+                &module.kernels[0],
+                &module.globals,
+                crate::target::Architecture::Gfx1250
+            )
+            .is_err(),
             "mutation {mutation}"
         );
     }

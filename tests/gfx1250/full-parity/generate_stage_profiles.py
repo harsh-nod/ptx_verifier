@@ -303,6 +303,9 @@ def implementation_contracts():
     result["matrix"]["primary_sources"].append(
         "https://github.com/ROCm/FlyDSL/blob/f37f7a2b98f295902240f9f96612222003578b40/lib/Dialect/FlyROCDL/GFX1250/MmaAtom.cpp"
     )
+    result["wait"]["lowering"].append(
+        reference(AMD + "src/ir/instruction.rs", "lower_wait")
+    )
     return result
 
 

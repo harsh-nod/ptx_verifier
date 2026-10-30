@@ -30,6 +30,22 @@ assembly + launch configuration + selected entry + declared target
 - `ir`: the contract between lowering and execution. `target` defines
   architecture boundaries; `eval` implements wave state and event recording.
 
+The executable IR is separate from the frontend AST. It has closed ALU
+operations, typed comparisons and branches, decoded waits, memory address/data
+roles and transfer shapes, matrix operand roles, and recursively lowered VOPD
+components. Labels, wait syntax and raw instructions cannot enter value
+operands. Lowering preserves one instruction per source PC, its original
+mnemonic, encoding, modifiers and span; relocation sequences retain all stages.
+Only lowering constructs executable instructions, after shared parser checks
+and target validation. The module-less `lower_kernel` uses gfx950 for wave64
+and gfx1250 for wave32; explicit gfx942 and module globals require module context.
+
+Scalar/vector helpers use a canonical-name bridge from the closed ALU operation
+set. Comparisons consume typed relation, value type and EXEC-update fields.
+Encoding-specific dependencies and selected modifier modes retain their existing
+checks. A lowered operation can still stop as unsupported during execution;
+lowering alone makes no safety or value-semantics claim.
+
 The frontend identifies compiler entry kernels through descriptors and AMDHSA
 metadata. It excludes an unrelated helper only when `.type ...,@function` and
 matching `.size` declarations bound it unambiguously. Overlapping definitions

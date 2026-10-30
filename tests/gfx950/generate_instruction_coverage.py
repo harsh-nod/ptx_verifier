@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate the scoped gfx950 instruction/stage inventory from typed ASTs.
+"""Regenerate gfx950 frontend profiles after validating executable lowering.
 
 Run from any directory; --check compares without writing. This inventories
 checked-in assembly and implementation/test references, not runtime PC coverage.
@@ -60,6 +60,7 @@ def main():
         "--example",
         "instruction_inventory",
         "--",
+        "--lower",
         *map(str, paths),
     ]
     run = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
@@ -96,7 +97,7 @@ def main():
         },
         "L": {
             "stage": "lower",
-            "meaning": "Retain native instruction/PC; resolve local branch labels, reject unresolved symbols and malformed relocation sequences even in unreachable code.",
+            "meaning": "Construct executable typed operations while retaining native instruction/PC; resolve local branch labels, reject malformed caller-built syntax, unresolved symbols and malformed relocation sequences even in unreachable code.",
             "references": [reference(LOWER, "lower_with_globals")],
         },
         "LR": {
@@ -129,7 +130,13 @@ def main():
         "IW": {
             "stage": "event",
             "meaning": "I plus Wait thresholds (endpgm drains all 3 counters).",
-            "references": [reference(INTERP, "wait"), reference(INTERP, "step")],
+            "references": [
+                reference(
+                    "crates/volta_amdgpu_analysis/src/ir/instruction.rs", "lower_wait"
+                ),
+                reference(INTERP, "wait"),
+                reference(INTERP, "step"),
+            ],
         },
         "IB": {
             "stage": "event",

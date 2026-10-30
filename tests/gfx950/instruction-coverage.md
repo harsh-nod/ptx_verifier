@@ -10,17 +10,17 @@ The mixed by-value compiler source is included: `s_sext_i32_i16` and `v_cvt_f32_
 
 ## Stage references
 
-- **F (frontend)**: Typed family, arity, register/tuple roles and recognized modifier syntax; not an exhaustive assembler. [`parse_instruction`](../../crates/volta_amdgpu_analysis/src/frontend/instr.rs#L808), [`validate_registers`](../../crates/volta_amdgpu_analysis/src/frontend/instr.rs#L1168)
-- **FV (frontend)**: F plus the explicitly enumerated binary/FMA source/literal profiles, including type-specific F16/F64 constants; e32/e64 choice is validated only for that pinned set. [`validate_vop_literal_positions`](../../crates/volta_amdgpu_analysis/src/frontend/instr.rs#L1738)
-- **FM (frontend)**: F plus MFMA A/B register classes, tuple widths, C/D file agreement and encoded format widths. [`validate_registers`](../../crates/volta_amdgpu_analysis/src/frontend/instr.rs#L1168)
-- **L (lower)**: Retain native instruction/PC; resolve local branch labels, reject unresolved symbols and malformed relocation sequences even in unreachable code. [`lower_with_globals`](../../crates/volta_amdgpu_analysis/src/lower/mod.rs#L50)
-- **LR (lower)**: Only contiguous compiler-proven getpc/rel32lo+4/rel32hi+12 for bounded defined objects; preserve 3 PCs and reject middle-entry branches. [`lower_with_globals`](../../crates/volta_amdgpu_analysis/src/lower/mod.rs#L50)
-- **I (event)**: Instruction event includes EXEC lanes, register reads/writes and scalar selector roles; retained on partial abort graphs. [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1694), [`instruction_registers`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1359), [`scalar_mask_reads`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1623)
-- **IM (event)**: I plus MemoryIssue/effects with actual space, transfer bytes, held sources, counter and scope; permutation uses LGKM without fabricated LDS accesses. [`memory_instruction`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L6041), [`permute`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L6866)
-- **IX (event)**: I plus MatrixIssue form/operand/accumulator/destination slices; full wave64, source snapshots. [`matrix`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3859)
-- **IW (event)**: I plus Wait thresholds (endpgm drains all 3 counters). [`wait`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L5647), [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1694)
-- **IB (event)**: I plus barrier arrival/release generations and active masks; terminated waves leave later generations. [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1694)
-- **ID (event)**: I plus native s_nop immediate + 1 independent instruction states. [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1694)
+- **F (frontend)**: Typed family, arity, register/tuple roles and recognized modifier syntax; not an exhaustive assembler. [`parse_instruction`](../../crates/volta_amdgpu_analysis/src/frontend/instr.rs#L863), [`validate_registers`](../../crates/volta_amdgpu_analysis/src/frontend/instr.rs#L1294)
+- **FV (frontend)**: F plus the explicitly enumerated binary/FMA source/literal profiles, including type-specific F16/F64 constants; e32/e64 choice is validated only for that pinned set. [`validate_vop_literal_positions`](../../crates/volta_amdgpu_analysis/src/frontend/instr.rs#L1864)
+- **FM (frontend)**: F plus MFMA A/B register classes, tuple widths, C/D file agreement and encoded format widths. [`validate_registers`](../../crates/volta_amdgpu_analysis/src/frontend/instr.rs#L1294)
+- **L (lower)**: Construct executable typed operations while retaining native instruction/PC; resolve local branch labels, reject malformed caller-built syntax, unresolved symbols and malformed relocation sequences even in unreachable code. [`lower_with_globals`](../../crates/volta_amdgpu_analysis/src/lower/mod.rs#L76)
+- **LR (lower)**: Only contiguous compiler-proven getpc/rel32lo+4/rel32hi+12 for bounded defined objects; preserve 3 PCs and reject middle-entry branches. [`lower_with_globals`](../../crates/volta_amdgpu_analysis/src/lower/mod.rs#L76)
+- **I (event)**: Instruction event includes EXEC lanes, register reads/writes and scalar selector roles; retained on partial abort graphs. [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1687), [`instruction_registers`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1357), [`scalar_mask_reads`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1619)
+- **IM (event)**: I plus MemoryIssue/effects with actual space, transfer bytes, held sources, counter and scope; permutation uses LGKM without fabricated LDS accesses. [`memory_instruction`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L5983), [`permute`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L6794)
+- **IX (event)**: I plus MatrixIssue form/operand/accumulator/destination slices; full wave64, source snapshots. [`matrix`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3843)
+- **IW (event)**: I plus Wait thresholds (endpgm drains all 3 counters). [`lower_wait`](../../crates/volta_amdgpu_analysis/src/ir/instruction.rs#L836), [`wait`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L5634), [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1687)
+- **IB (event)**: I plus barrier arrival/release generations and active masks; terminated waves leave later generations. [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1687)
+- **ID (event)**: I plus native s_nop immediate + 1 independent instruction states. [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1687)
 - **C (check)**: Independent native trace completeness and register readiness/software hazards. Abort withholds positive verification and outputs. [`trace_contract`](../../crates/volta_graph_check/src/amdgpu.rs#L156), [`check_amdgpu`](../../crates/volta_graph_check/src/amdgpu.rs#L780), [`check_missing_semantic`](../../crates/volta_graph_check/src/amdgpu.rs#L717)
 - **CM (check)**: C plus counter prefixes, whole-transfer bounds, object identity, source lifetime, memory conflicts and required workgroup scope/publication. [`check_amdgpu`](../../crates/volta_graph_check/src/amdgpu.rs#L780), [`memory_conflicts`](../../crates/volta_graph_check/src/amdgpu.rs#L1420), [`missing_global_publication`](../../crates/volta_graph_check/src/amdgpu.rs#L1391)
 - **CB (check)**: C plus matching live-wave barrier generations/completion; barrier alone does not publish pending LDS work. [`check_amdgpu`](../../crates/volta_graph_check/src/amdgpu.rs#L780)
@@ -32,7 +32,7 @@ The mixed by-value compiler source is included: `s_sext_i32_i16` and `v_cvt_f32_
 
 Concrete scalar 32/64 bit arithmetic/flags, masks and moves. Symbolic masks remain opaque; undefined SCC/VCC/control/address use aborts. Special shared-base source is an opaque aperture only.
 
-Value implementation: [`scalar`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1659)
+Value implementation: [`scalar`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1651)
 
 Positive controls: [`scalar_min_max_scc_uses_native_tie_rules`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L1835), [`compiler_grid_and_group_dimensions_retain_numeric_output_provenance`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L1770)
 
@@ -42,7 +42,7 @@ Negative controls: [`uninitialized_condition_cannot_choose_a_control_path`](../.
 
 Opaque compiler rel32 object addresses; exact triad only, SCC becomes undefined after linker-dependent adds. Arbitrary PC values/GOT/externs are unsupported.
 
-Value implementation: [`module_address_scalar`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3633)
+Value implementation: [`module_address_scalar`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3615)
 
 Positive controls: [`compiler_module_globals_use_checked_storage_and_exact_relocations`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L1611)
 
@@ -52,7 +52,7 @@ Negative controls: [`compiler_module_globals_use_checked_storage_and_exact_reloc
 
 Fixed-width native integer/bit/address ALU, typed symbolic 32 bit ring operations, bit operations and shifts. Symbolic data never becomes concrete address/control bits; general symbolic 64 bit/division remain outside the profile.
 
-Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L4009), [`integer_expression`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2088), [`integer_result`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2162)
+Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3995), [`integer_expression`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2067), [`integer_result`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2141)
 
 Positive controls: [`symbolic_integer_ring_operations_preserve_signed_immediate_values`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L879)
 
@@ -62,7 +62,7 @@ Negative controls: [`produced_symbolic_types_cannot_escape_into_bitcasts_or_addr
 
 Exact real-number f32 arithmetic/transcendentals with decoded finite native constants, disclosed exp/log base conversion, scoped VOP3 clamp. No IEEE rounding/NaN equivalence claim; undefined concrete domains and unsupported modifiers abort.
 
-Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L4009), [`real`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2005), [`exp2`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2968), [`factor_exp2_idiom`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2987)
+Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3995), [`real`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1984), [`exp2`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2947), [`factor_exp2_idiom`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2966)
 
 Positive controls: [`native_f32_clamp_saturates_supported_float_results`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L1427)
 
@@ -72,7 +72,7 @@ Negative controls: [`clamp_does_not_enable_other_modifier_or_integer_exception_s
 
 Ordered matching word-pair f64 tags and real arithmetic/conversions; actual inline/high-word literal encoding. Mixed words and reinterpretations fail; no floating rounding claim.
 
-Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L4009), [`real64`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2342), [`put_real64`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2414)
+Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3995), [`real64`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2321), [`put_real64`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2393)
 
 Positive controls: [`compiler_symbolic_integer_and_f64_data_use_typed_storage`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L1864)
 
@@ -82,7 +82,7 @@ Negative controls: [`f64_storage_preserves_ordered_whole_values_and_rejects_mixe
 
 Typed F16 low/high components, native selected SDWA source fields, signed-I8/I16 conversion and partial destination preservation. Unknown padding is not zero-filled; arbitrary symbolic bit reinterpretation fails.
 
-Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L4009), [`half`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2880), [`signed16_to_half`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2787), [`selected_bits`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2475)
+Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3995), [`half`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2859), [`signed16_to_half`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2766), [`selected_bits`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2454)
 
 Positive controls: [`compiler_packed_f16_relu_preserves_each_half_identity`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L425), [`signed_byte_conversion_preserves_numeric_inputs_and_rejects_mixed_formats`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L1095)
 
@@ -92,7 +92,7 @@ Negative controls: [`input_word_aliases_cannot_acquire_conflicting_numeric_inter
 
 Packed/mixed f32/f16 operations snapshot both sources and honor scoped op_sel/op_sel_hi; mixed half writes preserve the untouched half. Unsupported selector/output-modifier envelopes abort.
 
-Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L4009), [`real_component`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2446), [`half`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2880)
+Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3995), [`real_component`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2425), [`half`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2859)
 
 Positive controls: [`mixed_half_rope_preserves_only_the_written_half`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L1960)
 
@@ -102,7 +102,7 @@ Negative controls: [`packed_native_variants_match_the_scalar_reference_and_rejec
 
 Finite OCP E4M3 byte decoding, explicit BYTE_0..3 selection; paired cvt default bytes0/1 only. Symbolic byte-format interpretation is claimed once per input and conflicts with signed-I8/other numeric meanings abort.
 
-Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L4009), [`fp8`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2697), [`claim_byte_format`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2764)
+Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3995), [`fp8`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2676), [`claim_byte_format`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2743)
 
 Positive controls: [`e4m3_concrete_pair`](../../crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs#L393), [`e4m3_selected_low_halves`](../../crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs#L441)
 
@@ -112,7 +112,7 @@ Negative controls: [`signed_byte_conversion_preserves_numeric_inputs_and_rejects
 
 Concrete native comparisons/carry plus symbolic signed/unsigned 32 bit and f32 comparison masks; cndmask selects mathematical values and canonical unsigned words. Symbolic EXEC/branch/carry/address/storage interpretations abort.
 
-Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L4009), [`write_predicates`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2169), [`predicate_condition`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2218), [`select_word`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2255)
+Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3995), [`write_predicates`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2148), [`predicate_condition`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2197), [`select_word`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L2234)
 
 Positive controls: [`symbolic_native_comparison_masks_select_canonical_integer_words`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L1207)
 
@@ -122,7 +122,7 @@ Negative controls: [`symbolic_masks_remain_opaque_to_control_carry_addresses_and
 
 Disjoint AGPR/VGPR allocation; native accumulator read/write/move preserves words. Unified physical aliases are rejected rather than represented as independent storage.
 
-Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L4009)
+Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3995)
 
 Positive controls: [`native_pipelined_f16_mfma_preserves_32_term_dot_products`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L1986)
 
@@ -132,7 +132,7 @@ Negative controls: [`rejects_registers_outside_declared_allocations_and_unified_
 
 Typed global/kernarg/LDS byte storage, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. XNACK replay, atomics, buffers, arbitrary apertures and equal-offset dual DS are outside the envelope.
 
-Value implementation: [`memory_instruction`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L6041), [`flat_memory_address`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L6741), [`validate_address`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L6915)
+Value implementation: [`memory_instruction`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L5983), [`flat_memory_address`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L6669), [`validate_address`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L6843)
 
 Positive controls: [`compiler_static_and_dynamic_lds_share_bytes_through_flat_and_ds`](../../crates/volta_pipeline/tests/gfx950_memory_control_tests.rs#L412), [`an_lds_128_bit_read_preserves_four_independently_stored_words`](../../crates/volta_pipeline/tests/gfx950_memory_control_tests.rs#L1290)
 
@@ -142,7 +142,7 @@ Negative controls: [`vector_transfers_check_every_component_at_the_region_end`](
 
 DS cross-lane snapshot permute/bpermute under EXEC; concrete lane indices and LGKM completion. Does not synthesize LDS memory reads/writes or cross-wave publication.
 
-Value implementation: [`permute`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L6866)
+Value implementation: [`permute`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L6794)
 
 Positive controls: [`wave_local_lds_exchange_requires_completion_without_a_workgroup_barrier`](../../crates/volta_pipeline/tests/gfx950_memory_control_tests.rs#L1465)
 
@@ -152,7 +152,7 @@ Negative controls: [`ds_permute_and_its_completion_do_not_create_crosswave_memor
 
 Full wave64 dense MFMA; explicit CDNA4 lane/item coordinates and source snapshots. F16/F32/E4M3 symbolic values; finite concrete BF16/E5M2. Format cbsz/blgp 0/1 only; scaled forms require selected E8M0 bytes 127; other layouts/F6/F4/nonunit scales abort.
 
-Value implementation: [`matrix`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3859), [`matrix_input`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3708)
+Value implementation: [`matrix`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3843), [`matrix_input`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3690)
 
 Positive controls: [`native_mfma_all_256_coordinates_match_independent_dot_products`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L367), [`native_pipelined_f16_mfma_preserves_32_term_dot_products`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L1986), [`native_unit_scaled_fp8_mfma_preserves_interleaved_k_layout`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L2020), [`tcgen_mixed_fp8_numeric408`](../../crates/volta_pipeline/tests/gfx950_matrix_parity_tests.rs#L361)
 
@@ -162,7 +162,7 @@ Negative controls: [`mfma_partial_wave_and_nonzero_layout_modifiers_are_incomple
 
 Concrete scalar branch decisions over SCC/VCC/EXEC or unconditional local targets; one workgroup, budgets bound loops. Symbolic control is unsupported and budget exhaustion is inconclusive.
 
-Value implementation: [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1694)
+Value implementation: [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1687)
 
 Positive controls: [`masked_tail_preserves_full_64bit_exec`](../../crates/volta_amdgpu_analysis/tests/execution.rs#L157)
 
@@ -172,7 +172,7 @@ Negative controls: [`uninitialized_condition_cannot_choose_a_control_path`](../.
 
 Native counter thresholds retire actual in-order counter prefixes; maximal thresholds do not falsely mean full completion.
 
-Value implementation: [`wait`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L5647)
+Value implementation: [`wait`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L5634)
 
 Positive controls: [`partial_vmcnt_only_retires_the_completed_load_prefix`](../../crates/volta_pipeline/tests/gfx950_memory_control_tests.rs#L248)
 
@@ -182,7 +182,7 @@ Negative controls: [`a_wait_on_the_wrong_counter_does_not_make_a_register_ready`
 
 Scalar workgroup barrier arrival/release for surviving waves, including partial/empty EXEC. Does not replace data completion waits.
 
-Value implementation: [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1694)
+Value implementation: [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1687)
 
 Positive controls: [`terminated_waves_do_not_block_later_surviving_wave_generations`](../../crates/volta_pipeline/tests/gfx950_memory_control_tests.rs#L557)
 
@@ -192,7 +192,7 @@ Negative controls: [`distinct_static_barrier_instructions_are_not_a_matching_ren
 
 Endpgm implicit counter drain and lane termination; NOP encoded 0..15 gives 1..16 states. No fabricated handler/call/return semantics.
 
-Value implementation: [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1694)
+Value implementation: [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1687)
 
 Positive controls: [`endpgm_completes_pending_lds_but_a_survivor_still_needs_its_barrier`](../../crates/volta_pipeline/tests/gfx950_memory_control_tests.rs#L585), [`valu_scalar_data_requires_two_independent_states`](../../crates/volta_pipeline/tests/gfx950_software_hazard_tests.rs#L102)
 
@@ -202,7 +202,7 @@ Negative controls: [`control_immediates_have_explicit_encoded_ranges`](../../cra
 
 Recognized syntax only: active execution deliberately returns Unsupported and preserves an incomplete graph. It is never counted as successful semantics.
 
-Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L4009), [`memory_instruction`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L6041), [`unsupported`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1999)
+Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L3995), [`memory_instruction`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L5983), [`unsupported`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1978)
 
 Positive controls: none; execution is deliberately unsupported
 
