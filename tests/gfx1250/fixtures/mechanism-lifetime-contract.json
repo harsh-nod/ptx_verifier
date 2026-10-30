@@ -10,7 +10,7 @@
   ],
   "source_selection": {
     "path": "tests/gfx1250/portable-graph/mechanism-mappings.json",
-    "sha256": "a66f69e2d9d35d6cd45eff5a25d799bf9c9b63beee8b6e670269d991b7ad51b5",
+    "sha256": "d8fdaa4d0ec601e0e79aa353f1cc2875da5634440d7c089712cd0fea1ff69fe6",
     "additional_paths": [
       "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_st_then_mma_without_thread_sync_fences_is_rejected.ptx",
       "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_commit_does_not_release_the_threads_earlier_store.ptx"

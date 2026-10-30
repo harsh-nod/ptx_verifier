@@ -143,7 +143,7 @@ fn byte_alignment_keeps_complete_four_byte_bounds_and_no_partial_effects() {
 }
 
 #[test]
-fn wider_global_flat_ds_smem_and_legacy_alignment_profiles_are_not_relaxed() {
+fn wider_global_flat_ds_and_legacy_alignment_profiles_are_not_relaxed() {
     for (body, diagnostic) in [
         ("global_load_b64 v[2:3],v0,s[4:5] offset:2", "misaligned"),
         (
@@ -151,7 +151,6 @@ fn wider_global_flat_ds_smem_and_legacy_alignment_profiles_are_not_relaxed() {
             "misaligned",
         ),
         ("ds_store_b32 v0,v0 offset:2", "misaligned"),
-        ("s_load_b32 s8,s[4:5],2", "SMEM"),
     ] {
         let checked = run("gfx1250", body, 16);
         let error = checked.analysis.symbolic_outputs().unwrap_err().to_string();
@@ -161,5 +160,25 @@ fn wider_global_flat_ds_smem_and_legacy_alignment_profiles_are_not_relaxed() {
         let checked = run(target, "global_load_dword v1,v0,s[4:5] offset:2", 16);
         let error = checked.analysis.symbolic_outputs().unwrap_err().to_string();
         assert!(error.contains("misaligned"), "{target}: {error}");
+    }
+}
+
+#[test]
+fn smem_uses_component_alignment_on_byte_granule_allocations() {
+    let checked = run(
+        "gfx1250",
+        "s_load_b32 s8,s[4:5],2\ns_wait_kmcnt 0\nv_mov_b32 v1,s8\nglobal_store_b32 v0,v1,s[6:7]",
+        16,
+    );
+    assert_eq!(checked.checks.conclusion(), GraphConclusion::Verified);
+    let outputs = checked.analysis.symbolic_outputs().unwrap();
+    assert_eq!(outputs.outputs[0].1.len(), 4);
+    for index in 0..4 {
+        assert_eq!(
+            outputs
+                .arena
+                .display_expr(outputs.element("out", index).unwrap()),
+            format!("input[{index}]"),
+        );
     }
 }

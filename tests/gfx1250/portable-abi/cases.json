@@ -183,7 +183,7 @@
           "function": "native_word_alignment_is_checked_without_importing_ptx_vector_alignment"
         }
       ],
-      "target_specific_residual": "The direct VMEM DWORD load rejects misalignment. Native SMEM has a distinct low-bit masking contract, which stays explicitly Unsupported rather than being mislabeled as the PTX-style alignment violation.",
+      "target_specific_residual": "The direct VMEM DWORD load rejects misalignment. Native SMEM independently masks each address component before addition and retains allocation-bounds and readiness checks.",
       "validation": "",
       "native_artifacts": [
         {

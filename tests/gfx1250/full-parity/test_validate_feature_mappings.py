@@ -24,10 +24,11 @@ class FeatureMappingsTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("original reference source\n")
         self.ledger = {
+            "upstream_commit": "fixture-baseline",
             "rows": [
                 {"path": path, "group": "G", "upstream_sha256": path}
                 for path in [self.positive, self.negative]
-            ]
+            ],
         }
         self.rows = [
             {
@@ -78,9 +79,13 @@ class FeatureMappingsTests(unittest.TestCase):
         assertion.write_text("fn original_assertion() {}\n")
         self.ledger["rows"][0].update(
             baseline_assertions=[
-                {"path": "baseline.rs", "function": "original_assertion"}
+                {
+                    "path": "baseline.rs",
+                    "function": "original_assertion",
+                    "source_sha256": "baseline-assertion",
+                }
             ],
-            baseline_golden={"path": "original.out"},
+            baseline_golden={"path": "original.out", "sha256": "baseline-golden"},
         )
         index = self.root / "index.json"
         for source in [self.root / self.positive, golden, adjacent, assertion]:
@@ -92,6 +97,23 @@ class FeatureMappingsTests(unittest.TestCase):
                 self.assertRaisesRegex(ValueError, "stale source/mapping index"),
             ):
                 check_index(self.check(), index)
+
+    def test_removed_historical_copies_retain_the_frozen_revision_and_identity(self):
+        (self.root / self.negative).unlink()
+        self.ledger["rows"][0]["baseline_golden"] = {
+            "path": "removed.out",
+            "sha256": "frozen-golden",
+        }
+        result = self.check()
+        self.assertEqual(result["upstream_commit"], "fixture-baseline")
+        self.assertEqual(
+            result["historical_only_sources"],
+            [
+                {"path": "removed.out", "sha256": "frozen-golden"},
+                {"path": self.negative, "sha256": self.negative},
+            ],
+        )
+        self.assertIn("native.s", {row["path"] for row in result["source_inventory"]})
 
     def test_missing_stored_index_requires_explicit_generation(self):
         with self.assertRaisesRegex(
@@ -127,6 +149,7 @@ class FeatureMappingsTests(unittest.TestCase):
         (self.root / "original.out").write_text("out[0] = 7\n")
         self.ledger["rows"][0]["baseline_golden"] = {
             "path": "original.out",
+            "sha256": "baseline-golden",
             "output_coordinates": {"out": [0]},
         }
         rows[0]["mapping_kind"] = "target_boundary"

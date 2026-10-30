@@ -140,7 +140,7 @@
     ],
     "scope_distinctions": {
       "GLOBAL": "The HSA gfx1250 capability chain supports underaligned ordinary GLOBAL loads/stores; the genuine Half[3] default-O2 compiler output uses global_load_b32 offset:2 to read bytes[2,6).",
-      "SMEM": "This GLOBAL lowering predicate does not define scalar instruction low-bit component masking. Existing explicit unsupported SMEM boundary remains separate.",
+      "SMEM": "GLOBAL byte addressing is independent of SMEM component masking. Scalar loads use the width-specific component masks specified by the public CDNA5 ISA section 8.1.1.",
       "DS": "Separate capability and opcode-specific width/offset/hardware-bug checks exist in SIISelLowering lines2042-2148; this review proposes no DS model expansion.",
       "FLAT": "Separate path in SIISelLowering lines2150-2164 conservatively treats unknown aperture as potentially scratch. This review proposes no FLAT model expansion.",
       "buffer": "Buffer-fat/resource robust-OOB path lines2176-2188 has its own conditions and cannot be inferred from ordinary GLOBAL."

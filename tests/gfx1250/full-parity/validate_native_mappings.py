@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 import re
 
+from feature_contract import pinned
+
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT = ROOT / "tests/gfx1250/fixtures/packed-data-contract.json"
 
@@ -65,7 +67,11 @@ def validate(document, ledger, root=ROOT):
             and row["baseline_sha256"] == reference["upstream_sha256"],
             "wrong original feature identity",
         )
-        require(sha(root / path) == row["baseline_sha256"], "baseline source changed")
+        baseline = pinned(ledger["upstream_commit"], path)
+        require(
+            hashlib.sha256(baseline).hexdigest() == row["baseline_sha256"],
+            "baseline source changed",
+        )
         require(
             row["baseline_assertions"] == reference["baseline_assertions"],
             "wrong original assertions",
@@ -111,13 +117,12 @@ def validate(document, ledger, root=ROOT):
                 and row["golden_sha256"] == golden["sha256"],
                 "wrong original golden",
             )
+            golden_bytes = pinned(ledger["upstream_commit"], row["golden_path"])
             require(
-                sha(root / row["golden_path"]) == row["golden_sha256"],
+                hashlib.sha256(golden_bytes).hexdigest() == row["golden_sha256"],
                 "original golden changed",
             )
-            actual = re.findall(
-                r"(?m)^out\[(\d+)\] =", (root / row["golden_path"]).read_text()
-            )
+            actual = re.findall(r"(?m)^out\[(\d+)\] =", golden_bytes.decode())
             require(
                 [int(index) for index in actual] == row["output"]["written_indices"],
                 "missing, additional or shifted output coordinate",

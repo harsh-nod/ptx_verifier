@@ -93,18 +93,27 @@ def validate(ledger, manifests, *, root=ROOT):
         bool(references) and len(references) == len(ledger["rows"]),
         "empty or duplicate reference inventory",
     )
-    mapped, inventory = {}, {}
+    mapped, inventory, historical_only = {}, {}, {}
+
+    def include_reference(path, digest):
+        source = root / path
+        if source.is_file():
+            include_sources(source, root, inventory)
+        else:
+            historical_only[path] = {"path": path, "sha256": digest}
+
+    # feature_contract validates these immutable Git sources first. Current
+    # copies are additional drift inputs, and upstream may legitimately delete them.
     for reference in references.values():
         source = root / reference["path"]
-        include_sources(source, root, inventory)
+        include_reference(reference["path"], reference["upstream_sha256"])
         if source.suffix == ".ptx" and source.with_suffix(".out").is_file():
             include_sources(source.with_suffix(".out"), root, inventory)
         for assertion in reference.get("baseline_assertions", []):
-            include_sources(root / assertion["path"], root, inventory)
+            include_reference(assertion["path"], assertion["source_sha256"])
         if reference.get("baseline_golden"):
-            include_sources(
-                root / reference["baseline_golden"]["path"], root, inventory
-            )
+            golden = reference["baseline_golden"]
+            include_reference(golden["path"], golden["sha256"])
     for manifest, document in manifests:
         for row in document["rows"]:
             path = row.get("path", row.get("baseline_path"))
@@ -190,6 +199,10 @@ def validate(ledger, manifests, *, root=ROOT):
     rows = sorted(mapped.values(), key=lambda row: row["path"])
     return {
         "schema_version": 1,
+        "upstream_commit": ledger["upstream_commit"],
+        "historical_only_sources": sorted(
+            historical_only.values(), key=lambda source: source["path"]
+        ),
         "reference_count": len(rows),
         "mapping_counts": dict(
             sorted(Counter(row["mapping_kind"] for row in rows).items())
