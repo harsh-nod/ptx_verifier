@@ -10,7 +10,7 @@ use crate::frontend::ast::{
 use crate::frontend::instr_parse::is_cache_perf_hint;
 use crate::frontend::lex::DottedIdent;
 
-use crate::ir::symbols::RegId;
+use crate::ir::symbols::{PARAM_GENERIC_BASE, ParamLayout, RegId, SHARED_GENERIC_BASE};
 use crate::ir::{BinOp, CpAsyncSrcSize, LoweredInstr, MemSpace, Operand, Predicate, UnaryOp};
 
 use super::context::{LocalParamSlot, LoweringContext, unsupported};
@@ -160,9 +160,9 @@ pub(super) fn lower_mov(
             let hi = ctx.resolve_operand(&elements[1])?;
 
             if matches!(mov.ty.bits(), 32 | 64) {
-                // Always a Value::Pair, exact for real and integer
-                // halves (see PackHalves): b32 packs f16x2/bf16x2,
-                // b64 packs f32x2 or two 32-bit integer halves.
+                // Exact for real and integer halves (see PackHalves): b32
+                // packs f16x2/bf16x2, b64 packs f32x2, two 32-bit integer
+                // halves or two f16x2 words.
                 ctx.emit(LoweredInstr::PackHalves { dst, lo, hi }, predicate)?;
             } else {
                 // Any other width: plain bitwise pack.
@@ -269,10 +269,10 @@ pub(super) fn lower_load(
         return Err(unsupported("ld", ".unified modifier"));
     }
 
-    // Param-space loads read either a kernel parameter or a block-scope
-    // `.param` slot (the callseq idiom); both are handled symbolically
-    // rather than as memory accesses.
-    if *space == Some(StateSpace::Param) {
+    // A block-scope `.param` slot (the callseq idiom) or a scalar kernel
+    // parameter read by name is a value binding; any other param-space load
+    // (an aggregate's bytes, or through a register) reads param memory.
+    if *space == Some(StateSpace::Param) && reads_param_by_value(ctx, addr) {
         return lower_param_load(ctx, ld, predicate);
     }
 
@@ -523,6 +523,22 @@ fn param_addr_symbol(ctx: &LoweringContext, addr: &AstOperand) -> LowerResult<(S
     })
 }
 
+/// Whether `ld.param [addr]` names a callseq `.param` slot or a scalar kernel parameter.
+fn reads_param_by_value(ctx: &LoweringContext, addr: &AstOperand) -> bool {
+    let AstOperand::Address(address) = addr else {
+        return false;
+    };
+    let AddressBase::Symbol(name) = &address.base else {
+        return false;
+    };
+    let name = name.to_string();
+    ctx.local_params.contains_key(&name)
+        || ctx
+            .symbols
+            .get_param(&name)
+            .is_some_and(|id| ctx.symbols.param_slot(id).layout == ParamLayout::Scalar)
+}
+
 /// Lower `ld.param`: kernel parameters become `LoadParam`; block-scope
 /// `.param` slots (callseq idiom) collapse to the deferred call result.
 fn lower_param_load(
@@ -621,12 +637,36 @@ pub(super) fn lower_cvta(
     let ast::CvtaInstr {
         to_generic,
         space,
-        ty: _ty, // pointer width; the identity holds at either width
+        ty,
         dst,
         src,
     } = cvta;
-    // Only `cvta.to.global` is accepted, as the identity (global is
-    // identity-mapped in the generic window). Other forms would mint
+    // Generic loads and stores stay rejected, so a generic shared or param
+    // address is only arithmetic between conversions (or a TMA tensor-map
+    // operand); its window keeps that exact.
+    let window = match space {
+        StateSpace::Shared if *ty == ScalarType::U64 => Some(SHARED_GENERIC_BASE),
+        StateSpace::Param if *ty == ScalarType::U64 => Some(PARAM_GENERIC_BASE),
+        _ => None,
+    };
+    if let Some(window) = window {
+        let dst = ctx.resolve_dst(dst)?;
+        let src = ctx.resolve_operand(src)?;
+        // Each window starts above the 32 bits of its space's offsets, shifted to
+        // its base: to generic adds the base, back to the space subtracts it.
+        let op = if *to_generic { BinOp::Add } else { BinOp::Sub };
+        let instr = LoweredInstr::BinOp {
+            op,
+            dst,
+            src_a: src,
+            src_b: Operand::ImmU64(window),
+            ty: ScalarType::U64,
+            clamp: None,
+        };
+        return ctx.emit(instr, predicate);
+    }
+    // Otherwise only `cvta.to.global` is accepted, as the identity (global
+    // is identity-mapped in the generic window). Other forms would mint
     // wrong-space or arbitrary addresses (or are unused), so reject.
     if *to_generic || *space != StateSpace::Global {
         let form = format!(
@@ -639,8 +679,8 @@ pub(super) fn lower_cvta(
             "cvta.global (global -> generic) would also be the identity, \
              but the corpus never uses it; only cvta.to.global is modeled"
         } else {
-            "only cvta.to.global is modeled (as the identity); generic \
-             addresses have no per-space windows in this model"
+            "only cvta.to.global (the identity) and cvta{.to}.{shared,param}.u64 \
+             (generic windows at `SHARED_GENERIC_BASE`, `PARAM_GENERIC_BASE`) are modeled"
         };
         return Err(LowerError::UnsupportedInstruction {
             instruction: form,

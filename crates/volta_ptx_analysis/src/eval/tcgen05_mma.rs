@@ -2,7 +2,7 @@
 //! shared-memory matrix descriptor (9.7.17.4.1), and swizzled addressing,
 //! checked against the ISA's Figures 219/222-229 (`base_offset == 0` only).
 
-use crate::ir::Tcgen05MmaKind;
+use crate::ir::tcgen05::Tcgen05MmaKind;
 
 /// Decoded `idesc` fields shared by `.kind::f16` and `.kind::f8f6f4` (ISA
 /// 9.7.17.4.2, Table 45: same layout; type fields stay raw for the caller).
@@ -67,8 +67,8 @@ impl OperandFormat {
         match (kind, type_field) {
             (Tcgen05MmaKind::F16, 0) => Some(Self::F16),
             (Tcgen05MmaKind::F16, 1) => Some(Self::Bf16),
-            (Tcgen05MmaKind::F8f6f4, 0) => Some(Self::E4m3),
-            (Tcgen05MmaKind::F8f6f4, 1) => Some(Self::E5m2),
+            (Tcgen05MmaKind::F8f6f4 | Tcgen05MmaKind::Mxf8f6f4, 0) => Some(Self::E4m3),
+            (Tcgen05MmaKind::F8f6f4 | Tcgen05MmaKind::Mxf8f6f4, 1) => Some(Self::E5m2),
             _ => None,
         }
     }
@@ -82,16 +82,15 @@ impl OperandFormat {
 }
 
 /// `K` of one dense `.cta_group::1` operation (PTX ISA Table 42): 32 bytes
-/// of each operand row for both modeled kinds - the `KSelect::Base` value,
-/// the only one either kind defines.
+/// of each operand row for every modeled kind - the `KSelect::Base` value.
 pub fn k_dim(kind: Tcgen05MmaKind) -> u64 {
     match kind {
         Tcgen05MmaKind::F16 => 16,
-        Tcgen05MmaKind::F8f6f4 => 32,
+        Tcgen05MmaKind::F8f6f4 | Tcgen05MmaKind::Mxf8f6f4 => 32,
     }
 }
 
-fn bits(x: u32, lo: u32, width: u32) -> u32 {
+pub(in crate::eval) fn bits(x: u32, lo: u32, width: u32) -> u32 {
     (x >> lo) & ((1 << width) - 1)
 }
 
@@ -323,16 +322,57 @@ pub fn operand_element_addr(
     }
 }
 
-/// Lanes of Tensor Memory one `.cta_group::1` operation's `D` always
-/// spans, whatever its `M` (PTX ISA 9.7.17.1).
-const D_LANES: u32 = 128;
+/// Tensor Memory lanes, all of which a full-datapath `D` spans (PTX ISA 9.7.17.1).
+const TMEM_LANES: u32 = 128;
 
-/// Where element `(m, n)` of an `M x N` `D` lands in Tensor Memory, as `(lane,
-/// column offset)`. `M < 128` stacks `128 / M` row-groups of `M` lanes, each a
-/// column slice; callers admit only the checked `M` = 128 and 32.
-pub fn d_cell(m: u32, n: u32, (m_dim, n_dim): (u32, u32)) -> (u32, u32) {
-    let cols_per_group = n_dim / (D_LANES / m_dim);
-    (m + m_dim * (n / cols_per_group), n % cols_per_group)
+/// How a `.cta_group::1` operation's `M x N` `D` sits in Tensor Memory from
+/// its first lane (PTX ISA 9.7.18.10.5).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DLayout {
+    /// Layouts D (M = 128) and G (M = 32, `.ws`): `128 / M` row-groups of `M`
+    /// lanes, each a slice of `N / (128 / M)` columns.
+    Stacked,
+    /// Layout F (M = 64, not `.ws`, half the datapath): rows `16w..16w + 15`
+    /// in lanes `32w..32w + 15`, each row all `N` columns.
+    HalfDatapath,
+}
+
+impl DLayout {
+    /// Whether `D` may start at lane `lane`. Layout F fills lanes 0-15 of each
+    /// quadrant, so a second `D` may start at lane 16 and fill the other half.
+    pub fn may_start_at(self, lane: u32) -> bool {
+        match self {
+            Self::Stacked => lane == 0,
+            Self::HalfDatapath => lane == 0 || lane == 16,
+        }
+    }
+
+    /// `(lane, column offset)` of element `(m, n)`, from `D`'s first lane.
+    pub fn cell(self, m: u32, n: u32, (m_dim, n_dim): (u32, u32)) -> (u32, u32) {
+        match self {
+            Self::Stacked => {
+                let cols_per_group = self.cols((m_dim, n_dim));
+                (m + m_dim * (n / cols_per_group), n % cols_per_group)
+            }
+            Self::HalfDatapath => (32 * (m / 16) + m % 16, n),
+        }
+    }
+
+    /// Columns `D` spans.
+    pub fn cols(self, (m_dim, n_dim): (u32, u32)) -> u32 {
+        match self {
+            Self::Stacked => n_dim / (TMEM_LANES / m_dim),
+            Self::HalfDatapath => n_dim,
+        }
+    }
+
+    /// Whether `D` occupies `lane`, counted from its first lane.
+    pub fn holds_lane(self, lane: u32) -> bool {
+        match self {
+            Self::Stacked => lane < TMEM_LANES,
+            Self::HalfDatapath => lane < TMEM_LANES && lane % 32 < 16,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -730,5 +770,26 @@ mod tests {
                 assert_eq!(got, want, "row={row} k={k}");
             }
         }
+    }
+
+    /// Layout F (M = 64, not `.ws`): rows `16w..16w + 15` in lanes `32w..32w +
+    /// 15`, every row all `N` columns; lanes `16..31` of each quadrant stay empty.
+    #[test]
+    fn test_half_datapath_d_layout() {
+        let layout = DLayout::HalfDatapath;
+        assert_eq!(layout.cell(0, 7, (64, 64)), (0, 7));
+        assert_eq!(layout.cell(17, 63, (64, 64)), (33, 63));
+        assert_eq!(layout.cell(63, 0, (64, 64)), (111, 0));
+        assert_eq!(layout.cols((64, 64)), 64);
+        assert!(layout.holds_lane(15) && !layout.holds_lane(16) && layout.holds_lane(32));
+    }
+
+    /// A Layout F `D` may start at lane 0 or 16 (two of them share the
+    /// quadrants), a stacked one only at lane 0.
+    #[test]
+    fn test_d_layout_first_lanes() {
+        let half = DLayout::HalfDatapath;
+        assert!(half.may_start_at(0) && half.may_start_at(16) && !half.may_start_at(32));
+        assert!(DLayout::Stacked.may_start_at(0) && !DLayout::Stacked.may_start_at(16));
     }
 }

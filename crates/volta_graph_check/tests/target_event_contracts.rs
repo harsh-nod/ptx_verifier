@@ -66,7 +66,7 @@ fn cdna_targets_refuse_every_allocated_named_barrier_event() {
                     .summary(Property::AmdTrace)
                     .findings
                     .iter()
-                    .any(|reason| reason.contains("GFX12 event")),
+                    .any(|reason| reason.text.contains("GFX12 event")),
                 "{target}: {variant:?} needs an explicit target mismatch"
             );
         }

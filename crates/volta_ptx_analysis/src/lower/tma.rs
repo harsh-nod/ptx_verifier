@@ -9,10 +9,10 @@ use crate::frontend::ast::{
 use crate::frontend::lex::DottedIdent;
 
 use crate::ir::tensor_map::{
-    TensorElemType, TensorFillMode, TensorInterleaveLayout, TensorSwizzleAtomicity,
+    TensorElemType, TensorFillMode, TensorInterleaveLayout, TensorLoadMode, TensorSwizzleAtomicity,
     TensorSwizzleMode, TensormapFieldWrite,
 };
-use crate::ir::{LoweredInstr, MemSpace, Predicate, TensormapFence};
+use crate::ir::{BulkWaitScope, LoweredInstr, MemSpace, Operand, Predicate, TensormapFence};
 
 use super::context::{LoweringContext, resolve_addr_operand, unsupported};
 use super::error::{LowerError, LowerResult};
@@ -373,9 +373,68 @@ pub(super) fn lower_fence_proxy_tensormap(
     Ok(())
 }
 
-/// Lower `.2d`/`.3d` `.tile` global-to-shared `cp.async.bulk.tensor` with
-/// mbarrier completion (PTX ISA 9.7.9.26.5.2); both destinations hit the one
-/// modeled CTA's shared memory. Every other form is rejected loudly.
+/// Lower `prefetch{.const,.param}.tensormap [a]` to a no-op: it only brings
+/// the map into the cache, so it reads nothing the analysis models and orders
+/// nothing. Other `prefetch` forms stay unsupported.
+pub(super) fn lower_prefetch_tensormap(
+    ctx: &mut LoweringContext,
+    modifiers: &[DottedIdent],
+    operands: &[AstOperand],
+    predicate: Option<Predicate>,
+) -> LowerResult<()> {
+    const NAME: &str = "prefetch";
+    let mut saw_tensormap = false;
+
+    for modifier in modifiers {
+        match modifier.to_string().as_str() {
+            "tensormap" => saw_tensormap = true,
+            "const" | "param" => {}
+            other => return Err(unsupported(NAME, format!("modifier .{other}"))),
+        }
+    }
+    if !saw_tensormap {
+        return Err(unsupported(NAME, "only prefetch.tensormap is implemented"));
+    }
+
+    let [addr] = operands else {
+        return Err(LowerError::InvalidOperand {
+            instruction: NAME.to_string(),
+            operand: format!("{:?}", operands),
+            reason: "expected [a]",
+        });
+    };
+    resolve_addr_operand(ctx, addr)?;
+
+    ctx.emit(LoweredInstr::Nop, predicate)
+}
+
+/// The tensor rank a `cp.async.bulk.tensor` `.dim` modifier names: every
+/// rank the ISA has, `.1d` to `.5d`, for loads and stores alike.
+fn tensor_rank(modifier: &str) -> Option<usize> {
+    match modifier {
+        "1d" => Some(1),
+        "2d" => Some(2),
+        "3d" => Some(3),
+        "4d" => Some(4),
+        "5d" => Some(5),
+        _ => None,
+    }
+}
+
+/// The rank range of an `.im2col` copy: an N, a C and one to three spatial
+/// dimensions (PTX ISA 5.5.4).
+const IM2COL_RANKS: std::ops::RangeInclusive<usize> = 3..=5;
+
+/// The `.load_mode` a TMA load spells.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum LoadModeQualifier {
+    Tile,
+    Im2col,
+}
+
+/// Lower `.1d` to `.5d` `.tile` and `.3d` to `.5d` `.im2col` global-to-shared
+/// `cp.async.bulk.tensor` with mbarrier completion (PTX ISA 9.7.9.26.5.2); both
+/// destinations hit the one modeled CTA's shared memory. Every other form is rejected loudly.
 pub(super) fn lower_cp_async_bulk_tensor(
     ctx: &mut LoweringContext,
     modifiers: &[DottedIdent],
@@ -383,14 +442,27 @@ pub(super) fn lower_cp_async_bulk_tensor(
     predicate: Option<Predicate>,
 ) -> LowerResult<()> {
     const NAME: &str = "cp.async.bulk.tensor";
+    if modifiers.iter().any(|m| m.to_string() == "bulk_group") {
+        return lower_cp_async_bulk_tensor_store(ctx, modifiers, operands, predicate);
+    }
+
     let mut dim: Option<usize> = None;
+    let mut load_mode: Option<LoadModeQualifier> = None;
     let mut saw_shared_destination = false;
     let mut saw_global = false;
     let mut saw_completion = false;
+    let mut cache_hint = CacheHint::Absent;
 
     for modifier in modifiers {
         if let DottedIdent::Qualified(parts) = modifier {
             match parts.as_slice() {
+                [level, hint]
+                    if level.as_slice().as_bytes() == b"L2"
+                        && hint.as_slice().as_bytes() == b"cache_hint" =>
+                {
+                    cache_hint = CacheHint::Present;
+                    continue;
+                }
                 [base, sub] if base.as_slice().as_bytes() == b"shared" => {
                     match SharedStateSpaceQualifier::from_ascii(sub.as_slice()) {
                         Some(SharedStateSpaceQualifier::Cluster) => {
@@ -418,25 +490,34 @@ pub(super) fn lower_cp_async_bulk_tensor(
                         format!(
                             "modifier {modifier} (only .mbarrier::complete_tx::bytes completion \
                              is modeled - .bulk_group, .multicast::cluster, .cta_group::N, \
-                             .L2::cache_hint, .tile::gather4/scatter4, .im2col* are not)"
+                             .tile::gather4/scatter4, .im2col::w{{::128}} are not)"
                         ),
                     ));
                 }
             }
         }
         match modifier.to_string().as_str() {
-            "2d" => dim = Some(2),
-            "3d" => dim = Some(3),
             "global" => saw_global = true,
-            // `.tile` is both the only modeled load mode and the ISA's own
-            // default, so it is validated (nothing else is accepted) but
-            // has nothing further to record.
-            "tile" => {}
-            other => return Err(unsupported(NAME, format!("modifier .{other}"))),
+            "tile" | "im2col" if load_mode.is_some() => {
+                return Err(unsupported(NAME, "more than one .load_mode"));
+            }
+            "tile" => load_mode = Some(LoadModeQualifier::Tile),
+            "im2col" => load_mode = Some(LoadModeQualifier::Im2col),
+            other => match tensor_rank(other) {
+                Some(rank) => dim = Some(rank),
+                None => return Err(unsupported(NAME, format!("modifier .{other}"))),
+            },
         }
     }
 
-    let dim = dim.ok_or_else(|| unsupported(NAME, "missing .dim (only .2d/.3d modeled)"))?;
+    let dim = dim.ok_or_else(|| unsupported(NAME, "missing .dim (.1d to .5d are modeled)"))?;
+    let load_mode = load_mode.unwrap_or(LoadModeQualifier::Tile);
+    if load_mode == LoadModeQualifier::Im2col && !IM2COL_RANKS.contains(&dim) {
+        return Err(unsupported(
+            NAME,
+            format!(".im2col of a .{dim}d tensor (the im2col mode needs .3d to .5d)"),
+        ));
+    }
     if !saw_shared_destination {
         return Err(unsupported(
             NAME,
@@ -453,12 +534,23 @@ pub(super) fn lower_cp_async_bulk_tensor(
         ));
     }
 
-    let [dst, tm, mbar] = operands else {
-        return Err(LowerError::InvalidOperand {
-            instruction: NAME.to_string(),
-            operand: format!("{:?}", operands),
-            reason: "expected [dstMem], [tensorMap, {coords}], [mbar]",
-        });
+    let operands = strip_cache_policy(ctx, operands, cache_hint)?;
+    let (dst, tm, mbar, offsets) = match (load_mode, operands) {
+        (LoadModeQualifier::Tile, [dst, tm, mbar]) => (dst, tm, mbar, None),
+        (LoadModeQualifier::Im2col, [dst, tm, mbar, offsets]) => (dst, tm, mbar, Some(offsets)),
+        _ => {
+            let reason = match load_mode {
+                LoadModeQualifier::Tile => "expected [dstMem], [tensorMap, {coords}], [mbar]",
+                LoadModeQualifier::Im2col => {
+                    "expected [dstMem], [tensorMap, {coords}], [mbar], {im2colOffsets}"
+                }
+            };
+            return Err(LowerError::InvalidOperand {
+                instruction: NAME.to_string(),
+                operand: format!("{:?}", operands),
+                reason,
+            });
+        }
     };
     let (dst_base, dst_offset) = resolve_addr_operand(ctx, dst)?;
 
@@ -483,25 +575,214 @@ pub(super) fn lower_cp_async_bulk_tensor(
         lowered_coords.push(ctx.resolve_operand(c)?);
     }
 
+    let mode = match offsets {
+        None => TensorLoadMode::Tile,
+        Some(offsets) => TensorLoadMode::Im2col {
+            offsets: lower_im2col_offsets(ctx, offsets, dim)?,
+        },
+    };
+
     let (mbar_base, mbar_offset) = resolve_addr_operand(ctx, mbar)?;
 
     ctx.emit(
         LoweredInstr::CpAsyncBulkTensorLoad {
             dst_base,
             dst_offset,
-            // Generic addressing of `tensorMap` is not modeled: every corpus
-            // use goes through `tensormap.cp_fenceproxy`, which always puts
-            // the object in `.global` (`.param`/`.const` maps are unmodeled).
-            tensormap_space: MemSpace::Global,
             tensormap_base,
             tensormap_offset,
             coords: lowered_coords,
+            mode,
             mbar_base,
             mbar_offset,
         },
         predicate,
     )?;
     Ok(())
+}
+
+/// Whether a TMA load carries `.L2::cache_hint` and so a trailing cache-policy operand.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum CacheHint {
+    Absent,
+    Present,
+}
+
+/// The operands without `.L2::cache_hint`'s trailing 64-bit cache policy: it only
+/// sets the L2 eviction priority, so it changes neither the data nor any order.
+fn strip_cache_policy<'a>(
+    ctx: &LoweringContext,
+    operands: &'a [AstOperand],
+    cache_hint: CacheHint,
+) -> LowerResult<&'a [AstOperand]> {
+    const NAME: &str = "cp.async.bulk.tensor";
+
+    if cache_hint == CacheHint::Absent {
+        return Ok(operands);
+    }
+    let Some((policy, rest)) = operands.split_last() else {
+        return Err(LowerError::InvalidOperand {
+            instruction: NAME.to_string(),
+            operand: format!("{:?}", operands),
+            reason: ".L2::cache_hint needs a trailing cache-policy operand",
+        });
+    };
+    let typed = ctx.resolve_operand_typed(policy)?;
+    ctx.check_operand_type(&typed, ScalarType::B64, NAME)?;
+
+    Ok(rest)
+}
+
+/// An `.im2col` load's `{im2colOffsets}`: one 16-bit offset per spatial dimension, `dim - 2`.
+fn lower_im2col_offsets(
+    ctx: &LoweringContext,
+    operand: &AstOperand,
+    dim: usize,
+) -> LowerResult<Vec<Operand>> {
+    const NAME: &str = "cp.async.bulk.tensor";
+
+    let AstOperand::Vector(offsets) = operand else {
+        return Err(LowerError::InvalidOperand {
+            instruction: NAME.to_string(),
+            operand: format!("{:?}", operand),
+            reason: "expected {im2colOffsets}",
+        });
+    };
+    if offsets.len() != dim - 2 {
+        return Err(LowerError::InvalidOperand {
+            instruction: NAME.to_string(),
+            operand: format!("{:?}", offsets),
+            reason: "im2colOffsets needs one offset per spatial dimension (.dim - 2)",
+        });
+    }
+
+    let mut lowered = Vec::with_capacity(offsets.len());
+    for offset in offsets {
+        let typed = ctx.resolve_operand_typed(offset)?;
+        ctx.check_operand_type(&typed, ScalarType::B16, NAME)?;
+        lowered.push(typed.operand);
+    }
+
+    Ok(lowered)
+}
+
+/// Lower `cp.async.bulk.tensor.Nd.global.shared::cta{.tile}.bulk_group
+/// [tensorMap, {coords}], [srcMem]`, the TMA store (PTX ISA 9.7.9.26.5.2).
+fn lower_cp_async_bulk_tensor_store(
+    ctx: &mut LoweringContext,
+    modifiers: &[DottedIdent],
+    operands: &[AstOperand],
+    predicate: Option<Predicate>,
+) -> LowerResult<()> {
+    const NAME: &str = "cp.async.bulk.tensor";
+
+    let given: Vec<String> = modifiers.iter().map(|m| m.to_string()).collect();
+
+    // `.tile` is the ISA's default load mode, so it may be omitted.
+    let form = match given.as_slice() {
+        [dim, global, shared, tile, group] if tile == "tile" => Some((dim, global, shared, group)),
+        [dim, global, shared, group] => Some((dim, global, shared, group)),
+        _ => None,
+    };
+
+    let dim = match form {
+        Some((dim, global, shared, group))
+            if global == "global" && shared == "shared::cta" && group == "bulk_group" =>
+        {
+            tensor_rank(dim).ok_or_else(|| unsupported(NAME, format!("modifier .{dim}")))?
+        }
+        _ => {
+            return Err(unsupported(
+                NAME,
+                format!(
+                    "store form .{} (only .Nd.global.shared::cta{{.tile}}.bulk_group is modeled)",
+                    given.join(".")
+                ),
+            ));
+        }
+    };
+
+    let [tm, src] = operands else {
+        return Err(LowerError::InvalidOperand {
+            instruction: NAME.to_string(),
+            operand: format!("{:?}", operands),
+            reason: "expected [tensorMap, {coords...}], [srcMem]",
+        });
+    };
+
+    let AstOperand::TensorCoordAddress { descriptor, coords } = tm else {
+        return Err(LowerError::InvalidOperand {
+            instruction: NAME.to_string(),
+            operand: format!("{:?}", tm),
+            reason: "expected [tensorMap, {coords...}]",
+        });
+    };
+    if coords.len() != dim {
+        return Err(LowerError::InvalidOperand {
+            instruction: NAME.to_string(),
+            operand: format!("{:?}", coords),
+            reason: "tensorCoords length does not match .dim",
+        });
+    }
+
+    let tensormap_base = ctx.resolve_address(descriptor)?;
+    let tensormap_offset = ctx.get_address_offset(descriptor);
+    let coords = coords
+        .iter()
+        .map(|c| ctx.resolve_operand(c))
+        .collect::<LowerResult<Vec<_>>>()?;
+    let (src_base, src_offset) = resolve_addr_operand(ctx, src)?;
+
+    ctx.emit(
+        LoweredInstr::CpAsyncBulkTensorStore {
+            tensormap_base,
+            tensormap_offset,
+            coords,
+            src_base,
+            src_offset,
+        },
+        predicate,
+    )
+}
+
+/// Lower `cp.async.bulk.commit_group` and `cp.async.bulk.wait_group{.read} n`.
+fn lower_bulk_group(
+    ctx: &mut LoweringContext,
+    given: &[String],
+    operands: &[AstOperand],
+    predicate: Option<Predicate>,
+) -> LowerResult<()> {
+    let instr = match (given, operands) {
+        ([commit], []) if commit == "commit_group" => LoweredInstr::CpAsyncBulkCommitGroup,
+        ([wait, rest @ ..], [n]) if wait == "wait_group" => {
+            let scope = match rest {
+                [] => BulkWaitScope::Complete,
+                [read] if read == "read" => BulkWaitScope::SourceReads,
+                _ => {
+                    return Err(unsupported(
+                        "cp.async.bulk.wait_group",
+                        format!("modifier .{}", rest.join(".")),
+                    ));
+                }
+            };
+
+            let n = ctx.resolve_const_u32(
+                n,
+                "cp.async.bulk.wait_group",
+                "n must be a compile-time integer immediate",
+            )?;
+
+            LoweredInstr::CpAsyncBulkWaitGroup { n, scope }
+        }
+        _ => {
+            return Err(LowerError::InvalidOperand {
+                instruction: format!("cp.async.bulk.{}", given.join(".")),
+                operand: format!("{:?}", operands),
+                reason: "expected commit_group with no operand or wait_group{.read} n",
+            });
+        }
+    };
+
+    ctx.emit(instr, predicate)
 }
 
 /// Lower global -> shared `cp.async.bulk...mbarrier::complete_tx::bytes`
@@ -514,6 +795,14 @@ pub(super) fn lower_cp_async_bulk(
     predicate: Option<Predicate>,
 ) -> LowerResult<()> {
     const NAME: &str = "cp.async.bulk";
+    let given: Vec<String> = modifiers.iter().map(|m| m.to_string()).collect();
+    if matches!(
+        given.first().map(String::as_str),
+        Some("commit_group" | "wait_group")
+    ) {
+        return lower_bulk_group(ctx, &given, operands, predicate);
+    }
+
     let mut saw_shared = false;
     let mut saw_global = false;
     let mut saw_completion = false;

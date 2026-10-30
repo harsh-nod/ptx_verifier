@@ -8,7 +8,11 @@ no other Volta crate.
   inputs/outputs, parameters and optional native LDS subobjects. Common validation
   checks geometry, binding identities and allocation layout; target-specific ABI,
   by-value payload sizes and execution restrictions stay in the selected analyzer.
-  Both producers re-export these shared types for compatibility.
+  Parameters include PTX structured fields and native AMD byte payloads; each
+  analyzer rejects forms outside its ABI. Both producers re-export the shared
+  types for compatibility.
+- **Tensor-map fields** (`tensor_map.rs`): host descriptor values used by launch
+  configuration and PTX lowering, independent of interpreter operands.
 - **`Span`** (`lib.rs`): a source location as a `(low, high)` byte-offset pair.
 - **`report::Locate<E>`** (`report.rs`): an error wrapper that adds an optional span and
   file path to an error kind `E`. Each crate defines an error kind enum and

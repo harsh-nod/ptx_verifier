@@ -10,23 +10,25 @@ use id_collections::IdVec;
 use crate::frontend::ast::ScalarType;
 
 use crate::config::{AnalysisConfig, ParamValue};
+use crate::eval::async_bulk::{BulkStore, complete_bulk_groups};
 use crate::eval::cluster_launch_control::ObservedDecline;
 use crate::eval::cp_async::PendingCopy;
 use crate::eval::error::{EvalError, EvalResult};
 use crate::eval::float_bits::{self, decode_packed_bits};
 use crate::eval::mbarrier::MbarrierTable;
 use crate::eval::memory::{GranuleKind, MemAccessError, Memory};
+use crate::eval::param_space::{ParamBinding, param_tensor_maps, struct_bytes};
 use crate::eval::record::{AccessOrigin, Recording, point, tix};
 use crate::eval::tensor_map_table::TensorMapTable;
 use crate::eval::tensor_memory::TensorMemory;
 use crate::eval::value::{MbarrierId, RegFile, Value};
 use crate::eval::{ThreadId, WARP_SIZE};
-use crate::ir::symbols::{MODULE_GLOBAL_BASE, ParamId, RegId, SpecialRegKind};
+use crate::ir::symbols::{MODULE_GLOBAL_BASE, ParamId, ParamLayout, RegId, SpecialRegKind};
+use crate::ir::tcgen05::Tcgen05FenceDirection;
 use crate::ir::types::{RegClass, ScalarTypeExt};
 use crate::ir::{
     BarrierAlignment, BinOp, Clamp, CpAsyncSrcSize, InstrId, LoweredInstr, LoweredProgram,
-    MBARRIER_COUNT_RANGE, MBARRIER_TX_COUNT_RANGE, MemSpace, Operand, Tcgen05FenceDirection,
-    TensormapFence,
+    MBARRIER_COUNT_RANGE, MBARRIER_TX_COUNT_RANGE, MemSpace, Operand, TensormapFence,
 };
 use crate::logging::{info, warn};
 use volta_expr::{ExprArena, ExprId, ExprNode, Real, StringId};
@@ -176,6 +178,10 @@ pub(in crate::eval) struct ThreadState {
     /// Committed async-copy groups, oldest first; `wait_group`/`wait_all`
     /// pop from the front.
     groups: VecDeque<Vec<PendingCopy>>,
+    /// TMA stores issued since the last `cp.async.bulk.commit_group`.
+    bulk_uncommitted: Vec<BulkStore>,
+    /// Committed bulk async-groups, oldest first (`complete_bulk_groups`).
+    bulk_groups: VecDeque<Vec<BulkStore>>,
     /// `tcgen05.mma.ws` collector buffers `b0`-`b3`: the `B` elements the
     /// last `::fill` loaded, until a `::lastuse`/`::discard` drops them.
     pub(in crate::eval) tcgen05_collectors: [Option<Vec<ExprId>>; 4],
@@ -220,7 +226,7 @@ pub struct Interpreter<'p> {
     /// Shared `Undefined` node returned for reads of never-written
     /// registers (see `read_reg`).
     pub(in crate::eval) undefined: ExprId,
-    params: IdVec<ParamId, Value>,
+    pub(in crate::eval) params: IdVec<ParamId, ParamBinding>,
     pub(in crate::eval) threads: IdVec<ThreadId, ThreadState>,
     pub(in crate::eval) global: Memory,
     pub(in crate::eval) shared: Memory,
@@ -273,12 +279,28 @@ impl<'p> Interpreter<'p> {
                 ),
             });
         }
-        let mut params: IdVec<ParamId, Value> = IdVec::new();
-        for value in &config.params {
+        let mut params: IdVec<ParamId, ParamBinding> = IdVec::new();
+        for (index, value) in config.params.iter().enumerate() {
+            let slot = program.symbols.param_slot(ParamId(index as u32));
             let v = match value {
                 ParamValue::Bytes(_) => {
                     return Err(EvalError::Config {
                         message: "byte payload parameters require the native AMD backend".into(),
+                    });
+                }
+                ParamValue::Struct(fields) if slot.layout == ParamLayout::Aggregate => {
+                    let _ = params.push(ParamBinding::Bytes(struct_bytes(
+                        index, fields, slot, &config,
+                    )?));
+                    continue;
+                }
+                ParamValue::Struct(_) => {
+                    return Err(EvalError::Config {
+                        message: format!(
+                            "parameter {index} is a {}-byte scalar; a struct binds only a \
+                             `.param .b8 name[N]` aggregate",
+                            slot.size
+                        ),
                     });
                 }
                 ParamValue::Int(v) => Value::Scalar(arena.int(*v)),
@@ -298,7 +320,7 @@ impl<'p> Interpreter<'p> {
                     Value::Scalar(arena.int(array.base as i64))
                 }
             };
-            let _ = params.push(v);
+            let _ = params.push(ParamBinding::Value(v));
         }
 
         // Every region must satisfy `base + size <= u64::MAX` (checked in
@@ -416,11 +438,14 @@ impl<'p> Interpreter<'p> {
                     barrier_visits: HashMap::new(),
                     uncommitted: Vec::new(),
                     groups: VecDeque::new(),
+                    bulk_uncommitted: Vec::new(),
+                    bulk_groups: VecDeque::new(),
                     tcgen05_collectors: Default::default(),
                 })
                 .collect(),
         );
         let locals = IdVec::from_vec((0..n_threads).map(|_| Memory::new()).collect());
+        let tensor_maps = param_tensor_maps(&config, &program.symbols)?;
 
         Ok(Self {
             program,
@@ -440,7 +465,7 @@ impl<'p> Interpreter<'p> {
             mbarriers: MbarrierTable::default(),
             barriers: std::array::from_fn(|_| PendingArrivals::default()),
             barrier_counts: [None; NUM_BARRIERS],
-            tensor_maps: TensorMapTable::new(),
+            tensor_maps,
             graph: GraphBuilder::new(provenance),
             rec: Recording::default(),
             stats: Stats::default(),
@@ -680,7 +705,9 @@ impl<'p> Interpreter<'p> {
             // so no alignment rule applies; byte-addressed `.param`/`.const`
             // accesses are rejected in `check_bounds`.
             LoweredInstr::LoadParam { dst, param_id } => {
-                let v = self.params[*param_id];
+                let ParamBinding::Value(v) = self.params[*param_id] else {
+                    unreachable!("lowering reads an aggregate's bytes, never its value");
+                };
                 self.write_reg(t, *dst, v);
             }
 
@@ -709,7 +736,11 @@ impl<'p> Interpreter<'p> {
                 // A vector load is one access of the total size (PTX ISA
                 // 6.4.1), so bounds and alignment are checked once for the
                 // whole footprint - else a v4 could straddle two arrays.
-                self.check_bounds(t, pc, *space, addr, dst.len() as u64 * width)?;
+                if *space == MemSpace::Param {
+                    self.param_at(t, pc, addr, dst.len() as u64 * width)?;
+                } else {
+                    self.check_bounds(t, pc, *space, addr, dst.len() as u64 * width)?;
+                }
                 self.check_alignment(t, pc, *space, addr, dst.len() as u64 * width)?;
                 for (k, reg) in dst.iter().enumerate() {
                     let v = self.mem_read(t, pc, *space, addr + k as u64 * width, width)?;
@@ -898,61 +929,83 @@ impl<'p> Interpreter<'p> {
                 selector,
             } => {
                 let selector = self.concrete_operand(t, pc, selector, "prmt selector")? as u16;
-                let fp8_sign_xor = |this: &mut Self, value: ExprId| {
-                    let ExprNode::BitXor(left, right) = this.arena.node(value).clone() else {
-                        return value;
-                    };
-                    let magnitude = if this.arena.as_int_const(left) == Some(128) {
-                        Some(right)
-                    } else if this.arena.as_int_const(right) == Some(128) {
-                        Some(left)
-                    } else {
-                        None
-                    };
-                    magnitude.map_or(value, |value| this.arena.neg(value))
-                };
-                // An FP8 scalar byte already denotes its real value, and a
-                // vector-loaded word is a Quad of such values; keep the lanes
-                // split while applying the byte selector.
-                let lanes = |this: &mut Self, value: Value| match value {
-                    Value::Scalar(value) => Ok([Some(fp8_sign_xor(this, value)), None, None, None]),
-                    Value::Quad(b0, b1, b2, b3) => Ok([Some(b0), Some(b1), Some(b2), Some(b3)]),
-                    Value::Pair(..) => Err(EvalError::ValueKindMismatch {
-                        thread: t,
-                        pc,
-                        what: "packed pair used as a prmt source",
-                    }),
-                    Value::Mbarrier(_) => Err(EvalError::ValueKindMismatch {
-                        thread: t,
-                        pc,
-                        what: "mbarrier handle used as a prmt source",
-                    }),
-                };
                 let src_a = self.operand_value(t, pc, src_a)?;
                 let src_b = self.operand_value(t, pc, src_b)?;
-                let a = lanes(self, src_a)?;
-                let b = lanes(self, src_b)?;
-                let select_byte = |this: &mut Self, nibble: u16| -> EvalResult<ExprId> {
-                    let source = if nibble & 7 < 4 { &a } else { &b };
-                    let byte = source[(nibble & 3) as usize].ok_or(EvalError::Unsupported {
-                        pc,
-                        what: format!(
-                            "prmt selector {selector:#06x}: byte {} is unavailable from a scalar \
-                             FP8 input",
-                            nibble & 7
-                        ),
-                    })?;
-                    Ok(if nibble & 8 == 0 {
-                        byte
-                    } else {
-                        this.arena.neg(byte)
-                    })
-                };
-                let b0 = select_byte(self, selector & 0xf)?;
-                let b1 = select_byte(self, (selector >> 4) & 0xf)?;
-                let b2 = select_byte(self, (selector >> 8) & 0xf)?;
-                let b3 = select_byte(self, (selector >> 12) & 0xf)?;
-                self.write_reg(t, *dst, Value::Quad(b0, b1, b2, b3));
+
+                if let (Value::Pair(a_lo, a_hi), Value::Pair(b_lo, b_hi)) = (src_a, src_b) {
+                    // Exact only when each result half takes one source half whole
+                    // (Triton's `0x5410`/`0x7632` f16 interleave).
+                    let select = |byte_pair: u16| match byte_pair {
+                        0x10 => Ok(a_lo),
+                        0x32 => Ok(a_hi),
+                        0x54 => Ok(b_lo),
+                        0x76 => Ok(b_hi),
+                        _ => Err(EvalError::Unsupported {
+                            pc,
+                            what: format!(
+                                "prmt selector {selector:#06x} splits a packed pair's 16-bit half"
+                            ),
+                        }),
+                    };
+                    let pair = Value::Pair(select(selector & 0xff)?, select(selector >> 8)?);
+                    self.write_reg(t, *dst, pair);
+                } else {
+                    let fp8_sign_xor = |this: &mut Self, value: ExprId| {
+                        let ExprNode::BitXor(left, right) = this.arena.node(value).clone() else {
+                            return value;
+                        };
+                        let magnitude = if this.arena.as_int_const(left) == Some(128) {
+                            Some(right)
+                        } else if this.arena.as_int_const(right) == Some(128) {
+                            Some(left)
+                        } else {
+                            None
+                        };
+                        magnitude.map_or(value, |value| this.arena.neg(value))
+                    };
+                    // An FP8 scalar byte already denotes its real value, and a
+                    // vector-loaded word is a Quad of such values; keep the lanes
+                    // split while applying the byte selector.
+                    let lanes = |this: &mut Self, value: Value| match value {
+                        Value::Scalar(value) => {
+                            Ok([Some(fp8_sign_xor(this, value)), None, None, None])
+                        }
+                        Value::Quad(b0, b1, b2, b3) => Ok([Some(b0), Some(b1), Some(b2), Some(b3)]),
+                        Value::Pair(..) => Err(EvalError::ValueKindMismatch {
+                            thread: t,
+                            pc,
+                            what: "packed pair used as a prmt source",
+                        }),
+                        Value::Mbarrier(_) => Err(EvalError::ValueKindMismatch {
+                            thread: t,
+                            pc,
+                            what: "mbarrier handle used as a prmt source",
+                        }),
+                    };
+                    let a = lanes(self, src_a)?;
+                    let b = lanes(self, src_b)?;
+                    let select_byte = |this: &mut Self, nibble: u16| -> EvalResult<ExprId> {
+                        let source = if nibble & 7 < 4 { &a } else { &b };
+                        let byte = source[(nibble & 3) as usize].ok_or(EvalError::Unsupported {
+                            pc,
+                            what: format!(
+                                "prmt selector {selector:#06x}: byte {} is unavailable from a scalar \
+                                 FP8 input",
+                                nibble & 7
+                            ),
+                        })?;
+                        Ok(if nibble & 8 == 0 {
+                            byte
+                        } else {
+                            this.arena.neg(byte)
+                        })
+                    };
+                    let b0 = select_byte(self, selector & 0xf)?;
+                    let b1 = select_byte(self, (selector >> 4) & 0xf)?;
+                    let b2 = select_byte(self, (selector >> 8) & 0xf)?;
+                    let b3 = select_byte(self, (selector >> 12) & 0xf)?;
+                    self.write_reg(t, *dst, Value::Quad(b0, b1, b2, b3));
+                }
             }
 
             LoweredInstr::Lop3 {
@@ -1003,6 +1056,8 @@ impl<'p> Interpreter<'p> {
                 } else if let Some(v) = self.pair_bitwise_binop(t, pc, *op, *ty, src_a, src_b)? {
                     self.write_reg(t, *dst, v);
                 } else if let Some(v) = self.quad_bitwise_binop(t, pc, *op, *ty, src_a, src_b)? {
+                    self.write_reg(t, *dst, v);
+                } else if let Some(v) = self.quad_shift_binop(t, pc, *op, *ty, src_a, src_b)? {
                     self.write_reg(t, *dst, v);
                 } else {
                     let a = self.scalar_operand(t, pc, src_a)?;
@@ -1257,11 +1312,20 @@ impl<'p> Interpreter<'p> {
                 // before `cvt.e4m3x2`): a `Quad` has no bits to truncate, so
                 // keep its low `Pair`, as `truncates_pair` does.
                 let truncates_quad = int_to_int && src_ty.bits() == 32 && dst_ty.bits() == 16;
+                // `cvt.u16.u64` of a 4x16 quad (TileLang's lane extraction after a
+                // vectorized f16 load) keeps its lowest lane, `cvt.u32.u64` its low two.
+                let truncates_wide_quad = int_to_int && src_ty.bits() == 64;
                 let result = match self.operand_value(t, pc, src)? {
                     // `cvt.u32.u64`-style truncation of a packed pair keeps
                     // its low lane, exactly.
                     Value::Pair(lo, _) if truncates_pair => Value::Scalar(lo),
                     Value::Quad(b0, b1, _, _) if truncates_quad => Value::Pair(b0, b1),
+                    Value::Quad(l0, _, _, _) if truncates_wide_quad && dst_ty.bits() == 16 => {
+                        Value::Scalar(l0)
+                    }
+                    Value::Quad(l0, l1, _, _) if truncates_wide_quad && dst_ty.bits() == 32 => {
+                        Value::Pair(l0, l1)
+                    }
                     value => {
                         let a = match value {
                             Value::Pair(_, _) => self.scalar_operand(t, pc, src)?,
@@ -1427,12 +1491,21 @@ impl<'p> Interpreter<'p> {
             }
 
             LoweredInstr::PackHalves { dst, lo, hi } => {
-                // Always a Value::Pair. lo/hi are half-width operands:
-                // 16-bit-class for a b32 pack, 32-bit-class for b64, where
-                // scalar_operand rejects a half that is itself a pair.
-                let lo_v = self.scalar_operand(t, pc, lo)?;
-                let hi_v = self.scalar_operand(t, pc, hi)?;
-                self.write_reg(t, *dst, Value::Pair(lo_v, hi_v));
+                // lo/hi are half-width operands: 16-bit-class for a b32 pack, 32-bit-class
+                // for b64. Two f16x2 pairs are the four 16-bit lanes of a `.b64`
+                // (`mov.b64 %rd, {%r, %r}`); any other half must have a scalar reading.
+                let lo_half = self.operand_value(t, pc, lo)?;
+                let hi_half = self.operand_value(t, pc, hi)?;
+
+                let packed = if let (Value::Pair(l0, l1), Value::Pair(l2, l3)) = (lo_half, hi_half)
+                {
+                    self.pack_b64_lanes([l0, l1, l2, l3])
+                } else {
+                    let lo_scalar = self.scalar_operand(t, pc, lo)?;
+                    let hi_scalar = self.scalar_operand(t, pc, hi)?;
+                    Value::Pair(lo_scalar, hi_scalar)
+                };
+                self.write_reg(t, *dst, packed);
             }
 
             LoweredInstr::PackQuad { dst, elems } => {
@@ -1600,12 +1673,19 @@ impl<'p> Interpreter<'p> {
                 return Ok(());
             }
 
+            // `.sync`: the warp's threads all execute it before any resumes.
+            LoweredInstr::Setmaxnreg => {
+                self.block_at_warp_op(t, pc, u32::MAX)?;
+                return Ok(());
+            }
+
             // tcgen05.mma: `.cta_group::1` is issued by a single thread (PTX
             // ISA 9.7.17.5), unlike `mma.sync`/`wmma`, so it is evaluated
             // directly, not through `execute_warp_op`.
             LoweredInstr::Tcgen05Mma {
                 kind,
                 collector,
+                scales,
                 d_tmem_base,
                 d_tmem_offset,
                 a,
@@ -1617,7 +1697,7 @@ impl<'p> Interpreter<'p> {
                 self.exec_tcgen05_mma(
                     t,
                     pc,
-                    (*kind, *collector),
+                    (*kind, *collector, *scales),
                     d_tmem_base,
                     *d_tmem_offset,
                     a,
@@ -1730,10 +1810,10 @@ impl<'p> Interpreter<'p> {
             LoweredInstr::CpAsyncBulkTensorLoad {
                 dst_base,
                 dst_offset,
-                tensormap_space,
                 tensormap_base,
                 tensormap_offset,
                 coords,
+                mode,
                 mbar_base,
                 mbar_offset,
             } => {
@@ -1742,13 +1822,44 @@ impl<'p> Interpreter<'p> {
                     pc,
                     dst_base,
                     *dst_offset,
-                    *tensormap_space,
                     tensormap_base,
                     *tensormap_offset,
                     coords,
+                    mode,
                     mbar_base,
                     *mbar_offset,
                 )?;
+            }
+
+            LoweredInstr::CpAsyncBulkTensorStore {
+                tensormap_base,
+                tensormap_offset,
+                coords,
+                src_base,
+                src_offset,
+            } => {
+                let store = self.exec_cp_async_bulk_tensor_store(
+                    t,
+                    pc,
+                    tensormap_base,
+                    *tensormap_offset,
+                    coords,
+                    src_base,
+                    *src_offset,
+                )?;
+                self.threads[t].bulk_uncommitted.push(store);
+            }
+
+            LoweredInstr::CpAsyncBulkCommitGroup => {
+                let uncommitted = std::mem::take(&mut self.threads[t].bulk_uncommitted);
+                self.threads[t].bulk_groups.push_back(uncommitted);
+                self.graph
+                    .group_commit(tix(t), point(pc), GroupFamily::Bulk);
+            }
+
+            LoweredInstr::CpAsyncBulkWaitGroup { n, scope } => {
+                let ops = complete_bulk_groups(&mut self.threads[t].bulk_groups, *n, *scope);
+                self.record_bulk_group_wait(t, pc, *n, *scope, &ops);
             }
 
             LoweredInstr::CpAsyncBulkLoad {
@@ -2051,6 +2162,23 @@ impl<'p> Interpreter<'p> {
     fn recombine_pair_halves(arena: &mut ExprArena, lo: i64, hi: i64, half_bits: u32) -> ExprId {
         let mask = (1i64 << half_bits) - 1;
         arena.int(((hi & mask) << half_bits) | (lo & mask))
+    }
+
+    /// Four 16-bit lanes of a `.b64`, lane 0 lowest. Integer-constant lanes combine
+    /// into the one 64-bit number of their bits; only lanes that cannot be combined,
+    /// some symbolic one among them, stay a 4x16 quad.
+    pub(in crate::eval) fn pack_b64_lanes(&mut self, lanes: [ExprId; 4]) -> Value {
+        let [l0, l1, l2, l3] = lanes;
+        let constants = lanes.map(|lane| self.arena.as_int_const(lane));
+        let [Some(c0), Some(c1), Some(c2), Some(c3)] = constants else {
+            return Value::Quad(l0, l1, l2, l3);
+        };
+
+        let mut bits = 0i64;
+        for lane in [c3, c2, c1, c0] {
+            bits = (bits << 16) | (lane & 0xffff);
+        }
+        Value::Scalar(self.arena.int(bits))
     }
 
     /// Resolve a packed-pair operand (`.f16x2`/`.bf16x2`). A concrete scalar is
@@ -2356,10 +2484,14 @@ impl<'p> Interpreter<'p> {
         width: u64,
         origin: AccessOrigin,
     ) -> EvalResult<Value> {
-        self.check_bounds(t, pc, space, addr, width)?;
         // Every program access flows through here, so this is the one
-        // natural-alignment chokepoint. Param space never reaches it
-        // (`check_bounds` rejects it; `LoadParam` is not memory).
+        // natural-alignment chokepoint. Param space is no event-graph memory
+        // (`check_bounds` rejects it for every other access).
+        if space == MemSpace::Param {
+            self.check_alignment(t, pc, space, addr, width)?;
+            return self.param_read(t, pc, addr, width);
+        }
+        self.check_bounds(t, pc, space, addr, width)?;
         self.check_alignment(t, pc, space, addr, width)?;
         self.record_mem_access(t, pc, space, addr, width, None, origin);
         let memory = match space {

@@ -14,7 +14,14 @@ mod launch_file;
 mod lower;
 
 pub use analysis::{AnalysisError, AnalysisParts, AnalysisResult, analyze, write_op_counts};
-pub use config::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue, SharedAllocation};
-pub use eval::{ClcMisuse, EvalError, OutputsUnavailable, Stats, ThreadId};
+pub use config::{
+    AnalysisConfig, ArrayDef, ArrayKind, FieldValue, IntWidth, ParamValue, SharedAllocation,
+    StructField, TensorMapMode, TensorMapValue,
+};
+pub use eval::{ClcMisuse, EvalError, OutputsUnavailable, Stats, ThreadId, TmaMisuse};
+pub use ir::tensor_map::{
+    Im2colBox, TensorElemType, TensorFillMode, TensorInterleaveLayout, TensorSwizzleAtomicity,
+    TensorSwizzleMode,
+};
 pub use launch_file::LaunchFile;
 pub use lower::LowerError;

@@ -5,7 +5,11 @@
 #[macro_use]
 mod common;
 
-use volta_ptx_analysis::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue};
+use volta_ptx_analysis::{
+    AnalysisConfig, ArrayDef, ArrayKind, FieldValue, IntWidth, ParamValue, StructField,
+    TensorElemType, TensorFillMode, TensorInterleaveLayout, TensorMapMode, TensorMapValue,
+    TensorSwizzleAtomicity, TensorSwizzleMode,
+};
 
 use common::*;
 
@@ -139,6 +143,16 @@ fn test_lone_lane_bar_arrives_complete_whole_warp_generations() {
 fn test_bar_sync_register_id_count_matches() {
     analyze!(
         "success/bar_sync_register_id_count_matches",
+        in_out_config(64, 1)
+    );
+}
+
+/// A register thread count is resolved at eval: naming the same count as the immediate one,
+/// the barrier orders the exchange.
+#[test]
+fn test_bar_sync_register_count_matches() {
+    analyze!(
+        "success/bar_sync_register_count_matches",
         in_out_config(64, 1)
     );
 }
@@ -349,6 +363,15 @@ fn test_tcgen05_alloc_lanes_ordered_by_bar_warp_sync_is_accepted() {
     );
 }
 
+/// The same allocation with nCols in a register, as TileLang passes it.
+#[test]
+fn test_tcgen05_alloc_register_column_count_is_accepted() {
+    analyze!(
+        "success/tcgen05_alloc_register_column_count_is_accepted",
+        warp_out_config(4, 1)
+    );
+}
+
 /// The control for `tcgen05_relinquish_unordered_with_other_warps_alloc`: `bar.sync 1` orders
 /// warp 0's allocation before warp 1's `relinquish_alloc_permit`.
 #[test]
@@ -545,6 +568,17 @@ fn test_tcgen05_mma_every_reader_waiting_is_accepted() {
     );
 }
 
+/// The same kernel without `tcgen05.fence::after_thread_sync`: warp 1's default `.acquire` wait
+/// on `mma_bar` pairs with the commit's release, which orders the MMA before its read
+/// (<https://github.com/NVIDIA/cutlass/issues/2974>).
+#[test]
+fn test_tcgen05_mma_reader_after_an_acquire_wait_is_accepted() {
+    analyze!(
+        "success/tcgen05_mma_reader_after_an_acquire_wait_is_accepted",
+        AnalysisConfig::new((64, 1, 1))
+    );
+}
+
 /// The control: deallocating after waiting on `mma_bar` is accepted.
 #[test]
 fn test_tcgen05_dealloc_after_the_mma_completed_is_accepted() {
@@ -667,6 +701,32 @@ fn array(name: &str, base: u64, elem_width: u64, len: u64, kind: ArrayKind) -> A
     }
 }
 
+/// A by-value struct parameter (`.param .b8 args[32]`) read through its
+/// address: a `v2.u64` load of its two pointers, a `u32` load of the low half
+/// of its `u64` count, and a by-name `[args+8]`. Three of the four threads
+/// pass the `tid < n` guard, so `out[0..3] = in[i] + 3` and `out[3]` stays unwritten.
+#[test]
+fn test_struct_param_by_address() {
+    let mut config = AnalysisConfig::new((4, 1, 1));
+    config.arrays = vec![
+        array("in", 0x10000, 4, 4, ArrayKind::Input),
+        array("out", 0x20000, 4, 4, ArrayKind::Output),
+    ];
+    let field = |offset, value| StructField { offset, value };
+    config.params = vec![ParamValue::Struct(vec![
+        field(0, FieldValue::ArrayPtr("in".to_string())),
+        field(8, FieldValue::ArrayPtr("out".to_string())),
+        field(
+            16,
+            FieldValue::Int {
+                value: 3,
+                width: IntWidth::W8,
+            },
+        ),
+    ])];
+    analyze!("success/struct_param_by_address", config);
+}
+
 /// `movmatrix.sync.aligned.m8n8.trans.b16` transposes the warp's 8x8 matrix:
 /// out[j] = in[8(j%8) + j/8].
 #[test]
@@ -681,6 +741,247 @@ fn test_movmatrix_transpose() {
         ParamValue::ArrayPtr("out".to_string()),
     ];
     analyze!("success/movmatrix_transpose", config);
+}
+
+/// `cvta.shared.u64` and `cvta.to.shared.u64` round-trip through the generic
+/// shared window, and rounding the generic address up to 1024 bytes lands on
+/// shared offset 1024, as in ThunderKittens' shared allocator.
+#[test]
+fn test_cvta_shared_round_trip() {
+    analyze!("success/cvta_shared_round_trip", in_out_config(1, 4));
+}
+
+/// A host-encoded tensor map inside a struct parameter, reached through
+/// `cvta.param`: a TMA load of `in`'s rows 2-5, copied out by the thread.
+#[test]
+fn test_tma_param_tensor_map_load() {
+    let mut config = AnalysisConfig::new((1, 1, 1));
+    config.arrays = vec![
+        array("in", 0x10000, 4, 64, ArrayKind::Input),
+        array("out", 0x20000, 4, 32, ArrayKind::Output),
+    ];
+
+    let map = TensorMapValue {
+        array: "in".to_string(),
+        elemtype: TensorElemType::F32,
+        dims: vec![8, 8],
+        strides: vec![32],
+        mode: TensorMapMode::Tiled {
+            box_dims: vec![8, 4],
+        },
+        element_strides: vec![1, 1],
+        interleave: TensorInterleaveLayout::None,
+        swizzle: TensorSwizzleMode::None,
+        swizzle_atomicity: TensorSwizzleAtomicity::Atomicity16B,
+        fill: TensorFillMode::Zero,
+    };
+
+    config.params = vec![ParamValue::Struct(vec![
+        StructField {
+            offset: 0,
+            value: FieldValue::TensorMap(Box::new(map)),
+        },
+        StructField {
+            offset: 128,
+            value: FieldValue::ArrayPtr("out".to_string()),
+        },
+    ])];
+
+    analyze!("success/tma_param_tensor_map_load", config);
+}
+
+/// Host-encoded tensor maps inside a struct parameter, reached through
+/// `cvta.param`: a TMA load of `in`'s rows 2-5, then a TMA store of the tile to
+/// `out`'s rows 0-3 in a bulk async-group whose source reads are waited for.
+#[test]
+fn test_tma_param_tensor_maps() {
+    let mut config = AnalysisConfig::new((1, 1, 1));
+    config.arrays = vec![
+        array("in", 0x10000, 4, 64, ArrayKind::Input),
+        array("out", 0x20000, 4, 64, ArrayKind::Output),
+    ];
+    let map = |name: &str| {
+        FieldValue::TensorMap(Box::new(TensorMapValue {
+            array: name.to_string(),
+            elemtype: TensorElemType::F32,
+            dims: vec![8, 8],
+            strides: vec![32],
+            mode: TensorMapMode::Tiled {
+                box_dims: vec![8, 4],
+            },
+            element_strides: vec![1, 1],
+            interleave: TensorInterleaveLayout::None,
+            swizzle: TensorSwizzleMode::None,
+            swizzle_atomicity: TensorSwizzleAtomicity::Atomicity16B,
+            fill: TensorFillMode::Zero,
+        }))
+    };
+    config.params = vec![ParamValue::Struct(vec![
+        StructField {
+            offset: 0,
+            value: map("in"),
+        },
+        StructField {
+            offset: 128,
+            value: map("out"),
+        },
+    ])];
+    analyze!("success/tma_param_tensor_maps", config);
+}
+
+/// One thread over a 40-element f32 `in` and a 16-element f32 `out`, both
+/// reached through 1-D tensor maps of 16-element boxes in one by-value struct.
+fn tma_1d_config() -> AnalysisConfig {
+    let mut config = AnalysisConfig::new((1, 1, 1));
+    config.arrays = vec![
+        array("in", 0x10000, 4, 40, ArrayKind::Input),
+        array("out", 0x20000, 4, 16, ArrayKind::Output),
+    ];
+    let map = |name: &str, len: u64| {
+        FieldValue::TensorMap(Box::new(TensorMapValue {
+            array: name.to_string(),
+            elemtype: TensorElemType::F32,
+            dims: vec![len],
+            strides: vec![],
+            mode: TensorMapMode::Tiled { box_dims: vec![16] },
+            element_strides: vec![1],
+            interleave: TensorInterleaveLayout::None,
+            swizzle: TensorSwizzleMode::None,
+            swizzle_atomicity: TensorSwizzleAtomicity::Atomicity16B,
+            fill: TensorFillMode::Zero,
+        }))
+    };
+    config.params = vec![ParamValue::Struct(vec![
+        StructField {
+            offset: 0,
+            value: map("in", 40),
+        },
+        StructField {
+            offset: 128,
+            value: map("out", 16),
+        },
+    ])];
+    config
+}
+
+/// A 1-D TMA load of `in`'s 16 elements at element 32, the last 8 past its end
+/// (zero-filled, yet counted by `complete_tx`), then a 1-D TMA store of the box:
+/// out[0..7] = in[32..39], out[8..15] = 0.
+#[test]
+fn test_tma_1d_load_zero_fills_past_the_tensor_end() {
+    analyze!(
+        "success/tma_1d_load_zero_fills_past_the_tensor_end",
+        tma_1d_config()
+    );
+}
+
+/// `prefetch.tensormap` of both maps before the copies changes nothing.
+#[test]
+fn test_tma_load_after_prefetch_tensormap() {
+    analyze!("success/tma_load_after_prefetch_tensormap", tma_1d_config());
+}
+
+/// A TMA load's `.L2::cache_hint` policy operand changes nothing.
+#[test]
+fn test_tma_load_with_l2_cache_hint() {
+    analyze!("success/tma_load_with_l2_cache_hint", tma_1d_config());
+}
+
+/// The four f16 lanes of a `.b64` register, unpacked by shifts and truncations
+/// or split into f16x2 words and repacked: out = in[3, 2, 1, 0, 6, 7, 4, 5].
+#[test]
+fn test_f16_lanes_of_a_vectorized_u64_load() {
+    let mut config = AnalysisConfig::new((1, 1, 1));
+    config.arrays = vec![
+        array("in", 0x10000, 2, 8, ArrayKind::Input),
+        array("out", 0x20000, 2, 8, ArrayKind::Output),
+    ];
+    config.params = vec![
+        ParamValue::ArrayPtr("in".to_string()),
+        ParamValue::ArrayPtr("out".to_string()),
+    ];
+    analyze!("success/f16_lanes_of_a_vectorized_u64_load", config);
+}
+
+/// Four integer-constant 16-bit lanes of a `.b64`, loaded or packed, combine into one number
+/// that arithmetic reads and a 2-byte load splits again: out = 0x0004000300020001 + {16, 32},
+/// then lane 2 of the packed number, 3.
+#[test]
+fn test_f16_constant_lanes_of_a_b64_are_a_number() {
+    analyze!(
+        "success/f16_constant_lanes_of_a_b64_are_a_number",
+        out_only_config(8, 3)
+    );
+}
+
+/// A 5-D TMA load of a 4x1x2x1x2 box of a 4x2x2x2x2 `in` at {0, 1, 0, 1, 0},
+/// offset or iterated in every dimension, then a 5-D TMA store of it to `out`
+/// at the same coordinates: out[i] = in[i] for i in 20-23, 28-31, 52-55, 60-63.
+#[test]
+fn test_tma_5d_load_and_store_stride_every_dimension() {
+    let mut config = AnalysisConfig::new((1, 1, 1));
+    config.arrays = vec![
+        array("in", 0x10000, 4, 64, ArrayKind::Input),
+        array("out", 0x20000, 4, 64, ArrayKind::Output),
+    ];
+    let map = |name: &str| {
+        FieldValue::TensorMap(Box::new(TensorMapValue {
+            array: name.to_string(),
+            elemtype: TensorElemType::F32,
+            dims: vec![4, 2, 2, 2, 2],
+            strides: vec![16, 32, 64, 128],
+            mode: TensorMapMode::Tiled {
+                box_dims: vec![4, 1, 2, 1, 2],
+            },
+            element_strides: vec![1; 5],
+            interleave: TensorInterleaveLayout::None,
+            swizzle: TensorSwizzleMode::None,
+            swizzle_atomicity: TensorSwizzleAtomicity::Atomicity16B,
+            fill: TensorFillMode::Zero,
+        }))
+    };
+    config.params = vec![ParamValue::Struct(vec![
+        StructField {
+            offset: 0,
+            value: map("in"),
+        },
+        StructField {
+            offset: 128,
+            value: map("out"),
+        },
+    ])];
+    analyze!(
+        "success/tma_5d_load_and_store_stride_every_dimension",
+        config
+    );
+}
+
+/// The Gluon tutorial's GPU-checked multi-image im2col load: the 16-pixel column from
+/// pixel (n, h, w) = (0, 1, 2) of a box spanning [-1, 2] reads image pixels 6, -, 8, 9,
+/// 10, -, -, -, -, -, 16, 17, 18, -, 20, 21 (`-` zero-filled), as the tutorial's 7, 0, 9, ...
+#[test]
+fn test_tma_im2col_walk_wraps_into_the_next_image() {
+    let config = im2col_config([4, 4, 4, 2], [1; 4], [-1, -1], [-1, -1], 16);
+    analyze!("success/tma_im2col_walk_wraps_into_the_next_image", config);
+}
+
+/// Im2col offsets {w: 0, h: 1} shift every pixel read one row down from the walked filter
+/// base: output pixel `p` reads image row `p / 4`, column `p % 4 - 1` (zero-filled at -1).
+#[test]
+fn test_tma_im2col_offsets_shift_the_pixel_read() {
+    let config = im2col_config([4, 4, 4, 1], [1; 4], [-1, -1], [-1, -1], 16);
+    analyze!("success/tma_im2col_offsets_shift_the_pixel_read", config);
+}
+
+/// Traversal stride 2 in W and H over a box spanning W in [0, 2], H in [0, 1]: the column
+/// reads image pixels 0, 2, 16, 18 and zero-fills the two pixels past the last image.
+#[test]
+fn test_tma_im2col_strided_walk_runs_past_the_last_image() {
+    let config = im2col_config([4, 4, 4, 2], [1, 2, 2, 1], [0, 0], [-1, -2], 6);
+    analyze!(
+        "success/tma_im2col_strided_walk_runs_past_the_last_image",
+        config
+    );
 }
 
 /// A concrete `mul.hi.u64` is the exact high half of the 128-bit product.
@@ -987,6 +1288,60 @@ fn test_mov_pack_b32_always_builds_pair() {
         ParamValue::ArrayPtr("out".to_string()),
     ];
     analyze!("success/mov_pack_b32_always_builds_pair", config);
+}
+
+/// `prmt.b32 0x5410` of two f16x2 pairs takes each pair's low half whole.
+#[test]
+fn test_f16x2_pair_halves_interleaved_by_prmt() {
+    let mut config = AnalysisConfig::new((1, 1, 1));
+    config.arrays = vec![
+        ArrayDef {
+            name: "in".to_string(),
+            base: 0x10000,
+            elem_width: 2,
+            len: 4,
+            kind: ArrayKind::Input,
+        },
+        ArrayDef {
+            name: "out".to_string(),
+            base: 0x20000,
+            elem_width: 2,
+            len: 2,
+            kind: ArrayKind::Output,
+        },
+    ];
+    config.params = vec![
+        ParamValue::ArrayPtr("in".to_string()),
+        ParamValue::ArrayPtr("out".to_string()),
+    ];
+    analyze!("success/f16x2_pair_halves_interleaved_by_prmt", config);
+}
+
+/// A logical shift by 16 takes an f16x2 pair's high half, a 16-bit store its low half.
+#[test]
+fn test_f16x2_pair_halves_split_by_shift_and_store() {
+    let mut config = AnalysisConfig::new((1, 1, 1));
+    config.arrays = vec![
+        ArrayDef {
+            name: "in".to_string(),
+            base: 0x10000,
+            elem_width: 2,
+            len: 2,
+            kind: ArrayKind::Input,
+        },
+        ArrayDef {
+            name: "out".to_string(),
+            base: 0x20000,
+            elem_width: 2,
+            len: 2,
+            kind: ArrayKind::Output,
+        },
+    ];
+    config.params = vec![
+        ParamValue::ArrayPtr("in".to_string()),
+        ParamValue::ArrayPtr("out".to_string()),
+    ];
+    analyze!("success/f16x2_pair_halves_split_by_shift_and_store", config);
 }
 
 /// `mov.b64 dst, {lo, hi}` with concrete 32-bit integer halves yields the
@@ -1817,6 +2172,16 @@ fn test_clusterlaunchcontrol_declined_cancel_ends_the_persistent_loop() {
     );
 }
 
+/// Gluon reads the response as two 64-bit halves packed by `mov.b128`; the
+/// 16 zero bytes are still the declined response.
+#[test]
+fn test_clusterlaunchcontrol_declined_response_read_as_two_halves_ends_the_loop() {
+    analyze!(
+        "success/clusterlaunchcontrol_declined_response_read_as_two_halves_ends_the_loop",
+        in_out_config(64, 64)
+    );
+}
+
 /// Clusters are assumed to hold a single CTA, so `mapa` into rank 0 returns
 /// each thread's own shared address unchanged.
 #[test]
@@ -1838,4 +2203,46 @@ fn test_cluster_special_registers_describe_a_single_cta_cluster() {
         "success/cluster_special_registers_describe_a_single_cta_cluster",
         config
     );
+}
+
+/// `setmaxnreg` is a full-warp rendezvous whose effect on the register count is not modeled:
+/// warp 0's `.inc` beyond `.maxnreg` proceeds with no registers released, and each warp
+/// converges at its own `setmaxnreg`.
+#[test]
+fn test_setmaxnreg_converges_its_warp_and_has_no_effect() {
+    let mut config = out_only_config(4, 64);
+    config.block_dim = (64, 1, 1);
+    analyze!(
+        "success/setmaxnreg_converges_its_warp_and_has_no_effect",
+        config
+    );
+}
+
+/// `.kind::mxf8f6f4.block_scale.block32`: every warp stores the same UE8M0 scale words in its
+/// 32-lane partition, and the MMA scales row m of A by byte SFA_ID of the word at lane m % 32,
+/// column m / 32 (column n of B likewise, byte SFB_ID): out = {204, 6528, 408, 13056}.
+#[test]
+fn test_tcgen05_mma_kind_mxf8f6f4_block_scale_numeric_correctness() {
+    let mut config = out_only_config(4, 4);
+    config.block_dim = (128, 1, 1);
+    analyze!(
+        "success/tcgen05_mma_kind_mxf8f6f4_block_scale_numeric_correctness",
+        config
+    );
+}
+
+/// `.kind::mxf8f6f4` scales that are kernel inputs, loaded as packed words like Gluon's:
+/// D[0][0] = 2^(sa[1] - 127) * 2^(sb[2] - 127), each factor Volta's `ex2`.
+#[test]
+fn test_tcgen05_mma_kind_mxf8f6f4_symbolic_scales() {
+    let mut config = AnalysisConfig::new((128, 1, 1));
+    config.arrays = vec![
+        array("sa", 0x10000, 1, 512, ArrayKind::Input),
+        array("sb", 0x11000, 1, 512, ArrayKind::Input),
+        array("out", 0x20000, 4, 1, ArrayKind::Output),
+    ];
+    config.params = ["sa", "sb", "out"]
+        .map(|name| ParamValue::ArrayPtr(name.to_string()))
+        .to_vec();
+    analyze!("success/tcgen05_mma_kind_mxf8f6f4_symbolic_scales", config);
 }

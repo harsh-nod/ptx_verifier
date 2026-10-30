@@ -116,6 +116,6 @@ fn completed_writer_signal_then_end_does_not_certify_a_later_wait() {
             .summary(Property::AmdBarrier)
             .findings
             .iter()
-            .any(|s| s.contains("implicit drop"))
+            .any(|s| s.text.contains("implicit drop"))
     );
 }

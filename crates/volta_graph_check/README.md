@@ -4,6 +4,8 @@ Checks the event graph of one candidate execution without running symbolic
 analysis or equivalence checking. `check_graph` validates the representation,
 selects the target-specific properties, and returns typed findings and a
 `GraphReport`. Its conclusion is `Verified`, `Rejected` or `Unknown`.
+Summaries retain witness event IDs for source-linked diagnostics, including AMD
+register hazards, barrier violations and unresolved trace obligations.
 
 The graph's recorded trace order is not a synchronization proof. The checker
 must validate tentative barrier, completion and memory associations before

@@ -379,6 +379,9 @@ impl EventGraph {
                 ) | (
                     GenerationKind::AsyncGroupWait { .. },
                     SyncObjectKind::AsyncGroupWait { .. }
+                ) | (
+                    GenerationKind::BulkGroupWait { .. },
+                    SyncObjectKind::BulkGroupWait { .. }
                 )
             );
             if !kind_ok {

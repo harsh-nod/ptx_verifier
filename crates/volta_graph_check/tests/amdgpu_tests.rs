@@ -500,6 +500,13 @@ fn missing_wait_has_typed_read_hazard_and_zero_wait_repairs_it() {
         if correct {
             assert_eq!(r.conclusion(), GraphConclusion::Verified);
         } else {
+            let summary = r.summary(volta_graph_check::Property::AmdWaitReadiness);
+            assert!(
+                summary
+                    .findings
+                    .iter()
+                    .any(|finding| finding.events == vec![issue, use_event])
+            );
             let hazards = r.amd.unwrap().wait_readiness;
             assert!(hazards.violations().iter().any(|h| h.issue == issue
                 && h.use_event == use_event
