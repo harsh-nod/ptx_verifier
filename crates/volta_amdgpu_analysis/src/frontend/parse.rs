@@ -966,7 +966,7 @@ fn descriptor_fields() -> &'static [&'static str] {
     ]
 }
 
-fn validate_descriptor(kernel: &Kernel) -> Result<(), ParseError> {
+pub(super) fn validate_descriptor(kernel: &Kernel) -> Result<(), ParseError> {
     let fail = |message| ParseError {
         message: format!("kernel `{}`: {message}", kernel.name),
         span: SourceSpan::default(),

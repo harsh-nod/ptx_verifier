@@ -46,6 +46,58 @@ pub(super) fn validate_encoding(name: &str) -> Result<(), String> {
 }
 
 fn validate_dual_pair(x: &Instruction, y: &Instruction) -> Result<(), String> {
+    for operation in [x, y] {
+        let stem = match operation.mnemonic.as_str() {
+            "v_cndmask_b32_e64" => {
+                if operation.operands.len() != 4
+                    || !matches!(operation.operands.get(3), Some(Operand::Register(r))
+                        if r.class == RegisterClass::Special && r.index == 0 && r.count == 1
+                            && r.special == Some(SpecialRegister::VccLo))
+                {
+                    return Err(
+                        "implicit VOPD CNDMASK requires its canonical VCC_LO selector".into(),
+                    );
+                }
+                "v_cndmask_b32"
+            }
+            name => name,
+        };
+        if !matches!(
+            stem,
+            "v_add_f64"
+                | "v_mul_f64"
+                | "v_add_f32"
+                | "v_mul_f32"
+                | "v_fma_f32"
+                | "v_fmamk_f32"
+                | "v_lshlrev_b32"
+                | "v_lshrrev_b32"
+                | "v_ashrrev_i32"
+                | "v_max_i32"
+                | "v_mov_b32"
+                | "v_bitop3_b32"
+                | "v_cndmask_b32"
+                | "v_fmac_f32"
+                | "v_add_nc_u32"
+                | "v_sub_nc_u32"
+                | "v_sub_f32"
+                | "v_max_num_f32"
+        ) {
+            return Err("unsupported VOPD constituent operation".into());
+        }
+        if stem == "v_bitop3_b32" && !matches!(operation.operands.last(), Some(Operand::Integer(0)))
+        {
+            return Err("VOPD bitop2 requires its canonical zero third source".into());
+        }
+    }
+    if x.operands.is_empty() || y.operands.is_empty() || x.operands.first() == y.operands.first() {
+        return Err("VOPD destinations must be distinct".into());
+    }
+    let implicit = |operation: &Instruction| operation.mnemonic == "v_cndmask_b32_e64";
+    if implicit(x) && y.mnemonic == "v_fma_f32" || implicit(y) && x.mnemonic == "v_fma_f32" {
+        return Err("implicit CNDMASK selects VOPD and cannot pair with VOPD3 FMA".into());
+    }
+
     if x.mnemonic == "v_max_i32" {
         return Err("gfx1250 signed MAX is supported only in the VOPD Y slot".into());
     }
@@ -496,12 +548,7 @@ pub(super) fn parse_special(
             }
             encoded
         };
-        if encoded < 0
-            || encoded >> 11 != 0
-            || (encoded & 15) > 11
-            || ((encoded >> 4) & 7) > 5
-            || ((encoded >> 7) & 15) > 11
-        {
+        if !super::instr::valid_alu_delay(encoded) {
             return Err(fail("invalid s_delay_alu encoding"));
         }
         return Ok(Some(Instruction {

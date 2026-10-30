@@ -125,22 +125,22 @@ pub fn analyze(
             .instructions
             .iter()
             .map(|instruction| InstructionInfo {
-                kind: if instruction.mnemonic == "global_atomic_add_f32" {
+                kind: if instruction.mnemonic() == "global_atomic_add_f32" {
                     "atomic f32 add no return"
                 } else if module
                     .target
                     .as_deref()
                     .and_then(crate::target::Architecture::from_target)
                     == Some(crate::target::Architecture::Gfx1250)
-                    && instruction.mnemonic.starts_with("flat_")
+                    && instruction.mnemonic().starts_with("flat_")
                 {
                     "flat memory"
-                } else if instruction.mnemonic.starts_with("tensor_") {
+                } else if instruction.mnemonic().starts_with("tensor_") {
                     "tensor memory"
-                } else if instruction.mnemonic == "v_nop" {
+                } else if instruction.mnemonic() == "v_nop" {
                     "vector ALU"
-                } else if instruction.mnemonic == "s_getreg_b32"
-                    || (instruction.mnemonic == "s_sendmsg"
+                } else if instruction.mnemonic() == "s_getreg_b32"
+                    || (instruction.mnemonic() == "s_sendmsg"
                         && module
                             .target
                             .as_deref()
@@ -148,44 +148,38 @@ pub fn analyze(
                             == Some(crate::target::Architecture::Gfx1250))
                 {
                     "xcnt drain"
-                } else if instruction.mnemonic == "s_delay_alu" {
+                } else if instruction.mnemonic() == "s_delay_alu" {
                     "s_delay_alu"
-                } else if instruction.mnemonic == "s_barrier_signal" {
-                    if matches!(
-                        instruction.operands.as_slice(),
-                        [crate::frontend::Operand::Integer(-1)]
-                    ) {
+                } else if instruction.mnemonic() == "s_barrier_signal" {
+                    if matches!(instruction.operands(), [crate::ir::Operand::Integer(-1)]) {
                         "barrier signal"
                     } else {
                         "named barrier signal"
                     }
-                } else if instruction.mnemonic == "s_barrier_wait" {
-                    if matches!(
-                        instruction.operands.as_slice(),
-                        [crate::frontend::Operand::Integer(-1)]
-                    ) {
+                } else if instruction.mnemonic() == "s_barrier_wait" {
+                    if matches!(instruction.operands(), [crate::ir::Operand::Integer(-1)]) {
                         "barrier wait"
                     } else {
                         "named barrier wait"
                     }
-                } else if instruction.mnemonic == "s_barrier_init" {
+                } else if instruction.mnemonic() == "s_barrier_init" {
                     "named barrier init"
-                } else if instruction.mnemonic == "s_barrier_join" {
+                } else if instruction.mnemonic() == "s_barrier_join" {
                     "named barrier join"
-                } else if instruction.mnemonic == "s_barrier_leave" {
+                } else if instruction.mnemonic() == "s_barrier_leave" {
                     "named barrier leave"
-                } else if instruction.mnemonic == "s_nop" {
+                } else if instruction.mnemonic() == "s_nop" {
                     "s_nop"
-                } else if instruction.mnemonic == "s_endpgm" {
+                } else if instruction.mnemonic() == "s_endpgm" {
                     "s_endpgm"
                 } else if matches!(
-                    instruction.mnemonic.as_str(),
+                    instruction.mnemonic().as_str(),
                     "v_fma_mixlo_f16" | "v_fma_mixhi_f16"
                 ) {
                     "shifted ALU"
                 } else if matches!(
                     instruction
-                        .mnemonic
+                        .mnemonic()
                         .trim_end_matches("_e32")
                         .trim_end_matches("_e64"),
                     "v_s_exp_f32"
@@ -199,9 +193,9 @@ pub fn analyze(
                 ) {
                     "trans ALU"
                 } else {
-                    super::eval::interp_kind(instruction.opcode, &instruction.mnemonic)
+                    super::eval::interp_kind(instruction.opcode(), instruction.mnemonic())
                 },
-                span: Some((instruction.span.start, instruction.span.end)),
+                span: Some((instruction.span().start, instruction.span().end)),
             })
             .collect(),
     };

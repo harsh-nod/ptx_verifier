@@ -21,3 +21,27 @@ pub use parse::{ParseError, parse, parse_module};
 
 #[cfg(test)]
 mod tests;
+
+/// Revalidate caller-built syntax before it becomes an executable instruction.
+/// Parsing and lowering share the same operand/encoding checks; this does not
+/// turn a recognized but unimplemented operation into an execution claim.
+pub(crate) fn validate_for_lowering(
+    instruction: &Instruction,
+    architecture: crate::target::Architecture,
+) -> Result<(), ParseError> {
+    instr::validate_for_lowering(instruction, architecture).map_err(|message| ParseError {
+        message,
+        span: instruction.span,
+    })
+}
+
+/// Canonicalize implicit sources and FP64 constants exactly once, recursively
+/// for VOPD components. Already parsed instructions remain unchanged.
+pub(crate) fn normalize_for_lowering(instruction: &mut Instruction) -> Result<(), ParseError> {
+    instr::normalize_for_lowering(instruction)
+}
+
+/// Descriptor structure and register-allocation constraints shared with parsing.
+pub(crate) fn validate_descriptor_for_lowering(kernel: &Kernel) -> Result<(), ParseError> {
+    parse::validate_descriptor(kernel)
+}

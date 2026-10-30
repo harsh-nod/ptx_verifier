@@ -135,14 +135,30 @@ fn rel64_materializes_only_the_approved_pair_and_preserves_scc() {
             form: GlobalAddressForm::Rel64,
         },
     );
-    for name in ["s_get_pc_i64", "s_add_nc_u64", "s_endpgm"] {
-        program.instructions.push(Instruction {
-            mnemonic: name.into(),
-            opcode: Opcode::ScalarAlu,
-            operands: Vec::new(),
-            modifiers: Vec::new(),
-            span: SourceSpan::default(),
-        });
+    let raw_pair = crate::frontend::Operand::Register(pair);
+    for (name, opcode, operands) in [
+        ("s_get_pc_i64", Opcode::ScalarAlu, vec![raw_pair.clone()]),
+        (
+            "s_add_nc_u64",
+            Opcode::ScalarAlu,
+            vec![
+                raw_pair.clone(),
+                raw_pair,
+                crate::frontend::Operand::Integer(4),
+            ],
+        ),
+        ("s_endpgm", Opcode::Control, vec![]),
+    ] {
+        program.instructions.push(
+            Instruction::lower(&crate::frontend::Instruction {
+                mnemonic: name.into(),
+                opcode,
+                operands,
+                modifiers: Vec::new(),
+                span: SourceSpan::default(),
+            })
+            .unwrap(),
+        );
     }
     let interpreter = interpreter(&program);
     for scc in [false, true] {

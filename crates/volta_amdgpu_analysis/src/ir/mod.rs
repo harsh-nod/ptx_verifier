@@ -1,6 +1,13 @@
-//! Lowered native AMD program; syntax types remain owned by the frontend.
+//! Executable native AMD operations, value operands, source identity and module metadata.
 
-pub use crate::frontend::ast::*;
+mod instruction;
+mod ops;
+pub use crate::frontend::ast::{
+    Global, Kernel, KernelArg, KernelDescriptor, Modifier, Module, Opcode, Register, RegisterClass,
+    Relocation, RelocationKind, SourceSpan, SpecialRegister,
+};
+pub use instruction::*;
+pub use ops::{AluOpcode, MatrixOpcode, MemoryOpcode};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

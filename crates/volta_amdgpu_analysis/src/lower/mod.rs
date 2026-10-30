@@ -2,9 +2,10 @@
 
 use std::{collections::BTreeMap, error::Error, fmt};
 
+use crate::frontend::Operand;
 use crate::ir::{
-    Global, GlobalAddressForm, GlobalAddressSequence, Kernel, LoweredKernel, Module, Opcode,
-    Operand, Register, RegisterClass, RelocationKind, SourceSpan,
+    Global, GlobalAddressForm, GlobalAddressSequence, Instruction as LoweredInstruction, Kernel,
+    LoweredKernel, Module, Opcode, Register, RegisterClass, RelocationKind, SourceSpan,
 };
 
 #[cfg(test)]
@@ -28,8 +29,20 @@ impl fmt::Display for LowerError {
 
 impl Error for LowerError {}
 
+/// Lower without module globals. Wave64 retains the gfx950 default; wave32
+/// descriptors select the gfx1250 profile. Explicit gfx942 requires a module.
 pub fn lower_kernel(kernel: &Kernel) -> Result<LoweredKernel, LowerError> {
-    lower_with_globals(kernel, &[], false)
+    let target = if kernel.descriptor.flag("wavefront_size32") {
+        "gfx1250"
+    } else {
+        "gfx950"
+    };
+    let context = Module {
+        target: Some(target.into()),
+        kernels: vec![kernel.clone()],
+        ..Module::default()
+    };
+    lower_kernel_in_module(&context, &context.kernels[0])
 }
 
 pub fn lower_kernel_in_module(
@@ -40,19 +53,54 @@ pub fn lower_kernel_in_module(
         message: error.message,
         span: error.span,
     })?;
-    lower_with_globals(
-        kernel,
-        &module.globals,
-        architecture == crate::target::Architecture::Gfx1250,
-    )
+    // The public API may receive a kernel other than a member of `module`.
+    // Its descriptor and instructions need the same selected-target contract.
+    if !module
+        .kernels
+        .iter()
+        .any(|entry| std::ptr::eq(entry, kernel))
+    {
+        let context = Module {
+            target: module.target.clone(),
+            kernels: vec![kernel.clone()],
+            ..Module::default()
+        };
+        crate::target::validate(&context).map_err(|error| LowerError {
+            message: error.message,
+            span: error.span,
+        })?;
+    }
+    lower_with_globals(kernel, &module.globals, architecture)
 }
 
 fn lower_with_globals(
     kernel: &Kernel,
     globals: &[Global],
-    allow_rel64: bool,
+    architecture: crate::target::Architecture,
 ) -> Result<LoweredKernel, LowerError> {
+    let allow_rel64 = architecture == crate::target::Architecture::Gfx1250;
     let mut instructions = kernel.instructions.clone();
+    for instruction in &mut instructions {
+        crate::frontend::normalize_for_lowering(instruction).map_err(|error| LowerError {
+            message: error.message,
+            span: error.span,
+        })?;
+        crate::frontend::validate_for_lowering(instruction, architecture).map_err(|error| {
+            LowerError {
+                message: error.message,
+                span: error.span,
+            }
+        })?;
+    }
+    // Descriptor validation runs only after all register shapes are safe.
+    let validated = Kernel {
+        instructions: instructions.clone(),
+        ..kernel.clone()
+    };
+    crate::frontend::validate_descriptor_for_lowering(&validated).map_err(|error| LowerError {
+        message: error.message,
+        span: error.span,
+    })?;
     let instruction_count = instructions.len();
     for instruction in &mut instructions {
         for operand in &instruction.operands {
@@ -226,7 +274,15 @@ fn lower_with_globals(
     }
     Ok(LoweredKernel {
         name: kernel.name.clone(),
-        instructions,
+        instructions: instructions
+            .iter()
+            .map(|instruction| {
+                LoweredInstruction::lower(instruction).map_err(|message| LowerError {
+                    message,
+                    span: instruction.span,
+                })
+            })
+            .collect::<Result<_, _>>()?,
         descriptor: kernel.descriptor.clone(),
         args: kernel.args.clone(),
         globals: globals.to_vec(),

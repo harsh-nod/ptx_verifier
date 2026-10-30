@@ -165,6 +165,68 @@ fn whitespace_tokens(text: &str) -> Result<Vec<&str>, String> {
     Ok(result)
 }
 
+/// Physical tuple shape shared by the lexer and public AST lowering.
+fn validate_register_shape(
+    register: Register,
+    architecture: crate::target::Architecture,
+) -> Result<(), String> {
+    use crate::target::Architecture;
+    if register.class == RegisterClass::Special {
+        let Some(special) = register.special else {
+            return Err("special register has no selector".into());
+        };
+        let count = match special {
+            SpecialRegister::Exec
+            | SpecialRegister::Vcc
+            | SpecialRegister::FlatScratch
+            | SpecialRegister::SharedBase => 2,
+            _ => 1,
+        };
+        return if register.index == 0 && register.count == count {
+            Ok(())
+        } else {
+            Err("special register selector/width mismatch".into())
+        };
+    }
+    let limit = match register.class {
+        RegisterClass::Scalar => {
+            if architecture == Architecture::Gfx1250 {
+                106
+            } else {
+                102
+            }
+        }
+        RegisterClass::Vector => {
+            if architecture == Architecture::Gfx1250 {
+                1024
+            } else {
+                256
+            }
+        }
+        RegisterClass::Accumulator => 256,
+        RegisterClass::Temporary if architecture == Architecture::Gfx1250 => 16,
+        RegisterClass::Temporary => return Err("temporary register requires gfx1250".into()),
+        RegisterClass::Special => unreachable!(),
+    };
+    if register.count == 0
+        || register.special.is_some()
+        || u32::from(register.index) + u32::from(register.count) > limit
+    {
+        return Err("physical register range is outside its native encoding profile".into());
+    }
+    if register.count > 1 {
+        let alignment = if register.class == RegisterClass::Scalar && register.count >= 3 {
+            4
+        } else {
+            2
+        };
+        if !register.index.is_multiple_of(alignment) {
+            return Err("misaligned register tuple".into());
+        }
+    }
+    Ok(())
+}
+
 fn register(
     text: &str,
     architecture: crate::target::Architecture,
@@ -251,22 +313,15 @@ fn register(
     if end < index || end > limit {
         return Err(format!("invalid {class:?} register range `{text}`"));
     }
-    if end != index {
-        let alignment = if class == RegisterClass::Scalar {
-            if end - index + 1 >= 3 { 4 } else { 2 }
-        } else {
-            2
-        };
-        if !index.is_multiple_of(alignment) {
-            return Err(format!("misaligned register tuple `{text}`"));
-        }
-    }
-    Ok(Some(Register {
+    let register = Register {
         class,
         index,
         count: end - index + 1,
         special: None,
-    }))
+    };
+    validate_register_shape(register, architecture)
+        .map_err(|message| format!("{message} `{text}`"))?;
+    Ok(Some(register))
 }
 
 fn operand(text: &str, architecture: crate::target::Architecture) -> Result<Operand, String> {
@@ -926,6 +981,76 @@ pub(super) fn parse_instruction(
             operands.len()
         )));
     }
+    validate_post_parse(mnemonic, opcode, &operands, &modifiers, architecture, span)?;
+    let mut instruction = Instruction {
+        mnemonic: mnemonic.into(),
+        opcode,
+        operands,
+        modifiers,
+        span,
+    };
+    normalize_implicit_operands(&mut instruction);
+    Ok(instruction)
+}
+
+/// Canonical explicit operands for syntax with an implicit VCC selector.
+fn normalize_implicit_operands(instruction: &mut Instruction) {
+    if instruction.mnemonic == "v_cndmask_b32_e32" && instruction.operands.len() == 3 {
+        instruction.operands.push(Operand::Register(Register {
+            class: RegisterClass::Special,
+            index: 0,
+            count: 2,
+            special: Some(SpecialRegister::Vcc),
+        }));
+    }
+}
+
+pub(super) fn normalize_for_lowering(instruction: &mut Instruction) -> Result<(), ParseError> {
+    if let [Operand::Dual(x, y)] = instruction.operands.as_mut_slice() {
+        normalize_for_lowering(x)?;
+        normalize_for_lowering(y)?;
+    }
+    normalize_implicit_operands(instruction);
+    normalize_f64_sources(instruction)
+}
+
+pub(super) fn valid_alu_delay(encoded: i64) -> bool {
+    encoded >= 0
+        && encoded >> 11 == 0
+        && encoded & 15 <= 11
+        && (encoded >> 4) & 7 <= 5
+        && (encoded >> 7) & 15 <= 11
+}
+
+/// Instruction-form checks shared by text parsing and direct AST lowering.
+fn validate_post_parse(
+    mnemonic: &str,
+    opcode: Opcode,
+    operands: &[Operand],
+    modifiers: &[Modifier],
+    architecture: crate::target::Architecture,
+    span: SourceSpan,
+) -> Result<(), ParseError> {
+    let fail = |message| ParseError { message, span };
+    if mnemonic == "s_waitcnt" {
+        let mut seen = std::collections::BTreeSet::new();
+        for operand in operands {
+            if let Operand::WaitCounter { name, value } = operand {
+                let limit = match name.as_str() {
+                    "vmcnt" => 63,
+                    "lgkmcnt" => 15,
+                    "expcnt" => 7,
+                    _ => return Err(fail(format!("unsupported wait counter `{name}`"))),
+                };
+                if *value > limit {
+                    return Err(fail(format!("invalid `{name}` threshold")));
+                }
+                if !seen.insert(name) {
+                    return Err(fail(format!("duplicate wait counter `{name}`")));
+                }
+            }
+        }
+    }
     if opcode == Opcode::Branch && !matches!(operands.first(), Some(Operand::Symbol(_))) {
         return Err(fail("branch target must be a label".into()));
     }
@@ -941,7 +1066,7 @@ pub(super) fn parse_instruction(
             "s_waitcnt requires counters or one 16-bit immediate".into(),
         ));
     }
-    validate_registers(mnemonic, opcode, &operands, &modifiers, architecture).map_err(&fail)?;
+    validate_registers(mnemonic, opcode, operands, modifiers, architecture).map_err(&fail)?;
     if modifiers.iter().any(|m| {
         if architecture == crate::target::Architecture::Gfx1250 {
             matches!(
@@ -957,7 +1082,7 @@ pub(super) fn parse_instruction(
                 .into(),
         ));
     }
-    validate_vop_literal_positions(mnemonic, &operands, &modifiers, architecture).map_err(&fail)?;
+    validate_vop_literal_positions(mnemonic, operands, modifiers, architecture).map_err(&fail)?;
     if mnemonic == "v_ashrrev_i64_e32" {
         return Err(fail("v_ashrrev_i64 has only a VOP3 encoding".into()));
     }
@@ -1004,22 +1129,7 @@ pub(super) fn parse_instruction(
         }
         if operands.len() == 6 && operands[4..].iter().any(|operand| !matches!(operand, Operand::Register(register) if register.class == RegisterClass::Vector && register.count == 1)) { return Err(fail("scaled MFMA requires one VGPR per scale source".into())); }
     }
-    if mnemonic == "v_cndmask_b32_e32" && operands.len() == 3 {
-        // LLVM accepts the omitted mandatory VCC input and prints it explicitly.
-        operands.push(Operand::Register(Register {
-            class: RegisterClass::Special,
-            index: 0,
-            count: 2,
-            special: Some(SpecialRegister::Vcc),
-        }));
-    }
-    Ok(Instruction {
-        mnemonic: mnemonic.into(),
-        opcode,
-        operands,
-        modifiers,
-        span,
-    })
+    Ok(())
 }
 
 /// Validate controls after assembly constants have been resolved. SOPP source
@@ -1030,6 +1140,17 @@ pub(super) fn parse_instruction(
 pub(super) fn validate_control(instruction: &Instruction) -> Result<(), ParseError> {
     if instruction.opcode != Opcode::Control {
         return Ok(());
+    }
+    if instruction.mnemonic == "s_delay_alu"
+        && instruction
+            .operands
+            .iter()
+            .any(|value| !matches!(value, Operand::Integer(encoded) if valid_alu_delay(*encoded)))
+    {
+        return Err(ParseError {
+            message: "invalid s_delay_alu encoding".into(),
+            span: instruction.span,
+        });
     }
     let maximum = match instruction.mnemonic.as_str() {
         "s_nop" => 15,
@@ -1045,7 +1166,12 @@ pub(super) fn validate_control(instruction: &Instruction) -> Result<(), ParseErr
         // The gfx950 assembler accepts an optional unsigned SIMM16 on ENDPGM;
         // omitting it is the ordinary compiler-generated spelling.
         "s_endpgm" | "s_sendmsg" => 0xffff,
-        _ => unreachable!("control signatures have explicit immediate contracts"),
+        _ => {
+            return Err(ParseError {
+                message: format!("unsupported control instruction `{}`", instruction.mnemonic),
+                span: instruction.span,
+            });
+        }
     };
     if instruction
         .operands
@@ -1932,4 +2058,119 @@ fn memory_width(mnemonic: &str) -> u16 {
     } else {
         1
     }
+}
+
+/// Validate syntax supplied through the public typed AST, rather than text.
+/// In particular, executable role accessors must never receive a short tuple.
+pub(super) fn validate_for_lowering(
+    instruction: &Instruction,
+    architecture: crate::target::Architecture,
+) -> Result<(), String> {
+    use crate::target::Architecture;
+    if let [Operand::Dual(x, y)] = instruction.operands.as_slice() {
+        if architecture != Architecture::Gfx1250
+            || instruction.opcode != Opcode::VectorAlu
+            || !instruction.modifiers.is_empty()
+            || x.opcode != Opcode::VectorAlu
+            || y.opcode != Opcode::VectorAlu
+            || x.operands
+                .iter()
+                .chain(&y.operands)
+                .any(|value| matches!(value, Operand::Dual(..)))
+        {
+            return Err("invalid typed VOPD instruction or nested issue".into());
+        }
+        validate_for_lowering(x, architecture)?;
+        validate_for_lowering(y, architecture)?;
+        return super::gfx1250::validate_typed_profile(instruction);
+    }
+    let (opcode, mut minimum, mut maximum) = match instruction.mnemonic.as_str() {
+        "s_getreg_b32" if architecture == Architecture::Gfx1250 => (Opcode::ScalarAlu, 2, 2),
+        "s_delay_alu" if architecture == Architecture::Gfx1250 => (Opcode::Control, 1, 1),
+        name => signature(name)
+            .or_else(|| {
+                super::gfx1250::signature(name).filter(|_| architecture == Architecture::Gfx1250)
+            })
+            .ok_or_else(|| format!("unsupported typed instruction {name}"))?,
+    };
+    if architecture == Architecture::Gfx1250 && instruction.mnemonic.starts_with("v_cmpx_") {
+        minimum = 2;
+        maximum = 2;
+    }
+    if instruction.opcode != opcode || !(minimum..=maximum).contains(&instruction.operands.len()) {
+        return Err(format!(
+            "typed instruction {} has an invalid opcode/operand count",
+            instruction.mnemonic
+        ));
+    }
+    fn value(operand: &Operand, architecture: Architecture) -> Result<(), String> {
+        match operand {
+            Operand::Register(register) => validate_register_shape(*register, architecture)?,
+            Operand::Modified {
+                value: inner,
+                negate,
+                absolute,
+            } => {
+                if !(*negate || *absolute)
+                    || !matches!(
+                        inner.as_ref(),
+                        Operand::Register(_) | Operand::Integer(_) | Operand::Float(_)
+                    )
+                {
+                    return Err("source modifiers require one register or literal".into());
+                }
+                value(inner, architecture)?;
+            }
+            Operand::HardwareRegister { offset, width, .. }
+                if *width == 0 || u16::from(*offset) + u16::from(*width) > 32 =>
+            {
+                return Err("hwreg bit selection outside 32-bit register".into());
+            }
+            Operand::Float(v) if !v.is_finite() => {
+                return Err("nonfinite float literal is unsupported".into());
+            }
+            Operand::Dual(..) => return Err("dual issue is not a value operand".into()),
+            _ => {}
+        }
+        Ok(())
+    }
+    for operand in &instruction.operands {
+        value(operand, architecture)?;
+    }
+    let mut seen = std::collections::BTreeSet::new();
+    for modifier in &instruction.modifiers {
+        if !seen.insert(&modifier.name) {
+            return Err(format!("duplicate modifier `{}`", modifier.name));
+        }
+        if modifier.name == "src0_sext" {
+            if instruction.mnemonic != "v_cvt_f16_i16_sdwa"
+                || modifier.value.is_some()
+                || !matches!(instruction.operands.get(1), Some(Operand::Register(r)) if r.class == RegisterClass::Vector && r.count == 1)
+            {
+                return Err(
+                    "SDWA sext source requires v_cvt_f16_i16_sdwa and one plain VGPR".into(),
+                );
+            }
+            continue;
+        }
+        let token = modifier.value.as_ref().map_or_else(
+            || modifier.name.clone(),
+            |value| format!("{}:{value}", modifier.name),
+        );
+        parse_modifier(&token, instruction.opcode, &instruction.mnemonic)?;
+    }
+    validate_control(instruction).map_err(|e| e.message)?;
+    validate_post_parse(
+        &instruction.mnemonic,
+        instruction.opcode,
+        &instruction.operands,
+        &instruction.modifiers,
+        architecture,
+        instruction.span,
+    )
+    .map_err(|error| error.message)?;
+    if architecture == Architecture::Gfx1250 {
+        super::gfx1250::validate_typed_profile(instruction)?;
+    }
+    Ok(())
 }

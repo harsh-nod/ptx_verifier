@@ -50,6 +50,14 @@ by [architecture_tests.rs](../crates/volta_pipeline/tests/architecture_tests.rs)
    passing. A refutation, index mismatch, failed check or deadlock yields
    `REJECT`; a missing proof yields `UNKNOWN`.
 
+For native AMD, `frontend::Instruction` represents assembly syntax.
+`lower_kernel_in_module` validates the target and constructs distinct
+`ir::Instruction` values with typed operations, resolved branches, decoded waits
+and memory/matrix operand roles. Syntax-only labels and wait lists cannot enter
+ordinary executable operands. Each instruction retains its source mnemonic,
+encoding, modifiers and span at the original PC for diagnostics and graph
+provenance. This IR is implemented in Rust; it does not depend on LLVM or MLIR.
+
 ## Shared contracts
 
 | Crate | Data and responsibility |
