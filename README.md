@@ -91,6 +91,34 @@ to zero and must lie inside the grid. Optional
 native LDS allocation ranges preserve subobject bounds when assembly no longer
 contains source-level object boundaries.
 
+## Measured time to a safety finding
+
+Opt-in certified readiness rejection detects an unsafe gfx1250 scalar read
+before executing the remaining symbolic trace. Against this fork's full-trace
+baseline, the three predeclared missing-wait cases measured:
+
+| Configuration | Baseline median | Early median | Speedup |
+| --- | ---: | ---: | ---: |
+| Copy | 7.580 ms | 7.085 ms | 1.07× |
+| Original F16 ReLU, N=1024 | 16.153 ms | 12.835 ms | 1.26× |
+| Original F16 RMSNorm, N=4096 | 51.901 ms | 16.065 ms | 3.23× |
+
+These are parent-observed first-diagnostic times from 255 paired fresh processes
+per configuration on CPU-only x86_64 WSL2. All three paired 95% bootstrap
+ratio intervals are below 1. Five of six additional compiler-kernel families
+also improved; elementwise was inconclusive. This measures verifier latency,
+not GPU execution speed or a comparison against upstream Volta.
+
+Both versions detected the same 29 of 30 seeded hazardous configurations across
+the 77-configuration suite; one tensor-bounds case remained `UNKNOWN`. All 47
+safe configurations retained their complete specification proofs, with no false
+positives or unsafe acceptances. Confirmation and both heldout runs met the
+predeclared per-case safe-time and memory limits. The initial 31-repeat run
+failed one GEMM p95 limit and is retained separately; one confirmatory safe-case
+p95 uncertainty interval crosses its allowance. See the
+[complete results, limitations and reproducible data](tests/amdgpu/design-study/results/README.md)
+and [measurement protocol](tests/amdgpu/design-study/README.md).
+
 ## How the code is organized
 
 The [architecture guide](docs/architecture.md) follows a kernel through parsing,
