@@ -63,7 +63,8 @@ with sampling. Selection never rebases outputs or fills missing ones.
 
 `--config FILE` replaces launch flags and cannot be combined with `--block`,
 `--grid`, `--array`, `--param`, `--global`, `--dyn-shared` or
-`--shared-allocation` or `--workgroup-id`. Backend and target selection remain separate options.
+`--shared-allocation`, `--workgroup-id` or `--early-readiness`.
+Backend and target selection remain separate options.
 See [launch_file.rs](../crates/volta_ptx_analysis/src/launch_file.rs) for the
 shared JSON schema and validation rules.
 
@@ -86,6 +87,14 @@ execution and graph checks; `--no-profile` suppresses the instruction profile.
 For PTX, omit `--backend` and `--target`, and provide its own source and matching
 launch. Native AMD defaults to gfx950 if its target is omitted; selecting the
 target explicitly makes a source mismatch an error.
+
+Native gfx1250 source execution also offers opt-in
+[early scalar readiness rejection](early-readiness.md). Set `early_readiness`
+to `true` inside launch JSON, or pass `--early-readiness` with launch flags.
+A certified finding prints `EARLY_READINESS: CERTIFIED_REJECTION`, its typed
+witness and `VERDICT: REJECT` with exit code 1. The result contains an incomplete
+prefix and no output expressions or equivalence claim. Ordinary execution is
+the default; every acceptance still requires complete execution and checking.
 
 ## Verify a mathematical specification
 
