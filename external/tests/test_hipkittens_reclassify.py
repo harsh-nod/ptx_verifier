@@ -30,6 +30,40 @@ def fixture(root):
 
 
 class HipKittensReclassificationTests(unittest.TestCase):
+    def test_add_one_math_refutation_retains_graph_rejection_without_identity_claim(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            directory, report = fixture(root)
+            output = (directory/'verify.stdout').read_text().replace(
+                'AMD memory-conflict freedom (target algorithm) PASS',
+                'AMD memory-conflict freedom (target algorithm) FAIL').replace('VERDICT: ACCEPT', 'VERDICT: REJECT')
+            stage = {'status': 'rejected', 'returncode': 1}
+            (directory/'verify.stdout').write_text(output)
+            (directory/'verify.json').write_text(json.dumps(stage))
+            report['profile'] = 'vec-add1'
+            row = report['results'][0]
+            row.pop('full_identity_proved')
+            row.update(status='graph_rejected', full_specification_proved=True, stage=stage)
+            wrong = output.replace('EQUIVALENT (matches spec)', 'NOT EQUIVALENT: 32 mismatched element(s) vs spec')
+            for suffix, data in [('stdout', wrong), ('stderr', ''), ('json', json.dumps(stage))]:
+                (directory/('wrong-spec.'+suffix)).write_text(data)
+            report['mathematical_controls'] = [RECLASSIFY.vectors.math_control(
+                row, stage, wrong, '', RECLASSIFY.vectors.ADD1)]
+            (root/'report.json').write_text(json.dumps(report))
+            result = RECLASSIFY.reclassify(root)
+            self.assertEqual(result['outcomes'], {'graph_rejected': 1})
+            self.assertEqual(result['full_specification_proofs'], 1)
+            self.assertNotIn('full_identity_proofs', result)
+            self.assertEqual(result['differences'], [])
+            control = result['mathematical_controls'][0]
+            self.assertTrue(control['math_refuted'])
+            self.assertFalse(control['graph_verified'])
+            self.assertNotIn('passed', control)
+            (directory/'wrong-spec.stdout').write_text(wrong.replace('elements: 32', 'elements: 1/32'))
+            changed = RECLASSIFY.reclassify(root)
+            self.assertFalse(changed['mathematical_controls'][0]['math_refuted'])
+            self.assertEqual(len(changed['differences']), 1)
+
     def test_existing_result_is_recomputed_and_transcript_drift_is_explicit(self):
         with tempfile.TemporaryDirectory() as name:
             root = Path(name)
