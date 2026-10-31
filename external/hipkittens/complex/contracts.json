@@ -1,0 +1,514 @@
+{
+  "schema": 1,
+  "source_revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+  "repository": "https://github.com/HazyResearch/HipKittens",
+  "scope": "One original workgroup (0,0,0); all original host dimensions and full-K work retained. Other workgroups are outside the result.",
+  "input_allocations": "Complete original A[M,K] and B[N,K] allocations; no prefix reduction. Full M/N/K descriptor extents and strides retained.",
+  "output_allocation_limit": "The complete original C[M,N] base/extent is recorded per case. The native interface forbids overlapping arrays, so the launch declares only disjoint selected-WG output views, not an overlapping full-C array. This is a selected-workgroup contract, not a full-matrix/all-workgroups proof.",
+  "output_views": "Every physical tile element, as disjoint contiguous columns/rows at the original leading-dimension offsets. Unselected matrix elements are not outputs of WG0.",
+  "math": "C[r,c] = sum(k=0..K-1,A[r,k]*B[c,k]); abstract mathematical BF16 input values/fp32 accumulation. This does not check hardware rounding or the upstream torch tolerance.",
+  "profiles": {
+    "gfx1250-gemm00": {
+      "source": "kernels/cdna5/gemm/bf16fp32/gfx1250/00_gemm_naive.cpp",
+      "host": "kernels/cdna5/gemm/bf16fp32/gfx1250/utils.py",
+      "target": "gfx1250",
+      "architecture": "cdna5",
+      "symbol": "_Z20gemm_00_naive_kernelN12gfx1250_gemm12gemm_globalsEiii",
+      "tile": 64,
+      "block": 128,
+      "wave": 32,
+      "dynamic_shared_bytes": 8704,
+      "descriptor_bytes": 40,
+      "globals_bytes": 120,
+      "layout": "column-major",
+      "source_sha256": {
+        "kernels/cdna5/gemm/bf16fp32/gfx1250/00_gemm_naive.cpp": "3957409322a04ab2c13cb78751f85b088392922d4ead9294e5be4724245cc9f0",
+        "kernels/cdna5/gemm/bf16fp32/gfx1250/utils.py": "057077aa2d3a8ef189725aae9f7d1e38311c129344f89203004f2c88d46800c5",
+        "kernels/cdna5/gemm/bf16fp32/gfx1250/common.h": "9d95ef0d7b067010cf8f307febecc9cae101fe5258a7f6490082b5972ea7c4b2",
+        "kernels/cdna5/gemm/bf16fp32/gfx1250/harness.h": "c6a7b159c0fff71709f7507ac49c76de62fe8b3718ad46dd922e4510f48a7a93",
+        "kernels/cdna5/gemm/bf16fp32/gfx1250/pyext.h": "4abc47ddce6f393e3ab261a451ce94faffb8ace47248e093e65d1c6be6f3e336",
+        "kernels/cdna5/gemm/bf16fp32/gfx1250/test.py": "bd81c5ef9c0601cdcf94bca869fd2971fecc05dd306c27841263807b74cfec20",
+        "kernels/cdna5/gemm/bf16fp32/gfx1250/Makefile": "4713250a0aec1a8dcf36fa5f7da519debd38b10fc8fca14f83bcfa5b7f37f51f"
+      },
+      "cases": [
+        {
+          "id": "gfx1250-gemm00-8192x8192x8192",
+          "profile": "gfx1250-gemm00",
+          "shape": [
+            8192,
+            8192,
+            8192
+          ],
+          "workgroup_id": [
+            0,
+            0,
+            0
+          ],
+          "required_output_elements": 4096,
+          "original_allocations": {
+            "A": {
+              "base": 268435456,
+              "shape": [
+                8192,
+                8192
+              ],
+              "bytes": 134217728
+            },
+            "B": {
+              "base": 1073741824,
+              "shape": [
+                8192,
+                8192
+              ],
+              "bytes": 134217728
+            },
+            "C": {
+              "base": 2147483648,
+              "shape": [
+                8192,
+                8192
+              ],
+              "bytes": 134217728
+            }
+          }
+        },
+        {
+          "id": "gfx1250-gemm00-4096x8192x2048",
+          "profile": "gfx1250-gemm00",
+          "shape": [
+            4096,
+            8192,
+            2048
+          ],
+          "workgroup_id": [
+            0,
+            0,
+            0
+          ],
+          "required_output_elements": 4096,
+          "original_allocations": {
+            "A": {
+              "base": 268435456,
+              "shape": [
+                4096,
+                2048
+              ],
+              "bytes": 16777216
+            },
+            "B": {
+              "base": 1073741824,
+              "shape": [
+                8192,
+                2048
+              ],
+              "bytes": 33554432
+            },
+            "C": {
+              "base": 2147483648,
+              "shape": [
+                4096,
+                8192
+              ],
+              "bytes": 67108864
+            }
+          }
+        },
+        {
+          "id": "gfx1250-gemm00-8192x4096x2048",
+          "profile": "gfx1250-gemm00",
+          "shape": [
+            8192,
+            4096,
+            2048
+          ],
+          "workgroup_id": [
+            0,
+            0,
+            0
+          ],
+          "required_output_elements": 4096,
+          "original_allocations": {
+            "A": {
+              "base": 268435456,
+              "shape": [
+                8192,
+                2048
+              ],
+              "bytes": 33554432
+            },
+            "B": {
+              "base": 1073741824,
+              "shape": [
+                4096,
+                2048
+              ],
+              "bytes": 16777216
+            },
+            "C": {
+              "base": 2147483648,
+              "shape": [
+                8192,
+                4096
+              ],
+              "bytes": 67108864
+            }
+          }
+        },
+        {
+          "id": "gfx1250-gemm00-2048x1024x1024",
+          "profile": "gfx1250-gemm00",
+          "shape": [
+            2048,
+            1024,
+            1024
+          ],
+          "workgroup_id": [
+            0,
+            0,
+            0
+          ],
+          "required_output_elements": 4096,
+          "original_allocations": {
+            "A": {
+              "base": 268435456,
+              "shape": [
+                2048,
+                1024
+              ],
+              "bytes": 4194304
+            },
+            "B": {
+              "base": 1073741824,
+              "shape": [
+                1024,
+                1024
+              ],
+              "bytes": 2097152
+            },
+            "C": {
+              "base": 2147483648,
+              "shape": [
+                2048,
+                1024
+              ],
+              "bytes": 4194304
+            }
+          }
+        }
+      ],
+      "spec_sha256": "ca0cf3759153858e9d9d580c2f438db8a85205a43dd8362597afa5ba4635334e",
+      "wrong_spec_sha256": "10f8d23b6ba1e916528beae36b4b77e94f393d8c0ff2d7524265a56a1d86a24b"
+    },
+    "gfx950-bf16-gemm": {
+      "source": "kernels/cdna4/gemm/bf16fp32/256_256_64_32_with16x32.cpp",
+      "host": "kernels/cdna4/gemm/bf16fp32/test.py",
+      "target": "gfx950",
+      "architecture": "cdna4",
+      "symbol": "_Z8micro_tk13micro_globalsiii",
+      "tile": 256,
+      "block": 512,
+      "wave": 64,
+      "dynamic_shared_bytes": 160000,
+      "descriptor_bytes": 48,
+      "globals_bytes": 168,
+      "layout": "row-major",
+      "source_sha256": {
+        "kernels/cdna4/gemm/bf16fp32/256_256_64_32_with16x32.cpp": "935f6fb5915016667aad09b4a10a033d8b5ec262404270fe5ee06654c0dd9aed",
+        "kernels/cdna4/gemm/bf16fp32/test.py": "e4732f558ade06c66040abf25ffc7492d88794ab8f37ce716adb35111b5941d9",
+        "kernels/cdna4/gemm/bf16fp32/utils.py": "854c56fe69a607653a1fa8eb57f6b076414eb9cdaa3de9bf902be678b93ab0e9",
+        "kernels/cdna4/gemm/bf16fp32/Makefile": "c9e809956ea5b6e1c5728b6f9ee7c27487adc1838fe796fa532c2d7704ba5d26"
+      },
+      "cases": [
+        {
+          "id": "gfx950-bf16-gemm-8192x8192x8192",
+          "profile": "gfx950-bf16-gemm",
+          "shape": [
+            8192,
+            8192,
+            8192
+          ],
+          "workgroup_id": [
+            0,
+            0,
+            0
+          ],
+          "required_output_elements": 65536,
+          "original_allocations": {
+            "A": {
+              "base": 268435456,
+              "shape": [
+                8192,
+                8192
+              ],
+              "bytes": 134217728
+            },
+            "B": {
+              "base": 1073741824,
+              "shape": [
+                8192,
+                8192
+              ],
+              "bytes": 134217728
+            },
+            "C": {
+              "base": 2147483648,
+              "shape": [
+                8192,
+                8192
+              ],
+              "bytes": 134217728
+            }
+          }
+        },
+        {
+          "id": "gfx950-bf16-gemm-4096x8192x2048",
+          "profile": "gfx950-bf16-gemm",
+          "shape": [
+            4096,
+            8192,
+            2048
+          ],
+          "workgroup_id": [
+            0,
+            0,
+            0
+          ],
+          "required_output_elements": 65536,
+          "original_allocations": {
+            "A": {
+              "base": 268435456,
+              "shape": [
+                4096,
+                2048
+              ],
+              "bytes": 16777216
+            },
+            "B": {
+              "base": 1073741824,
+              "shape": [
+                8192,
+                2048
+              ],
+              "bytes": 33554432
+            },
+            "C": {
+              "base": 2147483648,
+              "shape": [
+                4096,
+                8192
+              ],
+              "bytes": 67108864
+            }
+          }
+        },
+        {
+          "id": "gfx950-bf16-gemm-8192x4096x2048",
+          "profile": "gfx950-bf16-gemm",
+          "shape": [
+            8192,
+            4096,
+            2048
+          ],
+          "workgroup_id": [
+            0,
+            0,
+            0
+          ],
+          "required_output_elements": 65536,
+          "original_allocations": {
+            "A": {
+              "base": 268435456,
+              "shape": [
+                8192,
+                2048
+              ],
+              "bytes": 33554432
+            },
+            "B": {
+              "base": 1073741824,
+              "shape": [
+                4096,
+                2048
+              ],
+              "bytes": 16777216
+            },
+            "C": {
+              "base": 2147483648,
+              "shape": [
+                8192,
+                4096
+              ],
+              "bytes": 67108864
+            }
+          }
+        },
+        {
+          "id": "gfx950-bf16-gemm-8192x2048x4096",
+          "profile": "gfx950-bf16-gemm",
+          "shape": [
+            8192,
+            2048,
+            4096
+          ],
+          "workgroup_id": [
+            0,
+            0,
+            0
+          ],
+          "required_output_elements": 65536,
+          "original_allocations": {
+            "A": {
+              "base": 268435456,
+              "shape": [
+                8192,
+                4096
+              ],
+              "bytes": 67108864
+            },
+            "B": {
+              "base": 1073741824,
+              "shape": [
+                2048,
+                4096
+              ],
+              "bytes": 16777216
+            },
+            "C": {
+              "base": 2147483648,
+              "shape": [
+                8192,
+                2048
+              ],
+              "bytes": 33554432
+            }
+          }
+        },
+        {
+          "id": "gfx950-bf16-gemm-512x1024x1024",
+          "profile": "gfx950-bf16-gemm",
+          "shape": [
+            512,
+            1024,
+            1024
+          ],
+          "workgroup_id": [
+            0,
+            0,
+            0
+          ],
+          "required_output_elements": 65536,
+          "original_allocations": {
+            "A": {
+              "base": 268435456,
+              "shape": [
+                512,
+                1024
+              ],
+              "bytes": 1048576
+            },
+            "B": {
+              "base": 1073741824,
+              "shape": [
+                1024,
+                1024
+              ],
+              "bytes": 2097152
+            },
+            "C": {
+              "base": 2147483648,
+              "shape": [
+                512,
+                1024
+              ],
+              "bytes": 1048576
+            }
+          }
+        },
+        {
+          "id": "gfx950-bf16-gemm-512x1024x2048",
+          "profile": "gfx950-bf16-gemm",
+          "shape": [
+            512,
+            1024,
+            2048
+          ],
+          "workgroup_id": [
+            0,
+            0,
+            0
+          ],
+          "required_output_elements": 65536,
+          "original_allocations": {
+            "A": {
+              "base": 268435456,
+              "shape": [
+                512,
+                2048
+              ],
+              "bytes": 2097152
+            },
+            "B": {
+              "base": 1073741824,
+              "shape": [
+                1024,
+                2048
+              ],
+              "bytes": 4194304
+            },
+            "C": {
+              "base": 2147483648,
+              "shape": [
+                512,
+                1024
+              ],
+              "bytes": 1048576
+            }
+          }
+        },
+        {
+          "id": "gfx950-bf16-gemm-2048x1024x512",
+          "profile": "gfx950-bf16-gemm",
+          "shape": [
+            2048,
+            1024,
+            512
+          ],
+          "workgroup_id": [
+            0,
+            0,
+            0
+          ],
+          "required_output_elements": 65536,
+          "original_allocations": {
+            "A": {
+              "base": 268435456,
+              "shape": [
+                2048,
+                512
+              ],
+              "bytes": 2097152
+            },
+            "B": {
+              "base": 1073741824,
+              "shape": [
+                1024,
+                512
+              ],
+              "bytes": 1048576
+            },
+            "C": {
+              "base": 2147483648,
+              "shape": [
+                2048,
+                1024
+              ],
+              "bytes": 4194304
+            }
+          }
+        }
+      ],
+      "spec_sha256": "57ab2aac875cff6bda0d6d5b31ddfade73164c87d0c47b93647891931476db39",
+      "wrong_spec_sha256": "6d9fbcf3bd54bd7f8629b9dd753166e9e6ef25eff853c2611a8870afcfa82116"
+    }
+  }
+}

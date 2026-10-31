@@ -1,0 +1,720 @@
+{
+  "schema": 1,
+  "source_revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+  "binary_revision": "f0ee44285286aa1ea92f3e99aed6574ad89f3c82",
+  "binary_sha256": "57d555dbafee093f804b2c0744c477c4a5e567726aece81017f828647bdbc167",
+  "build_identity": {
+    "schema_version": 1,
+    "trust": "caller_attested",
+    "revision": "f0ee44285286aa1ea92f3e99aed6574ad89f3c82",
+    "source_clean": true,
+    "binary_sha256": "57d555dbafee093f804b2c0744c477c4a5e567726aece81017f828647bdbc167",
+    "rust_workspace_fingerprint": {
+      "algorithm": "sha256-git-tree-v1",
+      "sha256": "35369cb6ca7c4465550feefbe7107a037bf7d0c064b2c908b26d9b8c0dd00763",
+      "file_count": 1207
+    },
+    "profile": "release",
+    "features": [],
+    "default_features": true,
+    "command": [
+      "cargo",
+      "build",
+      "--release",
+      "-p",
+      "volta_cli"
+    ],
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+    "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+    "build_record_sha256": "6bca70c00520e1c1c113fbbc9464ba1973faacab2e2bf26c41445c7d6d5cf61b"
+  },
+  "contract_sha256": "c42a04b021d8fdd9a34038edb2d9e58da6b4d5db8b92c086fd0be6d398deb47e",
+  "raw_report_sha256": "675fa21c5776ffa2388259d998273aa1fffb5894046017408eee5e0ceedf185b",
+  "input_sha256": {
+    "binary": "57d555dbafee093f804b2c0744c477c4a5e567726aece81017f828647bdbc167",
+    "compiler": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+    "assembler": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+    "driver": "71c5e950922af6a7b72f3d330f169724ee32e9e92faf5b1614140372de606629",
+    "corpus": "7c92f66dc11bc01f0c8525f77705bd50f45032824568686c2399ccef4c013148",
+    "inventory_helper": "f036610cc6ee2ff114ba6ff3723b830cd20dd444aae2e1fc6cc5dd9234c3e265",
+    "vector_validation": "75b1cb6e39593d0ce118e93a87d5af8922cf4657e8dd0f1848948af4d51a18f2",
+    "contract": "c42a04b021d8fdd9a34038edb2d9e58da6b4d5db8b92c086fd0be6d398deb47e",
+    "build_helper": "a143a1f8625ccb6412ef695e4734eba1d9967a69cfbc4d52e3d80d23a0f3b6f4",
+    "build_record": "6bca70c00520e1c1c113fbbc9464ba1973faacab2e2bf26c41445c7d6d5cf61b",
+    "gfx1250-gemm00_assembly": "7972abad86ad17ea3237f8fd8e5e47503533117c52002ae4c6772097414941b1",
+    "gfx1250-gemm00_object": "651328f5d8971a45e7dc23594d12e30c2a1b4ee392908e0e0db0fb405d869e57",
+    "gfx1250-gemm00_campaign_report": "3f657d104de8144e5a58a4b5edec889bcbf4a72e1e0ef63b41f4c4a223f90ab4",
+    "gfx1250-gemm00_compile_record": "498b2694741843026e5d630da595afa657b4e7340f8fb7611cc8f09d2196bfe2",
+    "gfx1250-gemm00_assemble_record": "ab4c64507064494e4ad69c65fe927f452f7431bf383155c4d3338c6eae3decf0",
+    "gfx950-bf16-gemm_assembly": "ae0374df2eb0879f6175a27c7b9f79cf43ef28f46b3457b9160f4862ef520c53",
+    "gfx950-bf16-gemm_object": "44b7aa5c19daf8615a614e17ba774cba9e8296c0b4e7920ee79a7ce0798dd21f",
+    "gfx950-bf16-gemm_campaign_report": "3f657d104de8144e5a58a4b5edec889bcbf4a72e1e0ef63b41f4c4a223f90ab4",
+    "gfx950-bf16-gemm_compile_record": "093447b7e79deb16f323f70ecd84239ebbbd05610fed3eae16cd288ec20fa53a",
+    "gfx950-bf16-gemm_assemble_record": "67ee3708905d4e31c15e8e35d68c5410ce3d2e557076f4e00deb8327c4040f1a"
+  },
+  "timeout_seconds": 60.0,
+  "scope": "One original workgroup (0,0,0); all original host dimensions and full-K work retained. Other workgroups are outside the result.",
+  "case_count": 11,
+  "outcomes": {
+    "parse_rejected": 4,
+    "unsupported": 7
+  },
+  "full_specification_proof_count": 0,
+  "all_original_cases_verified": false,
+  "modules": [
+    {
+      "profile": "gfx1250-gemm00",
+      "original_source": "kernels/cdna5/gemm/bf16fp32/gfx1250/00_gemm_naive.cpp",
+      "entrypoint": "_Z20gemm_00_naive_kernelN12gfx1250_gemm12gemm_globalsEiii",
+      "assembly_sha256": "7972abad86ad17ea3237f8fd8e5e47503533117c52002ae4c6772097414941b1",
+      "original_object_sha256": "651328f5d8971a45e7dc23594d12e30c2a1b4ee392908e0e0db0fb405d869e57",
+      "fresh_object_sha256": "651328f5d8971a45e7dc23594d12e30c2a1b4ee392908e0e0db0fb405d869e57",
+      "layout": "passed",
+      "complete_module_mc": "passed",
+      "complete_module_parse": "refused",
+      "parse_returncode": 1,
+      "mathematical_control": {
+        "profile": "gfx1250-gemm00",
+        "status": "no_verified_original_case",
+        "passed": false
+      },
+      "stage_log_sha256": {
+        "layout": {
+          "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "assemble": {
+          "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "parse": {
+          "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderr": "bee8a38d3fde2f9deaa7d8ac76158b1c18d89717972ddb97e9bcafb4eb71ea40"
+        }
+      }
+    },
+    {
+      "profile": "gfx950-bf16-gemm",
+      "original_source": "kernels/cdna4/gemm/bf16fp32/256_256_64_32_with16x32.cpp",
+      "entrypoint": "_Z8micro_tk13micro_globalsiii",
+      "assembly_sha256": "ae0374df2eb0879f6175a27c7b9f79cf43ef28f46b3457b9160f4862ef520c53",
+      "original_object_sha256": "44b7aa5c19daf8615a614e17ba774cba9e8296c0b4e7920ee79a7ce0798dd21f",
+      "fresh_object_sha256": "44b7aa5c19daf8615a614e17ba774cba9e8296c0b4e7920ee79a7ce0798dd21f",
+      "layout": "passed",
+      "complete_module_mc": "passed",
+      "complete_module_parse": "refused",
+      "parse_returncode": 1,
+      "mathematical_control": {
+        "profile": "gfx950-bf16-gemm",
+        "status": "no_verified_original_case",
+        "passed": false
+      },
+      "stage_log_sha256": {
+        "layout": {
+          "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "assemble": {
+          "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "parse": {
+          "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderr": "52bd29f6847100ac300b84a0e4838b9b7f70bdb3137069627e801a31dcaa089b"
+        }
+      }
+    }
+  ],
+  "results": [
+    {
+      "id": "gfx1250-gemm00-8192x8192x8192",
+      "profile": "gfx1250-gemm00",
+      "shape": [
+        8192,
+        8192,
+        8192
+      ],
+      "workgroup_id": [
+        0,
+        0,
+        0
+      ],
+      "original_allocations": {
+        "A": {
+          "base": 268435456,
+          "shape": [
+            8192,
+            8192
+          ],
+          "bytes": 134217728
+        },
+        "B": {
+          "base": 1073741824,
+          "shape": [
+            8192,
+            8192
+          ],
+          "bytes": 134217728
+        },
+        "C": {
+          "base": 2147483648,
+          "shape": [
+            8192,
+            8192
+          ],
+          "bytes": 134217728
+        }
+      },
+      "required_output_elements": 4096,
+      "status": "parse_rejected",
+      "full_specification_proved": false,
+      "launch_sha256": "b30e5c812a804e2a219ff7769cce11528a8111da44d3b527817c0dee4899efe4",
+      "returncode": 1,
+      "refusal": {
+        "stage": "whole_module_frontend",
+        "line": 294,
+        "column": 2,
+        "diagnostic": "`v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "bee8a38d3fde2f9deaa7d8ac76158b1c18d89717972ddb97e9bcafb4eb71ea40"
+    },
+    {
+      "id": "gfx1250-gemm00-4096x8192x2048",
+      "profile": "gfx1250-gemm00",
+      "shape": [
+        4096,
+        8192,
+        2048
+      ],
+      "workgroup_id": [
+        0,
+        0,
+        0
+      ],
+      "original_allocations": {
+        "A": {
+          "base": 268435456,
+          "shape": [
+            4096,
+            2048
+          ],
+          "bytes": 16777216
+        },
+        "B": {
+          "base": 1073741824,
+          "shape": [
+            8192,
+            2048
+          ],
+          "bytes": 33554432
+        },
+        "C": {
+          "base": 2147483648,
+          "shape": [
+            4096,
+            8192
+          ],
+          "bytes": 67108864
+        }
+      },
+      "required_output_elements": 4096,
+      "status": "parse_rejected",
+      "full_specification_proved": false,
+      "launch_sha256": "fd9a4874ec09d8998bab9c1f953acd88d5b64ed15665633eb40b5b8a69eb4a39",
+      "returncode": 1,
+      "refusal": {
+        "stage": "whole_module_frontend",
+        "line": 294,
+        "column": 2,
+        "diagnostic": "`v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "bee8a38d3fde2f9deaa7d8ac76158b1c18d89717972ddb97e9bcafb4eb71ea40"
+    },
+    {
+      "id": "gfx1250-gemm00-8192x4096x2048",
+      "profile": "gfx1250-gemm00",
+      "shape": [
+        8192,
+        4096,
+        2048
+      ],
+      "workgroup_id": [
+        0,
+        0,
+        0
+      ],
+      "original_allocations": {
+        "A": {
+          "base": 268435456,
+          "shape": [
+            8192,
+            2048
+          ],
+          "bytes": 33554432
+        },
+        "B": {
+          "base": 1073741824,
+          "shape": [
+            4096,
+            2048
+          ],
+          "bytes": 16777216
+        },
+        "C": {
+          "base": 2147483648,
+          "shape": [
+            8192,
+            4096
+          ],
+          "bytes": 67108864
+        }
+      },
+      "required_output_elements": 4096,
+      "status": "parse_rejected",
+      "full_specification_proved": false,
+      "launch_sha256": "e97057db9d5b08462f05287390b3db9e0e977a24f9f11c4e85c93abb482f6689",
+      "returncode": 1,
+      "refusal": {
+        "stage": "whole_module_frontend",
+        "line": 294,
+        "column": 2,
+        "diagnostic": "`v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "bee8a38d3fde2f9deaa7d8ac76158b1c18d89717972ddb97e9bcafb4eb71ea40"
+    },
+    {
+      "id": "gfx1250-gemm00-2048x1024x1024",
+      "profile": "gfx1250-gemm00",
+      "shape": [
+        2048,
+        1024,
+        1024
+      ],
+      "workgroup_id": [
+        0,
+        0,
+        0
+      ],
+      "original_allocations": {
+        "A": {
+          "base": 268435456,
+          "shape": [
+            2048,
+            1024
+          ],
+          "bytes": 4194304
+        },
+        "B": {
+          "base": 1073741824,
+          "shape": [
+            1024,
+            1024
+          ],
+          "bytes": 2097152
+        },
+        "C": {
+          "base": 2147483648,
+          "shape": [
+            2048,
+            1024
+          ],
+          "bytes": 4194304
+        }
+      },
+      "required_output_elements": 4096,
+      "status": "parse_rejected",
+      "full_specification_proved": false,
+      "launch_sha256": "28bdea8ace7da63cbd996adddcd67f4f408de04a4b445e33fd6e32542b4fa4c9",
+      "returncode": 1,
+      "refusal": {
+        "stage": "whole_module_frontend",
+        "line": 294,
+        "column": 2,
+        "diagnostic": "`v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "bee8a38d3fde2f9deaa7d8ac76158b1c18d89717972ddb97e9bcafb4eb71ea40"
+    },
+    {
+      "id": "gfx950-bf16-gemm-8192x8192x8192",
+      "profile": "gfx950-bf16-gemm",
+      "shape": [
+        8192,
+        8192,
+        8192
+      ],
+      "workgroup_id": [
+        0,
+        0,
+        0
+      ],
+      "original_allocations": {
+        "A": {
+          "base": 268435456,
+          "shape": [
+            8192,
+            8192
+          ],
+          "bytes": 134217728
+        },
+        "B": {
+          "base": 1073741824,
+          "shape": [
+            8192,
+            8192
+          ],
+          "bytes": 134217728
+        },
+        "C": {
+          "base": 2147483648,
+          "shape": [
+            8192,
+            8192
+          ],
+          "bytes": 134217728
+        }
+      },
+      "required_output_elements": 65536,
+      "status": "unsupported",
+      "full_specification_proved": false,
+      "launch_sha256": "c0a5b008bd527e6dc0fc524abd198b526dfba529f2270ea074813bee2699149d",
+      "returncode": 1,
+      "refusal": {
+        "stage": "whole_module_frontend",
+        "line": 75,
+        "column": 2,
+        "diagnostic": "unsupported AMD instruction `v_rcp_iflag_f32_e32`"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "52bd29f6847100ac300b84a0e4838b9b7f70bdb3137069627e801a31dcaa089b"
+    },
+    {
+      "id": "gfx950-bf16-gemm-4096x8192x2048",
+      "profile": "gfx950-bf16-gemm",
+      "shape": [
+        4096,
+        8192,
+        2048
+      ],
+      "workgroup_id": [
+        0,
+        0,
+        0
+      ],
+      "original_allocations": {
+        "A": {
+          "base": 268435456,
+          "shape": [
+            4096,
+            2048
+          ],
+          "bytes": 16777216
+        },
+        "B": {
+          "base": 1073741824,
+          "shape": [
+            8192,
+            2048
+          ],
+          "bytes": 33554432
+        },
+        "C": {
+          "base": 2147483648,
+          "shape": [
+            4096,
+            8192
+          ],
+          "bytes": 67108864
+        }
+      },
+      "required_output_elements": 65536,
+      "status": "unsupported",
+      "full_specification_proved": false,
+      "launch_sha256": "addf2a815cda5518df9a63b6ec2a448836aed8a52f225bada1ce4d99017ae868",
+      "returncode": 1,
+      "refusal": {
+        "stage": "whole_module_frontend",
+        "line": 75,
+        "column": 2,
+        "diagnostic": "unsupported AMD instruction `v_rcp_iflag_f32_e32`"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "52bd29f6847100ac300b84a0e4838b9b7f70bdb3137069627e801a31dcaa089b"
+    },
+    {
+      "id": "gfx950-bf16-gemm-8192x4096x2048",
+      "profile": "gfx950-bf16-gemm",
+      "shape": [
+        8192,
+        4096,
+        2048
+      ],
+      "workgroup_id": [
+        0,
+        0,
+        0
+      ],
+      "original_allocations": {
+        "A": {
+          "base": 268435456,
+          "shape": [
+            8192,
+            2048
+          ],
+          "bytes": 33554432
+        },
+        "B": {
+          "base": 1073741824,
+          "shape": [
+            4096,
+            2048
+          ],
+          "bytes": 16777216
+        },
+        "C": {
+          "base": 2147483648,
+          "shape": [
+            8192,
+            4096
+          ],
+          "bytes": 67108864
+        }
+      },
+      "required_output_elements": 65536,
+      "status": "unsupported",
+      "full_specification_proved": false,
+      "launch_sha256": "e26170d8f4f2b202abad8529f1d3b443c101ea45d9c8d99ef17ecdb11054496c",
+      "returncode": 1,
+      "refusal": {
+        "stage": "whole_module_frontend",
+        "line": 75,
+        "column": 2,
+        "diagnostic": "unsupported AMD instruction `v_rcp_iflag_f32_e32`"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "52bd29f6847100ac300b84a0e4838b9b7f70bdb3137069627e801a31dcaa089b"
+    },
+    {
+      "id": "gfx950-bf16-gemm-8192x2048x4096",
+      "profile": "gfx950-bf16-gemm",
+      "shape": [
+        8192,
+        2048,
+        4096
+      ],
+      "workgroup_id": [
+        0,
+        0,
+        0
+      ],
+      "original_allocations": {
+        "A": {
+          "base": 268435456,
+          "shape": [
+            8192,
+            4096
+          ],
+          "bytes": 67108864
+        },
+        "B": {
+          "base": 1073741824,
+          "shape": [
+            2048,
+            4096
+          ],
+          "bytes": 16777216
+        },
+        "C": {
+          "base": 2147483648,
+          "shape": [
+            8192,
+            2048
+          ],
+          "bytes": 33554432
+        }
+      },
+      "required_output_elements": 65536,
+      "status": "unsupported",
+      "full_specification_proved": false,
+      "launch_sha256": "68ef954214d8d7523683647120f4951c7ed030f295d69c0faccb82e365a2cca6",
+      "returncode": 1,
+      "refusal": {
+        "stage": "whole_module_frontend",
+        "line": 75,
+        "column": 2,
+        "diagnostic": "unsupported AMD instruction `v_rcp_iflag_f32_e32`"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "52bd29f6847100ac300b84a0e4838b9b7f70bdb3137069627e801a31dcaa089b"
+    },
+    {
+      "id": "gfx950-bf16-gemm-512x1024x1024",
+      "profile": "gfx950-bf16-gemm",
+      "shape": [
+        512,
+        1024,
+        1024
+      ],
+      "workgroup_id": [
+        0,
+        0,
+        0
+      ],
+      "original_allocations": {
+        "A": {
+          "base": 268435456,
+          "shape": [
+            512,
+            1024
+          ],
+          "bytes": 1048576
+        },
+        "B": {
+          "base": 1073741824,
+          "shape": [
+            1024,
+            1024
+          ],
+          "bytes": 2097152
+        },
+        "C": {
+          "base": 2147483648,
+          "shape": [
+            512,
+            1024
+          ],
+          "bytes": 1048576
+        }
+      },
+      "required_output_elements": 65536,
+      "status": "unsupported",
+      "full_specification_proved": false,
+      "launch_sha256": "097452104ba106e006c0596531b0301cb3e9c1f0c7c2ece8517c178d68ae9250",
+      "returncode": 1,
+      "refusal": {
+        "stage": "whole_module_frontend",
+        "line": 75,
+        "column": 2,
+        "diagnostic": "unsupported AMD instruction `v_rcp_iflag_f32_e32`"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "52bd29f6847100ac300b84a0e4838b9b7f70bdb3137069627e801a31dcaa089b"
+    },
+    {
+      "id": "gfx950-bf16-gemm-512x1024x2048",
+      "profile": "gfx950-bf16-gemm",
+      "shape": [
+        512,
+        1024,
+        2048
+      ],
+      "workgroup_id": [
+        0,
+        0,
+        0
+      ],
+      "original_allocations": {
+        "A": {
+          "base": 268435456,
+          "shape": [
+            512,
+            2048
+          ],
+          "bytes": 2097152
+        },
+        "B": {
+          "base": 1073741824,
+          "shape": [
+            1024,
+            2048
+          ],
+          "bytes": 4194304
+        },
+        "C": {
+          "base": 2147483648,
+          "shape": [
+            512,
+            1024
+          ],
+          "bytes": 1048576
+        }
+      },
+      "required_output_elements": 65536,
+      "status": "unsupported",
+      "full_specification_proved": false,
+      "launch_sha256": "b1b5ea7f9014c748d89d811c9720dca325d0dedde162f1b420e61e2bc80c771b",
+      "returncode": 1,
+      "refusal": {
+        "stage": "whole_module_frontend",
+        "line": 75,
+        "column": 2,
+        "diagnostic": "unsupported AMD instruction `v_rcp_iflag_f32_e32`"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "52bd29f6847100ac300b84a0e4838b9b7f70bdb3137069627e801a31dcaa089b"
+    },
+    {
+      "id": "gfx950-bf16-gemm-2048x1024x512",
+      "profile": "gfx950-bf16-gemm",
+      "shape": [
+        2048,
+        1024,
+        512
+      ],
+      "workgroup_id": [
+        0,
+        0,
+        0
+      ],
+      "original_allocations": {
+        "A": {
+          "base": 268435456,
+          "shape": [
+            2048,
+            512
+          ],
+          "bytes": 2097152
+        },
+        "B": {
+          "base": 1073741824,
+          "shape": [
+            1024,
+            512
+          ],
+          "bytes": 1048576
+        },
+        "C": {
+          "base": 2147483648,
+          "shape": [
+            2048,
+            1024
+          ],
+          "bytes": 4194304
+        }
+      },
+      "required_output_elements": 65536,
+      "status": "unsupported",
+      "full_specification_proved": false,
+      "launch_sha256": "04a4933cf933eccf45d5ddc5c120183509099c9c438c851f284d81864601c85c",
+      "returncode": 1,
+      "refusal": {
+        "stage": "whole_module_frontend",
+        "line": 75,
+        "column": 2,
+        "diagnostic": "unsupported AMD instruction `v_rcp_iflag_f32_e32`"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "52bd29f6847100ac300b84a0e4838b9b7f70bdb3137069627e801a31dcaa089b"
+    }
+  ],
+  "limits": [
+    "One selected original workgroup per host shape; other workgroups are outside the result.",
+    "Original full A/B allocations and full M/N/K strides are retained. Full C allocation extent is metadata; launch arrays are disjoint selected-output views.",
+    "Compiler/MC/layout acceptance is separate from frontend parsing, execution, graph acceptance and mathematical proof.",
+    "No successful execution or mathematical proof was reached. No GPU execution or latency measurement was performed.",
+    "Build association is caller-attested; installed compiler/include dependencies are not hermetic."
+  ]
+}

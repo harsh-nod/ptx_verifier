@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "audit": "independent-standard-library-source-frontier-audit",
+  "reviewed_revision": "8955f04068e0191ec387995a8a101bc684ad82f1",
+  "auditor_sha256": "7d50f88ebc266f6c8125d67825b0566fae5c3af1227f9c1be8b646b0b032a937",
+  "input_sha256": {
+    "frontier": "3259fc82a1d7f48308da5b7103daa0ed486166b47343996a3e544f01f3e79464",
+    "generator": "99fab61692405cd1b78f37182128bc68a5ecf83c7d7b557bba31b5fb3554dbe0",
+    "inventory": "de7924dffa94767892feaf11fa078bad00cecf743a7fe76f84a12610fae41172",
+    "documentation": "7a6d2a044bf644c19961823dff67ad870bd8d26b78736ef216ec35f05baad28e",
+    "existing_proof_receipt": "08e75baf2be61eb29ef7d6f089ca3a102818bedc00166d8843ee0ed0f100f841",
+    "parse_replay_report": "0ed2d195fb74745c1779f1a1bf062da73b201cdf4411eddec86388b217f1d0fd"
+  },
+  "checks": 23900,
+  "errors": 0,
+  "summary": {
+    "lexical_definitions": 140,
+    "definition_target_references": 143,
+    "source_profile_probes": 173,
+    "preserved_compiler_attempts": 205,
+    "accepted_nonempty_modules": 68,
+    "emitted_entry_occurrences": 3484,
+    "parse_modules": {
+      "parse_unsupported": 28,
+      "parse_rejected": 33,
+      "parsed": 7
+    },
+    "selected_compiler_attempt_status": {
+      "compiled_no_entrypoints": 25,
+      "parse_unsupported": 40,
+      "compile_rejected": 69,
+      "parse_rejected": 25,
+      "compile_timeout": 6,
+      "parsed": 3,
+      "recipe_refused": 2,
+      "recipe_unavailable": 3
+    },
+    "definition_relations": {
+      "unique_lexical_name_candidate": 2566,
+      "relative_literal_include_candidate": 918
+    },
+    "imported_launch_contracts": 336,
+    "separate_revision_verification": {
+      "graph_rejected": 224,
+      "verified": 88,
+      "unsupported": 24
+    }
+  },
+  "whole_parser_success_entry_occurrences": 427,
+  "definition_target_references_without_entry_candidate": 69,
+  "first_blockers": {
+    ".set": 16,
+    "buffer_load_dword": 4,
+    "buffer_load_dwordx4": 8,
+    "buffer_store_b128": 1,
+    "global_load_async_to_lds_b128": 6,
+    "global_store_short_d16_hi": 2,
+    "s_memtime": 2,
+    "v_and_b32_sdwa": 1,
+    "v_mad_i64_i32": 1,
+    "v_permlane16_swap_b32_e64": 1,
+    "v_rcp_iflag_f32_e32": 15,
+    "v_wmma_f32_16x16x32_bf16": 4
+  },
+  "host_controls": {
+    "normal": 11,
+    "optimized_python": 11,
+    "failures": 0
+  },
+  "limits": [
+    "No publisher or frontier implementation helper was imported by this audit.",
+    "Lexical definitions and relative include relations were independently reconstructed from the pinned source; candidate relations are not C++ instantiation proofs.",
+    "All original attempts and selected MC modules, replay records/logs, metadata names/wave sizes and inverse relations were checked. Full metadata-field semantics and ISA legality remain outside this accounting audit.",
+    "Existing 336 launch outcomes were independently checked against preserved 0e reports and actual process logs; current parser results did not upgrade them.",
+    "Binary/source and compiler/build associations remain caller-attested. No verifier, compiler, GPU execution or latency collection was performed."
+  ]
+}
