@@ -77,6 +77,12 @@ The `volta_amd_analysis` crate contains an experimental parser/lowering path.
 The native `amdgpu` CLI backend uses `volta_amdgpu_analysis`; these crate names
 do not select interchangeable implementations.
 
+The optional gfx1250 [early readiness observer](early-readiness.md) consumes
+complete instruction batches using checker-owned scalar readiness transitions.
+The pipeline replays a proposed witness and revalidates the halted prefix before
+exposing a certified rejection. A generic observer stop remains inconclusive.
+No early acceptance path is added; default execution retains complete traces.
+
 Shared configuration includes PTX aggregate fields and native ABI byte payloads,
 but each backend accepts only its own forms. The
 [parameter guide](launch-parameters.md) distinguishes JSON, Rust and Python
