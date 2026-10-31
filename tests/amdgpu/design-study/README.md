@@ -16,6 +16,13 @@ They are exploratory family coverage. The three primary latency cases remain
 the copy, original F16 ReLU and original F16 RMSNorm missing-KM-wait mutations.
 The original F16 workloads retain their original shapes and storage widths.
 
+The [published results](results/README.md) retain four separate runs: the initial
+31-repeat development comparison, its single predeclared 255-repeat confirmation,
+and two 31-repeat heldout comparisons. The initial run failed a safe GEMM p95
+limit; confirmation used the same binaries and limits, seed 20261031, and every
+development configuration. No samples were pooled or removed. The mechanism
+stayed frozen throughout both heldout runs.
+
 Ground truth comes from mathematical specifications, pinned source/test assertions
 and the target's completion rules, not from observed verifier verdicts. New
 compiler-corpus hazards bind the scalar-load producer, removed completion wait
@@ -129,7 +136,8 @@ separately. A refusal does not become supported execution coverage.
 
 Each sample starts a fresh verifier, graph and solver state. Specification
 preflight is untimed. The first measured process per case is reported separately
-from 31 subsequent samples. Later processes may reuse operating-system file
+from the subsequent repeated samples (31 initially, 255 in confirmation).
+Later processes may reuse operating-system file
 caches but share no verifier process state. These measurements do not claim
 machine-cold caches or in-process warmth.
 
@@ -167,6 +175,51 @@ baseline × 1.10 + 1 ms; maximum RSS increase at most the larger of 5% and 8 MiB
 At least one predeclared primary case must retain all repeated detections and
 have its detection-latency ratio interval wholly below 1. These are engineering
 gates; an unsuccessful result remains reportable.
+
+## Publishing and checking the numbers
+
+Run all study host controls with
+`python3 -m unittest discover -s tests/amdgpu/design-study -p 'test_*.py' -v`.
+The [results directory](results/README.md) includes every numerical observation,
+including first invocations, controls and misses, in a deterministic gzip CSV.
+Its JSON files preserve unrounded summaries and source, binary and artifact
+hashes. Raw logs and machine identities remain outside Git.
+
+After independently auditing completed reports, export them together without
+combining their statistics:
+
+```sh
+python3 tests/amdgpu/design-study/publish.py \
+  --source-root /path/to/frozen/candidate-checkout \
+  --manifest /path/to/frozen/candidate-checkout/tests/amdgpu/design-study/cases.json \
+  --builds /path/to/builds.json \
+  --dataset initial development 31 20261030 /path/to/initial/report.json \
+  --dataset confirmation development 255 20261031 /path/to/confirmation/report.json \
+  --dataset heldout heldout 31 20261030 /path/to/heldout/report.json \
+  --dataset heldout_independent heldout 31 20261030 /path/to/independent/report.json \
+  --output /tmp/new-readiness-publication
+```
+
+The exporter checks frozen identities, complete sample pairs, order and control
+cardinalities. It preserves recorded decisions; it does not rerun the verifier or
+recompute statistics. The build metadata must declare baseline/candidate revisions,
+executable SHA-256 values and clean-source flags as shown in the published
+`metadata.json`'s `builds` object. Use the frozen candidate checkout because later
+documentation edits change the measured source-file hashes.
+
+For descriptive p95 uncertainty, independently run:
+
+```sh
+python3 tests/amdgpu/design-study/safe_overhead.py \
+  /path/to/confirmation/report.json --output /tmp/new-safe-p95-intervals.json \
+  --resamples 2000 --seed 20261031
+```
+
+This resamples matched repeated observations for every safe configuration. The
+margin is `p95(candidate) - 1.10*p95(baseline) - 0.001` seconds. An interval
+crossing zero indicates uncertainty about the allowance; these descriptive
+per-case intervals do not replace the fixed empirical gates or provide
+simultaneous coverage over all cases.
 
 ## Method boundaries
 
