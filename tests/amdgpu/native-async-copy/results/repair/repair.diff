@@ -1,0 +1,18 @@
+--- original-unchanged.s
++++ two-waits-control.s
+@@ -47,6 +47,7 @@
+ 	v_add_nc_u64_e32 v[2:3], v[4:5], v[2:3]
+ 	v_add_nc_u32_e32 v4, s2, v1
+ 	global_load_async_to_lds_b128 v4, v[2:3], off
++	s_wait_asynccnt 0
+ 	v_mov_b64_e32 v[2:3], s[2:3]
+ .LBB0_4:
+ 	s_or_b32 exec_lo, exec_lo, s6
+@@ -221,6 +222,7 @@
+ 	v_add_nc_u64_e32 v[2:3], v[4:5], v[2:3]
+ 	v_add_nc_u32_e32 v4, s2, v1
+ 	global_load_async_to_lds_b128 v4, v[2:3], off
++	s_wait_asynccnt 0
+ 	v_mov_b64_e32 v[2:3], s[2:3]
+ .LBB1_4:
+ 	s_or_b32 exec_lo, exec_lo, s6

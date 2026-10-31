@@ -103,6 +103,12 @@ to zero and must lie inside the grid. Optional
 native LDS allocation ranges preserve subobject bounds when assembly no longer
 contains source-level object boundaries.
 
+CPU analysis identifies one modeled missing async-completion dependency in an
+unchanged public HipKittens test, instantiated for BF16 and F16. A separate
+wait-repair control passes all graph checks with identical expressions for all
+256 outputs. The [complete functional comparison](tests/amdgpu/native-async-copy/README.md)
+includes the original module, full launch contracts, repair diff and replay script.
+
 ## Measured time to a safety finding
 
 ### Native AMD input materialization

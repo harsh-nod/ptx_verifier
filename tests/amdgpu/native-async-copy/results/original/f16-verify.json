@@ -1,0 +1,26 @@
+{
+  "command": [
+    "/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta",
+    "--no-log-file",
+    "--backend",
+    "amdgpu",
+    "--target",
+    "gfx1250",
+    "verify",
+    "/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-07a5080231865d32/kernel.s",
+    "/tmp/ptx-native-async-original-contract-20261031/identity.spec",
+    "--config",
+    "/tmp/ptx-native-async-original-contract-20261031/f16.launch.json",
+    "--sample",
+    "0",
+    "--dim",
+    "N=256",
+    "--verify-numeric",
+    "--no-profile"
+  ],
+  "returncode": 1,
+  "timed_out": false,
+  "elapsed_ns": 10574963,
+  "stdout_sha256": "da507445aaf4749f13251e37b97a8b3e07a8ec6cb690a86d0a1d8b549d5f7a47",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

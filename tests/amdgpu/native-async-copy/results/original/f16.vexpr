@@ -1,0 +1,513 @@
+volta-expr 1
+n0 = elem "x" 0
+n1 = elem "x" 1
+n2 = elem "x" 2
+n3 = elem "x" 3
+n4 = elem "x" 4
+n5 = elem "x" 5
+n6 = elem "x" 6
+n7 = elem "x" 7
+n8 = elem "x" 8
+n9 = elem "x" 9
+n10 = elem "x" 10
+n11 = elem "x" 11
+n12 = elem "x" 12
+n13 = elem "x" 13
+n14 = elem "x" 14
+n15 = elem "x" 15
+n16 = elem "x" 16
+n17 = elem "x" 17
+n18 = elem "x" 18
+n19 = elem "x" 19
+n20 = elem "x" 20
+n21 = elem "x" 21
+n22 = elem "x" 22
+n23 = elem "x" 23
+n24 = elem "x" 24
+n25 = elem "x" 25
+n26 = elem "x" 26
+n27 = elem "x" 27
+n28 = elem "x" 28
+n29 = elem "x" 29
+n30 = elem "x" 30
+n31 = elem "x" 31
+n32 = elem "x" 32
+n33 = elem "x" 33
+n34 = elem "x" 34
+n35 = elem "x" 35
+n36 = elem "x" 36
+n37 = elem "x" 37
+n38 = elem "x" 38
+n39 = elem "x" 39
+n40 = elem "x" 40
+n41 = elem "x" 41
+n42 = elem "x" 42
+n43 = elem "x" 43
+n44 = elem "x" 44
+n45 = elem "x" 45
+n46 = elem "x" 46
+n47 = elem "x" 47
+n48 = elem "x" 48
+n49 = elem "x" 49
+n50 = elem "x" 50
+n51 = elem "x" 51
+n52 = elem "x" 52
+n53 = elem "x" 53
+n54 = elem "x" 54
+n55 = elem "x" 55
+n56 = elem "x" 56
+n57 = elem "x" 57
+n58 = elem "x" 58
+n59 = elem "x" 59
+n60 = elem "x" 60
+n61 = elem "x" 61
+n62 = elem "x" 62
+n63 = elem "x" 63
+n64 = elem "x" 64
+n65 = elem "x" 65
+n66 = elem "x" 66
+n67 = elem "x" 67
+n68 = elem "x" 68
+n69 = elem "x" 69
+n70 = elem "x" 70
+n71 = elem "x" 71
+n72 = elem "x" 72
+n73 = elem "x" 73
+n74 = elem "x" 74
+n75 = elem "x" 75
+n76 = elem "x" 76
+n77 = elem "x" 77
+n78 = elem "x" 78
+n79 = elem "x" 79
+n80 = elem "x" 80
+n81 = elem "x" 81
+n82 = elem "x" 82
+n83 = elem "x" 83
+n84 = elem "x" 84
+n85 = elem "x" 85
+n86 = elem "x" 86
+n87 = elem "x" 87
+n88 = elem "x" 88
+n89 = elem "x" 89
+n90 = elem "x" 90
+n91 = elem "x" 91
+n92 = elem "x" 92
+n93 = elem "x" 93
+n94 = elem "x" 94
+n95 = elem "x" 95
+n96 = elem "x" 96
+n97 = elem "x" 97
+n98 = elem "x" 98
+n99 = elem "x" 99
+n100 = elem "x" 100
+n101 = elem "x" 101
+n102 = elem "x" 102
+n103 = elem "x" 103
+n104 = elem "x" 104
+n105 = elem "x" 105
+n106 = elem "x" 106
+n107 = elem "x" 107
+n108 = elem "x" 108
+n109 = elem "x" 109
+n110 = elem "x" 110
+n111 = elem "x" 111
+n112 = elem "x" 112
+n113 = elem "x" 113
+n114 = elem "x" 114
+n115 = elem "x" 115
+n116 = elem "x" 116
+n117 = elem "x" 117
+n118 = elem "x" 118
+n119 = elem "x" 119
+n120 = elem "x" 120
+n121 = elem "x" 121
+n122 = elem "x" 122
+n123 = elem "x" 123
+n124 = elem "x" 124
+n125 = elem "x" 125
+n126 = elem "x" 126
+n127 = elem "x" 127
+n128 = elem "x" 128
+n129 = elem "x" 129
+n130 = elem "x" 130
+n131 = elem "x" 131
+n132 = elem "x" 132
+n133 = elem "x" 133
+n134 = elem "x" 134
+n135 = elem "x" 135
+n136 = elem "x" 136
+n137 = elem "x" 137
+n138 = elem "x" 138
+n139 = elem "x" 139
+n140 = elem "x" 140
+n141 = elem "x" 141
+n142 = elem "x" 142
+n143 = elem "x" 143
+n144 = elem "x" 144
+n145 = elem "x" 145
+n146 = elem "x" 146
+n147 = elem "x" 147
+n148 = elem "x" 148
+n149 = elem "x" 149
+n150 = elem "x" 150
+n151 = elem "x" 151
+n152 = elem "x" 152
+n153 = elem "x" 153
+n154 = elem "x" 154
+n155 = elem "x" 155
+n156 = elem "x" 156
+n157 = elem "x" 157
+n158 = elem "x" 158
+n159 = elem "x" 159
+n160 = elem "x" 160
+n161 = elem "x" 161
+n162 = elem "x" 162
+n163 = elem "x" 163
+n164 = elem "x" 164
+n165 = elem "x" 165
+n166 = elem "x" 166
+n167 = elem "x" 167
+n168 = elem "x" 168
+n169 = elem "x" 169
+n170 = elem "x" 170
+n171 = elem "x" 171
+n172 = elem "x" 172
+n173 = elem "x" 173
+n174 = elem "x" 174
+n175 = elem "x" 175
+n176 = elem "x" 176
+n177 = elem "x" 177
+n178 = elem "x" 178
+n179 = elem "x" 179
+n180 = elem "x" 180
+n181 = elem "x" 181
+n182 = elem "x" 182
+n183 = elem "x" 183
+n184 = elem "x" 184
+n185 = elem "x" 185
+n186 = elem "x" 186
+n187 = elem "x" 187
+n188 = elem "x" 188
+n189 = elem "x" 189
+n190 = elem "x" 190
+n191 = elem "x" 191
+n192 = elem "x" 192
+n193 = elem "x" 193
+n194 = elem "x" 194
+n195 = elem "x" 195
+n196 = elem "x" 196
+n197 = elem "x" 197
+n198 = elem "x" 198
+n199 = elem "x" 199
+n200 = elem "x" 200
+n201 = elem "x" 201
+n202 = elem "x" 202
+n203 = elem "x" 203
+n204 = elem "x" 204
+n205 = elem "x" 205
+n206 = elem "x" 206
+n207 = elem "x" 207
+n208 = elem "x" 208
+n209 = elem "x" 209
+n210 = elem "x" 210
+n211 = elem "x" 211
+n212 = elem "x" 212
+n213 = elem "x" 213
+n214 = elem "x" 214
+n215 = elem "x" 215
+n216 = elem "x" 216
+n217 = elem "x" 217
+n218 = elem "x" 218
+n219 = elem "x" 219
+n220 = elem "x" 220
+n221 = elem "x" 221
+n222 = elem "x" 222
+n223 = elem "x" 223
+n224 = elem "x" 224
+n225 = elem "x" 225
+n226 = elem "x" 226
+n227 = elem "x" 227
+n228 = elem "x" 228
+n229 = elem "x" 229
+n230 = elem "x" 230
+n231 = elem "x" 231
+n232 = elem "x" 232
+n233 = elem "x" 233
+n234 = elem "x" 234
+n235 = elem "x" 235
+n236 = elem "x" 236
+n237 = elem "x" 237
+n238 = elem "x" 238
+n239 = elem "x" 239
+n240 = elem "x" 240
+n241 = elem "x" 241
+n242 = elem "x" 242
+n243 = elem "x" 243
+n244 = elem "x" 244
+n245 = elem "x" 245
+n246 = elem "x" 246
+n247 = elem "x" 247
+n248 = elem "x" 248
+n249 = elem "x" 249
+n250 = elem "x" 250
+n251 = elem "x" 251
+n252 = elem "x" 252
+n253 = elem "x" 253
+n254 = elem "x" 254
+n255 = elem "x" 255
+out "out" 0 n0
+out "out" 1 n1
+out "out" 2 n2
+out "out" 3 n3
+out "out" 4 n4
+out "out" 5 n5
+out "out" 6 n6
+out "out" 7 n7
+out "out" 8 n8
+out "out" 9 n9
+out "out" 10 n10
+out "out" 11 n11
+out "out" 12 n12
+out "out" 13 n13
+out "out" 14 n14
+out "out" 15 n15
+out "out" 16 n16
+out "out" 17 n17
+out "out" 18 n18
+out "out" 19 n19
+out "out" 20 n20
+out "out" 21 n21
+out "out" 22 n22
+out "out" 23 n23
+out "out" 24 n24
+out "out" 25 n25
+out "out" 26 n26
+out "out" 27 n27
+out "out" 28 n28
+out "out" 29 n29
+out "out" 30 n30
+out "out" 31 n31
+out "out" 32 n32
+out "out" 33 n33
+out "out" 34 n34
+out "out" 35 n35
+out "out" 36 n36
+out "out" 37 n37
+out "out" 38 n38
+out "out" 39 n39
+out "out" 40 n40
+out "out" 41 n41
+out "out" 42 n42
+out "out" 43 n43
+out "out" 44 n44
+out "out" 45 n45
+out "out" 46 n46
+out "out" 47 n47
+out "out" 48 n48
+out "out" 49 n49
+out "out" 50 n50
+out "out" 51 n51
+out "out" 52 n52
+out "out" 53 n53
+out "out" 54 n54
+out "out" 55 n55
+out "out" 56 n56
+out "out" 57 n57
+out "out" 58 n58
+out "out" 59 n59
+out "out" 60 n60
+out "out" 61 n61
+out "out" 62 n62
+out "out" 63 n63
+out "out" 64 n64
+out "out" 65 n65
+out "out" 66 n66
+out "out" 67 n67
+out "out" 68 n68
+out "out" 69 n69
+out "out" 70 n70
+out "out" 71 n71
+out "out" 72 n72
+out "out" 73 n73
+out "out" 74 n74
+out "out" 75 n75
+out "out" 76 n76
+out "out" 77 n77
+out "out" 78 n78
+out "out" 79 n79
+out "out" 80 n80
+out "out" 81 n81
+out "out" 82 n82
+out "out" 83 n83
+out "out" 84 n84
+out "out" 85 n85
+out "out" 86 n86
+out "out" 87 n87
+out "out" 88 n88
+out "out" 89 n89
+out "out" 90 n90
+out "out" 91 n91
+out "out" 92 n92
+out "out" 93 n93
+out "out" 94 n94
+out "out" 95 n95
+out "out" 96 n96
+out "out" 97 n97
+out "out" 98 n98
+out "out" 99 n99
+out "out" 100 n100
+out "out" 101 n101
+out "out" 102 n102
+out "out" 103 n103
+out "out" 104 n104
+out "out" 105 n105
+out "out" 106 n106
+out "out" 107 n107
+out "out" 108 n108
+out "out" 109 n109
+out "out" 110 n110
+out "out" 111 n111
+out "out" 112 n112
+out "out" 113 n113
+out "out" 114 n114
+out "out" 115 n115
+out "out" 116 n116
+out "out" 117 n117
+out "out" 118 n118
+out "out" 119 n119
+out "out" 120 n120
+out "out" 121 n121
+out "out" 122 n122
+out "out" 123 n123
+out "out" 124 n124
+out "out" 125 n125
+out "out" 126 n126
+out "out" 127 n127
+out "out" 128 n128
+out "out" 129 n129
+out "out" 130 n130
+out "out" 131 n131
+out "out" 132 n132
+out "out" 133 n133
+out "out" 134 n134
+out "out" 135 n135
+out "out" 136 n136
+out "out" 137 n137
+out "out" 138 n138
+out "out" 139 n139
+out "out" 140 n140
+out "out" 141 n141
+out "out" 142 n142
+out "out" 143 n143
+out "out" 144 n144
+out "out" 145 n145
+out "out" 146 n146
+out "out" 147 n147
+out "out" 148 n148
+out "out" 149 n149
+out "out" 150 n150
+out "out" 151 n151
+out "out" 152 n152
+out "out" 153 n153
+out "out" 154 n154
+out "out" 155 n155
+out "out" 156 n156
+out "out" 157 n157
+out "out" 158 n158
+out "out" 159 n159
+out "out" 160 n160
+out "out" 161 n161
+out "out" 162 n162
+out "out" 163 n163
+out "out" 164 n164
+out "out" 165 n165
+out "out" 166 n166
+out "out" 167 n167
+out "out" 168 n168
+out "out" 169 n169
+out "out" 170 n170
+out "out" 171 n171
+out "out" 172 n172
+out "out" 173 n173
+out "out" 174 n174
+out "out" 175 n175
+out "out" 176 n176
+out "out" 177 n177
+out "out" 178 n178
+out "out" 179 n179
+out "out" 180 n180
+out "out" 181 n181
+out "out" 182 n182
+out "out" 183 n183
+out "out" 184 n184
+out "out" 185 n185
+out "out" 186 n186
+out "out" 187 n187
+out "out" 188 n188
+out "out" 189 n189
+out "out" 190 n190
+out "out" 191 n191
+out "out" 192 n192
+out "out" 193 n193
+out "out" 194 n194
+out "out" 195 n195
+out "out" 196 n196
+out "out" 197 n197
+out "out" 198 n198
+out "out" 199 n199
+out "out" 200 n200
+out "out" 201 n201
+out "out" 202 n202
+out "out" 203 n203
+out "out" 204 n204
+out "out" 205 n205
+out "out" 206 n206
+out "out" 207 n207
+out "out" 208 n208
+out "out" 209 n209
+out "out" 210 n210
+out "out" 211 n211
+out "out" 212 n212
+out "out" 213 n213
+out "out" 214 n214
+out "out" 215 n215
+out "out" 216 n216
+out "out" 217 n217
+out "out" 218 n218
+out "out" 219 n219
+out "out" 220 n220
+out "out" 221 n221
+out "out" 222 n222
+out "out" 223 n223
+out "out" 224 n224
+out "out" 225 n225
+out "out" 226 n226
+out "out" 227 n227
+out "out" 228 n228
+out "out" 229 n229
+out "out" 230 n230
+out "out" 231 n231
+out "out" 232 n232
+out "out" 233 n233
+out "out" 234 n234
+out "out" 235 n235
+out "out" 236 n236
+out "out" 237 n237
+out "out" 238 n238
+out "out" 239 n239
+out "out" 240 n240
+out "out" 241 n241
+out "out" 242 n242
+out "out" 243 n243
+out "out" 244 n244
+out "out" 245 n245
+out "out" 246 n246
+out "out" 247 n247
+out "out" 248 n248
+out "out" 249 n249
+out "out" 250 n250
+out "out" 251 n251
+out "out" 252 n252
+out "out" 253 n253
+out "out" 254 n254
+out "out" 255 n255

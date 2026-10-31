@@ -1,0 +1,1416 @@
+volta-graph 2
+kernel "_ZL17global_wrapper_2dI20sharedreg_load_storeI14__hip_bfloat16EN7kittens5ducks8rt_shape8rt_shapeILi16ELi16ELi4EEENS4_8st_shape8st_16x16ES1_Li1ELi1ELi1ENS3_2glIS1_Li1ELi1ELi16ELi16ENS4_9gl_layout9row_majorEEEJNS4_9rt_layout3rowEEEvT6_SG_" block 32,1,1 grid 1,1,1 workgroup 0,0,0 targets gfx1250
+assume StructuredCta
+assume SingleWorkgroupAnalyzed
+assume MathematicalRealArithmetic
+assume EagerAsyncData
+assume UnclusteredWorkgroup
+assume AmdDefaultScheduling
+assume ConfiguredLdsBytes(163840)
+e0 t0 pc0 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 0, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 1, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 4, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 5, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e1 t0 pc0 amd wave=0 MemoryIssue { class: ScalarLoad, counters: [(Km, 1), (X, 1)], destinations: [AmdRegister { file: Scalar, index: 4, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 5, lanes: 18446744073709551615 }], held_sources: [AmdRegister { file: Scalar, index: 0, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 1, lanes: 18446744073709551615 }] }
+e2 t0 pc0 read ordinary generic global Plain by t0 [0xffff00000010,+4)
+e3 t0 pc0 read ordinary generic global Plain by t0 [0xffff00000014,+4)
+e4 t0 pc1 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e5 t0 pc2 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e6 t0 pc3 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e7 t0 pc3 amd wave=0 DelayAlu { instid0: SaluCycles(1), instskip: 1, instid1: Some(SaluCycles(1)) }
+e8 t0 pc4 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 3, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 3, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e9 t0 pc5 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e10 t0 pc6 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e11 t0 pc6 amd wave=0 DelayAlu { instid0: SaluCycles(1), instskip: 3, instid1: Some(SaluCycles(1)) }
+e12 t0 pc7 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e13 t0 pc8 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 3, lanes: 18446744073709551615 }], writes: [], scalar_mask_reads: [] }
+e14 t0 pc9 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e15 t0 pc10 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e16 t0 pc11 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e17 t0 pc11 amd wave=0 DelayAlu { instid0: SaluCycles(1), instskip: 0, instid1: None }
+e18 t0 pc12 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e19 t0 pc13 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 126, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 3, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e20 t0 pc14 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 0, lanes: 4294967295 }], writes: [AmdRegister { file: Scalar, index: 126, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e21 t0 pc15 amd wave=0 Instruction { exec_mask: 0, reads: [AmdRegister { file: Scalar, index: 126, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 3, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e22 t0 pc16 amd wave=0 Instruction { exec_mask: 0, reads: [], writes: [AmdRegister { file: Scalar, index: 8, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 9, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e23 t0 pc17 amd wave=0 Instruction { exec_mask: 0, reads: [], writes: [], scalar_mask_reads: [] }
+e24 t0 pc17 amd wave=0 DelayAlu { instid0: SaluCycles(1), instskip: 0, instid1: None }
+e25 t0 pc18 amd wave=0 Instruction { exec_mask: 0, reads: [AmdRegister { file: Scalar, index: 9, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 3, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e26 t0 pc19 amd wave=0 Instruction { exec_mask: 0, reads: [AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e27 t0 pc20 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 3, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Vector, index: 2, lanes: 4294967295 }, AmdRegister { file: Vector, index: 3, lanes: 4294967295 }], scalar_mask_reads: [] }
+e28 t0 pc21 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 0, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 1, lanes: 4294967295 }], scalar_mask_reads: [] }
+e29 t0 pc22 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 126, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 126, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e30 t0 pc23 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e31 t0 pc24 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e32 t0 pc24 amd wave=0 WaitCounters { thresholds: [(X, 0)] }
+e33 t0 pc25 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 0, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 1, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 0, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 1, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e34 t0 pc25 amd wave=0 MemoryIssue { class: ScalarLoad, counters: [(Km, 1), (X, 1)], destinations: [AmdRegister { file: Scalar, index: 0, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 1, lanes: 18446744073709551615 }], held_sources: [AmdRegister { file: Scalar, index: 0, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 1, lanes: 18446744073709551615 }] }
+e35 t0 pc25 read ordinary generic global Plain by t0 [0xffff00000000,+4)
+e36 t0 pc25 read ordinary generic global Plain by t0 [0xffff00000004,+4)
+e37 t0 pc26 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 1, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 2, lanes: 4294967295 }], scalar_mask_reads: [] }
+e38 t0 pc27 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [AmdRegister { file: Vector, index: 3, lanes: 4294967295 }], scalar_mask_reads: [] }
+e39 t0 pc28 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [AmdRegister { file: Scalar, index: 8, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 9, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e40 t0 pc29 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e41 t0 pc29 amd wave=0 DelayAlu { instid0: SaluCycles(1), instskip: 2, instid1: Some(Valu(1)) }
+e42 t0 pc30 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 9, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 3, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e43 t0 pc31 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e44 t0 pc31 amd wave=0 WaitCounters { thresholds: [(Km, 0)] }
+e45 t0 pc32 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 0, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 1, lanes: 18446744073709551615 }, AmdRegister { file: Vector, index: 2, lanes: 4294967295 }, AmdRegister { file: Vector, index: 3, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 4, lanes: 4294967295 }, AmdRegister { file: Vector, index: 5, lanes: 4294967295 }], scalar_mask_reads: [] }
+e46 t0 pc33 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 1, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 2, lanes: 4294967295 }], scalar_mask_reads: [] }
+e47 t0 pc34 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e48 t0 pc34 amd wave=0 DelayAlu { instid0: Valu(1), instskip: 0, instid1: None }
+e49 t0 pc35 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 4, lanes: 4294967295 }, AmdRegister { file: Vector, index: 5, lanes: 4294967295 }, AmdRegister { file: Vector, index: 2, lanes: 4294967295 }, AmdRegister { file: Vector, index: 3, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 2, lanes: 4294967295 }, AmdRegister { file: Vector, index: 3, lanes: 4294967295 }], scalar_mask_reads: [] }
+e50 t0 pc36 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }, AmdRegister { file: Vector, index: 1, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 4, lanes: 4294967295 }], scalar_mask_reads: [] }
+e51 t0 pc37 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 4, lanes: 4294967295 }, AmdRegister { file: Vector, index: 2, lanes: 4294967295 }, AmdRegister { file: Vector, index: 3, lanes: 4294967295 }, AmdRegister { file: Scalar, index: 126, lanes: 18446744073709551615 }], writes: [], scalar_mask_reads: [] }
+e52 t0 pc37 amd wave=0 MemoryIssue { class: AsyncLoadToLds, counters: [(Async, 1)], destinations: [], held_sources: [] }
+e53 t0 pc37 read ordinary generic global Plain by t0 [0x10000,+4)
+e54 t0 pc37 write ordinary generic shared Plain by t0 [0x0,+4) = (n449, n450)
+e55 t0 pc37 read ordinary generic global Plain by t0 [0x10004,+4)
+e56 t0 pc37 write ordinary generic shared Plain by t0 [0x4,+4) = (n451, n452)
+e57 t0 pc37 read ordinary generic global Plain by t0 [0x10008,+4)
+e58 t0 pc37 write ordinary generic shared Plain by t0 [0x8,+4) = (n453, n454)
+e59 t0 pc37 read ordinary generic global Plain by t0 [0x1000c,+4)
+e60 t0 pc37 write ordinary generic shared Plain by t0 [0xc,+4) = (n455, n456)
+e61 t1 pc37 read ordinary generic global Plain by t1 [0x10010,+4)
+e62 t1 pc37 write ordinary generic shared Plain by t1 [0x10,+4) = (n457, n458)
+e63 t1 pc37 read ordinary generic global Plain by t1 [0x10014,+4)
+e64 t1 pc37 write ordinary generic shared Plain by t1 [0x14,+4) = (n459, n460)
+e65 t1 pc37 read ordinary generic global Plain by t1 [0x10018,+4)
+e66 t1 pc37 write ordinary generic shared Plain by t1 [0x18,+4) = (n461, n462)
+e67 t1 pc37 read ordinary generic global Plain by t1 [0x1001c,+4)
+e68 t1 pc37 write ordinary generic shared Plain by t1 [0x1c,+4) = (n463, n464)
+e69 t2 pc37 read ordinary generic global Plain by t2 [0x10020,+4)
+e70 t2 pc37 write ordinary generic shared Plain by t2 [0x20,+4) = (n465, n466)
+e71 t2 pc37 read ordinary generic global Plain by t2 [0x10024,+4)
+e72 t2 pc37 write ordinary generic shared Plain by t2 [0x24,+4) = (n467, n468)
+e73 t2 pc37 read ordinary generic global Plain by t2 [0x10028,+4)
+e74 t2 pc37 write ordinary generic shared Plain by t2 [0x28,+4) = (n469, n470)
+e75 t2 pc37 read ordinary generic global Plain by t2 [0x1002c,+4)
+e76 t2 pc37 write ordinary generic shared Plain by t2 [0x2c,+4) = (n471, n472)
+e77 t3 pc37 read ordinary generic global Plain by t3 [0x10030,+4)
+e78 t3 pc37 write ordinary generic shared Plain by t3 [0x30,+4) = (n473, n474)
+e79 t3 pc37 read ordinary generic global Plain by t3 [0x10034,+4)
+e80 t3 pc37 write ordinary generic shared Plain by t3 [0x34,+4) = (n475, n476)
+e81 t3 pc37 read ordinary generic global Plain by t3 [0x10038,+4)
+e82 t3 pc37 write ordinary generic shared Plain by t3 [0x38,+4) = (n477, n478)
+e83 t3 pc37 read ordinary generic global Plain by t3 [0x1003c,+4)
+e84 t3 pc37 write ordinary generic shared Plain by t3 [0x3c,+4) = (n479, n480)
+e85 t4 pc37 read ordinary generic global Plain by t4 [0x10040,+4)
+e86 t4 pc37 write ordinary generic shared Plain by t4 [0x40,+4) = (n481, n482)
+e87 t4 pc37 read ordinary generic global Plain by t4 [0x10044,+4)
+e88 t4 pc37 write ordinary generic shared Plain by t4 [0x44,+4) = (n483, n484)
+e89 t4 pc37 read ordinary generic global Plain by t4 [0x10048,+4)
+e90 t4 pc37 write ordinary generic shared Plain by t4 [0x48,+4) = (n485, n486)
+e91 t4 pc37 read ordinary generic global Plain by t4 [0x1004c,+4)
+e92 t4 pc37 write ordinary generic shared Plain by t4 [0x4c,+4) = (n487, n488)
+e93 t5 pc37 read ordinary generic global Plain by t5 [0x10050,+4)
+e94 t5 pc37 write ordinary generic shared Plain by t5 [0x50,+4) = (n489, n490)
+e95 t5 pc37 read ordinary generic global Plain by t5 [0x10054,+4)
+e96 t5 pc37 write ordinary generic shared Plain by t5 [0x54,+4) = (n491, n492)
+e97 t5 pc37 read ordinary generic global Plain by t5 [0x10058,+4)
+e98 t5 pc37 write ordinary generic shared Plain by t5 [0x58,+4) = (n493, n494)
+e99 t5 pc37 read ordinary generic global Plain by t5 [0x1005c,+4)
+e100 t5 pc37 write ordinary generic shared Plain by t5 [0x5c,+4) = (n495, n496)
+e101 t6 pc37 read ordinary generic global Plain by t6 [0x10060,+4)
+e102 t6 pc37 write ordinary generic shared Plain by t6 [0x60,+4) = (n497, n498)
+e103 t6 pc37 read ordinary generic global Plain by t6 [0x10064,+4)
+e104 t6 pc37 write ordinary generic shared Plain by t6 [0x64,+4) = (n499, n500)
+e105 t6 pc37 read ordinary generic global Plain by t6 [0x10068,+4)
+e106 t6 pc37 write ordinary generic shared Plain by t6 [0x68,+4) = (n501, n502)
+e107 t6 pc37 read ordinary generic global Plain by t6 [0x1006c,+4)
+e108 t6 pc37 write ordinary generic shared Plain by t6 [0x6c,+4) = (n503, n504)
+e109 t7 pc37 read ordinary generic global Plain by t7 [0x10070,+4)
+e110 t7 pc37 write ordinary generic shared Plain by t7 [0x70,+4) = (n505, n506)
+e111 t7 pc37 read ordinary generic global Plain by t7 [0x10074,+4)
+e112 t7 pc37 write ordinary generic shared Plain by t7 [0x74,+4) = (n507, n508)
+e113 t7 pc37 read ordinary generic global Plain by t7 [0x10078,+4)
+e114 t7 pc37 write ordinary generic shared Plain by t7 [0x78,+4) = (n509, n510)
+e115 t7 pc37 read ordinary generic global Plain by t7 [0x1007c,+4)
+e116 t7 pc37 write ordinary generic shared Plain by t7 [0x7c,+4) = (n511, n512)
+e117 t8 pc37 read ordinary generic global Plain by t8 [0x10080,+4)
+e118 t8 pc37 write ordinary generic shared Plain by t8 [0x80,+4) = (n513, n514)
+e119 t8 pc37 read ordinary generic global Plain by t8 [0x10084,+4)
+e120 t8 pc37 write ordinary generic shared Plain by t8 [0x84,+4) = (n515, n516)
+e121 t8 pc37 read ordinary generic global Plain by t8 [0x10088,+4)
+e122 t8 pc37 write ordinary generic shared Plain by t8 [0x88,+4) = (n517, n518)
+e123 t8 pc37 read ordinary generic global Plain by t8 [0x1008c,+4)
+e124 t8 pc37 write ordinary generic shared Plain by t8 [0x8c,+4) = (n519, n520)
+e125 t9 pc37 read ordinary generic global Plain by t9 [0x10090,+4)
+e126 t9 pc37 write ordinary generic shared Plain by t9 [0x90,+4) = (n521, n522)
+e127 t9 pc37 read ordinary generic global Plain by t9 [0x10094,+4)
+e128 t9 pc37 write ordinary generic shared Plain by t9 [0x94,+4) = (n523, n524)
+e129 t9 pc37 read ordinary generic global Plain by t9 [0x10098,+4)
+e130 t9 pc37 write ordinary generic shared Plain by t9 [0x98,+4) = (n525, n526)
+e131 t9 pc37 read ordinary generic global Plain by t9 [0x1009c,+4)
+e132 t9 pc37 write ordinary generic shared Plain by t9 [0x9c,+4) = (n527, n528)
+e133 t10 pc37 read ordinary generic global Plain by t10 [0x100a0,+4)
+e134 t10 pc37 write ordinary generic shared Plain by t10 [0xa0,+4) = (n529, n530)
+e135 t10 pc37 read ordinary generic global Plain by t10 [0x100a4,+4)
+e136 t10 pc37 write ordinary generic shared Plain by t10 [0xa4,+4) = (n531, n532)
+e137 t10 pc37 read ordinary generic global Plain by t10 [0x100a8,+4)
+e138 t10 pc37 write ordinary generic shared Plain by t10 [0xa8,+4) = (n533, n534)
+e139 t10 pc37 read ordinary generic global Plain by t10 [0x100ac,+4)
+e140 t10 pc37 write ordinary generic shared Plain by t10 [0xac,+4) = (n535, n536)
+e141 t11 pc37 read ordinary generic global Plain by t11 [0x100b0,+4)
+e142 t11 pc37 write ordinary generic shared Plain by t11 [0xb0,+4) = (n537, n538)
+e143 t11 pc37 read ordinary generic global Plain by t11 [0x100b4,+4)
+e144 t11 pc37 write ordinary generic shared Plain by t11 [0xb4,+4) = (n539, n540)
+e145 t11 pc37 read ordinary generic global Plain by t11 [0x100b8,+4)
+e146 t11 pc37 write ordinary generic shared Plain by t11 [0xb8,+4) = (n541, n542)
+e147 t11 pc37 read ordinary generic global Plain by t11 [0x100bc,+4)
+e148 t11 pc37 write ordinary generic shared Plain by t11 [0xbc,+4) = (n543, n544)
+e149 t12 pc37 read ordinary generic global Plain by t12 [0x100c0,+4)
+e150 t12 pc37 write ordinary generic shared Plain by t12 [0xc0,+4) = (n545, n546)
+e151 t12 pc37 read ordinary generic global Plain by t12 [0x100c4,+4)
+e152 t12 pc37 write ordinary generic shared Plain by t12 [0xc4,+4) = (n547, n548)
+e153 t12 pc37 read ordinary generic global Plain by t12 [0x100c8,+4)
+e154 t12 pc37 write ordinary generic shared Plain by t12 [0xc8,+4) = (n549, n550)
+e155 t12 pc37 read ordinary generic global Plain by t12 [0x100cc,+4)
+e156 t12 pc37 write ordinary generic shared Plain by t12 [0xcc,+4) = (n551, n552)
+e157 t13 pc37 read ordinary generic global Plain by t13 [0x100d0,+4)
+e158 t13 pc37 write ordinary generic shared Plain by t13 [0xd0,+4) = (n553, n554)
+e159 t13 pc37 read ordinary generic global Plain by t13 [0x100d4,+4)
+e160 t13 pc37 write ordinary generic shared Plain by t13 [0xd4,+4) = (n555, n556)
+e161 t13 pc37 read ordinary generic global Plain by t13 [0x100d8,+4)
+e162 t13 pc37 write ordinary generic shared Plain by t13 [0xd8,+4) = (n557, n558)
+e163 t13 pc37 read ordinary generic global Plain by t13 [0x100dc,+4)
+e164 t13 pc37 write ordinary generic shared Plain by t13 [0xdc,+4) = (n559, n560)
+e165 t14 pc37 read ordinary generic global Plain by t14 [0x100e0,+4)
+e166 t14 pc37 write ordinary generic shared Plain by t14 [0xe0,+4) = (n561, n562)
+e167 t14 pc37 read ordinary generic global Plain by t14 [0x100e4,+4)
+e168 t14 pc37 write ordinary generic shared Plain by t14 [0xe4,+4) = (n563, n564)
+e169 t14 pc37 read ordinary generic global Plain by t14 [0x100e8,+4)
+e170 t14 pc37 write ordinary generic shared Plain by t14 [0xe8,+4) = (n565, n566)
+e171 t14 pc37 read ordinary generic global Plain by t14 [0x100ec,+4)
+e172 t14 pc37 write ordinary generic shared Plain by t14 [0xec,+4) = (n567, n568)
+e173 t15 pc37 read ordinary generic global Plain by t15 [0x100f0,+4)
+e174 t15 pc37 write ordinary generic shared Plain by t15 [0xf0,+4) = (n569, n570)
+e175 t15 pc37 read ordinary generic global Plain by t15 [0x100f4,+4)
+e176 t15 pc37 write ordinary generic shared Plain by t15 [0xf4,+4) = (n571, n572)
+e177 t15 pc37 read ordinary generic global Plain by t15 [0x100f8,+4)
+e178 t15 pc37 write ordinary generic shared Plain by t15 [0xf8,+4) = (n573, n574)
+e179 t15 pc37 read ordinary generic global Plain by t15 [0x100fc,+4)
+e180 t15 pc37 write ordinary generic shared Plain by t15 [0xfc,+4) = (n575, n576)
+e181 t16 pc37 read ordinary generic global Plain by t16 [0x10100,+4)
+e182 t16 pc37 write ordinary generic shared Plain by t16 [0x100,+4) = (n577, n578)
+e183 t16 pc37 read ordinary generic global Plain by t16 [0x10104,+4)
+e184 t16 pc37 write ordinary generic shared Plain by t16 [0x104,+4) = (n579, n580)
+e185 t16 pc37 read ordinary generic global Plain by t16 [0x10108,+4)
+e186 t16 pc37 write ordinary generic shared Plain by t16 [0x108,+4) = (n581, n582)
+e187 t16 pc37 read ordinary generic global Plain by t16 [0x1010c,+4)
+e188 t16 pc37 write ordinary generic shared Plain by t16 [0x10c,+4) = (n583, n584)
+e189 t17 pc37 read ordinary generic global Plain by t17 [0x10110,+4)
+e190 t17 pc37 write ordinary generic shared Plain by t17 [0x110,+4) = (n585, n586)
+e191 t17 pc37 read ordinary generic global Plain by t17 [0x10114,+4)
+e192 t17 pc37 write ordinary generic shared Plain by t17 [0x114,+4) = (n587, n588)
+e193 t17 pc37 read ordinary generic global Plain by t17 [0x10118,+4)
+e194 t17 pc37 write ordinary generic shared Plain by t17 [0x118,+4) = (n589, n590)
+e195 t17 pc37 read ordinary generic global Plain by t17 [0x1011c,+4)
+e196 t17 pc37 write ordinary generic shared Plain by t17 [0x11c,+4) = (n591, n592)
+e197 t18 pc37 read ordinary generic global Plain by t18 [0x10120,+4)
+e198 t18 pc37 write ordinary generic shared Plain by t18 [0x120,+4) = (n593, n594)
+e199 t18 pc37 read ordinary generic global Plain by t18 [0x10124,+4)
+e200 t18 pc37 write ordinary generic shared Plain by t18 [0x124,+4) = (n595, n596)
+e201 t18 pc37 read ordinary generic global Plain by t18 [0x10128,+4)
+e202 t18 pc37 write ordinary generic shared Plain by t18 [0x128,+4) = (n597, n598)
+e203 t18 pc37 read ordinary generic global Plain by t18 [0x1012c,+4)
+e204 t18 pc37 write ordinary generic shared Plain by t18 [0x12c,+4) = (n599, n600)
+e205 t19 pc37 read ordinary generic global Plain by t19 [0x10130,+4)
+e206 t19 pc37 write ordinary generic shared Plain by t19 [0x130,+4) = (n601, n602)
+e207 t19 pc37 read ordinary generic global Plain by t19 [0x10134,+4)
+e208 t19 pc37 write ordinary generic shared Plain by t19 [0x134,+4) = (n603, n604)
+e209 t19 pc37 read ordinary generic global Plain by t19 [0x10138,+4)
+e210 t19 pc37 write ordinary generic shared Plain by t19 [0x138,+4) = (n605, n606)
+e211 t19 pc37 read ordinary generic global Plain by t19 [0x1013c,+4)
+e212 t19 pc37 write ordinary generic shared Plain by t19 [0x13c,+4) = (n607, n608)
+e213 t20 pc37 read ordinary generic global Plain by t20 [0x10140,+4)
+e214 t20 pc37 write ordinary generic shared Plain by t20 [0x140,+4) = (n609, n610)
+e215 t20 pc37 read ordinary generic global Plain by t20 [0x10144,+4)
+e216 t20 pc37 write ordinary generic shared Plain by t20 [0x144,+4) = (n611, n612)
+e217 t20 pc37 read ordinary generic global Plain by t20 [0x10148,+4)
+e218 t20 pc37 write ordinary generic shared Plain by t20 [0x148,+4) = (n613, n614)
+e219 t20 pc37 read ordinary generic global Plain by t20 [0x1014c,+4)
+e220 t20 pc37 write ordinary generic shared Plain by t20 [0x14c,+4) = (n615, n616)
+e221 t21 pc37 read ordinary generic global Plain by t21 [0x10150,+4)
+e222 t21 pc37 write ordinary generic shared Plain by t21 [0x150,+4) = (n617, n618)
+e223 t21 pc37 read ordinary generic global Plain by t21 [0x10154,+4)
+e224 t21 pc37 write ordinary generic shared Plain by t21 [0x154,+4) = (n619, n620)
+e225 t21 pc37 read ordinary generic global Plain by t21 [0x10158,+4)
+e226 t21 pc37 write ordinary generic shared Plain by t21 [0x158,+4) = (n621, n622)
+e227 t21 pc37 read ordinary generic global Plain by t21 [0x1015c,+4)
+e228 t21 pc37 write ordinary generic shared Plain by t21 [0x15c,+4) = (n623, n624)
+e229 t22 pc37 read ordinary generic global Plain by t22 [0x10160,+4)
+e230 t22 pc37 write ordinary generic shared Plain by t22 [0x160,+4) = (n625, n626)
+e231 t22 pc37 read ordinary generic global Plain by t22 [0x10164,+4)
+e232 t22 pc37 write ordinary generic shared Plain by t22 [0x164,+4) = (n627, n628)
+e233 t22 pc37 read ordinary generic global Plain by t22 [0x10168,+4)
+e234 t22 pc37 write ordinary generic shared Plain by t22 [0x168,+4) = (n629, n630)
+e235 t22 pc37 read ordinary generic global Plain by t22 [0x1016c,+4)
+e236 t22 pc37 write ordinary generic shared Plain by t22 [0x16c,+4) = (n631, n632)
+e237 t23 pc37 read ordinary generic global Plain by t23 [0x10170,+4)
+e238 t23 pc37 write ordinary generic shared Plain by t23 [0x170,+4) = (n633, n634)
+e239 t23 pc37 read ordinary generic global Plain by t23 [0x10174,+4)
+e240 t23 pc37 write ordinary generic shared Plain by t23 [0x174,+4) = (n635, n636)
+e241 t23 pc37 read ordinary generic global Plain by t23 [0x10178,+4)
+e242 t23 pc37 write ordinary generic shared Plain by t23 [0x178,+4) = (n637, n638)
+e243 t23 pc37 read ordinary generic global Plain by t23 [0x1017c,+4)
+e244 t23 pc37 write ordinary generic shared Plain by t23 [0x17c,+4) = (n639, n640)
+e245 t24 pc37 read ordinary generic global Plain by t24 [0x10180,+4)
+e246 t24 pc37 write ordinary generic shared Plain by t24 [0x180,+4) = (n641, n642)
+e247 t24 pc37 read ordinary generic global Plain by t24 [0x10184,+4)
+e248 t24 pc37 write ordinary generic shared Plain by t24 [0x184,+4) = (n643, n644)
+e249 t24 pc37 read ordinary generic global Plain by t24 [0x10188,+4)
+e250 t24 pc37 write ordinary generic shared Plain by t24 [0x188,+4) = (n645, n646)
+e251 t24 pc37 read ordinary generic global Plain by t24 [0x1018c,+4)
+e252 t24 pc37 write ordinary generic shared Plain by t24 [0x18c,+4) = (n647, n648)
+e253 t25 pc37 read ordinary generic global Plain by t25 [0x10190,+4)
+e254 t25 pc37 write ordinary generic shared Plain by t25 [0x190,+4) = (n649, n650)
+e255 t25 pc37 read ordinary generic global Plain by t25 [0x10194,+4)
+e256 t25 pc37 write ordinary generic shared Plain by t25 [0x194,+4) = (n651, n652)
+e257 t25 pc37 read ordinary generic global Plain by t25 [0x10198,+4)
+e258 t25 pc37 write ordinary generic shared Plain by t25 [0x198,+4) = (n653, n654)
+e259 t25 pc37 read ordinary generic global Plain by t25 [0x1019c,+4)
+e260 t25 pc37 write ordinary generic shared Plain by t25 [0x19c,+4) = (n655, n656)
+e261 t26 pc37 read ordinary generic global Plain by t26 [0x101a0,+4)
+e262 t26 pc37 write ordinary generic shared Plain by t26 [0x1a0,+4) = (n657, n658)
+e263 t26 pc37 read ordinary generic global Plain by t26 [0x101a4,+4)
+e264 t26 pc37 write ordinary generic shared Plain by t26 [0x1a4,+4) = (n659, n660)
+e265 t26 pc37 read ordinary generic global Plain by t26 [0x101a8,+4)
+e266 t26 pc37 write ordinary generic shared Plain by t26 [0x1a8,+4) = (n661, n662)
+e267 t26 pc37 read ordinary generic global Plain by t26 [0x101ac,+4)
+e268 t26 pc37 write ordinary generic shared Plain by t26 [0x1ac,+4) = (n663, n664)
+e269 t27 pc37 read ordinary generic global Plain by t27 [0x101b0,+4)
+e270 t27 pc37 write ordinary generic shared Plain by t27 [0x1b0,+4) = (n665, n666)
+e271 t27 pc37 read ordinary generic global Plain by t27 [0x101b4,+4)
+e272 t27 pc37 write ordinary generic shared Plain by t27 [0x1b4,+4) = (n667, n668)
+e273 t27 pc37 read ordinary generic global Plain by t27 [0x101b8,+4)
+e274 t27 pc37 write ordinary generic shared Plain by t27 [0x1b8,+4) = (n669, n670)
+e275 t27 pc37 read ordinary generic global Plain by t27 [0x101bc,+4)
+e276 t27 pc37 write ordinary generic shared Plain by t27 [0x1bc,+4) = (n671, n672)
+e277 t28 pc37 read ordinary generic global Plain by t28 [0x101c0,+4)
+e278 t28 pc37 write ordinary generic shared Plain by t28 [0x1c0,+4) = (n673, n674)
+e279 t28 pc37 read ordinary generic global Plain by t28 [0x101c4,+4)
+e280 t28 pc37 write ordinary generic shared Plain by t28 [0x1c4,+4) = (n675, n676)
+e281 t28 pc37 read ordinary generic global Plain by t28 [0x101c8,+4)
+e282 t28 pc37 write ordinary generic shared Plain by t28 [0x1c8,+4) = (n677, n678)
+e283 t28 pc37 read ordinary generic global Plain by t28 [0x101cc,+4)
+e284 t28 pc37 write ordinary generic shared Plain by t28 [0x1cc,+4) = (n679, n680)
+e285 t29 pc37 read ordinary generic global Plain by t29 [0x101d0,+4)
+e286 t29 pc37 write ordinary generic shared Plain by t29 [0x1d0,+4) = (n681, n682)
+e287 t29 pc37 read ordinary generic global Plain by t29 [0x101d4,+4)
+e288 t29 pc37 write ordinary generic shared Plain by t29 [0x1d4,+4) = (n683, n684)
+e289 t29 pc37 read ordinary generic global Plain by t29 [0x101d8,+4)
+e290 t29 pc37 write ordinary generic shared Plain by t29 [0x1d8,+4) = (n685, n686)
+e291 t29 pc37 read ordinary generic global Plain by t29 [0x101dc,+4)
+e292 t29 pc37 write ordinary generic shared Plain by t29 [0x1dc,+4) = (n687, n688)
+e293 t30 pc37 read ordinary generic global Plain by t30 [0x101e0,+4)
+e294 t30 pc37 write ordinary generic shared Plain by t30 [0x1e0,+4) = (n689, n690)
+e295 t30 pc37 read ordinary generic global Plain by t30 [0x101e4,+4)
+e296 t30 pc37 write ordinary generic shared Plain by t30 [0x1e4,+4) = (n691, n692)
+e297 t30 pc37 read ordinary generic global Plain by t30 [0x101e8,+4)
+e298 t30 pc37 write ordinary generic shared Plain by t30 [0x1e8,+4) = (n693, n694)
+e299 t30 pc37 read ordinary generic global Plain by t30 [0x101ec,+4)
+e300 t30 pc37 write ordinary generic shared Plain by t30 [0x1ec,+4) = (n695, n696)
+e301 t31 pc37 read ordinary generic global Plain by t31 [0x101f0,+4)
+e302 t31 pc37 write ordinary generic shared Plain by t31 [0x1f0,+4) = (n697, n698)
+e303 t31 pc37 read ordinary generic global Plain by t31 [0x101f4,+4)
+e304 t31 pc37 write ordinary generic shared Plain by t31 [0x1f4,+4) = (n699, n700)
+e305 t31 pc37 read ordinary generic global Plain by t31 [0x101f8,+4)
+e306 t31 pc37 write ordinary generic shared Plain by t31 [0x1f8,+4) = (n701, n702)
+e307 t31 pc37 read ordinary generic global Plain by t31 [0x101fc,+4)
+e308 t31 pc37 write ordinary generic shared Plain by t31 [0x1fc,+4) = (n703, n704)
+e309 t0 pc38 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e310 t0 pc38 amd wave=0 WaitCounters { thresholds: [(Async, 0)] }
+e311 t0 pc39 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 2, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 3, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Vector, index: 2, lanes: 4294967295 }, AmdRegister { file: Vector, index: 3, lanes: 4294967295 }], scalar_mask_reads: [] }
+e312 t0 pc40 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Scalar, index: 126, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 126, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e313 t0 pc41 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 0, lanes: 4294967295 }, AmdRegister { file: Vector, index: 0, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 3, lanes: 4294967295 }, AmdRegister { file: Vector, index: 4, lanes: 4294967295 }], scalar_mask_reads: [] }
+e314 t0 pc42 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [AmdRegister { file: Scalar, index: 7, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e315 t0 pc43 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e316 t0 pc44 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e317 t0 pc44 amd wave=0 DelayAlu { instid0: Valu(1), instskip: 1, instid1: Some(Valu(1)) }
+e318 t0 pc45 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 3, lanes: 4294967295 }, AmdRegister { file: Vector, index: 4, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 3, lanes: 4294967295 }], scalar_mask_reads: [] }
+e319 t0 pc46 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 0, lanes: 4294967295 }, AmdRegister { file: Vector, index: 3, lanes: 4294967295 }, AmdRegister { file: Vector, index: 2, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 0, lanes: 4294967295 }, AmdRegister { file: Vector, index: 5, lanes: 4294967295 }], scalar_mask_reads: [] }
+e320 t0 pc47 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e321 t0 pc47 amd wave=0 DelayAlu { instid0: Valu(1), instskip: 1, instid1: Some(Valu(1)) }
+e322 t0 pc48 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 0, lanes: 4294967295 }, AmdRegister { file: Vector, index: 1, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 0, lanes: 4294967295 }], scalar_mask_reads: [] }
+e323 t0 pc49 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 5, lanes: 4294967295 }, AmdRegister { file: Vector, index: 0, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 6, lanes: 4294967295 }, AmdRegister { file: Vector, index: 4, lanes: 4294967295 }], scalar_mask_reads: [] }
+e324 t0 pc50 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 5, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 0, lanes: 4294967295 }, AmdRegister { file: Vector, index: 1, lanes: 4294967295 }], scalar_mask_reads: [] }
+e325 t0 pc50 amd wave=0 MemoryIssue { class: Ds, counters: [(Ds, 1)], destinations: [AmdRegister { file: Vector, index: 0, lanes: 4294967295 }, AmdRegister { file: Vector, index: 1, lanes: 4294967295 }], held_sources: [] }
+e326 t0 pc50 read ordinary generic shared Plain by t0 [0x0,+4)
+e327 t0 pc50 read ordinary generic shared Plain by t0 [0x4,+4)
+e328 t1 pc50 read ordinary generic shared Plain by t1 [0x20,+4)
+e329 t1 pc50 read ordinary generic shared Plain by t1 [0x24,+4)
+e330 t2 pc50 read ordinary generic shared Plain by t2 [0x40,+4)
+e331 t2 pc50 read ordinary generic shared Plain by t2 [0x44,+4)
+e332 t3 pc50 read ordinary generic shared Plain by t3 [0x60,+4)
+e333 t3 pc50 read ordinary generic shared Plain by t3 [0x64,+4)
+e334 t4 pc50 read ordinary generic shared Plain by t4 [0x80,+4)
+e335 t4 pc50 read ordinary generic shared Plain by t4 [0x84,+4)
+e336 t5 pc50 read ordinary generic shared Plain by t5 [0xa0,+4)
+e337 t5 pc50 read ordinary generic shared Plain by t5 [0xa4,+4)
+e338 t6 pc50 read ordinary generic shared Plain by t6 [0xc0,+4)
+e339 t6 pc50 read ordinary generic shared Plain by t6 [0xc4,+4)
+e340 t7 pc50 read ordinary generic shared Plain by t7 [0xe0,+4)
+e341 t7 pc50 read ordinary generic shared Plain by t7 [0xe4,+4)
+e342 t8 pc50 read ordinary generic shared Plain by t8 [0x100,+4)
+e343 t8 pc50 read ordinary generic shared Plain by t8 [0x104,+4)
+e344 t9 pc50 read ordinary generic shared Plain by t9 [0x120,+4)
+e345 t9 pc50 read ordinary generic shared Plain by t9 [0x124,+4)
+e346 t10 pc50 read ordinary generic shared Plain by t10 [0x140,+4)
+e347 t10 pc50 read ordinary generic shared Plain by t10 [0x144,+4)
+e348 t11 pc50 read ordinary generic shared Plain by t11 [0x160,+4)
+e349 t11 pc50 read ordinary generic shared Plain by t11 [0x164,+4)
+e350 t12 pc50 read ordinary generic shared Plain by t12 [0x180,+4)
+e351 t12 pc50 read ordinary generic shared Plain by t12 [0x184,+4)
+e352 t13 pc50 read ordinary generic shared Plain by t13 [0x1a0,+4)
+e353 t13 pc50 read ordinary generic shared Plain by t13 [0x1a4,+4)
+e354 t14 pc50 read ordinary generic shared Plain by t14 [0x1c0,+4)
+e355 t14 pc50 read ordinary generic shared Plain by t14 [0x1c4,+4)
+e356 t15 pc50 read ordinary generic shared Plain by t15 [0x1e0,+4)
+e357 t15 pc50 read ordinary generic shared Plain by t15 [0x1e4,+4)
+e358 t16 pc50 read ordinary generic shared Plain by t16 [0x8,+4)
+e359 t16 pc50 read ordinary generic shared Plain by t16 [0xc,+4)
+e360 t17 pc50 read ordinary generic shared Plain by t17 [0x28,+4)
+e361 t17 pc50 read ordinary generic shared Plain by t17 [0x2c,+4)
+e362 t18 pc50 read ordinary generic shared Plain by t18 [0x48,+4)
+e363 t18 pc50 read ordinary generic shared Plain by t18 [0x4c,+4)
+e364 t19 pc50 read ordinary generic shared Plain by t19 [0x68,+4)
+e365 t19 pc50 read ordinary generic shared Plain by t19 [0x6c,+4)
+e366 t20 pc50 read ordinary generic shared Plain by t20 [0x88,+4)
+e367 t20 pc50 read ordinary generic shared Plain by t20 [0x8c,+4)
+e368 t21 pc50 read ordinary generic shared Plain by t21 [0xa8,+4)
+e369 t21 pc50 read ordinary generic shared Plain by t21 [0xac,+4)
+e370 t22 pc50 read ordinary generic shared Plain by t22 [0xc8,+4)
+e371 t22 pc50 read ordinary generic shared Plain by t22 [0xcc,+4)
+e372 t23 pc50 read ordinary generic shared Plain by t23 [0xe8,+4)
+e373 t23 pc50 read ordinary generic shared Plain by t23 [0xec,+4)
+e374 t24 pc50 read ordinary generic shared Plain by t24 [0x108,+4)
+e375 t24 pc50 read ordinary generic shared Plain by t24 [0x10c,+4)
+e376 t25 pc50 read ordinary generic shared Plain by t25 [0x128,+4)
+e377 t25 pc50 read ordinary generic shared Plain by t25 [0x12c,+4)
+e378 t26 pc50 read ordinary generic shared Plain by t26 [0x148,+4)
+e379 t26 pc50 read ordinary generic shared Plain by t26 [0x14c,+4)
+e380 t27 pc50 read ordinary generic shared Plain by t27 [0x168,+4)
+e381 t27 pc50 read ordinary generic shared Plain by t27 [0x16c,+4)
+e382 t28 pc50 read ordinary generic shared Plain by t28 [0x188,+4)
+e383 t28 pc50 read ordinary generic shared Plain by t28 [0x18c,+4)
+e384 t29 pc50 read ordinary generic shared Plain by t29 [0x1a8,+4)
+e385 t29 pc50 read ordinary generic shared Plain by t29 [0x1ac,+4)
+e386 t30 pc50 read ordinary generic shared Plain by t30 [0x1c8,+4)
+e387 t30 pc50 read ordinary generic shared Plain by t30 [0x1cc,+4)
+e388 t31 pc50 read ordinary generic shared Plain by t31 [0x1e8,+4)
+e389 t31 pc50 read ordinary generic shared Plain by t31 [0x1ec,+4)
+e390 t0 pc51 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 6, lanes: 4294967295 }], writes: [AmdRegister { file: Vector, index: 2, lanes: 4294967295 }, AmdRegister { file: Vector, index: 3, lanes: 4294967295 }], scalar_mask_reads: [] }
+e391 t0 pc51 amd wave=0 MemoryIssue { class: Ds, counters: [(Ds, 1)], destinations: [AmdRegister { file: Vector, index: 2, lanes: 4294967295 }, AmdRegister { file: Vector, index: 3, lanes: 4294967295 }], held_sources: [] }
+e392 t0 pc51 read ordinary generic shared Plain by t0 [0x10,+4)
+e393 t0 pc51 read ordinary generic shared Plain by t0 [0x14,+4)
+e394 t1 pc51 read ordinary generic shared Plain by t1 [0x30,+4)
+e395 t1 pc51 read ordinary generic shared Plain by t1 [0x34,+4)
+e396 t2 pc51 read ordinary generic shared Plain by t2 [0x50,+4)
+e397 t2 pc51 read ordinary generic shared Plain by t2 [0x54,+4)
+e398 t3 pc51 read ordinary generic shared Plain by t3 [0x70,+4)
+e399 t3 pc51 read ordinary generic shared Plain by t3 [0x74,+4)
+e400 t4 pc51 read ordinary generic shared Plain by t4 [0x90,+4)
+e401 t4 pc51 read ordinary generic shared Plain by t4 [0x94,+4)
+e402 t5 pc51 read ordinary generic shared Plain by t5 [0xb0,+4)
+e403 t5 pc51 read ordinary generic shared Plain by t5 [0xb4,+4)
+e404 t6 pc51 read ordinary generic shared Plain by t6 [0xd0,+4)
+e405 t6 pc51 read ordinary generic shared Plain by t6 [0xd4,+4)
+e406 t7 pc51 read ordinary generic shared Plain by t7 [0xf0,+4)
+e407 t7 pc51 read ordinary generic shared Plain by t7 [0xf4,+4)
+e408 t8 pc51 read ordinary generic shared Plain by t8 [0x110,+4)
+e409 t8 pc51 read ordinary generic shared Plain by t8 [0x114,+4)
+e410 t9 pc51 read ordinary generic shared Plain by t9 [0x130,+4)
+e411 t9 pc51 read ordinary generic shared Plain by t9 [0x134,+4)
+e412 t10 pc51 read ordinary generic shared Plain by t10 [0x150,+4)
+e413 t10 pc51 read ordinary generic shared Plain by t10 [0x154,+4)
+e414 t11 pc51 read ordinary generic shared Plain by t11 [0x170,+4)
+e415 t11 pc51 read ordinary generic shared Plain by t11 [0x174,+4)
+e416 t12 pc51 read ordinary generic shared Plain by t12 [0x190,+4)
+e417 t12 pc51 read ordinary generic shared Plain by t12 [0x194,+4)
+e418 t13 pc51 read ordinary generic shared Plain by t13 [0x1b0,+4)
+e419 t13 pc51 read ordinary generic shared Plain by t13 [0x1b4,+4)
+e420 t14 pc51 read ordinary generic shared Plain by t14 [0x1d0,+4)
+e421 t14 pc51 read ordinary generic shared Plain by t14 [0x1d4,+4)
+e422 t15 pc51 read ordinary generic shared Plain by t15 [0x1f0,+4)
+e423 t15 pc51 read ordinary generic shared Plain by t15 [0x1f4,+4)
+e424 t16 pc51 read ordinary generic shared Plain by t16 [0x18,+4)
+e425 t16 pc51 read ordinary generic shared Plain by t16 [0x1c,+4)
+e426 t17 pc51 read ordinary generic shared Plain by t17 [0x38,+4)
+e427 t17 pc51 read ordinary generic shared Plain by t17 [0x3c,+4)
+e428 t18 pc51 read ordinary generic shared Plain by t18 [0x58,+4)
+e429 t18 pc51 read ordinary generic shared Plain by t18 [0x5c,+4)
+e430 t19 pc51 read ordinary generic shared Plain by t19 [0x78,+4)
+e431 t19 pc51 read ordinary generic shared Plain by t19 [0x7c,+4)
+e432 t20 pc51 read ordinary generic shared Plain by t20 [0x98,+4)
+e433 t20 pc51 read ordinary generic shared Plain by t20 [0x9c,+4)
+e434 t21 pc51 read ordinary generic shared Plain by t21 [0xb8,+4)
+e435 t21 pc51 read ordinary generic shared Plain by t21 [0xbc,+4)
+e436 t22 pc51 read ordinary generic shared Plain by t22 [0xd8,+4)
+e437 t22 pc51 read ordinary generic shared Plain by t22 [0xdc,+4)
+e438 t23 pc51 read ordinary generic shared Plain by t23 [0xf8,+4)
+e439 t23 pc51 read ordinary generic shared Plain by t23 [0xfc,+4)
+e440 t24 pc51 read ordinary generic shared Plain by t24 [0x118,+4)
+e441 t24 pc51 read ordinary generic shared Plain by t24 [0x11c,+4)
+e442 t25 pc51 read ordinary generic shared Plain by t25 [0x138,+4)
+e443 t25 pc51 read ordinary generic shared Plain by t25 [0x13c,+4)
+e444 t26 pc51 read ordinary generic shared Plain by t26 [0x158,+4)
+e445 t26 pc51 read ordinary generic shared Plain by t26 [0x15c,+4)
+e446 t27 pc51 read ordinary generic shared Plain by t27 [0x178,+4)
+e447 t27 pc51 read ordinary generic shared Plain by t27 [0x17c,+4)
+e448 t28 pc51 read ordinary generic shared Plain by t28 [0x198,+4)
+e449 t28 pc51 read ordinary generic shared Plain by t28 [0x19c,+4)
+e450 t29 pc51 read ordinary generic shared Plain by t29 [0x1b8,+4)
+e451 t29 pc51 read ordinary generic shared Plain by t29 [0x1bc,+4)
+e452 t30 pc51 read ordinary generic shared Plain by t30 [0x1d8,+4)
+e453 t30 pc51 read ordinary generic shared Plain by t30 [0x1dc,+4)
+e454 t31 pc51 read ordinary generic shared Plain by t31 [0x1f8,+4)
+e455 t31 pc51 read ordinary generic shared Plain by t31 [0x1fc,+4)
+e456 t0 pc52 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e457 t0 pc52 amd wave=0 WaitCounters { thresholds: [(Ds, 0)] }
+e458 t0 pc53 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 5, lanes: 4294967295 }, AmdRegister { file: Vector, index: 0, lanes: 4294967295 }, AmdRegister { file: Vector, index: 1, lanes: 4294967295 }], writes: [], scalar_mask_reads: [] }
+e459 t0 pc53 amd wave=0 MemoryIssue { class: Ds, counters: [(Ds, 1)], destinations: [], held_sources: [] }
+e460 t0 pc53 write ordinary generic shared Plain by t0 [0x0,+4) = (n449, n450)
+e461 t0 pc53 write ordinary generic shared Plain by t0 [0x4,+4) = (n451, n452)
+e462 t1 pc53 write ordinary generic shared Plain by t1 [0x20,+4) = (n465, n466)
+e463 t1 pc53 write ordinary generic shared Plain by t1 [0x24,+4) = (n467, n468)
+e464 t2 pc53 write ordinary generic shared Plain by t2 [0x40,+4) = (n481, n482)
+e465 t2 pc53 write ordinary generic shared Plain by t2 [0x44,+4) = (n483, n484)
+e466 t3 pc53 write ordinary generic shared Plain by t3 [0x60,+4) = (n497, n498)
+e467 t3 pc53 write ordinary generic shared Plain by t3 [0x64,+4) = (n499, n500)
+e468 t4 pc53 write ordinary generic shared Plain by t4 [0x80,+4) = (n513, n514)
+e469 t4 pc53 write ordinary generic shared Plain by t4 [0x84,+4) = (n515, n516)
+e470 t5 pc53 write ordinary generic shared Plain by t5 [0xa0,+4) = (n529, n530)
+e471 t5 pc53 write ordinary generic shared Plain by t5 [0xa4,+4) = (n531, n532)
+e472 t6 pc53 write ordinary generic shared Plain by t6 [0xc0,+4) = (n545, n546)
+e473 t6 pc53 write ordinary generic shared Plain by t6 [0xc4,+4) = (n547, n548)
+e474 t7 pc53 write ordinary generic shared Plain by t7 [0xe0,+4) = (n561, n562)
+e475 t7 pc53 write ordinary generic shared Plain by t7 [0xe4,+4) = (n563, n564)
+e476 t8 pc53 write ordinary generic shared Plain by t8 [0x100,+4) = (n577, n578)
+e477 t8 pc53 write ordinary generic shared Plain by t8 [0x104,+4) = (n579, n580)
+e478 t9 pc53 write ordinary generic shared Plain by t9 [0x120,+4) = (n593, n594)
+e479 t9 pc53 write ordinary generic shared Plain by t9 [0x124,+4) = (n595, n596)
+e480 t10 pc53 write ordinary generic shared Plain by t10 [0x140,+4) = (n609, n610)
+e481 t10 pc53 write ordinary generic shared Plain by t10 [0x144,+4) = (n611, n612)
+e482 t11 pc53 write ordinary generic shared Plain by t11 [0x160,+4) = (n625, n626)
+e483 t11 pc53 write ordinary generic shared Plain by t11 [0x164,+4) = (n627, n628)
+e484 t12 pc53 write ordinary generic shared Plain by t12 [0x180,+4) = (n641, n642)
+e485 t12 pc53 write ordinary generic shared Plain by t12 [0x184,+4) = (n643, n644)
+e486 t13 pc53 write ordinary generic shared Plain by t13 [0x1a0,+4) = (n657, n658)
+e487 t13 pc53 write ordinary generic shared Plain by t13 [0x1a4,+4) = (n659, n660)
+e488 t14 pc53 write ordinary generic shared Plain by t14 [0x1c0,+4) = (n673, n674)
+e489 t14 pc53 write ordinary generic shared Plain by t14 [0x1c4,+4) = (n675, n676)
+e490 t15 pc53 write ordinary generic shared Plain by t15 [0x1e0,+4) = (n689, n690)
+e491 t15 pc53 write ordinary generic shared Plain by t15 [0x1e4,+4) = (n691, n692)
+e492 t16 pc53 write ordinary generic shared Plain by t16 [0x8,+4) = (n453, n454)
+e493 t16 pc53 write ordinary generic shared Plain by t16 [0xc,+4) = (n455, n456)
+e494 t17 pc53 write ordinary generic shared Plain by t17 [0x28,+4) = (n469, n470)
+e495 t17 pc53 write ordinary generic shared Plain by t17 [0x2c,+4) = (n471, n472)
+e496 t18 pc53 write ordinary generic shared Plain by t18 [0x48,+4) = (n485, n486)
+e497 t18 pc53 write ordinary generic shared Plain by t18 [0x4c,+4) = (n487, n488)
+e498 t19 pc53 write ordinary generic shared Plain by t19 [0x68,+4) = (n501, n502)
+e499 t19 pc53 write ordinary generic shared Plain by t19 [0x6c,+4) = (n503, n504)
+e500 t20 pc53 write ordinary generic shared Plain by t20 [0x88,+4) = (n517, n518)
+e501 t20 pc53 write ordinary generic shared Plain by t20 [0x8c,+4) = (n519, n520)
+e502 t21 pc53 write ordinary generic shared Plain by t21 [0xa8,+4) = (n533, n534)
+e503 t21 pc53 write ordinary generic shared Plain by t21 [0xac,+4) = (n535, n536)
+e504 t22 pc53 write ordinary generic shared Plain by t22 [0xc8,+4) = (n549, n550)
+e505 t22 pc53 write ordinary generic shared Plain by t22 [0xcc,+4) = (n551, n552)
+e506 t23 pc53 write ordinary generic shared Plain by t23 [0xe8,+4) = (n565, n566)
+e507 t23 pc53 write ordinary generic shared Plain by t23 [0xec,+4) = (n567, n568)
+e508 t24 pc53 write ordinary generic shared Plain by t24 [0x108,+4) = (n581, n582)
+e509 t24 pc53 write ordinary generic shared Plain by t24 [0x10c,+4) = (n583, n584)
+e510 t25 pc53 write ordinary generic shared Plain by t25 [0x128,+4) = (n597, n598)
+e511 t25 pc53 write ordinary generic shared Plain by t25 [0x12c,+4) = (n599, n600)
+e512 t26 pc53 write ordinary generic shared Plain by t26 [0x148,+4) = (n613, n614)
+e513 t26 pc53 write ordinary generic shared Plain by t26 [0x14c,+4) = (n615, n616)
+e514 t27 pc53 write ordinary generic shared Plain by t27 [0x168,+4) = (n629, n630)
+e515 t27 pc53 write ordinary generic shared Plain by t27 [0x16c,+4) = (n631, n632)
+e516 t28 pc53 write ordinary generic shared Plain by t28 [0x188,+4) = (n645, n646)
+e517 t28 pc53 write ordinary generic shared Plain by t28 [0x18c,+4) = (n647, n648)
+e518 t29 pc53 write ordinary generic shared Plain by t29 [0x1a8,+4) = (n661, n662)
+e519 t29 pc53 write ordinary generic shared Plain by t29 [0x1ac,+4) = (n663, n664)
+e520 t30 pc53 write ordinary generic shared Plain by t30 [0x1c8,+4) = (n677, n678)
+e521 t30 pc53 write ordinary generic shared Plain by t30 [0x1cc,+4) = (n679, n680)
+e522 t31 pc53 write ordinary generic shared Plain by t31 [0x1e8,+4) = (n693, n694)
+e523 t31 pc53 write ordinary generic shared Plain by t31 [0x1ec,+4) = (n695, n696)
+e524 t0 pc54 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 6, lanes: 4294967295 }, AmdRegister { file: Vector, index: 2, lanes: 4294967295 }, AmdRegister { file: Vector, index: 3, lanes: 4294967295 }], writes: [], scalar_mask_reads: [] }
+e525 t0 pc54 amd wave=0 MemoryIssue { class: Ds, counters: [(Ds, 1)], destinations: [], held_sources: [] }
+e526 t0 pc54 write ordinary generic shared Plain by t0 [0x10,+4) = (n457, n458)
+e527 t0 pc54 write ordinary generic shared Plain by t0 [0x14,+4) = (n459, n460)
+e528 t1 pc54 write ordinary generic shared Plain by t1 [0x30,+4) = (n473, n474)
+e529 t1 pc54 write ordinary generic shared Plain by t1 [0x34,+4) = (n475, n476)
+e530 t2 pc54 write ordinary generic shared Plain by t2 [0x50,+4) = (n489, n490)
+e531 t2 pc54 write ordinary generic shared Plain by t2 [0x54,+4) = (n491, n492)
+e532 t3 pc54 write ordinary generic shared Plain by t3 [0x70,+4) = (n505, n506)
+e533 t3 pc54 write ordinary generic shared Plain by t3 [0x74,+4) = (n507, n508)
+e534 t4 pc54 write ordinary generic shared Plain by t4 [0x90,+4) = (n521, n522)
+e535 t4 pc54 write ordinary generic shared Plain by t4 [0x94,+4) = (n523, n524)
+e536 t5 pc54 write ordinary generic shared Plain by t5 [0xb0,+4) = (n537, n538)
+e537 t5 pc54 write ordinary generic shared Plain by t5 [0xb4,+4) = (n539, n540)
+e538 t6 pc54 write ordinary generic shared Plain by t6 [0xd0,+4) = (n553, n554)
+e539 t6 pc54 write ordinary generic shared Plain by t6 [0xd4,+4) = (n555, n556)
+e540 t7 pc54 write ordinary generic shared Plain by t7 [0xf0,+4) = (n569, n570)
+e541 t7 pc54 write ordinary generic shared Plain by t7 [0xf4,+4) = (n571, n572)
+e542 t8 pc54 write ordinary generic shared Plain by t8 [0x110,+4) = (n585, n586)
+e543 t8 pc54 write ordinary generic shared Plain by t8 [0x114,+4) = (n587, n588)
+e544 t9 pc54 write ordinary generic shared Plain by t9 [0x130,+4) = (n601, n602)
+e545 t9 pc54 write ordinary generic shared Plain by t9 [0x134,+4) = (n603, n604)
+e546 t10 pc54 write ordinary generic shared Plain by t10 [0x150,+4) = (n617, n618)
+e547 t10 pc54 write ordinary generic shared Plain by t10 [0x154,+4) = (n619, n620)
+e548 t11 pc54 write ordinary generic shared Plain by t11 [0x170,+4) = (n633, n634)
+e549 t11 pc54 write ordinary generic shared Plain by t11 [0x174,+4) = (n635, n636)
+e550 t12 pc54 write ordinary generic shared Plain by t12 [0x190,+4) = (n649, n650)
+e551 t12 pc54 write ordinary generic shared Plain by t12 [0x194,+4) = (n651, n652)
+e552 t13 pc54 write ordinary generic shared Plain by t13 [0x1b0,+4) = (n665, n666)
+e553 t13 pc54 write ordinary generic shared Plain by t13 [0x1b4,+4) = (n667, n668)
+e554 t14 pc54 write ordinary generic shared Plain by t14 [0x1d0,+4) = (n681, n682)
+e555 t14 pc54 write ordinary generic shared Plain by t14 [0x1d4,+4) = (n683, n684)
+e556 t15 pc54 write ordinary generic shared Plain by t15 [0x1f0,+4) = (n697, n698)
+e557 t15 pc54 write ordinary generic shared Plain by t15 [0x1f4,+4) = (n699, n700)
+e558 t16 pc54 write ordinary generic shared Plain by t16 [0x18,+4) = (n461, n462)
+e559 t16 pc54 write ordinary generic shared Plain by t16 [0x1c,+4) = (n463, n464)
+e560 t17 pc54 write ordinary generic shared Plain by t17 [0x38,+4) = (n477, n478)
+e561 t17 pc54 write ordinary generic shared Plain by t17 [0x3c,+4) = (n479, n480)
+e562 t18 pc54 write ordinary generic shared Plain by t18 [0x58,+4) = (n493, n494)
+e563 t18 pc54 write ordinary generic shared Plain by t18 [0x5c,+4) = (n495, n496)
+e564 t19 pc54 write ordinary generic shared Plain by t19 [0x78,+4) = (n509, n510)
+e565 t19 pc54 write ordinary generic shared Plain by t19 [0x7c,+4) = (n511, n512)
+e566 t20 pc54 write ordinary generic shared Plain by t20 [0x98,+4) = (n525, n526)
+e567 t20 pc54 write ordinary generic shared Plain by t20 [0x9c,+4) = (n527, n528)
+e568 t21 pc54 write ordinary generic shared Plain by t21 [0xb8,+4) = (n541, n542)
+e569 t21 pc54 write ordinary generic shared Plain by t21 [0xbc,+4) = (n543, n544)
+e570 t22 pc54 write ordinary generic shared Plain by t22 [0xd8,+4) = (n557, n558)
+e571 t22 pc54 write ordinary generic shared Plain by t22 [0xdc,+4) = (n559, n560)
+e572 t23 pc54 write ordinary generic shared Plain by t23 [0xf8,+4) = (n573, n574)
+e573 t23 pc54 write ordinary generic shared Plain by t23 [0xfc,+4) = (n575, n576)
+e574 t24 pc54 write ordinary generic shared Plain by t24 [0x118,+4) = (n589, n590)
+e575 t24 pc54 write ordinary generic shared Plain by t24 [0x11c,+4) = (n591, n592)
+e576 t25 pc54 write ordinary generic shared Plain by t25 [0x138,+4) = (n605, n606)
+e577 t25 pc54 write ordinary generic shared Plain by t25 [0x13c,+4) = (n607, n608)
+e578 t26 pc54 write ordinary generic shared Plain by t26 [0x158,+4) = (n621, n622)
+e579 t26 pc54 write ordinary generic shared Plain by t26 [0x15c,+4) = (n623, n624)
+e580 t27 pc54 write ordinary generic shared Plain by t27 [0x178,+4) = (n637, n638)
+e581 t27 pc54 write ordinary generic shared Plain by t27 [0x17c,+4) = (n639, n640)
+e582 t28 pc54 write ordinary generic shared Plain by t28 [0x198,+4) = (n653, n654)
+e583 t28 pc54 write ordinary generic shared Plain by t28 [0x19c,+4) = (n655, n656)
+e584 t29 pc54 write ordinary generic shared Plain by t29 [0x1b8,+4) = (n669, n670)
+e585 t29 pc54 write ordinary generic shared Plain by t29 [0x1bc,+4) = (n671, n672)
+e586 t30 pc54 write ordinary generic shared Plain by t30 [0x1d8,+4) = (n685, n686)
+e587 t30 pc54 write ordinary generic shared Plain by t30 [0x1dc,+4) = (n687, n688)
+e588 t31 pc54 write ordinary generic shared Plain by t31 [0x1f8,+4) = (n701, n702)
+e589 t31 pc54 write ordinary generic shared Plain by t31 [0x1fc,+4) = (n703, n704)
+e590 t0 pc55 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e591 t0 pc55 amd wave=0 WaitCounters { thresholds: [(Ds, 0)] }
+e592 t0 pc56 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e593 t0 pc56 amd wave=0 WaitCounters { thresholds: [(Km, 0)] }
+e594 t0 pc57 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e595 t0 pc58 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 0, lanes: 4294967295 }, AmdRegister { file: Vector, index: 1, lanes: 4294967295 }, AmdRegister { file: Vector, index: 4, lanes: 4294967295 }, AmdRegister { file: Scalar, index: 4, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 5, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 7, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 126, lanes: 18446744073709551615 }], writes: [], scalar_mask_reads: [] }
+e596 t0 pc58 amd wave=0 MemoryIssue { class: VectorStore, counters: [(Store, 1), (X, 1)], destinations: [], held_sources: [AmdRegister { file: Vector, index: 0, lanes: 4294967295 }, AmdRegister { file: Vector, index: 1, lanes: 4294967295 }, AmdRegister { file: Vector, index: 4, lanes: 4294967295 }, AmdRegister { file: Scalar, index: 4, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 5, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 7, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 126, lanes: 18446744073709551615 }] }
+e597 t0 pc58 write ordinary generic global Plain by t0 [0x20000,+4) = (n449, n450)
+e598 t0 pc58 write ordinary generic global Plain by t0 [0x20004,+4) = (n451, n452)
+e599 t1 pc58 write ordinary generic global Plain by t1 [0x20020,+4) = (n465, n466)
+e600 t1 pc58 write ordinary generic global Plain by t1 [0x20024,+4) = (n467, n468)
+e601 t2 pc58 write ordinary generic global Plain by t2 [0x20040,+4) = (n481, n482)
+e602 t2 pc58 write ordinary generic global Plain by t2 [0x20044,+4) = (n483, n484)
+e603 t3 pc58 write ordinary generic global Plain by t3 [0x20060,+4) = (n497, n498)
+e604 t3 pc58 write ordinary generic global Plain by t3 [0x20064,+4) = (n499, n500)
+e605 t4 pc58 write ordinary generic global Plain by t4 [0x20080,+4) = (n513, n514)
+e606 t4 pc58 write ordinary generic global Plain by t4 [0x20084,+4) = (n515, n516)
+e607 t5 pc58 write ordinary generic global Plain by t5 [0x200a0,+4) = (n529, n530)
+e608 t5 pc58 write ordinary generic global Plain by t5 [0x200a4,+4) = (n531, n532)
+e609 t6 pc58 write ordinary generic global Plain by t6 [0x200c0,+4) = (n545, n546)
+e610 t6 pc58 write ordinary generic global Plain by t6 [0x200c4,+4) = (n547, n548)
+e611 t7 pc58 write ordinary generic global Plain by t7 [0x200e0,+4) = (n561, n562)
+e612 t7 pc58 write ordinary generic global Plain by t7 [0x200e4,+4) = (n563, n564)
+e613 t8 pc58 write ordinary generic global Plain by t8 [0x20100,+4) = (n577, n578)
+e614 t8 pc58 write ordinary generic global Plain by t8 [0x20104,+4) = (n579, n580)
+e615 t9 pc58 write ordinary generic global Plain by t9 [0x20120,+4) = (n593, n594)
+e616 t9 pc58 write ordinary generic global Plain by t9 [0x20124,+4) = (n595, n596)
+e617 t10 pc58 write ordinary generic global Plain by t10 [0x20140,+4) = (n609, n610)
+e618 t10 pc58 write ordinary generic global Plain by t10 [0x20144,+4) = (n611, n612)
+e619 t11 pc58 write ordinary generic global Plain by t11 [0x20160,+4) = (n625, n626)
+e620 t11 pc58 write ordinary generic global Plain by t11 [0x20164,+4) = (n627, n628)
+e621 t12 pc58 write ordinary generic global Plain by t12 [0x20180,+4) = (n641, n642)
+e622 t12 pc58 write ordinary generic global Plain by t12 [0x20184,+4) = (n643, n644)
+e623 t13 pc58 write ordinary generic global Plain by t13 [0x201a0,+4) = (n657, n658)
+e624 t13 pc58 write ordinary generic global Plain by t13 [0x201a4,+4) = (n659, n660)
+e625 t14 pc58 write ordinary generic global Plain by t14 [0x201c0,+4) = (n673, n674)
+e626 t14 pc58 write ordinary generic global Plain by t14 [0x201c4,+4) = (n675, n676)
+e627 t15 pc58 write ordinary generic global Plain by t15 [0x201e0,+4) = (n689, n690)
+e628 t15 pc58 write ordinary generic global Plain by t15 [0x201e4,+4) = (n691, n692)
+e629 t16 pc58 write ordinary generic global Plain by t16 [0x20008,+4) = (n453, n454)
+e630 t16 pc58 write ordinary generic global Plain by t16 [0x2000c,+4) = (n455, n456)
+e631 t17 pc58 write ordinary generic global Plain by t17 [0x20028,+4) = (n469, n470)
+e632 t17 pc58 write ordinary generic global Plain by t17 [0x2002c,+4) = (n471, n472)
+e633 t18 pc58 write ordinary generic global Plain by t18 [0x20048,+4) = (n485, n486)
+e634 t18 pc58 write ordinary generic global Plain by t18 [0x2004c,+4) = (n487, n488)
+e635 t19 pc58 write ordinary generic global Plain by t19 [0x20068,+4) = (n501, n502)
+e636 t19 pc58 write ordinary generic global Plain by t19 [0x2006c,+4) = (n503, n504)
+e637 t20 pc58 write ordinary generic global Plain by t20 [0x20088,+4) = (n517, n518)
+e638 t20 pc58 write ordinary generic global Plain by t20 [0x2008c,+4) = (n519, n520)
+e639 t21 pc58 write ordinary generic global Plain by t21 [0x200a8,+4) = (n533, n534)
+e640 t21 pc58 write ordinary generic global Plain by t21 [0x200ac,+4) = (n535, n536)
+e641 t22 pc58 write ordinary generic global Plain by t22 [0x200c8,+4) = (n549, n550)
+e642 t22 pc58 write ordinary generic global Plain by t22 [0x200cc,+4) = (n551, n552)
+e643 t23 pc58 write ordinary generic global Plain by t23 [0x200e8,+4) = (n565, n566)
+e644 t23 pc58 write ordinary generic global Plain by t23 [0x200ec,+4) = (n567, n568)
+e645 t24 pc58 write ordinary generic global Plain by t24 [0x20108,+4) = (n581, n582)
+e646 t24 pc58 write ordinary generic global Plain by t24 [0x2010c,+4) = (n583, n584)
+e647 t25 pc58 write ordinary generic global Plain by t25 [0x20128,+4) = (n597, n598)
+e648 t25 pc58 write ordinary generic global Plain by t25 [0x2012c,+4) = (n599, n600)
+e649 t26 pc58 write ordinary generic global Plain by t26 [0x20148,+4) = (n613, n614)
+e650 t26 pc58 write ordinary generic global Plain by t26 [0x2014c,+4) = (n615, n616)
+e651 t27 pc58 write ordinary generic global Plain by t27 [0x20168,+4) = (n629, n630)
+e652 t27 pc58 write ordinary generic global Plain by t27 [0x2016c,+4) = (n631, n632)
+e653 t28 pc58 write ordinary generic global Plain by t28 [0x20188,+4) = (n645, n646)
+e654 t28 pc58 write ordinary generic global Plain by t28 [0x2018c,+4) = (n647, n648)
+e655 t29 pc58 write ordinary generic global Plain by t29 [0x201a8,+4) = (n661, n662)
+e656 t29 pc58 write ordinary generic global Plain by t29 [0x201ac,+4) = (n663, n664)
+e657 t30 pc58 write ordinary generic global Plain by t30 [0x201c8,+4) = (n677, n678)
+e658 t30 pc58 write ordinary generic global Plain by t30 [0x201cc,+4) = (n679, n680)
+e659 t31 pc58 write ordinary generic global Plain by t31 [0x201e8,+4) = (n693, n694)
+e660 t31 pc58 write ordinary generic global Plain by t31 [0x201ec,+4) = (n695, n696)
+e661 t0 pc59 amd wave=0 Instruction { exec_mask: 4294967295, reads: [AmdRegister { file: Vector, index: 2, lanes: 4294967295 }, AmdRegister { file: Vector, index: 3, lanes: 4294967295 }, AmdRegister { file: Vector, index: 4, lanes: 4294967295 }, AmdRegister { file: Scalar, index: 4, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 5, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 7, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 126, lanes: 18446744073709551615 }], writes: [], scalar_mask_reads: [] }
+e662 t0 pc59 amd wave=0 MemoryIssue { class: VectorStore, counters: [(Store, 1), (X, 1)], destinations: [], held_sources: [AmdRegister { file: Vector, index: 2, lanes: 4294967295 }, AmdRegister { file: Vector, index: 3, lanes: 4294967295 }, AmdRegister { file: Vector, index: 4, lanes: 4294967295 }, AmdRegister { file: Scalar, index: 4, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 5, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 6, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 7, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 126, lanes: 18446744073709551615 }] }
+e663 t0 pc59 write ordinary generic global Plain by t0 [0x20010,+4) = (n457, n458)
+e664 t0 pc59 write ordinary generic global Plain by t0 [0x20014,+4) = (n459, n460)
+e665 t1 pc59 write ordinary generic global Plain by t1 [0x20030,+4) = (n473, n474)
+e666 t1 pc59 write ordinary generic global Plain by t1 [0x20034,+4) = (n475, n476)
+e667 t2 pc59 write ordinary generic global Plain by t2 [0x20050,+4) = (n489, n490)
+e668 t2 pc59 write ordinary generic global Plain by t2 [0x20054,+4) = (n491, n492)
+e669 t3 pc59 write ordinary generic global Plain by t3 [0x20070,+4) = (n505, n506)
+e670 t3 pc59 write ordinary generic global Plain by t3 [0x20074,+4) = (n507, n508)
+e671 t4 pc59 write ordinary generic global Plain by t4 [0x20090,+4) = (n521, n522)
+e672 t4 pc59 write ordinary generic global Plain by t4 [0x20094,+4) = (n523, n524)
+e673 t5 pc59 write ordinary generic global Plain by t5 [0x200b0,+4) = (n537, n538)
+e674 t5 pc59 write ordinary generic global Plain by t5 [0x200b4,+4) = (n539, n540)
+e675 t6 pc59 write ordinary generic global Plain by t6 [0x200d0,+4) = (n553, n554)
+e676 t6 pc59 write ordinary generic global Plain by t6 [0x200d4,+4) = (n555, n556)
+e677 t7 pc59 write ordinary generic global Plain by t7 [0x200f0,+4) = (n569, n570)
+e678 t7 pc59 write ordinary generic global Plain by t7 [0x200f4,+4) = (n571, n572)
+e679 t8 pc59 write ordinary generic global Plain by t8 [0x20110,+4) = (n585, n586)
+e680 t8 pc59 write ordinary generic global Plain by t8 [0x20114,+4) = (n587, n588)
+e681 t9 pc59 write ordinary generic global Plain by t9 [0x20130,+4) = (n601, n602)
+e682 t9 pc59 write ordinary generic global Plain by t9 [0x20134,+4) = (n603, n604)
+e683 t10 pc59 write ordinary generic global Plain by t10 [0x20150,+4) = (n617, n618)
+e684 t10 pc59 write ordinary generic global Plain by t10 [0x20154,+4) = (n619, n620)
+e685 t11 pc59 write ordinary generic global Plain by t11 [0x20170,+4) = (n633, n634)
+e686 t11 pc59 write ordinary generic global Plain by t11 [0x20174,+4) = (n635, n636)
+e687 t12 pc59 write ordinary generic global Plain by t12 [0x20190,+4) = (n649, n650)
+e688 t12 pc59 write ordinary generic global Plain by t12 [0x20194,+4) = (n651, n652)
+e689 t13 pc59 write ordinary generic global Plain by t13 [0x201b0,+4) = (n665, n666)
+e690 t13 pc59 write ordinary generic global Plain by t13 [0x201b4,+4) = (n667, n668)
+e691 t14 pc59 write ordinary generic global Plain by t14 [0x201d0,+4) = (n681, n682)
+e692 t14 pc59 write ordinary generic global Plain by t14 [0x201d4,+4) = (n683, n684)
+e693 t15 pc59 write ordinary generic global Plain by t15 [0x201f0,+4) = (n697, n698)
+e694 t15 pc59 write ordinary generic global Plain by t15 [0x201f4,+4) = (n699, n700)
+e695 t16 pc59 write ordinary generic global Plain by t16 [0x20018,+4) = (n461, n462)
+e696 t16 pc59 write ordinary generic global Plain by t16 [0x2001c,+4) = (n463, n464)
+e697 t17 pc59 write ordinary generic global Plain by t17 [0x20038,+4) = (n477, n478)
+e698 t17 pc59 write ordinary generic global Plain by t17 [0x2003c,+4) = (n479, n480)
+e699 t18 pc59 write ordinary generic global Plain by t18 [0x20058,+4) = (n493, n494)
+e700 t18 pc59 write ordinary generic global Plain by t18 [0x2005c,+4) = (n495, n496)
+e701 t19 pc59 write ordinary generic global Plain by t19 [0x20078,+4) = (n509, n510)
+e702 t19 pc59 write ordinary generic global Plain by t19 [0x2007c,+4) = (n511, n512)
+e703 t20 pc59 write ordinary generic global Plain by t20 [0x20098,+4) = (n525, n526)
+e704 t20 pc59 write ordinary generic global Plain by t20 [0x2009c,+4) = (n527, n528)
+e705 t21 pc59 write ordinary generic global Plain by t21 [0x200b8,+4) = (n541, n542)
+e706 t21 pc59 write ordinary generic global Plain by t21 [0x200bc,+4) = (n543, n544)
+e707 t22 pc59 write ordinary generic global Plain by t22 [0x200d8,+4) = (n557, n558)
+e708 t22 pc59 write ordinary generic global Plain by t22 [0x200dc,+4) = (n559, n560)
+e709 t23 pc59 write ordinary generic global Plain by t23 [0x200f8,+4) = (n573, n574)
+e710 t23 pc59 write ordinary generic global Plain by t23 [0x200fc,+4) = (n575, n576)
+e711 t24 pc59 write ordinary generic global Plain by t24 [0x20118,+4) = (n589, n590)
+e712 t24 pc59 write ordinary generic global Plain by t24 [0x2011c,+4) = (n591, n592)
+e713 t25 pc59 write ordinary generic global Plain by t25 [0x20138,+4) = (n605, n606)
+e714 t25 pc59 write ordinary generic global Plain by t25 [0x2013c,+4) = (n607, n608)
+e715 t26 pc59 write ordinary generic global Plain by t26 [0x20158,+4) = (n621, n622)
+e716 t26 pc59 write ordinary generic global Plain by t26 [0x2015c,+4) = (n623, n624)
+e717 t27 pc59 write ordinary generic global Plain by t27 [0x20178,+4) = (n637, n638)
+e718 t27 pc59 write ordinary generic global Plain by t27 [0x2017c,+4) = (n639, n640)
+e719 t28 pc59 write ordinary generic global Plain by t28 [0x20198,+4) = (n653, n654)
+e720 t28 pc59 write ordinary generic global Plain by t28 [0x2019c,+4) = (n655, n656)
+e721 t29 pc59 write ordinary generic global Plain by t29 [0x201b8,+4) = (n669, n670)
+e722 t29 pc59 write ordinary generic global Plain by t29 [0x201bc,+4) = (n671, n672)
+e723 t30 pc59 write ordinary generic global Plain by t30 [0x201d8,+4) = (n685, n686)
+e724 t30 pc59 write ordinary generic global Plain by t30 [0x201dc,+4) = (n687, n688)
+e725 t31 pc59 write ordinary generic global Plain by t31 [0x201f8,+4) = (n701, n702)
+e726 t31 pc59 write ordinary generic global Plain by t31 [0x201fc,+4) = (n703, n704)
+e727 t0 pc60 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e728 t0 pc60 amd wave=0 WaitCounters { thresholds: [(Store, 0)] }
+e729 t0 pc61 amd wave=0 Instruction { exec_mask: 4294967295, reads: [], writes: [], scalar_mask_reads: [] }
+e730 t0 pc61 exit
+e731 t1 pc61 exit
+e732 t2 pc61 exit
+e733 t3 pc61 exit
+e734 t4 pc61 exit
+e735 t5 pc61 exit
+e736 t6 pc61 exit
+e737 t7 pc61 exit
+e738 t8 pc61 exit
+e739 t9 pc61 exit
+e740 t10 pc61 exit
+e741 t11 pc61 exit
+e742 t12 pc61 exit
+e743 t13 pc61 exit
+e744 t14 pc61 exit
+e745 t15 pc61 exit
+e746 t16 pc61 exit
+e747 t17 pc61 exit
+e748 t18 pc61 exit
+e749 t19 pc61 exit
+e750 t20 pc61 exit
+e751 t21 pc61 exit
+e752 t22 pc61 exit
+e753 t23 pc61 exit
+e754 t24 pc61 exit
+e755 t25 pc61 exit
+e756 t26 pc61 exit
+e757 t27 pc61 exit
+e758 t28 pc61 exit
+e759 t29 pc61 exit
+e760 t30 pc61 exit
+e761 t31 pc61 exit
+amd-memory issue=e1 effect=e2
+amd-memory issue=e1 effect=e3
+amd-memory issue=e34 effect=e35
+amd-memory issue=e34 effect=e36
+amd-memory issue=e52 effect=e53
+amd-memory issue=e52 effect=e54
+amd-memory issue=e52 effect=e55
+amd-memory issue=e52 effect=e56
+amd-memory issue=e52 effect=e57
+amd-memory issue=e52 effect=e58
+amd-memory issue=e52 effect=e59
+amd-memory issue=e52 effect=e60
+amd-memory issue=e52 effect=e61
+amd-memory issue=e52 effect=e62
+amd-memory issue=e52 effect=e63
+amd-memory issue=e52 effect=e64
+amd-memory issue=e52 effect=e65
+amd-memory issue=e52 effect=e66
+amd-memory issue=e52 effect=e67
+amd-memory issue=e52 effect=e68
+amd-memory issue=e52 effect=e69
+amd-memory issue=e52 effect=e70
+amd-memory issue=e52 effect=e71
+amd-memory issue=e52 effect=e72
+amd-memory issue=e52 effect=e73
+amd-memory issue=e52 effect=e74
+amd-memory issue=e52 effect=e75
+amd-memory issue=e52 effect=e76
+amd-memory issue=e52 effect=e77
+amd-memory issue=e52 effect=e78
+amd-memory issue=e52 effect=e79
+amd-memory issue=e52 effect=e80
+amd-memory issue=e52 effect=e81
+amd-memory issue=e52 effect=e82
+amd-memory issue=e52 effect=e83
+amd-memory issue=e52 effect=e84
+amd-memory issue=e52 effect=e85
+amd-memory issue=e52 effect=e86
+amd-memory issue=e52 effect=e87
+amd-memory issue=e52 effect=e88
+amd-memory issue=e52 effect=e89
+amd-memory issue=e52 effect=e90
+amd-memory issue=e52 effect=e91
+amd-memory issue=e52 effect=e92
+amd-memory issue=e52 effect=e93
+amd-memory issue=e52 effect=e94
+amd-memory issue=e52 effect=e95
+amd-memory issue=e52 effect=e96
+amd-memory issue=e52 effect=e97
+amd-memory issue=e52 effect=e98
+amd-memory issue=e52 effect=e99
+amd-memory issue=e52 effect=e100
+amd-memory issue=e52 effect=e101
+amd-memory issue=e52 effect=e102
+amd-memory issue=e52 effect=e103
+amd-memory issue=e52 effect=e104
+amd-memory issue=e52 effect=e105
+amd-memory issue=e52 effect=e106
+amd-memory issue=e52 effect=e107
+amd-memory issue=e52 effect=e108
+amd-memory issue=e52 effect=e109
+amd-memory issue=e52 effect=e110
+amd-memory issue=e52 effect=e111
+amd-memory issue=e52 effect=e112
+amd-memory issue=e52 effect=e113
+amd-memory issue=e52 effect=e114
+amd-memory issue=e52 effect=e115
+amd-memory issue=e52 effect=e116
+amd-memory issue=e52 effect=e117
+amd-memory issue=e52 effect=e118
+amd-memory issue=e52 effect=e119
+amd-memory issue=e52 effect=e120
+amd-memory issue=e52 effect=e121
+amd-memory issue=e52 effect=e122
+amd-memory issue=e52 effect=e123
+amd-memory issue=e52 effect=e124
+amd-memory issue=e52 effect=e125
+amd-memory issue=e52 effect=e126
+amd-memory issue=e52 effect=e127
+amd-memory issue=e52 effect=e128
+amd-memory issue=e52 effect=e129
+amd-memory issue=e52 effect=e130
+amd-memory issue=e52 effect=e131
+amd-memory issue=e52 effect=e132
+amd-memory issue=e52 effect=e133
+amd-memory issue=e52 effect=e134
+amd-memory issue=e52 effect=e135
+amd-memory issue=e52 effect=e136
+amd-memory issue=e52 effect=e137
+amd-memory issue=e52 effect=e138
+amd-memory issue=e52 effect=e139
+amd-memory issue=e52 effect=e140
+amd-memory issue=e52 effect=e141
+amd-memory issue=e52 effect=e142
+amd-memory issue=e52 effect=e143
+amd-memory issue=e52 effect=e144
+amd-memory issue=e52 effect=e145
+amd-memory issue=e52 effect=e146
+amd-memory issue=e52 effect=e147
+amd-memory issue=e52 effect=e148
+amd-memory issue=e52 effect=e149
+amd-memory issue=e52 effect=e150
+amd-memory issue=e52 effect=e151
+amd-memory issue=e52 effect=e152
+amd-memory issue=e52 effect=e153
+amd-memory issue=e52 effect=e154
+amd-memory issue=e52 effect=e155
+amd-memory issue=e52 effect=e156
+amd-memory issue=e52 effect=e157
+amd-memory issue=e52 effect=e158
+amd-memory issue=e52 effect=e159
+amd-memory issue=e52 effect=e160
+amd-memory issue=e52 effect=e161
+amd-memory issue=e52 effect=e162
+amd-memory issue=e52 effect=e163
+amd-memory issue=e52 effect=e164
+amd-memory issue=e52 effect=e165
+amd-memory issue=e52 effect=e166
+amd-memory issue=e52 effect=e167
+amd-memory issue=e52 effect=e168
+amd-memory issue=e52 effect=e169
+amd-memory issue=e52 effect=e170
+amd-memory issue=e52 effect=e171
+amd-memory issue=e52 effect=e172
+amd-memory issue=e52 effect=e173
+amd-memory issue=e52 effect=e174
+amd-memory issue=e52 effect=e175
+amd-memory issue=e52 effect=e176
+amd-memory issue=e52 effect=e177
+amd-memory issue=e52 effect=e178
+amd-memory issue=e52 effect=e179
+amd-memory issue=e52 effect=e180
+amd-memory issue=e52 effect=e181
+amd-memory issue=e52 effect=e182
+amd-memory issue=e52 effect=e183
+amd-memory issue=e52 effect=e184
+amd-memory issue=e52 effect=e185
+amd-memory issue=e52 effect=e186
+amd-memory issue=e52 effect=e187
+amd-memory issue=e52 effect=e188
+amd-memory issue=e52 effect=e189
+amd-memory issue=e52 effect=e190
+amd-memory issue=e52 effect=e191
+amd-memory issue=e52 effect=e192
+amd-memory issue=e52 effect=e193
+amd-memory issue=e52 effect=e194
+amd-memory issue=e52 effect=e195
+amd-memory issue=e52 effect=e196
+amd-memory issue=e52 effect=e197
+amd-memory issue=e52 effect=e198
+amd-memory issue=e52 effect=e199
+amd-memory issue=e52 effect=e200
+amd-memory issue=e52 effect=e201
+amd-memory issue=e52 effect=e202
+amd-memory issue=e52 effect=e203
+amd-memory issue=e52 effect=e204
+amd-memory issue=e52 effect=e205
+amd-memory issue=e52 effect=e206
+amd-memory issue=e52 effect=e207
+amd-memory issue=e52 effect=e208
+amd-memory issue=e52 effect=e209
+amd-memory issue=e52 effect=e210
+amd-memory issue=e52 effect=e211
+amd-memory issue=e52 effect=e212
+amd-memory issue=e52 effect=e213
+amd-memory issue=e52 effect=e214
+amd-memory issue=e52 effect=e215
+amd-memory issue=e52 effect=e216
+amd-memory issue=e52 effect=e217
+amd-memory issue=e52 effect=e218
+amd-memory issue=e52 effect=e219
+amd-memory issue=e52 effect=e220
+amd-memory issue=e52 effect=e221
+amd-memory issue=e52 effect=e222
+amd-memory issue=e52 effect=e223
+amd-memory issue=e52 effect=e224
+amd-memory issue=e52 effect=e225
+amd-memory issue=e52 effect=e226
+amd-memory issue=e52 effect=e227
+amd-memory issue=e52 effect=e228
+amd-memory issue=e52 effect=e229
+amd-memory issue=e52 effect=e230
+amd-memory issue=e52 effect=e231
+amd-memory issue=e52 effect=e232
+amd-memory issue=e52 effect=e233
+amd-memory issue=e52 effect=e234
+amd-memory issue=e52 effect=e235
+amd-memory issue=e52 effect=e236
+amd-memory issue=e52 effect=e237
+amd-memory issue=e52 effect=e238
+amd-memory issue=e52 effect=e239
+amd-memory issue=e52 effect=e240
+amd-memory issue=e52 effect=e241
+amd-memory issue=e52 effect=e242
+amd-memory issue=e52 effect=e243
+amd-memory issue=e52 effect=e244
+amd-memory issue=e52 effect=e245
+amd-memory issue=e52 effect=e246
+amd-memory issue=e52 effect=e247
+amd-memory issue=e52 effect=e248
+amd-memory issue=e52 effect=e249
+amd-memory issue=e52 effect=e250
+amd-memory issue=e52 effect=e251
+amd-memory issue=e52 effect=e252
+amd-memory issue=e52 effect=e253
+amd-memory issue=e52 effect=e254
+amd-memory issue=e52 effect=e255
+amd-memory issue=e52 effect=e256
+amd-memory issue=e52 effect=e257
+amd-memory issue=e52 effect=e258
+amd-memory issue=e52 effect=e259
+amd-memory issue=e52 effect=e260
+amd-memory issue=e52 effect=e261
+amd-memory issue=e52 effect=e262
+amd-memory issue=e52 effect=e263
+amd-memory issue=e52 effect=e264
+amd-memory issue=e52 effect=e265
+amd-memory issue=e52 effect=e266
+amd-memory issue=e52 effect=e267
+amd-memory issue=e52 effect=e268
+amd-memory issue=e52 effect=e269
+amd-memory issue=e52 effect=e270
+amd-memory issue=e52 effect=e271
+amd-memory issue=e52 effect=e272
+amd-memory issue=e52 effect=e273
+amd-memory issue=e52 effect=e274
+amd-memory issue=e52 effect=e275
+amd-memory issue=e52 effect=e276
+amd-memory issue=e52 effect=e277
+amd-memory issue=e52 effect=e278
+amd-memory issue=e52 effect=e279
+amd-memory issue=e52 effect=e280
+amd-memory issue=e52 effect=e281
+amd-memory issue=e52 effect=e282
+amd-memory issue=e52 effect=e283
+amd-memory issue=e52 effect=e284
+amd-memory issue=e52 effect=e285
+amd-memory issue=e52 effect=e286
+amd-memory issue=e52 effect=e287
+amd-memory issue=e52 effect=e288
+amd-memory issue=e52 effect=e289
+amd-memory issue=e52 effect=e290
+amd-memory issue=e52 effect=e291
+amd-memory issue=e52 effect=e292
+amd-memory issue=e52 effect=e293
+amd-memory issue=e52 effect=e294
+amd-memory issue=e52 effect=e295
+amd-memory issue=e52 effect=e296
+amd-memory issue=e52 effect=e297
+amd-memory issue=e52 effect=e298
+amd-memory issue=e52 effect=e299
+amd-memory issue=e52 effect=e300
+amd-memory issue=e52 effect=e301
+amd-memory issue=e52 effect=e302
+amd-memory issue=e52 effect=e303
+amd-memory issue=e52 effect=e304
+amd-memory issue=e52 effect=e305
+amd-memory issue=e52 effect=e306
+amd-memory issue=e52 effect=e307
+amd-memory issue=e52 effect=e308
+amd-memory issue=e325 effect=e326
+amd-memory issue=e325 effect=e327
+amd-memory issue=e325 effect=e328
+amd-memory issue=e325 effect=e329
+amd-memory issue=e325 effect=e330
+amd-memory issue=e325 effect=e331
+amd-memory issue=e325 effect=e332
+amd-memory issue=e325 effect=e333
+amd-memory issue=e325 effect=e334
+amd-memory issue=e325 effect=e335
+amd-memory issue=e325 effect=e336
+amd-memory issue=e325 effect=e337
+amd-memory issue=e325 effect=e338
+amd-memory issue=e325 effect=e339
+amd-memory issue=e325 effect=e340
+amd-memory issue=e325 effect=e341
+amd-memory issue=e325 effect=e342
+amd-memory issue=e325 effect=e343
+amd-memory issue=e325 effect=e344
+amd-memory issue=e325 effect=e345
+amd-memory issue=e325 effect=e346
+amd-memory issue=e325 effect=e347
+amd-memory issue=e325 effect=e348
+amd-memory issue=e325 effect=e349
+amd-memory issue=e325 effect=e350
+amd-memory issue=e325 effect=e351
+amd-memory issue=e325 effect=e352
+amd-memory issue=e325 effect=e353
+amd-memory issue=e325 effect=e354
+amd-memory issue=e325 effect=e355
+amd-memory issue=e325 effect=e356
+amd-memory issue=e325 effect=e357
+amd-memory issue=e325 effect=e358
+amd-memory issue=e325 effect=e359
+amd-memory issue=e325 effect=e360
+amd-memory issue=e325 effect=e361
+amd-memory issue=e325 effect=e362
+amd-memory issue=e325 effect=e363
+amd-memory issue=e325 effect=e364
+amd-memory issue=e325 effect=e365
+amd-memory issue=e325 effect=e366
+amd-memory issue=e325 effect=e367
+amd-memory issue=e325 effect=e368
+amd-memory issue=e325 effect=e369
+amd-memory issue=e325 effect=e370
+amd-memory issue=e325 effect=e371
+amd-memory issue=e325 effect=e372
+amd-memory issue=e325 effect=e373
+amd-memory issue=e325 effect=e374
+amd-memory issue=e325 effect=e375
+amd-memory issue=e325 effect=e376
+amd-memory issue=e325 effect=e377
+amd-memory issue=e325 effect=e378
+amd-memory issue=e325 effect=e379
+amd-memory issue=e325 effect=e380
+amd-memory issue=e325 effect=e381
+amd-memory issue=e325 effect=e382
+amd-memory issue=e325 effect=e383
+amd-memory issue=e325 effect=e384
+amd-memory issue=e325 effect=e385
+amd-memory issue=e325 effect=e386
+amd-memory issue=e325 effect=e387
+amd-memory issue=e325 effect=e388
+amd-memory issue=e325 effect=e389
+amd-memory issue=e391 effect=e392
+amd-memory issue=e391 effect=e393
+amd-memory issue=e391 effect=e394
+amd-memory issue=e391 effect=e395
+amd-memory issue=e391 effect=e396
+amd-memory issue=e391 effect=e397
+amd-memory issue=e391 effect=e398
+amd-memory issue=e391 effect=e399
+amd-memory issue=e391 effect=e400
+amd-memory issue=e391 effect=e401
+amd-memory issue=e391 effect=e402
+amd-memory issue=e391 effect=e403
+amd-memory issue=e391 effect=e404
+amd-memory issue=e391 effect=e405
+amd-memory issue=e391 effect=e406
+amd-memory issue=e391 effect=e407
+amd-memory issue=e391 effect=e408
+amd-memory issue=e391 effect=e409
+amd-memory issue=e391 effect=e410
+amd-memory issue=e391 effect=e411
+amd-memory issue=e391 effect=e412
+amd-memory issue=e391 effect=e413
+amd-memory issue=e391 effect=e414
+amd-memory issue=e391 effect=e415
+amd-memory issue=e391 effect=e416
+amd-memory issue=e391 effect=e417
+amd-memory issue=e391 effect=e418
+amd-memory issue=e391 effect=e419
+amd-memory issue=e391 effect=e420
+amd-memory issue=e391 effect=e421
+amd-memory issue=e391 effect=e422
+amd-memory issue=e391 effect=e423
+amd-memory issue=e391 effect=e424
+amd-memory issue=e391 effect=e425
+amd-memory issue=e391 effect=e426
+amd-memory issue=e391 effect=e427
+amd-memory issue=e391 effect=e428
+amd-memory issue=e391 effect=e429
+amd-memory issue=e391 effect=e430
+amd-memory issue=e391 effect=e431
+amd-memory issue=e391 effect=e432
+amd-memory issue=e391 effect=e433
+amd-memory issue=e391 effect=e434
+amd-memory issue=e391 effect=e435
+amd-memory issue=e391 effect=e436
+amd-memory issue=e391 effect=e437
+amd-memory issue=e391 effect=e438
+amd-memory issue=e391 effect=e439
+amd-memory issue=e391 effect=e440
+amd-memory issue=e391 effect=e441
+amd-memory issue=e391 effect=e442
+amd-memory issue=e391 effect=e443
+amd-memory issue=e391 effect=e444
+amd-memory issue=e391 effect=e445
+amd-memory issue=e391 effect=e446
+amd-memory issue=e391 effect=e447
+amd-memory issue=e391 effect=e448
+amd-memory issue=e391 effect=e449
+amd-memory issue=e391 effect=e450
+amd-memory issue=e391 effect=e451
+amd-memory issue=e391 effect=e452
+amd-memory issue=e391 effect=e453
+amd-memory issue=e391 effect=e454
+amd-memory issue=e391 effect=e455
+amd-memory issue=e459 effect=e460
+amd-memory issue=e459 effect=e461
+amd-memory issue=e459 effect=e462
+amd-memory issue=e459 effect=e463
+amd-memory issue=e459 effect=e464
+amd-memory issue=e459 effect=e465
+amd-memory issue=e459 effect=e466
+amd-memory issue=e459 effect=e467
+amd-memory issue=e459 effect=e468
+amd-memory issue=e459 effect=e469
+amd-memory issue=e459 effect=e470
+amd-memory issue=e459 effect=e471
+amd-memory issue=e459 effect=e472
+amd-memory issue=e459 effect=e473
+amd-memory issue=e459 effect=e474
+amd-memory issue=e459 effect=e475
+amd-memory issue=e459 effect=e476
+amd-memory issue=e459 effect=e477
+amd-memory issue=e459 effect=e478
+amd-memory issue=e459 effect=e479
+amd-memory issue=e459 effect=e480
+amd-memory issue=e459 effect=e481
+amd-memory issue=e459 effect=e482
+amd-memory issue=e459 effect=e483
+amd-memory issue=e459 effect=e484
+amd-memory issue=e459 effect=e485
+amd-memory issue=e459 effect=e486
+amd-memory issue=e459 effect=e487
+amd-memory issue=e459 effect=e488
+amd-memory issue=e459 effect=e489
+amd-memory issue=e459 effect=e490
+amd-memory issue=e459 effect=e491
+amd-memory issue=e459 effect=e492
+amd-memory issue=e459 effect=e493
+amd-memory issue=e459 effect=e494
+amd-memory issue=e459 effect=e495
+amd-memory issue=e459 effect=e496
+amd-memory issue=e459 effect=e497
+amd-memory issue=e459 effect=e498
+amd-memory issue=e459 effect=e499
+amd-memory issue=e459 effect=e500
+amd-memory issue=e459 effect=e501
+amd-memory issue=e459 effect=e502
+amd-memory issue=e459 effect=e503
+amd-memory issue=e459 effect=e504
+amd-memory issue=e459 effect=e505
+amd-memory issue=e459 effect=e506
+amd-memory issue=e459 effect=e507
+amd-memory issue=e459 effect=e508
+amd-memory issue=e459 effect=e509
+amd-memory issue=e459 effect=e510
+amd-memory issue=e459 effect=e511
+amd-memory issue=e459 effect=e512
+amd-memory issue=e459 effect=e513
+amd-memory issue=e459 effect=e514
+amd-memory issue=e459 effect=e515
+amd-memory issue=e459 effect=e516
+amd-memory issue=e459 effect=e517
+amd-memory issue=e459 effect=e518
+amd-memory issue=e459 effect=e519
+amd-memory issue=e459 effect=e520
+amd-memory issue=e459 effect=e521
+amd-memory issue=e459 effect=e522
+amd-memory issue=e459 effect=e523
+amd-memory issue=e525 effect=e526
+amd-memory issue=e525 effect=e527
+amd-memory issue=e525 effect=e528
+amd-memory issue=e525 effect=e529
+amd-memory issue=e525 effect=e530
+amd-memory issue=e525 effect=e531
+amd-memory issue=e525 effect=e532
+amd-memory issue=e525 effect=e533
+amd-memory issue=e525 effect=e534
+amd-memory issue=e525 effect=e535
+amd-memory issue=e525 effect=e536
+amd-memory issue=e525 effect=e537
+amd-memory issue=e525 effect=e538
+amd-memory issue=e525 effect=e539
+amd-memory issue=e525 effect=e540
+amd-memory issue=e525 effect=e541
+amd-memory issue=e525 effect=e542
+amd-memory issue=e525 effect=e543
+amd-memory issue=e525 effect=e544
+amd-memory issue=e525 effect=e545
+amd-memory issue=e525 effect=e546
+amd-memory issue=e525 effect=e547
+amd-memory issue=e525 effect=e548
+amd-memory issue=e525 effect=e549
+amd-memory issue=e525 effect=e550
+amd-memory issue=e525 effect=e551
+amd-memory issue=e525 effect=e552
+amd-memory issue=e525 effect=e553
+amd-memory issue=e525 effect=e554
+amd-memory issue=e525 effect=e555
+amd-memory issue=e525 effect=e556
+amd-memory issue=e525 effect=e557
+amd-memory issue=e525 effect=e558
+amd-memory issue=e525 effect=e559
+amd-memory issue=e525 effect=e560
+amd-memory issue=e525 effect=e561
+amd-memory issue=e525 effect=e562
+amd-memory issue=e525 effect=e563
+amd-memory issue=e525 effect=e564
+amd-memory issue=e525 effect=e565
+amd-memory issue=e525 effect=e566
+amd-memory issue=e525 effect=e567
+amd-memory issue=e525 effect=e568
+amd-memory issue=e525 effect=e569
+amd-memory issue=e525 effect=e570
+amd-memory issue=e525 effect=e571
+amd-memory issue=e525 effect=e572
+amd-memory issue=e525 effect=e573
+amd-memory issue=e525 effect=e574
+amd-memory issue=e525 effect=e575
+amd-memory issue=e525 effect=e576
+amd-memory issue=e525 effect=e577
+amd-memory issue=e525 effect=e578
+amd-memory issue=e525 effect=e579
+amd-memory issue=e525 effect=e580
+amd-memory issue=e525 effect=e581
+amd-memory issue=e525 effect=e582
+amd-memory issue=e525 effect=e583
+amd-memory issue=e525 effect=e584
+amd-memory issue=e525 effect=e585
+amd-memory issue=e525 effect=e586
+amd-memory issue=e525 effect=e587
+amd-memory issue=e525 effect=e588
+amd-memory issue=e525 effect=e589
+amd-memory issue=e596 effect=e597
+amd-memory issue=e596 effect=e598
+amd-memory issue=e596 effect=e599
+amd-memory issue=e596 effect=e600
+amd-memory issue=e596 effect=e601
+amd-memory issue=e596 effect=e602
+amd-memory issue=e596 effect=e603
+amd-memory issue=e596 effect=e604
+amd-memory issue=e596 effect=e605
+amd-memory issue=e596 effect=e606
+amd-memory issue=e596 effect=e607
+amd-memory issue=e596 effect=e608
+amd-memory issue=e596 effect=e609
+amd-memory issue=e596 effect=e610
+amd-memory issue=e596 effect=e611
+amd-memory issue=e596 effect=e612
+amd-memory issue=e596 effect=e613
+amd-memory issue=e596 effect=e614
+amd-memory issue=e596 effect=e615
+amd-memory issue=e596 effect=e616
+amd-memory issue=e596 effect=e617
+amd-memory issue=e596 effect=e618
+amd-memory issue=e596 effect=e619
+amd-memory issue=e596 effect=e620
+amd-memory issue=e596 effect=e621
+amd-memory issue=e596 effect=e622
+amd-memory issue=e596 effect=e623
+amd-memory issue=e596 effect=e624
+amd-memory issue=e596 effect=e625
+amd-memory issue=e596 effect=e626
+amd-memory issue=e596 effect=e627
+amd-memory issue=e596 effect=e628
+amd-memory issue=e596 effect=e629
+amd-memory issue=e596 effect=e630
+amd-memory issue=e596 effect=e631
+amd-memory issue=e596 effect=e632
+amd-memory issue=e596 effect=e633
+amd-memory issue=e596 effect=e634
+amd-memory issue=e596 effect=e635
+amd-memory issue=e596 effect=e636
+amd-memory issue=e596 effect=e637
+amd-memory issue=e596 effect=e638
+amd-memory issue=e596 effect=e639
+amd-memory issue=e596 effect=e640
+amd-memory issue=e596 effect=e641
+amd-memory issue=e596 effect=e642
+amd-memory issue=e596 effect=e643
+amd-memory issue=e596 effect=e644
+amd-memory issue=e596 effect=e645
+amd-memory issue=e596 effect=e646
+amd-memory issue=e596 effect=e647
+amd-memory issue=e596 effect=e648
+amd-memory issue=e596 effect=e649
+amd-memory issue=e596 effect=e650
+amd-memory issue=e596 effect=e651
+amd-memory issue=e596 effect=e652
+amd-memory issue=e596 effect=e653
+amd-memory issue=e596 effect=e654
+amd-memory issue=e596 effect=e655
+amd-memory issue=e596 effect=e656
+amd-memory issue=e596 effect=e657
+amd-memory issue=e596 effect=e658
+amd-memory issue=e596 effect=e659
+amd-memory issue=e596 effect=e660
+amd-memory issue=e662 effect=e663
+amd-memory issue=e662 effect=e664
+amd-memory issue=e662 effect=e665
+amd-memory issue=e662 effect=e666
+amd-memory issue=e662 effect=e667
+amd-memory issue=e662 effect=e668
+amd-memory issue=e662 effect=e669
+amd-memory issue=e662 effect=e670
+amd-memory issue=e662 effect=e671
+amd-memory issue=e662 effect=e672
+amd-memory issue=e662 effect=e673
+amd-memory issue=e662 effect=e674
+amd-memory issue=e662 effect=e675
+amd-memory issue=e662 effect=e676
+amd-memory issue=e662 effect=e677
+amd-memory issue=e662 effect=e678
+amd-memory issue=e662 effect=e679
+amd-memory issue=e662 effect=e680
+amd-memory issue=e662 effect=e681
+amd-memory issue=e662 effect=e682
+amd-memory issue=e662 effect=e683
+amd-memory issue=e662 effect=e684
+amd-memory issue=e662 effect=e685
+amd-memory issue=e662 effect=e686
+amd-memory issue=e662 effect=e687
+amd-memory issue=e662 effect=e688
+amd-memory issue=e662 effect=e689
+amd-memory issue=e662 effect=e690
+amd-memory issue=e662 effect=e691
+amd-memory issue=e662 effect=e692
+amd-memory issue=e662 effect=e693
+amd-memory issue=e662 effect=e694
+amd-memory issue=e662 effect=e695
+amd-memory issue=e662 effect=e696
+amd-memory issue=e662 effect=e697
+amd-memory issue=e662 effect=e698
+amd-memory issue=e662 effect=e699
+amd-memory issue=e662 effect=e700
+amd-memory issue=e662 effect=e701
+amd-memory issue=e662 effect=e702
+amd-memory issue=e662 effect=e703
+amd-memory issue=e662 effect=e704
+amd-memory issue=e662 effect=e705
+amd-memory issue=e662 effect=e706
+amd-memory issue=e662 effect=e707
+amd-memory issue=e662 effect=e708
+amd-memory issue=e662 effect=e709
+amd-memory issue=e662 effect=e710
+amd-memory issue=e662 effect=e711
+amd-memory issue=e662 effect=e712
+amd-memory issue=e662 effect=e713
+amd-memory issue=e662 effect=e714
+amd-memory issue=e662 effect=e715
+amd-memory issue=e662 effect=e716
+amd-memory issue=e662 effect=e717
+amd-memory issue=e662 effect=e718
+amd-memory issue=e662 effect=e719
+amd-memory issue=e662 effect=e720
+amd-memory issue=e662 effect=e721
+amd-memory issue=e662 effect=e722
+amd-memory issue=e662 effect=e723
+amd-memory issue=e662 effect=e724
+amd-memory issue=e662 effect=e725
+amd-memory issue=e662 effect=e726
+terminal completed

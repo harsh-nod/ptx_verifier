@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "trust": "caller_attested",
+  "revision": "1c33069b53dc29409e95d6c0f9a52cd2cd423b01",
+  "source_clean": true,
+  "profile": "release",
+  "features": [],
+  "default_features": true,
+  "rust_workspace_fingerprint": {
+    "algorithm": "sha256-git-tree-v1",
+    "sha256": "b1247837f779eabf462f5c6ed562db94623ccac2e0737136c26c77b740f39b5c",
+    "file_count": 1220
+  },
+  "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+  "limits": "Caller-attested association of build source and artifact; this is not a cryptographic proof of compilation or a performance result.",
+  "command": [
+    "cargo",
+    "build",
+    "--release",
+    "-p",
+    "volta_cli"
+  ],
+  "binary_sha256": "f0ec7cac3074786eb99f78258da1328844d18e6def19c6bbc8d4c1c8df33ed2e"
+}
