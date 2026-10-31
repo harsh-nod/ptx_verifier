@@ -775,6 +775,27 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
             };
             info.push(("wave", record.wave.to_string()));
             match &record.kind {
+                volta_graph::AmdEventKind::TensorAccessFault {
+                    load,
+                    descriptor,
+                    sources,
+                } => {
+                    info.push((
+                        "transfer",
+                        if *load {
+                            "global to LDS"
+                        } else {
+                            "LDS to global"
+                        }
+                        .into(),
+                    ));
+                    info.push(("descriptor", format!("{descriptor:?}")));
+                    info.push(("scalar tuple starts", format!("{sources:?}")));
+                    (
+                        "instruction",
+                        "attempted tensor access; aborted before issue".into(),
+                    )
+                }
                 volta_graph::AmdEventKind::WmmaIssue {
                     kind,
                     destinations,

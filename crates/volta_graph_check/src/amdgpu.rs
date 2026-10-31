@@ -23,6 +23,7 @@ use crate::memory_conflict::{
 use crate::{PropertyResult, Unresolved, Verdict};
 pub mod early_readiness;
 mod gfx1250;
+pub mod tensor_bounds;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AmdTraceEvidence {

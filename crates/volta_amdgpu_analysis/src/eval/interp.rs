@@ -55,6 +55,10 @@ pub enum EvalError {
         limit: u64,
     },
     ObserverStopped,
+    TensorBounds {
+        wave: u32,
+        pc: usize,
+    },
 }
 impl fmt::Display for EvalError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -74,6 +78,7 @@ impl fmt::Display for EvalError {
                 "analysis instruction budget {limit} exhausted (inconclusive)"
             ),
             Self::ObserverStopped => f.write_str(OBSERVER_STOP_REASON),
+            Self::TensorBounds { .. } => f.write_str(TENSOR_BOUNDS_ABORT_REASON),
         }
     }
 }
@@ -752,6 +757,11 @@ impl<'a> Interpreter<'a> {
         result
             .builder
             .set_shared_allocation_layout(result.config.shared_allocations.clone());
+        if architecture == AmdArchitecture::Gfx1250 {
+            result
+                .builder
+                .assume(Assumption::ConfiguredLdsBytes(lds_size));
+        }
         result.initialize_memory()?;
         for id in 0..threads.div_ceil(architecture.wave_size()) {
             let mut wave = Wave::new(
@@ -1215,7 +1225,7 @@ impl<'a> Interpreter<'a> {
                     AbortCause::Error
                 };
                 let (thread, pc) = match &error {
-                    EvalError::Invalid { wave, pc, .. } => (
+                    EvalError::Invalid { wave, pc, .. } | EvalError::TensorBounds { wave, pc } => (
                         Some(ThreadIx(wave * self.architecture.wave_size())),
                         Some(ProgramPoint(*pc as u32)),
                     ),
@@ -5892,11 +5902,13 @@ impl<'a> Interpreter<'a> {
             _ => return Err(self.unsupported(wave, instruction)),
         };
         let mut groups = Vec::new();
+        let mut sources = Vec::new();
         for (operand, count) in instruction.operands().iter().zip([4, 8, 4, 4]) {
             let register = wave.destination(operand)?;
             if register.class != RegisterClass::Scalar || register.count != count {
                 return Err(self.unsupported(wave, instruction));
             }
+            sources.push(register.index);
             let mut words = Vec::new();
             for i in 0..count {
                 words.push(
@@ -5907,58 +5919,30 @@ impl<'a> Interpreter<'a> {
             }
             groups.push(words);
         }
-        let d0 = &groups[0];
-        let d1 = &groups[1];
-        // Public LLVM/FlyDSL D0..D3 profile: non-cluster 2D, no
-        // padding, atomic barrier, iteration, gather, OOB fill or swizzle.
-        if d0[0] > 1
-            || d0[3] & 0xfe00_0000 != 0x8000_0000
-            || d1[0] & !0x30000 != 0
-            || groups[2].iter().chain(&groups[3]).any(|&x| x != 0)
-        {
-            return Err(EvalError::Unsupported{pc:wave.pc,what:"tensor descriptor requires bounded non-padded 2D global/LDS profile without multicast/atomic/iteration/gather".into()});
-        }
-        if d0[0] == 0 {
+        let descriptor = AmdTensorDescriptor {
+            d0: groups[0].clone().try_into().expect("validated D0 tuple"),
+            d1: groups[1].clone().try_into().expect("validated D1 tuple"),
+            d2: groups[2].clone().try_into().expect("validated D2 tuple"),
+            d3: groups[3].clone().try_into().expect("validated D3 tuple"),
+        };
+        let Some(footprint) = descriptor.decode().map_err(|what| EvalError::Unsupported {
+            pc: wave.pc,
+            what: what.into(),
+        })?
+        else {
             return Ok(());
-        }
-        let data_size = (d1[0] >> 16) & 3;
-        if data_size > 2 {
-            return Err(self.unsupported(wave, instruction));
-        }
-        let width = 1u64 << data_size;
-        let dim0 = ((d1[1] >> 16) as u64) | (((d1[2] & 65535) as u64) << 16);
-        let dim1 = ((d1[2] >> 16) as u64) | (((d1[3] & 65535) as u64) << 16);
-        let cols = (d1[3] >> 16) as u64;
-        let rows = (d1[4] & 65535) as u64;
-        let stride = d1[5] as u64;
-        if d1[1] & 65535 != 0
-            || d1[4] >> 16 != 0
-            || d1[6] != 0
-            || d1[7] != 0
-            || cols == 0
-            || rows == 0
-            || cols > dim0
-            || rows > dim1
-            || stride < dim0
-        {
-            return Err(EvalError::Unsupported {
-                pc: wave.pc,
-                what: "tensor 2D shape/stride/OOB descriptor unsupported".into(),
-            });
-        }
-        let global = d0[2] as u64 | (((d0[3] & 0x1ffffff) as u64) << 32);
-        let shared = d0[1] as u64;
-        let bytes = rows
-            .checked_mul(cols)
-            .and_then(|v| v.checked_mul(width))
-            .filter(|&v| v <= self.lds_size)
-            .ok_or_else(|| wave.fail(None, "tensor tile exceeds LDS capacity"))?;
-        let global_end = (rows - 1)
-            .checked_mul(stride)
-            .and_then(|v| v.checked_add(cols))
-            .and_then(|v| v.checked_mul(width))
-            .and_then(|v| v.checked_add(global))
-            .ok_or_else(|| wave.fail(None, "tensor global address overflow"))?;
+        };
+        let AmdTensorFootprint {
+            width,
+            rows,
+            cols,
+            stride,
+            global,
+            shared,
+            bytes: _,
+            global_end,
+            shared_end,
+        } = footprint;
         if !self
             .config
             .arrays
@@ -5974,10 +5958,23 @@ impl<'a> Interpreter<'a> {
                 "tensor footprint crosses global allocation boundaries",
             ));
         }
-        let shared_end = shared
-            .checked_add(bytes)
-            .filter(|&v| v <= self.lds_size)
-            .ok_or_else(|| wave.fail(None, "tensor footprint exceeds LDS capacity"))?;
+        if shared_end > self.lds_size {
+            self.builder.amd_event(
+                wave.id,
+                ProgramPoint(wave.pc as u32),
+                AmdEventKind::TensorAccessFault {
+                    load,
+                    descriptor,
+                    sources: sources
+                        .try_into()
+                        .expect("validated four descriptor groups"),
+                },
+            );
+            return Err(EvalError::TensorBounds {
+                wave: wave.id,
+                pc: wave.pc,
+            });
+        }
         if !self.config.shared_allocations.is_empty()
             && !self
                 .config

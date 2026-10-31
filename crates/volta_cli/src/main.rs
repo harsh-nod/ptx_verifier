@@ -549,11 +549,22 @@ struct KernelSide {
     graph: EventGraph,
     report: GraphReport,
     early_readiness: Option<volta_pipeline::CertifiedScalarReadiness>,
+    tensor_bounds: Option<volta_pipeline::CertifiedTensorBounds>,
 }
 
 /// This signal is emitted only for the pipeline's privately constructed,
 /// independently validated finding. Ordinary aborted graphs do not enter here.
-fn print_early_rejection(side: &KernelSide) -> bool {
+fn print_certified_rejection(side: &KernelSide) -> bool {
+    if let Some(finding) = &side.tensor_bounds {
+        println!("TENSOR_BOUNDS: CERTIFIED_REJECTION");
+        println!("  AMD tensor LDS bounds (independently validated attempted access) FAIL");
+        println!("  {}: {:?}", side.label, finding.violation());
+        println!(
+            "  incomplete aborted prefix; transfer not issued; complete outputs and equivalence unavailable"
+        );
+        println!("VERDICT: REJECT");
+        return true;
+    }
     let Some(finding) = &side.early_readiness else {
         return false;
     };
@@ -683,6 +694,7 @@ fn run_kernel(
             graph,
             report: verified.graph,
             early_readiness: verified.early_readiness,
+            tensor_bounds: verified.tensor_bounds,
         },
     ))
 }
@@ -728,8 +740,8 @@ fn cmd_analyze(args: AnalyzeArgs, log: &mut run_log::RunLog, backend: Backend) -
         "  time: {:.3}s  instructions: {}  block syncs: {}  warp syncs: {}",
         elapsed, run.stats.instructions, run.stats.block_syncs, run.stats.warp_syncs
     );
-    if print_early_rejection(&side) {
-        log.record("analyze: certified scalar readiness prefix rejection");
+    if print_certified_rejection(&side) {
+        log.record("analyze: certified rejected-prefix finding");
         return ExitCode::FAILURE;
     }
     match &run.outputs {
@@ -918,14 +930,14 @@ fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog, backend: Backend) -
                     return ExitCode::FAILURE;
                 }
             };
-            if side1.early_readiness.is_some() {
+            if side1.early_readiness.is_some() || side1.tensor_bounds.is_some() {
                 println!(
                     "Exec: {:.3}s  instructions: {}",
                     start.elapsed().as_secs_f64(),
                     run1.stats.instructions
                 );
-                print_early_rejection(&side1);
-                log.record("compare: certified scalar readiness prefix rejection");
+                print_certified_rejection(&side1);
+                log.record("compare: certified rejected-prefix finding");
                 return ExitCode::FAILURE;
             }
             let (run2, side2) = match run_kernel(
@@ -955,8 +967,8 @@ fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog, backend: Backend) -
                 run2.stats.block_syncs,
                 run2.stats.warp_syncs
             );
-            if print_early_rejection(&side2) {
-                log.record("compare: certified scalar readiness prefix rejection");
+            if print_certified_rejection(&side2) {
+                log.record("compare: certified rejected-prefix finding");
                 return ExitCode::FAILURE;
             }
             print_graph_report(&side1, &source1);
@@ -1238,8 +1250,8 @@ fn cmd_verify(args: VerifyArgs, log: &mut run_log::RunLog, backend: Backend) -> 
         "Exec: {:.3}s  instructions: {}  block syncs: {}  warp syncs: {}",
         exec_secs, run.stats.instructions, run.stats.block_syncs, run.stats.warp_syncs
     );
-    if print_early_rejection(&side) {
-        log.record("verify: certified scalar readiness prefix rejection");
+    if print_certified_rejection(&side) {
+        log.record("verify: certified rejected-prefix finding");
         return ExitCode::FAILURE;
     }
     print_graph_report(&side, &source);
