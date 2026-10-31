@@ -208,6 +208,17 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
             continue;
         }
         parsed?;
+        if let Some(instruction) = kernel
+            .instructions
+            .iter()
+            .find(|instruction| instruction.mnemonic == "s_setpc_b64")
+        {
+            return Err(ParseError {
+                message: "unsupported s_setpc_b64 return in an entry kernel without a caller"
+                    .into(),
+                span: instruction.span,
+            });
+        }
         // Do not turn a physical fallthrough into an implicit return when
         // excluding another function's bytes. Branch destinations are still
         // resolved strictly within this kernel by lowering.

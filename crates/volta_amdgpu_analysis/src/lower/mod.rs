@@ -180,7 +180,7 @@ fn compose_functions(
             }
             program
                 .labels
-                .insert(format!("{name}::{label}"), start + pc);
+                .insert(format!("{start}:{label}"), start + pc);
         }
         for original in body {
             let mut instruction = original.clone();
@@ -199,7 +199,7 @@ fn compose_functions(
                         instruction.span,
                     ));
                 }
-                *label = format!("{name}::{label}");
+                *label = format!("{start}:{label}");
             }
             program.instructions.push(instruction);
         }

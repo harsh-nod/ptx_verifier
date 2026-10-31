@@ -299,6 +299,34 @@ fn calls_require_actual_reaching_definitions_and_local_function_bounds() {
 }
 
 #[test]
+fn caller_constructed_names_cannot_alias_function_local_label_keys() {
+    let src = module(
+        &(call("leaf", 0, 30) + "s_branch .Lout\nv_mov_b32 v1,99\n.Lout:\n" + store()),
+        &body("leaf", "v_mov_b32 v1,7\n.Lret:\ns_setpc_b64 s[30:31]"),
+    );
+    let mut parsed = frontend::parse(&src).unwrap();
+    parsed.kernels[0].name = "a".into();
+    parsed.kernels[0].labels = [("b::c".into(), 6)].into();
+    parsed.kernels[0].instructions[4].operands[0] = frontend::Operand::Symbol("b::c".into());
+    parsed.functions[0].name = "a::b".into();
+    parsed.functions[0].labels = [("c".into(), 1)].into();
+    for instruction in &mut parsed.kernels[0].instructions {
+        for operand in &mut instruction.operands {
+            if let frontend::Operand::Relocation(relocation) = operand {
+                relocation.symbol = "a::b".into();
+            }
+        }
+    }
+    let lowered = lower::lower_module_kernel(&parsed, "a").unwrap();
+    assert!(matches!(
+        lowered.instructions[4].operation(),
+        ir::Operation::Branch(ir::BranchInstruction { target: 6, .. })
+    ));
+    let result = analyze(&parsed, Some("a"), config(1)).unwrap();
+    values(&result, 7., 1);
+}
+
+#[test]
 fn recursive_calls_and_unreachable_unresolved_calls_fail_closed() {
     let src = module(
         &(call("leaf", 0, 30) + store()),
