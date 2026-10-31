@@ -1,0 +1,28 @@
+instruction profile:
+  scalar ALU               15  ( 48.4%)
+  vector ALU                6  ( 19.4%)
+  vector memory             3  (  9.7%)
+  wait                      3  (  9.7%)
+  scalar memory             2  (  6.5%)
+  barrier                   1  (  3.2%)
+  control                   1  (  3.2%)
+Exec: 0.002s  instructions: 31  block syncs: 1  warp syncs: 0
+kernel: graph verification
+  selected workgroup: (0, 0, 0); other workgroups and inter-workgroup conflicts are outside this result
+  AMD trace completeness (native AMD graph contract)      PASS
+  AMD wait and register readiness (target-selected counters and register dependencies) PASS
+  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS
+  AMD memory-conflict freedom (AMD completed-effect happens-before) PASS
+VC check: 0.000s (decision procedure 0.000s)  elements: 64
+EQUIVALENT (matches spec)
+VERDICT: ACCEPT
+  equivalence: all 64 compared elements proved equivalent
+  kernel: every graph check passed
+  under the assumptions:
+    - the analyzed AMD execution has XNACK memory replay disabled; replay-enabled executions are outside this result
+    - only the selected AMD workgroup is analyzed; other workgroups and inter-workgroup conflicts are outside this result
+    - all waves of the analyzed AMD workgroup share one CU; threadgroup splitting is disabled
+    - arithmetic is modeled over mathematical reals, not bit-exact floating-point
+    - addresses, branch conditions and synchronization parameters are concrete
+    - asynchronous operations compute their data at issue; only completion is asynchronous
+    - native LDS extent is the descriptor's static allocation plus configured dynamic bytes

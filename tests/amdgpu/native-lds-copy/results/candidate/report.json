@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "scope": "Full unchanged original64F32launch, both256B allocations,LDS80000,grid1/block64,fullidentityspecN64/no sampling; incomplete/Unsupported is never successful execution or safety finding. CPUonly.",
+  "binary_sha256": "d505e4da4573dfa46f30b99c10f1081f055b55f7c8fbd7d509b5d443d38e2f14",
+  "build_record_sha256": "7850ac1dbc20e0c03630938c531e4e7026deba7cede27234d53ced8d7c1fd185",
+  "contract_sha256": "b861213a8e66785e05f4b36d722ca2d3990ae453e5a7784cb01aef4da5b24be6",
+  "assembly_sha256": "5cd06ff39ac43a8178c89d570361a5329c39b0d2077020438fbc93701ffe9542",
+  "launch_sha256": "3e1054f80948e9cafe11a8ca008c097939b8b5a44955ba585104ddfaab67150b",
+  "spec_sha256": "dfaaf87789dfec7bcaadc0e1a4dd9863575540ed223799561770c53ea60b438b",
+  "runs": [
+    {
+      "argv": [
+        "/tmp/ptx-native-legacy-flat-candidate-freeze-20261031/candidate-volta",
+        "verify",
+        "/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-63a39b0bac4bd064/kernel.s",
+        "/tmp/ptx-native-buffer-lds-original-contract-20261031/identity.spec",
+        "--config",
+        "/tmp/ptx-native-buffer-lds-original-contract-20261031/f32.launch.json",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx950",
+        "--no-log-file",
+        "--dim",
+        "N=64",
+        "--sample",
+        "0",
+        "--verify-numeric"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "a66c46844a558c5ea3c767d1fa3cb6a2351c7a3ad548b660f445fbb177b0a794",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "/tmp/ptx-native-legacy-flat-candidate-freeze-20261031/candidate-volta",
+        "analyze",
+        "/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-63a39b0bac4bd064/kernel.s",
+        "--config",
+        "/tmp/ptx-native-buffer-lds-original-contract-20261031/f32.launch.json",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx950",
+        "--no-log-file",
+        "--print-outputs",
+        "64",
+        "--dump-graph",
+        "/tmp/ptx-native-legacy-flat-original-results-20261031/original.graph",
+        "--emit-exprs",
+        "/tmp/ptx-native-legacy-flat-original-results-20261031/original.vexpr"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "244c40e06e010d9bf35852560e3aafd0432a06e00f75ec6324301ca0ef753d65",
+      "stderr_sha256": "5f8d0fe0cb4673068731b89c0f3c497aefb6950ac44b86d9fe9439af88888f00"
+    }
+  ],
+  "artifacts": {
+    "original.graph": "ecabdbd17426f5990ad7ccab71fa16eb9533b9c6fdd83cfd7ab2da9b18d29408",
+    "original.vexpr": "d15c79d78d39509d7df0f7fc3b618b78e6b9f09da953fc7384279e7e9a78e6ef"
+  }
+}
