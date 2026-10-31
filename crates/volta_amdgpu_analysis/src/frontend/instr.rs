@@ -688,12 +688,8 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
             let comparison = stem
                 .strip_prefix("v_cmp_")
                 .or_else(|| stem.strip_prefix("v_cmpx_"));
-            let Some(comparison) = comparison else {
-                return None;
-            };
-            let Some((relation, ty)) = comparison.rsplit_once('_') else {
-                return None;
-            };
+            let comparison = comparison?;
+            let (relation, ty) = comparison.rsplit_once('_')?;
             if ![
                 "eq", "lg", "ne", "lt", "le", "gt", "ge", "o", "u", "nlt", "nle", "ngt", "nge",
                 "neq", "nlg", "tru", "f",
@@ -865,10 +861,10 @@ pub(super) fn parse_instruction(
     span: SourceSpan,
     architecture: crate::target::Architecture,
 ) -> Result<Instruction, ParseError> {
-    if architecture == crate::target::Architecture::Gfx1250 {
-        if let Some(result) = super::gfx1250::parse_special(text, span)? {
-            return Ok(result);
-        }
+    if architecture == crate::target::Architecture::Gfx1250
+        && let Some(result) = super::gfx1250::parse_special(text, span)?
+    {
+        return Ok(result);
     }
     let fail = |message| ParseError { message, span };
     let (mnemonic, rest) = text.split_once(char::is_whitespace).unwrap_or((text, ""));
@@ -910,27 +906,27 @@ pub(super) fn parse_instruction(
                 });
                 continue;
             }
-            if opcode == Opcode::Wait && mnemonic == "s_waitcnt" {
-                if let Some((name, value)) = token
+            if opcode == Opcode::Wait
+                && mnemonic == "s_waitcnt"
+                && let Some((name, value)) = token
                     .split_once('(')
                     .and_then(|(name, tail)| tail.strip_suffix(')').map(|value| (name, value)))
-                {
-                    let limit = match name {
-                        "vmcnt" => 63,
-                        "lgkmcnt" => 15,
-                        "expcnt" => 7,
-                        _ => return Err(fail(format!("unsupported wait counter `{name}`"))),
-                    };
-                    let value = integer(value)
-                        .filter(|n| (0..=limit).contains(n))
-                        .ok_or_else(|| fail(format!("invalid `{name}` threshold")))?;
-                    if operands.iter().any(|operand| matches!(operand, Operand::WaitCounter { name: old, .. } if old == name)) { return Err(fail(format!("duplicate wait counter `{name}`"))); }
-                    operands.push(Operand::WaitCounter {
-                        name: name.into(),
-                        value: value as u32,
-                    });
-                    continue;
-                }
+            {
+                let limit = match name {
+                    "vmcnt" => 63,
+                    "lgkmcnt" => 15,
+                    "expcnt" => 7,
+                    _ => return Err(fail(format!("unsupported wait counter `{name}`"))),
+                };
+                let value = integer(value)
+                    .filter(|n| (0..=limit).contains(n))
+                    .ok_or_else(|| fail(format!("invalid `{name}` threshold")))?;
+                if operands.iter().any(|operand| matches!(operand, Operand::WaitCounter { name: old, .. } if old == name)) { return Err(fail(format!("duplicate wait counter `{name}`"))); }
+                operands.push(Operand::WaitCounter {
+                    name: name.into(),
+                    value: value as u32,
+                });
+                continue;
             }
             if token.split_once(':').is_some_and(|(name, _)| {
                 !name.is_empty()
@@ -1657,15 +1653,13 @@ pub(super) fn validate_registers(
         Opcode::VectorAlu => {
             if architecture == crate::target::Architecture::Gfx1250
                 && matches!(stem, "v_cvt_f32_ubyte0" | "v_cvt_f32_ubyte3")
-            {
-                if !modifiers.is_empty()
+                && (!modifiers.is_empty()
                     || !matches!(operands.get(1),Some(Operand::Register(r)) if matches!(r.class,Scalar|Vector) && r.count==1)
-                        && !matches!(operands.get(1),Some(Operand::Integer(v)) if (i32::MIN as i64..=u32::MAX as i64).contains(v))
-                {
-                    return Err(
-                        "selected UBYTE conversion needs one unmodified encoded32bit source".into(),
-                    );
-                }
+                        && !matches!(operands.get(1),Some(Operand::Integer(v)) if (i32::MIN as i64..=u32::MAX as i64).contains(v)))
+            {
+                return Err(
+                    "selected UBYTE conversion needs one unmodified encoded32bit source".into(),
+                );
             }
             if stem == "v_s_exp_f32" {
                 // LLVM VOP_Pseudo_Scalar_F32 uses SSrc_f32, not VSrc_f32:
@@ -1791,10 +1785,7 @@ pub(super) fn validate_registers(
                         2
                     },
                 )?;
-            } else if ["v_cvt_pk_f32_fp8", "v_cvt_pk_f32_bf8"].contains(&stem) {
-                require(0, &[Vector], 2)?;
-                source_width(1, 1)?;
-            } else if stem == "v_cvt_f64_f32" {
+            } else if ["v_cvt_pk_f32_fp8", "v_cvt_pk_f32_bf8", "v_cvt_f64_f32"].contains(&stem) {
                 require(0, &[Vector], 2)?;
                 source_width(1, 1)?;
             } else if stem == "v_cvt_f32_f64" {
