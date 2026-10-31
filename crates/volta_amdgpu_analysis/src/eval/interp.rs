@@ -11,10 +11,10 @@ use std::{collections::BTreeMap, error::Error, fmt};
 use volta_expr::{ExprArena, ExprId, ExprNode};
 use volta_graph::*;
 
-#[path = "named_barrier.rs"]
-mod named_barrier;
 #[path = "interp_async_lds.rs"]
 mod async_lds;
+#[path = "named_barrier.rs"]
+mod named_barrier;
 
 const KERNARG_BASE: u64 = 0xffff_0000_0000;
 const DISPATCH_BASE: u64 = 0xffff_1000_0000;
