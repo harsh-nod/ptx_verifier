@@ -2,10 +2,10 @@
 # requires-python = ">=3.10"
 # dependencies = ["pyyaml>=6,<7"]
 # ///
-"""Verify every original CDNA4 register-vector copy specialization, without a GPU.
+"""Verify finite original CDNA4 register-vector profiles, without a GPU.
 
 The complete upstream module is reused unchanged. Launches follow wrapper_1d
-and reg_vec_load_store in the exact pinned source, including its original full
+and the selected family in the exact pinned source, including its original full
 length, one-wave launch, dynamic LDS request, dtype and register layout.
 """
 from __future__ import annotations
@@ -17,6 +17,7 @@ import json
 from pathlib import Path
 import re
 import struct
+from typing import NamedTuple
 
 import hipkittens_corpus as corpus
 import hipkittens_inventory as inventory
@@ -46,15 +47,46 @@ SYMBOL = re.compile(
 )
 
 
-def decode_kernel(kernel):
+class Profile(NamedTuple):
+    name: str
+    source: str
+    symbol: re.Pattern
+    dtypes: tuple[str, ...]
+    spec: str
+    wrong_spec: str
+    family: str
+
+    @property
+    def source_inputs(self):
+        return (self.source, *SOURCE_INPUTS[1:])
+
+
+COPY = Profile("copy", SOURCE, SYMBOL, tuple(DTYPES.values()), SPEC, WRONG_SPEC, "reg_vec_load_store")
+ADD1 = Profile(
+    "vec-add1", "tests/unit/cdna4/warp/register/vec/maps.cu",
+    re.compile(
+        r"_ZL17global_wrapper_1dI8vec_add1N7kittens5ducks8rt_shape8rt_shape"
+        r"ILi(?P<rows>\d+)ELi(?P<cols>\d+)ELi(?P<packing>\d+)EEE"
+        r"NS2_8st_shape8st_16x16EfLi(?P<size>\d+)ELi(?P<workers>\d+)E"
+        r"TkNS2_2gl3allENS1_2glIfLi1ELi1ELi1ELi(?P<elements>\d+)EJEEE"
+        r"JNS2_9rv_layout5(?P<layout>naive|ortho|align)EEEvT5_SD_"
+    ),
+    ("f32",), "dim N; array x[N]; array out[N]; out[i] = x[i] + 1;\n",
+    "dim N; array x[N]; array out[N]; out[i] = x[i] + 2;\n", "vec_add1",
+)
+PROFILES = {profile.name: profile for profile in (COPY, ADD1)}
+
+
+def decode_kernel(kernel, profile=COPY):
     """Decode this source's finite emitted family; refuse any unfamiliar symbol."""
-    match = SYMBOL.fullmatch(kernel[".name"])
+    match = profile.symbol.fullmatch(kernel[".name"])
     inventory.require(match is not None, "unrecognized original vector specialization")
     values = match.groupdict()
-    dtype = DTYPES[values["dtype"]]
-    substitution = ("3", "2", "f", "E") if dtype == "f32" else ("4", "3", "S1_", "F")
-    inventory.require(tuple(values[key] for key in ("ns", "gl", "value", "end")) == substitution,
-                      "inconsistent specialization type substitutions")
+    dtype = DTYPES[values["dtype"]] if profile == COPY else "f32"
+    if profile == COPY:
+        substitution = ("3", "2", "f", "E") if dtype == "f32" else ("4", "3", "S1_", "F")
+        inventory.require(tuple(values[key] for key in ("ns", "gl", "value", "end")) == substitution,
+                          "inconsistent specialization type substitutions")
     shape = tuple(int(values[key]) for key in ("rows", "cols", "packing"))
     size, workers, elements = (int(values[key]) for key in ("size", "workers", "elements"))
     inventory.require(shape in SHAPES and 1 <= size <= 4 and workers == 1,
@@ -72,10 +104,10 @@ def decode_kernel(kernel):
             "size_multiplier": size, "workers": workers, "layout": values["layout"], "elements": elements}
 
 
-def make_cases(kernels):
-    cases = [decode_kernel(kernel) for kernel in kernels]
+def make_cases(kernels, profile=COPY):
+    cases = [decode_kernel(kernel, profile) for kernel in kernels]
     keys = [(row["dtype"], tuple(row["rt_shape"]), row["size_multiplier"], row["layout"]) for row in cases]
-    expected = set(itertools.product(DTYPES.values(), SHAPES, range(1, 5), LAYOUTS))
+    expected = set(itertools.product(profile.dtypes, SHAPES, range(1, 5), LAYOUTS))
     inventory.require(len(keys) == len(set(keys)) == len(expected) and set(keys) == expected,
                       "missing, duplicate or extra original vector specializations")
     return sorted(cases, key=lambda row: row["id"])
@@ -108,12 +140,19 @@ def execution_interruption(stdout, stderr):
                      stdout + '\n' + stderr, re.I)
 
 
-def full_identity_proved(record, stdout, stderr, elements):
+def full_specification_result(record, stdout, stderr, elements, equivalent=True):
+    positive = 'EQUIVALENT (matches spec)' in stdout and 'NOT EQUIVALENT' not in stdout
+    negative = 'NOT EQUIVALENT' in stdout and 'EQUIVALENT (matches spec)' not in stdout
     return (record['status'] in {'succeeded', 'rejected'} and record['returncode'] in {0, 1}
             and not execution_interruption(stdout, stderr)
             and re.findall(r'(?m)^  AMD trace completeness \([^\n)]*\)\s+(PASS|FAIL|UNKNOWN)$', stdout) == ['PASS']
             and re.findall(r'(?m)^VC check: [^\n]*  elements: (\d+)(?:/(\d+))?$', stdout) == [(str(elements), '')]
-            and 'EQUIVALENT (matches spec)' in stdout and 'NOT EQUIVALENT' not in stdout)
+            and (positive if equivalent else negative))
+
+
+def full_identity_proved(record, stdout, stderr, elements):
+    """Compatibility helper for preserved copy reports and their reclassifier."""
+    return full_specification_result(record, stdout, stderr, elements)
 
 
 def classify_verify(record, stdout, stderr, elements):
@@ -149,14 +188,31 @@ def classify_verify(record, stdout, stderr, elements):
     return "execution_or_driver_error"
 
 
-def load_module(campaign, source_document):
+def math_control(case, record, stdout, stderr, profile=COPY):
+    try:
+        status = classify_verify(record, stdout, stderr, case['elements'])
+    except ValueError:
+        status = "contract_error"
+    control = {'case': case['id'], 'status': status, 'passed': status == 'mathematical_mismatch', 'stage': record}
+    if profile == ADD1:
+        refuted = status in {'mathematical_mismatch', 'graph_rejected'} and full_specification_result(
+            record, stdout, stderr, case['elements'], equivalent=False)
+        graph_verified = case['status'] == 'verified' and status == 'mathematical_mismatch'
+        control.update(original_graph_status=case['status'], math_refuted=refuted,
+                       graph_verified=graph_verified)
+        if not graph_verified:
+            control.pop('passed')
+    return control
+
+
+def load_module(campaign, source_document, profile=COPY):
     report_path = campaign / "report.json"
     report = json.loads(report_path.read_text())
     inventory.require(report["source_revision"] == inventory.REVISION, "campaign source revision changed")
-    rows = [row for row in report["results"] if row["source"] == SOURCE and row["profile"]["target"] == "gfx950"]
+    rows = [row for row in report["results"] if row["source"] == profile.source and row["profile"]["target"] == "gfx950"]
     inventory.require(len(rows) == 1, "missing or duplicate original vector module")
     row = rows[0]
-    inventory.require(row["source_sha256"] == source_document["source_sha256"][SOURCE], "campaign vector source changed")
+    inventory.require(row["source_sha256"] == source_document["source_sha256"][profile.source], "campaign vector source changed")
     directory = campaign / row["id"]
     assembly, obj = directory / "kernel.s", directory / "kernel.o"
     inventory.require(inventory.sha(assembly.read_bytes()) == row["assembly_sha256"]
@@ -169,11 +225,13 @@ def load_module(campaign, source_document):
                       "original template sweep changed")
     kernels = corpus.metadata(assembly.read_text(), "gfx950")
     inventory.require(kernels == row["emitted_kernels"], "stored metadata differs from complete original assembly")
-    return assembly, obj, make_cases(kernels), report_path, compile_record
+    return assembly, obj, make_cases(kernels, profile), report_path, compile_record
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--profile", choices=PROFILES, default=COPY.name,
+                        help="Finite original family; defaults to the unchanged 252-case copy contract")
     parser.add_argument("--source-root", type=Path, default=inventory.DEFAULT_SOURCE)
     parser.add_argument("--campaign", type=Path, required=True, help="Complete-source campaign containing the original vector module")
     parser.add_argument("--binary", type=Path, required=True)
@@ -184,10 +242,11 @@ def main():
     args = parser.parse_args()
     try:
         inventory.require(args.timeout > 0, "positive timeout required")
+        profile = PROFILES[args.profile]
         source_root = args.source_root.resolve()
         document = inventory.build_inventory(source_root)
         inventory.require(document == json.loads(inventory.DEFAULT_OUTPUT.read_text()), "source inventory drifted")
-        assembly, obj, cases, source_report, compile_record = load_module(args.campaign.resolve(), document)
+        assembly, obj, cases, source_report, compile_record = load_module(args.campaign.resolve(), document, profile)
         output = args.output.resolve()
         inventory.require(not output.is_relative_to(corpus.ROOT) and not output.is_relative_to(source_root), "raw output must remain outside source repositories")
         output.mkdir(parents=True, exist_ok=False)
@@ -197,13 +256,16 @@ def main():
                        "source_inventory": inventory.DEFAULT_OUTPUT, "assembly": assembly, "object": obj,
                        "source_report": source_report, "binary": binary, "compiler": args.compiler}
         hashes = {name: inventory.sha(path.read_bytes()) for name, path in input_paths.items()}
+        for name in ("driver", "inventory", "corpus", "legacy_import"):
+            (output / (name + "-source.py")).write_bytes(input_paths[name].read_bytes())
         inventory.require(hashes['compiler'] == json.loads(source_report.read_text())['compiler_sha256'],
                           "layout compiler differs from the original module compiler")
-        identity = {"schema_version": 1, "source_revision": inventory.REVISION, "target": "gfx950", "wave_size": 64,
-                    "source": SOURCE, "source_sha256": {path: document["source_sha256"][path] for path in SOURCE_INPUTS},
+        identity = {"schema_version": 2, "profile": profile.name,
+                    "source_revision": inventory.REVISION, "target": "gfx950", "wave_size": 64,
+                    "source": profile.source, "source_sha256": {path: document["source_sha256"][path] for path in profile.source_inputs},
                     "binary_revision": args.binary_revision, "input_sha256": hashes, "timeout_seconds": args.timeout,
-                    "spec_sha256": inventory.sha(SPEC.encode()), "wrong_spec_sha256": inventory.sha(WRONG_SPEC.encode()),
-                    "cases": len(cases), "selection": "Every original TEST_ALL/TEST_INTENSITY=2 reg_vec_load_store specialization, full length, one original wave/workgroup."}
+                    "spec_sha256": inventory.sha(profile.spec.encode()), "wrong_spec_sha256": inventory.sha(profile.wrong_spec.encode()),
+                    "cases": len(cases), "selection": f"Every original TEST_ALL/TEST_INTENSITY=2 {profile.family} specialization, full length, one original wave/workgroup."}
         (output / "identity.json").write_text(json.dumps(identity, indent=2) + "\n")
         (output / "cases.json").write_text(json.dumps(cases, indent=2) + "\n")
         layout_source = output / "layout-check.cpp"
@@ -211,22 +273,24 @@ def main():
         # Reuse the exact original native compile flags and compiler, substituting
         # only a non-executable static-assert source and syntax-only output.
         command = compile_record["command"]
-        source_arg = str(source_root / SOURCE)
+        source_arg = str(source_root / profile.source)
         inventory.require(command.count(source_arg) == 1 and '-o' in command, "ambiguous original compiler source/output")
         flags = command[1:command.index('-o')]
         flags = [arg for arg in flags if arg != source_arg and arg != '-S']
         layout, _, _ = corpus.stage([str(args.compiler), *flags, '-fsyntax-only', str(layout_source)], output,
                                     "layout-check", args.timeout, cwd=Path(compile_record["cwd"]))
         inventory.require(layout["status"] == "succeeded", "compiler refused original static GL layout proof")
-        spec, wrong_spec = output / "copy.spec", output / "wrong-copy.spec"
-        spec.write_text(SPEC)
-        wrong_spec.write_text(WRONG_SPEC)
+        spec, wrong_spec = output / (profile.name + ".spec"), output / ("wrong-" + profile.name + ".spec")
+        spec.write_text(profile.spec)
+        wrong_spec.write_text(profile.wrong_spec)
+        frozen_generated = {spec: spec.read_bytes(), wrong_spec: wrong_spec.read_bytes()}
         results, controls = [], []
         for case in cases:
             directory = output / case["id"]
             directory.mkdir()
             config = directory / "launch.json"
             config.write_text(json.dumps(launch(case), indent=2) + "\n")
+            frozen_generated[config] = config.read_bytes()
             command = [str(binary), '--no-log-file', '--backend', 'amdgpu', '--target', 'gfx950', 'verify',
                        str(assembly), str(spec), '--config', str(config), '--sample', '0', '--dim', f'N={case["elements"]}', '--no-profile']
             record, stdout, stderr = corpus.stage(command, directory, 'verify', args.timeout)
@@ -236,7 +300,10 @@ def main():
                 status = "contract_error"
                 stderr = str(error)
             result = {**case, "status": status, "launch_sha256": inventory.sha(config.read_bytes()), "stage": record}
-            result['full_identity_proved'] = full_identity_proved(record, stdout, stderr, case['elements'])
+            result['full_specification_proved'] = status in {'verified', 'graph_rejected'} and full_specification_result(
+                record, stdout, stderr, case['elements'])
+            if profile == COPY:
+                result['full_identity_proved'] = result['full_specification_proved']
             if status != 'verified':
                 diagnostics = (stderr + '\n' + stdout).strip().splitlines()
                 result['detail'] = next((line.strip() for line in diagnostics if re.search(
@@ -244,10 +311,14 @@ def main():
                     diagnostics[-1] if diagnostics else '')
             results.append(result)
             print(case['id'], status, flush=True)
-        # A complete identity proof must reject a different equation. One full
-        # original specialization per dtype is sufficient for this driver guard.
-        for dtype in sorted(DTYPES.values()):
+        # Preserve the copy control's passing-graph requirement. Add-one may
+        # independently refute a wrong equation on a complete but racy trace;
+        # keep that graph rejection explicit rather than count it as verified.
+        for dtype in sorted(profile.dtypes):
             case = next((row for row in results if row['dtype'] == dtype and row['status'] == 'verified'), None)
+            if case is None and profile == ADD1:
+                case = next((row for row in results if row['dtype'] == dtype and row['status'] == 'graph_rejected'
+                             and row['full_specification_proved']), None)
             if case is None:
                 controls.append({'dtype': dtype, 'status': 'no_verified_original_case', 'passed': False})
                 continue
@@ -256,16 +327,13 @@ def main():
                        str(assembly), str(wrong_spec), '--config', str(directory/'launch.json'), '--sample', '0',
                        '--dim', f'N={case["elements"]}', '--no-profile']
             record, stdout, stderr = corpus.stage(command, directory, 'wrong-spec', args.timeout)
-            try:
-                status = classify_verify(record, stdout, stderr, case['elements'])
-            except ValueError:
-                status = "contract_error"
-            controls.append({'case': case['id'], 'status': status, 'passed': status == 'mathematical_mismatch', 'stage': record})
+            controls.append(math_control(case, record, stdout, stderr, profile))
         inventory.require(inventory.build_inventory(source_root) == document, "source changed during vector run")
         inventory.require(all(inventory.sha(path.read_bytes()) == hashes[name] for name, path in input_paths.items()), "run input changed")
+        inventory.require(all(path.read_bytes() == data for path, data in frozen_generated.items()), "generated launch or specification changed")
         report = {**identity, "outcomes": dict(sorted(Counter(row['status'] for row in results).items())),
                   "mathematical_controls": controls, "all_original_cases_verified": all(row['status'] == 'verified' for row in results)
-                  and all(row['passed'] for row in controls), "results": results}
+                  and all(row.get('passed', False) for row in controls), "results": results}
         (output/'report.json').write_text(json.dumps(report, indent=2)+'\n')
     except (OSError, ValueError, KeyError, TypeError) as error:
         parser.error(str(error))

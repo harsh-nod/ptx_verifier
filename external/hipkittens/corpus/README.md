@@ -132,12 +132,25 @@ The extractor refuses missing, duplicate, unfamiliar or ABI-inconsistent
 specializations. This finite decoder is tied to the pinned source and emitted
 C++ symbols; it is not a general C++ template demangler.
 
+The default `--profile copy` retains this 252-case selection and its original
+identity and wrong-equation contracts. `--profile vec-add1` selects only the
+`vec_add1` family in the complete original
+`tests/unit/cdna4/warp/register/vec/maps.cu` module: the same seven register-tile
+shapes, four size multipliers and three layouts, with the source's f32 dtype,
+for exactly 84 original entrypoints. Other map operations and unfamiliar symbols
+are refused. Neither profile rewrites assembly or reduces the host launch.
+
 ```sh
 uv run external/extraction/hipkittens_vectors.py \
   --campaign /tmp/hipkittens-baseline \
   --binary /absolute/path/to/volta --binary-revision SOURCE_COMMIT \
   --output /tmp/hipkittens-vectors --timeout 60
 python3 -m unittest discover -s external/tests -p test_hipkittens_vectors.py -v
+
+uv run external/extraction/hipkittens_vectors.py --profile vec-add1 \
+  --campaign /tmp/hipkittens-baseline \
+  --binary /absolute/path/to/volta --binary-revision SOURCE_COMMIT \
+  --output /tmp/hipkittens-vec-add1 --timeout 60
 ```
 
 Each launch preserves the original host formula `SIZE=S*RT_SHAPE::cols`, dtype,
@@ -155,6 +168,21 @@ rejected with a mathematical mismatch on an otherwise passing graph for every
 dtype with a verified original case. A dtype without one has an explicit
 unavailable control. Unsupported forms, incomplete proofs, graph failures, process errors and
 timeouts stay separate; 252 parsed entrypoints do not imply 252 proofs.
+
+For `vec-add1`, the independent reference is the source's whole-vector host loop
+`out[i] = x[i] + 1`, checked over every absolute output index `0..N-1` with
+`N=S*RT_SHAPE::cols`. The wrong equation is `out[i] = x[i] + 2`. If no original
+case passes the graph checks, this control may run on a complete mathematical
+proof with a graph rejection. Its `math_refuted` and `graph_verified` fields stay
+separate; a write/write rejection is retained and has no combined-control
+`passed` field. When a case passes graph verification, the wrong-equation control
+requires a mathematical mismatch on that passing graph. These specifications
+use the verifier's mathematical-real model, not a hardware bit-exact float claim.
+
+Raw outputs include the selected profile, source/module/binary/specification
+hashes, original launch JSON, complete case identities, helper snapshots and
+process records. Existing receipts bind their historical helper revisions and
+are not rewritten when another profile is added.
 
 Run the extractor once per frozen binary into distinct directories before any
 comparison. These coverage runs make no latency claim; concurrent compilation
