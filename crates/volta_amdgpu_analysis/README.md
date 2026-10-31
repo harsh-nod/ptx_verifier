@@ -311,6 +311,13 @@ See [pair value/endianness controls](tests/gfx950_raw_buffer_x2.rs),
 [pair readiness and full-output math controls](../volta_pipeline/tests/gfx950_raw_buffer_x2_tests.rs),
 and the [unchanged original N96 source/ABI identities](tests/fixtures/gfx950-raw-buffer-x2.json).
 
+Already-supported 64-bit scalar consumers decode exact floating inline constants
+as FP64 words, including the ISA's inverse-two-pi constant. Other floating
+spellings remain unsupported in those positions. Shift counts retain their
+32-bit encoding, while data sources remain 64 bits. The
+[complete word controls](tests/fixtures/scalar-inline64/README.md) cover all three
+AMD targets. This does not broaden integer-literal or mathematical FP64 profiles.
+
 On gfx1250, selected `s_and_b64` sources are register pairs or integer inline
 constants −16 through 64; floating and other literal forms remain unsupported.
 It tracks each source word's defined bits separately.
