@@ -34,10 +34,7 @@ SHAPES = {(16, 32, 8), (32, 16, 8), (16, 16, 4), (32, 32, 4),
           (32, 32, 8), (16, 32, 4), (32, 16, 4)}
 DTYPES = {"f": "f32", "14__hip_bfloat16": "bf16", "6__half": "f16"}
 LAYOUTS = {"naive", "ortho", "align"}
-EXPECTED_PROPERTIES = {
-    "AMD trace completeness", "AMD wait and register readiness",
-    "AMD workgroup barrier generations", "AMD memory-conflict freedom",
-}
+EXPECTED_PROPERTIES = corpus.NATIVE_PROPERTIES
 SPEC = "dim N; array x[N]; array out[N]; out[i] = x[i];\n"
 WRONG_SPEC = "dim N; array x[N]; array out[N]; out[i] = x[i] + 1;\n"
 SYMBOL = re.compile(
@@ -106,17 +103,32 @@ def layout_check_source(cases):
     return "\n".join(lines) + "\n"
 
 
+def execution_interruption(stdout, stderr):
+    return re.search(r'execution (?:stopped|aborted)|trace generator aborted|unsupported (?:AMD|gfx950) instruction',
+                     stdout + '\n' + stderr, re.I)
+
+
+def full_identity_proved(record, stdout, stderr, elements):
+    return (record['status'] in {'succeeded', 'rejected'} and record['returncode'] in {0, 1}
+            and not execution_interruption(stdout, stderr)
+            and re.findall(r'(?m)^  AMD trace completeness \([^\n)]*\)\s+(PASS|FAIL|UNKNOWN)$', stdout) == ['PASS']
+            and re.findall(r'(?m)^VC check: [^\n]*  elements: (\d+)(?:/(\d+))?$', stdout) == [(str(elements), '')]
+            and 'EQUIVALENT (matches spec)' in stdout and 'NOT EQUIVALENT' not in stdout)
+
+
 def classify_verify(record, stdout, stderr, elements):
     if record["status"] != "succeeded" and record["status"] != "rejected":
         return record["status"]
     checks = re.findall(r"(?m)^  (\S.*?) \([^\n)]*\)\s+(PASS|FAIL|UNKNOWN)$", stdout)
-    names = [name for name, _ in checks]
     counts = re.findall(r"(?m)^VC check: [^\n]*  elements: (\d+)(?:/(\d+))?$", stdout)
     verdicts = re.findall(r"(?m)^VERDICT: (ACCEPT|REJECT|UNKNOWN)$", stdout)
-    complete_checks = (len(names) == len(set(names)) and EXPECTED_PROPERTIES <= set(names)
-                       and all(verdict == "PASS" for _, verdict in checks))
+    complete_checks = corpus.complete_native_checks(checks)
+    interrupted = execution_interruption(stdout, stderr)
+    if interrupted and ('ACCEPT' in verdicts or 'EQUIVALENT (matches spec)' in stdout or 'NOT EQUIVALENT' in stdout):
+        raise ValueError('mathematical result contradicts an aborted or unsupported execution')
     if "ACCEPT" in verdicts:
-        inventory.require(record["returncode"] == 0 and verdicts == ["ACCEPT"], "inconsistent mathematical acceptance")
+        inventory.require(record["status"] == "succeeded" and record["returncode"] == 0
+                          and verdicts == ["ACCEPT"], "inconsistent mathematical acceptance")
         inventory.require(complete_checks, "incomplete or failing graph checks")
         inventory.require(counts == [(str(elements), "")], "incomplete or shifted full specification count")
         inventory.require("EQUIVALENT (matches spec)" in stdout, "missing mathematical equivalence proof")
@@ -124,7 +136,8 @@ def classify_verify(record, stdout, stderr, elements):
         return "verified"
     if record["returncode"] == 0:
         raise ValueError("successful process lacks a complete verification result")
-    if ("NOT EQUIVALENT" in stdout and verdicts == ["REJECT"] and complete_checks
+    if (record['status'] == 'rejected' and record['returncode'] == 1
+            and "NOT EQUIVALENT" in stdout and verdicts == ["REJECT"] and complete_checks
             and counts == [(str(elements), "")]):
         return "mathematical_mismatch"
     if re.search(r"unsupported (?:AMD|gfx950) instruction", stdout + stderr, re.I):
@@ -223,9 +236,7 @@ def main():
                 status = "contract_error"
                 stderr = str(error)
             result = {**case, "status": status, "launch_sha256": inventory.sha(config.read_bytes()), "stage": record}
-            result['full_identity_proved'] = (re.findall(r"(?m)^VC check: [^\n]*  elements: (\d+)(?:/(\d+))?$", stdout)
-                                              == [(str(case['elements']), '')]
-                                              and 'EQUIVALENT (matches spec)' in stdout and 'NOT EQUIVALENT' not in stdout)
+            result['full_identity_proved'] = full_identity_proved(record, stdout, stderr, case['elements'])
             if status != 'verified':
                 diagnostics = (stderr + '\n' + stdout).strip().splitlines()
                 result['detail'] = next((line.strip() for line in diagnostics if re.search(

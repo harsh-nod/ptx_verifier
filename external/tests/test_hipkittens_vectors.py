@@ -115,6 +115,16 @@ class HipKittensVectorTests(unittest.TestCase):
             self.assertEqual(VECTORS.classify_verify({"status": status, "returncode": None}, "", "", 32), status)
         self.assertEqual(VECTORS.classify_verify({"status": "rejected", "returncode": 2}, "VERDICT: UNKNOWN\n", "", 32), "inconclusive")
 
+    def test_aborted_or_unsupported_transcript_cannot_prove_or_refute_math(self):
+        for record, output in [({'status': 'succeeded', 'returncode': 0}, verify_output()),
+                               ({'status': 'rejected', 'returncode': 1}, verify_output(verdict='REJECT', equivalent=False))]:
+            for diagnostic in ['execution stopped: unsupported AMD instruction `foo`',
+                               'the trace generator aborted, so the graph is only a prefix',
+                               'execution aborted after incomplete memory access']:
+                with self.subTest(diagnostic=diagnostic), self.assertRaisesRegex(ValueError, 'contradicts'):
+                    VECTORS.classify_verify(record, output, diagnostic, 32)
+                self.assertFalse(VECTORS.full_identity_proved(record, output, diagnostic, 32))
+
     def test_reused_complete_module_and_metadata_are_source_and_byte_bound(self):
         with tempfile.TemporaryDirectory() as name:
             campaign = Path(name)

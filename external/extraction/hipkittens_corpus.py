@@ -36,6 +36,22 @@ LAUNCHES = {
     "kernels/cdna4/rotary/kernel.cpp": "rotary",
     "kernels/cdna4/gemm/bf16fp32/256_256_64_32_with16x32.cpp": "gemm_bf16",
 }
+NATIVE_PROPERTIES = {
+    "AMD trace completeness", "AMD wait and register readiness",
+    "AMD workgroup barrier generations", "AMD memory-conflict freedom",
+}
+
+
+def complete_native_checks(checks):
+    names = [check[0] for check in checks]
+    return (len(names) == len(set(names)) and NATIVE_PROPERTIES <= set(names)
+            and all(check[1] == "PASS" for check in checks))
+
+
+def require_tool_identity(compiler, assembler, identity):
+    for name, path in (("compiler", compiler), ("assembler", assembler)):
+        inventory.require(inventory.sha(path.read_bytes()) == identity[name + "_sha256"],
+                          name + " changed during campaign")
 
 
 def stage(command, directory, name, timeout, *, cwd=None):
@@ -164,8 +180,8 @@ def analyze_launch(binary, assembly, config, target, directory, timeout):
         return {"status": "analysis_error", "detail": str(error), "stage": run}
     if outcome in {check_races.Outcome.RACE_FREE, check_races.Outcome.REDUCED_RACE_FREE}:
         inventory.require(run["returncode"] == 0, "successful graph report has nonzero process exit")
-        inventory.require(report.checks and all(verdict == "PASS" for _, verdict, _ in report.checks),
-                          "successful graph report has missing or nonpassing properties")
+        inventory.require(complete_native_checks(report.checks),
+                          "successful graph report has missing, duplicate or nonpassing properties")
         error = check_races.array_coverage_error(stdout, expected)
         inventory.require(error is None, error)
     return {"status": outcome.value, "detail": detail, "stage": run, "expected_by_array": expected,
@@ -307,6 +323,7 @@ def main():
                 print(result["profile"]["target"], result["source"], result["status"], result.get("first_diagnostic", ""), flush=True)
         inventory.require(inventory.build_inventory(source_root) == document, "source changed during campaign")
         inventory.require(inventory.sha(options.binary.read_bytes()) == identity["binary_sha256"], "analysis binary changed during campaign")
+        require_tool_identity(options.compiler, options.assembler, identity)
         inventory.require(all(inventory.sha(path.read_bytes()) == driver_hashes[name] for name, path in driver_inputs.items()),
                           "campaign or validation source changed during run")
         inventory.require(len(results) == len(selected) == len({row["id"] for row in results}), "missing or duplicate campaign result")

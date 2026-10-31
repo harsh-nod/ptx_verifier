@@ -183,3 +183,17 @@ that labeled the 168 graph rejections as `contract_error`; it never counted them
 as verified. Corrected results are a separate run. Raw logs, absolute machine
 paths and generated assembly remain outside Git. This is baseline coverage,
 without a candidate comparison, hardware run or speed claim.
+
+To check preserved stdout/stderr and process records with the current classifier,
+without executing the verifier or changing the original run:
+
+```sh
+python3 external/extraction/hipkittens_reclassify.py /tmp/hipkittens-vectors \
+  --output /tmp/hipkittens-vector-reclassification.json
+```
+
+The output must be a fresh file outside the repository. The receipt binds the
+original report/driver, current classifier/shared checks, and every transcript's
+hash. Changed outcomes, incomplete mathematical proofs and unavailable dtype
+controls remain explicit. The recorded baseline's post-review reclassification
+retains all 252 cases with zero outcome or proof-count differences.

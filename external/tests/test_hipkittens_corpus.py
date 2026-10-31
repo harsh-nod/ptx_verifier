@@ -16,6 +16,28 @@ SPEC.loader.exec_module(CORPUS)
 
 
 class HipKittensCorpusTests(unittest.TestCase):
+    def test_graph_success_needs_every_native_property_once(self):
+        checks = [(name, 'PASS', '') for name in sorted(CORPUS.NATIVE_PROPERTIES)]
+        self.assertTrue(CORPUS.complete_native_checks(checks))
+        for incomplete in [[], checks[:-1], checks + checks[:1], [(name, 'UNKNOWN', '') for name, _, _ in checks],
+                           [('invented property', 'PASS', '')]]:
+            self.assertFalse(CORPUS.complete_native_checks(incomplete))
+
+    def test_compiler_and_assembler_identity_drift_refuses_final_report(self):
+        with tempfile.TemporaryDirectory() as name:
+            compiler, assembler = Path(name)/'compiler', Path(name)/'assembler'
+            compiler.write_bytes(b'original compiler')
+            assembler.write_bytes(b'original assembler')
+            identity = {'compiler_sha256': CORPUS.inventory.sha(compiler.read_bytes()),
+                        'assembler_sha256': CORPUS.inventory.sha(assembler.read_bytes())}
+            CORPUS.require_tool_identity(compiler, assembler, identity)
+            for path in [compiler, assembler]:
+                original = path.read_bytes()
+                path.write_bytes(original+b'changed')
+                with self.assertRaisesRegex(ValueError, 'changed during campaign'):
+                    CORPUS.require_tool_identity(compiler, assembler, identity)
+                path.write_bytes(original)
+
     def test_archive_source_and_required_target_use_real_upstream_recipe(self):
         with tempfile.TemporaryDirectory() as name:
             root = Path(name)

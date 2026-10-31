@@ -260,5 +260,42 @@
     "Only the selected original workgroup is modeled; no whole-grid or hardware execution claim.",
     "No latency comparison was performed amid concurrent compilation.",
     "The frozen published early-readiness study is unchanged."
-  ]
+  ],
+  "post_review_reclassification": {
+    "original_report_sha256": "f38e916208f8a15b3c9f3250be8a962ca28b6d38f32d266bd0a71652edf53765",
+    "original_driver_sha256": "11b629bbe08bb26530b1030304d52aaec471817f61b1a68fb5049fc7365f731b",
+    "current_classifier_sha256": "e6bb6504ffa39192b586172ad02cea4f922bdcdf71825257fb0de8f30f9738f3",
+    "current_shared_checks_sha256": "615478dfacc90b9619a5908d7b3de2297471bfb3146ec289059866a3c0818939",
+    "reclassification_source_sha256": "fd12f46c777f1a8b5fda5ff9b55b70334fa3009cd06d6265afcc7222041f4255",
+    "binary_sha256": "6354b2327247d298d68e67d71cffb3dd458b554877c65dc0657a4f6efd2e35ca",
+    "cases": 252,
+    "outcomes": {
+      "graph_rejected": 168,
+      "unsupported": 44,
+      "verified": 40
+    },
+    "full_identity_proofs": 208,
+    "mathematical_controls": [
+      {
+        "case": "bf16-rt16x16x4-s1-naive",
+        "status": "mathematical_mismatch",
+        "passed": true
+      },
+      {
+        "case": "f16-rt16x16x4-s1-naive",
+        "status": "mathematical_mismatch",
+        "passed": true
+      },
+      {
+        "dtype": "f32",
+        "status": "no_verified_original_case",
+        "passed": false
+      }
+    ],
+    "differences": [],
+    "transcript_inventory_sha256": "285ce7960dd20623ba753bfd23ca6e72158d5ce24a811635c3d229072c869328",
+    "receipt_sha256": "7f02e0baedcaa41a1c045008d779c6904725354243bda945ed1d23db86a4de67",
+    "scope": "Reclassified every preserved stdout/stderr pair; no verifier execution, rewritten original record, changed source or changed expectation.",
+    "original_compiler_assembler_and_binary_hashes_rechecked": true
+  }
 }
