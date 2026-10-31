@@ -13,7 +13,7 @@
     "tests/gfx1250/portable-graph/signal-counts/compiler-provenance.json": "71973f6bd23e00dffc90726fc9f31f72dff831b302634bcd637b0ec580af8bd0",
     "tests/gfx1250/portable-graph/signal-counts/check_sources.py": "d60f5b6eb691dd7288416f573cc8d7372d7fbb585ee15919ab0f961987735f7f",
     "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc",
-    "crates/volta_graph_check/tests/gfx1250_tests.rs": "4c774a2a4bc5d2829bfdc1676240bbf301bf0f7b69d14e8e8b09ca90d06d5e6d"
+    "crates/volta_graph_check/tests/gfx1250_tests.rs": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
   },
   "safe_abi": [
     {
@@ -125,12 +125,12 @@
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "conflicting_count_updates_need_order_but_equal_updates_are_commutative",
-          "source_sha256": "4c774a2a4bc5d2829bfdc1676240bbf301bf0f7b69d14e8e8b09ca90d06d5e6d"
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "equal_explicit_count_updates_still_require_order_against_other_wave_drops",
-          "source_sha256": "4c774a2a4bc5d2829bfdc1676240bbf301bf0f7b69d14e8e8b09ca90d06d5e6d"
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
         }
       ]
     },
@@ -185,12 +185,12 @@
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "conflicting_count_updates_need_order_but_equal_updates_are_commutative",
-          "source_sha256": "4c774a2a4bc5d2829bfdc1676240bbf301bf0f7b69d14e8e8b09ca90d06d5e6d"
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "equal_explicit_count_updates_still_require_order_against_other_wave_drops",
-          "source_sha256": "4c774a2a4bc5d2829bfdc1676240bbf301bf0f7b69d14e8e8b09ca90d06d5e6d"
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
         }
       ]
     },
@@ -245,12 +245,12 @@
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "conflicting_count_updates_need_order_but_equal_updates_are_commutative",
-          "source_sha256": "4c774a2a4bc5d2829bfdc1676240bbf301bf0f7b69d14e8e8b09ca90d06d5e6d"
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
         },
         {
           "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
           "function": "equal_explicit_count_updates_still_require_order_against_other_wave_drops",
-          "source_sha256": "4c774a2a4bc5d2829bfdc1676240bbf301bf0f7b69d14e8e8b09ca90d06d5e6d"
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
         }
       ]
     }
