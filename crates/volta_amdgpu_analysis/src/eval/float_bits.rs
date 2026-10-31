@@ -1,7 +1,28 @@
-//! Exact concrete F32 word encoding; mathematical results are never rounded
+//! Exact concrete register encodings; mathematical results are never rounded
 //! merely to make an integer bit operation executable.
 use super::value::Value;
 use volta_expr::{ExprArena, ExprNode, RealRepr};
+
+/// Native floating inline selectors use the source operand's width, even for
+/// integer/bitwise instructions (CDNA5 ISA section 4.1). Match exact FP64 bits:
+/// neither an FP32 roundtrip nor a nearby decimal is an encoding certificate.
+/// The inverse-two-pi selector is the ISA constant, not a computed reciprocal.
+pub(super) fn inline_double(value: f64) -> Option<u64> {
+    let bits = value.to_bits();
+    match bits {
+        0
+        | 0x3fe0_0000_0000_0000
+        | 0xbfe0_0000_0000_0000
+        | 0x3ff0_0000_0000_0000
+        | 0xbff0_0000_0000_0000
+        | 0x4000_0000_0000_0000
+        | 0xc000_0000_0000_0000
+        | 0x4010_0000_0000_0000
+        | 0xc010_0000_0000_0000
+        | 0x3fc4_5f30_6dc9_c882 => Some(bits),
+        _ => None,
+    }
+}
 
 pub(super) fn exact_word(arena: &ExprArena, value: Value) -> Option<u32> {
     if let Ok(word) = value.bits() {

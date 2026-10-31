@@ -429,6 +429,12 @@ impl Wave {
             }
             Operand::Integer(v) => Ok(*v as u64),
             Operand::Off => Ok(0),
+            Operand::Float(value) => {
+                super::float_bits::inline_double(*value).ok_or_else(|| EvalError::Unsupported {
+                    pc: self.pc,
+                    what: "64-bit source requires an exact floating inline constant".into(),
+                })
+            }
             _ => Ok(self.bits(operand, lane)? as u64),
         }
     }
@@ -3605,7 +3611,15 @@ impl<'a> Interpreter<'a> {
         }
         if name.ends_with("b64") {
             let a = wave.wide(&o[1], 0)?;
-            let b = if o.len() > 2 { wave.wide(&o[2], 0)? } else { 0 };
+            let b = match o.get(2) {
+                // SOP2_64_32: the data source is 64 bits, but the shift
+                // count uses 32-bit inline/literal encoding.
+                Some(source) if matches!(name, "s_lshl_b64" | "s_lshr_b64") => {
+                    u64::from(wave.bits(source, 0)?)
+                }
+                Some(source) => wave.wide(source, 0)?,
+                None => 0,
+            };
             let old_exec = wave.exec;
             let value = match name {
                 "s_and_b64" => a & b,
