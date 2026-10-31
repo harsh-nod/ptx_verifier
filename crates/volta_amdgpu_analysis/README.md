@@ -243,3 +243,7 @@ When extending native semantics, validate each separate contract:
 Use positive cases with independently expected values and absolute output indices,
 alongside malformed, unsupported, undefined-input and missing-synchronization controls.
 A refusal test establishes a boundary; it does not replace the positive semantics check.
+
+The [selected instruction audit](../../docs/amd-semantic-audit.md) records bounded
+operand, address, definedness and completion contracts with public sources and
+independent regression controls.
