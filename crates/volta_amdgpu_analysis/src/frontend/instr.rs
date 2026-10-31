@@ -619,6 +619,7 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_subrev_f32"
         | "v_mul_f32"
         | "v_mul_lo_u32"
+        | "v_mul_u64"
         | "v_mul_lo_i32"
         | "v_mul_hi_u32"
         | "v_mul_hi_i32"
@@ -1952,6 +1953,24 @@ pub(super) fn validate_registers(
                         &[Scalar, Special],
                         if architecture.wave_size() == 32 { 1 } else { 2 },
                     )?;
+                }
+            } else if stem == "v_mul_u64" {
+                // CDNA5 VOP2 opcode42: keep the compiler's plain pair E32
+                // subset. E64, special selectors, inline/literal sources and
+                // modifiers have separate encodings outside this profile.
+                require(0, &[Vector], 2)?;
+                require(1, &[Scalar, Vector], 2)?;
+                require(2, &[Vector], 2)?;
+                if architecture != crate::target::Architecture::Gfx1250
+                    || mnemonic.ends_with("_e64")
+                    || !modifiers.is_empty()
+                    || operands.iter().any(|operand| {
+                        !matches!(operand, Operand::Register(r)
+                            if r.count == 2 && (r.class == Scalar
+                                || r.class == Vector && r.index <= 254))
+                    })
+                {
+                    return Err("selected v_mul_u64 requires unmodified gfx1250 E32 register pairs (src0 SGPR/VGPR, src1 VGPR)".into());
                 }
             } else if stem == "v_add_nc_u64" {
                 require(0, &[Vector], 2)?;

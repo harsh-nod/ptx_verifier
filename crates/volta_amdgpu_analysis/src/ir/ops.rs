@@ -232,6 +232,7 @@ operation_set! { AluOpcode {
     VMulLoI32 => "v_mul_lo_i32",
     VMulLoU16 => "v_mul_lo_u16",
     VMulLoU32 => "v_mul_lo_u32",
+    VMulU64 => "v_mul_u64",
     VMulU32U24 => "v_mul_u32_u24",
     VNotB32 => "v_not_b32",
     VOr3B32 => "v_or3_b32",
