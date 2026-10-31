@@ -58,6 +58,12 @@ instruction-observer halt, and refuses generic unsupported/error/deadlocked
 executions, incomplete batches and mismatched certificates. A generic observer
 stop without a validated certificate remains inconclusive.
 
+Unresolved readiness unrelated to the scalar witness, such as an unpinned
+nonzero tensor-counter wait, cannot repair an earlier pending scalar read. Such
+a witness may still be certified if every scalar dependency and the
+trace/effect/barrier prerequisites pass. The certificate does not resolve that
+other readiness obligation.
+
 The integration layer must revalidate the halted graph before exposing a typed
 certified rejection. The graph remains an aborted prefix: no `END`, completed
 trace, symbolic output set or equivalence result is fabricated. Ordinary graph
