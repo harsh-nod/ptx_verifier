@@ -9,10 +9,14 @@ use volta_graph_check::amdgpu::tensor_bounds::{
 };
 use volta_graph_check::amdgpu::{
     AmdRegisterHazard,
+    early_memory_conflicts::{
+        MemoryConflictCertificate, MemoryConflictObserver, validate_memory_conflict_prefix,
+    },
     early_readiness::{
         ScalarReadinessCertificate, ScalarReadinessObserver, validate_scalar_readiness_prefix,
     },
 };
+use volta_graph_check::memory_conflict::MemoryConflict;
 use volta_graph_check::{GraphReport, check_graph};
 use volta_ptx_analysis::{AnalysisConfig, Stats};
 
@@ -92,8 +96,31 @@ pub struct SourceKernelVerification {
     /// A first finding certified against this exact incomplete graph prefix.
     /// This supplies no full-trace, output or equivalence evidence.
     pub early_readiness: Option<CertifiedScalarReadiness>,
+    /// A same-instruction write/write finding certified against this prefix.
+    /// This supplies no completed-trace or mathematical-output evidence.
+    pub early_memory_conflict: Option<CertifiedMemoryConflict>,
     /// Independently certified invalid attempted access; outputs remain absent.
     pub tensor_bounds: Option<CertifiedTensorBounds>,
+}
+
+/// Checker-validated memory-conflict rejection. Private fields prevent an
+/// unvalidated candidate from becoming an authorized pipeline rejection.
+/// Validation trusts the frontend's declared graph/provenance contract, rather
+/// than independently decoding the original ISA bytes.
+#[derive(Debug, Clone)]
+pub struct CertifiedMemoryConflict {
+    certificate: MemoryConflictCertificate,
+    conflict: MemoryConflict,
+}
+
+impl CertifiedMemoryConflict {
+    pub fn certificate(&self) -> &MemoryConflictCertificate {
+        &self.certificate
+    }
+
+    pub fn conflict(&self) -> &MemoryConflict {
+        &self.conflict
+    }
 }
 
 /// Only this pipeline constructs the wrapper after replaying the exact prefix.
@@ -131,12 +158,37 @@ impl CertifiedScalarReadiness {
     }
 }
 
+/// A candidate refusal consumes only that issue, not the observer. Keeping the
+/// validator separate also permits an independent test of this control flow.
+fn poll_memory_conflict(
+    observer: &mut MemoryConflictObserver,
+    observing: &mut bool,
+    graph: &EventGraph,
+    mut validate: impl FnMut(
+        &EventGraph,
+        &MemoryConflictCertificate,
+    ) -> Result<MemoryConflict, Vec<volta_graph_check::Unresolved>>,
+) -> Option<MemoryConflictCertificate> {
+    if !*observing {
+        return None;
+    }
+    match observer.observe(graph) {
+        Ok(Some(certificate)) => validate(graph, &certificate).ok().map(|_| certificate),
+        Err(_) => {
+            *observing = false;
+            None
+        }
+        Ok(None) => None,
+    }
+}
+
 pub fn verify_source_kernel(
     module: &KernelModule,
     kernel: Option<&str>,
     config: AnalysisConfig,
 ) -> Result<SourceKernelVerification, String> {
     let mut early_readiness = None;
+    let mut early_memory_conflict = None;
     let analysis = match module {
         KernelModule::Ptx(module) => {
             let parts = volta_ptx_analysis::analyze(module, kernel, config)
@@ -150,31 +202,45 @@ pub fn verify_source_kernel(
             }
         }
         KernelModule::Amdgpu(module) => {
-            let result = if config.early_readiness {
-                let mut observer = ScalarReadinessObserver::new();
-                let mut candidate = None;
-                let mut observing = true;
+            let result = if config.early_readiness || config.early_memory_conflicts {
+                let mut scalar_observer = ScalarReadinessObserver::new();
+                let mut memory_observer = MemoryConflictObserver::new();
+                let mut scalar_candidate = None;
+                let mut memory_candidate = None;
+                let mut observe_scalar = config.early_readiness;
+                let mut observe_memory = config.early_memory_conflicts;
                 let mut hook = |graph: &EventGraph| {
-                    if observing {
-                        match observer.observe(graph) {
+                    // Each observer owns its transition/discovery semantics. An
+                    // observer error disables only that observer. Scalar readiness has
+                    // deterministic priority when both find a valid witness.
+                    if observe_scalar {
+                        match scalar_observer.observe(graph) {
                             Ok(Some(certificate)) => {
                                 if validate_scalar_readiness_prefix(graph, &certificate).is_ok() {
-                                    candidate = Some(certificate);
+                                    scalar_candidate = Some(certificate);
                                     return std::ops::ControlFlow::Break(());
                                 }
-                                // Missing prefix prerequisites never become a finding.
-                                observing = false;
+                                observe_scalar = false;
                             }
-                            Err(_) => observing = false,
+                            Err(_) => observe_scalar = false,
                             Ok(None) => {}
                         }
+                    }
+                    if let Some(certificate) = poll_memory_conflict(
+                        &mut memory_observer,
+                        &mut observe_memory,
+                        graph,
+                        validate_memory_conflict_prefix,
+                    ) {
+                        memory_candidate = Some(certificate);
+                        return std::ops::ControlFlow::Break(());
                     }
                     std::ops::ControlFlow::Continue(())
                 };
                 let result =
                     volta_amdgpu_analysis::analyze_with_observer(module, kernel, config, &mut hook)
                         .map_err(|error| error.to_string())?;
-                if let Some(certificate) = candidate {
+                if let Some(certificate) = scalar_candidate {
                     let hazard = validate_scalar_readiness_prefix(result.graph(), &certificate)
                         .map_err(|reasons| {
                             format!(
@@ -184,6 +250,18 @@ pub fn verify_source_kernel(
                     early_readiness = Some(CertifiedScalarReadiness {
                         certificate,
                         hazard,
+                    });
+                }
+                if let Some(certificate) = memory_candidate {
+                    let conflict = validate_memory_conflict_prefix(result.graph(), &certificate)
+                        .map_err(|reasons| {
+                            format!(
+                                "early memory conflict prefix certificate validation failed: {reasons:?}"
+                            )
+                        })?;
+                    early_memory_conflict = Some(CertifiedMemoryConflict {
+                        certificate,
+                        conflict,
                     });
                 }
                 result
@@ -217,6 +295,7 @@ pub fn verify_source_kernel(
         analysis,
         graph,
         early_readiness,
+        early_memory_conflict,
         tensor_bounds,
     })
 }
@@ -224,6 +303,84 @@ pub fn verify_source_kernel(
 #[cfg(test)]
 mod tests {
     use super::Backend;
+
+    #[test]
+    fn a_refused_memory_candidate_does_not_disable_a_later_independent_issue() {
+        use super::{
+            MemoryConflictObserver, poll_memory_conflict, validate_memory_conflict_prefix,
+        };
+        use std::ops::ControlFlow;
+        use volta_amdgpu_analysis::{AnalysisConfig, ArrayDef, ArrayKind, frontend};
+        use volta_graph_check::Unresolved;
+
+        let source = r#"
+.amdgcn_target "amdgcn-amd-amdhsa--gfx950"
+.text
+.type k,@function
+k:
+s_mov_b32 s4,0x20000
+s_mov_b32 s5,0
+v_mov_b32 v2,0
+v_mov_b32 v1,1.0
+global_store_dword v2,v1,s[4:5]
+global_store_dword v2,v1,s[4:5]
+s_waitcnt vmcnt(0)
+s_endpgm
+.size k,.-k
+.amdhsa_kernel k
+.end_amdhsa_kernel
+"#;
+        let module = frontend::parse(source).unwrap();
+        let mut config = AnalysisConfig::new((2, 1, 1));
+        config.early_memory_conflicts = true;
+        config.arrays.push(ArrayDef {
+            name: "out".into(),
+            base: 0x20000,
+            elem_width: 4,
+            len: 2,
+            kind: ArrayKind::Output,
+        });
+        let mut observer = MemoryConflictObserver::new();
+        let mut observing = true;
+        let mut issues = Vec::new();
+        let mut accepted = None;
+        let mut hook = |graph: &volta_graph::EventGraph| {
+            if let Some(certificate) = poll_memory_conflict(
+                &mut observer,
+                &mut observing,
+                graph,
+                |graph, certificate| {
+                    // Both are genuine independently valid native candidates.
+                    // Inject only the first validation refusal to exercise the
+                    // retry policy without inventing transient ISA premises.
+                    let conflict = validate_memory_conflict_prefix(graph, certificate)?;
+                    issues.push(certificate.issue);
+                    if issues.len() == 1 {
+                        Err(vec![Unresolved::global(
+                            "test-only first-candidate refusal",
+                        )])
+                    } else {
+                        Ok(conflict)
+                    }
+                },
+            ) {
+                accepted = Some(certificate);
+                ControlFlow::Break(())
+            } else {
+                ControlFlow::Continue(())
+            }
+        };
+        let result =
+            volta_amdgpu_analysis::analyze_with_observer(&module, Some("k"), config, &mut hook)
+                .unwrap();
+        assert!(observing);
+        assert_eq!(issues.len(), 2, "no repeated first-pair replay");
+        assert!(issues[0] < issues[1]);
+        let certificate = accepted.expect("later independently valid issue");
+        assert_eq!(certificate.issue, issues[1]);
+        assert!(validate_memory_conflict_prefix(result.graph(), &certificate).is_ok());
+        assert!(result.symbolic_outputs().is_err());
+    }
 
     #[test]
     fn selection_is_explicit_and_target_specific() {

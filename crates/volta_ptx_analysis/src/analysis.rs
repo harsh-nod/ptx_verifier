@@ -159,6 +159,11 @@ pub fn analyze(
     kernel: Option<&str>,
     config: AnalysisConfig,
 ) -> Result<AnalysisResult, AnalysisError> {
+    if config.early_memory_conflicts {
+        return Err(AnalysisError::Eval(EvalError::Config {
+            message: "early_memory_conflicts is supported only by the native gfx950/gfx1250 verification pipeline".into(),
+        }));
+    }
     if config.early_readiness {
         return Err(AnalysisError::Eval(EvalError::Config {
             message:

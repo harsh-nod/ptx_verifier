@@ -96,6 +96,14 @@ witness and `VERDICT: REJECT` with exit code 1. The result contains an incomplet
 prefix and no output expressions or equivalence claim. Ordinary execution is
 the default; every acceptance still requires complete execution and checking.
 
+Native gfx950/gfx1250 source execution also offers opt-in
+[early same-instruction memory-conflict rejection](early-memory-conflicts.md).
+Set `early_memory_conflicts` in launch JSON, or pass `--early-memory-conflicts`.
+A validated finding prints `EARLY_MEMORY_CONFLICTS: CERTIFIED_REJECTION`, the
+typed write/write pair and prefix counts, then `VERDICT: REJECT` with exit 1.
+It returns no complete outputs or equivalence result; default execution remains
+unchanged. Both early options may be enabled for gfx1250.
+
 A supported gfx1250 tensor transfer outside the configured LDS extent uses
 [certified tensor bounds rejection](tensor-bounds.md), without an opt-in flag.
 It prints `TENSOR_BOUNDS: CERTIFIED_REJECTION` and `VERDICT: REJECT`, exits 1,
