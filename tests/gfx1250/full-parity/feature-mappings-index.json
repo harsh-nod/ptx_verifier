@@ -23,7 +23,7 @@
     },
     {
       "path": "crates/volta_amdgpu_analysis/tests/gfx1250_execution.rs",
-      "sha256": "6b264a0c16ca9b253a87e70b9a68a5efef57b8b6e0b81c34fa0bce58762f43c4"
+      "sha256": "2c1975c813c0eeb650eb4602800094f544b4b39d7ac260e4b0ff03e8a52ea78d"
     },
     {
       "path": "crates/volta_cli/tests/gfx1250_output_footprint_tests.rs",
@@ -603,7 +603,7 @@
     },
     {
       "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
-      "sha256": "9683f46b11245c539cf032a9d2076545fc2e58933c6a26b4608c9f1d5f6b0789"
+      "sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
     },
     {
       "path": "crates/volta_pipeline/tests/accepted_tests.rs",
@@ -639,7 +639,7 @@
     },
     {
       "path": "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs",
-      "sha256": "c23635c671317eccfaea7af97d10f25131e6505dc055a7483fb0c8c6d45cc649"
+      "sha256": "097665366763802200936055d5514372d3d29da33afe3e3bc7b22cc8dd5dab49"
     },
     {
       "path": "crates/volta_pipeline/tests/gfx1250_compiler_tests.rs",
