@@ -4,7 +4,7 @@ use std::{
     fmt,
 };
 
-use super::{Global, Kernel, Module, SourceSpan, instr, metadata};
+use super::{Global, Kernel, Module, SourceSpan, constant_expr, instr, metadata};
 
 // Explicit bounded object-data envelope. Larger ELF objects are rejected before
 // allocating host storage; their bytes must never be silently discarded.
@@ -62,6 +62,14 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
         data_alignment: 1,
         data_read_only: false,
         data_section_supported: false,
+        data_zero_fill: false,
+        data_section_kinds: BTreeMap::from([
+            (".data".into(), false),
+            (".rodata".into(), false),
+            (".bss".into(), true),
+        ]),
+        constant_definitions: BTreeMap::new(),
+        constant_spans: BTreeMap::new(),
     };
     parser.collect_function_declarations(source);
     let mut start = 0;
@@ -128,6 +136,13 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
             span: parser.metadata_blocks[1].1,
         });
     }
+    parser.module.constants =
+        constant_expr::resolve_all(&parser.constant_definitions).map_err(|(name, message)| {
+            ParseError {
+                message,
+                span: parser.constant_spans[&name],
+            }
+        })?;
     let mut entries = parser.descriptors.clone();
     for (buffer, span) in std::mem::take(&mut parser.metadata_blocks) {
         entries.extend(metadata::apply_metadata(&mut parser.module, &buffer, span)?);
@@ -258,6 +273,10 @@ struct Parser {
     data_alignment: u64,
     data_read_only: bool,
     data_section_supported: bool,
+    data_zero_fill: bool,
+    data_section_kinds: BTreeMap<String, bool>,
+    constant_definitions: BTreeMap<String, constant_expr::Expr>,
+    constant_spans: BTreeMap<String, SourceSpan>,
 }
 
 struct FunctionBody {
@@ -562,6 +581,7 @@ impl Parser {
                 self.text_section = false;
                 self.data_read_only = name == ".rodata";
                 self.data_section_supported = true;
+                self.data_zero_fill = name == ".bss";
             }
             ".section" | ".pushsection" => {
                 if name == ".pushsection" {
@@ -569,17 +589,19 @@ impl Parser {
                         ".pushsection requires a section stack and is unsupported".into(),
                     ));
                 }
-                let section = args.split(',').next().unwrap_or_default().trim_matches('"');
+                let mut parts = args.split(',');
+                let section = parts.next().unwrap_or_default().trim_matches('"');
                 self.finish_section(span)?;
                 self.text_section = section == ".text" || section.starts_with(".text.");
-                let flags = args
-                    .split(',')
-                    .nth(1)
-                    .unwrap_or_default()
-                    .trim()
-                    .trim_matches('"');
+                let flags = parts.next().unwrap_or_default().trim().trim_matches('"');
                 if flags.contains('x') && !self.text_section {
                     return Err(fail("unsupported executable section".into()));
+                }
+                if (section == ".rodata" || section.starts_with(".rodata.")) && flags.contains('w')
+                {
+                    return Err(fail(
+                        "writable flags on a read-only module data section are unsupported".into(),
+                    ));
                 }
                 self.data_read_only = !flags.contains('w');
                 self.data_section_supported = [".data", ".rodata", ".bss"].iter().any(|prefix| {
@@ -588,6 +610,33 @@ impl Parser {
                             .strip_prefix(prefix)
                             .is_some_and(|rest| rest.starts_with('.'))
                 });
+                if self.data_section_supported {
+                    let zero_fill = match parts.next().map(str::trim) {
+                        None => self
+                            .data_section_kinds
+                            .get(section)
+                            .copied()
+                            .unwrap_or(section.starts_with(".bss.")),
+                        Some("@nobits" | "%nobits") => true,
+                        Some("@progbits" | "%progbits") => false,
+                        _ => {
+                            return Err(fail(
+                                "unsupported module data section storage type".into(),
+                            ));
+                        }
+                    };
+                    if self
+                        .data_section_kinds
+                        .get(section)
+                        .is_some_and(|previous| *previous != zero_fill)
+                    {
+                        return Err(fail(
+                            "module data section storage type cannot change".into(),
+                        ));
+                    }
+                    self.data_section_kinds.insert(section.into(), zero_fill);
+                    self.data_zero_fill = zero_fill;
+                }
             }
             ".type" => {
                 let parts = instr::split_top_level(args, ',').map_err(&fail)?;
@@ -649,16 +698,25 @@ impl Parser {
                 if parts.len() != 2 || !valid_symbol(parts[0]) {
                     return Err(fail("malformed constant definition".into()));
                 }
-                let value = instr::constant_expression(parts[1], &self.module.constants)
-                    .ok_or_else(|| fail("only integer assembly constants are supported".into()))?;
-                if self
-                    .module
-                    .constants
-                    .insert(parts[0].into(), value)
-                    .is_some()
-                {
-                    return Err(fail(format!("duplicate assembly constant `{}`", parts[0])));
+                // Unique definitions have immutable values, so forward references
+                // can be resolved before instruction normalization. LLVM permits
+                // .set/.equ reassignment with use-site snapshot semantics; that
+                // requires a different representation and remains unsupported.
+                // .equiv is nonredefinable even in LLVM. Never use the final value
+                // of a reassigned symbol for its earlier instruction uses.
+                if self.constant_definitions.contains_key(parts[0]) {
+                    return Err(fail(format!(
+                        "duplicate or reassigned assembly constant `{}` is unsupported",
+                        parts[0]
+                    )));
                 }
+                let expression = constant_expr::parse(parts[1]).map_err(&fail)?;
+                if let Ok(value) = expression.known_value(&self.module.constants) {
+                    self.module.constants.insert(parts[0].into(), value);
+                }
+                self.constant_definitions
+                    .insert(parts[0].into(), expression);
+                self.constant_spans.insert(parts[0].into(), span);
             }
             // Linkage, debugging, unwind and producer annotations have no value,
             // control-flow, register, or memory effect in this analysis model.
@@ -730,6 +788,10 @@ impl Parser {
                 }
                 if self.data_object.is_some() {
                     self.object_data(name, args, span)?;
+                } else if name == ".asciz" {
+                    return Err(fail(
+                        "module .asciz requires an active declared object".into(),
+                    ));
                 }
             }
             _ => return Err(fail(format!("unsupported assembly directive `{name}`"))),
@@ -745,6 +807,7 @@ impl Parser {
             });
         }
         self.data_alignment = 1;
+        self.data_zero_fill = false;
         Ok(())
     }
 
@@ -758,6 +821,10 @@ impl Parser {
             message: message.into(),
             span,
         };
+        if directive == ".asciz" {
+            let bytes = nul_terminated_ascii(args).map_err(fail)?;
+            return self.append_object_bytes(&bytes, span);
+        }
         if directive == ".ascii" {
             // LLVM emits printable lookup-table bytes as .ascii. Keep this
             // profile exact: one quoted literal, no escapes or terminator.
@@ -829,6 +896,12 @@ impl Parser {
     }
 
     fn append_object_bytes(&mut self, bytes: &[u8], span: SourceSpan) -> Result<(), ParseError> {
+        if self.data_zero_fill && bytes.iter().any(|byte| *byte != 0) {
+            return Err(ParseError {
+                message: "NOBITS module data requires zero-filled bytes".into(),
+                span,
+            });
+        }
         let object = &mut self.module.globals[self.data_object.unwrap()];
         if (object.initial_bytes.len() as u64)
             .checked_add(bytes.len() as u64)
@@ -842,6 +915,39 @@ impl Parser {
         object.initial_bytes.extend_from_slice(bytes);
         Ok(())
     }
+}
+
+/// One bounded assembler literal, including its exact terminating NUL. This
+/// deliberately excludes the rest of LLVM's string/escape grammar rather than
+/// treating an unknown escape or a second literal as bytes.
+fn nul_terminated_ascii(args: &str) -> Result<Vec<u8>, &'static str> {
+    if args.len() as u64 > MAX_OBJECT_BYTES + 1 {
+        return Err("module .asciz literal exceeds bounded16MiB envelope");
+    }
+    let literal = args
+        .strip_prefix('"')
+        .and_then(|text| text.strip_suffix('"'))
+        .ok_or("module .asciz requires one terminated quoted ASCII literal")?;
+    let mut bytes = Vec::with_capacity(literal.len() + 1);
+    let mut source = literal.bytes();
+    while let Some(byte) = source.next() {
+        let value = match byte {
+            b'\\' => match source.next() {
+                Some(b'\\') => b'\\',
+                Some(b'"') => b'"',
+                Some(b'n') => b'\n',
+                Some(b'r') => b'\r',
+                Some(b't') => b'\t',
+                _ => return Err("unsupported or unterminated module .asciz escape"),
+            },
+            b'"' => return Err("module .asciz requires exactly one quoted literal"),
+            0x20..=0x7e => byte,
+            _ => return Err("module .asciz requires printable ASCII or supported escapes"),
+        };
+        bytes.push(value);
+    }
+    bytes.push(0);
+    Ok(bytes)
 }
 
 pub(super) fn unquote(value: &str) -> &str {
