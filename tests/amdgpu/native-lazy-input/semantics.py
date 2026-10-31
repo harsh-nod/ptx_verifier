@@ -265,14 +265,17 @@ def semantic_gates(results, comparisons, plan):
         bool(r.get("false_positive") or r.get("graph_failure_names")) for r in results
     )
     unsafe = sum(bool(r.get("unsafe_acceptance")) for r in results)
+    refutations = sum(r["status"] == "mathematical_refutation" for r in results)
     return {
         "proofs": proofs,
         "false_findings": false_findings,
         "unsafe_acceptances": unsafe,
+        "mathematical_refutations": refutations,
         "all_semantic_controls_pass": all(r["structural_match"] for r in comparisons)
         and proofs["all_previous_complete_proofs_retained"]
         and false_findings == 0
-        and unsafe == 0,
+        and unsafe == 0
+        and refutations == 0,
     }
 
 

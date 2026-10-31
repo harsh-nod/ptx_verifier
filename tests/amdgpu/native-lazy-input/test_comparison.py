@@ -5,6 +5,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 SPEC = importlib.util.spec_from_file_location(
     "lazy_comparison_test", Path(__file__).with_name("comparison.py")
@@ -14,6 +15,38 @@ SPEC.loader.exec_module(comparison)
 
 
 class Controls(unittest.TestCase):
+    def test_pair_capture_errors_are_retained_without_changing_schedule(self):
+        row = {
+            "case": {
+                "expectation": "safe",
+                "expected_outputs": 1,
+                "output_indices": {"out": [0]},
+                "target": "gfx950",
+            },
+            "assembly": "/module.s",
+            "configuration": "/config.json",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            for index, failure in enumerate(
+                (
+                    ValueError("disk reserve insufficient"),
+                    OSError("synthetic launch failure"),
+                )
+            ):
+                with patch.object(comparison.frozen, "execute", side_effect=failure):
+                    record = comparison.execute_pair(
+                        Path("/volta"),
+                        row,
+                        Path(tmp) / str(index),
+                        None,
+                        log_limit=1024,
+                    )
+                self.assertFalse(record["qualified"])
+                self.assertIn("capture_failure", record)
+                self.assertIsNone(record["endpoint_seconds"])
+                self.assertIsNone(record["returncode"])
+                self.assertTrue((Path(tmp) / str(index) / "stdout").exists())
+
     def test_exact_five_adjacent_counterbalanced_pairs(self):
         ids = [f"case-{i}" for i in range(27)]
         schedule = comparison.frozen.paired_order(ids)

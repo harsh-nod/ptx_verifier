@@ -57,6 +57,10 @@ Every one-off safe process must also have zero typed graph findings and zero
 unsafe acceptances. In particular, a new graph failure during an unproved
 convolution/attention verification is a failed semantic control, not a permitted
 specification miss. These gates are independent of the eleven required proofs.
+An explicit mathematical refutation also fails the semantic gate, including for
+the two previously unproved equations; only genuine unknown/timeouts remain
+unproved observations. Expected paired launch/storage errors retain a failed
+scheduled row and collection continues through the fixed denominator.
 
 The independently reviewed comparator and its22 synthetic groups are copied
 byte-identically as `compare_vexpr_structure_20261031.py` and its test file. Their

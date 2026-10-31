@@ -290,6 +290,11 @@ class Controls(unittest.TestCase):
         self.assertFalse(
             sem.semantic_gates(rows, matches, plan)["all_semantic_controls_pass"]
         )
+        rows[-1]["unsafe_acceptance"] = False
+        rows[-1]["status"] = "mathematical_refutation"
+        result = sem.semantic_gates(rows, matches, plan)
+        self.assertEqual(result["mathematical_refutations"], 1)
+        self.assertFalse(result["all_semantic_controls_pass"])
 
 
 if __name__ == "__main__":

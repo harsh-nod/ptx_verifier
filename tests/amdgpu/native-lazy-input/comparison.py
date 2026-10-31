@@ -393,6 +393,41 @@ def functional(report, candidate):
     }
 
 
+def execute_pair(binary, row, directory, reference, *, log_limit):
+    try:
+        return frozen.execute(binary, row, directory, reference, log_limit=log_limit)
+    except (OSError, ValueError) as error:
+        directory.mkdir(parents=True, exist_ok=True)
+        for name in ("stdout", "stderr"):
+            if not (directory / name).exists():
+                (directory / name).write_bytes(b"")
+        stdout, stderr = [
+            (directory / name).read_text(errors="replace")
+            for name in ("stdout", "stderr")
+        ]
+        record = {
+            "command": frozen.command(binary, row),
+            "returncode": None,
+            "timed_out": False,
+            "log_limit_exceeded": False,
+            "seconds": 0,
+            "first_marker_seconds": None,
+            "usage": {},
+            "raw_log_bytes": sum(
+                (directory / name).stat().st_size for name in ("stdout", "stderr")
+            ),
+            "capture_failure": type(error).__name__ + ": " + str(error),
+        }
+        return {
+            **frozen.observe(record, row, stdout, stderr, reference),
+            "stdout_sha256": sha(directory / "stdout"),
+            "stderr_sha256": sha(directory / "stderr"),
+            "resources_sha256": sha(directory / "resources.txt")
+            if (directory / "resources.txt").exists()
+            else None,
+        }
+
+
 def summarize(plan, prepared, samples):
     actual = [(r["case"], r["repeat"], r["role"]) for r in samples]
     require(
@@ -451,7 +486,7 @@ def pairs(args):
             if role == "baseline"
             else prepared["candidate"]["binary"]
         )
-        result = frozen.execute(
+        result = execute_pair(
             binary,
             rows[cid],
             directory / cid / f"{repeat}-{role}",
