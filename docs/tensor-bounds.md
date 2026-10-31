@@ -84,19 +84,60 @@ complete positive control. It measures functional detection only. The frozen
 not establish a new full-suite detection rate, speedup or comparison against
 upstream Volta.
 
+A [separate hardened recheck](../tests/gfx1250/results/tensor-bounds-recheck-summary-20261031.json)
+repeated all 12 process invocations twice and retained the same outcomes and
+source/binary contracts. The original receipt is unchanged. The
+[new receipt](../tests/gfx1250/results/tensor-bounds-20261031-recheck.json) includes
+the validated build records and stdout/stderr hashes; the normalized
+[baseline](../tests/gfx1250/results/tensor-bounds-baseline-build-20261031.json) and
+[candidate](../tests/gfx1250/results/tensor-bounds-candidate-build-20261031.json)
+build records are also available separately. Diagnostic hashes can vary between
+runs because the CLI prints elapsed times; this comparison checks outcomes and
+input identities, with no latency claim.
+
 Reproduce with binaries built from the receipt's two source revisions:
 
 ```sh
 python3 tests/gfx1250/measure_tensor_bounds.py \
   --baseline /tmp/baseline-volta --baseline-revision e239cfc \
+  --baseline-build-record /tmp/baseline-build-normalized.json \
   --candidate /tmp/candidate-volta --candidate-revision CANDIDATE_REVISION \
+  --candidate-build-record /tmp/candidate-build-normalized.json \
   --output /tmp/tensor-bounds-comparison.json
 ```
 
-The script records executable, source, specification and harness hashes, retains
-every outcome and refuses to overwrite existing results. Build provenance is
-supplied by the caller; the script verifies fixture identity at both revisions
-and unchanged binaries during measurement. All variants run in the CPU verifier.
+The script snapshots the source, specification and harness before execution,
+uses one frozen specification in both versions, and checks their stability,
+executables and build records before and after each invocation. It records
+stdout/stderr hashes, requires exact overall outcomes and full specification
+counts, and refuses to overwrite results. Its checks remain active under Python
+optimization. All variants run in the CPU verifier.
+
+Each normalized build record has `schema_version: 1`, `trust: "caller_attested"`,
+the full `revision`, `source_clean: true`, `binary_sha256`, and a
+`rust_workspace_fingerprint`. It also records `profile: "release"`, `features: []`,
+`default_features: true`, the exact command
+`["cargo", "build", "--release", "-p", "volta_cli"]`, and nonempty `rustc` and
+`cargo` version strings. Empty features here means Cargo's default feature set.
+Preserve the original build record when normalizing it; these fields describe
+the actual build, rather than authorizing a revision label for another binary.
+
+Print the fingerprint for a revision without running the comparison:
+
+```sh
+python3 tests/gfx1250/measure_tensor_bounds.py --fingerprint-revision e239cfc
+```
+
+`rust_workspace_fingerprint` is that command's complete JSON object. It hashes
+the NUL-delimited `git ls-tree -rz --full-tree REV -- crates Cargo.toml Cargo.lock
+rust-toolchain rust-toolchain.toml .cargo` output. This tracked Rust workspace
+superset includes embedded viewer assets, tests and crate documentation; it is
+not a claim to capture every external build dependency. The script independently
+compares the declared revision, executable hash, workspace fingerprint and
+fixture bytes. The build record remains a caller attestation, not an independent
+proof that those source bytes produced the binary. The original recorded
+comparison used the earlier helper; a hardened recheck has its own receipt and
+does not rewrite that historical data or the frozen study.
 
 ## Reproduction
 

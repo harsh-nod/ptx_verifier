@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "trust": "caller_attested",
+  "revision": "e239cfc851a32114dcfbf9d22616aeadb7c4ee24",
+  "source_clean": true,
+  "binary_sha256": "6354b2327247d298d68e67d71cffb3dd458b554877c65dc0657a4f6efd2e35ca",
+  "rust_workspace_fingerprint": {
+    "algorithm": "sha256-git-tree-v1",
+    "sha256": "9de39e9b2d901a93d5861dd8a940a5186c889cb328916148a7bd348123af53bb",
+    "file_count": 1172
+  },
+  "profile": "release",
+  "features": [],
+  "default_features": true,
+  "command": [
+    "cargo",
+    "build",
+    "--release",
+    "-p",
+    "volta_cli"
+  ],
+  "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)\nbinary: rustc\ncommit-hash: 8bab26f4f68e0e26f0bb7960be334d5b520ea452\ncommit-date: 2026-07-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.97.1\nLLVM version: 22.1.6",
+  "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)"
+}
