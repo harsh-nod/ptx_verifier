@@ -132,7 +132,7 @@ bounds remain the complete configured extents; this does not shorten loops or
 reduce output/specification obligations. Reads and writes first materialize the
 whole input element, retaining the same partial-write and bit-interpretation
 rules. Materialization is shared across waves and never marks data as written;
-an InputOutput array exposes only bytes actually written by the program.
+an InputOutput array exposes only elements fully written by the program.
 Module initializers and ABI fields retain their explicit initialization, while
 unwritten output-only memory, LDS and ABI padding remain undefined.
 
