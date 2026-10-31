@@ -30,6 +30,12 @@ create_exception!(
 );
 create_exception!(
     volta,
+    TensorBoundsError,
+    VoltaError,
+    "A supported attempted tensor access exceeds the configured LDS allocation."
+);
+create_exception!(
+    volta,
     DeadlockError,
     VoltaError,
     "A thread can be blocked forever: no barrier or warp group releases it."

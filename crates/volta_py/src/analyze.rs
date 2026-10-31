@@ -13,7 +13,9 @@ use volta_ptx_analysis::frontend::parse as ptx_parse;
 use volta_ptx_analysis::{AnalysisConfig, Stats};
 
 use crate::config::ConfigPy;
-use crate::error::{EarlyReadinessError, VoltaError, graph_failure_to_py, parse_error_to_py};
+use crate::error::{
+    EarlyReadinessError, TensorBoundsError, VoltaError, graph_failure_to_py, parse_error_to_py,
+};
 
 pub(crate) fn parse_module(source: &str, backend: Backend) -> PyResult<KernelModule> {
     match backend {
@@ -144,6 +146,22 @@ pub(crate) fn check_kernel(
         value.setattr("register_index", hazard.register.index)?;
         value.setattr("register_file", format!("{:?}", hazard.register.file))?;
         value.setattr("instructions", verified.analysis.stats.instructions)?;
+        value.setattr("prefix_amd_records", finding.certificate().amd_records)?;
+        value.setattr("prefix_graph_events", finding.certificate().graph_events)?;
+        return Err(exception);
+    }
+    if let Some(finding) = &verified.tensor_bounds {
+        let violation = finding.violation();
+        let exception = TensorBoundsError::new_err(format!(
+            "certified tensor LDS bounds rejection: {violation:?}; transfer not issued; complete outputs and equivalence unavailable"
+        ));
+        let value = exception.value(py);
+        value.setattr("event", violation.event.0)?;
+        value.setattr("wave", violation.wave)?;
+        value.setattr("address", violation.address)?;
+        value.setattr("bytes", violation.bytes)?;
+        value.setattr("configured_lds_bytes", violation.configured_lds_bytes)?;
+        value.setattr("access", format!("{:?}", violation.access))?;
         value.setattr("prefix_amd_records", finding.certificate().amd_records)?;
         value.setattr("prefix_graph_events", finding.certificate().graph_events)?;
         return Err(exception);

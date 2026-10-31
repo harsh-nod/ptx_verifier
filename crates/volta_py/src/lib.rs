@@ -10,7 +10,7 @@ mod error;
 mod verify;
 
 use config::{ArrayDefPy, ArrayKindPy, ConfigPy, ParamPy};
-use error::{DataRaceError, DeadlockError, EarlyReadinessError, VoltaError};
+use error::{DataRaceError, DeadlockError, EarlyReadinessError, TensorBoundsError, VoltaError};
 
 #[pymodule]
 fn volta(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -29,6 +29,7 @@ fn volta(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("VoltaError", py.get_type::<VoltaError>())?;
     m.add("DataRaceError", py.get_type::<DataRaceError>())?;
     m.add("EarlyReadinessError", py.get_type::<EarlyReadinessError>())?;
+    m.add("TensorBoundsError", py.get_type::<TensorBoundsError>())?;
     m.add("DeadlockError", py.get_type::<DeadlockError>())?;
 
     Ok(())

@@ -3,6 +3,10 @@ use std::collections::BTreeMap;
 
 use volta_expr::SymbolicOutputs;
 use volta_graph::EventGraph;
+use volta_graph_check::amdgpu::tensor_bounds::{
+    TensorBoundsCertificate, TensorBoundsViolation, tensor_bounds_candidate,
+    validate_tensor_bounds_prefix,
+};
 use volta_graph_check::amdgpu::{
     AmdRegisterHazard,
     early_readiness::{
@@ -88,6 +92,24 @@ pub struct SourceKernelVerification {
     /// A first finding certified against this exact incomplete graph prefix.
     /// This supplies no full-trace, output or equivalence evidence.
     pub early_readiness: Option<CertifiedScalarReadiness>,
+    /// Independently certified invalid attempted access; outputs remain absent.
+    pub tensor_bounds: Option<CertifiedTensorBounds>,
+}
+
+/// Only this pipeline constructs the wrapper after replaying the exact prefix.
+#[derive(Debug, Clone)]
+pub struct CertifiedTensorBounds {
+    certificate: TensorBoundsCertificate,
+    violation: TensorBoundsViolation,
+}
+
+impl CertifiedTensorBounds {
+    pub fn certificate(&self) -> &TensorBoundsCertificate {
+        &self.certificate
+    }
+    pub fn violation(&self) -> &TensorBoundsViolation {
+        &self.violation
+    }
 }
 
 /// Checker-validated scalar readiness rejection. Only the pipeline constructs it
@@ -183,10 +205,19 @@ pub fn verify_source_kernel(
         }
     };
     let graph = check_graph(&analysis.graph);
+    let tensor_bounds = tensor_bounds_candidate(&analysis.graph).and_then(|certificate| {
+        validate_tensor_bounds_prefix(&analysis.graph, &certificate)
+            .ok()
+            .map(|violation| CertifiedTensorBounds {
+                certificate,
+                violation,
+            })
+    });
     Ok(SourceKernelVerification {
         analysis,
         graph,
         early_readiness,
+        tensor_bounds,
     })
 }
 

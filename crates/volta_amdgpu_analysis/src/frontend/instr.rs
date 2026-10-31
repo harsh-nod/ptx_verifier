@@ -472,7 +472,7 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "s_xnor_b32" | "s_xnor_b64" | "s_lshl_b32" | "s_lshl_b64" | "s_lshr_b32"
         | "s_lshr_b64" | "s_ashr_i32" | "s_ashr_i64" | "s_min_u32" | "s_min_i32" | "s_max_u32"
         | "s_max_i32" | "s_cselect_b32" | "s_cselect_b64" | "s_bfe_u32" | "s_bfe_i32"
-        | "s_bfm_b32" | "s_bfm_b64" => (ScalarAlu, 3, 3),
+        | "s_bfe_i64" | "s_bfm_b32" | "s_bfm_b64" => (ScalarAlu, 3, 3),
         "s_and_saveexec_b64"
         | "s_or_saveexec_b64"
         | "s_xor_saveexec_b64"
@@ -619,6 +619,7 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_subrev_f32"
         | "v_mul_f32"
         | "v_mul_lo_u32"
+        | "v_mul_u64"
         | "v_mul_lo_i32"
         | "v_mul_hi_u32"
         | "v_mul_hi_i32"
@@ -653,7 +654,7 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_max_f64"
         | "v_mul_f64" => (VectorAlu, 3, 3),
         "v_add_co_u32" | "v_sub_co_u32" | "v_subrev_co_u32" => (VectorAlu, 4, 4),
-        "v_mad_u64_u32" => (VectorAlu, 5, 5),
+        "v_mad_u64_u32" | "v_mad_i64_i32" => (VectorAlu, 5, 5),
         "v_addc_co_u32" | "v_subb_co_u32" | "v_subbrev_co_u32" => (VectorAlu, 5, 5),
         "v_cndmask_b32" => (VectorAlu, if mnemonic.ends_with("_e32") { 3 } else { 4 }, 4),
         "v_fmamk_f32" | "v_or3_b32" | "v_fma_mixlo_f16" | "v_fma_mixhi_f16" | "v_fma_mix_f32"
@@ -1535,8 +1536,26 @@ pub(super) fn validate_registers(
                     let shift =
                         index == 2 && (stem.starts_with("s_lsh") || stem.starts_with("s_ashr"));
                     let bfm = stem.starts_with("s_bfm_");
-                    source_width(index, if shift || bfm { 1 } else { data_width })?;
+                    let bfe_control = stem == "s_bfe_i64" && index == 2;
+                    source_width(
+                        index,
+                        if shift || bfm || bfe_control {
+                            1
+                        } else {
+                            data_width
+                        },
+                    )?;
                 }
+            }
+            if stem == "s_bfe_i64"
+                && (!matches!(operands[0], Operand::Register(r) if r.class == Scalar && r.count == 2)
+                    || !matches!(operands[1], Operand::Register(r) if r.class == Scalar && r.count == 2)
+                        && !matches!(operands[1], Operand::Integer(value) if (-16..=64).contains(&value))
+                    || !matches!(operands[2], Operand::Register(r) if r.class == Scalar && r.count == 1)
+                        && !matches!(operands[2], Operand::Integer(value) if (i32::MIN as i64..=u32::MAX as i64).contains(&value))
+                    || !modifiers.is_empty())
+            {
+                return Err("selected s_bfe_i64 requires a plain SGPR destination pair, SGPR data pair/integer inline, and one 32-bit SGPR/integer control".into());
             }
         }
         Opcode::ScalarMemory => {
@@ -1868,7 +1887,7 @@ pub(super) fn validate_registers(
                         },
                     )?;
                 }
-            } else if stem == "v_mad_u64_u32" {
+            } else if matches!(stem, "v_mad_u64_u32" | "v_mad_i64_i32") {
                 require(0, &[Vector], 2)?;
                 require(
                     1,
@@ -1885,6 +1904,39 @@ pub(super) fn validate_registers(
                         2
                     },
                 )?;
+                if stem == "v_mad_i64_i32" {
+                    // CDNA4 VOP3B: two 32-bit factors, one 64-bit addend and
+                    // a wave64 scalar result mask. Keep a finite unmodified
+                    // register/inline profile rather than guessing literal,
+                    // clamp, floating-inline or special-source semantics.
+                    if architecture != crate::target::Architecture::Gfx950
+                        || mnemonic.ends_with("_e32")
+                        || !modifiers.is_empty()
+                        || !matches!(operands[0], Operand::Register(_))
+                        || !matches!(operands[1], Operand::Register(r)
+                            if r.class == Scalar || r.special == Some(SpecialRegister::Vcc))
+                    {
+                        return Err("selected signed64 MAD requires unmodified gfx950 VOP3B and an SGPR-pair/VCC mask".into());
+                    }
+                    let mut scalar_sources = std::collections::BTreeSet::new();
+                    for (index, operand) in operands.iter().enumerate().skip(2) {
+                        match operand {
+                            Operand::Register(r)
+                                if matches!(r.class, Scalar | Vector)
+                                    && r.count == if index == 4 { 2 } else { 1 } =>
+                            {
+                                if r.class == Scalar {
+                                    scalar_sources.insert((r.index, r.count));
+                                }
+                            }
+                            Operand::Integer(value) if (-16..=64).contains(value) => {}
+                            _ => return Err("signed64 MAD sources require plain data registers or integer inline constants".into()),
+                        }
+                    }
+                    if scalar_sources.len() > 1 {
+                        return Err("selected signed64 MAD supports at most one distinct scalar data source".into());
+                    }
+                }
             } else if ["v_cvt_pk_f32_fp8", "v_cvt_pk_f32_bf8", "v_cvt_f64_f32"].contains(&stem) {
                 require(0, &[Vector], 2)?;
                 source_width(1, 1)?;
@@ -1901,6 +1953,24 @@ pub(super) fn validate_registers(
                         &[Scalar, Special],
                         if architecture.wave_size() == 32 { 1 } else { 2 },
                     )?;
+                }
+            } else if stem == "v_mul_u64" {
+                // CDNA5 VOP2 opcode42: keep the compiler's plain pair E32
+                // subset. E64, special selectors, inline/literal sources and
+                // modifiers have separate encodings outside this profile.
+                require(0, &[Vector], 2)?;
+                require(1, &[Scalar, Vector], 2)?;
+                require(2, &[Vector], 2)?;
+                if architecture != crate::target::Architecture::Gfx1250
+                    || mnemonic.ends_with("_e64")
+                    || !modifiers.is_empty()
+                    || operands.iter().any(|operand| {
+                        !matches!(operand, Operand::Register(r)
+                            if r.count == 2 && (r.class == Scalar
+                                || r.class == Vector && r.index <= 254))
+                    })
+                {
+                    return Err("selected v_mul_u64 requires unmodified gfx1250 E32 register pairs (src0 SGPR/VGPR, src1 VGPR)".into());
                 }
             } else if stem == "v_add_nc_u64" {
                 require(0, &[Vector], 2)?;

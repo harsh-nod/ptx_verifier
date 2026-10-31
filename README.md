@@ -66,6 +66,11 @@ gfx1250 execution at its first certified scalar-read hazard. All three source
 commands then print `VERDICT: REJECT` and exit 1, with an incomplete prefix and
 no output or equivalence result. Default runs retain complete traces.
 
+Supported gfx1250 tensor transfers also receive a separate
+[LDS bounds check](docs/tensor-bounds.md). A certified out-of-bounds attempt
+prints `VERDICT: REJECT` and exits 1 without issuing the transfer or producing
+outputs; its ordinary incomplete graph remains `UNKNOWN`.
+
 The [usage guide](docs/usage.md) explains launch files, specifications, kernel
 comparison, artifacts, logging and Python setup.
 
@@ -118,6 +123,12 @@ failed one GEMM p95 limit and is retained separately; one confirmatory safe-case
 p95 uncertainty interval crosses its allowance. See the
 [complete results, limitations and reproducible data](tests/amdgpu/design-study/results/README.md)
 and [measurement protocol](tests/amdgpu/design-study/README.md).
+
+A separate [functional comparison](docs/tensor-bounds.md#functional-comparison)
+tests two seeded tensor LDS overruns in one compiler kernel. The newer checker
+certifies both; the earlier version reports both as `UNKNOWN`. Both versions
+retain the valid kernel's complete 128-element specification proof. This adds
+coverage without revising the frozen study or asserting a new timing gain.
 
 ## How the code is organized
 

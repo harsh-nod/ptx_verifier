@@ -2,6 +2,8 @@
 //! PTX synchronization certificates or treating trace order as memory completion.
 
 use crate::{EventId, ThreadIx};
+mod tensor;
+pub use tensor::{AmdTensorDescriptor, AmdTensorFootprint, TENSOR_BOUNDS_ABORT_REASON};
 
 /// Architectures with an explicitly implemented native graph contract.
 /// Target features remain in `Provenance::targets`; recognizing a target does
@@ -413,6 +415,14 @@ pub enum AmdEventKind {
         phase: u32,
         exec_mask: u64,
         expected: u16,
+    },
+    /// Attempted supported tensor transfer, aborted before issuing any effects.
+    /// Appended to preserve the layouts/tags of existing records.
+    TensorAccessFault {
+        load: bool,
+        descriptor: AmdTensorDescriptor,
+        /// Starting scalar register of each D0/D1/D2/D3 tuple.
+        sources: [u16; 4],
     },
 }
 
