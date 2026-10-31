@@ -1,4 +1,5 @@
 //! Thin ISA dispatch above the existing artifact-producing analysis stages.
+use crate::attribution::{Phase, Scope, Session};
 use std::collections::BTreeMap;
 
 use volta_expr::SymbolicOutputs;
@@ -172,8 +173,15 @@ fn poll_memory_conflict(
     if !*observing {
         return None;
     }
-    match observer.observe(graph) {
-        Ok(Some(certificate)) => validate(graph, &certificate).ok().map(|_| certificate),
+    let candidate = {
+        let _phase = Scope::new(Phase::Discovery);
+        observer.observe(graph)
+    };
+    match candidate {
+        Ok(Some(certificate)) => {
+            let _phase = Scope::new(Phase::LivePrefixValidation);
+            validate(graph, &certificate).ok().map(|_| certificate)
+        }
         Err(_) => {
             *observing = false;
             None
@@ -187,6 +195,8 @@ pub fn verify_source_kernel(
     kernel: Option<&str>,
     config: AnalysisConfig,
 ) -> Result<SourceKernelVerification, String> {
+    let _session = Session::new();
+    let _execution_output = Scope::new(Phase::RemainingExecutionOutput);
     let mut early_readiness = None;
     let mut early_memory_conflict = None;
     let analysis = match module {
@@ -214,9 +224,17 @@ pub fn verify_source_kernel(
                     // observer error disables only that observer. Scalar readiness has
                     // deterministic priority when both find a valid witness.
                     if observe_scalar {
-                        match scalar_observer.observe(graph) {
+                        let candidate = {
+                            let _phase = Scope::new(Phase::Discovery);
+                            scalar_observer.observe(graph)
+                        };
+                        match candidate {
                             Ok(Some(certificate)) => {
-                                if validate_scalar_readiness_prefix(graph, &certificate).is_ok() {
+                                let validated = {
+                                    let _phase = Scope::new(Phase::LivePrefixValidation);
+                                    validate_scalar_readiness_prefix(graph, &certificate)
+                                };
+                                if validated.is_ok() {
                                     scalar_candidate = Some(certificate);
                                     return std::ops::ControlFlow::Break(());
                                 }
@@ -241,19 +259,23 @@ pub fn verify_source_kernel(
                     volta_amdgpu_analysis::analyze_with_observer(module, kernel, config, &mut hook)
                         .map_err(|error| error.to_string())?;
                 if let Some(certificate) = scalar_candidate {
-                    let hazard = validate_scalar_readiness_prefix(result.graph(), &certificate)
-                        .map_err(|reasons| {
-                            format!(
-                                "early readiness prefix certificate validation failed: {reasons:?}"
-                            )
-                        })?;
+                    let hazard = {
+                        let _phase = Scope::new(Phase::FinalPrefixValidation);
+                        validate_scalar_readiness_prefix(result.graph(), &certificate)
+                    }
+                    .map_err(|reasons| {
+                        format!("early readiness prefix certificate validation failed: {reasons:?}")
+                    })?;
                     early_readiness = Some(CertifiedScalarReadiness {
                         certificate,
                         hazard,
                     });
                 }
                 if let Some(certificate) = memory_candidate {
-                    let conflict = validate_memory_conflict_prefix(result.graph(), &certificate)
+                    let conflict = {
+                        let _phase = Scope::new(Phase::FinalPrefixValidation);
+                        validate_memory_conflict_prefix(result.graph(), &certificate)
+                    }
                         .map_err(|reasons| {
                             format!(
                                 "early memory conflict prefix certificate validation failed: {reasons:?}"
@@ -282,7 +304,10 @@ pub fn verify_source_kernel(
             }
         }
     };
-    let graph = check_graph(&analysis.graph);
+    let graph = {
+        let _phase = Scope::new(Phase::FinalOrdinaryGraph);
+        check_graph(&analysis.graph)
+    };
     let tensor_bounds = tensor_bounds_candidate(&analysis.graph).and_then(|certificate| {
         validate_tensor_bounds_prefix(&analysis.graph, &certificate)
             .ok()

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "source_parent": "f0ee44285286aa1ea92f3e99aed6574ad89f3c82",
+  "current_on_binary_sha256": "57d555dbafee093f804b2c0744c477c4a5e567726aece81017f828647bdbc167",
+  "manifest_sha256": "f61df7312961ad8540b34de6f41647df9b165e2ae068dc9a2a25672d90f83886",
+  "preflight_sha256": "9f5e49d9421a9369b6d24a04c3dbbb33f53e17b5ef22c40aa3e7d3c63b3d2c15",
+  "paired_report_sha256": "e2d567e159769ed939923b552990740b7206c49ef0268fee1f97fcde43483f76",
+  "repeats": 5,
+  "seed": 20261031,
+  "timeout_seconds": 60,
+  "late_hazards": [
+    "memory-gfx950-elementwise-address-alias",
+    "memory-gfx950-reduction-address-alias",
+    "memory-gfx950-normalization-address-alias",
+    "memory-gfx950-gemm-address-alias",
+    "memory-gfx950-attention-address-alias",
+    "memory-gfx1250-elementwise-address-alias",
+    "memory-gfx1250-reduction-address-alias",
+    "memory-gfx1250-normalization-address-alias",
+    "memory-gfx1250-gemm-address-alias",
+    "memory-gfx1250-attention-address-alias"
+  ],
+  "early_primaries": [
+    "memory-wide-gfx1250-matvec_f16-inserted-collision",
+    "memory-wide-gfx1250-convolution_f16_original-inserted-collision",
+    "memory-wide-gfx1250-flash_attention_original-inserted-collision"
+  ],
+  "safe_controls": [
+    "memory-gfx950-elementwise-safe",
+    "memory-gfx950-reduction-safe",
+    "memory-gfx950-normalization-safe",
+    "memory-gfx950-gemm-safe",
+    "memory-gfx950-attention-safe",
+    "memory-gfx1250-elementwise-safe",
+    "memory-gfx1250-reduction-safe",
+    "memory-gfx1250-normalization-safe",
+    "memory-gfx1250-gemm-safe",
+    "memory-gfx1250-attention-safe",
+    "memory-wide-gfx1250-matvec_f16-safe",
+    "memory-wide-gfx1250-convolution_f16_original-safe",
+    "memory-wide-gfx1250-flash_attention_original-safe"
+  ],
+  "gate_cases": [
+    "memory-gfx950-normalization-address-alias",
+    "memory-gfx950-gemm-address-alias",
+    "memory-gfx1250-normalization-address-alias",
+    "memory-gfx1250-gemm-address-alias",
+    "memory-gfx1250-attention-address-alias"
+  ],
+  "gate": {
+    "minimum_final_validation_ns": 1000000,
+    "minimum_median_per_sample_share": 0.15,
+    "minimum_qualifying_cases": 3,
+    "aggregation": "Per case, median(final_validation_ns) and median(each sample final_validation_ns / parent_prediagnostic_wall_ns), over all five fixed repetitions."
+  },
+  "exclusions": [
+    "transpose configurations",
+    "synthetic unsupported tails",
+    "GEMM full primary without prior qualification",
+    "other wide natural address-alias configurations",
+    "previously seen heldout configurations",
+    "new reserved configurations for any later candidate stage"
+  ]
+}

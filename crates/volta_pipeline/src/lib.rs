@@ -13,6 +13,7 @@
 //! for every kernel.
 
 pub mod aggregate;
+mod attribution;
 pub mod backend;
 pub mod equivalence;
 pub mod kernel;
