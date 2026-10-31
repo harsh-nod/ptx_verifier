@@ -1,6 +1,7 @@
-"""Temporary Git histories exercise the actual rebase and refusal boundaries."""
+"""Temporary Git histories exercise isolated merges and refusal boundaries."""
 
 import importlib.util
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -56,18 +57,69 @@ class SyncTests(unittest.TestCase):
         self.assertEqual(result["status"], "up_to_date")
         self.assertFalse(path.exists())
 
-    def test_rebase_retains_both_trees_and_leaves_checkout_and_dirty_files_alone(self):
+    def test_merge_retains_both_histories_and_leaves_checkout_and_dirty_files_alone(
+        self,
+    ):
         self.diverge()
         before = self.git("rev-parse", "main")
         (self.repo / "common").write_text("uncommitted user work\n")
         path = self.root / "worktree"
         result = sync.prepare(self.repo, path, "main", "upstream")
-        self.assertEqual(result["status"], "rebased")
+        self.assertEqual(result["status"], "merged")
+        self.assertTrue(sync.ancestor(path, before, "HEAD"))
         self.assertTrue(sync.ancestor(path, result["upstream"], "HEAD"))
         self.assertEqual((path / "fork-only").read_text(), "fork\n")
         self.assertEqual((path / "upstream-only").read_text(), "upstream\n")
         self.assertEqual(self.git("rev-parse", "main"), before)
         self.assertEqual((self.repo / "common").read_text(), "uncommitted user work\n")
+
+    def test_previous_resolved_upstream_merge_and_published_history_are_preserved(self):
+        self.git("config", "rerere.enabled", "false")
+        self.diverge(conflict=True)
+        fork = self.git("rev-parse", "HEAD")
+        first_upstream = self.git("rev-parse", "upstream")
+        merge = sync.git(self.repo, "merge", "--no-ff", "upstream", check=False)
+        self.assertNotEqual(merge.returncode, 0)
+        (self.repo / "common").write_text("reviewed combined resolution\n")
+        self.git("add", "common")
+        self.git("commit", "-m", "resolve the first upstream integration")
+        self.commit("published-contract", "immutable source identity\n")
+        before = self.git("rev-parse", "HEAD")
+        self.git("checkout", "upstream")
+        self.commit("new-frontend", "new upstream parser\n")
+        upstream = self.git("rev-parse", "HEAD")
+        self.git("checkout", "main")
+
+        replay = self.root / "historical-replay"
+        self.git("worktree", "add", "--detach", str(replay), before)
+        failed = sync.git(
+            replay,
+            "-c",
+            "core.editor=true",
+            "rebase",
+            "--rebase-merges",
+            upstream,
+            check=False,
+        )
+        self.assertNotEqual(failed.returncode, 0)
+        self.assertEqual(
+            sync.git(replay, "diff", "--name-only", "--diff-filter=U").stdout.strip(),
+            "common",
+        )
+
+        path = self.root / "worktree"
+        result = sync.prepare(self.repo, path, "main", "upstream")
+        self.assertEqual(result["status"], "merged")
+        for commit in (before, fork, first_upstream, upstream):
+            self.assertTrue(sync.ancestor(path, commit, "HEAD"))
+        self.assertEqual(
+            (path / "common").read_text(), "reviewed combined resolution\n"
+        )
+        self.assertEqual(
+            (path / "published-contract").read_text(), "immutable source identity\n"
+        )
+        self.assertEqual(result["changed_files"], ["new-frontend"])
+        self.assertEqual(self.git("rev-parse", "main"), before)
 
     def test_conflicts_stay_unresolved_and_cannot_publish(self):
         self.diverge(conflict=True)
@@ -176,7 +228,7 @@ class SyncTests(unittest.TestCase):
                 "commit",
                 "--amend",
                 "-m",
-                "new rebase identity with identical source",
+                "new merge identity with identical source",
             )
             prepared = {**report, "candidate": sync.oid(path, "HEAD")}
             self.assertNotEqual(prepared["candidate"], pushed)
@@ -216,6 +268,127 @@ class SyncTests(unittest.TestCase):
                 0
             ],
             report["base"],
+        )
+
+    def test_matching_published_tree_cannot_drop_the_existing_fork_history(self):
+        self.diverge()
+        self.remote()
+        path = self.root / "worktree"
+        report = sync.prepare(self.repo, path, "main", "upstream")
+        tree = sync.git(path, "rev-parse", "HEAD^{tree}").stdout.strip()
+        without_fork = self.git(
+            "commit-tree",
+            tree,
+            "-p",
+            report["upstream"],
+            "-m",
+            "same source, lost fork history",
+        )
+        self.git("push", "origin", f"{without_fork}:refs/heads/{report['branch']}")
+        with self.assertRaisesRegex(ValueError, "differs"):
+            sync.reuse_published_head(self.repo, path, report)
+
+    def test_post_validation_dirty_files_and_commits_cannot_publish(self):
+        self.diverge()
+        self.remote()
+        path = self.root / "worktree"
+        report = sync.prepare(self.repo, path, "main", "upstream")
+        checked = sync.validate(
+            path, report, self.root, checks=((sys.executable, "-c", "pass"),)
+        )
+        original_command = sync.command
+        github_calls = []
+
+        def github(repo, *args, **kwargs):
+            if args[0] == "gh":
+                github_calls.append(args)
+                return subprocess.CompletedProcess(args, 0, stdout="[]", stderr="")
+            return original_command(repo, *args, **kwargs)
+
+        (path / "common").write_text("changed after validation\n")
+        with patch.object(sync, "command", side_effect=github):
+            with self.assertRaisesRegex(ValueError, "changed before publication"):
+                sync.publish(self.repo, path, checked, self.root)
+            sync.git(path, "add", "common")
+            sync.git(path, "commit", "-m", "untested commit")
+            with self.assertRaisesRegex(ValueError, "changed before publication"):
+                sync.publish(self.repo, path, checked, self.root)
+        self.assertEqual(github_calls, [])
+        self.assertEqual(
+            self.git("ls-remote", "origin", "refs/heads/" + report["branch"]), ""
+        )
+
+    def test_remote_main_advance_during_pr_lookup_defers_publication(self):
+        self.diverge()
+        self.remote()
+        path = self.root / "worktree"
+        report = sync.prepare(self.repo, path, "main", "upstream")
+        checked = sync.validate(
+            path, report, self.root, checks=((sys.executable, "-c", "pass"),)
+        )
+        original_command = sync.command
+
+        def github(repo, *args, **kwargs):
+            if args[:3] == ("gh", "pr", "list"):
+                self.commit("later-main", "published meanwhile\n")
+                self.git("push", "origin", "main")
+                return subprocess.CompletedProcess(args, 0, stdout="[]", stderr="")
+            if args[0] == "gh":
+                self.fail("a changed base must not create a PR")
+            return original_command(repo, *args, **kwargs)
+
+        with patch.object(sync, "command", side_effect=github):
+            result = sync.publish(self.repo, path, checked, self.root)
+        self.assertEqual(result["status"], "base_changed")
+        self.assertEqual(
+            self.git("ls-remote", "origin", "refs/heads/" + report["branch"]), ""
+        )
+
+    def test_existing_draft_update_pushes_checked_commit_despite_late_head_move(self):
+        self.diverge()
+        self.remote()
+        path = self.root / "worktree"
+        report = sync.prepare(self.repo, path, "main", "upstream")
+        self.git(
+            "push", "origin", f"{report['candidate']}:refs/heads/{report['branch']}"
+        )
+        (path / "reviewed-fix").write_text("tested followup\n")
+        sync.git(path, "add", "reviewed-fix")
+        sync.git(path, "commit", "-m", "reviewed followup")
+        report = {**report, "candidate": sync.oid(path, "HEAD")}
+        checked = sync.validate(
+            path, report, self.root, checks=((sys.executable, "-c", "pass"),)
+        )
+        original_command = sync.command
+
+        def racing(repo, *args, **kwargs):
+            if args[:3] == ("gh", "pr", "list"):
+                rows = [
+                    {
+                        "url": "https://github.com/harsh-nod/ptx_verifier/pull/1",
+                        "state": "OPEN",
+                    }
+                ]
+                return subprocess.CompletedProcess(
+                    args, 0, stdout=json.dumps(rows), stderr=""
+                )
+            if args[0] == "gh":
+                self.fail("an existing draft must not create another PR")
+            if args[:2] == ("git", "push"):
+                (path / "untested-fix").write_text("changed at push\n")
+                sync.git(path, "add", "untested-fix")
+                sync.git(path, "commit", "-m", "untested late commit")
+            return original_command(repo, *args, **kwargs)
+
+        with patch.object(sync, "command", side_effect=racing):
+            result = sync.publish(self.repo, path, checked, self.root)
+        self.assertEqual(result["status"], "existing_pr")
+        self.assertNotEqual(sync.oid(path, "HEAD"), checked["candidate"])
+        self.assertEqual(
+            self.git("ls-remote", "origin", "refs/heads/" + report["branch"]).split()[
+                0
+            ],
+            checked["candidate"],
         )
 
 
