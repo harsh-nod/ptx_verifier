@@ -8,7 +8,7 @@
 \usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black]{hyperref}
 \hypersetup{pdftitle={Adapting Volta to AMD GPUs},pdfauthor={GPU Kernel Verifier contributors}}
 \newcommand{\code}[1]{\texttt{\detokenize{#1}}}
-\newcommand{\repo}[2]{\href{https://github.com/harsh-nod/ptx_verifier/blob/fd640e6a99c771fd10d991c574ef151e38e6d5c6/#1}{#2}}
+\newcommand{\repo}[2]{\href{https://github.com/harsh-nod/ptx_verifier/blob/f0ee44285286aa1ea92f3e99aed6574ad89f3c82/#1}{#2}}
 \newcommand{\accept}{\textsc{Accept}}
 \newcommand{\reject}{\textsc{Reject}}
 \newcommand{\unknown}{\textsc{Unknown}}
@@ -291,6 +291,19 @@ workload was freshly executed. Earlier compiler-corpus validation verified
 18 target/kernel configurations and all 708 output elements. Earlier exact-assembly
 hardware probes passed 66 cases and 16,244 output words across the
 three targets; these bounded probes do not replace full-workload verification.
+
+A frozen comparison against the full-trace fork baseline \code{0e634bc} detects
+20/20 core seeded write-conflict configurations versus 13/20, retaining all
+15/18 baseline complete safe proofs. Across 31 paired fresh-process repeats,
+first-diagnostic medians for inserted-store matvec, convolution and attention
+seeds improve by 22.2$\times$, 101.7$\times$ and 227.9$\times$; GEMM's baseline
+timeout has no ratio. Nine of ten portable late-store medians are slower;
+five are 8.3--13.4\% slower with descriptive ratio intervals above one.
+Six reserved configurations retain three safe proofs and two of three hazard
+detections; a transpose seed remains inconclusive at address preflight.
+The \href{https://github.com/harsh-nod/ptx_verifier/blob/44dcc61a12986ae51f8cb09486d34022fdec9fa8/tests/amdgpu/memory-conflicts-study/results/README.md}{complete results}
+retain every miss, timing observation and audit identity. These CPU verifier
+measurements do not establish performance or bug coverage for arbitrary kernels.
 
 Reproduction starts with \code{cargo test --release --workspace} and
 \code{just test-python}; the
