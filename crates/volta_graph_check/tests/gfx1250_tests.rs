@@ -1704,7 +1704,7 @@ fn partial_async_waits_do_not_invent_fifo_between_loads_and_stores() {
     }
     for mixed in [false, true] {
         for threshold in [0, 1] {
-            let mut t = Trace::new(1);
+            let mut t = Trace::new(32);
             issue(&mut t, true, 4096, 0);
             issue(&mut t, !mixed, 8192, 256);
             t.wait(0, AmdCounter::Load, 0);

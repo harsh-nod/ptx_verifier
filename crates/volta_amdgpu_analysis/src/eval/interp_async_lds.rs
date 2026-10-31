@@ -18,7 +18,7 @@ impl Interpreter<'_> {
         if wave.exec == 0 {
             return Ok(());
         }
-        let offset = match instruction.modifiers() {
+        let offset = match instruction.modifiers().as_slice() {
             [] => 0,
             [modifier] if modifier.name == "offset" => modifier
                 .value

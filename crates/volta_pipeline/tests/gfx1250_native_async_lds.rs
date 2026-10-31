@@ -20,7 +20,7 @@ s_endpgm
 .amdhsa_kernel k
 .amdhsa_wavefront_size32 1
 .amdhsa_system_vgpr_workitem_id 0
-.amdhsa_group_segment_fixed_size 1024
+.amdhsa_group_segment_fixed_size 2048
 .end_amdhsa_kernel
 "#
     )
@@ -381,7 +381,7 @@ fn complete_lds_footprint_fits_one_object_and_the_last_allocation_byte() {
                 }
             ))
     );
-    for start in [1008, 1024] {
+    for start in [2032, 2048] {
         let body = copy("s_wait_asynccnt 0", 0)
             .replace(
                 "global_load_async_to_lds_b128 v1",
@@ -389,7 +389,7 @@ fn complete_lds_footprint_fits_one_object_and_the_last_allocation_byte() {
             )
             .replace("ds_load_b128 v[8:11],v1", "ds_load_b128 v[8:11],v12");
         let checked = run(&body, 1, 4);
-        if start == 1008 {
+        if start == 2032 {
             assert_eq!(
                 checked.checks.conclusion(),
                 GraphConclusion::Verified,
