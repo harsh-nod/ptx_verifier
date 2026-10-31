@@ -76,9 +76,12 @@ implemented in Rust; it does not depend on LLVM or MLIR.
 | `volta_graph_check` | Independent graph properties and their certificates/witnesses |
 | `volta_equivalence` | Algebraic equivalence, numerical refutations and VC serialization |
 
-The `volta_amd_analysis` crate contains an experimental parser/lowering path.
-The native `amdgpu` CLI backend uses `volta_amdgpu_analysis`; these crate names
-do not select interchangeable implementations.
+The `volta_amd_analysis` crate contains an experimental typed gfx950 interpreter
+with copy/add output fixtures. Its graph has no access events and supplies no
+native safety proof. The native `amdgpu` CLI backend uses
+`volta_amdgpu_analysis`; these crate names do not select interchangeable
+implementations. `volta_trainium_analysis` contains an NKI example and module
+boundaries, with no execution or CLI backend yet.
 
 The optional gfx1250 [early readiness observer](early-readiness.md) consumes
 complete instruction batches using checker-owned scalar readiness transitions.

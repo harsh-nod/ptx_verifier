@@ -5,6 +5,8 @@ mod tests;
 
 use std::fmt;
 
+use id_collections::IdVec;
+
 use crate::frontend::ast::{Counter, Instruction, Kernel, Operand, RegFile};
 use crate::ir::{LoweredInstr, LoweredKernel, Sgpr, Vgpr};
 
@@ -61,7 +63,7 @@ pub fn lower_kernel(kernel: &Kernel) -> Result<LoweredKernel, LowerError> {
     Ok(LoweredKernel {
         name: kernel.name.clone(),
         target: kernel.target.clone(),
-        instructions,
+        instructions: IdVec::from_vec(instructions),
         descriptor: kernel.descriptor.clone(),
     })
 }
@@ -89,6 +91,12 @@ fn lower_instruction(instruction: &Instruction) -> Result<LoweredInstr, &'static
     use LoweredInstr::*;
 
     match (instruction.opcode.as_str(), instruction.operands.as_slice()) {
+        ("s_load_dwordx2", [dst, base, offset]) => Ok(ScalarLoadDwordx2 {
+            dst: sgprs(dst).ok_or("expected an aligned SGPR destination pair")?,
+            base: sgprs(base).ok_or("expected an aligned SGPR base pair")?,
+            offset: immediate(offset, 0xfffff)
+                .ok_or("expected a nonnegative 20-bit byte offset")?,
+        }),
         ("s_load_dwordx4", [dst, base, offset]) => Ok(ScalarLoadDwordx4 {
             dst: sgprs(dst).ok_or("expected an aligned four-SGPR destination")?,
             base: sgprs(base).ok_or("expected an aligned SGPR base pair")?,
@@ -99,6 +107,12 @@ fn lower_instruction(instruction: &Instruction) -> Result<LoweredInstr, &'static
             dst: vgpr(dst).ok_or("expected one destination VGPR")?,
             src: vgpr(src).ok_or("expected one source VGPR")?,
             shift: immediate(shift, u32::MAX).ok_or("expected a 32-bit immediate shift input")?,
+        }),
+        // VOP2 also accepts an SGPR or a constant as src0; only VGPR sources are supported.
+        ("v_add_f32_e32", [dst, src0, src1]) => Ok(AddF32 {
+            dst: vgpr(dst).ok_or("expected one destination VGPR")?,
+            src0: vgpr(src0).ok_or("expected one VGPR first source")?,
+            src1: vgpr(src1).ok_or("expected one VGPR second source")?,
         }),
         ("global_load_dword", [dst, vaddr, saddr]) => Ok(GlobalLoadDword {
             dst: vgpr(dst).ok_or("expected one destination VGPR")?,
@@ -113,8 +127,8 @@ fn lower_instruction(instruction: &Instruction) -> Result<LoweredInstr, &'static
         ("s_waitcnt", operands) => lower_wait(operands),
         ("s_endpgm", []) => Ok(EndPgm),
         (
-            "s_load_dwordx4" | "v_lshlrev_b32_e32" | "global_load_dword" | "global_store_dword"
-            | "s_endpgm",
+            "s_load_dwordx2" | "s_load_dwordx4" | "v_lshlrev_b32_e32" | "v_add_f32_e32"
+            | "global_load_dword" | "global_store_dword" | "s_endpgm",
             _,
         ) => Err("unsupported operand count"),
         _ => Err("unsupported instruction"),

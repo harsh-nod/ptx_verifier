@@ -12,6 +12,11 @@ must validate tentative barrier, completion and memory associations before
 using them to establish ordering. An incomplete execution cannot become
 `Verified` merely because checks on its prefix pass.
 
+Native AMD producers use a supported `gfx` target and its explicit trace
+contract. An unnormalized `amdgcn-...` target is inconclusive rather than falling
+through to PTX checks. A completed placeholder graph without AMD access events
+and trace premises supplies no native safety proof.
+
 ## PTX checks
 
 The PTX graph branch of the pipeline runs ten checks over one `volta_graph::EventGraph`
