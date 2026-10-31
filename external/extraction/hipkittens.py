@@ -131,8 +131,9 @@ def main() -> None:
                         help="native target; this pinned CDNA4 library recipe supports gfx950")
     options = parser.parse_args()
     if options.target != "gfx950":
-        parser.error(f"UNSUPPORTED: pinned HipKittens {PINNED_REVISION} has no configured native {options.target} extraction profile. "
+        parser.error(f"UNSUPPORTED: this legacy CDNA4 extraction recipe has no configured native {options.target} profile. "
                      "The CDNA4 macros and wave64 launch contracts must not be silently retargeted. "
+                     "The pinned library has separate CDNA3 and CDNA5 sources; see hipkittens_inventory.py for the complete source inventory. "
                      "For generic gfx1250 LLVM extraction use: python3 tests/gfx1250/compile_fixtures.py tests/gfx1250/fixtures. "
                      "That corpus does not establish HipKittens or hardware support.")
     import pybind11
