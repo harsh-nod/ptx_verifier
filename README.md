@@ -67,6 +67,12 @@ commands then print `VERDICT: REJECT` and exit 1, with an incomplete prefix and
 no output or equivalence result. With this option disabled, execution uses its
 normal instruction, bounds and budget checks.
 
+Opt-in [early memory-conflict rejection](docs/early-memory-conflicts.md) handles
+overlapping ordinary writes by distinct active lanes of one gfx950/gfx1250
+memory instruction. Independent prefix replay must reproduce the exact conflict
+before stopping. It reports a rejection without complete outputs or equivalence;
+default execution retains its full diagnostic path.
+
 Supported gfx1250 tensor transfers also receive a separate
 [LDS bounds check](docs/tensor-bounds.md). A certified out-of-bounds attempt
 prints `VERDICT: REJECT` and exits 1 without issuing the transfer or producing
