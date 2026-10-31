@@ -13,6 +13,8 @@ import hipkittens_vectors as vectors
 def reclassify(directory):
     report_path = directory / 'report.json'
     original = json.loads(report_path.read_text())
+    profile = vectors.PROFILES[original.get('profile', 'copy')]
+    proof_key = 'full_identity_proved' if profile == vectors.COPY else 'full_specification_proved'
     rows = original['results']
     vectors.inventory.require(rows and len(rows) == original['cases'] == len({row['id'] for row in rows}),
                               'missing or duplicate preserved vector cases')
@@ -33,15 +35,14 @@ def reclassify(directory):
         except ValueError:
             status = 'contract_error'
         full_math = vectors.full_identity_proved(record, stdout, stderr, row['elements'])
-        return status, full_math
+        return status, full_math, record, stdout, stderr
 
     for row in rows:
-        status, full_math = classify(row, 'verify')
-        if status != row['status'] or full_math != row['full_identity_proved']:
+        status, full_math, _, _, _ = classify(row, 'verify')
+        if status != row['status'] or full_math != row[proof_key]:
             differences.append({'case': row['id'], 'original_status': row['status'], 'new_status': status,
-                                'original_full_identity_proved': row['full_identity_proved'],
-                                'new_full_identity_proved': full_math})
-        results.append({'id': row['id'], 'dtype': row['dtype'], 'status': status, 'full_identity_proved': full_math})
+                                'original_' + proof_key: row[proof_key], 'new_' + proof_key: full_math})
+        results.append({'id': row['id'], 'dtype': row['dtype'], 'status': status, proof_key: full_math})
     known = {row['id']: row for row in rows}
     controls = []
     for control in original['mathematical_controls']:
@@ -51,7 +52,16 @@ def reclassify(directory):
             controls.append({'dtype': control['dtype'], 'status': control['status'], 'passed': False})
             continue
         case = known[control['case']]
-        status, _ = classify({**case, 'stage': control['stage']}, 'wrong-spec')
+        status, _, record, stdout, stderr = classify({**case, 'stage': control['stage']}, 'wrong-spec')
+        if profile == vectors.ADD1:
+            checked = vectors.math_control(case, record, stdout, stderr, profile)
+            checked.pop('stage')
+            previous = {key: value for key, value in control.items() if key != 'stage'}
+            if checked != previous:
+                differences.append({'case': control['case'], 'kind': 'wrong-spec',
+                                    'original_control': previous, 'new_control': checked})
+            controls.append(checked)
+            continue
         if status != control['status'] or (status == 'mathematical_mismatch') != control['passed']:
             differences.append({'case': control['case'], 'kind': 'wrong-spec', 'original_status': control['status'],
                                 'new_status': status})
@@ -64,7 +74,8 @@ def reclassify(directory):
             'reclassification_source_sha256': vectors.inventory.sha(Path(__file__).read_bytes()),
             'binary_sha256': original['input_sha256']['binary'], 'cases': len(results),
             'outcomes': dict(sorted(Counter(row['status'] for row in results).items())),
-            'full_identity_proofs': sum(row['full_identity_proved'] for row in results),
+            ('full_identity_proofs' if profile == vectors.COPY else 'full_specification_proofs'):
+                sum(row[proof_key] for row in results),
             'mathematical_controls': controls, 'differences': differences,
             'transcript_inventory_sha256': vectors.inventory.sha(serialized), 'transcript_inventory': inventory,
             'results': results}
@@ -84,7 +95,8 @@ def main():
             stream.write(json.dumps(document, indent=2) + '\n')
     except (OSError, ValueError, KeyError, TypeError) as error:
         parser.error(str(error))
-    print(json.dumps({key: document[key] for key in ['cases', 'outcomes', 'full_identity_proofs', 'differences']}, indent=2))
+    print(json.dumps({key: document[key] for key in ['cases', 'outcomes', 'full_identity_proofs',
+                                                  'full_specification_proofs', 'differences'] if key in document}, indent=2))
     return bool(document['differences'])
 
 

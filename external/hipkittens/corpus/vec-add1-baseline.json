@@ -1,0 +1,690 @@
+{
+  "schema_version": 1,
+  "profile": "vec-add1",
+  "scope": "One complete baseline coverage run of 84 unchanged original f32 vec_add1 specializations. No candidate comparison, GPU execution or latency claim.",
+  "upstream": {
+    "repository": "https://github.com/HazyResearch/HipKittens",
+    "revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+    "source": "tests/unit/cdna4/warp/register/vec/maps.cu",
+    "source_sha256": {
+      "tests/unit/cdna4/warp/register/vec/maps.cu": "77c66d287961f0f4e7ad3d828ffc4e7cd16c27e5b967b54c730cbab6762d94f5",
+      "tests/unit/common/testing_commons/testing_commons.cuh": "fd9cec649447f74b0eb1f8d1f6c84e2387de01685cd82e6d7ead083e42006b41",
+      "tests/unit/common/testing_commons/testing_flags.cuh": "1cc0f42e6b3bdd64d2c1d03ea086d486bb9ac78fd0a03ee1fceab67b3c0a9365",
+      "include/cdna4/common/util.cuh": "c11f7787e33d5f5fc2b1781550e9b30b3f0423c3447b54610804767e4ce0b1b9",
+      "include/cdna4/types/global/gl.cuh": "e1e8484f5bc444c2c4f3254f5d76a89f32fae6e8fb0364572d70dbe87bd6940d",
+      "include/cdna4/types/global/util.cuh": "735cda03066360ce5e827940ae01f60e427e65f9570cc82a11f1f850eddf3b33"
+    },
+    "inventory_sha256": "de7924dffa94767892feaf11fa078bad00cecf743a7fe76f84a12610fae41172"
+  },
+  "verifier": {
+    "revision": "e239cfc851a32114dcfbf9d22616aeadb7c4ee24",
+    "binary_sha256": "6354b2327247d298d68e67d71cffb3dd458b554877c65dc0657a4f6efd2e35ca",
+    "build_record_sha256": "0d1906459eef74eed24e7635ceab0f5b057bd7e78360f2b3873d3201919b459a"
+  },
+  "harness": {
+    "revision": "9f018f7989df1e22b2d6e445ba937985d3cddca3",
+    "input_sha256": {
+      "driver": "75b1cb6e39593d0ce118e93a87d5af8922cf4657e8dd0f1848948af4d51a18f2",
+      "inventory": "f036610cc6ee2ff114ba6ff3723b830cd20dd444aae2e1fc6cc5dd9234c3e265",
+      "corpus": "7c92f66dc11bc01f0c8525f77705bd50f45032824568686c2399ccef4c013148",
+      "legacy_import": "0990a4822a3b6a210075ae6dbb29dc994eee130901d052b1cb80ffbd5fae2a99",
+      "source_inventory": "de7924dffa94767892feaf11fa078bad00cecf743a7fe76f84a12610fae41172",
+      "assembly": "872ea25e828b871411b1aa75239509d8a476035c13120815146c10f6f8e2b0a5",
+      "object": "ef11629cd85e6db7d34b37b728639c046455758bf8d8587288994d65f9bc2bef",
+      "source_report": "3f657d104de8144e5a58a4b5edec889bcbf4a72e1e0ef63b41f4c4a223f90ab4",
+      "binary": "6354b2327247d298d68e67d71cffb3dd458b554877c65dc0657a4f6efd2e35ca",
+      "compiler": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28"
+    }
+  },
+  "original_module": {
+    "source_campaign_report_sha256": "3f657d104de8144e5a58a4b5edec889bcbf4a72e1e0ef63b41f4c4a223f90ab4",
+    "assembly_sha256": "872ea25e828b871411b1aa75239509d8a476035c13120815146c10f6f8e2b0a5",
+    "object_sha256": "ef11629cd85e6db7d34b37b728639c046455758bf8d8587288994d65f9bc2bef",
+    "emitted_original_entrypoints": 84
+  },
+  "launch_contract": {
+    "target": "gfx950",
+    "wave_size": 64,
+    "dtype": "f32",
+    "block": [
+      64,
+      1,
+      1
+    ],
+    "grid": [
+      1,
+      1,
+      1
+    ],
+    "workgroup_id": [
+      0,
+      0,
+      0
+    ],
+    "dynamic_shared_bytes": 80000,
+    "size_formula": "N = S * RT_SHAPE::cols",
+    "size_multipliers": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "layouts": [
+      "align",
+      "naive",
+      "ortho"
+    ],
+    "rt_shapes": [
+      [
+        16,
+        16,
+        4
+      ],
+      [
+        16,
+        32,
+        4
+      ],
+      [
+        16,
+        32,
+        8
+      ],
+      [
+        32,
+        16,
+        4
+      ],
+      [
+        32,
+        16,
+        8
+      ],
+      [
+        32,
+        32,
+        4
+      ],
+      [
+        32,
+        32,
+        8
+      ]
+    ],
+    "by_value_gl": {
+      "offsets": [
+        0,
+        16
+      ],
+      "size_bytes": 16,
+      "alignment_bytes": 8,
+      "pointer_offset": 0,
+      "pointer_bases": [
+        65536,
+        131072
+      ]
+    },
+    "output_indices": "Every absolute out index 0..N-1; no sampling",
+    "host_reference": "vec_add1::host_func in the pinned maps.cu; wrapper_1d in testing_commons.cuh",
+    "gl_static_layout_proof_sha256": "eefabef46c68673392bf0d0104e949db720afec21538ff6587b3aa74ebab01ad",
+    "gl_static_layout_compiler_record_sha256": "21d71cdb6be1e6d31903a40bb3059243819f48ff1563415d58b0d995b15c4f41"
+  },
+  "specification": {
+    "equation": "out[i] = x[i] + 1",
+    "sha256": "6b8ebb69429c19269288dd65cc9f491743f32b3d3783b9d882c09ae56ec79eab",
+    "wrong_equation": "out[i] = x[i] + 2",
+    "wrong_sha256": "136934e8790ec4f84753f857cbfaa9c3f285d2874ac043b302c1515ed6b940b2",
+    "model": "Mathematical-real expressions; no hardware bit-exact floating-point claim"
+  },
+  "baseline": {
+    "report_sha256": "1ce03b722a12c02275bacd6c9ab73af814558e4153c58387b9daead6c23fa8b2",
+    "cases_sha256": "017769eab69b21228e0dfdfc97ccf90574948c122da0c1864c7d3f8a1651f2cc",
+    "cases": 84,
+    "combined_verified": 0,
+    "outcomes": {
+      "graph_rejected": 56,
+      "unsupported": 28
+    },
+    "full_specification_proofs": 56,
+    "all_original_cases_verified": false,
+    "by_layout": {
+      "align": {
+        "graph_rejected": 28
+      },
+      "naive": {
+        "unsupported": 28
+      },
+      "ortho": {
+        "graph_rejected": 28
+      }
+    },
+    "unsupported_first_instructions": {
+      "buffer_load_dword offen": 20,
+      "buffer_load_dwordx2 offen": 8
+    },
+    "completed_graph_rejection": "All 56 completed align/ortho traces have typed Global WriteWrite conflicts. Matching final mathematical outputs do not waive those rejections.",
+    "mathematical_control": {
+      "case": "f32-rt16x16x4-s1-align",
+      "status": "graph_rejected",
+      "original_graph_status": "graph_rejected",
+      "math_refuted": true,
+      "graph_verified": false
+    }
+  },
+  "source_recheck": {
+    "report_sha256": "9ab26502997c95f3233bd36b86510512d999b5c982a6ebe53de0d46d77944f64",
+    "source_sha256": "b804ccae34b99c15f6b0a9d75dd1efb3522f604b8c10a040e13114f5b1720852",
+    "classifier_sha256": "75b1cb6e39593d0ce118e93a87d5af8922cf4657e8dd0f1848948af4d51a18f2",
+    "shared_checks_sha256": "7c92f66dc11bc01f0c8525f77705bd50f45032824568686c2399ccef4c013148",
+    "original_report_sha256": "1ce03b722a12c02275bacd6c9ab73af814558e4153c58387b9daead6c23fa8b2",
+    "transcript_inventory_sha256": "b51fddce88747fff08e4f9530480b490732777a6f6508bb4f550116460e2a6a3",
+    "transcripts": 85,
+    "differences": []
+  },
+  "results": [
+    {
+      "id": "f32-rt16x16x4-s1-align",
+      "elements": 16,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x16x4-s1-naive",
+      "elements": 16,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt16x16x4-s1-ortho",
+      "elements": 16,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x16x4-s2-align",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x16x4-s2-naive",
+      "elements": 32,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt16x16x4-s2-ortho",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x16x4-s3-align",
+      "elements": 48,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x16x4-s3-naive",
+      "elements": 48,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt16x16x4-s3-ortho",
+      "elements": 48,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x16x4-s4-align",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x16x4-s4-naive",
+      "elements": 64,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt16x16x4-s4-ortho",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x4-s1-align",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x4-s1-naive",
+      "elements": 32,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt16x32x4-s1-ortho",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x4-s2-align",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x4-s2-naive",
+      "elements": 64,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt16x32x4-s2-ortho",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x4-s3-align",
+      "elements": 96,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x4-s3-naive",
+      "elements": 96,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt16x32x4-s3-ortho",
+      "elements": 96,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x4-s4-align",
+      "elements": 128,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x4-s4-naive",
+      "elements": 128,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt16x32x4-s4-ortho",
+      "elements": 128,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x8-s1-align",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x8-s1-naive",
+      "elements": 32,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt16x32x8-s1-ortho",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x8-s2-align",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x8-s2-naive",
+      "elements": 64,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt16x32x8-s2-ortho",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x8-s3-align",
+      "elements": 96,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x8-s3-naive",
+      "elements": 96,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt16x32x8-s3-ortho",
+      "elements": 96,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x8-s4-align",
+      "elements": 128,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt16x32x8-s4-naive",
+      "elements": 128,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt16x32x8-s4-ortho",
+      "elements": 128,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x4-s1-align",
+      "elements": 16,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x4-s1-naive",
+      "elements": 16,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x16x4-s1-ortho",
+      "elements": 16,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x4-s2-align",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x4-s2-naive",
+      "elements": 32,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x16x4-s2-ortho",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x4-s3-align",
+      "elements": 48,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x4-s3-naive",
+      "elements": 48,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x16x4-s3-ortho",
+      "elements": 48,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x4-s4-align",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x4-s4-naive",
+      "elements": 64,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x16x4-s4-ortho",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x8-s1-align",
+      "elements": 16,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x8-s1-naive",
+      "elements": 16,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x16x8-s1-ortho",
+      "elements": 16,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x8-s2-align",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x8-s2-naive",
+      "elements": 32,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x16x8-s2-ortho",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x8-s3-align",
+      "elements": 48,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x8-s3-naive",
+      "elements": 48,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x16x8-s3-ortho",
+      "elements": 48,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x8-s4-align",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x16x8-s4-naive",
+      "elements": 64,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x16x8-s4-ortho",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x4-s1-align",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x4-s1-naive",
+      "elements": 32,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x32x4-s1-ortho",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x4-s2-align",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x4-s2-naive",
+      "elements": 64,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x32x4-s2-ortho",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x4-s3-align",
+      "elements": 96,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x4-s3-naive",
+      "elements": 96,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x32x4-s3-ortho",
+      "elements": 96,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x4-s4-align",
+      "elements": 128,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x4-s4-naive",
+      "elements": 128,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x32x4-s4-ortho",
+      "elements": 128,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x8-s1-align",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x8-s1-naive",
+      "elements": 32,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x32x8-s1-ortho",
+      "elements": 32,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x8-s2-align",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x8-s2-naive",
+      "elements": 64,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x32x8-s2-ortho",
+      "elements": 64,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x8-s3-align",
+      "elements": 96,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x8-s3-naive",
+      "elements": 96,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x32x8-s3-ortho",
+      "elements": 96,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x8-s4-align",
+      "elements": 128,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    },
+    {
+      "id": "f32-rt32x32x8-s4-naive",
+      "elements": 128,
+      "status": "unsupported",
+      "full_specification_proved": false
+    },
+    {
+      "id": "f32-rt32x32x8-s4-ortho",
+      "elements": 128,
+      "status": "graph_rejected",
+      "full_specification_proved": true
+    }
+  ]
+}
