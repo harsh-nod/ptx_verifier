@@ -140,8 +140,10 @@ object lifetimes. None of these semantics follows by renaming a CDNA opcode.
 \subsection{Fixed contract and native symbolic execution}
 
 An analysis fixes the target, entry, launch dimensions, argument layout and
-bounded allocations. It executes workgroup \((0,0,0)\); the configured grid
-still supplies ABI inputs. Addresses, control decisions and synchronization
+bounded allocations. Workgroup \((0,0,0)\) is the default selection; native
+analysis can instead select one in-grid workgroup, retaining absolute output
+indices. The configured grid still supplies
+ABI inputs. Addresses, control decisions and synchronization
 parameters must become concrete, while arithmetic data may remain symbolic.
 
 \Needspace{5\baselineskip}
@@ -184,6 +186,13 @@ The repository's graph infrastructure is shared with PTX. Its PTX tensor/proxy
 certificates are not reused as AMD safety rules. Graph checking validates typed
 records; it trusts the producer's instruction values and memory addresses and
 is not a second assembly interpreter.
+
+An opt-in gfx1250 observer reuses the checker's scalar-load readiness transitions
+after complete instruction batches. A later wait cannot repair an earlier
+unready read. The pipeline independently replays that witness before exposing
+an early rejection; a generic stopped prefix remains inconclusive. No END,
+complete outputs or equivalence result is invented. Ordinary execution remains
+the default, and every acceptance still requires the complete checks.
 
 \paragraph{CDNA completion and publication.}
 gfx942/gfx950 waits discharge VM/LGKM obligations; FLAT can charge both.
@@ -238,7 +247,7 @@ also does not establish IEEE rounding, NaN behavior or approximation error.
 
 \section{Implementation and evaluation}
 
-The implementation snapshot is \code{fd640e6}; the PTX-only comparison baseline
+The implementation snapshot is \code{c3cb9ea}; the PTX-only comparison baseline
 is \code{e8f8199}. The main code paths are
 \repo{crates/volta_amdgpu_analysis/README.md}{native parsing/execution},
 \repo{crates/volta_graph_check/src/amdgpu.rs}{CDNA graph checking},
@@ -258,12 +267,15 @@ check missing waits, early reuse, malformed descriptors and barrier lifetimes.
 \item Full output contracts check dimensions, storage, projections and every
 required index; independent numerical drivers check finite device behavior.
 \end{itemize}
-At the stated snapshot, the release workspace passed 2,089 Rust tests and the
-rebuilt extension passed 113 Python tests. These are regression results, not an
+At the stated snapshot, the release workspace passed 2,245 Rust tests and the
+rebuilt extension passed 127 Python tests. These are regression results, not an
 ISA coverage percentage or a proof of all schedules. The original-workload
 registry contains 32 registrations; default CLI/Python interface tests select
 W01--W18. Static registry consistency is not evidence that every full-size
-workload was freshly executed. No new GPU run is claimed in this report.
+workload was freshly executed. A separate unchanged compiler corpus verifies
+18 target/kernel configurations and all 708 output elements. Exact-assembly
+hardware probes separately passed 66 cases and 16,244 output words across the
+three targets; these bounded probes do not replace full-workload verification.
 
 Reproduction starts with \code{cargo test --release --workspace} and
 \code{just test-python}; the
