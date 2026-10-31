@@ -214,7 +214,7 @@ fn aperture_transport_cannot_supply_numeric_bits_initialization_or_lds_bounds() 
         let body = fixture::copy(false);
         for (body, expected) in [
             (
-                body.replace("s_mov_b32 s8,8", "s_mov_b32 s8,9"),
+                body.replace("s_mov_b32 s8,8", "s_mov_b32 s8,7"),
                 "misaligned",
             ),
             (
@@ -248,7 +248,7 @@ fn aperture_transport_cannot_supply_numeric_bits_initialization_or_lds_bounds() 
         ];
         refused(
             target,
-            &body.replace("flat_load_dword v5", "flat_load_dwordx2 v[5:6]"),
+            &body.replace("flat_load_dword v5", "flat_load_dwordx2 v[12:13]"),
             config,
             "footprint crosses configured allocation boundaries",
         );
