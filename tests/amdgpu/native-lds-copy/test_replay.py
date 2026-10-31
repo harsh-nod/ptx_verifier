@@ -47,6 +47,11 @@ class ReplayControls(unittest.TestCase):
         )
         self.refused_transcript(text + "EQUIVALENT (matches spec)\n", baseline=True)
         self.refused_transcript(text + "    out[0] = x[0]\n", baseline=True)
+        self.refused_transcript(
+            text
+            + "  equivalence: 2 element(s) refuted by a numeric counterexample, first out[0]\n",
+            baseline=True,
+        )
 
     def test_typed_hazards_and_errors_in_either_stream_refused(self):
         good = self.text("candidate", "verify.stdout")
@@ -83,6 +88,10 @@ class ReplayControls(unittest.TestCase):
             good.replace("all 64 compared", "all 63 compared"),
             good.replace("instructions: 31", "instructions: 30"),
             good.replace("block syncs: 1", "block syncs: 0"),
+            good
+            + "  equivalence: 2 element(s) refuted by a numeric counterexample, first out[0]\n",
+            good + "  equivalence: not decided: decision procedure timed out\n",
+            good + "  equivalence: all 64 compared elements proved equivalent\n",
         )
         for text in mutations:
             with self.subTest(text=text[-100:]):
@@ -179,7 +188,9 @@ class ReplayControls(unittest.TestCase):
     def test_changed_input_or_inventory_is_refused(self):
         with tempfile.TemporaryDirectory() as directory:
             tmp = Path(directory) / "package"
-            shutil.copytree(ROOT, tmp, ignore=shutil.ignore_patterns("__pycache__"))
+            shutil.copytree(
+                ROOT, tmp, ignore=shutil.ignore_patterns("__pycache__", ".ruff_cache")
+            )
             (tmp / "identity.spec").write_text("out[i] = 0;\n")
             with self.assertRaisesRegex(ValueError, "package input changed"):
                 replay.inputs(tmp)
@@ -194,10 +205,30 @@ class ReplayControls(unittest.TestCase):
     def test_changed_capture_hash_is_refused(self):
         with tempfile.TemporaryDirectory() as directory:
             tmp = Path(directory) / "package"
-            shutil.copytree(ROOT, tmp, ignore=shutil.ignore_patterns("__pycache__"))
+            shutil.copytree(
+                ROOT, tmp, ignore=shutil.ignore_patterns("__pycache__", ".ruff_cache")
+            )
             (tmp / "results/candidate/verify.stdout").write_text("VERDICT: ACCEPT\n")
             with self.assertRaises(ValueError):
                 replay.check_recorded(tmp)
+
+    def test_generated_caches_are_ignored_and_nested_inventory_files_are_checked(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tmp = Path(directory) / "package"
+            shutil.copytree(
+                ROOT, tmp, ignore=shutil.ignore_patterns("__pycache__", ".ruff_cache")
+            )
+            before = replay.inputs(tmp)
+            for name in [".ruff_cache/state", "__pycache__/replay.pyc"]:
+                path = tmp / name
+                path.parent.mkdir(exist_ok=True)
+                path.write_bytes(b"regenerable tool cache")
+            self.assertEqual(replay.inputs(tmp), before)
+            nested = tmp / "unlisted" / "checksums.json"
+            nested.parent.mkdir()
+            nested.write_text("{}\n")
+            with self.assertRaisesRegex(ValueError, "inventory changed"):
+                replay.inputs(tmp)
 
 
 if __name__ == "__main__":

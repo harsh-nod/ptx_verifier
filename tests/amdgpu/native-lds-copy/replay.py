@@ -44,7 +44,9 @@ def inputs(root=ROOT):
     actual = {
         p.relative_to(root).as_posix()
         for p in root.rglob("*")
-        if p.is_file() and "__pycache__" not in p.parts and p.name != "checksums.json"
+        if p.is_file()
+        and not {"__pycache__", ".ruff_cache"}.intersection(p.relative_to(root).parts)
+        and p != root / "checksums.json"
     }
     require(set(inventory) == actual, "package inventory changed")
     for name, digest in inventory.items():
@@ -128,7 +130,19 @@ def check_transcript(stdout, stderr, code, baseline, verify):
         ),
         "contradictory overall endpoint",
     )
+    equivalence_details = re.findall(r"^  equivalence: (.*)$", stdout, re.M)
+    if not verify:
+        require(not equivalence_details, "unexpected equivalence detail in analyze")
     if baseline:
+        if verify:
+            require(
+                equivalence_details
+                == [
+                    "not decided: kernel: execution stopped: wave 0 lane Some(0), pc 24: "
+                    + STOP
+                ],
+                "baseline equivalence detail changed",
+            )
         require(
             STOP in stdout and "pc 24:" in stdout and "only a prefix:" in stdout,
             "baseline refusal changed",
@@ -161,8 +175,8 @@ def check_transcript(stdout, stderr, code, baseline, verify):
                 "VC footprint changed",
             )
             require(
-                "equivalence: all 64 compared elements proved equivalent" in stdout,
-                "proof population changed",
+                equivalence_details == ["all 64 compared elements proved equivalent"],
+                "proof population or equivalence detail changed",
             )
         else:
             rows = re.findall(r"^    out\[(\d+)\] = x\[(\d+)\]$", stdout, re.M)
