@@ -27,6 +27,9 @@ mod address_tests;
 #[path = "interp_input_tests.rs"]
 mod input_tests;
 #[cfg(test)]
+#[path = "interp_legacy_flat_tests.rs"]
+mod legacy_flat_tests;
+#[cfg(test)]
 #[path = "interp_scalar_address_tests.rs"]
 mod scalar_address_tests;
 // Synthetic module storage is disjoint from host-bound arrays and analyzer ABI
@@ -5783,6 +5786,50 @@ impl<'a> Interpreter<'a> {
                     continue;
                 }
                 "v_lshl_add_u64" => {
+                    if matches!(
+                        self.architecture,
+                        AmdArchitecture::Gfx942 | AmdArchitecture::Gfx950
+                    ) && instruction.source().encoding == Encoding::Default
+                        && instruction.modifiers().is_empty()
+                        && let [
+                            Operand::Register(destination),
+                            Operand::Register(base),
+                            Operand::Integer(0),
+                            Operand::Register(addend),
+                        ] = o
+                        && destination.class == RegisterClass::Vector
+                        && base.class == RegisterClass::Scalar
+                        && addend.class == RegisterClass::Vector
+                        && [destination, base, addend]
+                            .iter()
+                            .all(|register| register.count == 2 && register.special.is_none())
+                        && wave.reg(*base, lane, 1)? == Value::SharedApertureHi
+                    {
+                        let bits = |register, component| {
+                            wave.reg(register, lane, component)?
+                                .bits()
+                                .map_err(|error| wave.fail(Some(lane), error))
+                        };
+                        // Snapshot both addend words before an aliased write.
+                        // With exact shift zero and no low32 carry, adding
+                        // (offset, 0) leaves every possible aperture high word
+                        // unchanged. The tag never acquires numeric bits.
+                        let low = bits(*base, 0)?;
+                        let addend_low = bits(*addend, 0)?;
+                        let addend_high = bits(*addend, 1)?;
+                        if addend_high != 0 {
+                            return Err(wave.fail(
+                                Some(lane),
+                                "legacy shared-aperture addend requires a zero high word",
+                            ));
+                        }
+                        let offset = low.checked_add(addend_low).ok_or_else(|| {
+                            wave.fail(Some(lane), "legacy shared-aperture offset overflows low32")
+                        })?;
+                        wave.put(*destination, lane, 0, Value::Bits(offset))?;
+                        wave.put(*destination, lane, 1, Value::SharedApertureHi)?;
+                        continue;
+                    }
                     let base = wave.wide(&o[1], lane)?;
                     let shift = wave.bits(&o[2], lane)? & 63;
                     if self.architecture == AmdArchitecture::Gfx1250

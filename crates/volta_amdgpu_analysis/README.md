@@ -380,6 +380,28 @@ special destinations remain unsupported. This identity supplies no numeric
 aperture bits or additional pointer arithmetic. See the
 [scalar address controls](tests/scalar_address.rs).
 
+On gfx942/gfx950, bare `v_lshl_add_u64` also preserves that private aperture tag
+for one exact identity: an unmodified plain SGPR base pair, integer immediate
+shift zero, and a fully defined plain VGPR addend pair whose high word is zero.
+The low-word sum must not carry. Both source halves are read before an aliased
+plain VGPR destination changes; EXEC, SCC, VCC and all source-word dependency
+events retain their normal behavior. Floating or register shift operands,
+explicit encoding suffixes, modifiers, undefined or mathematical data, and
+other opaque arithmetic remain outside this profile. Ordinary concrete
+arithmetic and the separate gfx1250 scaled-address profile are unchanged.
+
+The existing legacy FLAT consumer models 64-bit addresses, including tagged
+shared-aperture pairs. PTR32 changes and other pointer-mode writes are
+unsupported; this scope does not attest an external hardware launch mode.
+Resolving the shared segment preserves both VM and LGKM completion obligations,
+configured LDS bounds, alignment, subobject limits and initialization checks.
+The aperture tag neither supplies numeric high bits nor creates initialized
+storage. The [CDNA3](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-mi300-cdna3-instruction-set-architecture.pdf)
+and [CDNA4](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
+§12.11 shift-zero equation and the
+[LLVM aperture ABI](https://github.com/ROCm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md#address-spaces)
+support this identity. See the [legacy FLAT controls](tests/legacy_flat_aperture.rs).
+
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
 subnormal behavior are outside that model. Encoded F16, BF16 and FP8 transport
