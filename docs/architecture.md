@@ -91,8 +91,9 @@ No early acceptance path is added. Disabling the observer retains the ordinary
 diagnostic path; unsupported execution or other errors can still abort a trace.
 
 The separate [early memory-conflict observer](early-memory-conflicts.md) handles
-gfx950/gfx1250 ordinary writes by different active lanes of one issued GLOBAL
-or direct DS/LDS instruction. Interval discovery proposes an untrusted witness;
+gfx950/gfx1250 ordinary writes by different active lanes of one issued
+global-memory (including supported raw-buffer) or direct DS/LDS instruction.
+Interval discovery proposes an untrusted witness;
 the existing target-selected checker must reproduce its exact pair and byte,
 with valid trace, readiness and barrier premises. The pipeline validates both
 the live and halted prefix. Candidate refusal permits later issues to be

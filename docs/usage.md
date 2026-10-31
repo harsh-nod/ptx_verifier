@@ -63,7 +63,8 @@ with sampling. Selection never rebases outputs or fills missing ones.
 
 `--config FILE` replaces launch flags and cannot be combined with `--block`,
 `--grid`, `--array`, `--param`, `--global`, `--dyn-shared` or
-`--shared-allocation`, `--workgroup-id` or `--early-readiness`.
+`--shared-allocation`, `--workgroup-id`, `--early-readiness` or
+`--early-memory-conflicts`.
 Backend and target selection remain separate options.
 See [launch_file.rs](../crates/volta_ptx_analysis/src/launch_file.rs) for the
 shared JSON schema and validation rules.
@@ -175,7 +176,7 @@ events, target geometry, source links and typed findings.
 | --- | --- | --- |
 | Ordinary `analyze` | `VERIFIED` / `REJECTED` / `UNKNOWN` | 0 / 1 / 2 |
 | `verify`, source `compare` | `ACCEPT` / `REJECT` / `UNKNOWN` | 0 / 1 / 2 |
-| Certified readiness or tensor-bounds finding, any source command | `VERDICT: REJECT` with incomplete prefix | 1 |
+| Certified readiness, memory-conflict or tensor-bounds finding, any source command | `VERDICT: REJECT` with incomplete prefix | 1 |
 | Expression/VC replay | Equivalence result without a graph verdict | 0 / 1 / 2 |
 
 A completed trace with passing graph checks is distinct from a proof of output
@@ -183,7 +184,9 @@ equivalence. Unsupported instructions, uninitialized values, budgets and missing
 synchronization evidence must be understood from their diagnostics; they are
 not successful results. Ordinary graph reports list the modeling assumptions
 used by the result. Early output identifies the witness; its full provenance
-and trust boundary are described in the [early-readiness guide](early-readiness.md).
+and trust boundary are described in the [early-readiness](early-readiness.md),
+[memory-conflict](early-memory-conflicts.md) and [tensor-bounds](tensor-bounds.md)
+guides.
 
 The CLI writes per-invocation logs to `volta-logs/`. Use `--log-dir DIR` to move
 them or `--no-log-file` to disable them. Stage logging is available with:
