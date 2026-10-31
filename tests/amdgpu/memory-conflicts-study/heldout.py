@@ -178,6 +178,8 @@ def summary(rows):
         for row in rows
         if row["expectation"] == "hazard"
         and not row["baseline_timing_eligible"]
+        and row["variants"]["baseline"]["status"]
+        in {"inconclusive", "unsupported", "timeout"}
         and row["variants"]["candidate"]["status"] == "certified_rejection"
         and not row["variants"]["candidate"]["measurement_errors"]
     ]

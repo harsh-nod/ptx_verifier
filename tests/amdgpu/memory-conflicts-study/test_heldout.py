@@ -181,6 +181,27 @@ class HeldoutControls(unittest.TestCase):
         self.assertEqual(result["hazard_denominator"], 3)
         self.assertEqual(result["new_coverage"], [])
 
+    def test_existing_finding_with_invalid_telemetry_is_not_new_coverage(self):
+        rows = self.rows()
+        row = next(row for row in rows if row["expectation"] == "hazard")
+        case = next(case for case in self.cases if case["id"] == row["case"])
+        row["variants"]["baseline"]["measurement_errors"] = ["missing RSS"]
+        row["baseline_timing_eligible"] = H.baseline_eligible(
+            case, row["variants"]["baseline"], None
+        )
+        row["variants"]["candidate"].update(status="certified_rejection", detected=True)
+        result = H.summary(rows)
+        self.assertFalse(row["baseline_timing_eligible"])
+        self.assertEqual(result["counts"]["baseline"]["hazards_detected"], 3)
+        self.assertEqual(result["new_coverage"], [])
+        self.assertEqual(result["new_coverage_families"], [])
+        self.assertFalse(result["correctness_gates_pass"])
+        for status in ("inconclusive", "unsupported", "timeout"):
+            row["variants"]["baseline"].update(status=status, detected=False)
+            result = H.summary(rows)
+            self.assertEqual(len(result["new_coverage"]), 1)
+            self.assertEqual(result["new_coverage"][0]["baseline_status"], status)
+
     def test_checked_qualification_cannot_drop_rows_or_change_baseline_eligibility(
         self,
     ):

@@ -57,7 +57,9 @@ Only baseline-qualified cases receive the unchanged 31 fresh-process repeats plu
 one separate first process, seed 20261031, adjacent randomized arm order and
 60-second budget. All six functional rows remain in the final report. A new
 candidate-only finding has an absolute observed diagnostic time and no baseline
-ratio. No retries, changed expectations, post-outcome replacement, or pooled
+ratio. New coverage requires a baseline inconclusive, Unsupported or timeout
+outcome; an existing finding disqualified by missing telemetry is not a new
+detection. No retries, changed expectations, post-outcome replacement, or pooled
 first/repeated samples are permitted.
 
 The safe export policy and median/p95/RSS limits are identical to development.
