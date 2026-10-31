@@ -62,6 +62,12 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
         data_alignment: 1,
         data_read_only: false,
         data_section_supported: false,
+        data_zero_fill: false,
+        data_section_kinds: BTreeMap::from([
+            (".data".into(), false),
+            (".rodata".into(), false),
+            (".bss".into(), true),
+        ]),
         constant_definitions: BTreeMap::new(),
         constant_spans: BTreeMap::new(),
     };
@@ -267,6 +273,8 @@ struct Parser {
     data_alignment: u64,
     data_read_only: bool,
     data_section_supported: bool,
+    data_zero_fill: bool,
+    data_section_kinds: BTreeMap<String, bool>,
     constant_definitions: BTreeMap<String, constant_expr::Expr>,
     constant_spans: BTreeMap<String, SourceSpan>,
 }
@@ -573,6 +581,7 @@ impl Parser {
                 self.text_section = false;
                 self.data_read_only = name == ".rodata";
                 self.data_section_supported = true;
+                self.data_zero_fill = name == ".bss";
             }
             ".section" | ".pushsection" => {
                 if name == ".pushsection" {
@@ -580,17 +589,19 @@ impl Parser {
                         ".pushsection requires a section stack and is unsupported".into(),
                     ));
                 }
-                let section = args.split(',').next().unwrap_or_default().trim_matches('"');
+                let mut parts = args.split(',');
+                let section = parts.next().unwrap_or_default().trim_matches('"');
                 self.finish_section(span)?;
                 self.text_section = section == ".text" || section.starts_with(".text.");
-                let flags = args
-                    .split(',')
-                    .nth(1)
-                    .unwrap_or_default()
-                    .trim()
-                    .trim_matches('"');
+                let flags = parts.next().unwrap_or_default().trim().trim_matches('"');
                 if flags.contains('x') && !self.text_section {
                     return Err(fail("unsupported executable section".into()));
+                }
+                if (section == ".rodata" || section.starts_with(".rodata.")) && flags.contains('w')
+                {
+                    return Err(fail(
+                        "writable flags on a read-only module data section are unsupported".into(),
+                    ));
                 }
                 self.data_read_only = !flags.contains('w');
                 self.data_section_supported = [".data", ".rodata", ".bss"].iter().any(|prefix| {
@@ -599,6 +610,33 @@ impl Parser {
                             .strip_prefix(prefix)
                             .is_some_and(|rest| rest.starts_with('.'))
                 });
+                if self.data_section_supported {
+                    let zero_fill = match parts.next().map(str::trim) {
+                        None => self
+                            .data_section_kinds
+                            .get(section)
+                            .copied()
+                            .unwrap_or(section.starts_with(".bss.")),
+                        Some("@nobits" | "%nobits") => true,
+                        Some("@progbits" | "%progbits") => false,
+                        _ => {
+                            return Err(fail(
+                                "unsupported module data section storage type".into(),
+                            ));
+                        }
+                    };
+                    if self
+                        .data_section_kinds
+                        .get(section)
+                        .is_some_and(|previous| *previous != zero_fill)
+                    {
+                        return Err(fail(
+                            "module data section storage type cannot change".into(),
+                        ));
+                    }
+                    self.data_section_kinds.insert(section.into(), zero_fill);
+                    self.data_zero_fill = zero_fill;
+                }
             }
             ".type" => {
                 let parts = instr::split_top_level(args, ',').map_err(&fail)?;
@@ -769,6 +807,7 @@ impl Parser {
             });
         }
         self.data_alignment = 1;
+        self.data_zero_fill = false;
         Ok(())
     }
 
@@ -857,6 +896,12 @@ impl Parser {
     }
 
     fn append_object_bytes(&mut self, bytes: &[u8], span: SourceSpan) -> Result<(), ParseError> {
+        if self.data_zero_fill && bytes.iter().any(|byte| *byte != 0) {
+            return Err(ParseError {
+                message: "NOBITS module data requires zero-filled bytes".into(),
+                span,
+            });
+        }
         let object = &mut self.module.globals[self.data_object.unwrap()];
         if (object.initial_bytes.len() as u64)
             .checked_add(bytes.len() as u64)

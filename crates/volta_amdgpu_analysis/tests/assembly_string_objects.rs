@@ -182,6 +182,156 @@ fn string_bytes_do_not_change_plain_ascii_profile_or_make_calls_legal() {
     }
 }
 
+#[test]
+fn nobits_storage_preserves_zero_fill_and_refuses_every_nonzero_initializer() {
+    for section in [
+        ".bss",
+        ".section .bss,\"aw\",@nobits",
+        ".section .bss,\"aw\"",
+        ".section .bss.zeros,\"aw\"",
+        ".section .data.zeros,\"aw\",@nobits",
+        ".section .rodata.zeros,\"a\",@nobits",
+    ] {
+        for (initializer, size) in [
+            (".asciz \"\"", 1),
+            (".byte 0", 1),
+            (".long 0", 4),
+            (".zero 4", 4),
+            (".space 4,0", 4),
+            (".fill 2,2,0", 4),
+        ] {
+            let text = source("gfx950", "\"\"", size)
+                .replace(".section .rodata.str1.16,\"aMS\",@progbits,1", section)
+                .replace(".asciz \"\"", initializer);
+            let module = frontend::parse(&text).unwrap();
+            assert_eq!(module.globals[0].initial_bytes, vec![0; size]);
+        }
+        for (initializer, size) in [
+            (".asciz \"A\"", 2),
+            (".ascii \"A\"", 1),
+            (".byte 1", 1),
+            (".long 1", 4),
+            (".space 4,1", 4),
+            (".fill 2,2,1", 4),
+        ] {
+            let text = source("gfx950", "\"\"", size)
+                .replace(".section .rodata.str1.16,\"aMS\",@progbits,1", section)
+                .replace(".asciz \"\"", initializer);
+            assert!(
+                frontend::parse(&text)
+                    .unwrap_err()
+                    .message
+                    .contains("NOBITS"),
+                "{section}: {initializer}"
+            );
+        }
+    }
+}
+
+#[test]
+fn canonical_or_redefined_section_type_contradictions_and_unknown_types_refuse() {
+    let original = source("gfx950", "\"\"", 1);
+    for section in [
+        ".section .data,\"aw\",@nobits",
+        ".section .rodata,\"a\",@nobits",
+        ".section .bss,\"aw\",@progbits",
+        ".section .data.custom,\"aw\",@note",
+        ".section .data.custom,\"aw\",unknown",
+        ".section .data.custom,\"aw\",",
+    ] {
+        let text = original.replace(".section .rodata.str1.16,\"aMS\",@progbits,1", section);
+        assert!(
+            frontend::parse(&text)
+                .unwrap_err()
+                .message
+                .contains("storage type"),
+            "{section}"
+        );
+    }
+    let changed = original.replace(
+        ".section .rodata.str1.16,\"aMS\",@progbits,1",
+        ".section .data.custom,\"aw\",@nobits",
+    ) + ".section .data.custom,\"aw\",@progbits\n";
+    assert!(
+        frontend::parse(&changed)
+            .unwrap_err()
+            .message
+            .contains("cannot change")
+    );
+}
+
+#[test]
+fn explicit_custom_storage_types_and_section_transitions_do_not_leak_nobits_state() {
+    for section in [
+        ".section .bss.custom,\"aw\",@progbits",
+        ".section .data.custom,\"aw\",@progbits",
+    ] {
+        let text = source("gfx950", "\"A\"", 2)
+            .replace(".section .rodata.str1.16,\"aMS\",@progbits,1", section);
+        assert_eq!(
+            frontend::parse(&text).unwrap().globals[0].initial_bytes,
+            b"A\0"
+        );
+    }
+    let text = source("gfx950", "\"\"", 1)
+        .replace(".section .rodata.str1.16,\"aMS\",@progbits,1", ".bss")
+        + ".text\n.data\n.type second,@object\nsecond:\n.asciz \"A\"\n.size second,2\n\
+           .bss\n.type third,@object\nthird:\n.zero 2\n.size third,2\n\
+           .rodata\n.type fourth,@object\nfourth:\n.asciz \"B\"\n.size fourth,2\n";
+    let module = frontend::parse(&text).unwrap();
+    assert_eq!(
+        module
+            .globals
+            .iter()
+            .map(|g| g.initial_bytes.as_slice())
+            .collect::<Vec<_>>(),
+        [
+            b"\0".as_slice(),
+            b"A\0".as_slice(),
+            b"\0\0".as_slice(),
+            b"B\0".as_slice()
+        ]
+    );
+    assert_eq!(
+        module
+            .globals
+            .iter()
+            .map(|g| g.read_only)
+            .collect::<Vec<_>>(),
+        [false, false, false, true]
+    );
+}
+
+#[test]
+fn readonly_section_names_cannot_be_weakened_by_writable_flags() {
+    for section in [
+        ".section .rodata,\"aw\",@progbits",
+        ".section .rodata.custom,\"aw\",@progbits",
+        ".section .rodata.custom,\"aw\",@nobits",
+    ] {
+        let text = source("gfx950", "\"\"", 1)
+            .replace(".section .rodata.str1.16,\"aMS\",@progbits,1", section);
+        assert!(
+            frontend::parse(&text)
+                .unwrap_err()
+                .message
+                .contains("writable flags")
+        );
+    }
+    let changed = source("gfx950", "\"A\"", 2) + ".section .rodata.str1.16,\"aw\",@progbits,1\n";
+    assert!(
+        frontend::parse(&changed)
+            .unwrap_err()
+            .message
+            .contains("writable flags")
+    );
+    let writable = source("gfx950", "\"A\"", 2).replace(
+        ".section .rodata.str1.16,\"aMS\",@progbits,1",
+        ".section .data.custom,\"aw\",@progbits",
+    );
+    assert!(!frontend::parse(&writable).unwrap().globals[0].read_only);
+}
+
 fn string_table_module() -> frontend::Module {
     let original = include_str!("../src/frontend/fixtures/clang22-module-globals.s");
     let (prefix, tail) = original.split_once("constant_table:\n").unwrap();
