@@ -289,6 +289,17 @@ See [pair value/endianness controls](tests/gfx950_raw_buffer_x2.rs),
 [pair readiness and full-output math controls](../volta_pipeline/tests/gfx950_raw_buffer_x2_tests.rs),
 and the [unchanged original N96 source/ABI identities](tests/fixtures/gfx950-raw-buffer-x2.json).
 
+On gfx1250, selected `s_and_b64` sources are register pairs or integer inline
+constants −16 through 64; floating and other literal forms remain unsupported.
+It tracks each source word's defined bits separately.
+A zero mask determines cleared result bits without observing discarded SGPR
+bits or ABI padding. SCC is true if any result bit is known one, false if the
+entire result is known zero, and otherwise remains undefined. Unknown result
+bits cannot supply concrete data, addresses or execution masks. Mathematical
+and opaque values retain their existing bit-reinterpretation restrictions.
+All source register words remain recorded reads with their normal completion
+obligations, even when a mask determines the data result.
+
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
 subnormal behavior are outside that model. Encoded F16, BF16 and FP8 transport

@@ -423,6 +423,35 @@ impl Wave {
             _ => Ok(self.bits(operand, lane)? as u64),
         }
     }
+    /// Defined bits for a gfx1250 scalar bitwise word. An unset plain SGPR
+    /// remains unknown; opaque and mathematical values still require bits().
+    /// Instruction register roles independently retain every source word.
+    fn scalar_bitword(&self, operand: &Operand, word: u16) -> Result<(u32, u32), EvalError> {
+        let value = match operand {
+            Operand::Register(register) => {
+                if register.class == RegisterClass::Scalar
+                    && self
+                        .scalar
+                        .get((register.index + word) as usize)
+                        .copied()
+                        .flatten()
+                        .is_none()
+                {
+                    return Ok((0, 0));
+                }
+                self.reg(*register, 0, word)?
+            }
+            Operand::Integer(value) => Value::Bits((*value as u64 >> (32 * word)) as u32),
+            _ => self.value(operand, 0)?,
+        };
+        match value {
+            Value::PartialBits { bits, defined } => Ok((bits, defined)),
+            value => Ok((
+                value.bits().map_err(|error| self.fail(None, error))?,
+                u32::MAX,
+            )),
+        }
+    }
     fn destination(&self, operand: &Operand) -> Result<Register, EvalError> {
         match operand {
             Operand::Register(reg) => Ok(*reg),
@@ -3472,6 +3501,43 @@ impl<'a> Interpreter<'a> {
                 wave.put_value(dest, 0, value)
             };
         }
+        if name == "s_and_b64" && self.architecture == AmdArchitecture::Gfx1250 {
+            if o[1..].iter().any(|operand| {
+                !matches!(operand, Operand::Register(register) if register.count == 2)
+                    && !matches!(operand, Operand::Integer(value) if (-16..=64).contains(value))
+            }) {
+                return Err(EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "selected gfx1250 s_and_b64 requires register pairs or integer inline constants -16..64".into(),
+                });
+            }
+            // Read both words before writing an aliased destination. A zero
+            // mask determines its result without observing discarded bits.
+            let mut result = [(0, 0); 2];
+            for (word, output) in result.iter_mut().enumerate() {
+                let (a, da) = wave.scalar_bitword(&o[1], word as u16)?;
+                let (b, db) = wave.scalar_bitword(&o[2], word as u16)?;
+                let defined = (da & db) | (da & !a) | (db & !b);
+                *output = (a & b & defined, defined);
+            }
+            if result.iter().any(|&(bits, _)| bits != 0) {
+                wave.set_scc(true);
+            } else if result.iter().all(|&(_, defined)| defined == u32::MAX) {
+                wave.set_scc(false);
+            } else {
+                wave.clear_scc();
+            }
+            let destination = wave.destination(dest)?;
+            for (word, (bits, defined)) in result.into_iter().enumerate() {
+                wave.put(
+                    destination,
+                    0,
+                    word as u16,
+                    Value::partial_bits(bits, defined),
+                )?;
+            }
+            return Ok(());
+        }
         if name.ends_with("b64") {
             let a = wave.wide(&o[1], 0)?;
             let b = if o.len() > 2 { wave.wide(&o[2], 0)? } else { 0 };
@@ -3569,26 +3635,9 @@ impl<'a> Interpreter<'a> {
                 "s_and_b32" | "s_andn2_b32" | "s_or_b32" | "s_nor_b32" | "s_xor_b32" | "s_not_b32"
             )
         {
-            fn partial(wave: &Wave, operand: &Operand) -> Result<(u32, u32), EvalError> {
-                if let Operand::Register(r) = operand
-                    && r.class == RegisterClass::Scalar
-                    && wave
-                        .scalar
-                        .get(r.index as usize)
-                        .copied()
-                        .flatten()
-                        .is_none()
-                {
-                    return Ok((0, 0));
-                }
-                match wave.value(operand, 0)? {
-                    Value::PartialBits { bits, defined } => Ok((bits, defined)),
-                    v => Ok((v.bits().map_err(|e| wave.fail(None, e))?, u32::MAX)),
-                }
-            }
-            let (a, da) = partial(wave, &o[1])?;
+            let (a, da) = wave.scalar_bitword(&o[1], 0)?;
             let (mut b, db) = if o.len() > 2 {
-                partial(wave, &o[2])?
+                wave.scalar_bitword(&o[2], 0)?
             } else {
                 (0, u32::MAX)
             };
