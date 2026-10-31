@@ -9,6 +9,7 @@ import json
 import math
 import os
 from pathlib import Path
+import platform
 import random
 import re
 import selectors
@@ -115,6 +116,24 @@ def validate_cases(document, root=ROOT):
         if case.get("diagnostic_family") == "invalid_access":
             corpus.require(case.get("required_diagnostic"), "missing exact invalid-access diagnostic")
     known = {case["id"]: case for case in cases}
+    for case in cases:
+        if not case.get("exploratory_family_coverage"):
+            continue
+        counterpart = known[case["safe_counterpart"]]
+        corpus.require(case["split"] == "development" and not case["primary_latency_case"]
+                       and counterpart["expectation"] == "safe", "family coverage changed measurement role")
+        for field in ("kernel", "target", "source", "assembly", "spec", "source_sha256", "assembly_sha256", "spec_sha256",
+                      "block", "grid", "workgroup", "dimensions", "arrays", "params", "expected_outputs", "output_indices"):
+            corpus.require(case[field] == counterpart[field], "family mutation changed original contract: " + field)
+        lines = (root / case["assembly"]).read_text().splitlines()
+        anchors = case["readiness_ground_truth"]
+        positions = [anchors[key]["source_line"] for key in ("producer", "removed_completion", "unsafe_use")]
+        corpus.require(positions == sorted(set(positions)), "invalid producer/wait/use order")
+        for key in ("producer", "removed_completion", "unsafe_use"):
+            anchor = anchors[key]
+            corpus.require(lines[anchor["source_line"] - 1].strip() == anchor["instruction"], "stale readiness ground truth")
+        corpus.require(case["edits"] == [{"source_line": positions[1], "original": anchors["removed_completion"]["instruction"],
+                                         "replacement": "s_nop 0"}], "family mutation changed completion edit")
     for control in document.get("mathematical_controls", []):
         corpus.require(control["case"] in known and known[control["case"]]["expectation"] == "safe",
                        "mathematical control needs a registered safe kernel")
@@ -142,17 +161,46 @@ def materialize(case, directory):
     return path
 
 
-def command(binary, case, assembly, expressions, *, verify=False, early_readiness=False):
+def effective_launch_config(case, assembly, early_readiness):
+    original = ROOT / case["launch_config"]
+    corpus.require(corpus.sha(original) == case["launch_config_sha256"], "stale launch configuration")
+    enabled = early_readiness and case.get("backend", "amdgpu") == "amdgpu" and case["target"] == "gfx1250"
+    if not enabled:
+        return original
+    derived = assembly.with_name(case["id"] + ".early-readiness.launch.json")
+    corpus.require(not derived.resolve().is_relative_to(ROOT), "derived launches must remain outside repository")
+    configuration = json.loads(original.read_text())
+    configuration["early_readiness"] = True
+    derived.write_text(json.dumps(configuration, indent=2) + "\n")
+    return derived
+
+
+def launch_contract(argv, case):
+    if "--config" not in argv:
+        return None
+    effective = Path(argv[argv.index("--config") + 1])
+    original = ROOT / case["launch_config"]
+    before, after = json.loads(original.read_text()), json.loads(effective.read_text())
+    changes = {key for key in before.keys() | after.keys() if before.get(key) != after.get(key)}
+    corpus.require(changes <= {"early_readiness"}, "derived launch changed kernel inputs")
+    return {"original_path": case["launch_config"], "original_sha256": corpus.sha(original),
+            "effective_path": str(effective), "effective_sha256": corpus.sha(effective),
+            "changed_fields": sorted(changes), "early_readiness": after.get("early_readiness", False)}
+
+
+def command(binary, case, assembly, expressions, *, verify=False, early_readiness=False, export_outputs=False):
     args = [str(binary), "--no-log-file", "verify" if verify else "analyze", str(assembly)]
     if verify:
         args += [str(ROOT / case["spec"]), "--sample", "0"]
         for name, value in case.get("dimensions", {}).items():
             args += ["--dim", f"{name}={value}"]
     else:
-        args += ["--print-outputs", "0", "--emit-exprs", str(expressions)]
+        args += ["--print-outputs", "0"]
+        if case["expectation"] == "safe" or export_outputs:
+            args += ["--emit-exprs", str(expressions)]
     if case.get("launch_config"):
         args += ["--backend", case.get("backend", "amdgpu"), "--target", case["target"], "--no-profile",
-                 "--config", str(ROOT / case["launch_config"])]
+                 "--config", str(effective_launch_config(case, assembly, early_readiness))]
     elif case.get("backend", "amdgpu") == "ptx":
         args += ["--backend", "ptx", "--kernel", case["kernel"], "--no-profile",
                  "--block", ",".join(map(str, case["block"])),
@@ -163,12 +211,13 @@ def command(binary, case, assembly, expressions, *, verify=False, early_readines
             args += ["--param", value]
     else:
         args += corpus.launch(case)
-    if early_readiness and case.get("backend", "amdgpu") == "amdgpu" and case["target"] == "gfx1250":
+    if early_readiness and not case.get("launch_config") and case.get("backend", "amdgpu") == "amdgpu" and case["target"] == "gfx1250":
         args += ["--early-readiness"]
     return args
 
 
 def execute(command, case, directory, timeout):
+    configuration = launch_contract(command, case)
     resources = directory / "resources.txt"
     resources.unlink(missing_ok=True)
     (directory / "outputs.vexpr").unlink(missing_ok=True)
@@ -225,9 +274,10 @@ def execute(command, case, directory, timeout):
     corpus.require(not (process.returncode == 2 and "Usage:" in stderr), "invalid benchmark CLI configuration: " + stderr)
     graph = corpus.harness.parse_cli(stdout)
     expressions = directory / "outputs.vexpr"
-    if (process.returncode == 0 and graph.verdict == "VERIFIED" and classification == "inconclusive"
-            and graph.checks and all(verdict == "PASS" for _, verdict, _ in graph.checks)
-            and not re.search(r"\bUNKNOWN\b", stdout)):
+    graph_accepted = (process.returncode == 0 and graph.verdict == "VERIFIED" and classification == "inconclusive"
+                      and graph.checks and all(verdict == "PASS" for _, verdict, _ in graph.checks)
+                      and not re.search(r"\bUNKNOWN\b", stdout))
+    if graph_accepted and (case["expectation"] == "safe" or "--emit-exprs" in command):
         try:
             corpus.require(corpus.expression_indices(expressions.read_text()) == case["output_indices"], "complete coordinate set differs")
             coverage = corpus.harness.array_coverage_error(stdout, {name: len(indices) for name, indices in case["output_indices"].items()})
@@ -250,6 +300,9 @@ def execute(command, case, directory, timeout):
         and process.returncode == 1 and stdout.splitlines().count(EARLY_MARKER) == 1
         and re.findall(r"^VERDICT: (\w+)$", stdout, re.M) == ["REJECT"]
         and (READINESS_PROPERTY, "FAIL") in {(name, verdict) for name, verdict, _ in graph.checks}
+        and re.search(r"^  kernel: AmdRegisterHazard \{ issue: EventId\(\d+\), use_event: EventId\(\d+\), "
+                      r"wave: \d+, register: AmdRegister \{ file: Scalar, index: \d+, lanes: \d+ \}, "
+                      r"kind: ReadBeforeReady \}$", stdout, re.M)
         and not re.search(r"\bunsupported\b|\bUNKNOWN\b|certificate[^\n]*(?:invalid|unvalidated|refused)", stdout + stderr, re.I)
     )
     detected = (classification == "finding" and detection is not None
@@ -261,17 +314,27 @@ def execute(command, case, directory, timeout):
         measurement_errors.append("missing per-process resource observation")
     elif int(usage["max_rss_kib"]) <= 0:
         measurement_errors.append("nonpositive per-process peak RSS")
+    # Preserve all rendered property findings and source witnesses. Only the
+    # variable elapsed-time line and artifact destination are excluded.
+    diagnostics = "\n".join(line for line in stdout.splitlines()
+                             if not re.match(r"^  time: [\d.]+s\s+instructions:", line)
+                             and not line.startswith("Wrote output expressions to "))
     return {"classification": classification, "reason": reason,
             "seconds": elapsed, "time_to_detection_seconds": detection if detected else None,
             "detected_expected_hazard": detected, "returncode": process.returncode,
             "timed_out": expired, "command": command,
-            "early_readiness_enabled": "--early-readiness" in command,
+            "early_readiness_enabled": "--early-readiness" in command or bool(configuration and configuration["early_readiness"]),
+            "launch_contract": configuration,
             "detected_property": detected_property if detected else None,
             "detection_mode": ("certified_prefix" if certified_prefix else "typed_invalid_access" if invalid_access else "complete_trace") if detected else None,
             "false_positive": case["expectation"] == "safe" and classification == "finding",
-            "false_acceptance": case["expectation"] == "hazard" and classification == "verified",
+            "false_acceptance": case["expectation"] == "hazard" and bool(graph_accepted),
             "failed_properties": sorted(failed), "measurement_errors": measurement_errors,
+            "diagnostics_sha256": hashlib.sha256((diagnostics + "\nstderr:\n" + stderr).encode()).hexdigest(),
+            "output_expressions_sha256": corpus.sha(expressions) if expressions.is_file() else None,
             "peak_rss_kib": int(usage["max_rss_kib"]) if "max_rss_kib" in usage else None,
+            "user_seconds": float(usage["user_seconds"]) if "user_seconds" in usage else None,
+            "system_seconds": float(usage["system_seconds"]) if "system_seconds" in usage else None,
             "supported_rejection": bool(supported_rejection),
             "certified_prefix_rejection": bool(certified_prefix),
             "reported_execution_seconds": float(trace[1]) if trace else None,
@@ -320,6 +383,7 @@ def validate_safe_specs(binary, cases, assemblies, output, timeout, *, early_rea
         directory.mkdir(parents=True)
         argv = command(binary, case, assemblies[case["id"]], None, verify=True, early_readiness=early_readiness)
         stage, stdout, stderr = corpus.run_stage(argv, directory, "verify", timeout)
+        stage["launch_contract"] = launch_contract(argv, case)
         classification, reason = corpus.classify(stage["returncode"], stdout, stderr, timed_out=stage["timed_out"])
         counts = re.findall(r"^VC check:.*  elements: (\d+)\s*$", stdout, re.M)
         if stage["returncode"] == 0 and re.search(r"^VERDICT: ACCEPT$", stdout, re.M) and counts == [str(case["expected_outputs"])]:
@@ -340,6 +404,7 @@ def validate_math_controls(binary, cases, controls, assemblies, output, timeout,
         directory.mkdir(parents=True)
         argv = command(binary, case, assemblies[case["id"]], None, verify=True, early_readiness=early_readiness)
         stage, stdout, stderr = corpus.run_stage(argv, directory, "verify", timeout)
+        stage["launch_contract"] = launch_contract(argv, case)
         count = re.findall(r"^VC check:.*  elements: (\d+)\s*$", stdout, re.M)
         mismatches = re.findall(r"^NOT EQUIVALENT: (\d+) mismatched element\(s\) vs spec$", stdout, re.M)
         graph = corpus.harness.parse_cli(stdout)
@@ -354,7 +419,8 @@ def validate_math_controls(binary, cases, controls, assemblies, output, timeout,
 
 def sample_signature(sample):
     """Values whose equality establishes default-mode diagnostic invariance."""
-    return {key: sample[key] for key in ("classification", "detected_expected_hazard", "failed_properties")}
+    return {key: sample[key] for key in ("classification", "detected_expected_hazard", "failed_properties",
+                                       "diagnostics_sha256", "executed_instructions", "output_expressions_sha256")}
 
 
 def paired_ratio_interval(pairs, *, seed=20261030, resamples=2000):
@@ -372,7 +438,7 @@ def paired_ratio_interval(pairs, *, seed=20261030, resamples=2000):
             "paired_observations": len(pairs), "level": 0.95}
 
 
-def comparison_summary(cases, samples, baseline, candidate, candidate_off):
+def comparison_summary(cases, samples, baseline, candidate, candidate_off, preflight=None, baseline_off=None):
     variants = {name: summarize(cases, [s for s in samples if s["variant"] == name])
                 for name in (baseline, candidate)}
     rows = []
@@ -381,17 +447,31 @@ def comparison_summary(cases, samples, baseline, candidate, candidate_off):
         right = next(row for row in variants[candidate] if row["case"] == case["id"])
         by_variant = {name: [s for s in samples if s["case"] == case["id"] and s["variant"] == name]
                       for name in (baseline, candidate)}
-        supported = all(s["classification"] in {"verified", "finding"} and not s["measurement_errors"]
-                        for values in by_variant.values() for s in values)
+        conclusive = all((s["classification"] == "verified" or s["detected_expected_hazard"]) and not s["measurement_errors"]
+                         for values in by_variant.values() for s in values)
+        def supported_sample(sample):
+            if case["expectation"] == "safe":
+                return sample["classification"] == "verified"
+            return (sample["detected_expected_hazard"]
+                    and sample.get("detection_mode") in {"complete_trace", "certified_prefix"})
+        supported = conclusive and all(supported_sample(s) for values in by_variant.values() for s in values)
+        spec_status = {name: next((row["classification"] for row in (preflight or {}).get(name, [])
+                                  if row["case"] == case["id"]), None)
+                       for name in (baseline, candidate, "candidate-off")}
+        spec_retained = (case["expectation"] != "safe" or spec_status[baseline] != "spec_verified"
+                         or all(status == "spec_verified" for status in spec_status.values()))
+        full_spec = (case["expectation"] != "safe" or not supported
+                     or all(status == "spec_verified" for status in spec_status.values()))
         default = next(s for s in candidate_off if s["case"] == case["id"])
-        original = next(s for s in by_variant[baseline] if s["repeat"] == 0)
+        original = (next(s for s in baseline_off if s["case"] == case["id"]) if baseline_off is not None
+                    else next(s for s in by_variant[baseline] if s["repeat"] == 0))
         invariant = sample_signature(original) == sample_signature(default)
         full_properties = set(case.get("full_mode_required_properties", []))
         full_mode = all(full_properties <= set(s["failed_properties"]) for s in (original, default))
         safety = (right["false_positives"] == right["false_acceptances"] == 0
                   and right["expected_detections"] >= left["expected_detections"])
-        baseline_supported = all(s["classification"] in {"verified", "finding"} for s in by_variant[baseline])
-        candidate_supported = all(s["classification"] in {"verified", "finding"} for s in by_variant[candidate])
+        baseline_supported = all(supported_sample(s) for s in by_variant[baseline])
+        candidate_supported = all(supported_sample(s) for s in by_variant[candidate])
         coverage_retained = not baseline_supported or candidate_supported
         safe_retained = (case["expectation"] != "safe" or not all(s["classification"] == "verified" for s in by_variant[baseline])
                          or all(s["classification"] == "verified" for s in by_variant[candidate]))
@@ -406,6 +486,11 @@ def comparison_summary(cases, samples, baseline, candidate, candidate_off):
         rows.append({"case": case["id"], "backend": case.get("backend", "amdgpu"), "target": case["target"],
                      "family": case["family"], "split": case["split"], "expectation": case["expectation"],
                      "common_supported": supported, "candidate_off_invariant": invariant,
+                     "common_conclusive_diagnostic": conclusive,
+                     "invalid_access_refusal_samples": sum(s.get("detection_mode") == "typed_invalid_access"
+                                                           for values in by_variant.values() for s in values),
+                     "safe_specification_statuses": spec_status if case["expectation"] == "safe" else None,
+                     "safe_specifications_retained": spec_retained, "common_supported_full_specification": full_spec,
                      "full_mode_required_properties_retained": full_mode, "safety_counts_retained": safety,
                      "supported_coverage_retained": coverage_retained, "safe_outcomes_retained": safe_retained,
                      "measurement_valid": measured,
@@ -419,9 +504,12 @@ def comparison_summary(cases, samples, baseline, candidate, candidate_off):
         rows[-1]["detection_median_ratio_interval"] = paired_ratio_interval(detection_pairs)
     result = {"cases": rows, "variants": variants,
             "common_supported": sum(row["common_supported"] for row in rows),
+            "common_conclusive_diagnostic": sum(row["common_conclusive_diagnostic"] for row in rows),
+            "invalid_access_configurations": sum(bool(row["invalid_access_refusal_samples"]) for row in rows),
             "total_configurations": len(rows),
             "correctness_and_overhead_gates_pass": all(row["candidate_off_invariant"] and row["full_mode_required_properties_retained"]
                                        and row["safety_counts_retained"]
+                                       and row["safe_specifications_retained"] and row["common_supported_full_specification"]
                                        and row["supported_coverage_retained"] and row["safe_outcomes_retained"] and row["measurement_valid"]
                                        and (row["safe_overhead_gates"] is None or all(row["safe_overhead_gates"].values()))
                                        for row in rows)}
@@ -446,6 +534,16 @@ def source_comparison(parent, baseline, candidate):
             "changed_paths": git("diff", "--name-only", revisions[0], revisions[2]).splitlines()}
 
 
+def runtime_context():
+    cpuinfo = Path("/proc/cpuinfo")
+    model = next((line.split(":", 1)[1].strip() for line in cpuinfo.read_text().splitlines()
+                  if line.startswith("model name")), None) if cpuinfo.is_file() else None
+    return {"python_version": platform.python_version(), "architecture": platform.machine(),
+            "kernel_release": platform.release(), "cpu_model": model, "logical_cpus": os.cpu_count(),
+            "allowed_logical_cpus": len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else None,
+            "process_schedule": "sequential fresh processes; randomized adjacent baseline/candidate pairs"}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     modes = parser.add_mutually_exclusive_group(required=True)
@@ -466,6 +564,8 @@ def main():
     args = parser.parse_args()
     corpus.require(args.repeats > 0 and args.timeout > 0, "positive repeats/budget required")
     document = load_cases()
+    context = runtime_context()
+    load_observations = [{"phase": "before_preflight", "load_average_1_5_15": os.getloadavg()}]
     cases = [case for case in document["cases"] if (args.split == "all" or case["split"] == args.split)
              and (not args.case or case["id"] in args.case)]
     corpus.require(cases and set(args.case) <= {case["id"] for case in cases}, "empty or unknown case selection")
@@ -482,13 +582,18 @@ def main():
     if any(case["split"] == "heldout" for case in cases):
         corpus.require(comparison and args.frozen_mechanism == comparison["candidate_revision"],
                        "heldout execution requires a declared frozen paired candidate commit")
+    identities = {"case_manifest_sha256": (MANIFEST, corpus.sha(MANIFEST)),
+                  "driver_sha256": (Path(__file__), corpus.sha(__file__)),
+                  "compiler_corpus_driver_sha256": (HERE.parent / "compiler-corpus/corpus.py", corpus.sha(HERE.parent / "compiler-corpus/corpus.py")),
+                  "shared_harness_sha256": (ROOT / "ai_compiler_kernels/check_races.py", corpus.sha(ROOT / "ai_compiler_kernels/check_races.py"))}
+    binary_hashes = {name: corpus.sha(binary) for name, binary, _, _ in variants}
     output = args.output.resolve()
     corpus.require(not output.is_relative_to(ROOT), "raw results must remain outside repository")
     output.mkdir(parents=True, exist_ok=False)
     sources = output / "sources"
     sources.mkdir()
     assemblies = {case["id"]: materialize(case, sources) for case in cases}
-    preflight, math_controls, candidate_off = {}, {}, []
+    preflight, math_controls, candidate_off, baseline_off = {}, {}, [], []
     for name, binary, enabled, _ in variants:
         directory = output / name
         directory.mkdir()
@@ -502,16 +607,20 @@ def main():
         preflight["candidate-off"] = validate_safe_specs(binary, cases, assemblies, directory, args.timeout)
         math_controls["candidate-off"] = validate_math_controls(binary, cases, document.get("mathematical_controls", []), assemblies,
                                                                directory, args.timeout)
-        for case in cases:
-            path = directory / case["id"]
-            path.mkdir()
-            sample = execute(command(binary, case, assemblies[case["id"]], path / "outputs.vexpr"), case, path, args.timeout)
-            sample.update(case=case["id"], variant="candidate-off")
-            candidate_off.append(sample)
-            (path / "sample.json").write_text(json.dumps(sample, indent=2) + "\n")
+        for label, control_binary, controls in [("baseline-off", variants[0][1], baseline_off),
+                                                ("candidate-off", binary, candidate_off)]:
+            for case in cases:
+                path = output / label / case["id"]
+                path.mkdir(parents=True)
+                argv = command(control_binary, case, assemblies[case["id"]], path / "outputs.vexpr", export_outputs=True)
+                sample = execute(argv, case, path, args.timeout)
+                sample.update(case=case["id"], variant=label)
+                controls.append(sample)
+                (path / "sample.json").write_text(json.dumps(sample, indent=2) + "\n")
     samples, generator = [], random.Random(args.seed)
     # Each invocation starts a new verifier and fresh graph/solver state.
     for repeat in range(args.repeats + 1):
+        load_observations.append({"phase": "before_round", "repeat": repeat, "load_average_1_5_15": os.getloadavg()})
         order = cases.copy()
         generator.shuffle(order)
         for case in order:
@@ -526,18 +635,22 @@ def main():
                 samples.append(sample)
                 (directory / "sample.json").write_text(json.dumps(sample, indent=2) + "\n")
                 print(f"{name} {repeat}/{args.repeats} {case['id']} {sample['classification']} detected={sample['detected_expected_hazard']} seconds={sample['seconds']:.6f}", flush=True)
-    report = {"variants": [{"name": name, "binary_revision": revision, "binary_sha256": corpus.sha(binary),
+    for name, binary, _, _ in variants:
+        corpus.require(corpus.sha(binary) == binary_hashes[name], "executable changed during measurements: " + name)
+    for name, (path, digest) in identities.items():
+        corpus.require(corpus.sha(path) == digest, "measurement input changed: " + name)
+    load_cases()  # Recheck source/config/spec/ground-truth pins after the run.
+    report = {"variants": [{"name": name, "binary_revision": revision, "binary_sha256": binary_hashes[name],
                             "early_readiness": enabled, "early_readiness_scope": "gfx1250 only" if enabled else "disabled"}
                            for name, binary, enabled, revision in variants],
               "source_comparison": comparison,
-              "case_manifest_sha256": corpus.sha(MANIFEST), "driver_sha256": corpus.sha(__file__),
-              "compiler_corpus_driver_sha256": corpus.sha(HERE.parent / "compiler-corpus/corpus.py"),
-              "shared_harness_sha256": corpus.sha(ROOT / "ai_compiler_kernels/check_races.py"),
+              **{name: digest for name, (_, digest) in identities.items()},
+              "runtime_context": context, "load_observations": load_observations + [{"phase": "finished", "load_average_1_5_15": os.getloadavg()}],
               "seed": args.seed, "timeout_seconds": args.timeout, "repeated_process_samples": args.repeats,
               "cache_policy": "first measured invocation after untimed specification preflight is separate; later invocations reuse OS file caches but no verifier process state; no claim of machine-cold cache",
               "safe_spec_preflight": preflight, "mathematical_controls": math_controls,
-              "candidate_off": candidate_off, "samples": samples,
-              "summary": comparison_summary(cases, samples, "baseline", "candidate", candidate_off) if comparison else summarize(cases, samples),
+              "baseline_off": baseline_off, "candidate_off": candidate_off, "samples": samples,
+              "summary": comparison_summary(cases, samples, "baseline", "candidate", candidate_off, preflight, baseline_off) if comparison else summarize(cases, samples),
               "measurement_scope": "Parent-observed process/diagnostic wall time; GNU time maximum RSS for each analyze process. Printed execution time has millisecond precision, and RSS is not attributed to internal phases.",
               "sample_order": [{"repeat": sample["repeat"], "case": sample["case"], "variant": sample["variant"]} for sample in samples]}
     (output / "report.json").write_text(json.dumps(report, indent=2) + "\n")

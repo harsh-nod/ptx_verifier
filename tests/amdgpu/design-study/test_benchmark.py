@@ -1,6 +1,7 @@
 """Measurement controls: verdicts, scope, timing summaries and launch validity."""
 from pathlib import Path
 import copy
+import json
 import sys
 import tempfile
 import unittest
@@ -63,18 +64,45 @@ class BenchmarkTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "heldout"):
                 benchmark.validate_cases(changed)
 
-    def test_launches_have_no_duplicate_options_or_config_flag_conflicts(self):
-        for case in benchmark.load_cases()["cases"]:
-            with self.subTest(case=case["id"]):
-                args = benchmark.command(Path("/verifier"), case, Path("/source.s"), Path("/expressions"))
-                options = [value for value in args if value.startswith("--") and value not in ("--array", "--param")]
-                self.assertEqual(len(options), len(set(options)))
-                if "--config" in options:
-                    self.assertFalse({"--kernel", "--block", "--grid", "--array", "--param"} & set(options))
-                enabled = benchmark.command(Path("/verifier"), case, Path("/source.s"), Path("/expressions"), early_readiness=True)
-                expected = case.get("backend", "amdgpu") == "amdgpu" and case["target"] == "gfx1250"
-                self.assertEqual("--early-readiness" in enabled, expected)
+    def test_exploratory_family_mutants_preserve_complete_counterparts_and_source_dependencies(self):
+        original = benchmark.load_cases()
+        families = {case["family"] for case in original["cases"] if case.get("exploratory_family_coverage")}
+        self.assertEqual(families, {"elementwise", "reduction", "normalization", "transpose", "gemm", "attention"})
+        for field in ("expected_outputs", "readiness_ground_truth"):
+            changed = copy.deepcopy(original)
+            case = next(case for case in changed["cases"] if case.get("exploratory_family_coverage"))
+            if field == "expected_outputs":
+                case[field] = 1
+            else:
+                case[field]["unsafe_use"]["instruction"] = "s_nop 0"
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                benchmark.validate_cases(changed)
 
+    def test_launches_have_no_duplicate_options_or_config_flag_conflicts(self):
+        with tempfile.TemporaryDirectory() as name:
+            for case in benchmark.load_cases()["cases"]:
+                with self.subTest(case=case["id"]):
+                    source = Path(name) / "source.s"
+                    args = benchmark.command(Path("/verifier"), case, source, Path("/expressions"))
+                    self.assertEqual("--emit-exprs" in args, case["expectation"] == "safe")
+                    untimed = benchmark.command(Path("/verifier"), case, source, Path("/expressions"), export_outputs=True)
+                    self.assertIn("--emit-exprs", untimed)
+                    options = [value for value in args if value.startswith("--") and value not in ("--array", "--param")]
+                    self.assertEqual(len(options), len(set(options)))
+                    if "--config" in options:
+                        self.assertFalse({"--kernel", "--block", "--grid", "--array", "--param", "--early-readiness"} & set(options))
+                    enabled = benchmark.command(Path("/verifier"), case, source, Path("/expressions"), early_readiness=True)
+                    expected = case.get("backend", "amdgpu") == "amdgpu" and case["target"] == "gfx1250"
+                    self.assertEqual("--early-readiness" in enabled, expected and not case.get("launch_config"))
+                    if case.get("launch_config"):
+                        configuration = benchmark.launch_contract(enabled, case)
+                        self.assertEqual(configuration["early_readiness"], expected)
+                        original = json.loads((benchmark.ROOT / case["launch_config"]).read_text())
+                        effective = json.loads(Path(configuration["effective_path"]).read_text())
+                        self.assertEqual(effective, {**original, "early_readiness": True} if expected else original)
+                        self.assertEqual(configuration["original_sha256"], case["launch_config_sha256"])
+                        self.assertEqual(configuration["effective_sha256"], benchmark.corpus.sha(configuration["effective_path"]))
+                        self.assertEqual(configuration["changed_fields"], ["early_readiness"] if expected else [])
     def test_first_process_is_excluded_and_p95_uses_declared_nearest_rank(self):
         case = {"id": "sample", "family": "memory", "target": "gfx950", "expectation": "hazard", "split": "development"}
         samples = [{"case": "sample", "repeat": i, "seconds": value, "classification": "finding",
@@ -117,7 +145,9 @@ class BenchmarkTests(unittest.TestCase):
     def test_certified_prefix_requires_exact_marker_verdict_property_and_process_status(self):
         prop = benchmark.READINESS_PROPERTY
         case = {"expectation": "hazard", "required_property": prop, "target": "gfx1250"}
-        certified = benchmark.EARLY_MARKER + "\n  " + prop + " (certified prefix) FAIL\nVERDICT: REJECT"
+        witness = ("  kernel: AmdRegisterHazard { issue: EventId(1), use_event: EventId(4), wave: 0, "
+                   "register: AmdRegister { file: Scalar, index: 0, lanes: 18446744073709551615 }, kind: ReadBeforeReady }")
+        certified = benchmark.EARLY_MARKER + "\n  " + prop + " (certified prefix) FAIL\n" + witness + "\nVERDICT: REJECT"
         result = self.run_fake(case, certified, 1)
         self.assertTrue(result["detected_expected_hazard"])
         self.assertEqual(result["detection_mode"], "certified_prefix")
@@ -125,6 +155,8 @@ class BenchmarkTests(unittest.TestCase):
                    (certified.replace("FAIL", "UNKNOWN"), 1), (certified.replace("REJECT", "UNKNOWN"), 1),
                    (certified + "\nunsupported AMD instruction", 1),
                    (certified + "\ncertificate invalid", 1), (certified + "\n" + benchmark.EARLY_MARKER, 1)]
+        invalid += [(certified.replace(witness + "\n", ""), 1),
+                    (certified.replace("kind: ReadBeforeReady", "kind: SourceReuse"), 1)]
         for stdout, code in invalid:
             with self.subTest(stdout=stdout, code=code):
                 self.assertFalse(self.run_fake(case, stdout, code)["detected_expected_hazard"])
@@ -159,6 +191,13 @@ class BenchmarkTests(unittest.TestCase):
         self.assertGreater(result["peak_rss_kib"], 0)
         self.assertNotEqual(self.run_fake(case, text, 0, expressions=expression, stderr="unsupported AMD instruction")["classification"], "verified")
 
+    def test_hazard_graph_acceptance_without_optional_export_still_counts_false_acceptance(self):
+        case = {"expectation": "hazard", "required_property": benchmark.READINESS_PROPERTY}
+        text = "  AMD trace completeness (native) PASS\nGRAPH VERIFICATION: VERIFIED"
+        result = self.run_fake(case, text, 0)
+        self.assertTrue(result["false_acceptance"])
+        self.assertFalse(result["detected_expected_hazard"])
+
     def test_timeout_never_becomes_a_detection_even_after_a_property_failure(self):
         prop = benchmark.READINESS_PROPERTY
         case = {"expectation": "hazard", "required_property": prop}
@@ -178,7 +217,50 @@ class BenchmarkTests(unittest.TestCase):
                 "detected_expected_hazard": detected, "false_positive": case["expectation"] == "safe" and classification == "finding",
                 "false_acceptance": case["expectation"] == "hazard" and classification == "verified", "timed_out": False,
                 "failed_properties": [benchmark.READINESS_PROPERTY] if detected else [],
-                "measurement_errors": errors or [], "peak_rss_kib": 1000}
+                "measurement_errors": errors or [], "peak_rss_kib": 1000,
+                "detection_mode": "complete_trace" if detected else None,
+                "diagnostics_sha256": "unchanged", "output_expressions_sha256": "unchanged",
+                "executed_instructions": 10}
+
+    def preflight(self, case, candidate="spec_verified", candidate_off="spec_verified"):
+        return {name: [{"case": case["id"], "classification": status}]
+                for name, status in [("baseline", "spec_verified"), ("candidate", candidate), ("candidate-off", candidate_off)]}
+
+    def test_full_specification_unknown_or_timeout_prevents_adoption(self):
+        case = {"id": "safe", "expectation": "safe", "split": "development", "target": "gfx1250", "family": "copy"}
+        samples = [self.sample(case, name, repeat) for name in ["baseline", "candidate"] for repeat in range(3)]
+        off = [self.sample(case, "candidate-off", 0)]
+        for candidate, candidate_off in [("inconclusive", "spec_verified"), ("timeout", "spec_verified"),
+                                         ("spec_verified", "inconclusive")]:
+            report = benchmark.comparison_summary([case], samples, "baseline", "candidate", off,
+                                                  self.preflight(case, candidate, candidate_off))
+            row = report["cases"][0]
+            self.assertFalse(row["safe_specifications_retained"])
+            self.assertFalse(row["common_supported_full_specification"])
+            self.assertFalse(report["correctness_and_overhead_gates_pass"])
+
+    def test_default_mode_invariance_binds_rendered_witnesses_instructions_and_expression_bytes(self):
+        case = {"id": "safe", "expectation": "safe", "split": "development", "target": "gfx1250", "family": "copy"}
+        samples = [self.sample(case, name, repeat) for name in ["baseline", "candidate"] for repeat in range(3)]
+        for field, value in [("diagnostics_sha256", "changed witness"), ("executed_instructions", 11),
+                             ("output_expressions_sha256", "changed expression")]:
+            off = self.sample(case, "candidate-off", 0)
+            off[field] = value
+            report = benchmark.comparison_summary([case], samples, "baseline", "candidate", [off], self.preflight(case))
+            self.assertFalse(report["cases"][0]["candidate_off_invariant"])
+            self.assertFalse(report["correctness_and_overhead_gates_pass"])
+
+    def test_invalid_access_diagnostic_is_not_supported_execution_coverage(self):
+        case = {"id": "invalid", "expectation": "hazard", "split": "development", "target": "gfx1250", "family": "tensor"}
+        samples = [self.sample(case, name, repeat, classification="finding", detected=True)
+                   for name in ["baseline", "candidate"] for repeat in range(3)]
+        for sample in samples:
+            sample["detection_mode"] = "typed_invalid_access"
+        report = benchmark.comparison_summary([case], samples, "baseline", "candidate",
+                                              [self.sample(case, "candidate-off", 0, classification="finding", detected=True)])
+        self.assertEqual(report["common_supported"], 0)
+        self.assertEqual(report["common_conclusive_diagnostic"], 1)
+        self.assertEqual(report["invalid_access_configurations"], 1)
 
     def test_paired_summary_cannot_hide_coverage_loss_or_missing_resources_as_speed(self):
         case = {"id": "safe", "expectation": "safe", "split": "development", "target": "gfx950", "family": "copy"}
