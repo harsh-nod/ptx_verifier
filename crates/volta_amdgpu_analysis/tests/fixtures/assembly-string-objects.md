@@ -33,6 +33,22 @@ count, including every NUL; section transitions, unsupported sections,
 conditional alignment and executable inline data remain refused. An `.asciz`
 outside a declared active object is explicitly refused instead of discarded.
 
+Storage type is separate from writability. `.bss` and implicit `.bss.*` sections
+use NOBITS storage: every initializer must produce zero bytes. The shared check
+also applies to numeric, fill and plain-ASCII initializers. An empty `.asciz`
+is legal there because its sole byte is the zero terminator. Explicit custom
+PROGBITS/NOBITS types take precedence over a subsection's name; for example,
+`.bss.custom` with `@progbits` can contain nonzero initialized data. Canonical
+`.data`/`.rodata` cannot change to NOBITS, canonical `.bss` cannot change to
+PROGBITS, and a previously used supported data section cannot change storage
+type. Unknown storage types in supported data sections are refused. This does
+not implement arbitrary ELF section flags or linker merging rules. Supported
+`.rodata` and `.rodata.*` names keep a read-only contract: an explicit `w` flag
+is refused, including on a later section declaration. Writable `.data` and
+`.data.*` objects retain their existing support. The read-only name restriction
+also conservatively refuses a new custom `.rodata.*` section whose writable
+flags an assembler might otherwise permit.
+
 String contents are data. They do not implement device assertions, hostcall
 helpers, calls, return stacks, relocations or string merging/address identity.
 Entry instructions retain their existing checks, including unsupported calls
