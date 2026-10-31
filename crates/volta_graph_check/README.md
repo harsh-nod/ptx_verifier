@@ -17,6 +17,35 @@ contract. An unnormalized `amdgcn-...` target is inconclusive rather than fallin
 through to PTX checks. A completed placeholder graph without AMD access events
 and trace premises supplies no native safety proof.
 
+`amdgpu::early_memory_conflicts` supplies rejection-only certificates for two
+different active physical lanes' overlapping ordinary writes within one memory
+issue on gfx950 or gfx1250. GLOBAL denotes the memory space: already-supported
+concrete raw-buffer stores are included alongside GLOBAL and direct LDS/DS
+stores. Atomics, reductions, tensor transfers, mixed FLAT operations and opaque
+descriptor profiles cannot supply these certificates.
+
+An incremental observer proposes at most one pair per issue. The validator
+checks exact prefix identity and pair membership, then independently replays
+the existing target-selected trace, readiness, barrier and memory checks. All
+three prerequisite properties must pass; the exact pair and its first shared
+byte must appear in the retained memory findings. A pair excluded by the
+ordinary findings cap is refused. Discovery does not duplicate counter or
+happens-before rules. Later waits cannot order the same issue's sibling effects.
+
+The trusted producer calls the observer only after a complete successful
+instruction batch and preflights physical addresses against its allocations.
+Validation checks recorded roles, active-lane membership, that selected effects
+precede the next AMD record, LDS limits when
+recorded, and configured allocation layouts. It does not decode raw ISA,
+independently recover absent GLOBAL/CDNA allocation extents, or infer every
+machine instruction's component count from source spans. Only gfx1250 Shared
+certificates require the existing recorded LDS-size premise. Unstarted waves
+may be absent in a prefix; none receives a fabricated END or completion.
+The ordinary graph conclusion for an observer-stopped artifact stays Unknown.
+Only the pipeline's privately validated prefix result can report this rejection;
+it supplies no outputs, equivalence proof or early acceptance. Default complete
+execution and full diagnostic enumeration retain their existing behavior.
+
 ## PTX checks
 
 The PTX graph branch of the pipeline runs ten checks over one `volta_graph::EventGraph`
