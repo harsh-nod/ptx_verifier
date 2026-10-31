@@ -13,6 +13,8 @@ use volta_graph::*;
 
 #[path = "named_barrier.rs"]
 mod named_barrier;
+#[path = "interp_async_lds.rs"]
+mod async_lds;
 
 const KERNARG_BASE: u64 = 0xffff_0000_0000;
 const DISPATCH_BASE: u64 = 0xffff_1000_0000;
@@ -1584,6 +1586,7 @@ impl<'a> Interpreter<'a> {
             || instruction.mnemonic().starts_with("ds_write")
             || instruction.mnemonic() == "global_atomic_add_f32";
         let no_destination = instruction.mnemonic().starts_with("tensor_")
+            || instruction.mnemonic() == "global_load_async_to_lds_b128"
             || (wave.width == 32 && mnemonic.starts_with("v_cmpx_"))
             || matches!(
                 instruction.opcode(),
@@ -6371,6 +6374,9 @@ impl<'a> Interpreter<'a> {
             unreachable!("typed memory dispatch")
         };
         let o = memory.operands();
+        if memory.kind == MemoryKind::AsyncLoadToLds {
+            return self.async_load_to_lds(wave, instruction);
+        }
         if name == "global_atomic_add_f32" {
             return self.atomic_add_f32_no_return(wave, instruction);
         }

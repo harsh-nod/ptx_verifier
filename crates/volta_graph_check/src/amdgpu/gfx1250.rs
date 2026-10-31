@@ -1042,10 +1042,31 @@ fn wait(counter: AmdCounter, threshold: u16, pending: &[usize], operations: &mut
     {
         return;
     }
+    // CDNA5 section10.8: async loads complete FIFO with loads, and stores
+    // with stores; the two streams may complete out of order. A partial
+    // mixed-stream count cannot identify the globally oldest operation.
+    if counter == AmdCounter::Async
+        && threshold != 0
+        && selected.first().is_some_and(|&first| {
+            selected
+                .iter()
+                .any(|&i| operations[i].class != operations[first].class)
+        })
+    {
+        return;
+    }
     let count = selected.len().saturating_sub(threshold as usize);
     for index in selected.into_iter().take(count) {
         let op = &mut operations[index];
         op.remaining.retain(|&(c, _)| c != counter);
+        // Async completion includes the whole memory-to-LDS transfer. Its
+        // own global side and address sources have necessarily completed too.
+        // A LOAD/STORE wait alone does not establish the converse LDS fact.
+        if counter == AmdCounter::Async {
+            op.remaining.retain(|&(c, _)| {
+                !matches!(c, AmdCounter::Load | AmdCounter::Store | AmdCounter::X)
+            });
+        }
         // Data cannot complete before its own address translation. This does
         // not drain translations of unrelated operations or other counters.
         if matches!(

@@ -183,6 +183,8 @@ fn analyze_internal(
                     "flat memory"
                 } else if instruction.mnemonic().starts_with("tensor_") {
                     "tensor memory"
+                } else if instruction.mnemonic() == "global_load_async_to_lds_b128" {
+                    "async memory"
                 } else if instruction.mnemonic() == "v_nop" {
                     "vector ALU"
                 } else if instruction.mnemonic() == "s_getreg_b32"

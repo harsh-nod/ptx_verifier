@@ -126,6 +126,18 @@ resolved-shared FLAT transfer must fit one object and aggregate LDS. Empty
 configuration retains aggregate bounds. Raw descriptors do not infer
 source-language LDS objects.
 
+The selected gfx1250 `global_load_async_to_lds_b128` GV form copies 16 bytes
+per active lane directly into LDS. Its first VGPR is an LDS address input;
+the global source is a VGPR pair followed by `off`. A signed24 byte offset
+applies to both addresses. This bounded profile requires aligned, nonwrapping
+footprints within the original global and LDS allocations; scalar-base and
+scaled forms remain unsupported. It uses async completion events rather than
+tensor descriptors. `s_wait_asynccnt 0` completes the entire transfer; a global
+load wait alone does not publish its LDS writes. Partial async waits do not
+infer FIFO completion across mixed load/store streams. See the public
+[CDNA5 ISA, section 10.8](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf)
+and the independent [native-copy controls](../volta_pipeline/tests/gfx1250_native_async_lds.rs).
+
 Configured input elements are backed by their array name and original index,
 and materialized only when an executed global access touches them. Allocation
 bounds remain the complete configured extents; this does not shorten loops or

@@ -1596,6 +1596,28 @@ pub(super) fn validate_registers(
             }
         }
         Opcode::VectorMemory => {
+            if stem == "global_load_async_to_lds_b128" {
+                // VDST supplies an LDS address, not a four-register result.
+                // Keep the initial profile to the compiler's 64-bit GV form.
+                require(0, &[Vector], 1)?;
+                require(1, &[Vector], 2)?;
+                if modifiers.len() > 1
+                    || !matches!(operands.get(2), Some(Operand::Symbol(off)) if off == "off")
+                    || modifiers.iter().any(|modifier| modifier.name != "offset")
+                {
+                    return Err("selected async global-to-LDS load requires GV addressing (`off`) and an optional byte offset".into());
+                }
+                if modifiers.iter().any(|modifier| {
+                    modifier
+                        .value
+                        .as_deref()
+                        .and_then(integer)
+                        .is_none_or(|offset| !(-8_388_608..=8_388_607).contains(&offset))
+                }) {
+                    return Err("async global-to-LDS byte offset must fit signed24".into());
+                }
+                return Ok(());
+            }
             let atomic = stem.contains("_atomic_");
             let store = stem.contains("_store_") || atomic;
             let buffer = stem.starts_with("buffer_");

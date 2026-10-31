@@ -1616,7 +1616,7 @@ fn completed_prefix_and_progress_after_endpgm_cannot_claim_a_complete_native_tra
 }
 
 #[test]
-fn async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse() {
+fn async_completion_includes_global_completion_but_the_converse_does_not_hold() {
     for class in [
         AmdMemoryClass::AsyncLoadToLds,
         AmdMemoryClass::AsyncStoreFromLds,
@@ -1644,11 +1644,93 @@ fn async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse() {
             assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
             assert_eq!(
                 r.verdict(Property::AmdMemoryConflict),
-                if data_wait && async_wait {
+                if async_wait {
                     Verdict::Pass
                 } else {
                     Verdict::Fail
                 }
+            );
+        }
+    }
+}
+
+#[test]
+fn partial_async_waits_do_not_invent_fifo_between_loads_and_stores() {
+    fn issue(t: &mut Trace, load: bool, global: u64, shared: u64) {
+        t.ins(0, 9, vec![], vec![]);
+        let event = t.b.amd_event(
+            0,
+            ProgramPoint(9),
+            AmdEventKind::MemoryIssue {
+                class: if load {
+                    AmdMemoryClass::AsyncLoadToLds
+                } else {
+                    AmdMemoryClass::AsyncStoreFromLds
+                },
+                counters: vec![
+                    (
+                        if load {
+                            AmdCounter::Load
+                        } else {
+                            AmdCounter::Store
+                        },
+                        1,
+                    ),
+                    (AmdCounter::X, 1),
+                    (AmdCounter::Async, 1),
+                ],
+                destinations: vec![],
+                held_sources: vec![],
+            },
+        );
+        for lane in 0..32 {
+            t.effect(
+                event,
+                lane,
+                9,
+                Space::Global,
+                !load,
+                global + u64::from(lane) * 4,
+            );
+            t.effect(
+                event,
+                lane,
+                9,
+                Space::Shared,
+                load,
+                shared + u64::from(lane) * 4,
+            );
+        }
+    }
+    for mixed in [false, true] {
+        for threshold in [0, 1] {
+            let mut t = Trace::new(1);
+            issue(&mut t, true, 4096, 0);
+            issue(&mut t, !mixed, 8192, 256);
+            t.wait(0, AmdCounter::Load, 0);
+            t.wait(0, AmdCounter::Store, 0);
+            t.wait(0, AmdCounter::Async, threshold);
+            t.issue(
+                0,
+                AmdMemoryClass::Ds,
+                vec![v(8, u32::MAX as u64)],
+                vec![],
+                0,
+            );
+            let report = check_graph(&t.finish());
+            assert_eq!(
+                report.verdict(Property::AmdTrace),
+                Verdict::Pass,
+                "{report:?}"
+            );
+            assert_eq!(
+                report.verdict(Property::AmdMemoryConflict),
+                if mixed && threshold != 0 {
+                    Verdict::Fail
+                } else {
+                    Verdict::Pass
+                },
+                "mixed={mixed},threshold={threshold}: {report:?}"
             );
         }
     }

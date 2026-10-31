@@ -368,6 +368,7 @@ operation_set! { MemoryOpcode {
     GlobalAtomicCmpswap => "global_atomic_cmpswap",
     GlobalAtomicSwap => "global_atomic_swap",
     GlobalLoadB128 => "global_load_b128",
+    GlobalLoadAsyncToLdsB128 => "global_load_async_to_lds_b128",
     GlobalLoadB32 => "global_load_b32",
     GlobalLoadB64 => "global_load_b64",
     GlobalLoadB96 => "global_load_b96",
