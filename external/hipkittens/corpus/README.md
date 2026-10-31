@@ -121,3 +121,40 @@ selection `translation_unit_probe` and records roles independently. A version 1
 report and its original inventory/source snapshots remain immutable when joined
 to newer role annotations or compared with a separately run recipe correction.
 Retain every attempted probe, including the original recipe failures and timeouts.
+
+## Original register-vector specialization proofs
+
+`hipkittens_vectors.py` reuses the complete compiler/MC-accepted CDNA4
+`tests/unit/cdna4/warp/memory/vec/global_to_register.cu` module from a campaign.
+The original intensity-2 sweep instantiates seven register-tile shapes, four size
+multipliers, three dtypes and three vector layouts: 252 concrete entrypoints.
+The extractor refuses missing, duplicate, unfamiliar or ABI-inconsistent
+specializations. This finite decoder is tied to the pinned source and emitted
+C++ symbols; it is not a general C++ template demangler.
+
+```sh
+uv run external/extraction/hipkittens_vectors.py \
+  --campaign /tmp/hipkittens-baseline \
+  --binary /absolute/path/to/volta --binary-revision SOURCE_COMMIT \
+  --output /tmp/hipkittens-vectors --timeout 60
+python3 -m unittest discover -s external/tests -p test_hipkittens_vectors.py -v
+```
+
+Each launch preserves the original host formula `SIZE=S*RT_SHAPE::cols`, dtype,
+layout, grid of one workgroup, one 64-thread wave and 80,000-byte dynamic LDS
+request. Both `GL` values retain their 16-byte native by-value ABI. A syntax-only
+static-assert translation unit checks every instantiated GL's size, alignment and
+pointer offset with the same compiler and flags as the original module. It adds
+no executable code or changes to the original assembly.
+
+The source host reference copies the whole input vector. Every case therefore
+checks `out[i] = x[i]` over its complete original length, without sampling.
+Verification requires an overall `ACCEPT`, all native graph properties passing,
+and an exact full VC element count. An intentionally different equation must be
+rejected with a mathematical mismatch on an otherwise passing graph, once per
+dtype. Unsupported forms, incomplete proofs, graph failures, process errors and
+timeouts stay separate; 252 parsed entrypoints do not imply 252 proofs.
+
+Run the extractor once per frozen binary into distinct directories before any
+comparison. These coverage runs make no latency claim; concurrent compilation
+and verifier runs are unsuitable for measuring latency changes.
