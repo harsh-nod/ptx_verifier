@@ -190,6 +190,29 @@ LLVM's pinned
 [numerical controls](tests/gfx1250_mul_u64.rs) and
 [source-readiness controls](../volta_pipeline/tests/gfx1250_mul_u64_tests.rs).
 
+The selected gfx1250 raw-buffer profile accepts `buffer_load_b128` into four
+VGPRs and `buffer_store_b64` from two VGPRs, each with a VGPR byte offset,
+plain four-SGPR resource, `null` scalar offset and `offen`. Optional immediate
+offsets are nonnegative 23-bit values. IDXEN, nondefault cache/scope flags,
+implicit LDS, swizzle, nonzero OOB_SELECT, other resource types and unbound
+or bounds-disabled resources remain unsupported. Each active transfer must
+fit both the resource and a configured allocation; resource-OOB zero-fill or
+suppression needs a separate graph contract. Register results use LOADcnt,
+stores use STOREcnt, and descriptor/address/EXEC/data leases use XCNT.
+
+Resources retain their raw
+[CDNA5 §9.4/§9.6 fields](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf):
+57-bit base and 45-bit byte count, with stride ignored in this IDXEN=0,
+OOB_SELECT=0 linear profile. A host aggregate shaped as
+`{pointer64, range32, config32}` is not a target-neutral descriptor: for a
+pointer below 2^57 and config 0x20000, these raw words encode `range * 128`
+bytes and stride 32. The evaluator never replaces that hardware count with
+the host field's name or intent. Configured allocation bounds remain
+independent of a wider resource bound. See LLVM's pinned
+[encoding controls](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/test/MC/AMDGPU/gfx1250_asm_vbuffer_mubuf.s),
+[value/profile controls](tests/gfx1250_raw_buffer.rs) and
+[readiness/lease controls](../volta_pipeline/tests/gfx1250_raw_buffer_tests.rs).
+
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
 subnormal behavior are outside that model. Encoded F16, BF16 and FP8 transport
