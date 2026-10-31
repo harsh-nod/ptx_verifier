@@ -58,6 +58,7 @@ pub enum EvalError {
     TensorBounds {
         wave: u32,
         pc: usize,
+        what: &'static str,
     },
 }
 impl fmt::Display for EvalError {
@@ -78,7 +79,7 @@ impl fmt::Display for EvalError {
                 "analysis instruction budget {limit} exhausted (inconclusive)"
             ),
             Self::ObserverStopped => f.write_str(OBSERVER_STOP_REASON),
-            Self::TensorBounds { .. } => f.write_str(TENSOR_BOUNDS_ABORT_REASON),
+            Self::TensorBounds { what, .. } => f.write_str(what),
         }
     }
 }
@@ -1225,7 +1226,8 @@ impl<'a> Interpreter<'a> {
                     AbortCause::Error
                 };
                 let (thread, pc) = match &error {
-                    EvalError::Invalid { wave, pc, .. } | EvalError::TensorBounds { wave, pc } => (
+                    EvalError::Invalid { wave, pc, .. }
+                    | EvalError::TensorBounds { wave, pc, .. } => (
                         Some(ThreadIx(wave * self.architecture.wave_size())),
                         Some(ProgramPoint(*pc as u32)),
                     ),
@@ -5983,6 +5985,7 @@ impl<'a> Interpreter<'a> {
             return Err(EvalError::TensorBounds {
                 wave: wave.id,
                 pc: wave.pc,
+                what: TENSOR_BOUNDS_ABORT_REASON,
             });
         }
         if !self.config.shared_allocations.is_empty()

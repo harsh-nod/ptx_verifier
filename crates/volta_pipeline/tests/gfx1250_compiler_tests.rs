@@ -869,12 +869,11 @@ fn real_gfx1250_assemble_valid_safety_mutants_fail_their_actual_native_obligatio
             )],
         );
         let checked = check(&mutant, "tensor_roundtrip", tensor_config());
-        assert!(matches!(
-            checked.analysis.symbolic_outputs(),
-            Err(volta_amdgpu_analysis::OutputsUnavailable::Aborted(
-                volta_amdgpu_analysis::EvalError::TensorBounds { wave: 0, .. }
-            ))
-        ));
+        let failure = format!("{:?}", checked.analysis.symbolic_outputs().unwrap_err());
+        assert!(
+            failure.contains("tensor footprint exceeds LDS capacity"),
+            "{failure}"
+        );
         assert_ne!(checked.checks.conclusion(), GraphConclusion::Verified);
     }
     {

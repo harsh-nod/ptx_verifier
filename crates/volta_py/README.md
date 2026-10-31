@@ -44,6 +44,12 @@ checked output prefix. `equivalent=True` describes the checked elements; require
 output index sets are validated before sampling, so missing or extra writes
 remain errors even when the sampled values match.
 
+A certified gfx1250 tensor LDS overrun raises
+[`TensorBoundsError`](../../docs/tensor-bounds.md), a `VoltaError` subclass,
+before returning an analysis or verification result. Its diagnostic fields
+identify the attempted interval and configured extent. No transfer or output
+proof is implied by this rejected prefix.
+
 `Param` provides `int`, `float`, `sym_float`, `array_ptr` and native `bytes`
 constructors. Python does not currently expose PTX `StructField` or host
 tensor-map constructors. Those aggregate forms are available through Rust

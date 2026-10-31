@@ -61,6 +61,18 @@ fn compiler_load_and_store_outside_declared_lds_get_only_private_certified_rejec
     for (op, lds, mode) in [(LOAD, 5, AccessMode::Write), (STORE, 17, AccessMode::Read)] {
         assert!(SOURCE.contains(op));
         let mutant = SOURCE.replacen(op, &format!("s_mov_b32 s{lds}, 256\n\t{op}"), 1);
+        let native = volta_amdgpu_analysis::analyze(
+            &frontend::parse(&mutant).unwrap(),
+            Some("tensor_roundtrip"),
+            config(),
+        )
+        .unwrap();
+        assert!(matches!(
+            native.symbolic_outputs(),
+            Err(volta_amdgpu_analysis::OutputsUnavailable::Aborted(
+                volta_amdgpu_analysis::EvalError::TensorBounds { what, .. }
+            )) if *what == volta_graph::TENSOR_BOUNDS_ABORT_REASON
+        ));
         let v = run(&mutant);
         let candidate =
             volta_graph_check::amdgpu::tensor_bounds::tensor_bounds_candidate(&v.analysis.graph)
