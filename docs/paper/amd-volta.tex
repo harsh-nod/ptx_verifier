@@ -194,6 +194,15 @@ an early rejection; a generic stopped prefix remains inconclusive. No END,
 complete outputs or equivalence result is invented. Ordinary execution remains
 the default, and every acceptance still requires the complete checks.
 
+An independent opt-in observer handles overlapping ordinary writes by distinct
+active lanes of one gfx950/gfx1250 global or direct LDS issue. Interval discovery
+proposes a pair; prefix replay must pass trace/readiness/barrier prerequisites
+and reproduce its exact overlap in the existing memory checker. Later waits
+cannot order these sibling effects. Final replay authorizes rejection without
+outputs or equivalence. Supported concrete raw-buffer stores qualify; atomics,
+tensor transfers, mixed FLAT and unknown profiles do not. Producer batches and
+decoded effects remain trusted premises, not a new hardware soundness theorem.
+
 For supported plain 2D tensor transfers, a distinct attempted-access event can
 certify an LDS extent violation before memory issue. The checker decodes the
 captured descriptor and validates configured allocation bounds, source readiness
