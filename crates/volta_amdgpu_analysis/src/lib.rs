@@ -2,10 +2,12 @@
 //!
 //! [`frontend::parse`] validates compiler-module directives, metadata and globals,
 //! then parses every descriptor/metadata entry body. Explicitly declared and
-//! bounded non-entry functions are excluded. Calls and computed jumps in entries
-//! remain unsupported; [`lower::lower_module_kernel`] resolves branches only
-//! within the chosen kernel. Modules without entry declarations retain strict
-//! parsing of all handwritten function bodies.
+//! bounded non-entry functions form a separate helper catalog. The selected
+//! gfx950 call profile executes complete reachable helpers through checked
+//! rel32 code pointers and returns. Branches stay inside their source function;
+//! scratch execution, unavailable runtime ABI values and general computed jumps
+//! remain unsupported. Modules without entry declarations retain strict parsing
+//! of all handwritten function bodies.
 mod analysis;
 mod config;
 mod eval;

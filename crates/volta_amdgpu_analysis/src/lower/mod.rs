@@ -469,8 +469,8 @@ fn lower_with_globals(
             let finish = sequence.anchor_pc + 2;
             if sequence.register_pair != *target || sequence.anchor_pc < function.start || finish >= pc { return false; }
             // A conservative straight-line reaching-definition certificate.
-            // Any mention of either word, call, branch or alternate entry after
-            // construction refuses this selected form instead of guessing def-use.
+            // Direct register mentions of either word, control instructions,
+            // branches and alternate entries refuse this selected form.
             !instructions[finish + 1..pc].iter().any(|item| {
                 matches!(item.opcode, Opcode::Branch | Opcode::Control)
                     || item.operands.iter().any(|operand| matches!(operand, Operand::Register(r)
