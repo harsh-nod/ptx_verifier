@@ -34,6 +34,14 @@ pub(super) enum Value {
         anchor: u32,
         high: bool,
     },
+    /// Opaque code word. Code addresses and saved continuations cannot be
+    /// converted to data/address bits, and ordered halves cannot be interchanged.
+    CodeWord {
+        target: u32,
+        origin: u32,
+        returning: bool,
+        high: bool,
+    },
     /// Unknown high32 of the 2^32-aligned LDS aperture. Only FLAT addressing
     /// may consume it, paired with a concrete segment offset in the low word.
     SharedApertureHi,
@@ -172,7 +180,7 @@ impl Value {
             Self::PredicateWord { .. } => {
                 Err("symbolic predicate mask used as concrete integer/address bits".into())
             }
-            Self::RelocationWord { .. } => {
+            Self::RelocationWord { .. } | Self::CodeWord { .. } => {
                 Err("opaque PC-relative relocation anchor used as ordinary bits".into())
             }
             Self::SharedApertureHi => {
@@ -216,6 +224,7 @@ impl Value {
             | Self::IntExpr(_)
             | Self::PredicateWord { .. }
             | Self::RelocationWord { .. }
+            | Self::CodeWord { .. }
             | Self::SharedApertureHi
             | Self::NarrowInt { .. }
             | Self::Low16Integer(_)

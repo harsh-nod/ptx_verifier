@@ -194,7 +194,7 @@ impl Memory {
             (_, Value::SharedApertureHi) => {
                 return Err("opaque shared aperture cannot be stored as data bits".into());
             }
-            (_, Value::RelocationWord { .. }) => {
+            (_, Value::RelocationWord { .. } | Value::CodeWord { .. }) => {
                 return Err("opaque PC relocation cannot be stored as data bits".into());
             }
             (_, Value::PredicateWord { .. }) => {
@@ -392,7 +392,7 @@ impl Memory {
             Value::PartialHalves(..)|Value::Bytes(..)|Value::PartialBytePair(..)=>Err("packed/partially initialized output needs element-width extraction".into()),
             Value::WidePart { .. } => Err("one word of a 64-bit mathematical value cannot be extracted as a scalar32".into()),
             Value::PredicateWord { .. } => Err("symbolic predicate mask cannot be extracted as data bits".into()),
-            Value::RelocationWord { .. } => Err("opaque PC relocation cannot be extracted as data bits".into()),
+            Value::RelocationWord { .. } | Value::CodeWord { .. } => Err("opaque PC relocation cannot be extracted as data bits".into()),
             Value::SharedApertureHi => Err("opaque shared aperture cannot be extracted as data bits".into()),
         }
     }

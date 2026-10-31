@@ -453,6 +453,8 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
     );
     let result = match stem {
         "s_endpgm" => (Control, 0, 1),
+        "s_swappc_b64" => (Control, 2, 2),
+        "s_setpc_b64" => (Control, 1, 1),
         "s_nop" | "s_sleep" | "s_sendmsg" | "s_setprio" | "s_trap" => (Control, 1, 1),
         "s_barrier" => (Barrier, 0, 0),
         "s_waitcnt" => (Wait, 1, 3),
@@ -1034,6 +1036,13 @@ fn validate_post_parse(
     span: SourceSpan,
 ) -> Result<(), ParseError> {
     let fail = |message| ParseError { message, span };
+    if matches!(mnemonic, "s_swappc_b64" | "s_setpc_b64")
+        && architecture != crate::target::Architecture::Gfx950
+    {
+        return Err(fail(
+            "device call/return is supported only in the selected gfx950 profile".into(),
+        ));
+    }
     if mnemonic == "s_waitcnt" {
         let mut seen = std::collections::BTreeSet::new();
         for operand in operands {
@@ -1237,6 +1246,30 @@ fn validate_cdna_integer16(
 /// supported syntax. CDNA4 ISA section 12.5 specifies the 4/7/2-bit fields below.
 pub(super) fn validate_control(instruction: &Instruction) -> Result<(), ParseError> {
     if instruction.opcode != Opcode::Control {
+        return Ok(());
+    }
+    if matches!(
+        instruction.mnemonic.as_str(),
+        "s_swappc_b64" | "s_setpc_b64"
+    ) {
+        let arity = if instruction.mnemonic == "s_swappc_b64" {
+            2
+        } else {
+            1
+        };
+        if instruction.operands.len() != arity
+            || !instruction.modifiers.is_empty()
+            || instruction.operands.iter().any(|operand| {
+                !matches!(operand,
+                Operand::Register(register) if register.class == RegisterClass::Scalar
+                    && register.count == 2 && register.special.is_none())
+            })
+        {
+            return Err(ParseError {
+                message: "device call/return requires plain SGPR pairs and no modifiers".into(),
+                span: instruction.span,
+            });
+        }
         return Ok(());
     }
     if instruction.mnemonic == "s_delay_alu"

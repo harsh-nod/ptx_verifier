@@ -50,12 +50,32 @@ checks. A lowered operation can still stop as unsupported during execution;
 lowering alone makes no safety or value-semantics claim.
 
 The frontend identifies compiler entry kernels through descriptors and AMDHSA
-metadata. It excludes an unrelated helper only when `.type ...,@function` and
-matching `.size` declarations bound it unambiguously. Overlapping definitions
-and entry fallthrough are rejected. Every entry instruction is checked,
-including unreachable instructions. Calls, computed jumps and helper call
-analysis are unsupported. Handwritten modules without entry declarations
-retain strict parsing of all function bodies.
+metadata. It catalogs non-entry helpers only when `.type ...,@function` and
+matching `.size` declarations bound them unambiguously. Uncalled unsupported
+helpers retain an explicit refusal, never an executable parsed prefix.
+Overlapping definitions and entry fallthrough are rejected. Every selected entry
+and referenced helper instruction is checked, including unreachable paths.
+Handwritten modules without entry declarations retain strict parsing of all bodies.
+
+The selected **gfx950** call profile executes actual `s_swappc_b64` / `s_setpc_b64`
+code with plain SGPR pairs. A call requires a matching adjacent
+getpc/rel32-lo+4/hi+12 construction and a straight-line reaching definition of
+its target pair. Lowering appends a deterministic helper closure after the entry;
+existing entry PCs and all source spans remain intact. Opaque ordered code and
+return words prevent integer-forged PCs. The call snapshots its target before
+writing its saved continuation, including aliasing source/destination pairs.
+Nested calls require the program to preserve return words explicitly. Physical
+registers, flags, EXEC, M0 and asynchronous counters remain shared: calls and
+returns add no wait, register reset or implicit END. Helper-local branch bounds
+and caller-matching continuations are checked.
+
+This finite profile follows [CDNA4 ISA §12.3](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
+and the pinned [LLVM SOP1 definitions](https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/lib/Target/AMDGPU/SOPInstructions.td#L312).
+External/GOT/loaded targets, arbitrary PC arithmetic, tailcalls, recursion and
+calls on other targets remain unsupported. Stack/private-memory instructions,
+unavailable ABI inputs and unsupported called code still stop analysis; helper
+names never substitute for executing their bodies. This does not provide general
+ROCm device-library or hostcall execution.
 
 CLI and Python callers select `backend=amdgpu` and a matching `target`.
 Omitting the AMD API target selects gfx950. Direct Rust analysis uses the
@@ -179,7 +199,8 @@ Defined module globals retain exact initialized bytes and bounds. A bounded
 [`.asciz` profile](tests/fixtures/assembly-string-objects.md) preserves supported
 ASCII literals, escapes and every terminating NUL; declared sizes must match.
 Section storage types remain consistent, and NOBITS initializers must contain
-only zero bytes. These data profiles do not implement calls or hostcall helpers.
+only zero bytes. These data profiles do not supply device-library semantics or
+hostcall effects.
 `global_values` may bind a writable scalar object of one, two, four or eight
 bytes. Selected PC-relative relocation sequences resolve object addresses
 without inventing linker addresses. Undefined externs, GOT relocations,

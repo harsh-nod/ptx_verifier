@@ -173,12 +173,26 @@ pub struct Kernel {
     pub args: Vec<KernelArg>,
 }
 
+/// A bounded non-entry function. Uncalled compiler helpers may contain forms
+/// outside this frontend; their first refusal is retained rather than treating
+/// a parsed prefix as an executable body. The complete bytes remain in source.
+#[derive(Debug, Clone, Default)]
+pub struct Function {
+    pub name: String,
+    pub instructions: Vec<Instruction>,
+    pub labels: BTreeMap<String, usize>,
+    pub span: SourceSpan,
+    pub refusal: Option<(String, SourceSpan)>,
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct Module {
     pub target: Option<String>,
     pub code_object_version: Option<u32>,
     pub metadata_version: Option<Vec<u32>>,
     pub kernels: Vec<Kernel>,
+    /// Explicit `.type`/`.size` function bodies, separate from kernel exports.
+    pub functions: Vec<Function>,
     pub constants: BTreeMap<String, i64>,
     pub globals: Vec<Global>,
     /// Original source is retained for diagnostics and event-graph exports.
