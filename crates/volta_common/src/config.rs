@@ -203,7 +203,7 @@ pub struct AnalysisConfig {
     /// The single native AMD workgroup to analyze. PTX currently requires zero.
     pub workgroup_id: (u32, u32, u32),
     /// Opt in to the pipeline's first certified gfx1250 scalar-readiness finding.
-    /// Default false preserves complete candidate traces and all findings.
+    /// Default false preserves complete candidate traces and complete-trace diagnostics.
     pub early_readiness: bool,
     /// Parameter values in `ParamId` (declaration) order
     pub params: Vec<ParamValue>,
