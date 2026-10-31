@@ -1380,6 +1380,32 @@ pub(super) fn validate_registers(
             }
         }
         Opcode::ScalarAlu => {
+            // SOPK has a dedicated immediate field, not a general scalar
+            // source. LLVM's s16imm accepts signed values or their u16 bits;
+            // unsigned CMPK instead requires an actual nonnegative u16.
+            if stem.starts_with("s_cmpk_")
+                || matches!(
+                    stem,
+                    "s_movk_i32" | "s_addk_i32" | "s_addk_co_i32" | "s_mulk_i32"
+                )
+            {
+                if architecture == crate::target::Architecture::Gfx1250
+                    && stem.starts_with("s_cmpk_")
+                {
+                    return Err("SOPK compare instructions have no gfx1250 encoding".into());
+                }
+                let minimum = if stem.starts_with("s_cmpk_") && stem.ends_with("_u32") {
+                    0
+                } else {
+                    -32768
+                };
+                if !matches!(operands.get(1), Some(Operand::Integer(value)) if (minimum..=65535).contains(value))
+                {
+                    return Err(format!(
+                        "`{mnemonic}` requires a 16-bit integer immediate in {minimum}..=65535"
+                    ));
+                }
+            }
             if operands
                 .iter()
                 .any(|operand| matches!(operand, Operand::Modified { .. }))
@@ -1474,7 +1500,19 @@ pub(super) fn validate_registers(
             if stem.starts_with("global_") {
                 let scalar_address = if atomic && operands.len() == 4 { 3 } else { 2 };
                 match operands.get(scalar_address) {
-                    Some(Operand::Symbol(off)) if off == "off" => require(address, &[Vector], 2)?,
+                    Some(Operand::Symbol(off)) if off == "off" => {
+                        if architecture == crate::target::Architecture::Gfx1250
+                            && modifiers
+                                .iter()
+                                .any(|modifier| modifier.name == "scale_offset")
+                        {
+                            return Err(
+                                "GLOBAL scale_offset requires the scalar-base GVS addressing mode"
+                                    .into(),
+                            );
+                        }
+                        require(address, &[Vector], 2)?;
+                    }
                     Some(Operand::Register(register))
                         if register.class == Scalar && register.count == 2 =>
                     {
