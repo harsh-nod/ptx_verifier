@@ -89,6 +89,12 @@ LDS object bounds in bytes; PTX rejects this native-only premise. See
 [`volta_common`](../volta_common/README.md) for shared launch concepts and
 [`volta_amdgpu_analysis`](../volta_amdgpu_analysis/README.md) for target limits.
 
+`Config(..., early_memory_conflicts=True)` opts into the first certified
+same-instruction memory conflict on gfx950/gfx1250. `analyze` and `verify` raise
+`EarlyMemoryConflictError(DataRaceError)` with the exact pair, overlapping byte
+and prefix metadata, without returning outputs. It defaults to false and never
+enables early acceptance. See the [scope and trust contract](../../docs/early-memory-conflicts.md).
+
 ## Modules and tests
 
 - `config.rs`: Python launch, array and parameter classes.

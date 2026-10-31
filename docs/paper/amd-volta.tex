@@ -8,7 +8,7 @@
 \usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black]{hyperref}
 \hypersetup{pdftitle={Adapting Volta to AMD GPUs},pdfauthor={GPU Kernel Verifier contributors}}
 \newcommand{\code}[1]{\texttt{\detokenize{#1}}}
-\newcommand{\repo}[2]{\href{https://github.com/harsh-nod/ptx_verifier/blob/fd640e6a99c771fd10d991c574ef151e38e6d5c6/#1}{#2}}
+\newcommand{\repo}[2]{\href{https://github.com/harsh-nod/ptx_verifier/blob/f0ee44285286aa1ea92f3e99aed6574ad89f3c82/#1}{#2}}
 \newcommand{\accept}{\textsc{Accept}}
 \newcommand{\reject}{\textsc{Reject}}
 \newcommand{\unknown}{\textsc{Unknown}}
@@ -194,6 +194,15 @@ an early rejection; a generic stopped prefix remains inconclusive. No END,
 complete outputs or equivalence result is invented. Ordinary execution remains
 the default, and every acceptance still requires the complete checks.
 
+An independent opt-in observer handles overlapping ordinary writes by distinct
+active lanes of one gfx950/gfx1250 global or direct LDS issue. Interval discovery
+proposes a pair; prefix replay must pass trace/readiness/barrier prerequisites
+and reproduce its exact overlap in the existing memory checker. Later waits
+cannot order these sibling effects. Final replay authorizes rejection without
+outputs or equivalence. Supported concrete raw-buffer stores qualify; atomics,
+tensor transfers, mixed FLAT and unknown profiles do not. Producer batches and
+decoded effects remain trusted premises, not a new hardware soundness theorem.
+
 For supported plain 2D tensor transfers, a distinct attempted-access event can
 certify an LDS extent violation before memory issue. The checker decodes the
 captured descriptor and validates configured allocation bounds, source readiness
@@ -253,7 +262,7 @@ also does not establish IEEE rounding, NaN behavior or approximation error.
 
 \section{Implementation and evaluation}
 
-The implementation snapshot is \code{c3cb9ea}; the PTX-only comparison baseline
+The implementation snapshot is \code{f0ee442}; the original PTX-only port baseline
 is \code{e8f8199}. The main code paths are
 \repo{crates/volta_amdgpu_analysis/README.md}{native parsing/execution},
 \repo{crates/volta_graph_check/src/amdgpu.rs}{CDNA graph checking},
@@ -273,15 +282,28 @@ check missing waits, early reuse, malformed descriptors and barrier lifetimes.
 \item Full output contracts check dimensions, storage, projections and every
 required index; independent numerical drivers check finite device behavior.
 \end{itemize}
-At the stated snapshot, the release workspace passed 2,245 Rust tests and the
-rebuilt extension passed 127 Python tests. These are regression results, not an
+At the stated snapshot, the release workspace passed 2,321 Rust tests and the
+rebuilt optimized extension passed 136 Python tests. These are regression results, not an
 ISA coverage percentage or a proof of all schedules. The original-workload
 registry contains 32 registrations; default CLI/Python interface tests select
 W01--W18. Static registry consistency is not evidence that every full-size
-workload was freshly executed. A separate unchanged compiler corpus verifies
-18 target/kernel configurations and all 708 output elements. Exact-assembly
-hardware probes separately passed 66 cases and 16,244 output words across the
+workload was freshly executed. Earlier compiler-corpus validation verified
+18 target/kernel configurations and all 708 output elements. Earlier exact-assembly
+hardware probes passed 66 cases and 16,244 output words across the
 three targets; these bounded probes do not replace full-workload verification.
+
+A frozen comparison against the full-trace fork baseline \code{0e634bc} detects
+20/20 core seeded write-conflict configurations versus 13/20, retaining all
+15/18 baseline complete safe proofs. Across 31 paired fresh-process repeats,
+first-diagnostic medians for inserted-store matvec, convolution and attention
+seeds improve by 22.2$\times$, 101.7$\times$ and 227.9$\times$; GEMM's baseline
+timeout has no ratio. Nine of ten portable late-store medians are slower;
+five are 8.3--13.4\% slower with descriptive ratio intervals above one.
+Six reserved configurations retain three safe proofs and two of three hazard
+detections; a transpose seed remains inconclusive at address preflight.
+The \href{https://github.com/harsh-nod/ptx_verifier/blob/44dcc61a12986ae51f8cb09486d34022fdec9fa8/tests/amdgpu/memory-conflicts-study/results/README.md}{complete results}
+retain every miss, timing observation and audit identity. These CPU verifier
+measurements do not establish performance or bug coverage for arbitrary kernels.
 
 Reproduction starts with \code{cargo test --release --workspace} and
 \code{just test-python}; the
@@ -290,7 +312,6 @@ Reproduction starts with \code{cargo test --release --workspace} and
 resource requirements and all-workload selection. Unsafe synchronization
 mutations stay in CPU analysis.
 
-\clearpage
 \section{Related work and limitations}
 
 \emph{AI as a Compiler} preserves a fixed specialization/ABI/target contract

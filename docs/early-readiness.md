@@ -98,7 +98,7 @@ continue. Unsupported execution and
 [configured tensor LDS bounds faults](tensor-bounds.md) can still stop the default
 execution before completion.
 Every acceptance still needs a completed execution, all applicable graph checks
-and complete mathematical equivalence. The observer adds no early checks for
+and complete mathematical equivalence. This scalar observer adds no early checks for
 PTX, gfx942/gfx950 or other gfx1250 properties. No general performance
 improvement follows from this interface;
 latency and overhead require controlled measurement on the supported subset.

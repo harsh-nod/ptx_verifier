@@ -14,7 +14,8 @@ use volta_ptx_analysis::{AnalysisConfig, Stats};
 
 use crate::config::ConfigPy;
 use crate::error::{
-    EarlyReadinessError, TensorBoundsError, VoltaError, graph_failure_to_py, parse_error_to_py,
+    EarlyMemoryConflictError, EarlyReadinessError, TensorBoundsError, VoltaError,
+    graph_failure_to_py, parse_error_to_py,
 };
 
 pub(crate) fn parse_module(source: &str, backend: Backend) -> PyResult<KernelModule> {
@@ -148,6 +149,28 @@ pub(crate) fn check_kernel(
         value.setattr("instructions", verified.analysis.stats.instructions)?;
         value.setattr("prefix_amd_records", finding.certificate().amd_records)?;
         value.setattr("prefix_graph_events", finding.certificate().graph_events)?;
+        return Err(exception);
+    }
+    if let Some(finding) = &verified.early_memory_conflict {
+        let conflict = finding.conflict();
+        let certificate = finding.certificate();
+        let exception = EarlyMemoryConflictError::new_err(format!(
+            "certified memory-conflict prefix rejection: {conflict:?}; first finding only; complete outputs and equivalence unavailable"
+        ));
+        let value = exception.value(py);
+        value.setattr("earlier_event", conflict.earlier.0)?;
+        value.setattr("later_event", conflict.later.0)?;
+        value.setattr("address", conflict.location.addr)?;
+        value.setattr("space", format!("{:?}", conflict.location.space))?;
+        value.setattr("kind", format!("{:?}", conflict.kind))?;
+        value.setattr("instruction_event", certificate.instruction.0)?;
+        value.setattr("issue_event", certificate.issue.0)?;
+        value.setattr("wave", certificate.wave)?;
+        value.setattr("earlier_thread", certificate.earlier_thread.0)?;
+        value.setattr("later_thread", certificate.later_thread.0)?;
+        value.setattr("instructions", verified.analysis.stats.instructions)?;
+        value.setattr("prefix_amd_records", certificate.amd_records)?;
+        value.setattr("prefix_graph_events", certificate.graph_events)?;
         return Err(exception);
     }
     if let Some(finding) = &verified.tensor_bounds {

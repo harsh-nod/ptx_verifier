@@ -63,6 +63,12 @@ module's declared architecture. Code-object versions 4–6 and metadata versions
 1.0–1.2 are recognized; individual compiler fixtures determine which
 combinations have executable coverage.
 
+The pipeline can supply a checker-backed complete-instruction observer when
+`early_readiness` or `early_memory_conflicts` is enabled. Direct `analyze`
+rejects those options without an explicit observer; a generic callback stop
+provides no certified rejection. See [early memory conflicts](../../docs/early-memory-conflicts.md)
+for the selected targets and graph/provenance trust boundary.
+
 ## Execution and memory contract
 
 `AnalysisConfig.workgroup_id` selects one native workgroup and defaults to
@@ -271,9 +277,11 @@ source/result delays are checked downstream. BF16 MFMA requires concrete
 encoded BF16 operands; arbitrary symbolic BF16 reinterpretation is unsupported.
 
 Selected ALU, conversion, GLOBAL/scalar/LDS/FLAT memory, cross-lane DS and
-workgroup-barrier forms support the compiler corpora. Direct-to-LDS, buffer
-addressing, atomics and general DPP/special-register hazard profiles are not
-implemented for these targets. The legacy cross-wave GLOBAL publication
+workgroup-barrier forms support the compiler corpora. The selected gfx950 raw
+DWORD buffer profile is described above; gfx942 buffer addressing and buffer
+forms outside that profile remain unsupported. Direct-to-LDS, atomics and
+general DPP/special-register hazard profiles are not implemented for these
+targets. The legacy cross-wave GLOBAL publication
 certificate additionally requires completed effects, workgroup scope at both
 endpoints and the `SingleCuWorkgroup` premise.
 
