@@ -1522,15 +1522,14 @@ fn clamp_does_not_enable_other_modifier_or_integer_exception_semantics() {
             "s_waitcnt vmcnt(0)",
             &format!("s_waitcnt vmcnt(0)\n{operation}"),
         );
-        match frontend::parse(&source(&instructions, 0)) {
-            Ok(module) => assert!(
+        if let Ok(module) = frontend::parse(&source(&instructions, 0)) {
+            assert!(
                 analyze(&module, None, config(64, 64))
                     .unwrap()
                     .symbolic_outputs()
                     .is_err(),
                 "{operation}"
-            ),
-            Err(_) => {}
+            )
         }
     }
 }

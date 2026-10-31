@@ -404,28 +404,28 @@ pub(crate) fn compare(
 ) -> Result<ExprId, String> {
     let a = canonical_operand(arena, ty, a)?;
     let b = canonical_operand(arena, ty, b)?;
-    if let ScalarType::Int(ty) = ty {
-        if let (Some(a), Some(b)) = (arena.as_int_const(a), arena.as_int_const(b)) {
-            let ordering = if ty.signed {
-                a.cmp(&b)
-            } else {
-                low_bits(a, ty.bits).cmp(&low_bits(b, ty.bits))
-            };
-            let value = match op {
-                CmpOp::Eq => ordering.is_eq(),
-                CmpOp::Ne => !ordering.is_eq(),
-                CmpOp::Lt => ordering.is_lt(),
-                CmpOp::Le => !ordering.is_gt(),
-                CmpOp::Gt => ordering.is_gt(),
-                CmpOp::Ge => !ordering.is_lt(),
-            };
-            return Ok(arena.bool_val(value));
-        }
+    if let ScalarType::Int(ty) = ty
+        && let (Some(a), Some(b)) = (arena.as_int_const(a), arena.as_int_const(b))
+    {
+        let ordering = if ty.signed {
+            a.cmp(&b)
+        } else {
+            low_bits(a, ty.bits).cmp(&low_bits(b, ty.bits))
+        };
+        let value = match op {
+            CmpOp::Eq => ordering.is_eq(),
+            CmpOp::Ne => !ordering.is_eq(),
+            CmpOp::Lt => ordering.is_lt(),
+            CmpOp::Le => !ordering.is_gt(),
+            CmpOp::Gt => ordering.is_gt(),
+            CmpOp::Ge => !ordering.is_lt(),
+        };
+        return Ok(arena.bool_val(value));
     }
-    if let ScalarType::Int(ty) = ty {
-        if let Some(predicate) = compare_word_bit(arena, ty, op, a, b) {
-            return Ok(predicate);
-        }
+    if let ScalarType::Int(ty) = ty
+        && let Some(predicate) = compare_word_bit(arena, ty, op, a, b)
+    {
+        return Ok(predicate);
     }
     Ok(match op {
         CmpOp::Eq => arena.eq(a, b),

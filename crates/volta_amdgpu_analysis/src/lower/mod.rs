@@ -104,17 +104,16 @@ fn lower_with_globals(
     let instruction_count = instructions.len();
     for instruction in &mut instructions {
         for operand in &instruction.operands {
-            if let Operand::Symbol(symbol) = operand {
-                if instruction.opcode != Opcode::Branch
-                    && !(instruction.opcode == Opcode::VectorMemory && symbol == "off")
-                {
-                    return Err(LowerError {
-                        message: format!(
-                            "unresolved assembly symbol or unsupported relocation `{symbol}`"
-                        ),
-                        span: instruction.span,
-                    });
-                }
+            if let Operand::Symbol(symbol) = operand
+                && instruction.opcode != Opcode::Branch
+                && !(instruction.opcode == Opcode::VectorMemory && symbol == "off")
+            {
+                return Err(LowerError {
+                    message: format!(
+                        "unresolved assembly symbol or unsupported relocation `{symbol}`"
+                    ),
+                    span: instruction.span,
+                });
             }
         }
         if instruction.opcode != Opcode::Branch {

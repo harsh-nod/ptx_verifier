@@ -21,10 +21,10 @@ impl Memory {
     }
 
     pub fn read(&self, addr: u64, width: u64) -> Result<Value, String> {
-        if let Some(cell) = self.cells.get(&addr) {
-            if cell.width == width {
-                return Ok(cell.value);
-            }
+        if let Some(cell) = self.cells.get(&addr)
+            && cell.width == width
+        {
+            return Ok(cell.value);
         }
         if width == 4 {
             let bytes: Option<Vec<_>> = (0..4)
@@ -39,45 +39,47 @@ impl Memory {
             if let Some(bytes) = bytes {
                 return Ok(Value::Bytes(bytes.try_into().unwrap()));
             }
-            if let (Some(lo), Some(hi)) = (self.cells.get(&addr), self.cells.get(&(addr + 2))) {
-                if lo.width == 2 && hi.width == 2 {
-                    if let (Value::BytePair(a, b), Value::BytePair(c, d)) = (lo.value, hi.value) {
-                        return Ok(Value::Bytes([a, b, c, d]));
-                    }
-                    if let (Value::Half(lo), Value::Half(hi)) = (lo.value, hi.value) {
-                        return Ok(Value::Halves(lo, hi));
-                    }
+            if let (Some(lo), Some(hi)) = (self.cells.get(&addr), self.cells.get(&(addr + 2)))
+                && lo.width == 2
+                && hi.width == 2
+            {
+                if let (Value::BytePair(a, b), Value::BytePair(c, d)) = (lo.value, hi.value) {
+                    return Ok(Value::Bytes([a, b, c, d]));
+                }
+                if let (Value::Half(lo), Value::Half(hi)) = (lo.value, hi.value) {
+                    return Ok(Value::Halves(lo, hi));
                 }
             }
         }
         if width == 2 {
-            if let (Some(lo), Some(hi)) = (self.cells.get(&addr), self.cells.get(&(addr + 1))) {
-                if lo.width == 1 && hi.width == 1 {
-                    if let (Value::Byte(a), Value::Byte(b)) = (lo.value, hi.value) {
-                        return Ok(Value::BytePair(a, b));
-                    }
-                }
+            if let (Some(lo), Some(hi)) = (self.cells.get(&addr), self.cells.get(&(addr + 1)))
+                && lo.width == 1
+                && hi.width == 1
+                && let (Value::Byte(a), Value::Byte(b)) = (lo.value, hi.value)
+            {
+                return Ok(Value::BytePair(a, b));
             }
             if let Some((&start, cell)) = self.cells.range(..=addr).next_back() {
-                if let Value::Bytes(bytes) = cell.value {
-                    if cell.width == 4 && (addr == start || addr == start + 2) {
-                        let index = (addr - start) as usize;
-                        return Ok(Value::BytePair(bytes[index], bytes[index + 1]));
-                    }
+                if let Value::Bytes(bytes) = cell.value
+                    && cell.width == 4
+                    && (addr == start || addr == start + 2)
+                {
+                    let index = (addr - start) as usize;
+                    return Ok(Value::BytePair(bytes[index], bytes[index + 1]));
                 }
-                if let Value::Halves(lo, hi) = cell.value {
-                    if cell.width == 4 && (addr == start || addr == start + 2) {
-                        return Ok(Value::Half(if addr == start { lo } else { hi }));
-                    }
+                if let Value::Halves(lo, hi) = cell.value
+                    && cell.width == 4
+                    && (addr == start || addr == start + 2)
+                {
+                    return Ok(Value::Half(if addr == start { lo } else { hi }));
                 }
-                if let Value::PartialHalves(lo, hi) = cell.value {
-                    if cell.width == 4 && (addr == start || addr == start + 2) {
-                        return if addr == start { lo } else { hi }
-                            .map(Value::Half)
-                            .ok_or_else(|| {
-                                "read of unknown half after partial register write".into()
-                            });
-                    }
+                if let Value::PartialHalves(lo, hi) = cell.value
+                    && cell.width == 4
+                    && (addr == start || addr == start + 2)
+                {
+                    return if addr == start { lo } else { hi }
+                        .map(Value::Half)
+                        .ok_or_else(|| "read of unknown half after partial register write".into());
                 }
             }
         }
@@ -89,14 +91,13 @@ impl Memory {
                     value: Value::BytePair(a, b),
                 },
             )) = self.cells.range(..=addr).next_back()
+                && addr - start < *width
             {
-                if addr - start < *width {
-                    return Ok(match addr - start {
-                        0 => Value::Byte(*a),
-                        1 => Value::Byte(*b),
-                        _ => Value::Bits(0),
-                    });
-                }
+                return Ok(match addr - start {
+                    0 => Value::Byte(*a),
+                    1 => Value::Byte(*b),
+                    _ => Value::Bits(0),
+                });
             }
             if let Some((
                 &start,
@@ -105,10 +106,9 @@ impl Memory {
                     value: Value::Bytes(bytes),
                 },
             )) = self.cells.range(..=addr).next_back()
+                && addr - start < 4
             {
-                if addr - start < 4 {
-                    return Ok(Value::Byte(bytes[(addr - start) as usize]));
-                }
+                return Ok(Value::Byte(bytes[(addr - start) as usize]));
             }
         }
         // Concrete fields may be read at any supported smaller width or combined.
@@ -257,27 +257,31 @@ impl Memory {
         for (start, cell) in overlapping {
             let old_end = start + cell.width;
             if start < addr || old_end > end {
-                if cell.width == 4 && width == 2 && (addr == start || addr == start + 2) {
-                    if let Value::Halves(lo, hi) = cell.value {
-                        self.cells.remove(&start);
-                        if addr == start {
-                            self.initialize(start + 2, 2, Value::Half(hi));
-                        } else {
-                            self.initialize(start, 2, Value::Half(lo));
-                        }
-                        continue;
+                if cell.width == 4
+                    && width == 2
+                    && (addr == start || addr == start + 2)
+                    && let Value::Halves(lo, hi) = cell.value
+                {
+                    self.cells.remove(&start);
+                    if addr == start {
+                        self.initialize(start + 2, 2, Value::Half(hi));
+                    } else {
+                        self.initialize(start, 2, Value::Half(lo));
                     }
+                    continue;
                 }
-                if cell.width == 2 && width == 1 && (addr == start || addr == start + 1) {
-                    if let Value::BytePair(lo, hi) = cell.value {
-                        self.cells.remove(&start);
-                        self.initialize(
-                            if addr == start { start + 1 } else { start },
-                            1,
-                            Value::Byte(if addr == start { hi } else { lo }),
-                        );
-                        continue;
-                    }
+                if cell.width == 2
+                    && width == 1
+                    && (addr == start || addr == start + 1)
+                    && let Value::BytePair(lo, hi) = cell.value
+                {
+                    self.cells.remove(&start);
+                    self.initialize(
+                        if addr == start { start + 1 } else { start },
+                        1,
+                        Value::Byte(if addr == start { hi } else { lo }),
+                    );
+                    continue;
                 }
                 // Preserve untouched concrete bytes. Partial writes into symbolic f32 storage
                 // cannot preserve its exact bit representation in the real arithmetic model.

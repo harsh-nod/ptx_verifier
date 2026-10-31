@@ -249,7 +249,7 @@ fn full_wave_matrix_then_masked_publication_leaves_only_d00_uninitialized() {
     let unmasked = MASKED_MATRIX.replace("v_cmp_ne_u32 vcc,v0,0", "v_cmp_ge_u32 vcc,v0,0");
     equivalent(
         &run(&unmasked, config(128, 1, 256)),
-        &reference(256, |arena, _| arena.int(4 * 1 * 2 + 3)),
+        &reference(256, |arena, _| arena.int(4 * 2 + 3)),
     );
 }
 
