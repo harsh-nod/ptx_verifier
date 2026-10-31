@@ -4,7 +4,7 @@ use std::{
     fmt,
 };
 
-use super::{Global, Kernel, Module, SourceSpan, instr, metadata};
+use super::{Global, Kernel, Module, SourceSpan, constant_expr, instr, metadata};
 
 // Explicit bounded object-data envelope. Larger ELF objects are rejected before
 // allocating host storage; their bytes must never be silently discarded.
@@ -62,6 +62,8 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
         data_alignment: 1,
         data_read_only: false,
         data_section_supported: false,
+        constant_definitions: BTreeMap::new(),
+        constant_spans: BTreeMap::new(),
     };
     parser.collect_function_declarations(source);
     let mut start = 0;
@@ -128,6 +130,13 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
             span: parser.metadata_blocks[1].1,
         });
     }
+    parser.module.constants =
+        constant_expr::resolve_all(&parser.constant_definitions).map_err(|(name, message)| {
+            ParseError {
+                message,
+                span: parser.constant_spans[&name],
+            }
+        })?;
     let mut entries = parser.descriptors.clone();
     for (buffer, span) in std::mem::take(&mut parser.metadata_blocks) {
         entries.extend(metadata::apply_metadata(&mut parser.module, &buffer, span)?);
@@ -258,6 +267,8 @@ struct Parser {
     data_alignment: u64,
     data_read_only: bool,
     data_section_supported: bool,
+    constant_definitions: BTreeMap<String, constant_expr::Expr>,
+    constant_spans: BTreeMap<String, SourceSpan>,
 }
 
 struct FunctionBody {
@@ -649,16 +660,25 @@ impl Parser {
                 if parts.len() != 2 || !valid_symbol(parts[0]) {
                     return Err(fail("malformed constant definition".into()));
                 }
-                let value = instr::constant_expression(parts[1], &self.module.constants)
-                    .ok_or_else(|| fail("only integer assembly constants are supported".into()))?;
-                if self
-                    .module
-                    .constants
-                    .insert(parts[0].into(), value)
-                    .is_some()
-                {
-                    return Err(fail(format!("duplicate assembly constant `{}`", parts[0])));
+                // Unique definitions have immutable values, so forward references
+                // can be resolved before instruction normalization. LLVM permits
+                // .set/.equ reassignment with use-site snapshot semantics; that
+                // requires a different representation and remains unsupported.
+                // .equiv is nonredefinable even in LLVM. Never use the final value
+                // of a reassigned symbol for its earlier instruction uses.
+                if self.constant_definitions.contains_key(parts[0]) {
+                    return Err(fail(format!(
+                        "duplicate or reassigned assembly constant `{}` is unsupported",
+                        parts[0]
+                    )));
                 }
+                let expression = constant_expr::parse(parts[1]).map_err(&fail)?;
+                if let Ok(value) = expression.known_value(&self.module.constants) {
+                    self.module.constants.insert(parts[0].into(), value);
+                }
+                self.constant_definitions
+                    .insert(parts[0].into(), expression);
+                self.constant_spans.insert(parts[0].into(), span);
             }
             // Linkage, debugging, unwind and producer annotations have no value,
             // control-flow, register, or memory effect in this analysis model.
