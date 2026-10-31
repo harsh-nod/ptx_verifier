@@ -1,5 +1,6 @@
 //! One target-selected candidate execution; semantic checks consume its graph.
 mod float_bits;
+mod inputs;
 mod interp;
 mod matrix;
 mod memory;

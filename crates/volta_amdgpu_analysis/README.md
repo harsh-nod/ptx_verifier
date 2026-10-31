@@ -126,6 +126,16 @@ resolved-shared FLAT transfer must fit one object and aggregate LDS. Empty
 configuration retains aggregate bounds. Raw descriptors do not infer
 source-language LDS objects.
 
+Configured input elements are backed by their array name and original index,
+and materialized only when an executed global access touches them. Allocation
+bounds remain the complete configured extents; this does not shorten loops or
+reduce output/specification obligations. Reads and writes first materialize the
+whole input element, retaining the same partial-write and bit-interpretation
+rules. Materialization is shared across waves and never marks data as written;
+an InputOutput array exposes only bytes actually written by the program.
+Module initializers and ABI fields retain their explicit initialization, while
+unwritten output-only memory, LDS and ABI padding remain undefined.
+
 Scalar loads discard low address bits in **each component before addition**:
 DWORD and wider loads clear two bits; gfx1250 U16 clears one and U8 preserves
 all bits. With `scale_offset`, the SGPR index is multiplied by the complete

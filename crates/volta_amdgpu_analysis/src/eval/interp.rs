@@ -1,4 +1,5 @@
 use super::{
+    inputs::InputBacking,
     memory::Memory,
     value::{Value, WideKind},
 };
@@ -18,6 +19,9 @@ const DISPATCH_BASE: u64 = 0xffff_1000_0000;
 #[cfg(test)]
 #[path = "interp_address_tests.rs"]
 mod address_tests;
+#[cfg(test)]
+#[path = "interp_input_tests.rs"]
+mod input_tests;
 // Synthetic module storage is disjoint from host-bound arrays and analyzer ABI
 // packets. Match the existing PTX module-window convention without a dependency.
 pub const MODULE_GLOBAL_BASE: u64 = 0x7000_0000_0000_0000;
@@ -460,6 +464,7 @@ pub(crate) struct Interpreter<'a> {
     config: AnalysisConfig,
     arena: ExprArena,
     global: Memory,
+    inputs: InputBacking,
     lds: Memory,
     kernargs: Memory,
     dispatch: Memory,
@@ -738,6 +743,7 @@ impl<'a> Interpreter<'a> {
             config,
             arena: ExprArena::new(),
             global: Memory::default(),
+            inputs: InputBacking::default(),
             lds: Memory::default(),
             kernargs: Memory::default(),
             dispatch: Memory::default(),
@@ -816,59 +822,7 @@ impl<'a> Interpreter<'a> {
                 }
             }
         }
-        for array in &self.config.arrays {
-            if !array.kind.is_input() {
-                continue;
-            }
-            let name = self.arena.intern_string(array.name.clone());
-            for index in 0..array.len {
-                let addr = array.base + index * array.elem_width;
-                if array.elem_width == 8 {
-                    let expr = if array.kind == ArrayKind::IndexInput {
-                        self.arena.int(index as i64)
-                    } else {
-                        self.arena.input_element(name, index)
-                    };
-                    let kind = if array.kind == ArrayKind::IndexInput {
-                        WideKind::Integer
-                    } else {
-                        WideKind::Input
-                    };
-                    self.global.initialize(
-                        addr,
-                        4,
-                        Value::WidePart {
-                            expr,
-                            high: false,
-                            kind,
-                        },
-                    );
-                    self.global.initialize(
-                        addr + 4,
-                        4,
-                        Value::WidePart {
-                            expr,
-                            high: true,
-                            kind,
-                        },
-                    );
-                    continue;
-                }
-                let value = if array.kind == ArrayKind::IndexInput {
-                    Value::Integer(index as u32)
-                } else {
-                    let expr = self.arena.input_element(name, index);
-                    if array.elem_width == 1 {
-                        Value::Byte(expr)
-                    } else if array.elem_width == 2 {
-                        Value::Half(expr)
-                    } else {
-                        Value::Input(expr)
-                    }
-                };
-                self.global.initialize(addr, array.elem_width, value);
-            }
-        }
+        self.inputs = InputBacking::new(&self.config.arrays, &mut self.arena);
         let mut position = 0;
         for arg in &self.program.args {
             let value = if arg.value_kind.starts_with("hidden_") {
@@ -1064,6 +1018,26 @@ impl<'a> Interpreter<'a> {
             _ => return Ok(None), // Unknown runtime facilities remain uninitialized, never guessed.
         };
         Ok(Some((value, None)))
+    }
+    fn global_read(&mut self, addr: u64, width: u64) -> Result<Value, String> {
+        self.inputs.ensure(
+            &self.config.arrays,
+            &mut self.global,
+            &mut self.arena,
+            addr,
+            width,
+        )?;
+        self.global.read(addr, width)
+    }
+    fn global_write(&mut self, addr: u64, width: u64, value: Value) -> Result<Value, String> {
+        self.inputs.ensure(
+            &self.config.arrays,
+            &mut self.global,
+            &mut self.arena,
+            addr,
+            width,
+        )?;
+        self.global.write(addr, width, value)
     }
     fn initialize_wave(&self, wave: &mut Wave) -> Result<(), EvalError> {
         if self.architecture == AmdArchitecture::Gfx1250 {
@@ -6059,7 +6033,7 @@ impl<'a> Interpreter<'a> {
                 self.validate_address(wave, lane, false, ga, width, !load)?;
                 self.validate_address(wave, lane, true, sa, width, load)?;
                 let value = if load {
-                    self.global.read(ga, width)
+                    self.global_read(ga, width)
                 } else {
                     self.lds.read(sa, width)
                 }
@@ -6067,7 +6041,7 @@ impl<'a> Interpreter<'a> {
                 if load {
                     self.lds.write(sa, width, value)
                 } else {
-                    self.global.write(ga, width, value)
+                    self.global_write(ga, width, value)
                 }
                 .map_err(|e| wave.fail(Some(lane), e))?;
                 for (space, addr, mode) in [
@@ -6180,8 +6154,7 @@ impl<'a> Interpreter<'a> {
             self.global_memory_address(wave, &operands[0], Some(&operands[2]), lane, 0, scale)?;
         self.validate_address(wave, lane, false, address, 4, true)?;
         let previous = self
-            .global
-            .read(address, 4)
+            .global_read(address, 4)
             .map_err(|error| wave.fail(Some(lane), error))?;
         let previous = self.real_value(wave, previous, lane)?;
         let addend = self.real(wave, &operands[1], lane)?;
@@ -6198,8 +6171,7 @@ impl<'a> Interpreter<'a> {
                 held_sources: reads,
             },
         );
-        self.global
-            .write(address, 4, Value::Real(next))
+        self.global_write(address, 4, Value::Real(next))
             .map_err(|error| wave.fail(Some(lane), error))?;
         let thread = ThreadIx(wave.id * wave.width + lane as u32);
         for mode in [AccessMode::Read, AccessMode::Write] {
@@ -6930,49 +6902,40 @@ impl<'a> Interpreter<'a> {
                         Value::HighHalf(_) if width == 1 || width == 2 => Value::Bits(0),
                         value => value,
                     };
-                    let memory = if effective_lds {
-                        &mut self.lds
+                    let value = if effective_lds {
+                        self.lds.write(addr, width, value)
                     } else {
-                        &mut self.global
-                    };
-                    let value = memory
-                        .write(addr, width, value)
-                        .map_err(|e| wave.fail(Some(lane), e))?;
+                        self.global_write(addr, width, value)
+                    }
+                    .map_err(|e| wave.fail(Some(lane), e))?;
                     Some(value)
                 } else {
-                    let memory = if dispatch {
-                        &self.dispatch
+                    let mut value = if dispatch {
+                        self.dispatch.read(addr, width)
                     } else if kernarg {
-                        &self.kernargs
+                        self.kernargs
+                            .read(addr, width)
+                            .or_else(|_| self.kernargs.read_partial_abi(addr, width))
                     } else if effective_lds {
-                        &self.lds
+                        self.lds.read(addr, width)
                     } else {
-                        &self.global
-                    };
-                    let mut value = memory
-                        .read(addr, width)
-                        .or_else(|error| {
-                            if kernarg {
-                                memory.read_partial_abi(addr, width)
-                            } else {
-                                Err(error)
-                            }
-                        })
-                        .map_err(|e| {
-                            wave.fail(
-                                Some(lane),
-                                format!(
-                                    "{} {addr:#x}: {e}",
-                                    if effective_lds {
-                                        "LDS"
-                                    } else if abi {
-                                        "kernarg"
-                                    } else {
-                                        "global"
-                                    }
-                                ),
-                            )
-                        })?;
+                        self.global_read(addr, width)
+                    }
+                    .map_err(|e| {
+                        wave.fail(
+                            Some(lane),
+                            format!(
+                                "{} {addr:#x}: {e}",
+                                if effective_lds {
+                                    "LDS"
+                                } else if abi {
+                                    "kernarg"
+                                } else {
+                                    "global"
+                                }
+                            ),
+                        )
+                    })?;
                     if name.contains("sbyte") || name.ends_with("i8") {
                         value = match value {
                             Value::Byte(expr) => {
