@@ -143,6 +143,53 @@ BITOP3 results retain unknown upper16 bits conservatively. Native encoding,
 EXEC and undefined-bit controls are documented in the
 [selected instruction contracts](../../docs/amd-semantic-audit.md#compiler-driven-narrow-integer-forms).
 
+The selected gfx950 `v_mad_i64_i32` profile multiplies signed 32-bit factors
+and adds a signed 64-bit value. It writes the low 64 bits to a VGPR pair and
+bit 64 to each active lane's SGPR-pair/VCC mask bit; inactive vector data is
+preserved and inactive mask bits are cleared. This follows
+[CDNA4 ISA §12.11](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
+and LLVM's pinned
+[VOP3B operand profile](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/VOP3Instructions.td).
+Bare and `_e64` encodings support unmodified data registers and integer inline
+constants from −16 through 64, with at most one distinct scalar data source.
+Observed source words must be concrete and defined. Source modifiers, E32,
+clamp and other targets remain outside this profile. The
+[numerical controls](tests/gfx950_signed_mad.rs) distinguish bit 64 from signed
+overflow, while [pipeline controls](../volta_pipeline/tests/gfx950_signed_mad_tests.rs)
+check source readiness independently. This form occurs in HipKittens address
+calculations; complete application support also depends on later instructions.
+
+The selected `s_bfe_i64` profile is common to gfx942, gfx950 and gfx1250:
+a plain SGPR destination pair, SGPR data pair or integer inline constant, and
+a 32-bit SGPR or integer control. Control bits 5:0 select the offset and
+22:16 select the width; widths 0 through 64 are modeled, while larger widths
+remain unsupported. Signed shift padding and field sign extension preserve
+unknown source bits, including ABI padding; SCC is known only when the result
+is provably zero or nonzero. Scalar execution is independent of EXEC, and
+source readiness remains subject to the target's scalar-load counter.
+The contract follows
+[CDNA3 ISA §12.1](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-mi300-cdna3-instruction-set-architecture.pdf),
+[CDNA4 ISA §12.1](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf),
+[CDNA5 ISA §15.1](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf)
+and LLVM's pinned
+[SOP2 operand profile](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SOPInstructions.td).
+[Value controls](tests/cdna_bfe64.rs) cover signed fields and definedness;
+[pipeline controls](../volta_pipeline/tests/cdna_bfe64_tests.rs) distinguish
+correct, absent and unrelated waits for both the data and control registers.
+
+The selected gfx1250 `v_mul_u64` bare/E32 profile multiplies two defined
+64-bit register values modulo 2^64 without changing scalar flags. The
+source0 pair may be SGPR or VGPR; source1 and destination are VGPR pairs in
+the E32 register range. Both inputs are read before aliased outputs are
+written. Inactive lanes preserve their destination, and empty EXEC observes
+no data operands. E64, inline/literal or special sources and modifiers remain
+outside this profile. See
+[CDNA5 ISA §15.7](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf),
+LLVM's pinned
+[gfx1250 encoding controls](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/test/MC/AMDGPU/gfx1250_asm_vop2.s),
+[numerical controls](tests/gfx1250_mul_u64.rs) and
+[source-readiness controls](../volta_pipeline/tests/gfx1250_mul_u64_tests.rs).
+
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
 subnormal behavior are outside that model. Encoded F16, BF16 and FP8 transport

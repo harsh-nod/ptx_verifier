@@ -91,13 +91,21 @@ def implementation_contracts():
                 test(
                     "gfx1250_exact_integer_parity",
                     "symbolic_salu_conditions_select_data_but_never_control_carry_or_addresses",
-                )
+                ),
+                test(
+                    "cdna_bfe64_tests",
+                    "data_and_control_use_target_specific_counters_even_under_empty_exec",
+                ),
             ],
             [
                 test(
                     "gfx1250_exact_integer_parity",
                     "explicit_scc_register_escape_is_rejected_by_native_syntax",
-                )
+                ),
+                test(
+                    "cdna_bfe64_tests",
+                    "data_and_control_use_target_specific_counters_even_under_empty_exec",
+                ),
             ],
         ),
         "vector": (
@@ -112,6 +120,10 @@ def implementation_contracts():
                     AMD + "tests/gfx1250_full_execution.rs",
                     "original_f16_relu_preserves_both_symbolically_selected_halves",
                 ),
+                test(
+                    "gfx1250_mul_u64_tests",
+                    "each_word_of_each_factor_needs_its_actual_load_counter_only_when_executed",
+                ),
             ],
             [
                 test(
@@ -121,6 +133,10 @@ def implementation_contracts():
                 reference(
                     AMD + "tests/gfx1250_full_execution.rs",
                     "new_half_and_byte_forms_enforce_encoding_target_and_selector_bounds",
+                ),
+                test(
+                    "gfx1250_mul_u64_tests",
+                    "each_word_of_each_factor_needs_its_actual_load_counter_only_when_executed",
                 ),
             ],
         ),

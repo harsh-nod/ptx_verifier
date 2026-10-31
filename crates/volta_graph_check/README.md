@@ -182,6 +182,11 @@ events, unsupported memory effects, and missing instruction/issue associations
 cannot produce `Verified`. An aborted prefix remains incomplete even if its checked
 obligations pass.
 
+The separate [tensor-bounds prefix validator](../../docs/tensor-bounds.md)
+can certify an invalid attempted gfx1250 transfer before memory issue. It
+checks the supported descriptor, configured LDS extent and prefix premises;
+it does not upgrade the ordinary graph conclusion or establish complete outputs.
+
 ### gfx942 and gfx950
 
 AMD ordering is independent of PTX certificates. The following VM/LGKM/MFMA

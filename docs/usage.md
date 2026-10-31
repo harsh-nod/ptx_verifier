@@ -96,6 +96,12 @@ witness and `VERDICT: REJECT` with exit code 1. The result contains an incomplet
 prefix and no output expressions or equivalence claim. Ordinary execution is
 the default; every acceptance still requires complete execution and checking.
 
+A supported gfx1250 tensor transfer outside the configured LDS extent uses
+[certified tensor bounds rejection](tensor-bounds.md), without an opt-in flag.
+It prints `TENSOR_BOUNDS: CERTIFIED_REJECTION` and `VERDICT: REJECT`, exits 1,
+and returns no outputs or equivalence result. Unsupported descriptor modes and
+unrelated aborts remain inconclusive.
+
 ## Verify a mathematical specification
 
 ```sh
@@ -161,7 +167,7 @@ events, target geometry, source links and typed findings.
 | --- | --- | --- |
 | Ordinary `analyze` | `VERIFIED` / `REJECTED` / `UNKNOWN` | 0 / 1 / 2 |
 | `verify`, source `compare` | `ACCEPT` / `REJECT` / `UNKNOWN` | 0 / 1 / 2 |
-| Certified early finding, any source command | `VERDICT: REJECT` with incomplete prefix | 1 |
+| Certified readiness or tensor-bounds finding, any source command | `VERDICT: REJECT` with incomplete prefix | 1 |
 | Expression/VC replay | Equivalence result without a graph verdict | 0 / 1 / 2 |
 
 A completed trace with passing graph checks is distinct from a proof of output

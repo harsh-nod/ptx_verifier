@@ -482,6 +482,48 @@ fn contract(graph: &EventGraph, prefix: bool) -> AmdTraceResult {
                     (record, instruction.map_or(0, |i| i.exec_mask)),
                 );
             }
+            AmdEventKind::TensorAccessFault {
+                descriptor,
+                sources,
+                ..
+            } => {
+                let instruction =
+                    claim(graph, record, &mut instructions, "memory", &mut unresolved);
+                let mut required = HashSet::new();
+                for (&start, count) in sources.iter().zip([4u16, 8, 4, 4]) {
+                    for offset in 0..count {
+                        if let Some(index) = start.checked_add(offset) {
+                            required.insert(index);
+                        } else {
+                            unresolved.push(Unresolved::at(
+                                record.event,
+                                "tensor descriptor source register overflow",
+                            ));
+                        }
+                    }
+                }
+                if !prefix
+                    || instruction.is_none_or(|i| {
+                        i.exec_mask == 0
+                            || !i.writes.is_empty()
+                            || graph.provenance().instructions[i.pc.unwrap().0 as usize].kind
+                                != "tensor memory"
+                            || required.iter().any(|index| {
+                                !i.reads
+                                    .iter()
+                                    .any(|r| r.file == AmdRegisterFile::Scalar && r.index == *index)
+                            })
+                            || i.reads.iter().any(|r| {
+                                r.file != AmdRegisterFile::Scalar
+                                    || !required.contains(&r.index) && r.index != 126
+                            })
+                    })
+                    || descriptor.decode().is_err()
+                    || record.event.0 as usize + 1 != graph.events().len()
+                {
+                    unresolved.push(Unresolved::at(record.event, "tensor access fault requires an exact active terminal tensor instruction and independent prefix validation"));
+                }
+            }
             AmdEventKind::WaitCounters { thresholds } => {
                 claim(graph, record, &mut instructions, "wait", &mut unresolved);
                 let mut distinct = HashSet::new();
@@ -1581,7 +1623,9 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
             // AMDGPUInsertDelayAlu pass inserts S_DELAY_ALU to avoid stalls, not
             // to turn outstanding memory into completed data. Expert mode is
             // outside this execution envelope.
-            AmdEventKind::DelayAlu { .. } | AmdEventKind::Delay { .. } => {}
+            AmdEventKind::DelayAlu { .. }
+            | AmdEventKind::Delay { .. }
+            | AmdEventKind::TensorAccessFault { .. } => {}
             _ => unreachable!("trace contract rejected legacy target events"),
         }
         pending[wave].retain(|&index| {

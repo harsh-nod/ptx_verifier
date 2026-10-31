@@ -589,11 +589,17 @@ pub enum Assumption {
     /// Asynchronous operations compute their data at issue; only their completion is
     /// asynchronous.
     EagerAsyncData,
+    /// Static descriptor LDS plus configured dynamic LDS for native execution.
+    /// A caller/frontend premise, not an inferred hardware allocation.
+    ConfiguredLdsBytes(u64),
 }
 
 impl Assumption {
     pub fn describe(self) -> &'static str {
         match self {
+            Assumption::ConfiguredLdsBytes(_) => {
+                "native LDS extent is the descriptor's static allocation plus configured dynamic bytes"
+            }
             Assumption::ConfiguredSharedAllocationLayout => {
                 "LDS object bounds use the explicitly configured named allocation layout; these source boundaries are caller-supplied premises"
             }

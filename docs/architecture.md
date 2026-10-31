@@ -51,7 +51,7 @@ by [architecture_tests.rs](../crates/volta_pipeline/tests/architecture_tests.rs)
    passing. In ordinary execution, a refutation, index mismatch, failed check or
    deadlock yields `REJECT`; a missing proof yields `UNKNOWN`. A generic observer
    stop remains `UNKNOWN` even when its prefix contains failed-property diagnostics;
-   early rejection requires the separately validated readiness certificate.
+   a rejected prefix requires a separately validated property certificate.
 
 For native AMD, `frontend::Instruction` represents assembly syntax.
 `lower_kernel_in_module` validates the target and constructs distinct
@@ -88,6 +88,13 @@ complete instruction batches using checker-owned scalar readiness transitions.
 The pipeline replays a proposed witness and revalidates the halted prefix before
 exposing a certified rejection. A generic observer stop remains inconclusive.
 No early acceptance path is added; default execution retains complete traces.
+
+Supported gfx1250 [tensor LDS bounds faults](tensor-bounds.md) have a separate
+prefix certificate. The producer records an attempted access and aborts before
+memory issue. The checker validates its descriptor, configured LDS extent,
+source readiness and barrier reachability. The pipeline exposes only the
+certified rejection; the incomplete graph and absent outputs cannot establish
+acceptance or equivalence.
 
 Shared configuration includes PTX aggregate fields and native ABI byte payloads,
 but each backend accepts only its own forms. The

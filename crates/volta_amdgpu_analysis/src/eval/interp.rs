@@ -55,6 +55,11 @@ pub enum EvalError {
         limit: u64,
     },
     ObserverStopped,
+    TensorBounds {
+        wave: u32,
+        pc: usize,
+        what: &'static str,
+    },
 }
 impl fmt::Display for EvalError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -74,6 +79,7 @@ impl fmt::Display for EvalError {
                 "analysis instruction budget {limit} exhausted (inconclusive)"
             ),
             Self::ObserverStopped => f.write_str(OBSERVER_STOP_REASON),
+            Self::TensorBounds { what, .. } => f.write_str(what),
         }
     }
 }
@@ -752,6 +758,11 @@ impl<'a> Interpreter<'a> {
         result
             .builder
             .set_shared_allocation_layout(result.config.shared_allocations.clone());
+        if architecture == AmdArchitecture::Gfx1250 {
+            result
+                .builder
+                .assume(Assumption::ConfiguredLdsBytes(lds_size));
+        }
         result.initialize_memory()?;
         for id in 0..threads.div_ceil(architecture.wave_size()) {
             let mut wave = Wave::new(
@@ -1215,7 +1226,8 @@ impl<'a> Interpreter<'a> {
                     AbortCause::Error
                 };
                 let (thread, pc) = match &error {
-                    EvalError::Invalid { wave, pc, .. } => (
+                    EvalError::Invalid { wave, pc, .. }
+                    | EvalError::TensorBounds { wave, pc, .. } => (
                         Some(ThreadIx(wave * self.architecture.wave_size())),
                         Some(ProgramPoint(*pc as u32)),
                     ),
@@ -1528,6 +1540,7 @@ impl<'a> Interpreter<'a> {
                         | "v_subrev_co_u32"
                         | "v_subbrev_co_u32"
                         | "v_mad_u64_u32"
+                        | "v_mad_i64_i32"
                 ) {
                     operands.get(1)
                 } else {
@@ -1613,7 +1626,7 @@ impl<'a> Interpreter<'a> {
                         || mnemonic.starts_with("v_subb_co_")
                         || mnemonic.starts_with("v_subrev_co_")
                         || mnemonic.starts_with("v_subbrev_co_")
-                        || mnemonic == "v_mad_u64_u32")))
+                        || matches!(mnemonic, "v_mad_u64_u32" | "v_mad_i64_i32"))))
                 && !store
                 && !no_destination
             {
@@ -1803,6 +1816,7 @@ impl<'a> Interpreter<'a> {
                     | "v_subrev_co_u32"
                     | "v_subbrev_co_u32"
                     | "v_mad_u64_u32"
+                    | "v_mad_i64_i32"
             );
             for (index, operand) in instruction.operands().iter().enumerate() {
                 if instruction.opcode() != Opcode::VectorMemory
@@ -3132,6 +3146,9 @@ impl<'a> Interpreter<'a> {
             };
             return wave.put_value(&instruction.operands()[0], 0, Value::Real(expr));
         }
+        if name == "s_bfe_i64" {
+            return self.signed_bitfield64(wave, instruction);
+        }
         if name == "s_getreg_b32" {
             if self.architecture != AmdArchitecture::Gfx1250
                 || !matches!(&instruction.operands()[1],Operand::HardwareRegister{name,offset:6,width:4} if name=="HW_REG_IB_STS2")
@@ -3717,6 +3734,87 @@ impl<'a> Interpreter<'a> {
                 Value::Integer(value)
             },
         )
+    }
+    /// CDNA4 SOP2 opcode 40 / CDNA5 SOP2 opcode 41, with a 32-bit control.
+    fn signed_bitfield64(
+        &self,
+        wave: &mut Wave,
+        instruction: &Instruction,
+    ) -> Result<(), EvalError> {
+        let o = instruction.operands();
+        let control = wave.bits(&o[2], 0)?;
+        let offset = control & 63;
+        let width = (control >> 16) & 127;
+        if width > 64 {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "selected s_bfe_i64 profile supports field widths 0 through 64".into(),
+            });
+        }
+        let mut bits = 0u64;
+        let mut defined = u64::MAX;
+        if width != 0 {
+            // Arithmetic right shift repeats source bit 63 beyond the source
+            // boundary; sign extension repeats the selected field's top bit.
+            // Mapping each output bit also propagates ABI padding exactly.
+            let source_bit = |bit: u32| (offset + bit.min(width - 1)).min(63);
+            let needed = (0..64).fold(0u64, |mask, bit| mask | (1u64 << source_bit(bit)));
+            let (input_bits, input_defined) = match &o[1] {
+                Operand::Integer(value) => (*value as u64, u64::MAX),
+                Operand::Register(register) => {
+                    let mut input_bits = 0u64;
+                    let mut input_defined = 0u64;
+                    for word in 0..2 {
+                        if (needed >> (word * 32)) as u32 == 0 {
+                            continue;
+                        }
+                        let (word_bits, word_defined) =
+                            match wave.scalar[register.index as usize + word] {
+                                None => (0, 0),
+                                Some(Value::PartialBits { bits, defined }) => (bits, defined),
+                                Some(value) => (
+                                    value.bits().map_err(|error| wave.fail(None, error))?,
+                                    u32::MAX,
+                                ),
+                            };
+                        input_bits |= u64::from(word_bits) << (word * 32);
+                        input_defined |= u64::from(word_defined) << (word * 32);
+                    }
+                    (input_bits, input_defined)
+                }
+                _ => return Err(self.unsupported(wave, instruction)),
+            };
+            defined = 0;
+            for bit in 0..64 {
+                let source = 1u64 << source_bit(bit);
+                if input_defined & source != 0 {
+                    defined |= 1u64 << bit;
+                    if input_bits & source != 0 {
+                        bits |= 1u64 << bit;
+                    }
+                }
+            }
+        }
+        if bits != 0 {
+            wave.set_scc(true);
+        } else if defined == u64::MAX {
+            wave.set_scc(false);
+        } else {
+            wave.clear_scc();
+        }
+        let destination = wave.destination(&o[0])?;
+        for word in 0..2 {
+            wave.put(
+                destination,
+                0,
+                word,
+                Value::partial_bits(
+                    (bits >> (word * 32)) as u32,
+                    (defined >> (word * 32)) as u32,
+                ),
+            )?;
+        }
+        Ok(())
     }
     fn module_address_scalar(
         &self,
@@ -4666,23 +4764,43 @@ impl<'a> Interpreter<'a> {
             }
             return Ok(());
         }
-        if name == "v_add_nc_u64" {
+        if matches!(
+            operation,
+            AluOperation::Opcode(AluOpcode::VAddNcU64 | AluOpcode::VMulU64)
+        ) {
             for lane in lanes {
+                // Read both complete factors before either destination word,
+                // including the compiler's in-place destination/src1 pair.
                 let a = wave.wide(&o[1], lane)?;
                 let b = wave.wide(&o[2], lane)?;
-                wave.put_wide(&o[0], lane, a.wrapping_add(b))?;
+                let result = if operation == AluOperation::Opcode(AluOpcode::VMulU64) {
+                    a.wrapping_mul(b)
+                } else {
+                    a.wrapping_add(b)
+                };
+                wave.put_wide(&o[0], lane, result)?;
             }
             return Ok(());
         }
-        if name == "v_mad_u64_u32" {
+        if matches!(
+            operation,
+            AluOperation::Opcode(AluOpcode::VMadI64I32 | AluOpcode::VMadU64U32)
+        ) {
             let mut mask = 0;
             for lane in lanes {
-                let a = wave.bits(&o[2], lane)? as u64;
-                let b = wave.bits(&o[3], lane)? as u64;
+                let a = wave.bits(&o[2], lane)?;
+                let b = wave.bits(&o[3], lane)?;
                 let addend = wave.wide(&o[4], lane)?;
-                let (result, carry) = a.wrapping_mul(b).overflowing_add(addend);
-                wave.put_wide(&o[0], lane, result)?;
-                if carry {
+                // Public CDNA4 ISA 12.11 defines {D1,D0} as the 65-bit
+                // multiply-add result. For signed MAD D1 is bit64, which is
+                // distinct from a signed64 overflow predicate.
+                let result = if operation == AluOperation::Opcode(AluOpcode::VMadI64I32) {
+                    i128::from(a as i32) * i128::from(b as i32) + i128::from(addend as i64)
+                } else {
+                    i128::from(a) * i128::from(b) + i128::from(addend)
+                };
+                wave.put_wide(&o[0], lane, result as u64)?;
+                if (result >> 64) & 1 != 0 {
                     mask |= 1u64 << lane;
                 }
             }
@@ -5796,11 +5914,13 @@ impl<'a> Interpreter<'a> {
             _ => return Err(self.unsupported(wave, instruction)),
         };
         let mut groups = Vec::new();
+        let mut sources = Vec::new();
         for (operand, count) in instruction.operands().iter().zip([4, 8, 4, 4]) {
             let register = wave.destination(operand)?;
             if register.class != RegisterClass::Scalar || register.count != count {
                 return Err(self.unsupported(wave, instruction));
             }
+            sources.push(register.index);
             let mut words = Vec::new();
             for i in 0..count {
                 words.push(
@@ -5811,58 +5931,30 @@ impl<'a> Interpreter<'a> {
             }
             groups.push(words);
         }
-        let d0 = &groups[0];
-        let d1 = &groups[1];
-        // Public LLVM/FlyDSL D0..D3 profile: non-cluster 2D, no
-        // padding, atomic barrier, iteration, gather, OOB fill or swizzle.
-        if d0[0] > 1
-            || d0[3] & 0xfe00_0000 != 0x8000_0000
-            || d1[0] & !0x30000 != 0
-            || groups[2].iter().chain(&groups[3]).any(|&x| x != 0)
-        {
-            return Err(EvalError::Unsupported{pc:wave.pc,what:"tensor descriptor requires bounded non-padded 2D global/LDS profile without multicast/atomic/iteration/gather".into()});
-        }
-        if d0[0] == 0 {
+        let descriptor = AmdTensorDescriptor {
+            d0: groups[0].clone().try_into().expect("validated D0 tuple"),
+            d1: groups[1].clone().try_into().expect("validated D1 tuple"),
+            d2: groups[2].clone().try_into().expect("validated D2 tuple"),
+            d3: groups[3].clone().try_into().expect("validated D3 tuple"),
+        };
+        let Some(footprint) = descriptor.decode().map_err(|what| EvalError::Unsupported {
+            pc: wave.pc,
+            what: what.into(),
+        })?
+        else {
             return Ok(());
-        }
-        let data_size = (d1[0] >> 16) & 3;
-        if data_size > 2 {
-            return Err(self.unsupported(wave, instruction));
-        }
-        let width = 1u64 << data_size;
-        let dim0 = ((d1[1] >> 16) as u64) | (((d1[2] & 65535) as u64) << 16);
-        let dim1 = ((d1[2] >> 16) as u64) | (((d1[3] & 65535) as u64) << 16);
-        let cols = (d1[3] >> 16) as u64;
-        let rows = (d1[4] & 65535) as u64;
-        let stride = d1[5] as u64;
-        if d1[1] & 65535 != 0
-            || d1[4] >> 16 != 0
-            || d1[6] != 0
-            || d1[7] != 0
-            || cols == 0
-            || rows == 0
-            || cols > dim0
-            || rows > dim1
-            || stride < dim0
-        {
-            return Err(EvalError::Unsupported {
-                pc: wave.pc,
-                what: "tensor 2D shape/stride/OOB descriptor unsupported".into(),
-            });
-        }
-        let global = d0[2] as u64 | (((d0[3] & 0x1ffffff) as u64) << 32);
-        let shared = d0[1] as u64;
-        let bytes = rows
-            .checked_mul(cols)
-            .and_then(|v| v.checked_mul(width))
-            .filter(|&v| v <= self.lds_size)
-            .ok_or_else(|| wave.fail(None, "tensor tile exceeds LDS capacity"))?;
-        let global_end = (rows - 1)
-            .checked_mul(stride)
-            .and_then(|v| v.checked_add(cols))
-            .and_then(|v| v.checked_mul(width))
-            .and_then(|v| v.checked_add(global))
-            .ok_or_else(|| wave.fail(None, "tensor global address overflow"))?;
+        };
+        let AmdTensorFootprint {
+            width,
+            rows,
+            cols,
+            stride,
+            global,
+            shared,
+            bytes: _,
+            global_end,
+            shared_end,
+        } = footprint;
         if !self
             .config
             .arrays
@@ -5878,10 +5970,24 @@ impl<'a> Interpreter<'a> {
                 "tensor footprint crosses global allocation boundaries",
             ));
         }
-        let shared_end = shared
-            .checked_add(bytes)
-            .filter(|&v| v <= self.lds_size)
-            .ok_or_else(|| wave.fail(None, "tensor footprint exceeds LDS capacity"))?;
+        if shared_end > self.lds_size {
+            self.builder.amd_event(
+                wave.id,
+                ProgramPoint(wave.pc as u32),
+                AmdEventKind::TensorAccessFault {
+                    load,
+                    descriptor,
+                    sources: sources
+                        .try_into()
+                        .expect("validated four descriptor groups"),
+                },
+            );
+            return Err(EvalError::TensorBounds {
+                wave: wave.id,
+                pc: wave.pc,
+                what: TENSOR_BOUNDS_ABORT_REASON,
+            });
+        }
         if !self.config.shared_allocations.is_empty()
             && !self
                 .config

@@ -194,6 +194,12 @@ an early rejection; a generic stopped prefix remains inconclusive. No END,
 complete outputs or equivalence result is invented. Ordinary execution remains
 the default, and every acceptance still requires the complete checks.
 
+For supported plain 2D tensor transfers, a distinct attempted-access event can
+certify an LDS extent violation before memory issue. The checker decodes the
+captured descriptor and validates configured allocation bounds, source readiness
+and barrier reachability. This supplies rejection only: the ordinary aborted
+graph remains incomplete and no output proof is produced.
+
 \paragraph{CDNA completion and publication.}
 gfx942/gfx950 waits discharge VM/LGKM obligations; FLAT can charge both.
 Nonzero thresholds certify an ordered prefix only where the modeled class

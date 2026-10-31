@@ -200,10 +200,18 @@ def main():
                 EXEC,
                 "compiler_grid_and_group_dimensions_retain_numeric_output_provenance",
             ),
+            (
+                PIPE + "cdna_bfe64_tests.rs",
+                "data_and_control_use_target_specific_counters_even_under_empty_exec",
+            ),
         ],
         [
             (MEM, "uninitialized_condition_cannot_choose_a_control_path"),
             (EXEC, "opaque_shared_apertures_cannot_become_data_or_global_addresses"),
+            (
+                PIPE + "cdna_bfe64_tests.rs",
+                "data_and_control_use_target_specific_counters_even_under_empty_exec",
+            ),
         ],
     )
     value(
@@ -217,8 +225,20 @@ def main():
         "K",
         "Fixed-width native integer/bit/address ALU, typed symbolic 32 bit ring operations, bit operations and shifts. Symbolic data never becomes concrete address/control bits; general symbolic 64 bit/division remain outside the profile.",
         ["vector", "integer_expression", "integer_result"],
-        [(EXEC, "symbolic_integer_ring_operations_preserve_signed_immediate_values")],
-        [(EXEC, "produced_symbolic_types_cannot_escape_into_bitcasts_or_addresses")],
+        [
+            (EXEC, "symbolic_integer_ring_operations_preserve_signed_immediate_values"),
+            (
+                PIPE + "gfx950_signed_mad_tests.rs",
+                "both_factors_and_both_addend_words_need_independent_readiness",
+            ),
+        ],
+        [
+            (EXEC, "produced_symbolic_types_cannot_escape_into_bitcasts_or_addresses"),
+            (
+                PIPE + "gfx950_signed_mad_tests.rs",
+                "both_factors_and_both_addend_words_need_independent_readiness",
+            ),
+        ],
     )
     value(
         "F32",

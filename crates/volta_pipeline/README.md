@@ -35,6 +35,14 @@ graph conclusion for every kernel. A confirmed difference, failed graph check
 or deadlock gives `REJECT`. Sampling, unresolved obligations and incomplete
 execution give `UNKNOWN` unless another result establishes rejection.
 
+`SourceKernelVerification` also exposes privately constructed certified-prefix
+findings: opt-in scalar readiness and supported tensor LDS bounds. The pipeline
+validates each property against the exact aborted prefix before constructing its
+wrapper. These findings establish rejection only; the ordinary `GraphReport`
+stays incomplete, and no output or equivalence proof is supplied. See
+[early readiness](../../docs/early-readiness.md) and
+[tensor bounds](../../docs/tensor-bounds.md).
+
 Graph properties depend on the target. Consumers must use
 `GraphReport::applicable_properties()` or `summaries()` rather than treating
 the PTX property list as applicable to native AMD graphs. Expression and VC
