@@ -4,4 +4,6 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+id_collections.workspace = true
 volta_expr.workspace = true
+volta_graph.workspace = true
