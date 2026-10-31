@@ -3386,6 +3386,30 @@ impl<'a> Interpreter<'a> {
             }
             return Ok(());
         }
+        if self.architecture == AmdArchitecture::Gfx1250
+            && matches!(name, "s_cmp_eq_u64" | "s_cmp_lg_u64")
+        {
+            // SOPC compares complete 64-bit sources. Keep ambiguous literal
+            // widths and special-register aliases outside this selected profile.
+            if o.iter().any(|operand| {
+                !matches!(operand, Operand::Register(register)
+                    if register.class == RegisterClass::Scalar && register.count == 2)
+                    && !matches!(operand, Operand::Integer(value) if (-16..=64).contains(value))
+            }) {
+                return Err(EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "selected gfx1250 s_cmp_{eq,lg}_u64 requires SGPR pairs or integer inline constants -16..64".into(),
+                });
+            }
+            let a = wave.wide(&o[0], 0)?;
+            let b = wave.wide(&o[1], 0)?;
+            wave.set_scc(if name == "s_cmp_eq_u64" {
+                a == b
+            } else {
+                a != b
+            });
+            return Ok(());
+        }
         if name.starts_with("s_cmp_") {
             let a = wave.bits(&o[0], 0)?;
             let b = wave.bits(&o[1], 0)?;

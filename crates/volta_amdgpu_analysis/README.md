@@ -301,6 +301,16 @@ and opaque values retain their existing bit-reinterpretation restrictions.
 All source register words remain recorded reads with their normal completion
 obligations, even when a mask determines the data result.
 
+The selected gfx1250 `s_cmp_eq_u64` and `s_cmp_lg_u64` profile compares two
+fully defined concrete 64-bit values and sets SCC, including when EXEC is zero.
+Sources are plain SGPR pairs or integer inline constants −16 through 64;
+floating constants, other literal forms and special-register aliases remain
+unsupported. Undefined, opaque and mathematical values cannot supply concrete
+comparison bits. Both words of each register source retain their normal
+readiness obligations. These are the unsigned equality/inequality operations
+specified by the [public CDNA5 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf),
+§15.4.
+
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
 subnormal behavior are outside that model. Encoded F16, BF16 and FP8 transport
