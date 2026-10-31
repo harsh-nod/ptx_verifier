@@ -1,0 +1,1719 @@
+{
+  "schema_version": 1,
+  "scope": "New original-source-bound instruction-local ordinary WriteWrite certificate study; all seeds declared before measurement. No GPU execution. Frozen earlier study is unchanged.",
+  "protocol": {
+    "repeats": 31,
+    "seed": 20261031,
+    "wall_timeout_seconds_per_stage": 60,
+    "run_order": "Sequential random case order per round; adjacent baseline/candidate pair with randomized arm order; fresh processes. No concurrent builds or timing jobs.",
+    "first_sample": "Separate first measured process after untimed complete-specification preflight; later processes OS-warm, no cold-cache claim.",
+    "safe_overhead_limits": {
+      "median_factor": 1.05,
+      "median_add_seconds": 0.001,
+      "p95_factor": 1.1,
+      "p95_add_seconds": 0.001,
+      "rss_fraction": 0.05,
+      "rss_add_kib": 8192
+    },
+    "primary_latency_cases": [
+      "memory-wide-gfx1250-matvec_f16-inserted-collision",
+      "memory-wide-gfx1250-convolution_f16_original-inserted-collision",
+      "memory-wide-gfx1250-flash_attention_original-inserted-collision",
+      "memory-wide-gfx1250-gemm_f16_full-inserted-collision"
+    ],
+    "heldout_cases": [
+      "memory-gfx950-transpose-heldout-safe",
+      "memory-gfx950-transpose-heldout-partial-overlap",
+      "memory-wide-gfx1250-silu_f16-heldout-safe",
+      "memory-wide-gfx1250-silu_f16-heldout-vector-alias",
+      "memory-wide-gfx1250-softmax_f16-heldout-safe",
+      "memory-wide-gfx1250-softmax_f16-heldout-vector-alias"
+    ],
+    "candidate_marker": "EARLY_MEMORY_CONFLICTS: CERTIFIED_REJECTION",
+    "candidate_option": "early_memory_conflicts",
+    "counts": "Configurations, not distinct application bug sites. Equal-value original HipKittens conflicts and synthetic unsupported tails do not establish new different-value algorithm coverage.",
+    "latency_denominator": "Independently valid detections in both arms only. New certified detection versus UNKNOWN/Unsupported is coverage plus absolute time, not an infinite speedup.",
+    "budgets": "No adaptive retry, timeout expansion, outlier removal, changed expectations or changed primary selection after outcomes. Preserve every timeout/crash/miss and both first/repeated samples.",
+    "adoption": "Zero false positives/unsafe accepts, every baseline detection/safe proof retained, complete math/output invariance for every common-safe case, all overhead gates, and new certified findings in at least4 algorithm families including2 original-shape complex families. Primary latency changes including ties/failures are reported separately, not substituted after data.",
+    "timing_eligibility": "Fixed only from the one baseline qualification: hazard needs an independently justified complete typed property finding; safe needs complete graph, exact outputs and full specification proof. Candidate failure fails a gate and is never filtered away. Successful paired ratios only where both succeed; unqualified cases retain every functional result, timeout/censored runtime and fixed60-second budget without31 undefined-finding repeats. Failed primary qualification remains an explicit failed primary with no substitution. Candidate-only findings get absolute certified time/coverage, no baseline speed ratio. Baseline-unproved safe cases cannot support a safe-proof/overhead guarantee."
+  },
+  "workloads": [
+    {
+      "id": "gfx950-elementwise",
+      "origin": "compiler_corpus",
+      "origin_id": "gfx950-elementwise",
+      "manifest": "tests/amdgpu/compiler-corpus/cases.json",
+      "manifest_sha256": "6be3ca9deed8743df6d8852e4e46f5a627ff09a06db54eb3e3cb94ce611bfdfc",
+      "manifest_row_sha256": "3341ec6387dc74a403019aac39f46edb00a6e83866577e7c212d018610ba1e39",
+      "target": "gfx950",
+      "kernel": "portable_relu",
+      "family": "elementwise",
+      "expected_outputs": 64,
+      "source": "tests/gfx1250/fixtures/native-portable-workloads.hip",
+      "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
+      "assembly": "tests/amdgpu/compiler-corpus/fixtures/gfx950-portable.s",
+      "assembly_sha256": "15dbd655a9bc5c1bb84aef7f5f1b00fcb31298da3b2f46efb4032da14af6dc2d",
+      "spec": "tests/gfx1250/specs/portable/portable_relu.spec",
+      "spec_sha256": "39d177ccb6c9f6ed1f86f99e369249419b53249466e69450b7cfe4f9eaa9dfb3"
+    },
+    {
+      "id": "gfx950-reduction",
+      "origin": "compiler_corpus",
+      "origin_id": "gfx950-reduction",
+      "manifest": "tests/amdgpu/compiler-corpus/cases.json",
+      "manifest_sha256": "6be3ca9deed8743df6d8852e4e46f5a627ff09a06db54eb3e3cb94ce611bfdfc",
+      "manifest_row_sha256": "11f43d0b2e7f5275a128ed0008a59c9e71c52c3210323b1a0bd3d63e85190471",
+      "target": "gfx950",
+      "kernel": "portable_reduction",
+      "family": "reduction",
+      "expected_outputs": 2,
+      "source": "tests/gfx1250/fixtures/native-portable-workloads.hip",
+      "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
+      "assembly": "tests/amdgpu/compiler-corpus/fixtures/gfx950-portable.s",
+      "assembly_sha256": "15dbd655a9bc5c1bb84aef7f5f1b00fcb31298da3b2f46efb4032da14af6dc2d",
+      "spec": "tests/gfx1250/specs/portable/portable_reduction.spec",
+      "spec_sha256": "8b93d90c3f15fc0835f877dd26b13d78a260ed04c046a07a45e6ef19e9d2da89"
+    },
+    {
+      "id": "gfx950-normalization",
+      "origin": "compiler_corpus",
+      "origin_id": "gfx950-normalization",
+      "manifest": "tests/amdgpu/compiler-corpus/cases.json",
+      "manifest_sha256": "6be3ca9deed8743df6d8852e4e46f5a627ff09a06db54eb3e3cb94ce611bfdfc",
+      "manifest_row_sha256": "2c92d2adb12dd76f34306bf3ed6eaaa9aac116da139f12ebda369362bd6d346a",
+      "target": "gfx950",
+      "kernel": "portable_rmsnorm",
+      "family": "normalization",
+      "expected_outputs": 64,
+      "source": "tests/gfx1250/fixtures/native-portable-workloads.hip",
+      "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
+      "assembly": "tests/amdgpu/compiler-corpus/fixtures/gfx950-portable.s",
+      "assembly_sha256": "15dbd655a9bc5c1bb84aef7f5f1b00fcb31298da3b2f46efb4032da14af6dc2d",
+      "spec": "tests/gfx1250/specs/portable/portable_rmsnorm.spec",
+      "spec_sha256": "4837d4d36fe7d4df030de51638e56dde13e42064a7eb5e6d12e874c4034fd548"
+    },
+    {
+      "id": "gfx950-gemm",
+      "origin": "compiler_corpus",
+      "origin_id": "gfx950-gemm",
+      "manifest": "tests/amdgpu/compiler-corpus/cases.json",
+      "manifest_sha256": "6be3ca9deed8743df6d8852e4e46f5a627ff09a06db54eb3e3cb94ce611bfdfc",
+      "manifest_row_sha256": "45145a7873ca8d4ee134a765c2658a760e76ac73dca41d2c8d80f4ff9f6efeff",
+      "target": "gfx950",
+      "kernel": "portable_gemm",
+      "family": "gemm",
+      "expected_outputs": 32,
+      "source": "tests/gfx1250/fixtures/native-portable-workloads.hip",
+      "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
+      "assembly": "tests/amdgpu/compiler-corpus/fixtures/gfx950-portable.s",
+      "assembly_sha256": "15dbd655a9bc5c1bb84aef7f5f1b00fcb31298da3b2f46efb4032da14af6dc2d",
+      "spec": "tests/gfx1250/specs/portable/portable_gemm.spec",
+      "spec_sha256": "3831aeeaca670f404bfee2bccede96838dfdd27bf4af4f8cad7e4251aa2b1fe5"
+    },
+    {
+      "id": "gfx950-attention",
+      "origin": "compiler_corpus",
+      "origin_id": "gfx950-attention",
+      "manifest": "tests/amdgpu/compiler-corpus/cases.json",
+      "manifest_sha256": "6be3ca9deed8743df6d8852e4e46f5a627ff09a06db54eb3e3cb94ce611bfdfc",
+      "manifest_row_sha256": "f3fb337b8a6e3652bad57f884cc2694082bb5779aef923d5c97ee665df6a59f0",
+      "target": "gfx950",
+      "kernel": "portable_flash_attention",
+      "family": "attention",
+      "expected_outputs": 10,
+      "source": "tests/gfx1250/fixtures/native-portable-workloads.hip",
+      "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
+      "assembly": "tests/amdgpu/compiler-corpus/fixtures/gfx950-portable.s",
+      "assembly_sha256": "15dbd655a9bc5c1bb84aef7f5f1b00fcb31298da3b2f46efb4032da14af6dc2d",
+      "spec": "tests/gfx1250/specs/portable/portable_flash_attention.spec",
+      "spec_sha256": "e61f6240fdbf82df762459812af3f6c8220044788eba94eac78cf48620c93543"
+    },
+    {
+      "id": "gfx950-transpose",
+      "origin": "compiler_corpus",
+      "origin_id": "gfx950-transpose",
+      "manifest": "tests/amdgpu/compiler-corpus/cases.json",
+      "manifest_sha256": "6be3ca9deed8743df6d8852e4e46f5a627ff09a06db54eb3e3cb94ce611bfdfc",
+      "manifest_row_sha256": "ebb8b713369cf55a8ba920cf69c050196e0124e550ebcfc03162f688d0c7edae",
+      "target": "gfx950",
+      "kernel": "transpose_8x8_b16",
+      "family": "transpose",
+      "expected_outputs": 64,
+      "source": "tests/gfx1250/fixtures/native-transpose-high64.hip",
+      "source_sha256": "e6ce43b03bd3c7532960ff8065625cf4191b2fb6047d8b5acd2a7f68ac17e059",
+      "assembly": "tests/amdgpu/compiler-corpus/fixtures/gfx950-transpose.s",
+      "assembly_sha256": "e39b16e63b188f41f036abc606e6f9555eec48871a1302e45d3a308987ae2b93",
+      "spec": "tests/gfx1250/specs/transpose.spec",
+      "spec_sha256": "af019eec1a730be84f011cdc780f523ac8391fd923b1e41c5648fee5a7f4acab"
+    },
+    {
+      "id": "gfx1250-elementwise",
+      "origin": "compiler_corpus",
+      "origin_id": "gfx1250-elementwise",
+      "manifest": "tests/amdgpu/compiler-corpus/cases.json",
+      "manifest_sha256": "6be3ca9deed8743df6d8852e4e46f5a627ff09a06db54eb3e3cb94ce611bfdfc",
+      "manifest_row_sha256": "fbd1406742bc9edc37fc8301c9c0cd00ed265e820a2942b86319b07145481445",
+      "target": "gfx1250",
+      "kernel": "portable_relu",
+      "family": "elementwise",
+      "expected_outputs": 64,
+      "source": "tests/gfx1250/fixtures/native-portable-workloads.hip",
+      "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
+      "assembly": "tests/amdgpu/compiler-corpus/fixtures/gfx1250-portable.s",
+      "assembly_sha256": "d7181dc064d40f21e1f5ed3cd4a9286d3c830d1e70a504ebcb76353b0cdf53c1",
+      "spec": "tests/gfx1250/specs/portable/portable_relu.spec",
+      "spec_sha256": "39d177ccb6c9f6ed1f86f99e369249419b53249466e69450b7cfe4f9eaa9dfb3"
+    },
+    {
+      "id": "gfx1250-reduction",
+      "origin": "compiler_corpus",
+      "origin_id": "gfx1250-reduction",
+      "manifest": "tests/amdgpu/compiler-corpus/cases.json",
+      "manifest_sha256": "6be3ca9deed8743df6d8852e4e46f5a627ff09a06db54eb3e3cb94ce611bfdfc",
+      "manifest_row_sha256": "092af60b089066393286d4c9ed3b382da0fbe4ab0802bf69b458d13ec1a1bc5c",
+      "target": "gfx1250",
+      "kernel": "portable_reduction",
+      "family": "reduction",
+      "expected_outputs": 2,
+      "source": "tests/gfx1250/fixtures/native-portable-workloads.hip",
+      "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
+      "assembly": "tests/amdgpu/compiler-corpus/fixtures/gfx1250-portable.s",
+      "assembly_sha256": "d7181dc064d40f21e1f5ed3cd4a9286d3c830d1e70a504ebcb76353b0cdf53c1",
+      "spec": "tests/gfx1250/specs/portable/portable_reduction.spec",
+      "spec_sha256": "8b93d90c3f15fc0835f877dd26b13d78a260ed04c046a07a45e6ef19e9d2da89"
+    },
+    {
+      "id": "gfx1250-normalization",
+      "origin": "compiler_corpus",
+      "origin_id": "gfx1250-normalization",
+      "manifest": "tests/amdgpu/compiler-corpus/cases.json",
+      "manifest_sha256": "6be3ca9deed8743df6d8852e4e46f5a627ff09a06db54eb3e3cb94ce611bfdfc",
+      "manifest_row_sha256": "725bf8616dca317f3c6d4a0853ed3cd3a66b6907aba64d0b8ddc46c7b6239ee5",
+      "target": "gfx1250",
+      "kernel": "portable_rmsnorm",
+      "family": "normalization",
+      "expected_outputs": 64,
+      "source": "tests/gfx1250/fixtures/native-portable-workloads.hip",
+      "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
+      "assembly": "tests/amdgpu/compiler-corpus/fixtures/gfx1250-portable.s",
+      "assembly_sha256": "d7181dc064d40f21e1f5ed3cd4a9286d3c830d1e70a504ebcb76353b0cdf53c1",
+      "spec": "tests/gfx1250/specs/portable/portable_rmsnorm.spec",
+      "spec_sha256": "4837d4d36fe7d4df030de51638e56dde13e42064a7eb5e6d12e874c4034fd548"
+    },
+    {
+      "id": "gfx1250-gemm",
+      "origin": "compiler_corpus",
+      "origin_id": "gfx1250-gemm",
+      "manifest": "tests/amdgpu/compiler-corpus/cases.json",
+      "manifest_sha256": "6be3ca9deed8743df6d8852e4e46f5a627ff09a06db54eb3e3cb94ce611bfdfc",
+      "manifest_row_sha256": "5a6ebdee2cfaeaeb431a292cb18f9543fe0812981f47070dd05b0429e6ada448",
+      "target": "gfx1250",
+      "kernel": "portable_gemm",
+      "family": "gemm",
+      "expected_outputs": 32,
+      "source": "tests/gfx1250/fixtures/native-portable-workloads.hip",
+      "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
+      "assembly": "tests/amdgpu/compiler-corpus/fixtures/gfx1250-portable.s",
+      "assembly_sha256": "d7181dc064d40f21e1f5ed3cd4a9286d3c830d1e70a504ebcb76353b0cdf53c1",
+      "spec": "tests/gfx1250/specs/portable/portable_gemm.spec",
+      "spec_sha256": "3831aeeaca670f404bfee2bccede96838dfdd27bf4af4f8cad7e4251aa2b1fe5"
+    },
+    {
+      "id": "gfx1250-attention",
+      "origin": "compiler_corpus",
+      "origin_id": "gfx1250-attention",
+      "manifest": "tests/amdgpu/compiler-corpus/cases.json",
+      "manifest_sha256": "6be3ca9deed8743df6d8852e4e46f5a627ff09a06db54eb3e3cb94ce611bfdfc",
+      "manifest_row_sha256": "4e2c616cc4c2928613cebfe8eb6d8b43aa015df6c613a58edde9269f8859cb01",
+      "target": "gfx1250",
+      "kernel": "portable_flash_attention",
+      "family": "attention",
+      "expected_outputs": 10,
+      "source": "tests/gfx1250/fixtures/native-portable-workloads.hip",
+      "source_sha256": "2f51a3c5848d0d7a847af382db9c18178e68bcbd2ca2638e0f6568c4fcd51ef9",
+      "assembly": "tests/amdgpu/compiler-corpus/fixtures/gfx1250-portable.s",
+      "assembly_sha256": "d7181dc064d40f21e1f5ed3cd4a9286d3c830d1e70a504ebcb76353b0cdf53c1",
+      "spec": "tests/gfx1250/specs/portable/portable_flash_attention.spec",
+      "spec_sha256": "e61f6240fdbf82df762459812af3f6c8220044788eba94eac78cf48620c93543"
+    },
+    {
+      "id": "gfx1250-transpose",
+      "origin": "compiler_corpus",
+      "origin_id": "gfx1250-transpose",
+      "manifest": "tests/amdgpu/compiler-corpus/cases.json",
+      "manifest_sha256": "6be3ca9deed8743df6d8852e4e46f5a627ff09a06db54eb3e3cb94ce611bfdfc",
+      "manifest_row_sha256": "f49babc80a7efbc9e0d1ce9004b2b74c8987e094a334244cd7a7f796fe123c9b",
+      "target": "gfx1250",
+      "kernel": "transpose_8x8_b16",
+      "family": "transpose",
+      "expected_outputs": 64,
+      "source": "tests/gfx1250/fixtures/native-transpose-high64.hip",
+      "source_sha256": "e6ce43b03bd3c7532960ff8065625cf4191b2fb6047d8b5acd2a7f68ac17e059",
+      "assembly": "tests/amdgpu/compiler-corpus/fixtures/gfx1250-transpose.s",
+      "assembly_sha256": "c20afc956699d1cc5f1c8363701dbeefee7b4298d5093b5db7916a980cfe4eb8",
+      "spec": "tests/gfx1250/specs/transpose.spec",
+      "spec_sha256": "af019eec1a730be84f011cdc780f523ac8391fd923b1e41c5648fee5a7f4acab"
+    },
+    {
+      "id": "wide-gfx1250-relu_f16",
+      "origin": "original_full",
+      "origin_id": "relu_f16",
+      "manifest": "tests/gfx1250/full/cases.json",
+      "manifest_sha256": "92d820459b5424ab460e729b6f12bea35c8e2ab12c19b154fb3840dd7153ad3f",
+      "manifest_row_sha256": "1c6ea67d6aa831d84d5388f50eb95784401d05d5172d0c4f4c43c95ba6304a2f",
+      "target": "gfx1250",
+      "kernel": "relu_f16",
+      "family": "ReLUKernel",
+      "expected_outputs": 1024,
+      "source": "tests/gfx1250/full/fixtures/original-f16.hip",
+      "source_sha256": "a95232488643982c54f17bbe4c85573b36816475bc83569290f8c9c67f589d27",
+      "assembly": "tests/gfx1250/full/fixtures/original-f16.s",
+      "assembly_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0",
+      "spec": "tests/gfx1250/full/specs/relu.spec",
+      "spec_sha256": "2c454ab25283af3d33a8a99d26ae55922adb4c93830725603006e69a5b49e4f5",
+      "launch_config": "tests/gfx1250/full/launch/relu_f16.json",
+      "launch_config_sha256": "c7d392fba49a2794897511cefa1450e118853f8ec311af1cf8ce5862812c6828"
+    },
+    {
+      "id": "wide-gfx1250-rmsnorm_f16",
+      "origin": "original_full",
+      "origin_id": "rmsnorm_f16",
+      "manifest": "tests/gfx1250/full/cases.json",
+      "manifest_sha256": "92d820459b5424ab460e729b6f12bea35c8e2ab12c19b154fb3840dd7153ad3f",
+      "manifest_row_sha256": "a38e2947e637ceb6eebdbe739c88587fb36b200ea35bfbf6727d6623f70df525",
+      "target": "gfx1250",
+      "kernel": "rmsnorm_f16",
+      "family": "RMSNormKernel",
+      "expected_outputs": 4096,
+      "source": "tests/gfx1250/full/fixtures/original-f16.hip",
+      "source_sha256": "a95232488643982c54f17bbe4c85573b36816475bc83569290f8c9c67f589d27",
+      "assembly": "tests/gfx1250/full/fixtures/original-f16.s",
+      "assembly_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0",
+      "spec": "tests/gfx1250/full/specs/rmsnorm.spec",
+      "spec_sha256": "ed93af01da7370f6eb8fd4a1b0935dd0b1b09d7eab342192c97c860942cae064",
+      "launch_config": "tests/gfx1250/full/launch/rmsnorm_f16.json",
+      "launch_config_sha256": "c8e4221620e1feb7882500cdf38bc5504f869e801a37439d0e0d9d14d57fbc35"
+    },
+    {
+      "id": "wide-gfx1250-matvec_f16",
+      "origin": "original_full",
+      "origin_id": "matvec_f16",
+      "manifest": "tests/gfx1250/full/cases.json",
+      "manifest_sha256": "92d820459b5424ab460e729b6f12bea35c8e2ab12c19b154fb3840dd7153ad3f",
+      "manifest_row_sha256": "e21058bbbf77502cd18a1212dd8dea209877756728de68038c4212d24c007618",
+      "target": "gfx1250",
+      "kernel": "matvec_f16",
+      "family": "MatrixVectorMultiplicationKernel",
+      "expected_outputs": 32,
+      "source": "tests/gfx1250/full/fixtures/original-f16.hip",
+      "source_sha256": "a95232488643982c54f17bbe4c85573b36816475bc83569290f8c9c67f589d27",
+      "assembly": "tests/gfx1250/full/fixtures/original-f16.s",
+      "assembly_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0",
+      "spec": "tests/gfx1250/full/specs/matvec.spec",
+      "spec_sha256": "9bfcaf2156347294b0ad500c3caf6f5bf6cb597751ee30307fcef210b83413a9",
+      "launch_config": "tests/gfx1250/full/launch/matvec_f16.json",
+      "launch_config_sha256": "ce95d42ecf7ff93c110336e39552ccde9035b42253e5d601bf5576fb0d80bc40"
+    },
+    {
+      "id": "wide-gfx1250-convolution_f16_original",
+      "origin": "original_full",
+      "origin_id": "convolution_f16_original",
+      "manifest": "tests/gfx1250/full/cases.json",
+      "manifest_sha256": "92d820459b5424ab460e729b6f12bea35c8e2ab12c19b154fb3840dd7153ad3f",
+      "manifest_row_sha256": "db6009ec6ebe2e8605c08bdd28a41102370280d6de6ba83c513c2d823a0d3c6d",
+      "target": "gfx1250",
+      "kernel": "convolution_f16_original",
+      "family": "Convolution2DKernel",
+      "expected_outputs": 16384,
+      "source": "tests/gfx1250/full/fixtures/original-convolution.hip",
+      "source_sha256": "0577b7187fa9c176c65ac10dcfe41ce91eef8c6bc25d87bcd4dcd32b5c3bfcda",
+      "assembly": "tests/gfx1250/full/fixtures/original-convolution.s",
+      "assembly_sha256": "57ce53c898c4dcde8db7388c81a887fa72bb9dbec1469d5b732c256259268962",
+      "spec": "tests/gfx1250/full/specs/convolution_f16_original.spec",
+      "spec_sha256": "09df805c1f78603854c5aff1812611d8343323f8ea22e4226c5793d40d20b4a0",
+      "launch_config": "tests/gfx1250/full/launch/convolution_f16_original.json",
+      "launch_config_sha256": "8a68792efb9d321b8aaeaa60be99321147313f8ad379834ff2b87ea88eecd714"
+    },
+    {
+      "id": "wide-gfx1250-flash_attention_original",
+      "origin": "original_full",
+      "origin_id": "flash_attention_original",
+      "manifest": "tests/gfx1250/full/cases.json",
+      "manifest_sha256": "92d820459b5424ab460e729b6f12bea35c8e2ab12c19b154fb3840dd7153ad3f",
+      "manifest_row_sha256": "dc559bc73e6a6649170773e70014d5aa458cafee73a183b5c2fc066ef9856d31",
+      "target": "gfx1250",
+      "kernel": "flash_attention_original",
+      "family": "FlashAttentionNeurIPS2022Forward",
+      "expected_outputs": 8320,
+      "source": "tests/gfx1250/full/fixtures/original-attention.hip",
+      "source_sha256": "a6f79415b4677af7b7d1d425661227682ddf03ebcac58ca8ea18f348e0443de3",
+      "assembly": "tests/gfx1250/full/fixtures/original-attention.s",
+      "assembly_sha256": "51772854ca74693443f17d7c3f382e5f1b65d6705f2b1fdb003216cf04b7c314",
+      "spec": "tests/gfx1250/full/specs/flash_attention_original.spec",
+      "spec_sha256": "88336371d83bc5056dd2f3733228c1aa600798dc57c5920ff012fe0151a4d63f",
+      "launch_config": "tests/gfx1250/full/launch/flash_attention_original.json",
+      "launch_config_sha256": "76c91dadfcc63ef35633c9576d02fbf7863e7a8923fb35cf3e840cc2921ff16c"
+    },
+    {
+      "id": "wide-gfx1250-gemm_f16_full",
+      "origin": "original_full",
+      "origin_id": "gemm_f16_full",
+      "manifest": "tests/gfx1250/full/cases.json",
+      "manifest_sha256": "92d820459b5424ab460e729b6f12bea35c8e2ab12c19b154fb3840dd7153ad3f",
+      "manifest_row_sha256": "3acc1c01f99983096b9482113b8d95bd0193eb2edf9264aff5db5ae47f0c5742",
+      "target": "gfx1250",
+      "kernel": "gemm_f16_full",
+      "family": "MatrixMultiplication",
+      "expected_outputs": 65536,
+      "source": "tests/gfx1250/full/fixtures/original-matrix.hip",
+      "source_sha256": "368a885723768ab307972894a553c6af792d81085bb01faf191046a1744f0b09",
+      "assembly": "tests/gfx1250/full/fixtures/original-matrix.s",
+      "assembly_sha256": "7f776b18fdc5b7ae94c74456b61e7d15de53315b537d5eeb9b7f9620fd0e29a3",
+      "spec": "tests/gfx1250/full/specs/gemm_f16_full.spec",
+      "spec_sha256": "b2af771fa51f762481d5307c188af3de95d17bffb979efa026f8712a208d5abe",
+      "launch_config": "tests/gfx1250/full/launch/gemm_f16_full.json",
+      "launch_config_sha256": "4f8e01fa833fb7b6cb18ea765c06f53f090ca1fcc66e19509461812799f12c45"
+    },
+    {
+      "id": "wide-gfx1250-silu_f16",
+      "origin": "original_full",
+      "origin_id": "silu_f16",
+      "manifest": "tests/gfx1250/full/cases.json",
+      "manifest_sha256": "92d820459b5424ab460e729b6f12bea35c8e2ab12c19b154fb3840dd7153ad3f",
+      "manifest_row_sha256": "b27274feff15c63d75154a2eef3d81f8e8284f5feceac60db14b83aab3855f9e",
+      "target": "gfx1250",
+      "kernel": "silu_f16",
+      "family": "SiLUKernel",
+      "expected_outputs": 512,
+      "source": "tests/gfx1250/full/fixtures/original-f16.hip",
+      "source_sha256": "a95232488643982c54f17bbe4c85573b36816475bc83569290f8c9c67f589d27",
+      "assembly": "tests/gfx1250/full/fixtures/original-f16.s",
+      "assembly_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0",
+      "spec": "tests/gfx1250/full/specs/silu.spec",
+      "spec_sha256": "ca5efbb19d683695794de4b78d51444591b5c7f67f265f4088c41f945756eff7",
+      "launch_config": "tests/gfx1250/full/launch/silu_f16.json",
+      "launch_config_sha256": "687c6c5b54caf49a9a5c6f25ec5a72b2505ad9bc5f8019ad34ff1e1a4f0f5dc7"
+    },
+    {
+      "id": "wide-gfx1250-softmax_f16",
+      "origin": "original_full",
+      "origin_id": "softmax_f16",
+      "manifest": "tests/gfx1250/full/cases.json",
+      "manifest_sha256": "92d820459b5424ab460e729b6f12bea35c8e2ab12c19b154fb3840dd7153ad3f",
+      "manifest_row_sha256": "1c740a48f0e0f7c1daf59754bd23aeeabad2f7cea3557a109b76f23a31e20d61",
+      "target": "gfx1250",
+      "kernel": "softmax_f16",
+      "family": "SoftmaxKernel",
+      "expected_outputs": 4096,
+      "source": "tests/gfx1250/full/fixtures/original-f16.hip",
+      "source_sha256": "a95232488643982c54f17bbe4c85573b36816475bc83569290f8c9c67f589d27",
+      "assembly": "tests/gfx1250/full/fixtures/original-f16.s",
+      "assembly_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0",
+      "spec": "tests/gfx1250/full/specs/softmax.spec",
+      "spec_sha256": "d676a7289d245d4f74d5e94f7f6fee09e20351d528ad64167c343668d6d36938",
+      "launch_config": "tests/gfx1250/full/launch/softmax_f16.json",
+      "launch_config_sha256": "47fa5ca9d6c4eeed9d07104ec18fb7b4a0e357134355d559dc5f0f51fc0866ad"
+    }
+  ],
+  "cases": [
+    {
+      "id": "memory-gfx950-elementwise-safe",
+      "workload": "gfx950-elementwise",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "15dbd655a9bc5c1bb84aef7f5f1b00fcb31298da3b2f46efb4032da14af6dc2d"
+    },
+    {
+      "id": "memory-gfx950-elementwise-address-alias",
+      "workload": "gfx950-elementwise",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 21,
+          "original": "global_store_dword v0, v1, s[2:3]",
+          "replacement": "v_mov_b32_e32 v0, 0\nglobal_store_dword v0, v1, s[2:3]"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the final ordinary GLOBAL output-store address to output base; preserve loaded data and EXEC.",
+        "finite_input_witness": "x[0]=1, x[1]=2; other x arbitrary finite. Distinct active lane outputs are 1 and 2.",
+        "family": "elementwise",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Global",
+        "overlap_bytes": 4,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 21,
+          "instruction": "global_store_dword v0, v1, s[2:3]",
+          "static_instruction_ordinal": 11,
+          "static_function_instruction_lines": 12
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx950-elementwise-safe",
+      "materialized_assembly_sha256": "5d804eeabb51eadf5865ec1256fe4ca339f4b4aee8d4c54577d8011a89d6c9b6"
+    },
+    {
+      "id": "memory-gfx950-reduction-safe",
+      "workload": "gfx950-reduction",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "15dbd655a9bc5c1bb84aef7f5f1b00fcb31298da3b2f46efb4032da14af6dc2d"
+    },
+    {
+      "id": "memory-gfx950-reduction-address-alias",
+      "workload": "gfx950-reduction",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 577,
+          "original": "global_store_dword v0, v3, s[2:3]",
+          "replacement": "v_mov_b32_e32 v0, 0\nglobal_store_dword v0, v3, s[2:3]"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the ordinary GLOBAL output-store address to out[0], preserving both active row lanes.",
+        "finite_input_witness": "x[0:32]=1, x[32:64]=2; lane0 sum32 versus lane1 sum64.",
+        "family": "reduction",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Global",
+        "overlap_bytes": 4,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 577,
+          "instruction": "global_store_dword v0, v3, s[2:3]",
+          "static_instruction_ordinal": 19,
+          "static_function_instruction_lines": 20
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx950-reduction-safe",
+      "materialized_assembly_sha256": "5c66aef34963253a2d79fb4ee32c939842f4a4ab2d83300ed3661684c64cba5d"
+    },
+    {
+      "id": "memory-gfx950-normalization-safe",
+      "workload": "gfx950-normalization",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "15dbd655a9bc5c1bb84aef7f5f1b00fcb31298da3b2f46efb4032da14af6dc2d"
+    },
+    {
+      "id": "memory-gfx950-normalization-address-alias",
+      "workload": "gfx950-normalization",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 893,
+          "original": "global_store_dword v4, v0, s[2:3]",
+          "replacement": "v_mov_b32_e32 v4, 0\nglobal_store_dword v4, v0, s[2:3]"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the final GLOBAL output-store address to out[0]; do not modify row input/weight addresses.",
+        "finite_input_witness": "x[:]=1, weight[0]=1, weight[1]=2. Two outputs differ by factor2 with the same positive sqrt(1+epsilon) denominator.",
+        "family": "normalization",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Global",
+        "overlap_bytes": 4,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 893,
+          "instruction": "global_store_dword v4, v0, s[2:3]",
+          "static_instruction_ordinal": 28,
+          "static_function_instruction_lines": 29
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx950-normalization-safe",
+      "materialized_assembly_sha256": "e82426a9e5dfb646f1c0443304ffdcaf23f3096fa88d432e65a2c6ba911905b4"
+    },
+    {
+      "id": "memory-gfx950-gemm-safe",
+      "workload": "gfx950-gemm",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "15dbd655a9bc5c1bb84aef7f5f1b00fcb31298da3b2f46efb4032da14af6dc2d"
+    },
+    {
+      "id": "memory-gfx950-gemm-address-alias",
+      "workload": "gfx950-gemm",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 1132,
+          "original": "global_store_dword v0, v3, s[2:3]",
+          "replacement": "v_mov_b32_e32 v0, 0\nglobal_store_dword v0, v3, s[2:3]"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the final ordinary GLOBAL store address to out[0], preserving A/B load addresses and all16 K terms.",
+        "finite_input_witness": "A[:]=1; B[k,j]=j+1. Lane0 result16, lane1 result32.",
+        "family": "gemm",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Global",
+        "overlap_bytes": 4,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 1132,
+          "instruction": "global_store_dword v0, v3, s[2:3]",
+          "static_instruction_ordinal": 26,
+          "static_function_instruction_lines": 27
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx950-gemm-safe",
+      "materialized_assembly_sha256": "0a5a62c7b28e079fb1dbcf1745e8cb6cf5bb3a3ccf82b5a83d461ec7e0aff3b6"
+    },
+    {
+      "id": "memory-gfx950-attention-safe",
+      "workload": "gfx950-attention",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "15dbd655a9bc5c1bb84aef7f5f1b00fcb31298da3b2f46efb4032da14af6dc2d"
+    },
+    {
+      "id": "memory-gfx950-attention-address-alias",
+      "workload": "gfx950-attention",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 2154,
+          "original": "global_store_dword v1, v2, s[10:11]",
+          "replacement": "v_mov_b32_e32 v9, 0\nglobal_store_dword v9, v2, s[10:11]"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the first output GLOBAL store to out[0]; retain the separate LSE store and its address.",
+        "finite_input_witness": "Q[:]=K[:]=0; V[j,d]=d+1. Equal softmax weights give lane0 output1, lane1 output2. Do not mutate equal LSE values.",
+        "family": "attention",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Global",
+        "overlap_bytes": 4,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 2154,
+          "instruction": "global_store_dword v1, v2, s[10:11]",
+          "static_instruction_ordinal": 84,
+          "static_function_instruction_lines": 92
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx950-attention-safe",
+      "materialized_assembly_sha256": "a56c80ac6b835f9654218a67f8f04ecd5535150a64f3771ff5c9a382d2529c87"
+    },
+    {
+      "id": "memory-gfx950-transpose-safe",
+      "workload": "gfx950-transpose",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "e39b16e63b188f41f036abc606e6f9555eec48871a1302e45d3a308987ae2b93"
+    },
+    {
+      "id": "memory-gfx950-transpose-address-alias",
+      "workload": "gfx950-transpose",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 20,
+          "original": "ds_write_b32 v1, v2",
+          "replacement": "v_mov_b32_e32 v3, 0\nds_write_b32 v3, v2"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the first ordinary DS/LDS staging-store address to tile[0] after its GLOBAL input load is ready; preserve input addressing, data, final output addresses and subsequent reads.",
+        "finite_input_witness": "Unsigned16 x[i]=i. Packed lane0 store contains (0,1), lane1 (2,3), so byte payloads differ.",
+        "family": "transpose",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Shared",
+        "overlap_bytes": 4,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 20,
+          "instruction": "ds_write_b32 v1, v2",
+          "static_instruction_ordinal": 11,
+          "static_function_instruction_lines": 18
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx950-transpose-safe",
+      "materialized_assembly_sha256": "4d7023b7cbd147e0a9b5885669e7f20f728dac48242b124a4fc1c9b5766495a9"
+    },
+    {
+      "id": "memory-gfx1250-elementwise-safe",
+      "workload": "gfx1250-elementwise",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "d7181dc064d40f21e1f5ed3cd4a9286d3c830d1e70a504ebcb76353b0cdf53c1"
+    },
+    {
+      "id": "memory-gfx1250-elementwise-address-alias",
+      "workload": "gfx1250-elementwise",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 21,
+          "original": "global_store_b32 v0, v1, s[2:3] scale_offset",
+          "replacement": "v_mov_b32_e32 v0, 0\nglobal_store_b32 v0, v1, s[2:3] scale_offset"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the final ordinary GLOBAL output-store address to output base; preserve loaded data and EXEC.",
+        "finite_input_witness": "x[0]=1, x[1]=2; other x arbitrary finite. Distinct active lane outputs are 1 and 2.",
+        "family": "elementwise",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Global",
+        "overlap_bytes": 4,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 21,
+          "instruction": "global_store_b32 v0, v1, s[2:3] scale_offset",
+          "static_instruction_ordinal": 11,
+          "static_function_instruction_lines": 12
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx1250-elementwise-safe",
+      "materialized_assembly_sha256": "edb16141124479a03482189e16afab494b732045c37f6d7982114541f100cf78"
+    },
+    {
+      "id": "memory-gfx1250-reduction-safe",
+      "workload": "gfx1250-reduction",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "d7181dc064d40f21e1f5ed3cd4a9286d3c830d1e70a504ebcb76353b0cdf53c1"
+    },
+    {
+      "id": "memory-gfx1250-reduction-address-alias",
+      "workload": "gfx1250-reduction",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 572,
+          "original": "global_store_b32 v0, v3, s[2:3] scale_offset",
+          "replacement": "v_mov_b32_e32 v0, 0\nglobal_store_b32 v0, v3, s[2:3] scale_offset"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the ordinary GLOBAL output-store address to out[0], preserving both active row lanes.",
+        "finite_input_witness": "x[0:32]=1, x[32:64]=2; lane0 sum32 versus lane1 sum64.",
+        "family": "reduction",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Global",
+        "overlap_bytes": 4,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 572,
+          "instruction": "global_store_b32 v0, v3, s[2:3] scale_offset",
+          "static_instruction_ordinal": 19,
+          "static_function_instruction_lines": 20
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx1250-reduction-safe",
+      "materialized_assembly_sha256": "337992bdb188c2a29b4e2c899f28e5852d1c6c4ee2e6fcef47d990d3c8022ae9"
+    },
+    {
+      "id": "memory-gfx1250-normalization-safe",
+      "workload": "gfx1250-normalization",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "d7181dc064d40f21e1f5ed3cd4a9286d3c830d1e70a504ebcb76353b0cdf53c1"
+    },
+    {
+      "id": "memory-gfx1250-normalization-address-alias",
+      "workload": "gfx1250-normalization",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 893,
+          "original": "global_store_b32 v0, v1, s[2:3] scale_offset",
+          "replacement": "v_mov_b32_e32 v0, 0\nglobal_store_b32 v0, v1, s[2:3] scale_offset"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the final GLOBAL output-store address to out[0]; do not modify row input/weight addresses.",
+        "finite_input_witness": "x[:]=1, weight[0]=1, weight[1]=2. Two outputs differ by factor2 with the same positive sqrt(1+epsilon) denominator.",
+        "family": "normalization",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Global",
+        "overlap_bytes": 4,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 893,
+          "instruction": "global_store_b32 v0, v1, s[2:3] scale_offset",
+          "static_instruction_ordinal": 33,
+          "static_function_instruction_lines": 34
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx1250-normalization-safe",
+      "materialized_assembly_sha256": "05d5cb4a6b9b2f0252876e621f7a1aeb7f0451ae77335fc6f8a8426fedf68173"
+    },
+    {
+      "id": "memory-gfx1250-gemm-safe",
+      "workload": "gfx1250-gemm",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "d7181dc064d40f21e1f5ed3cd4a9286d3c830d1e70a504ebcb76353b0cdf53c1"
+    },
+    {
+      "id": "memory-gfx1250-gemm-address-alias",
+      "workload": "gfx1250-gemm",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 1131,
+          "original": "global_store_b32 v0, v3, s[0:1] scale_offset",
+          "replacement": "v_mov_b32_e32 v0, 0\nglobal_store_b32 v0, v3, s[0:1] scale_offset"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the final ordinary GLOBAL store address to out[0], preserving A/B load addresses and all16 K terms.",
+        "finite_input_witness": "A[:]=1; B[k,j]=j+1. Lane0 result16, lane1 result32.",
+        "family": "gemm",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Global",
+        "overlap_bytes": 4,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 1131,
+          "instruction": "global_store_b32 v0, v3, s[0:1] scale_offset",
+          "static_instruction_ordinal": 28,
+          "static_function_instruction_lines": 29
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx1250-gemm-safe",
+      "materialized_assembly_sha256": "bb560b4a28e079e9fbe453dc446b3bf5547c61b3fea772da9a99953c83ae7250"
+    },
+    {
+      "id": "memory-gfx1250-attention-safe",
+      "workload": "gfx1250-attention",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "d7181dc064d40f21e1f5ed3cd4a9286d3c830d1e70a504ebcb76353b0cdf53c1"
+    },
+    {
+      "id": "memory-gfx1250-attention-address-alias",
+      "workload": "gfx1250-attention",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 2164,
+          "original": "global_store_b32 v0, v2, s[10:11] scale_offset",
+          "replacement": "v_mov_b32_e32 v6, 0\nglobal_store_b32 v6, v2, s[10:11] scale_offset"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the first output GLOBAL store to out[0]; retain the separate LSE store and its address.",
+        "finite_input_witness": "Q[:]=K[:]=0; V[j,d]=d+1. Equal softmax weights give lane0 output1, lane1 output2. Do not mutate equal LSE values.",
+        "family": "attention",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Global",
+        "overlap_bytes": 4,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 2164,
+          "instruction": "global_store_b32 v0, v2, s[10:11] scale_offset",
+          "static_instruction_ordinal": 86,
+          "static_function_instruction_lines": 96
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx1250-attention-safe",
+      "materialized_assembly_sha256": "31b0187addf7121f0bea178057696c39d735938b5d512773789b817084536c71"
+    },
+    {
+      "id": "memory-gfx1250-transpose-safe",
+      "workload": "gfx1250-transpose",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "c20afc956699d1cc5f1c8363701dbeefee7b4298d5093b5db7916a980cfe4eb8"
+    },
+    {
+      "id": "memory-gfx1250-transpose-address-alias",
+      "workload": "gfx1250-transpose",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 18,
+          "original": "ds_store_b32 v4, v1",
+          "replacement": "v_mov_b32_e32 v3, 0\nds_store_b32 v3, v1"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the first ordinary DS/LDS staging-store address to tile[0] after its GLOBAL input load is ready; preserve input addressing, data, final output addresses and subsequent reads.",
+        "finite_input_witness": "Unsigned16 x[i]=i. Packed lane0 store contains (0,1), lane1 (2,3), so byte payloads differ.",
+        "family": "transpose",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Shared",
+        "overlap_bytes": 4,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 18,
+          "instruction": "ds_store_b32 v4, v1",
+          "static_instruction_ordinal": 9,
+          "static_function_instruction_lines": 16
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx1250-transpose-safe",
+      "materialized_assembly_sha256": "160a0a363172efafbe04b0e58b484b28a07bebe5d815f35fbd880890e0cd01f5"
+    },
+    {
+      "id": "memory-wide-gfx1250-relu_f16-safe",
+      "workload": "wide-gfx1250-relu_f16",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0"
+    },
+    {
+      "id": "memory-wide-gfx1250-rmsnorm_f16-safe",
+      "workload": "wide-gfx1250-rmsnorm_f16",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0"
+    },
+    {
+      "id": "memory-wide-gfx1250-matvec_f16-safe",
+      "workload": "wide-gfx1250-matvec_f16",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0"
+    },
+    {
+      "id": "memory-wide-gfx1250-matvec_f16-inserted-collision",
+      "workload": "wide-gfx1250-matvec_f16",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "inserted_store",
+      "primary_latency": true,
+      "edits": [
+        {
+          "source_line": 1506,
+          "original": "ds_store_b16 v10, v1",
+          "replacement": "ds_store_b16 v10, v1\nds_store_b16 v7, v1"
+        }
+      ],
+      "ground_truth": {
+        "family": "MatrixVectorMultiplicationKernel",
+        "finite_input_witness": "x[0]=1, x[1]=2 (exact F16 values); first two active lanes stage distinct halves at the same byte address.",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 2,
+        "space": "Shared",
+        "overlap_bytes": 2,
+        "distinct_overlap_bytes_hex": [
+          "003c",
+          "0040"
+        ],
+        "constant_address": {
+          "register": "v7",
+          "value": 0,
+          "definition": {
+            "source_line": 1427,
+            "original": "v_dual_mov_b32 v7, 0 :: v_dual_add_nc_u32 v2, 0x100, v0"
+          }
+        },
+        "data_and_readiness": "Reuse the existing unchanged zero VGPR; do not write any pending original DS address/data register. Original GLOBAL-source completion wait remains immediately before the original DS store. No register allocation or ABI change.",
+        "site": {
+          "source_line": 1506,
+          "original": "ds_store_b16 v10, v1"
+        },
+        "original_shape_cost": "Early staged-write collision before the full original computation/output suffix. Every original initialization is retained; no uninitialized LDS read is an intended consequence. Any unexpected abort in baseline must be investigated rather than assumed harmless or counted as a completed finding.",
+        "reason": "Add one wrong-address ordinary DS store after the original valid initializing DS store; keep all original instructions/initialization/waits/suffix.",
+        "mutation_instructions": 1,
+        "preserves_all_original_initializing_stores": true
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-wide-gfx1250-matvec_f16-safe",
+      "materialized_assembly_sha256": "84860a260f69d4389898f7808a0c267f282fc8a6c47eca45874460178937eded"
+    },
+    {
+      "id": "memory-wide-gfx1250-matvec_f16-address-alias",
+      "workload": "wide-gfx1250-matvec_f16",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 1506,
+          "original": "ds_store_b16 v10, v1",
+          "replacement": "ds_store_b16 v7, v1"
+        }
+      ],
+      "ground_truth": {
+        "family": "MatrixVectorMultiplicationKernel",
+        "finite_input_witness": "x[0]=1, x[1]=2 (exact F16 values); first two active lanes stage distinct halves at the same byte address.",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 2,
+        "space": "Shared",
+        "overlap_bytes": 2,
+        "distinct_overlap_bytes_hex": [
+          "003c",
+          "0040"
+        ],
+        "constant_address": {
+          "register": "v7",
+          "value": 0,
+          "definition": {
+            "source_line": 1427,
+            "original": "v_dual_mov_b32 v7, 0 :: v_dual_add_nc_u32 v2, 0x100, v0"
+          }
+        },
+        "data_and_readiness": "Reuse the existing unchanged zero VGPR; do not write any pending original DS address/data register. Original GLOBAL-source completion wait remains immediately before the original DS store. No register allocation or ABI change.",
+        "site": {
+          "source_line": 1506,
+          "original": "ds_store_b16 v10, v1"
+        },
+        "original_shape_cost": "Early staging before32 output rows times K4096. Baseline may instead stop at first later uninitialized tile read; do not count source remaining work as actually executed.",
+        "reason": "Replace the first original initializing store address with the existing zero address; later original reads may be uninitialized.",
+        "mutation_instructions": 1,
+        "preserves_all_original_initializing_stores": false
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-wide-gfx1250-matvec_f16-safe",
+      "materialized_assembly_sha256": "d48be006c3ade6e7e8a37a4f7ca1b4c05abfe8059591a8807f72d692cd92c941"
+    },
+    {
+      "id": "memory-wide-gfx1250-convolution_f16_original-safe",
+      "workload": "wide-gfx1250-convolution_f16_original",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "57ce53c898c4dcde8db7388c81a887fa72bb9dbec1469d5b732c256259268962"
+    },
+    {
+      "id": "memory-wide-gfx1250-convolution_f16_original-inserted-collision",
+      "workload": "wide-gfx1250-convolution_f16_original",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "inserted_store",
+      "primary_latency": true,
+      "edits": [
+        {
+          "source_line": 646,
+          "original": "ds_store_b16 v9, v18",
+          "replacement": "ds_store_b16 v9, v18\nds_store_b16 v99, v18"
+        }
+      ],
+      "ground_truth": {
+        "family": "Convolution2DKernel",
+        "finite_input_witness": "For selected workgroup0, first two source indices are x[0],x[1]; set1,2 (exact F16).",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 2,
+        "space": "Shared",
+        "overlap_bytes": 2,
+        "distinct_overlap_bytes_hex": [
+          "003c",
+          "0040"
+        ],
+        "constant_address": {
+          "register": "v99",
+          "value": 0,
+          "definition": {
+            "source_line": 154,
+            "original": "v_dual_mov_b32 v99, 0 :: v_dual_lshrrev_b32 v4, 5, v4"
+          }
+        },
+        "data_and_readiness": "Reuse the existing unchanged zero VGPR; do not write any pending original DS address/data register. Original GLOBAL-source completion wait remains immediately before the original DS store. No register allocation or ABI change.",
+        "site": {
+          "source_line": 646,
+          "original": "ds_store_b16 v9, v18"
+        },
+        "original_shape_cost": "Early staged-write collision before the full original computation/output suffix. Every original initialization is retained; no uninitialized LDS read is an intended consequence. Any unexpected abort in baseline must be investigated rather than assumed harmless or counted as a completed finding.",
+        "reason": "Add one wrong-address ordinary DS store after the original valid initializing DS store; keep all original instructions/initialization/waits/suffix.",
+        "mutation_instructions": 1,
+        "preserves_all_original_initializing_stores": true
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-wide-gfx1250-convolution_f16_original-safe",
+      "materialized_assembly_sha256": "2a64ce6b7fcc417666d2f9072de847befc59b212df9114f30ff448f5cae40b8d"
+    },
+    {
+      "id": "memory-wide-gfx1250-convolution_f16_original-address-alias",
+      "workload": "wide-gfx1250-convolution_f16_original",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 646,
+          "original": "ds_store_b16 v9, v18",
+          "replacement": "ds_store_b16 v99, v18"
+        }
+      ],
+      "ground_truth": {
+        "family": "Convolution2DKernel",
+        "finite_input_witness": "For selected workgroup0, first two source indices are x[0],x[1]; set1,2 (exact F16).",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 2,
+        "space": "Shared",
+        "overlap_bytes": 2,
+        "distinct_overlap_bytes_hex": [
+          "003c",
+          "0040"
+        ],
+        "constant_address": {
+          "register": "v99",
+          "value": 0,
+          "definition": {
+            "source_line": 154,
+            "original": "v_dual_mov_b32 v99, 0 :: v_dual_lshrrev_b32 v4, 5, v4"
+          }
+        },
+        "data_and_readiness": "Reuse the existing unchanged zero VGPR; do not write any pending original DS address/data register. Original GLOBAL-source completion wait remains immediately before the original DS store. No register allocation or ABI change.",
+        "site": {
+          "source_line": 646,
+          "original": "ds_store_b16 v9, v18"
+        },
+        "original_shape_cost": "Early staging before K576 matrix arithmetic and16384 selected outputs. Assembly block order is loop-rotated: first executed staging is not simply the first lexical store. Confirm active lanes and runtime order during approved qualification.",
+        "reason": "Replace the first original initializing store address with the existing zero address; later original reads may be uninitialized.",
+        "mutation_instructions": 1,
+        "preserves_all_original_initializing_stores": false
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-wide-gfx1250-convolution_f16_original-safe",
+      "materialized_assembly_sha256": "bf27f359a207d2438299de6ba813079a07662a60d93e65bac147aea23ba3f356"
+    },
+    {
+      "id": "memory-wide-gfx1250-flash_attention_original-safe",
+      "workload": "wide-gfx1250-flash_attention_original",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "51772854ca74693443f17d7c3f382e5f1b65d6705f2b1fdb003216cf04b7c314"
+    },
+    {
+      "id": "memory-wide-gfx1250-flash_attention_original-inserted-collision",
+      "workload": "wide-gfx1250-flash_attention_original",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "inserted_store",
+      "primary_latency": true,
+      "edits": [
+        {
+          "source_line": 104,
+          "original": "ds_store_b16 v64, v2",
+          "replacement": "ds_store_b16 v64, v2\nds_store_b16 v6, v2"
+        }
+      ],
+      "ground_truth": {
+        "family": "FlashAttentionNeurIPS2022Forward",
+        "finite_input_witness": "K[0]=1, K[1]=2; first two active lanes stage distinct exact F16 halves.",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 2,
+        "space": "Shared",
+        "overlap_bytes": 2,
+        "distinct_overlap_bytes_hex": [
+          "003c",
+          "0040"
+        ],
+        "constant_address": {
+          "register": "v6",
+          "value": 0,
+          "definition": {
+            "source_line": 38,
+            "original": "v_dual_mov_b32 v6, 0 :: v_dual_lshlrev_b32 v64, 1, v0"
+          }
+        },
+        "data_and_readiness": "Reuse the existing unchanged zero VGPR; do not write any pending original DS address/data register. Original GLOBAL-source completion wait remains immediately before the original DS store. No register allocation or ABI change.",
+        "site": {
+          "source_line": 104,
+          "original": "ds_store_b16 v64, v2"
+        },
+        "original_shape_cost": "Early staged-write collision before the full original computation/output suffix. Every original initialization is retained; no uninitialized LDS read is an intended consequence. Any unexpected abort in baseline must be investigated rather than assumed harmless or counted as a completed finding.",
+        "reason": "Add one wrong-address ordinary DS store after the original valid initializing DS store; keep all original instructions/initialization/waits/suffix.",
+        "mutation_instructions": 1,
+        "preserves_all_original_initializing_stores": true
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-wide-gfx1250-flash_attention_original-safe",
+      "materialized_assembly_sha256": "a7bf4a8cac3be7df6654a8ee456e7ec0d781ac124fc96cec56aec39d2350248c"
+    },
+    {
+      "id": "memory-wide-gfx1250-flash_attention_original-address-alias",
+      "workload": "wide-gfx1250-flash_attention_original",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 104,
+          "original": "ds_store_b16 v64, v2",
+          "replacement": "ds_store_b16 v6, v2"
+        }
+      ],
+      "ground_truth": {
+        "family": "FlashAttentionNeurIPS2022Forward",
+        "finite_input_witness": "K[0]=1, K[1]=2; first two active lanes stage distinct exact F16 halves.",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 2,
+        "space": "Shared",
+        "overlap_bytes": 2,
+        "distinct_overlap_bytes_hex": [
+          "003c",
+          "0040"
+        ],
+        "constant_address": {
+          "register": "v6",
+          "value": 0,
+          "definition": {
+            "source_line": 38,
+            "original": "v_dual_mov_b32 v6, 0 :: v_dual_lshlrev_b32 v64, 1, v0"
+          }
+        },
+        "data_and_readiness": "Reuse the existing unchanged zero VGPR; do not write any pending original DS address/data register. Original GLOBAL-source completion wait remains immediately before the original DS store. No register allocation or ABI change.",
+        "site": {
+          "source_line": 104,
+          "original": "ds_store_b16 v64, v2"
+        },
+        "original_shape_cost": "Early K staging, before complete1024-key attention. Later untouched sk reads may abort; report that full-mode uncertainty honestly.",
+        "reason": "Replace the first original initializing store address with the existing zero address; later original reads may be uninitialized.",
+        "mutation_instructions": 1,
+        "preserves_all_original_initializing_stores": false
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-wide-gfx1250-flash_attention_original-safe",
+      "materialized_assembly_sha256": "1a782f612a63d8a2910bd5c46ceecaca35100b41c7f82fd8b2853ace21142bcf"
+    },
+    {
+      "id": "memory-wide-gfx1250-gemm_f16_full-safe",
+      "workload": "wide-gfx1250-gemm_f16_full",
+      "split": "development",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "7f776b18fdc5b7ae94c74456b61e7d15de53315b537d5eeb9b7f9620fd0e29a3"
+    },
+    {
+      "id": "memory-wide-gfx1250-gemm_f16_full-inserted-collision",
+      "workload": "wide-gfx1250-gemm_f16_full",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "inserted_store",
+      "primary_latency": true,
+      "edits": [
+        {
+          "source_line": 141,
+          "original": "ds_store_b16 v64, v76",
+          "replacement": "ds_store_b16 v64, v76\nds_store_b16 v3, v76"
+        }
+      ],
+      "ground_truth": {
+        "family": "MatrixMultiplication",
+        "finite_input_witness": "A[0,0]=1, A[0,1]=2; first two active lanes stage distinct exact F16 halves.",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 2,
+        "space": "Shared",
+        "overlap_bytes": 2,
+        "distinct_overlap_bytes_hex": [
+          "003c",
+          "0040"
+        ],
+        "constant_address": {
+          "register": "v3",
+          "value": 0,
+          "definition": {
+            "source_line": 41,
+            "original": "v_dual_mov_b32 v3, 0 :: v_dual_lshrrev_b32 v8, 5, v8"
+          }
+        },
+        "data_and_readiness": "Reuse the existing unchanged zero VGPR; do not write any pending original DS address/data register. Original GLOBAL-source completion wait remains immediately before the original DS store. No register allocation or ABI change.",
+        "site": {
+          "source_line": 141,
+          "original": "ds_store_b16 v64, v76"
+        },
+        "original_shape_cost": "Early staged-write collision before the full original computation/output suffix. Every original initialization is retained; no uninitialized LDS read is an intended consequence. Any unexpected abort in baseline must be investigated rather than assumed harmless or counted as a completed finding.",
+        "reason": "Add one wrong-address ordinary DS store after the original valid initializing DS store; keep all original instructions/initialization/waits/suffix.",
+        "mutation_instructions": 1,
+        "preserves_all_original_initializing_stores": true
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-wide-gfx1250-gemm_f16_full-safe",
+      "materialized_assembly_sha256": "997518e7759b391982c62117d59644eea0a86e5ccf4381b055b28de8ee8df1a8"
+    },
+    {
+      "id": "memory-wide-gfx1250-gemm_f16_full-address-alias",
+      "workload": "wide-gfx1250-gemm_f16_full",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 141,
+          "original": "ds_store_b16 v64, v76",
+          "replacement": "ds_store_b16 v3, v76"
+        }
+      ],
+      "ground_truth": {
+        "family": "MatrixMultiplication",
+        "finite_input_witness": "A[0,0]=1, A[0,1]=2; first two active lanes stage distinct exact F16 halves.",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 2,
+        "space": "Shared",
+        "overlap_bytes": 2,
+        "distinct_overlap_bytes_hex": [
+          "003c",
+          "0040"
+        ],
+        "constant_address": {
+          "register": "v3",
+          "value": 0,
+          "definition": {
+            "source_line": 41,
+            "original": "v_dual_mov_b32 v3, 0 :: v_dual_lshrrev_b32 v8, 5, v8"
+          }
+        },
+        "data_and_readiness": "Reuse the existing unchanged zero VGPR; do not write any pending original DS address/data register. Original GLOBAL-source completion wait remains immediately before the original DS store. No register allocation or ABI change.",
+        "site": {
+          "source_line": 141,
+          "original": "ds_store_b16 v64, v76"
+        },
+        "original_shape_cost": "Early first A tile, before double-buffered K4096 and65536 selected outputs. Baseline may stop at the first undefined A tile read. It is a detection-coverage case, not guaranteed giant speedup.",
+        "reason": "Replace the first original initializing store address with the existing zero address; later original reads may be uninitialized.",
+        "mutation_instructions": 1,
+        "preserves_all_original_initializing_stores": false
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-wide-gfx1250-gemm_f16_full-safe",
+      "materialized_assembly_sha256": "ed5bb7911c7f7a279c31a93523ee2ca78031dce28bcae77e8501004fca57cbea"
+    },
+    {
+      "id": "memory-gfx950-elementwise-unsupported-tail",
+      "workload": "gfx950-elementwise",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "synthetic_unsupported_tail",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 21,
+          "original": "global_store_dword v0, v1, s[2:3]",
+          "replacement": "v_mov_b32_e32 v0, 0\nglobal_store_dword v0, v1, s[2:3]\nbuffer_load_dwordx2 v[0:1], v0, s[0:3], 0 offen"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the final ordinary GLOBAL output-store address to output base; preserve loaded data and EXEC. Then add a separately labeled target-legal runtime-unsupported DWORDX2 buffer load.",
+        "finite_input_witness": "x[0]=1, x[1]=2; other x arbitrary finite. Distinct active lane outputs are 1 and 2.",
+        "family": "elementwise",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Global",
+        "overlap_bytes": 4,
+        "mutation_instructions": 3,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 21,
+          "instruction": "global_store_dword v0, v1, s[2:3]",
+          "static_instruction_ordinal": 11,
+          "static_function_instruction_lines": 12
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx950-elementwise-safe",
+      "materialized_assembly_sha256": "fe3f824137e31642ea4e6e336dfa09767ff5e5efc9d7a4510bd7052916ccae22"
+    },
+    {
+      "id": "memory-gfx950-transpose-unsupported-tail",
+      "workload": "gfx950-transpose",
+      "split": "development",
+      "expectation": "hazard",
+      "category": "synthetic_unsupported_tail",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 20,
+          "original": "ds_write_b32 v1, v2",
+          "replacement": "v_mov_b32_e32 v3, 0\nds_write_b32 v3, v2\nbuffer_load_dwordx2 v[0:1], v0, s[0:3], 0 offen"
+        }
+      ],
+      "ground_truth": {
+        "reason": "Collapse only the first ordinary DS/LDS staging-store address to tile[0] after its GLOBAL input load is ready; preserve input addressing, data, final output addresses and subsequent reads. Then add a separately labeled target-legal runtime-unsupported DWORDX2 buffer load.",
+        "finite_input_witness": "Unsigned16 x[i]=i. Packed lane0 store contains (0,1), lane1 (2,3), so byte payloads differ.",
+        "family": "transpose",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Shared",
+        "overlap_bytes": 4,
+        "mutation_instructions": 3,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "line": 20,
+          "instruction": "ds_write_b32 v1, v2",
+          "static_instruction_ordinal": 11,
+          "static_function_instruction_lines": 18
+        },
+        "data_and_readiness": "Only the store address is changed after the original data-ready wait; its data registers, original load addresses, EXEC and source math are preserved. Address setup uses an allocated address/dead register; no v255 or metadata resource increase."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx950-transpose-safe",
+      "materialized_assembly_sha256": "ad247055860140129ae8b5cfd637b5ba0bba069a74cca7483a7486a2b5e3a4ae"
+    },
+    {
+      "id": "memory-gfx950-transpose-heldout-safe",
+      "workload": "gfx950-transpose",
+      "split": "heldout",
+      "expectation": "safe",
+      "category": "original_relocated",
+      "primary_latency": false,
+      "edits": [],
+      "launch_overrides": {
+        "array_bases": {
+          "x": 196608,
+          "out": 327680
+        }
+      },
+      "materialized_assembly_sha256": "e39b16e63b188f41f036abc606e6f9555eec48871a1302e45d3a308987ae2b93"
+    },
+    {
+      "id": "memory-gfx950-transpose-heldout-partial-overlap",
+      "workload": "gfx950-transpose",
+      "split": "heldout",
+      "expectation": "hazard",
+      "category": "inserted_store_partial_overlap",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 20,
+          "original": "ds_write_b32 v1, v2",
+          "replacement": "ds_write_b32 v1, v2\nv_lshrrev_b32_e32 v3, 1, v1\nds_write_b32 v3, v2"
+        }
+      ],
+      "launch_overrides": {
+        "array_bases": {
+          "x": 196608,
+          "out": 327680
+        }
+      },
+      "ground_truth": {
+        "family": "transpose",
+        "reason": "Append an overlapping 4-byte DS store at half the original byte stride, after the full original initializing store.",
+        "finite_input_witness": "Unsigned16 x[i]=i; lane0 word bytes00000100 at byte0 and lane1 word bytes02000300 at byte2 overlap on bytes0100 versus0200.",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 4,
+        "space": "Shared",
+        "overlap_bytes": 2,
+        "distinct_overlap_bytes_hex": [
+          "0100",
+          "0200"
+        ],
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": true,
+        "site": {
+          "source_line": 20,
+          "original": "ds_write_b32 v1, v2"
+        },
+        "data_and_readiness": "v3 is allocated and dead after the original bitop. Compute v3=v1>>1 after original DS issue, without modifying its held address v1 or data v2. Existing lgkmcnt(0) completes both stores before later overwrites."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-gfx950-transpose-heldout-safe",
+      "materialized_assembly_sha256": "2928cda0b89af61f6abcbeb37960fdc20a8164e24bbde34bb040c84e8b674072"
+    },
+    {
+      "id": "memory-wide-gfx1250-silu_f16-heldout-safe",
+      "workload": "wide-gfx1250-silu_f16",
+      "split": "heldout",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0"
+    },
+    {
+      "id": "memory-wide-gfx1250-silu_f16-heldout-vector-alias",
+      "workload": "wide-gfx1250-silu_f16",
+      "split": "heldout",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 171,
+          "original": "global_store_b64 v8, v[0:1], s[2:3] scale_offset",
+          "replacement": "v_mov_b32_e32 v8, 0\nglobal_store_b64 v8, v[0:1], s[2:3] scale_offset"
+        }
+      ],
+      "ground_truth": {
+        "family": "SiLUKernel",
+        "reason": "Alias only the final vector GLOBAL store address while preserving all original input computation, output width and launch.",
+        "finite_input_witness": "First4 inputs0, next4 inputs1: first8-byte output vector is all0; second contains positive F16 SiLU(1), so overlapping bytes differ.",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 8,
+        "space": "Global",
+        "overlap_bytes": 8,
+        "mutation_instructions": 2,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "source_line": 171,
+          "original": "global_store_b64 v8, v[0:1], s[2:3] scale_offset"
+        },
+        "data_and_readiness": "Address registers are distinct from the held vector data. Setup is after all data-producing instructions/readiness waits. Softmax fixed pointer0x10000 is bound to its unchanged output config base and this bounded negative configuration, not a relocation guarantee."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-wide-gfx1250-silu_f16-heldout-safe",
+      "materialized_assembly_sha256": "b037d9c88af2b3eda9a359a0c670e169a365813db2a8e7642d74a4e77a1ae677"
+    },
+    {
+      "id": "memory-wide-gfx1250-softmax_f16-heldout-safe",
+      "workload": "wide-gfx1250-softmax_f16",
+      "split": "heldout",
+      "expectation": "safe",
+      "category": "original",
+      "primary_latency": false,
+      "edits": [],
+      "materialized_assembly_sha256": "7ab4d90dd4dd14096efbd5930ae54b9f2c6c55d79c2a404b71b984493f78bdd0"
+    },
+    {
+      "id": "memory-wide-gfx1250-softmax_f16-heldout-vector-alias",
+      "workload": "wide-gfx1250-softmax_f16",
+      "split": "heldout",
+      "expectation": "hazard",
+      "category": "address_replacement",
+      "primary_latency": false,
+      "edits": [
+        {
+          "source_line": 1085,
+          "original": "global_store_b128 v[22:23], v[14:17], off",
+          "replacement": "v_mov_b32_e32 v22, 0x10000\nv_mov_b32_e32 v23, 0\nglobal_store_b128 v[22:23], v[14:17], off"
+        }
+      ],
+      "ground_truth": {
+        "family": "SoftmaxKernel",
+        "reason": "Alias only the final vector GLOBAL store address while preserving all original input computation, output width and launch.",
+        "finite_input_witness": "Within row0, first8 inputs0, next8 inputs1, remaining240 inputs0. Lane0 probabilities1/(248+8e), lane1 e/(248+8e) have distinct representable F16 encodings across the overlapping16-byte vectors.",
+        "physical_lanes": [
+          0,
+          1
+        ],
+        "store_bytes": 16,
+        "space": "Global",
+        "overlap_bytes": 16,
+        "mutation_instructions": 3,
+        "preserves_all_original_initializing_stores": false,
+        "site": {
+          "source_line": 1085,
+          "original": "global_store_b128 v[22:23], v[14:17], off"
+        },
+        "data_and_readiness": "Address registers are distinct from the held vector data. Setup is after all data-producing instructions/readiness waits. Softmax fixed pointer0x10000 is bound to its unchanged output config base and this bounded negative configuration, not a relocation guarantee."
+      },
+      "required_property": "AMD memory-conflict freedom",
+      "safe_counterpart": "memory-wide-gfx1250-softmax_f16-heldout-safe",
+      "materialized_assembly_sha256": "c63d1850ec1d0355ba46ed3bc1765f4cd9f9ec43bb4fdcbfcc7343f9d95a12e4"
+    }
+  ],
+  "mathematical_controls": [
+    {
+      "id": "memory-gfx950-relu-wrong-spec",
+      "workload": "gfx950-elementwise",
+      "spec": "tests/amdgpu/memory-conflicts-study/wrong-relu.spec",
+      "spec_sha256": "2e0064ee684c3105de2d22cc85d7df323a406c3307389bef8b26d525c7ba8fc5",
+      "expected_mismatches": 64
+    },
+    {
+      "id": "memory-gfx1250-relu-wrong-spec",
+      "workload": "gfx1250-elementwise",
+      "spec": "tests/amdgpu/memory-conflicts-study/wrong-relu.spec",
+      "spec_sha256": "2e0064ee684c3105de2d22cc85d7df323a406c3307389bef8b26d525c7ba8fc5",
+      "expected_mismatches": 64
+    }
+  ]
+}
