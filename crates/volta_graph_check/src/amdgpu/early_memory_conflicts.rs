@@ -42,6 +42,7 @@ struct Instruction {
 #[derive(Debug, Clone, Copy)]
 struct Issue {
     event: EventId,
+    next_record: Option<EventId>,
     instruction: Instruction,
     wave: u32,
     space: Space,
@@ -155,6 +156,7 @@ fn issue_effects(
             || event.ctx != ExecContext::Thread(thread)
             || event.pc != instruction.pc
             || id <= issue.event
+            || issue.next_record.is_some_and(|end| id >= end)
             || issue.instruction.mask & (1u64 << lane) == 0
             || access.space != issue.space
             || access.mode != AccessMode::Write
@@ -239,7 +241,7 @@ impl MemoryConflictObserver {
             return Err(refusal("memory-conflict observer cannot rewind a prefix"));
         }
         let mut issues = HashMap::new();
-        for record in &graph.amd_events()[self.records..] {
+        for (index, record) in graph.amd_events()[self.records..].iter().enumerate() {
             if let AmdEventKind::Instruction { exec_mask, .. } = record.kind {
                 self.instructions.insert(
                     record.wave,
@@ -255,6 +257,10 @@ impl MemoryConflictObserver {
                     record.event,
                     Issue {
                         event: record.event,
+                        next_record: graph
+                            .amd_events()
+                            .get(self.records + index + 1)
+                            .map(|r| r.event),
                         instruction,
                         wave: record.wave,
                         space,
@@ -340,10 +346,11 @@ pub fn validate_memory_conflict_prefix(
     }
     let mut instruction = None;
     let mut matched = None;
-    for record in graph
+    for (index, record) in graph
         .amd_events()
         .iter()
-        .filter(|r| r.wave == certificate.wave)
+        .enumerate()
+        .filter(|(_, r)| r.wave == certificate.wave)
     {
         if let AmdEventKind::Instruction { exec_mask, .. } = record.kind {
             instruction = Some(Instruction {
@@ -355,6 +362,7 @@ pub fn validate_memory_conflict_prefix(
             matched = store_space(target, &record.kind).and_then(|space| {
                 instruction.map(|instruction| Issue {
                     event: record.event,
+                    next_record: graph.amd_events().get(index + 1).map(|r| r.event),
                     instruction,
                     wave: record.wave,
                     space,
@@ -400,29 +408,34 @@ pub fn validate_memory_conflict_prefix(
             "certificate is not the exact distinct-lane write overlap",
         ));
     }
-    if issue.space == Space::Shared {
-        let limits: Vec<_> = graph
-            .provenance()
-            .assumptions
-            .iter()
-            .filter_map(|a| {
-                if let volta_graph::Assumption::ConfiguredLdsBytes(limit) = a {
-                    Some(*limit)
-                } else {
-                    None
-                }
-            })
-            .collect();
-        if (target == AmdArchitecture::Gfx1250 && limits.len() != 1)
-            || limits.len() > 1
-            || limits
-                .first()
-                .is_some_and(|&limit| effects.iter().any(|e| e.end > limit))
-        {
-            return Err(refusal(
-                "store effects exceed or lack their configured LDS premise",
-            ));
-        }
+    // Validate recorded allocation premises across the prefix, not just the
+    // selected pair. No GLOBAL allocation extent is encoded here; nor does a
+    // legacy graph without an LDS limit acquire one from this certificate.
+    let limits: Vec<_> = graph
+        .provenance()
+        .assumptions
+        .iter()
+        .filter_map(|a| {
+            if let volta_graph::Assumption::ConfiguredLdsBytes(limit) = a {
+                Some(*limit)
+            } else {
+                None
+            }
+        })
+        .collect();
+    if (target == AmdArchitecture::Gfx1250 && issue.space == Space::Shared && limits.len() != 1)
+        || limits.len() > 1
+    {
+        return Err(refusal("missing or duplicate configured LDS premise"));
+    }
+    if let Some(&limit) = limits.first()
+        && graph.accesses().values().any(|access| {
+            access.space == Space::Shared
+                && !matches!(access.footprint, Footprint::Bytes { addr, width }
+                    if addr.checked_add(u64::from(width)).is_some_and(|end| end <= limit))
+        })
+    {
+        return Err(refusal("prefix effects exceed the recorded LDS limit"));
     }
     let report = super::check_prefix(graph);
     if report.trace.verdict() != Verdict::Pass
