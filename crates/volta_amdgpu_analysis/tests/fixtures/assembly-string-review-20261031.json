@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "reviewed_commit": "4c7ff816e0a5225a9aa1f5dfa2837392a936f31c",
+  "pass": true,
+  "checks": 1906,
+  "errors": [],
+  "checker_script_sha256": "5b9ec9337d9c30b0f1bc00615569614fd10fdecfa0dd60f694ef4335977fb5d3",
+  "parse_source_sha256": "136bf8c710932a8055c6faa0cdfa6b6deefba2670dbc6e76d3a3efa40d941b3e",
+  "probe_binary_sha256": "bb1d32b564d271ca688dc58ed90fd150c557da7f81f1c09f3f1a0bf456d187b1",
+  "storage_controls": {
+    "cases": 171,
+    "accepted": 78,
+    "refused": 93,
+    "documented_MC_legal_conservative_refusals": 3
+  },
+  "independent_adjacent_controls": [
+    {
+      "case": "case0",
+      "parsed": false,
+      "source_sha256": "f710a22935a6335e01df4b9c9f2f2b8b399e74d57abb100aba62963c06e76dc8"
+    },
+    {
+      "case": "case1",
+      "parsed": false,
+      "source_sha256": "3939edb7e4b978cd5211460a40682a6be5656976839f9d2f1bcd71605bbc521f"
+    },
+    {
+      "case": "case2",
+      "parsed": false,
+      "source_sha256": "8a19eea14edf3c4fd9c49086ae6643d5d98b0ff677012a061a94e269e82caca5"
+    },
+    {
+      "case": "case3",
+      "parsed": true,
+      "source_sha256": "b61b84f6be66f06717d082362157356f50a83be55b5e454477bdcc469a151b5c"
+    },
+    {
+      "case": "data_custom_a_then_aw",
+      "parsed": true,
+      "source_sha256": "a305ed81fc0b5baa41ec9bd1e898255bd7e21a1a349d71ae5b2ae27af5b2c15d"
+    },
+    {
+      "case": "data_custom_aw_then_a",
+      "parsed": true,
+      "source_sha256": "c1b93c9c4d7f8721dc8176d31310d5e8d222f61a49dc930332596de17014d1d8"
+    },
+    {
+      "case": "data_custom_aw_then_unspecified",
+      "parsed": true,
+      "source_sha256": "e0bf5ce3ee884efd95440728a2abfb252cdd95e43ecb0c5022804892afaca3f0"
+    },
+    {
+      "case": "data_first_a",
+      "parsed": true,
+      "source_sha256": "825bbb26ab531b420a9586146bfb969f6bb0b15652ddb76e1a5fa011b3c6547f"
+    },
+    {
+      "case": "rodata_custom_a_then_aw",
+      "parsed": false,
+      "source_sha256": "f4b5cd82170cc1ee3ab135d45e6cad17bdb27c964cdbea0a2364204a33499d70"
+    },
+    {
+      "case": "rodata_custom_first_aw",
+      "parsed": false,
+      "source_sha256": "77cd9a09f3e349e1cb7b0121cf8f3b8dc68e6cf26bd352999c8f716dd19f7a75"
+    },
+    {
+      "case": "rodata_custom_first_aw_then_a",
+      "parsed": false,
+      "source_sha256": "02511b5608928ffb91b054952027fc2091798970db3778700c9f6a4f6d73e11d"
+    },
+    {
+      "case": "rodata_first_a",
+      "parsed": true,
+      "source_sha256": "5e698bca82ae433b3ed8a1ae989102a49d913600464aa91b59f266eb9dce0c16"
+    },
+    {
+      "case": "rodata_first_aw",
+      "parsed": false,
+      "source_sha256": "4c455c15d732da6450f7a352f24c429168491311018060e25b550a6f10446207"
+    }
+  ],
+  "original_full_modules": {
+    "cases": 68,
+    "outcomes": {
+      "REJECTED": 61,
+      "PARSED": 7
+    },
+    "all_prior115_diagnostics_identical": true,
+    "real_call_refusals": 16
+  },
+  "bound_reports_sha256": {
+    "storage_controls": "9d639f887316acf554ad7e0a58747d5e9d817753f2fbb1b51061f5c264bc641c",
+    "full_module_comparison": "99e63e43573327cf14e398ae9557d145d421c470503d08c39b54db803c137977",
+    "original_115_comparison": "46230caca995a7f53053f6ba05cb8bee363a3d3fed86cfc20d5f5e15f56d3c3a",
+    "frozen_frontier": "0ed2d195fb74745c1779f1a1bf062da73b201cdf4411eddec86388b217f1d0fd"
+  },
+  "limits": [
+    "Parser-only review and replay; no kernel execution or mathematical proof.",
+    "Writable custom .rodata names conservatively refused even where LLVM MC accepts them.",
+    "Bounded supported section storage and literal profile; no complete ELF flag or linker grammar claim."
+  ]
+}

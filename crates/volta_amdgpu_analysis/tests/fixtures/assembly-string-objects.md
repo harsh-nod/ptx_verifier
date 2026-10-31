@@ -64,3 +64,9 @@ Independent LLVM MC checks compare the ELF bytes for the accepted literal
 profile on all three targets. Whole-module parser comparisons must retain
 later refusals: making a compiler assertion-format object readable does not
 establish a complete parse, execution, graph-safety or mathematical proof.
+
+The [independent review receipt](assembly-string-review-20261031.json) records
+1,906 checks with zero errors, including 171 assembler/parser controls and all
+68 unchanged original module replays. Seven complete module parses remain;
+sixteen modules advance to explicit call refusals, with no new execution or
+mathematical proof. The three legal writable-custom-rodata refusals stay explicit.

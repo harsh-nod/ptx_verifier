@@ -142,7 +142,17 @@ These rules follow AMD's
 and LLVM's pinned
 [SMEM encoding limits](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/Utils/AMDGPUBaseInfo.cpp#L3038).
 
-Defined module globals retain exact initialized bytes and bounds.
+Absolute `.set`, `.equ` and `.equiv` definitions support bounded integer
+expressions, including signed `max(...)`, bitwise `or(...)` and immutable forward
+references. Missing/cyclic definitions, overflow, relocations and reassignment
+are refused. The [resource-expression profile](tests/fixtures/assembly-resource-expressions.md)
+records the exact grammar and independent assembler checks.
+
+Defined module globals retain exact initialized bytes and bounds. A bounded
+[`.asciz` profile](tests/fixtures/assembly-string-objects.md) preserves supported
+ASCII literals, escapes and every terminating NUL; declared sizes must match.
+Section storage types remain consistent, and NOBITS initializers must contain
+only zero bytes. These data profiles do not implement calls or hostcall helpers.
 `global_values` may bind a writable scalar object of one, two, four or eight
 bytes. Selected PC-relative relocation sequences resolve object addresses
 without inventing linker addresses. Undefined externs, GOT relocations,
