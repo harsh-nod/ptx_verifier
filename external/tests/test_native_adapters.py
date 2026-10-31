@@ -107,13 +107,15 @@ class NativeAdapterTests(unittest.TestCase):
         ]:
             self.assertIs(RUNNER.classify(RUNNER.parse_cli(stdout), stderr, 65)[0], RUNNER.Outcome.UNSUPPORTED)
 
-    def test_pinned_library_does_not_pretend_to_have_a_gfx1250_profile(self):
+    def test_legacy_cdna4_recipe_refuses_silent_retargeting(self):
         script = ROOT / "external/extraction/hipkittens.py"
         result = subprocess.run([sys.executable, str(script), "--target", "gfx1250"], text=True, capture_output=True)
         self.assertEqual(result.returncode, 2)
         self.assertIn("UNSUPPORTED", result.stderr)
         self.assertIn("compile_fixtures.py", result.stderr)
         self.assertIn("must not be silently retargeted", result.stderr)
+        self.assertIn("separate CDNA3 and CDNA5 sources", result.stderr)
+        self.assertIn("hipkittens_inventory.py", result.stderr)
         self.assertNotIn("No module named", result.stderr)
 
 
