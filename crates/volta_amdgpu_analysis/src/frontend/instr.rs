@@ -1663,6 +1663,28 @@ pub(super) fn validate_registers(
             } else if buffer {
                 require(2, &[Scalar], 4)?;
                 source_width(3, 1)?;
+                if architecture == crate::target::Architecture::Gfx950
+                    && matches!(stem, "buffer_load_dword" | "buffer_store_dword")
+                    && (mnemonic != stem
+                        || !matches!(operands[0], Operand::Register(r) if r.class == Vector && r.count == 1)
+                        || !matches!(operands[1], Operand::Register(r) if r.class == Vector && r.count == 1)
+                        || !matches!(operands[2], Operand::Register(r) if r.class == Scalar && r.count == 4)
+                        || !matches!(operands[3], Operand::Integer(0))
+                        || !modifiers
+                            .iter()
+                            .any(|m| m.name == "offen" && m.value.is_none())
+                        || modifiers.iter().any(|m| match m.name.as_str() {
+                            "offen" => m.value.is_some(),
+                            "offset" => m
+                                .value
+                                .as_deref()
+                                .and_then(integer)
+                                .is_none_or(|offset| !(0..=4095).contains(&offset)),
+                            _ => true,
+                        }))
+                {
+                    return Err("selected gfx950 buffer DWORD requires plain four-operand VGPR/SGPR-quad/zero OFFEN, default policy and unsigned12-bit offset".into());
+                }
                 if matches!(stem, "buffer_load_b128" | "buffer_store_b64") {
                     // CDNA5 VBUFFER raw OFFEN subset, distinct from CDNA4's
                     // three-operand buffer->LDS instructions and M0 address.

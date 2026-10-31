@@ -344,7 +344,9 @@ fn scalar_buffer_load_under_empty_exec_keeps_its_unsupported_boundary() {
 #[test]
 fn multi_source_and_descriptor_transfers_expose_complete_data_roles() {
     let source = module(
-        "gfx950",
+        // Keep general unsupported buffer roles distinct from the selected
+        // gfx950 raw DWORD scalar-zero/OFFEN execution profile.
+        "gfx942",
         "ds_write2_b32 v0, v1, v2 offset0:0 offset1:1\nds_bpermute_b32 v0, v1, v2\nbuffer_load_dword v0, v1, s[4:7], s0\nbuffer_store_dword v0, v1, s[4:7], s0\ns_endpgm",
     );
     let lowered = lower::lower_module_kernel(&source, "k").unwrap();
