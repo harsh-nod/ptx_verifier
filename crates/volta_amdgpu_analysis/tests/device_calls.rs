@@ -339,3 +339,52 @@ fn uncalled_helpers_do_not_change_no_call_executable_pcs() {
     assert!(right.code_address_sequences.is_empty());
     assert_eq!(right.functions.len(), 1);
 }
+
+#[test]
+fn complete_compiler_modules_retain_real_leaf_and_scratch_refusal() {
+    const LEAF: &str = include_str!("fixtures/device-calls/leaf.s");
+    const NESTED: &str = include_str!("fixtures/device-calls/nested.s");
+    let leaf = frontend::parse(LEAF).unwrap();
+    assert_eq!(leaf.source, LEAF);
+    assert_eq!(leaf.kernels.len(), 1);
+    assert_eq!(leaf.functions.len(), 1);
+    let lowered = lower::lower_module_kernel(&leaf, "device_call_leaf").unwrap();
+    assert_eq!(lowered.call_targets.len(), 1);
+    assert!(
+        lowered
+            .instructions
+            .iter()
+            .any(|i| matches!(i.operation(), ir::Operation::Return(_)))
+    );
+    let mut cfg = config(1);
+    cfg.params = vec![volta_amdgpu_analysis::ParamValue::ArrayPtr("out".into())];
+    let result = analyze(&leaf, Some("device_call_leaf"), cfg).unwrap();
+    assert!(
+        result
+            .symbolic_outputs()
+            .unwrap_err()
+            .to_string()
+            .contains("uninitialized")
+    );
+    let nested = frontend::parse(NESTED).unwrap();
+    assert_eq!(nested.source, NESTED);
+    let outer = nested
+        .functions
+        .iter()
+        .find(|function| function.name == "outer")
+        .unwrap();
+    assert!(
+        outer
+            .refusal
+            .as_ref()
+            .unwrap()
+            .0
+            .contains("scratch_store_dword")
+    );
+    assert!(
+        lower::lower_module_kernel(&nested, "device_call_nested")
+            .unwrap_err()
+            .message
+            .contains("called function `outer`")
+    );
+}
