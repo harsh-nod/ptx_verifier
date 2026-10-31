@@ -44,6 +44,12 @@ checked output prefix. `equivalent=True` describes the checked elements; require
 output index sets are validated before sampling, so missing or extra writes
 remain errors even when the sampled values match.
 
+`Param` provides `int`, `float`, `sym_float`, `array_ptr` and native `bytes`
+constructors. Python does not currently expose PTX `StructField` or host
+tensor-map constructors. Those aggregate forms are available through Rust
+configuration or CLI launch JSON; see the
+[parameter guide](../../docs/launch-parameters.md).
+
 `AnalyzeResult.outputs` returns ordinary Python lists of
 `(array_name, [(index, expression_string), ...])`. Expressions are formatted
 when the property is read; the result retains a compact DAG internally.

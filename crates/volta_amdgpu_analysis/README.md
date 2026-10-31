@@ -37,7 +37,10 @@ components. Labels, wait syntax and raw instructions cannot enter value
 operands. Lowering preserves one instruction per source PC, its original
 mnemonic, encoding, modifiers and span; relocation sequences retain all stages.
 Only lowering constructs executable instructions, after shared parser checks
-and target validation. The module-less `lower_kernel` uses gfx950 for wave64
+and target validation. It normalizes a cloned frontend AST, including implicit
+sources and FP64 inline constants, and checks register/descriptor constraints
+without modifying the caller's syntax. The module-less `lower_kernel` uses gfx950
+for wave64
 and gfx1250 for wave32; explicit gfx942 and module globals require module context.
 
 Scalar/vector helpers use a canonical-name bridge from the closed ALU operation
@@ -94,6 +97,9 @@ undefined padding bits; only consumers that use defined portions may proceed.
 Descriptor/configuration mismatches, uninitialized reads and out-of-bounds
 accesses are errors. Scratch/private execution and kernarg preloading are
 outside the selected profile.
+
+PTX structured fields and host tensor maps are rejected by this backend; see the
+[parameter guide](../../docs/launch-parameters.md) for the public argument forms.
 
 Reading Dispatch ID or Private Segment Size user SGPR inputs is unsupported:
 their runtime values are not supplied by the launch configuration. Enabling

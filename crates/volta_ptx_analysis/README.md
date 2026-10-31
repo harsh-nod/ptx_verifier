@@ -22,7 +22,10 @@ let outputs = result.symbolic_outputs()?;   // only if the run completed
 Launch configuration is shared through `volta_common`. PTX structured parameters
 provide typed fields for by-value aggregates, including host tensor maps;
 uncovered bytes remain undefined. Native AMD byte payloads and
-`shared_allocations` are rejected because PTX declares its own parameter and shared objects.
+`shared_allocations` are rejected because PTX declares its own parameter and
+shared objects.
+See the [parameter guide](../../docs/launch-parameters.md) for aggregate field
+offsets, host tensor maps and the available public interfaces.
 
 ## Frontend (`frontend/`)
 
