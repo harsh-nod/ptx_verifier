@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "scope": "Independent standard-library documentation/public-data consistency review. Numerical verification used only published samples and summaries, without measurement or publisher helper imports.",
+  "result_sha256": "59edc7e412bf2872bd029d3ae86146d5924d5ad1e3a2d45bb4717f77ca6d0576",
+  "documents_sha256": {
+    "README.md": "1fb6ab220003b2ae2bdbf5ec2ea0480f77d687647db5ae914a0131b1d9c803db",
+    "tests/amdgpu/memory-conflicts-study/results/README.md": "70ca68ca4df3c7eb7af4a67bd4e9a0bc25fa35eaa56aa1d25034652dd27c7f92"
+  },
+  "related_receipts_sha256": {
+    "tests/amdgpu/memory-conflicts-study/results/independent-audit-20261031.json": "2126d2ebc620b9b6ba24dc8983b0c8e2207a0572e870d0c4cf45fe3b920a9a35",
+    "tests/amdgpu/memory-conflicts-study/results/publication-audit-20261031.json": "21832894e3e59e7fefbefb108eb845ff9334b2b932cf93b6239474461077e819"
+  },
+  "audits": [
+    {
+      "phase": "public_samples_statistics_and_displayed_tables",
+      "auditor_script_sha256": "af9154fcb66eb2398d23933623e4ea0fc6c5a496c006c24367d771a3cb72e8e5",
+      "checks": 3745,
+      "errors": 0
+    },
+    {
+      "phase": "final_wording_table_rounding_hashes_and_local_links",
+      "auditor_script_sha256": "6a7b062a9e30075aea4689380dbd38e03afe3b6e3165f06ec044be95f6be472e",
+      "checks": 116,
+      "errors": 0
+    }
+  ],
+  "checks": 3861,
+  "errors": 0,
+  "findings": [],
+  "checked_population": {
+    "development_configurations": 40,
+    "reserved_configurations": 6,
+    "development_fixed_comparisons": 28,
+    "reserved_fixed_comparisons": 5,
+    "all_process_samples": 2112,
+    "repeated_samples_per_role": 31,
+    "first_sample_separate": true,
+    "statistics_cases": 33,
+    "bootstrap_resamples_per_case": 2000,
+    "bootstrap_seed": 20261031,
+    "max_rss_includes_first_plus_repeats": true
+  },
+  "displayed_tables": {
+    "count": 6,
+    "functional_outcomes_rows": 6,
+    "development_hazard_rows": 13,
+    "new_core_coverage_rows": 7,
+    "reserved_hazard_rows": 2,
+    "development_safe_rows": 15,
+    "reserved_safe_rows": 3,
+    "root_readme_primary_rows": 3,
+    "local_file_links_checked": 33
+  },
+  "checked_claims": {
+    "development_core_detections": {
+      "baseline": 13,
+      "candidate": 20,
+      "denominator": 20
+    },
+    "development_safe_proofs": {
+      "baseline": 15,
+      "candidate": 15,
+      "denominator": 18
+    },
+    "reserved_safe_proofs": {
+      "baseline": 3,
+      "candidate": 3,
+      "denominator": 3
+    },
+    "reserved_hazard_detections": {
+      "baseline": 2,
+      "candidate": 2,
+      "denominator": 3
+    },
+    "new_core_configurations": 7,
+    "new_manifest_families": 5,
+    "new_complex_families": 4,
+    "primary_median_speedups_rounded": [
+      22.2,
+      101.7,
+      227.9
+    ],
+    "failed_gemm_primary_has_ratio": false,
+    "late_hazard_medians_slower": 9,
+    "late_hazard_denominator": 10,
+    "late_hazard_intervals_above_one": 5,
+    "late_slowdown_range_percent_rounded": [
+      8.3,
+      13.4
+    ],
+    "reserved_median_speedups_rounded": [
+      1.34,
+      6.3
+    ],
+    "development_safe_max_increases": {
+      "median_percent_rounded": 2.29,
+      "p95_percent_rounded": 5.27,
+      "rss_kib": 512
+    },
+    "reserved_safe_max_increases": {
+      "p95_percent_rounded": 5.71,
+      "rss_kib": 0
+    }
+  },
+  "paper_review": {
+    "path": "docs/paper/amd-volta.tex",
+    "scope": "Stable evaluation claim groups only: coverage/proof denominators, three primary ratios, failed GEMM ratio exclusion, late slowdowns and reserved transpose limitation. No byte hash because source/results link pinning and layout are subsequent changes.",
+    "numerical_claims_match_public_data": true
+  },
+  "declared_local_destination": "tests/amdgpu/memory-conflicts-study/results/documentation-audit-20261031.json",
+  "privacy": {
+    "absolute_paths": false,
+    "hostnames": false,
+    "device_identifiers": false,
+    "raw_log_content": false
+  },
+  "limits": [
+    "This receipt checks published observations and documentation, not a second raw-log projection audit; the separate raw and publication receipts cover those records.",
+    "No verifier, assembler, build, GPU execution or new timing collection occurred during this review.",
+    "The initial numerical phase independently recomputed medians, nearest-rank p95, paired bootstrap intervals and maximum RSS from the published first/repeated samples. The final phase rechecked unchanged public-data identity, every rounded table and wording without repeating bootstrap calculations.",
+    "First-diagnostic output-reception timestamps cannot be independently reconstructed from plain logs. Build/source association and native frontend/graph semantics remain trusted premises.",
+    "The reserved partial-overlap transpose remains inconclusive and is not a detected conflict; unproved development safe cases do not supply safe-proof or overhead guarantees.",
+    "README hashes bind the reviewed text. The declared documentation-receipt link is fulfilled by copying this exact receipt to its relative destination."
+  ]
+}

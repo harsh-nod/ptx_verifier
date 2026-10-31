@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "scope": "Independent retained-evidence and arithmetic audit of one frozen instruction-local ordinary memory-conflict experiment. Counts describe seeded configurations, not distinct application defects or complete ISA coverage.",
+  "baseline": {
+    "revision": "0e634bc43536e5e4ac5cb13e8046d8e1edd57250",
+    "binary_sha256": "48f45f3b5a36a636c88bd95d0e3499d01569e8e01ec2ec742f6405142b9d4c00",
+    "rust_workspace_fingerprint": {
+      "algorithm": "sha256-git-tree-v1",
+      "sha256": "c0d2189873b2f01c311f935d5958c091bddcd4a1e172fdfca7cd18b6d9a36f57",
+      "file_count": 1202
+    }
+  },
+  "candidate": {
+    "revision": "f0ee44285286aa1ea92f3e99aed6574ad89f3c82",
+    "binary_sha256": "57d555dbafee093f804b2c0744c477c4a5e567726aece81017f828647bdbc167",
+    "rust_workspace_fingerprint": {
+      "algorithm": "sha256-git-tree-v1",
+      "sha256": "35369cb6ca7c4465550feefbe7107a037bf7d0c064b2c908b26d9b8c0dd00763",
+      "file_count": 1207
+    }
+  },
+  "manifest_sha256": "f61df7312961ad8540b34de6f41647df9b165e2ae068dc9a2a25672d90f83886",
+  "auditor_script_sha256": "2f7d091f8631f7262adacce240a39ace5baf85b6451103e4f45ab93b863063c5",
+  "phases": {
+    "baseline_qualification": {
+      "raw_report_sha256": "f139a98f1990d73b599bbd2ae4cd6d5ee81fc813a46d5dc956b6b4a840ef94b8",
+      "independent_receipt_sha256": "1bd92f9b9f9c301d76e10563fcc4ce90ecae813f67f1e0357d441557baca7815",
+      "auditor_script_sha256": "63dd42094d146253c7658e4fdcd54c6d6ccc7d35d8045d00d528ee70d035f808",
+      "checks": 31168,
+      "errors": 0,
+      "passed": true,
+      "configurations": 40,
+      "process_records": 100,
+      "paired_samples": 0
+    },
+    "development_preflight": {
+      "raw_report_sha256": "9f5e49d9421a9369b6d24a04c3dbbb33f53e17b5ef22c40aa3e7d3c63b3d2c15",
+      "independent_receipt_sha256": "441fb0772ab2b8945029a7204b47b9164e4a8fdd8981266bd411034bbf6d13db",
+      "auditor_script_sha256": "bbee40d387e7074f0b592f58e141f3210f6dccec6b3fbe805206e0bcab389432",
+      "checks": 4283,
+      "errors": 0,
+      "passed": true,
+      "configurations": 40,
+      "process_records": 142,
+      "paired_samples": 0
+    },
+    "development_paired": {
+      "raw_report_sha256": "e2d567e159769ed939923b552990740b7206c49ef0268fee1f97fcde43483f76",
+      "independent_receipt_sha256": "540a15deff19a470be9f7b15467fcd87104843b9f94473a52409474e8bdaa43e",
+      "auditor_script_sha256": "2f7d091f8631f7262adacce240a39ace5baf85b6451103e4f45ab93b863063c5",
+      "checks": 44856,
+      "errors": 0,
+      "passed": true,
+      "configurations": 28,
+      "process_records": 1792,
+      "paired_samples": 1792
+    },
+    "heldout_qualification": {
+      "raw_report_sha256": "10f68afa1408f0068bbba2f37501937c69cc6bbdf6217785c7c44f313cbe590c",
+      "independent_receipt_sha256": "3d00873be805cfc754bf2e46de81d4fd009fa6966a1bd94ecfdc6fe4a581710c",
+      "auditor_script_sha256": "2f7d091f8631f7262adacce240a39ace5baf85b6451103e4f45ab93b863063c5",
+      "checks": 1435,
+      "errors": 0,
+      "passed": true,
+      "configurations": 6,
+      "process_records": 33,
+      "paired_samples": 0
+    },
+    "heldout_paired": {
+      "raw_report_sha256": "a5b33d8dc674425bdeb2b17b23797d11f9506872240088a659e6bfd57a7c6dcb",
+      "independent_receipt_sha256": "f7d4e4cdfe2ca33de0d2e4104c3464676317b20dab7b8304b09764bc330c746f",
+      "auditor_script_sha256": "2f7d091f8631f7262adacce240a39ace5baf85b6451103e4f45ab93b863063c5",
+      "checks": 8723,
+      "errors": 0,
+      "passed": true,
+      "configurations": 5,
+      "process_records": 320,
+      "paired_samples": 320
+    }
+  },
+  "all_audits_passed": true,
+  "audit_checks": 90465,
+  "audit_errors": 0,
+  "population": {
+    "development_configurations": 40,
+    "development_safe": 18,
+    "development_core_hazards": 20,
+    "development_synthetic_tail_hazards": 2,
+    "heldout_configurations": 6,
+    "heldout_safe": 3,
+    "heldout_hazards": 3,
+    "development_baseline_timing_qualifiers": 28,
+    "heldout_baseline_timing_qualifiers": 5,
+    "first_samples_per_arm_and_case": 1,
+    "repeated_samples_per_arm_and_case": 31,
+    "seed": 20261031,
+    "stage_timeout_seconds": 60,
+    "development_paired_samples": 1792,
+    "heldout_paired_samples": 320
+  },
+  "validated_outcomes": {
+    "development": {
+      "baseline_core_detections": 13,
+      "candidate_core_detections": 20,
+      "baseline_synthetic_tail_detections": 0,
+      "candidate_synthetic_tail_detections": 2,
+      "new_core_configurations": 7,
+      "new_core_families": 5,
+      "new_original_shape_complex_families": 4,
+      "baseline_safe_graph_and_complete_output_footprints": 17,
+      "candidate_safe_graph_and_complete_output_footprints": 17,
+      "baseline_full_safe_proofs": 15,
+      "candidate_full_safe_proofs": 15,
+      "safe_overhead_qualified_cases": 15,
+      "safe_overhead_gates_passed": true,
+      "late_hazard_median_regressions": 9,
+      "late_hazard_ratio_intervals_entirely_above_one": 5,
+      "late_hazard_ratio_intervals_crossing_one": 4,
+      "failed_primary_baseline_qualification": "memory-wide-gfx1250-gemm_f16_full-inserted-collision",
+      "failed_primary_baseline_ratio": null
+    },
+    "heldout": {
+      "baseline_detections": 2,
+      "candidate_detections": 2,
+      "hazard_denominator": 3,
+      "baseline_full_safe_proofs": 3,
+      "candidate_full_safe_proofs": 3,
+      "safe_overhead_qualified_cases": 3,
+      "safe_overhead_gates_passed": true,
+      "new_coverage_configurations": 0,
+      "retained_miss": "memory-gfx950-transpose-heldout-partial-overlap",
+      "retained_miss_status": "inconclusive",
+      "retained_miss_reason": "Misaligned 4-byte access at byte address 2; exit 2 without outputs or a certified conflict.",
+      "retained_miss_baseline_ratio": null,
+      "development_family_adoption_gate_evaluated": false
+    }
+  },
+  "validation_limits": [
+    "Build/source association is caller-attested. Hashes establish retained identity and drift checks, not an independently reproduced build.",
+    "First-diagnostic times are recorded output-reception observations, bounded against process wall time and accepted only after final strict outcome validation. Plain retained logs cannot independently recreate their timestamps or internal checker discovery time.",
+    "Certificates rely on the reviewed checker code path and trusted frontend graph/provenance and successful-batch contracts. This audit does not independently decode ISA or prove hardware soundness.",
+    "Acceptance retains complete execution, graph checks and mathematical-output requirements; a certified rejection supplies no full outputs, equivalence proof or early acceptance.",
+    "Three development safe cases lack a baseline complete mathematical proof within the fixed budget; they remain in functional results and cannot establish overhead or safe-proof guarantees.",
+    "The heldout partial-overlap transpose remains a miss in both modes; applicable retention/overhead success is not complete bug detection.",
+    "Development and heldout phases, first samples and repeated samples remain separate. New findings over inconclusive, unsupported or timeout outcomes have no invented baseline speed ratio.",
+    "Nine late development hazards have slower median diagnostic times, including five descriptive ratio intervals wholly above one. The measured early gains do not imply universal acceleration.",
+    "Nearest-rank p95 and paired bootstrap intervals describe these finite samples; they are not stable tail estimates, universal performance bounds or proof of unseen-family generalization."
+  ]
+}

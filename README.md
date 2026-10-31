@@ -105,6 +105,34 @@ contains source-level object boundaries.
 
 ## Measured time to a safety finding
 
+### Ordinary write conflicts
+
+Opt-in certified memory-conflict rejection detects **20/20 core seeded hazardous
+configurations**, compared with **13/20** for this fork's frozen full-trace
+baseline. The 40-configuration development study preserves original compiler
+modules, launches and output contracts. Three predeclared inserted-store primaries
+have these parent-observed first-diagnostic medians on CPU:
+
+| Original configuration | Full trace | Certified prefix | Speedup |
+| --- | ---: | ---: | ---: |
+| F16 matvec, K=4096 | 1.091 s | 49.18 ms | 22.2× |
+| F16 convolution, K=576 | 8.526 s | 83.86 ms | 101.7× |
+| F16 attention, 1024 keys | 11.095 s | 48.68 ms | 227.9× |
+
+Each comparison uses 31 paired fresh-process repeats and a separate first run;
+all three descriptive 95% bootstrap ratio intervals are below 1. The fourth
+primary, GEMM, times out at baseline and has **no speedup ratio**. Nine of ten
+portable late-store cases have slower medians; five are 8.3%–13.4% slower with
+ratio intervals above 1. All 15 baseline complete safe proofs and their per-case
+time/memory limits are retained; three other safe configurations remain unproved.
+Six reserved mutation/configuration cases retain all three safe proofs and the
+same two of three hazard detections, with the transpose case inconclusive.
+These are seeded configurations and CPU verifier timings. See the
+[full results, every comparison and audit receipts](tests/amdgpu/memory-conflicts-study/results/README.md)
+and [protocol](tests/amdgpu/memory-conflicts-study/protocol.md).
+
+### Scalar-read readiness
+
 Opt-in certified readiness rejection detects an unsafe gfx1250 scalar read
 before executing the remaining symbolic trace. Against this fork's full-trace
 baseline, the three predeclared missing-wait cases measured:

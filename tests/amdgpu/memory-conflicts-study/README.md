@@ -1,5 +1,8 @@
 # Instruction-local memory-conflict study
 
+The [completed results](results/README.md) contain every development and reserved
+outcome, paired timing observations, regressions and independent audit identities.
+
 `cases.json` binds complete compiler modules, original launch contracts and
 mathematical specifications to ordinary GLOBAL/direct-DS write/write seeds for
 gfx950 and gfx1250. It registers 40 development configurations and six heldouts.

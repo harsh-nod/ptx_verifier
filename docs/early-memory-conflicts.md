@@ -3,7 +3,8 @@
 Set `early_memory_conflicts` to find an eligible write/write conflict before
 executing the rest of a native gfx950 or gfx1250 kernel. This can preserve a
 finding that a later unsupported instruction or execution error would otherwise
-leave inconclusive. Default execution continues to collect complete diagnostics.
+leave inconclusive. Default execution retains its normal instruction, bounds and
+budget checks, which can also stop an incomplete execution.
 Every acceptance still requires complete execution and the ordinary safety and
 mathematical-output checks.
 
@@ -77,8 +78,11 @@ certificate. Native execution's existing allocation preflight remains a premise.
 
 The separate [measurement protocol](../tests/amdgpu/memory-conflicts-study/protocol.md)
 defines source-preserving mutations, baseline qualification, heldouts, paired
-timings and overhead limits. An incomplete baseline has no time to a certified
-finding, so newly detected cases establish coverage rather than a speedup ratio.
+timings and overhead limits. A baseline UNKNOWN, Unsupported or timeout has no
+conclusive finding endpoint, so newly detected cases establish coverage rather
+than a speedup ratio.
+The [audited results](../tests/amdgpu/memory-conflicts-study/results/README.md)
+include coverage gains, early- and late-store timings, safe overhead and misses.
 
 ```sh
 cargo test -p volta_graph_check --test early_memory_conflicts
