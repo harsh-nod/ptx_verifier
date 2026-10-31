@@ -4752,11 +4752,21 @@ impl<'a> Interpreter<'a> {
             }
             return Ok(());
         }
-        if name == "v_add_nc_u64" {
+        if matches!(
+            operation,
+            AluOperation::Opcode(AluOpcode::VAddNcU64 | AluOpcode::VMulU64)
+        ) {
             for lane in lanes {
+                // Read both complete factors before either destination word,
+                // including the compiler's in-place destination/src1 pair.
                 let a = wave.wide(&o[1], lane)?;
                 let b = wave.wide(&o[2], lane)?;
-                wave.put_wide(&o[0], lane, a.wrapping_add(b))?;
+                let result = if operation == AluOperation::Opcode(AluOpcode::VMulU64) {
+                    a.wrapping_mul(b)
+                } else {
+                    a.wrapping_add(b)
+                };
+                wave.put_wide(&o[0], lane, result)?;
             }
             return Ok(());
         }

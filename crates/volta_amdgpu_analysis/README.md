@@ -177,6 +177,19 @@ and LLVM's pinned
 [pipeline controls](../volta_pipeline/tests/cdna_bfe64_tests.rs) distinguish
 correct, absent and unrelated waits for both the data and control registers.
 
+The selected gfx1250 `v_mul_u64` bare/E32 profile multiplies two defined
+64-bit register values modulo 2^64 without changing scalar flags. The
+source0 pair may be SGPR or VGPR; source1 and destination are VGPR pairs in
+the E32 register range. Both inputs are read before aliased outputs are
+written. Inactive lanes preserve their destination, and empty EXEC observes
+no data operands. E64, inline/literal or special sources and modifiers remain
+outside this profile. See
+[CDNA5 ISA §15.7](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf),
+LLVM's pinned
+[gfx1250 encoding controls](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/test/MC/AMDGPU/gfx1250_asm_vop2.s),
+[numerical controls](tests/gfx1250_mul_u64.rs) and
+[source-readiness controls](../volta_pipeline/tests/gfx1250_mul_u64_tests.rs).
+
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
 subnormal behavior are outside that model. Encoded F16, BF16 and FP8 transport
