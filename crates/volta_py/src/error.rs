@@ -30,6 +30,12 @@ create_exception!(
 );
 create_exception!(
     volta,
+    EarlyMemoryConflictError,
+    DataRaceError,
+    "A first same-instruction memory conflict was certified against an incomplete native graph prefix."
+);
+create_exception!(
+    volta,
     TensorBoundsError,
     VoltaError,
     "A supported attempted tensor access exceeds the configured LDS allocation."

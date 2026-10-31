@@ -205,6 +205,10 @@ pub struct AnalysisConfig {
     /// Opt in to the pipeline's first certified gfx1250 scalar-readiness finding.
     /// Default false preserves complete candidate traces and complete-trace diagnostics.
     pub early_readiness: bool,
+    /// Opt in to the pipeline's first independently certified same-instruction
+    /// native gfx950/gfx1250 write/write conflict. Never enables early acceptance.
+    /// Default false preserves complete traces and complete-trace diagnostics.
+    pub early_memory_conflicts: bool,
     /// Parameter values in `ParamId` (declaration) order
     pub params: Vec<ParamValue>,
     /// Global-memory arrays
@@ -227,6 +231,7 @@ impl AnalysisConfig {
             grid_dim: (1, 1, 1),
             workgroup_id: (0, 0, 0),
             early_readiness: false,
+            early_memory_conflicts: false,
             params: Vec::new(),
             arrays: Vec::new(),
             global_values: Vec::new(),

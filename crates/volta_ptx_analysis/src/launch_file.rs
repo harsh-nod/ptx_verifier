@@ -97,6 +97,7 @@ impl LaunchFile {
         let [x, y, z] = raw.workgroup_id;
         config.workgroup_id = (x, y, z);
         config.early_readiness = raw.early_readiness;
+        config.early_memory_conflicts = raw.early_memory_conflicts;
         config.dynamic_shared_bytes = raw.dynamic_shared_bytes;
         config.shared_allocations = raw
             .shared_allocations
@@ -170,6 +171,8 @@ struct RawLaunch {
     workgroup_id: [u32; 3],
     #[serde(default)]
     early_readiness: bool,
+    #[serde(default)]
+    early_memory_conflicts: bool,
     #[serde(default)]
     dynamic_shared_bytes: u64,
     #[serde(default)]
@@ -609,6 +612,36 @@ mod tests {
                     .is_err()
             );
         }
+    }
+
+    #[test]
+    fn early_memory_conflicts_json_is_an_optional_strict_boolean() {
+        assert!(
+            !LaunchFile::from_json(r#"{"block":1}"#)
+                .unwrap()
+                .config
+                .early_memory_conflicts
+        );
+        for enabled in [false, true] {
+            let launch = LaunchFile::from_json(&format!(
+                r#"{{"block":1,"early_memory_conflicts":{enabled}}}"#
+            ))
+            .unwrap();
+            assert_eq!(launch.config.early_memory_conflicts, enabled);
+        }
+        for value in ["1", "0", "null", "[]", "\"true\""] {
+            assert!(
+                LaunchFile::from_json(&format!(
+                    r#"{{"block":1,"early_memory_conflicts":{value}}}"#
+                ))
+                .is_err()
+            );
+        }
+        let launch = LaunchFile::from_json(
+            r#"{"block":1,"early_readiness":true,"early_memory_conflicts":true}"#,
+        )
+        .unwrap();
+        assert!(launch.config.early_readiness && launch.config.early_memory_conflicts);
     }
 
     #[test]

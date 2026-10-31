@@ -86,7 +86,8 @@ pub fn analyze(
 }
 
 /// Execute with a callback after each successfully completed instruction batch.
-/// This requires `early_readiness` and gfx1250. The pipeline supplies the
+/// This requires an enabled pipeline observer option (`early_readiness` or
+/// `early_memory_conflicts`) and its supported target. The pipeline supplies the
 /// checker-backed observer; a callback stop alone is never a verified finding.
 pub fn analyze_with_observer(
     module: &Module,
@@ -103,9 +104,19 @@ fn analyze_internal(
     config: AnalysisConfig,
     observer: Option<&mut InstructionObserver<'_>>,
 ) -> Result<AnalysisResult, AnalysisError> {
-    if config.early_readiness != observer.is_some() {
+    if (config.early_readiness || config.early_memory_conflicts) != observer.is_some() {
         return Err(AnalysisError::Eval(EvalError::InvalidConfig(
-            "early_readiness requires an explicit checker-backed instruction observer".into(),
+            "early_readiness or early_memory_conflicts requires an explicit checker-backed instruction observer".into(),
+        )));
+    }
+    if config.early_memory_conflicts
+        && !matches!(
+            crate::target::Architecture::from_target(module.target.as_deref().unwrap_or("gfx950")),
+            Some(crate::target::Architecture::Gfx950 | crate::target::Architecture::Gfx1250)
+        )
+    {
+        return Err(AnalysisError::Eval(EvalError::InvalidConfig(
+            "early_memory_conflicts supports only native gfx950/gfx1250 memory conflicts".into(),
         )));
     }
     if config.early_readiness

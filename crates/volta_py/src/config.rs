@@ -105,7 +105,7 @@ impl ConfigPy {
         clippy::too_many_arguments,
         reason = "Preserve the public Python constructor's optional keyword launch fields."
     )]
-    #[pyo3(signature = (block, grid=(1, 1, 1), dynamic_shared_bytes=0, max_instructions=2_000_000_000, *, backend="ptx", target=None, workgroup_id=(0, 0, 0), early_readiness=false))]
+    #[pyo3(signature = (block, grid=(1, 1, 1), dynamic_shared_bytes=0, max_instructions=2_000_000_000, *, backend="ptx", target=None, workgroup_id=(0, 0, 0), early_readiness=false, early_memory_conflicts=false))]
     fn new(
         block: (u32, u32, u32),
         grid: (u32, u32, u32),
@@ -115,17 +115,24 @@ impl ConfigPy {
         target: Option<&str>,
         workgroup_id: (u32, u32, u32),
         early_readiness: bool,
+        early_memory_conflicts: bool,
     ) -> PyResult<Self> {
         let mut config = AnalysisConfig::new(block);
         config.grid_dim = grid;
         config.workgroup_id = workgroup_id;
         config.early_readiness = early_readiness;
+        config.early_memory_conflicts = early_memory_conflicts;
         config.dynamic_shared_bytes = dynamic_shared_bytes;
         config.max_instructions = max_instructions;
         let backend = Backend::select(backend, target).map_err(PyValueError::new_err)?;
         if early_readiness && backend != Backend::AmdgpuGfx1250 {
             return Err(PyValueError::new_err(
                 "early_readiness currently supports only native gfx1250 scalar-load readiness",
+            ));
+        }
+        if early_memory_conflicts && !matches!(backend, Backend::Amdgpu | Backend::AmdgpuGfx1250) {
+            return Err(PyValueError::new_err(
+                "early_memory_conflicts supports only native gfx950/gfx1250 memory conflicts",
             ));
         }
         Ok(ConfigPy(config, backend))
@@ -152,6 +159,13 @@ impl ConfigPy {
     #[getter]
     fn early_readiness(&self) -> bool {
         self.0.early_readiness
+    }
+
+    /// Whether to stop at the first independently certified same-instruction
+    /// memory conflict. False preserves full traces; true never accepts early.
+    #[getter]
+    fn early_memory_conflicts(&self) -> bool {
+        self.0.early_memory_conflicts
     }
 
     /// Declare a global-memory array visible to the kernel.

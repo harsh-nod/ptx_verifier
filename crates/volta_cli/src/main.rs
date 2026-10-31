@@ -138,7 +138,7 @@ struct LaunchArgs {
     #[arg(
         long,
         value_name = "FILE",
-        conflicts_with_all = ["block", "grid", "workgroup_id", "early_readiness", "arrays", "params", "globals", "dyn_shared", "shared_allocations"]
+        conflicts_with_all = ["block", "grid", "workgroup_id", "early_readiness", "early_memory_conflicts", "arrays", "params", "globals", "dyn_shared", "shared_allocations"]
     )]
     config: Option<PathBuf>,
 
@@ -158,6 +158,11 @@ struct LaunchArgs {
     /// Default runs retain complete traces. This option never enables early acceptance.
     #[arg(long)]
     early_readiness: bool,
+
+    /// Stop at the first independently certified same-instruction gfx950/gfx1250
+    /// memory conflict. Default retains complete traces; never accepts early.
+    #[arg(long)]
+    early_memory_conflicts: bool,
 
     /// Global array: "name:base:elem_width:len:kind" where kind is
     /// in|out|inout|index (e.g. "in:0x10000:4:128:in"). Repeatable.
@@ -482,6 +487,7 @@ fn build_config(input: &LaunchArgs) -> Result<AnalysisConfig, String> {
     config.workgroup_id = parse_workgroup_id(&input.workgroup_id)
         .map_err(|e| format!("invalid --workgroup-id: {e}"))?;
     config.early_readiness = input.early_readiness;
+    config.early_memory_conflicts = input.early_memory_conflicts;
     config.dynamic_shared_bytes = input.dyn_shared;
     for value in &input.shared_allocations {
         let fields: Vec<_> = value.split(':').collect();
@@ -549,18 +555,42 @@ struct KernelSide {
     graph: EventGraph,
     report: GraphReport,
     early_readiness: Option<volta_pipeline::CertifiedScalarReadiness>,
+    early_memory_conflict: Option<volta_pipeline::CertifiedMemoryConflict>,
     tensor_bounds: Option<volta_pipeline::CertifiedTensorBounds>,
 }
 
 /// This signal is emitted only for the pipeline's privately constructed,
 /// independently validated finding. Ordinary aborted graphs do not enter here.
-fn print_certified_rejection(side: &KernelSide) -> bool {
+fn print_certified_rejection(side: &KernelSide, instructions: u64) -> bool {
     if let Some(finding) = &side.tensor_bounds {
         println!("TENSOR_BOUNDS: CERTIFIED_REJECTION");
         println!("  AMD tensor LDS bounds (independently validated attempted access) FAIL");
         println!("  {}: {:?}", side.label, finding.violation());
         println!(
             "  incomplete aborted prefix; transfer not issued; complete outputs and equivalence unavailable"
+        );
+        println!("VERDICT: REJECT");
+        return true;
+    }
+    if let Some(finding) = &side.early_memory_conflict {
+        let certificate = finding.certificate();
+        println!("EARLY_MEMORY_CONFLICTS: CERTIFIED_REJECTION");
+        println!("  AMD memory-conflict freedom (certified prefix) FAIL");
+        println!("  {}: {:?}", side.label, finding.conflict());
+        println!(
+            "  instruction={:?} issue={:?} wave={} earlier_thread={:?} later_thread={:?}",
+            certificate.instruction,
+            certificate.issue,
+            certificate.wave,
+            certificate.earlier_thread,
+            certificate.later_thread
+        );
+        println!(
+            "  prefix: instructions={} amd_records={} graph_events={}",
+            instructions, certificate.amd_records, certificate.graph_events
+        );
+        println!(
+            "  first finding only; incomplete trace prefix; complete outputs and equivalence unavailable"
         );
         println!("VERDICT: REJECT");
         return true;
@@ -579,6 +609,12 @@ fn print_certified_rejection(side: &KernelSide) -> bool {
 }
 
 impl KernelSide {
+    fn has_certified_rejection(&self) -> bool {
+        self.early_readiness.is_some()
+            || self.early_memory_conflict.is_some()
+            || self.tensor_bounds.is_some()
+    }
+
     fn evidence(&self) -> KernelEvidence<'_> {
         KernelEvidence {
             label: self.label,
@@ -694,6 +730,7 @@ fn run_kernel(
             graph,
             report: verified.graph,
             early_readiness: verified.early_readiness,
+            early_memory_conflict: verified.early_memory_conflict,
             tensor_bounds: verified.tensor_bounds,
         },
     ))
@@ -740,7 +777,7 @@ fn cmd_analyze(args: AnalyzeArgs, log: &mut run_log::RunLog, backend: Backend) -
         "  time: {:.3}s  instructions: {}  block syncs: {}  warp syncs: {}",
         elapsed, run.stats.instructions, run.stats.block_syncs, run.stats.warp_syncs
     );
-    if print_certified_rejection(&side) {
+    if print_certified_rejection(&side, run.stats.instructions) {
         log.record("analyze: certified rejected-prefix finding");
         return ExitCode::FAILURE;
     }
@@ -826,6 +863,34 @@ fn validate_check_arrays(arrays: &[String]) -> Result<(), String> {
 }
 
 fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog, backend: Backend) -> ExitCode {
+    if args.exprs || args.from_dump.is_some() {
+        // Replay historically ignores launch configuration. Inspect only the
+        // new opt-in so disabled/unrelated launch fields retain that behavior.
+        let enabled = if let Some(path) = &args.launch.config {
+            let json = std::fs::read_to_string(path)
+                .ok()
+                .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok());
+            match json
+                .as_ref()
+                .and_then(|value| value.get("early_memory_conflicts"))
+            {
+                None | Some(serde_json::Value::Bool(false)) => false,
+                Some(serde_json::Value::Bool(true)) => true,
+                Some(_) => {
+                    eprintln!("error: early_memory_conflicts must be a boolean");
+                    return ExitCode::FAILURE;
+                }
+            }
+        } else {
+            args.launch.early_memory_conflicts
+        };
+        if enabled {
+            eprintln!(
+                "error: early_memory_conflicts requires native source execution, not expression replay"
+            );
+            return ExitCode::FAILURE;
+        }
+    }
     if args.launch.early_readiness && (args.exprs || args.from_dump.is_some()) {
         eprintln!(
             "error: --early-readiness requires native source execution, not expression replay"
@@ -930,13 +995,13 @@ fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog, backend: Backend) -
                     return ExitCode::FAILURE;
                 }
             };
-            if side1.early_readiness.is_some() || side1.tensor_bounds.is_some() {
+            if side1.has_certified_rejection() {
                 println!(
                     "Exec: {:.3}s  instructions: {}",
                     start.elapsed().as_secs_f64(),
                     run1.stats.instructions
                 );
-                print_certified_rejection(&side1);
+                print_certified_rejection(&side1, run1.stats.instructions);
                 log.record("compare: certified rejected-prefix finding");
                 return ExitCode::FAILURE;
             }
@@ -967,7 +1032,7 @@ fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog, backend: Backend) -
                 run2.stats.block_syncs,
                 run2.stats.warp_syncs
             );
-            if print_certified_rejection(&side2) {
+            if print_certified_rejection(&side2, run2.stats.instructions) {
                 log.record("compare: certified rejected-prefix finding");
                 return ExitCode::FAILURE;
             }
@@ -1250,7 +1315,7 @@ fn cmd_verify(args: VerifyArgs, log: &mut run_log::RunLog, backend: Backend) -> 
         "Exec: {:.3}s  instructions: {}  block syncs: {}  warp syncs: {}",
         exec_secs, run.stats.instructions, run.stats.block_syncs, run.stats.warp_syncs
     );
-    if print_certified_rejection(&side) {
+    if print_certified_rejection(&side, run.stats.instructions) {
         log.record("verify: certified rejected-prefix finding");
         return ExitCode::FAILURE;
     }
