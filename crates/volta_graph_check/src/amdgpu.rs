@@ -556,71 +556,70 @@ fn trace_contract(graph: &EventGraph, architecture: AmdArchitecture) -> AmdTrace
         linked.insert(link.effect);
         linked_issues.insert(link.issue);
         effect_issues.insert(link.effect, link.issue);
-        if let Some((wave, class)) = issue_events.get(&link.issue) {
-            if let Some(event) = graph.events().get(link.effect) {
-                if let EventKind::Access(a) = event.kind {
-                    let access = graph.access(a);
-                    if !layout.is_empty() && access.space == Space::Shared {
-                        if let Footprint::Bytes { addr, width } = access.footprint {
-                            if let Some(end) = addr.checked_add(u64::from(width)) {
-                                shared_footprints
-                                    .entry((link.issue, access.attributed))
-                                    .and_modify(|(lo, hi)| {
-                                        *lo = (*lo).min(addr);
-                                        *hi = (*hi).max(end);
-                                    })
-                                    .or_insert((addr, end));
-                            }
-                        }
-                    }
-                    if access.attributed.0 / 64 != *wave {
-                        unresolved.push(Unresolved::at(
-                            link.effect,
-                            "AMD effect lane belongs to another wave",
-                        ));
-                    }
-                    if graph.event(link.issue).pc != event.pc {
-                        unresolved.push(Unresolved::at(
-                            link.effect,
-                            "AMD effect source point differs from its issue",
-                        ));
-                    }
-                    let correct_space = match class {
-                        AmdMemoryClass::Lds => access.space == Space::Shared,
-                        AmdMemoryClass::VectorMemory
-                        | AmdMemoryClass::VectorStoreWide
-                        | AmdMemoryClass::ScalarMemory => access.space == Space::Global,
-                        AmdMemoryClass::Flat | AmdMemoryClass::FlatStoreWide => {
-                            matches!(access.space, Space::Global | Space::Shared)
-                        }
-                        AmdMemoryClass::Message | AmdMemoryClass::CrossLane => false,
-                        _ => false,
-                    };
-                    if !correct_space {
-                        unresolved.push(Unresolved::at(
-                            link.effect,
-                            "AMD instruction class does not match its memory space",
-                        ));
-                    }
-                    if link.scope == AmdMemoryScope::Workgroup
-                        && !(access.space == Space::Global
-                            && matches!(
-                                class,
-                                AmdMemoryClass::VectorMemory | AmdMemoryClass::VectorStoreWide
-                            ))
-                    {
-                        unresolved.push(Unresolved::at(
-                            link.effect,
-                            "workgroup scope is supported only for native GLOBAL vector effects",
-                        ));
-                    }
-                    if link.scope == AmdMemoryScope::Gfx1250System {
-                        unresolved.push(Unresolved::at(
-                            link.effect,
-                            "gfx1250 system scope cannot certify a legacy AMD target",
-                        ));
-                    }
+        if let Some((wave, class)) = issue_events.get(&link.issue)
+            && let Some(event) = graph.events().get(link.effect)
+            && let EventKind::Access(a) = event.kind
+        {
+            let access = graph.access(a);
+            if !layout.is_empty()
+                && access.space == Space::Shared
+                && let Footprint::Bytes { addr, width } = access.footprint
+                && let Some(end) = addr.checked_add(u64::from(width))
+            {
+                shared_footprints
+                    .entry((link.issue, access.attributed))
+                    .and_modify(|(lo, hi)| {
+                        *lo = (*lo).min(addr);
+                        *hi = (*hi).max(end);
+                    })
+                    .or_insert((addr, end));
+            }
+            if access.attributed.0 / 64 != *wave {
+                unresolved.push(Unresolved::at(
+                    link.effect,
+                    "AMD effect lane belongs to another wave",
+                ));
+            }
+            if graph.event(link.issue).pc != event.pc {
+                unresolved.push(Unresolved::at(
+                    link.effect,
+                    "AMD effect source point differs from its issue",
+                ));
+            }
+            let correct_space = match class {
+                AmdMemoryClass::Lds => access.space == Space::Shared,
+                AmdMemoryClass::VectorMemory
+                | AmdMemoryClass::VectorStoreWide
+                | AmdMemoryClass::ScalarMemory => access.space == Space::Global,
+                AmdMemoryClass::Flat | AmdMemoryClass::FlatStoreWide => {
+                    matches!(access.space, Space::Global | Space::Shared)
                 }
+                AmdMemoryClass::Message | AmdMemoryClass::CrossLane => false,
+                _ => false,
+            };
+            if !correct_space {
+                unresolved.push(Unresolved::at(
+                    link.effect,
+                    "AMD instruction class does not match its memory space",
+                ));
+            }
+            if link.scope == AmdMemoryScope::Workgroup
+                && !(access.space == Space::Global
+                    && matches!(
+                        class,
+                        AmdMemoryClass::VectorMemory | AmdMemoryClass::VectorStoreWide
+                    ))
+            {
+                unresolved.push(Unresolved::at(
+                    link.effect,
+                    "workgroup scope is supported only for native GLOBAL vector effects",
+                ));
+            }
+            if link.scope == AmdMemoryScope::Gfx1250System {
+                unresolved.push(Unresolved::at(
+                    link.effect,
+                    "gfx1250 system scope cannot certify a legacy AMD target",
+                ));
             }
         }
     }
@@ -842,15 +841,15 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
     let mut blocked_at = vec![None; waves];
     for record in graph.amd_events() {
         let wave = record.wave as usize;
-        if let Some(generation) = blocked_at[wave] {
-            if !matches!(record.kind,AmdEventKind::BarrierRelease{generation:g} if g==generation) {
-                barrier_violations.push(AmdBarrierViolation {
-                    generation,
-                    event: record.event,
-                    wave: record.wave,
-                    reason: "wave progressed before its barrier release".into(),
-                });
-            }
+        if let Some(generation) = blocked_at[wave]
+            && !matches!(record.kind,AmdEventKind::BarrierRelease{generation:g} if g==generation)
+        {
+            barrier_violations.push(AmdBarrierViolation {
+                generation,
+                event: record.event,
+                wave: record.wave,
+                reason: "wave progressed before its barrier release".into(),
+            });
         }
         match &record.kind {
             AmdEventKind::Instruction {
@@ -975,11 +974,12 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
                             if ab.iter().any(|r| r.overlaps(register)) {
                                 operation.ordinary_wait(architecture)
                             } else if accumulator.iter().any(|r| r.overlaps(register)) {
-                                if **accumulator == operation.destinations
-                                    && kind.passes() == operation.kind.passes()
+                                if (**accumulator == operation.destinations
+                                    && kind.passes() == operation.kind.passes())
+                                    || (!operation.kind.is_xdl() && kind.is_xdl())
                                 {
-                                    0 // Complete SrcC forwarding, including a different output range.
-                                } else if !operation.kind.is_xdl() && kind.is_xdl() {
+                                    // Complete SrcC forwarding, including a different output range,
+                                    // or a non-XDL producer feeding an XDL consumer.
                                     0
                                 } else if operation.kind.is_xdl() {
                                     // Partial/different-pass SrcC forwarding. LLVM's
@@ -1503,8 +1503,10 @@ fn memory_conflicts_with_clock(
             let ordered = atomic_self
                 || clock[earlier.wave as usize * CLASSES + class_index(earlier.class)]
                     >= earlier.sequence;
-            if ordered && access.space == Space::Global && unresolved.is_empty() {
-                if let Some(earlier) = missing_global_publication(
+            if ordered
+                && access.space == Space::Global
+                && unresolved.is_empty()
+                && let Some(earlier) = missing_global_publication(
                     node,
                     forest,
                     operations,
@@ -1512,14 +1514,14 @@ fn memory_conflicts_with_clock(
                     access.mode,
                     later_scoped,
                     gfx1250 && access.mode == volta_graph::AccessMode::Write,
-                ) {
-                    unresolved.push(Unresolved::between(earlier, event,
+                )
+            {
+                unresolved.push(Unresolved::between(earlier, event,
                         if gfx1250 {
                             "gfx1250 ordered cross-wave GLOBAL visibility requires explicit SCOPE_SYS at both endpoints"
                         } else {
                             "native AMD cache visibility for an ordered cross-wave GLOBAL conflict requires workgroup-scoped endpoints and a single-CU workgroup premise"
                         }));
-                }
             }
             ordered
         };

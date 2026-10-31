@@ -120,7 +120,7 @@ validation and limits. Its [LaTeX source](docs/paper/amd-volta.tex) builds with
 cargo test --release --workspace
 just test-python                 # rebuild the Python extension and run its tests
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets
+cargo clippy --workspace --all-targets -- -D warnings
 ```
 
 `just test` runs both Rust and Python tests. Focused examples and fixture-specific

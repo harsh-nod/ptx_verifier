@@ -93,7 +93,7 @@ fn expected(case: &Case) -> SymbolicOutputs {
             "ones" => arena.int(1),
             "identity_c" => arena.int(i64::from(i % 4 == 0)),
             "numeric136" => arena.int(if i == 0 { (1..=16).sum() } else { 0 }),
-            "raw17" => arena.int(if i == 0 { 16 * 1 + 1 } else { 1 }),
+            "raw17" => arena.int(if i == 0 { 16 + 1 } else { 1 }),
             "mixed408" => arena.int(if i == 0 {
                 (1..=16).map(|k| k + 2 * k).sum()
             } else {

@@ -191,14 +191,14 @@ fn document_with_limit(run: &Run, limit: Option<usize>) -> Json {
             Json::str(if amd_source { "amdgpu" } else { "ptx" }),
         ),
     ];
-    if matches!(run.outcome, Outcome::NotStarted { .. }) {
-        if let Some((target, architecture)) = declared_native_target(run.source) {
-            // Source declaration only: these fields do not assert that parsing,
-            // launch validation or symbolic execution started successfully.
-            fields.push(("source_target", Json::str(target)));
-            fields.push(("source_wave_size", Json::uint(architecture.wave_size())));
-            fields.push(("source_wave_kind", Json::str("wave")));
-        }
+    if matches!(run.outcome, Outcome::NotStarted { .. })
+        && let Some((target, architecture)) = declared_native_target(run.source)
+    {
+        // Source declaration only: these fields do not assert that parsing,
+        // launch validation or symbolic execution started successfully.
+        fields.push(("source_target", Json::str(target)));
+        fields.push(("source_wave_size", Json::uint(architecture.wave_size())));
+        fields.push(("source_wave_kind", Json::str("wave")));
     }
     match &run.outcome {
         Outcome::NotStarted { error, .. } => fields.push(("error", Json::str(error.clone()))),

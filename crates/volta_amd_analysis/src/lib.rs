@@ -2,7 +2,10 @@
 
 pub mod frontend;
 
+// Evaluator helpers are exercised by unit tests; the production API is parsing/lowering.
+#[cfg(test)]
 mod error;
+#[cfg(test)]
 mod eval;
 mod ir;
 mod lower;

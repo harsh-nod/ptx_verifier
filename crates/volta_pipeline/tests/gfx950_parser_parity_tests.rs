@@ -62,7 +62,7 @@ fn malformed_termination_is_rejected_before_control_flow_or_exec_can_hide_it() {
         "s_endpgm mystery:1",
     ] {
         for body in [
-            format!("{malformed}"),
+            malformed.to_string(),
             format!("s_branch .Ldone\n{malformed}\n.Ldone:\ns_endpgm"),
             format!("s_mov_b64 exec, 0\n{malformed}\ns_endpgm"),
         ] {

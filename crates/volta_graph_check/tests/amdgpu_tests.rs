@@ -39,6 +39,12 @@ fn s(index: u16) -> AmdRegister {
         lanes: u64::MAX,
     }
 }
+struct MemoryIssue {
+    class: AmdMemoryClass,
+    destinations: Vec<AmdRegister>,
+    held_sources: Vec<AmdRegister>,
+}
+
 struct Trace {
     b: GraphBuilder,
     threads: u32,
@@ -87,18 +93,14 @@ impl Trace {
         &mut self,
         wave: u32,
         pc: u32,
-        class: AmdMemoryClass,
-        destinations: Vec<AmdRegister>,
-        held_sources: Vec<AmdRegister>,
+        operation: MemoryIssue,
         addr: u64,
         write: bool,
     ) -> EventId {
         self.issue_scoped(
             wave,
             pc,
-            class,
-            destinations,
-            held_sources,
+            operation,
             addr,
             write,
             AmdMemoryScope::Unspecified,
@@ -108,13 +110,16 @@ impl Trace {
         &mut self,
         wave: u32,
         pc: u32,
-        class: AmdMemoryClass,
-        destinations: Vec<AmdRegister>,
-        held_sources: Vec<AmdRegister>,
+        operation: MemoryIssue,
         addr: u64,
         write: bool,
         scope: AmdMemoryScope,
     ) -> EventId {
+        let MemoryIssue {
+            class,
+            destinations,
+            held_sources,
+        } = operation;
         self.ins(wave, pc, held_sources.clone(), destinations.clone());
         let counters = match class {
             AmdMemoryClass::VectorMemory | AmdMemoryClass::VectorStoreWide => {
@@ -230,9 +235,11 @@ fn configured_layout_bounds_the_whole_transfer_not_its_separate_dwords() {
         let issue = t.issue(
             0,
             0,
-            AmdMemoryClass::Lds,
-            vec![v(1, 1), v(2, 1), v(3, 1), v(4, 1)],
-            vec![],
+            MemoryIssue {
+                class: AmdMemoryClass::Lds,
+                destinations: vec![v(1, 1), v(2, 1), v(3, 1), v(4, 1)],
+                held_sources: vec![],
+            },
             32,
             false,
         );
@@ -319,7 +326,17 @@ fn terminated_producer_trace(
         }),
         threads,
     };
-    t.issue(0, 0, AmdMemoryClass::Lds, vec![], vec![], 0, true);
+    t.issue(
+        0,
+        0,
+        MemoryIssue {
+            class: AmdMemoryClass::Lds,
+            destinations: vec![],
+            held_sources: vec![],
+        },
+        0,
+        true,
+    );
     t.ins(0, 1, vec![], vec![]);
     if let Some((vmcnt, lgkmcnt, expcnt)) = drain {
         t.b.amd_event(
@@ -339,7 +356,17 @@ fn terminated_producer_trace(
         t.arrive(1, 0);
         t.release(1, 0);
     }
-    t.issue(1, 3, AmdMemoryClass::Lds, vec![v(7, 1)], vec![], 0, false);
+    t.issue(
+        1,
+        3,
+        MemoryIssue {
+            class: AmdMemoryClass::Lds,
+            destinations: vec![v(7, 1)],
+            held_sources: vec![],
+        },
+        0,
+        false,
+    );
     t.wait(1, 4, None, Some(0));
     t.ins(1, 5, vec![v(7, 1)], vec![]);
     for lane in 64..threads {
@@ -489,9 +516,11 @@ fn missing_wait_has_typed_read_hazard_and_zero_wait_repairs_it() {
         let issue = t.issue(
             0,
             0,
-            AmdMemoryClass::VectorMemory,
-            vec![v(1, 1)],
-            vec![],
+            MemoryIssue {
+                class: AmdMemoryClass::VectorMemory,
+                destinations: vec![v(1, 1)],
+                held_sources: vec![],
+            },
             0,
             false,
         );
@@ -524,18 +553,22 @@ fn partial_fifo_wait_retires_only_oldest_vector_memory() {
     t.issue(
         0,
         0,
-        AmdMemoryClass::VectorMemory,
-        vec![v(1, 1)],
-        vec![],
+        MemoryIssue {
+            class: AmdMemoryClass::VectorMemory,
+            destinations: vec![v(1, 1)],
+            held_sources: vec![],
+        },
         0,
         false,
     );
     let second = t.issue(
         0,
         1,
-        AmdMemoryClass::VectorMemory,
-        vec![v(2, 1)],
-        vec![],
+        MemoryIssue {
+            class: AmdMemoryClass::VectorMemory,
+            destinations: vec![v(2, 1)],
+            held_sources: vec![],
+        },
         4,
         false,
     );
@@ -555,22 +588,26 @@ fn scalar_and_mixed_lgkm_nonzero_waits_do_not_assume_fifo() {
         t.issue(
             0,
             0,
-            AmdMemoryClass::ScalarMemory,
-            vec![s(2)],
-            vec![],
+            MemoryIssue {
+                class: AmdMemoryClass::ScalarMemory,
+                destinations: vec![s(2)],
+                held_sources: vec![],
+            },
             0,
             false,
         );
         t.issue(
             0,
             1,
-            if mixed {
-                AmdMemoryClass::Lds
-            } else {
-                AmdMemoryClass::ScalarMemory
+            MemoryIssue {
+                class: if mixed {
+                    AmdMemoryClass::Lds
+                } else {
+                    AmdMemoryClass::ScalarMemory
+                },
+                destinations: vec![if mixed { v(2, 1) } else { s(3) }],
+                held_sources: vec![],
             },
-            vec![if mixed { v(2, 1) } else { s(3) }],
-            vec![],
             4,
             false,
         );
@@ -587,7 +624,17 @@ fn scalar_and_mixed_lgkm_nonzero_waits_do_not_assume_fifo() {
 fn flat_needs_both_counters() {
     for both in [false, true] {
         let mut t = Trace::new(64);
-        t.issue(0, 0, AmdMemoryClass::Flat, vec![v(1, 1)], vec![], 0, false);
+        t.issue(
+            0,
+            0,
+            MemoryIssue {
+                class: AmdMemoryClass::Flat,
+                destinations: vec![v(1, 1)],
+                held_sources: vec![],
+            },
+            0,
+            false,
+        );
         t.wait(0, 1, Some(0), both.then_some(0));
         t.ins(0, 2, vec![v(1, 1)], vec![]);
         assert_eq!(
@@ -609,9 +656,11 @@ fn maximal_wait_fields_do_not_retire_an_overfull_logical_issue_history() {
                 t.issue(
                     0,
                     index,
-                    class,
-                    vec![v(index as u16, 1)],
-                    vec![],
+                    MemoryIssue {
+                        class,
+                        destinations: vec![v(index as u16, 1)],
+                        held_sources: vec![],
+                    },
                     u64::from(index) * 4,
                     false,
                 );
@@ -659,9 +708,11 @@ fn register_readiness_respects_slices_and_held_store_sources() {
     t.issue(
         0,
         0,
-        AmdMemoryClass::VectorMemory,
-        vec![v(1, 1)],
-        vec![],
+        MemoryIssue {
+            class: AmdMemoryClass::VectorMemory,
+            destinations: vec![v(1, 1)],
+            held_sources: vec![],
+        },
         0,
         false,
     );
@@ -669,9 +720,11 @@ fn register_readiness_respects_slices_and_held_store_sources() {
     t.issue(
         0,
         2,
-        AmdMemoryClass::VectorMemory,
-        vec![],
-        vec![v(4, 1)],
+        MemoryIssue {
+            class: AmdMemoryClass::VectorMemory,
+            destinations: vec![],
+            held_sources: vec![v(4, 1)],
+        },
         4,
         true,
     );
@@ -699,7 +752,17 @@ fn cross_wave_lds_needs_completed_writes_and_a_barrier() {
     for wait in [false, true] {
         for barrier in [false, true] {
             let mut t = Trace::new(65);
-            t.issue(0, 0, AmdMemoryClass::Lds, vec![], vec![], 0, true);
+            t.issue(
+                0,
+                0,
+                MemoryIssue {
+                    class: AmdMemoryClass::Lds,
+                    destinations: vec![],
+                    held_sources: vec![],
+                },
+                0,
+                true,
+            );
             t.ins(1, 0, vec![], vec![]);
             if wait {
                 t.wait(0, 1, None, Some(0));
@@ -710,7 +773,17 @@ fn cross_wave_lds_needs_completed_writes_and_a_barrier() {
                 t.release(0, 0);
                 t.release(1, 0);
             }
-            t.issue(1, 2, AmdMemoryClass::Lds, vec![v(1, 1)], vec![], 0, false);
+            t.issue(
+                1,
+                2,
+                MemoryIssue {
+                    class: AmdMemoryClass::Lds,
+                    destinations: vec![v(1, 1)],
+                    held_sources: vec![],
+                },
+                0,
+                false,
+            );
             t.wait(1, 3, None, Some(0));
             t.ins(1, 4, vec![v(1, 1)], vec![]);
             let r = check_graph(&t.finish());
@@ -1086,7 +1159,17 @@ fn structural_bad_associations_return_unknown_before_indexing() {
 #[test]
 fn cross_wave_global_visibility_is_not_proved_by_a_barrier() {
     let mut t = Trace::new(128);
-    t.issue(0, 0, AmdMemoryClass::VectorMemory, vec![], vec![], 0, true);
+    t.issue(
+        0,
+        0,
+        MemoryIssue {
+            class: AmdMemoryClass::VectorMemory,
+            destinations: vec![],
+            held_sources: vec![],
+        },
+        0,
+        true,
+    );
     t.ins(1, 0, vec![], vec![]);
     t.wait(0, 1, Some(0), None);
     t.arrive(0, 0);
@@ -1096,9 +1179,11 @@ fn cross_wave_global_visibility_is_not_proved_by_a_barrier() {
     t.issue(
         1,
         2,
-        AmdMemoryClass::VectorMemory,
-        vec![v(1, 1)],
-        vec![],
+        MemoryIssue {
+            class: AmdMemoryClass::VectorMemory,
+            destinations: vec![v(1, 1)],
+            held_sources: vec![],
+        },
         0,
         false,
     );
@@ -1136,9 +1221,11 @@ fn scoped_global_publication_requires_both_endpoints_single_cu_completion_and_ba
         t.issue_scoped(
             0,
             0,
-            AmdMemoryClass::VectorMemory,
-            vec![],
-            vec![],
+            MemoryIssue {
+                class: AmdMemoryClass::VectorMemory,
+                destinations: vec![],
+                held_sources: vec![],
+            },
             0,
             true,
             scope(producer_scoped),
@@ -1155,9 +1242,11 @@ fn scoped_global_publication_requires_both_endpoints_single_cu_completion_and_ba
         t.issue_scoped(
             1,
             2,
-            AmdMemoryClass::VectorMemory,
-            vec![v(1, 1)],
-            vec![],
+            MemoryIssue {
+                class: AmdMemoryClass::VectorMemory,
+                destinations: vec![v(1, 1)],
+                held_sources: vec![],
+            },
             0,
             false,
             scope(consumer_scoped),
@@ -1188,9 +1277,11 @@ fn gfx1250_system_scope_does_not_certify_legacy_global_effects() {
     t.issue_scoped(
         0,
         0,
-        AmdMemoryClass::VectorMemory,
-        vec![v(1, 1)],
-        vec![],
+        MemoryIssue {
+            class: AmdMemoryClass::VectorMemory,
+            destinations: vec![v(1, 1)],
+            held_sources: vec![],
+        },
         0,
         false,
         AmdMemoryScope::Gfx1250System,
@@ -1206,9 +1297,11 @@ fn read_read_global_pairs_do_not_require_publication_scope() {
     t.issue_scoped(
         0,
         0,
-        AmdMemoryClass::VectorMemory,
-        vec![v(1, 1)],
-        vec![],
+        MemoryIssue {
+            class: AmdMemoryClass::VectorMemory,
+            destinations: vec![v(1, 1)],
+            held_sources: vec![],
+        },
         0,
         false,
         AmdMemoryScope::Workgroup,
@@ -1223,9 +1316,11 @@ fn read_read_global_pairs_do_not_require_publication_scope() {
     t.issue(
         1,
         2,
-        AmdMemoryClass::VectorMemory,
-        vec![v(1, 1)],
-        vec![],
+        MemoryIssue {
+            class: AmdMemoryClass::VectorMemory,
+            destinations: vec![v(1, 1)],
+            held_sources: vec![],
+        },
         0,
         false,
     );
@@ -1233,9 +1328,11 @@ fn read_read_global_pairs_do_not_require_publication_scope() {
     t.issue_scoped(
         1,
         4,
-        AmdMemoryClass::VectorMemory,
-        vec![],
-        vec![],
+        MemoryIssue {
+            class: AmdMemoryClass::VectorMemory,
+            destinations: vec![],
+            held_sources: vec![],
+        },
         0,
         true,
         AmdMemoryScope::Workgroup,
@@ -1254,9 +1351,11 @@ fn an_ordered_read_root_cannot_hide_an_unscoped_conflicting_write() {
         t.issue_scoped(
             0,
             0,
-            AmdMemoryClass::VectorMemory,
-            vec![],
-            vec![],
+            MemoryIssue {
+                class: AmdMemoryClass::VectorMemory,
+                destinations: vec![],
+                held_sources: vec![],
+            },
             0,
             true,
             if producer_scoped {
@@ -1275,9 +1374,11 @@ fn an_ordered_read_root_cannot_hide_an_unscoped_conflicting_write() {
         t.issue_scoped(
             0,
             2,
-            AmdMemoryClass::VectorMemory,
-            vec![v(1, 1)],
-            vec![],
+            MemoryIssue {
+                class: AmdMemoryClass::VectorMemory,
+                destinations: vec![v(1, 1)],
+                held_sources: vec![],
+            },
             0,
             false,
             AmdMemoryScope::Workgroup,
@@ -1290,9 +1391,11 @@ fn an_ordered_read_root_cannot_hide_an_unscoped_conflicting_write() {
         t.issue_scoped(
             1,
             4,
-            AmdMemoryClass::VectorMemory,
-            vec![v(1, 1)],
-            vec![],
+            MemoryIssue {
+                class: AmdMemoryClass::VectorMemory,
+                destinations: vec![v(1, 1)],
+                held_sources: vec![],
+            },
             0,
             false,
             AmdMemoryScope::Workgroup,
@@ -1331,9 +1434,11 @@ fn workgroup_scope_cannot_be_attached_to_an_unmodeled_flat_or_scalar_protocol() 
         t.issue_scoped(
             0,
             0,
-            class,
-            vec![v(1, 1)],
-            vec![],
+            MemoryIssue {
+                class,
+                destinations: vec![v(1, 1)],
+                held_sources: vec![],
+            },
             0,
             false,
             AmdMemoryScope::Workgroup,
@@ -1357,9 +1462,11 @@ fn wide_store_source_overwrite_needs_two_states_for_valu_but_not_a_full_wait() {
         t.issue(
             0,
             0,
-            AmdMemoryClass::VectorStoreWide,
-            vec![],
-            vec![v(4, 1), v(5, 1), v(6, 1)],
+            MemoryIssue {
+                class: AmdMemoryClass::VectorStoreWide,
+                destinations: vec![],
+                held_sources: vec![v(4, 1), v(5, 1), v(6, 1)],
+            },
             0,
             true,
         );
@@ -1600,23 +1707,27 @@ fn wide_store_followed_by_async_load_destination_does_not_invent_a_valu_overwrit
     t.issue(
         0,
         0,
-        AmdMemoryClass::VectorStoreWide,
-        vec![],
-        vec![
-            v(0, u64::MAX),
-            v(1, u64::MAX),
-            v(2, u64::MAX),
-            v(3, u64::MAX),
-        ],
+        MemoryIssue {
+            class: AmdMemoryClass::VectorStoreWide,
+            destinations: vec![],
+            held_sources: vec![
+                v(0, u64::MAX),
+                v(1, u64::MAX),
+                v(2, u64::MAX),
+                v(3, u64::MAX),
+            ],
+        },
         100,
         true,
     );
     t.issue(
         0,
         1,
-        AmdMemoryClass::VectorMemory,
-        vec![v(0, u64::MAX)],
-        vec![],
+        MemoryIssue {
+            class: AmdMemoryClass::VectorMemory,
+            destinations: vec![v(0, u64::MAX)],
+            held_sources: vec![],
+        },
         200,
         false,
     );
@@ -1713,9 +1824,11 @@ fn lds_memory_and_permutation_share_ds_fifo_but_smem_remains_unordered() {
     t.issue(
         0,
         0,
-        AmdMemoryClass::Lds,
-        vec![v(10, u64::MAX)],
-        vec![],
+        MemoryIssue {
+            class: AmdMemoryClass::Lds,
+            destinations: vec![v(10, u64::MAX)],
+            held_sources: vec![],
+        },
         0,
         false,
     );
@@ -1733,9 +1846,11 @@ fn lds_memory_and_permutation_share_ds_fifo_but_smem_remains_unordered() {
         t.issue(
             0,
             1,
-            AmdMemoryClass::ScalarMemory,
-            vec![s(4)],
-            vec![],
+            MemoryIssue {
+                class: AmdMemoryClass::ScalarMemory,
+                destinations: vec![s(4)],
+                held_sources: vec![],
+            },
             100,
             false,
         );
@@ -1775,9 +1890,11 @@ fn valu_generated_scalar_data_requires_two_valu_or_five_vmem_states() {
                 t.issue(
                     0,
                     2,
-                    AmdMemoryClass::VectorMemory,
-                    vec![v(3, u64::MAX)],
-                    vec![s(4)],
+                    MemoryIssue {
+                        class: AmdMemoryClass::VectorMemory,
+                        destinations: vec![v(3, u64::MAX)],
+                        held_sources: vec![s(4)],
+                    },
                     100,
                     false,
                 )
@@ -2115,7 +2232,17 @@ fn cdna3_waits_and_wave_barriers_preserve_native_completion_requirements() {
     for target in ["gfx942:xnack-", "gfx950:xnack-"] {
         for omitted in ["none", "producer_wait", "barrier", "consumer_wait"] {
             let mut t = target_trace(65, target);
-            t.issue(0, 0, AmdMemoryClass::Lds, vec![], vec![], 0, true);
+            t.issue(
+                0,
+                0,
+                MemoryIssue {
+                    class: AmdMemoryClass::Lds,
+                    destinations: vec![],
+                    held_sources: vec![],
+                },
+                0,
+                true,
+            );
             if omitted != "producer_wait" {
                 t.wait(0, 6, None, Some(0));
             }
@@ -2127,7 +2254,17 @@ fn cdna3_waits_and_wave_barriers_preserve_native_completion_requirements() {
                     t.release(wave, 0);
                 }
             }
-            t.issue(1, 3, AmdMemoryClass::Lds, vec![v(5, 1)], vec![], 0, false);
+            t.issue(
+                1,
+                3,
+                MemoryIssue {
+                    class: AmdMemoryClass::Lds,
+                    destinations: vec![v(5, 1)],
+                    held_sources: vec![],
+                },
+                0,
+                false,
+            );
             if omitted != "consumer_wait" {
                 t.wait(1, 4, None, Some(0));
             }

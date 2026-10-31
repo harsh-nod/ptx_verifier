@@ -2,6 +2,12 @@
 use volta_graph::*;
 use volta_graph_check::{GraphConclusion, Property, Verdict, check_graph};
 
+struct MemoryEffect {
+    space: Space,
+    write: bool,
+    addr: u64,
+}
+
 const KINDS: [&str; 23] = [
     "vector ALU",
     "vector memory",
@@ -373,9 +379,11 @@ impl Trace {
                     issue,
                     wave * 32 + lane,
                     pc,
-                    space,
-                    write,
-                    addr + lane as u64 * 4,
+                    MemoryEffect {
+                        space,
+                        write,
+                        addr: addr + lane as u64 * 4,
+                    },
                     scope,
                 );
                 if matches!(
@@ -440,9 +448,7 @@ impl Trace {
             issue,
             thread,
             pc,
-            space,
-            write,
-            addr,
+            MemoryEffect { space, write, addr },
             AmdMemoryScope::Unspecified,
         );
     }
@@ -451,11 +457,10 @@ impl Trace {
         issue: EventId,
         thread: u32,
         pc: u32,
-        space: Space,
-        write: bool,
-        addr: u64,
+        effect: MemoryEffect,
         scope: AmdMemoryScope,
     ) {
+        let MemoryEffect { space, write, addr } = effect;
         let value = write.then(|| self.b.value(StoredValue::Opaque));
         let effect = self.b.thread_access(
             ThreadIx(thread),
@@ -906,9 +911,7 @@ fn replay_implicit_drain_and_group_switch_do_not_fabricate_data_completion() {
         t.ins(0, pc, vec![], vec![]);
         t.ins(0, 0, vec![v(1, 1)], vec![s(2)]);
         let r = check_graph(&t.finish());
-        let hazards = match r.amd.as_ref().unwrap().wait_readiness {
-            ref result => format!("{result:?}"),
-        };
+        let hazards = format!("{:?}", r.amd.as_ref().unwrap().wait_readiness);
         assert_eq!(r.verdict(Property::AmdWaitReadiness), Verdict::Fail);
         assert!(!hazards.contains("SourceReuse"));
     }
