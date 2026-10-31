@@ -186,7 +186,7 @@ fn all_lanes_components_resource_and_allocation_bounds_preflight_before_issue() 
                 1024,
             ));
         }
-        for high in [0x40000000, 0x80000000] {
+        for high in [0x40000000u32, 0x80000000] {
             no_dma(&run(
                 &good.replace("s_mov_b32 s9,0", &format!("s_mov_b32 s9,{high}")),
                 2,
