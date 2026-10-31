@@ -90,6 +90,15 @@ exposing a certified rejection. A generic observer stop remains inconclusive.
 No early acceptance path is added. Disabling the observer retains the ordinary
 diagnostic path; unsupported execution or other errors can still abort a trace.
 
+The separate [early memory-conflict observer](early-memory-conflicts.md) handles
+gfx950/gfx1250 ordinary writes by different active lanes of one issued GLOBAL
+or direct DS/LDS instruction. Interval discovery proposes an untrusted witness;
+the existing target-selected checker must reproduce its exact pair and byte,
+with valid trace, readiness and barrier premises. The pipeline validates both
+the live and halted prefix. Candidate refusal permits later issues to be
+considered; only a privately constructed certificate authorizes rejection.
+Default full execution and mathematical-output requirements remain unchanged.
+
 Supported gfx1250 [tensor LDS bounds faults](tensor-bounds.md) have a separate
 prefix certificate, including in default mode. The producer records an attempted
 access and aborts before
