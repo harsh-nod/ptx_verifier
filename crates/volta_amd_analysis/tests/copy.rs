@@ -1,30 +1,17 @@
-//! Print the IR the copy fixture lowers to, or the error that stops its parsing or lowering.
+//! The copy fixture's symbolic outputs, compared with `fixtures/copy.out`.
 
-use volta_amd_analysis::frontend::parse::parse_kernel;
-use volta_amd_analysis::lower_kernel;
+mod common;
+
+use common::array;
+use volta_amd_analysis::ArrayKind;
 
 #[test]
-fn prints_the_copy_kernel_ir() {
-    let source = include_str!("fixtures/copy.s");
-    let parsed = match parse_kernel(source, "copy") {
-        Ok(parsed) => parsed,
-        Err(error) => {
-            println!("parse error: {error}");
-            return;
-        }
-    };
-    match lower_kernel(&parsed) {
-        Ok(kernel) => {
-            println!("{} ({})", kernel.name, kernel.target);
-            for (index, (instruction, lowered)) in parsed
-                .instructions
-                .iter()
-                .zip(&kernel.instructions)
-                .enumerate()
-            {
-                println!("  {index:3}  {:<20} {lowered:?}", instruction.opcode);
-            }
-        }
-        Err(error) => println!("lowering error: {error}"),
-    }
+fn the_copy_kernel_writes_its_expected_outputs() {
+    common::check_run(
+        "copy",
+        &[
+            array("in", 0x10000, ArrayKind::Input),
+            array("out", 0x20000, ArrayKind::Output),
+        ],
+    );
 }
