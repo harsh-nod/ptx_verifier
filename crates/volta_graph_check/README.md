@@ -288,7 +288,7 @@ establish a hardware result. Numerical agreement remains separate from these
 graph obligations.
 
 Per-lane async GLOBAL/LDS transfers charge ASYNCCNT alone and require an explicit
-`AmdDefaultScheduling` premise. Addresses are captured at issue; their ordinary
+`AmdDefaultScheduling` premise. The model snapshots addresses at issue; ordinary
 instruction reads still require ready producers, but later ALU overwrites do not
 need Load/X completion. A matching async wait completes the transfer; Load,
 Store, DS and X waits alone do not. Partial async waits cannot identify a FIFO

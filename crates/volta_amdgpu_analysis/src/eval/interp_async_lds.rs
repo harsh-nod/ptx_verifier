@@ -86,8 +86,9 @@ impl Interpreter<'_> {
                 counters: vec![(AmdCounter::Async, 1)],
                 destinations,
                 // Ordinary instruction reads still check address readiness.
-                // Default scheduling captures these sources at issue; expert
-                // scheduling mode changes remain outside the native profile.
+                // The model snapshots sources at issue. Default scheduling
+                // requires no software completion-held source leases; expert
+                // mode changes remain outside the native profile.
                 held_sources: Vec::new(),
             },
         );

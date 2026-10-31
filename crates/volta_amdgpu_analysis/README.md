@@ -132,8 +132,9 @@ the global source is a VGPR pair followed by `off`. A signed24 byte offset
 applies to both addresses. This bounded profile requires aligned, nonwrapping
 footprints within the original global and LDS allocations; scalar-base and
 scaled forms remain unsupported. It uses async completion events rather than
-tensor descriptors. The copy charges ASYNCCNT alone and captures address inputs
-at issue, so later ordinary ALU overwrites do not need an X-count wait. Input
+tensor descriptors. The copy charges ASYNCCNT alone. The model snapshots address
+inputs at issue; default scheduling permits later ordinary ALU overwrites without
+a software source-completion wait. Input
 readiness is still checked at issue. Expert scheduling mode changes remain
 unsupported, and the graph records an explicit default-scheduling premise.
 `s_wait_asynccnt 0` completes the entire transfer; a global
