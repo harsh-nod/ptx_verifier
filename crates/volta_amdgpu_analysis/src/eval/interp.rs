@@ -2599,6 +2599,42 @@ impl<'a> Interpreter<'a> {
             _ => None,
         })
     }
+    fn packed_half_bit_logic(
+        &mut self,
+        wave: &Wave,
+        instruction: &Instruction,
+        name: &str,
+        lane: u8,
+    ) -> Result<Option<Value>, EvalError> {
+        if !instruction.modifiers().is_empty()
+            || instruction
+                .operands()
+                .iter()
+                .any(|op| matches!(op, Operand::Modified { .. }))
+        {
+            return Ok(None);
+        }
+        let o = instruction.operands();
+        let a = wave.value(&o[1], lane)?;
+        let b = wave.value(&o[2], lane)?;
+        let result = if name == "v_and_b32" {
+            let (mask, source) = if let Ok(mask) = a.bits() {
+                (mask, b)
+            } else if let Ok(mask) = b.bits() {
+                (mask, a)
+            } else {
+                return Ok(None);
+            };
+            match mask {
+                0xffff => source.mask_low16(),
+                0xffff0000 => source.mask_high16(),
+                _ => return Ok(None),
+            }
+        } else {
+            a.or_disjoint_halves(b)
+        };
+        result.map_err(|error| wave.fail(Some(lane), error))
+    }
     fn float_bit_logic(
         &mut self,
         wave: &Wave,
@@ -2616,24 +2652,6 @@ impl<'a> Interpreter<'a> {
             return Ok(None);
         }
         let o = instruction.operands();
-        if name == "v_and_b32" {
-            let a = wave.value(&o[1], lane)?;
-            let b = wave.value(&o[2], lane)?;
-            let source = if a.bits() == Ok(0xffff) {
-                Some(b)
-            } else if b.bits() == Ok(0xffff) {
-                Some(a)
-            } else {
-                None
-            };
-            if let Some(source) = source
-                && let Some(masked) = source
-                    .mask_low16()
-                    .map_err(|error| wave.fail(Some(lane), error))?
-            {
-                return Ok(Some(masked));
-            }
-        }
         if matches!(name, "v_and_b32" | "v_xor_b32") {
             let mask = if name == "v_and_b32" {
                 0x7fff_ffff
@@ -2917,6 +2935,7 @@ impl<'a> Interpreter<'a> {
     ) -> Result<ExprId, EvalError> {
         match wave.value(operand, lane)? {
             Value::Half(expr) => Ok(if high { self.arena.int(0) } else { expr }),
+            Value::HighHalf(expr) => Ok(if high { expr } else { self.arena.int(0) }),
             Value::Halves(lo, hi) => Ok(if high { hi } else { lo }),
             Value::PartialHalves(lo, hi) => {
                 if high { hi } else { lo }.ok_or_else(|| EvalError::Unsupported {
@@ -2956,6 +2975,14 @@ impl<'a> Interpreter<'a> {
             return Ok(expr);
         }
         match wave.value(operand, lane)? {
+            Value::HighHalf(expr) => {
+                if high {
+                    self.claim_half_format(wave, expr, WordFormat::Float16)?;
+                    Ok(expr)
+                } else {
+                    Ok(self.arena.int(0))
+                }
+            }
             Value::Halves(lo, hi) => {
                 let expr = if high { hi } else { lo };
                 self.claim_half_format(wave, expr, WordFormat::Float16)?;
@@ -4990,6 +5017,12 @@ impl<'a> Interpreter<'a> {
             return wave.put_wide(&o[1], 0, mask);
         }
         for lane in lanes {
+            if matches!(name, "v_and_b32" | "v_or_b32")
+                && let Some(value) = self.packed_half_bit_logic(wave, instruction, name, lane)?
+            {
+                wave.put_value(&o[0], lane, value)?;
+                continue;
+            }
             if matches!(name, "v_and_b32" | "v_xor_b32" | "v_bfi_b32")
                 && let Some(value) = self.float_bit_logic(wave, instruction, name, lane)?
             {
@@ -6196,16 +6229,18 @@ impl<'a> Interpreter<'a> {
         }
         Ok(())
     }
-    /// Selected CDNA4 raw DWORD profile (ISA 9.1.5, 9.1.7, Table48).
+    /// Selected CDNA4 raw DWORD/DWORDX2 profile (ISA 9.1.5, 9.1.7, Table48).
     /// This descriptor is not the CDNA5 base57/records45 layout.
     fn gfx950_raw_buffer_addresses(
         &self,
         wave: &Wave,
         instruction: &Instruction,
         immediate: u64,
+        registers: u16,
         store: bool,
     ) -> Result<[u64; 64], EvalError> {
         let o = instruction.operands();
+        let bytes = 4 * u64::from(registers);
         let descriptor = wave.destination(&o[2])?;
         let mut words = [0u32; 4];
         for (component, word) in words.iter_mut().enumerate() {
@@ -6237,15 +6272,19 @@ impl<'a> Interpreter<'a> {
             // Both components are unsigned. Refuse a resource boundary rather
             // than inventing zero-fill/drop effects or wrapping a large offset.
             let offset = u64::from(wave.bits(&o[1], lane)?) + immediate;
-            if offset + 4 > records {
+            if offset + bytes > records {
                 return Err(EvalError::Unsupported {
                     pc: wave.pc,
-                    what: "resource-OOB buffer DWORD needs explicit suppression/zero-fill graph evidence".into(),
+                    what: "resource-OOB buffer DWORD/DWORDX2 needs explicit suppression/zero-fill graph evidence".into(),
                 });
             }
             let address = base
                 .checked_add(offset)
-                .filter(|address| address.checked_add(4).is_some_and(|end| end <= 1u64 << 48))
+                .filter(|address| {
+                    address
+                        .checked_add(bytes)
+                        .is_some_and(|end| end <= 1u64 << 48)
+                })
                 .ok_or_else(|| EvalError::Unsupported {
                     pc: wave.pc,
                     what:
@@ -6260,21 +6299,26 @@ impl<'a> Interpreter<'a> {
                     what: "selected gfx950 raw buffer requires an aligned DWORD address".into(),
                 });
             }
-            self.validate_memory_range(wave, lane, false, address, 4, store)?;
-            if store
-                && matches!(
-                    wave.value(&o[0], lane)?,
-                    Value::PartialBits { .. }
-                        | Value::Low16Integer(_)
-                        | Value::PartialBytePair(..)
-                        | Value::PartialHalves(None, _)
-                        | Value::PartialHalves(_, None)
-                )
-            {
-                return Err(wave.fail(
-                    Some(lane),
-                    "buffer DWORD store observes undefined data bits",
-                ));
+            self.validate_memory_range(wave, lane, false, address, bytes, store)?;
+            if store {
+                let data = wave.destination(&o[0])?;
+                // Check every word before issuing the whole instruction: an
+                // undefined high word must not leave low-word effects behind.
+                for component in 0..registers {
+                    if matches!(
+                        wave.reg(data, lane, component)?,
+                        Value::PartialBits { .. }
+                            | Value::Low16Integer(_)
+                            | Value::PartialBytePair(..)
+                            | Value::PartialHalves(None, _)
+                            | Value::PartialHalves(_, None)
+                    ) {
+                        return Err(wave.fail(
+                            Some(lane),
+                            "buffer DWORD/DWORDX2 store observes undefined data bits",
+                        ));
+                    }
+                }
             }
             addresses[usize::from(lane)] = address;
         }
@@ -6395,7 +6439,10 @@ impl<'a> Interpreter<'a> {
         let gfx950_buffer = self.architecture == AmdArchitecture::Gfx950
             && matches!(
                 memory.operation,
-                MemoryOpcode::BufferLoadDword | MemoryOpcode::BufferStoreDword
+                MemoryOpcode::BufferLoadDword
+                    | MemoryOpcode::BufferStoreDword
+                    | MemoryOpcode::BufferLoadDwordx2
+                    | MemoryOpcode::BufferStoreDwordx2
             );
         let buffer = gfx950_buffer
             || self.architecture == AmdArchitecture::Gfx1250
@@ -6491,7 +6538,13 @@ impl<'a> Interpreter<'a> {
         // VGPR load result is written. Resource-OOB modes cannot fabricate
         // memory effects in the ordinary VectorLoad/Store graph contract.
         let buffer_addresses = if gfx950_buffer {
-            Some(self.gfx950_raw_buffer_addresses(wave, instruction, offset as u64, store)?)
+            Some(self.gfx950_raw_buffer_addresses(
+                wave,
+                instruction,
+                offset as u64,
+                registers,
+                store,
+            )?)
         } else if buffer {
             Some(self.raw_buffer_addresses(
                 wave,
@@ -6868,6 +6921,15 @@ impl<'a> Interpreter<'a> {
                     } else {
                         wave.reg(source_register, lane, source_component)?
                     };
+                    // The tag carries an exact zero-filled low half. Expand
+                    // only when storing, without inferring bits from a real zero.
+                    let value = match value {
+                        Value::HighHalf(high) if width == 4 => {
+                            Value::Halves(self.arena.int(0), high)
+                        }
+                        Value::HighHalf(_) if width == 1 || width == 2 => Value::Bits(0),
+                        value => value,
+                    };
                     let memory = if effective_lds {
                         &mut self.lds
                     } else {
@@ -6967,6 +7029,7 @@ impl<'a> Interpreter<'a> {
                             }
                             Value::Bytes(bytes) => StoredValue::Quad(bytes),
                             Value::PartialHalves(..)
+                            | Value::HighHalf(_)
                             | Value::WidePart { .. }
                             | Value::PredicateWord { .. }
                             | Value::RelocationWord { .. }

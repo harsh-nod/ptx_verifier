@@ -21,6 +21,10 @@
 !/external/hipkittens/corpus/buffer-comparison.json
 !/external/hipkittens/corpus/frontier.json
 !/external/hipkittens/corpus/frontier-audit-20261031.json
+!/external/hipkittens/corpus/vector-comparison-20261031.json
+!/external/hipkittens/corpus/vector-independent-audit-20261031.json
+!/external/hipkittens/corpus/vector-publication-audit-20261031.json
+!/external/hipkittens/corpus/vector-documentation-audit-20261031.json
 /external/output/
 
 # Local architecture validation artifacts

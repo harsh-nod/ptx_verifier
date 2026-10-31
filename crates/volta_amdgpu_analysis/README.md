@@ -96,6 +96,12 @@ EXEC changes must be concrete. Symbolic comparisons may select data through
 supported masks, but cannot control addresses, branches or carry inputs.
 Observing undefined flags or unavailable ABI fields stops execution.
 
+Exact halfword masks and complementary OR operations transport encoded F16/BF16
+data without decoding it as an integer or choosing a floating format. A separate
+high-half value tag records an exactly zero low half; mathematical zero is not
+used to infer cleared bits. Undefined selected halves, overlapping encoded ORs
+and arbitrary floating bitcasts remain unsupported.
+
 Kernel descriptors determine user/system register assignments and LDS limits.
 AMDHSA argument offsets and sizes determine explicit kernarg layout. By-value
 arguments require exact caller-supplied bytes. Partial native loads preserve
@@ -220,13 +226,13 @@ independent of a wider resource bound. See LLVM's pinned
 [readiness/lease controls](../volta_pipeline/tests/gfx1250_raw_buffer_tests.rs).
 
 The selected gfx950 raw-buffer profile supports four-operand
-`buffer_load_dword` / `buffer_store_dword` with plain VGPRs, an SGPR-quad
-resource, scalar offset `0`, `offen`, and an optional unsigned 12-bit byte
-offset. CDNA4 resources retain their 48-bit base and 32-bit byte bound;
+`buffer_load_dword` / `buffer_store_dword` and their `dwordx2` forms with plain
+VGPR data (one word or an aligned pair), an SGPR-quad resource, scalar offset
+`0`, `offen`, and an optional unsigned 12-bit byte offset. CDNA4 resources retain their 48-bit base and 32-bit byte bound;
 stride is ignored without indexing. The finite profile requires linear
 resources with word3 `0x20000`, nonzero DWORD-aligned bounds and aligned
-addresses. Resource suppression, other policies and DWORDX2 remain
-unsupported. Resource checks and configured allocation checks are separate.
+addresses. Resource suppression, other policies and wider DWORDX3/X4 forms
+remain unsupported. Resource checks and configured allocation checks are separate.
 All active addresses are captured before issuing VM memory effects.
 Descriptor/address sources have ordinary readiness obligations, with no
 CDNA5 X lease: the descriptor may be reused immediately after issuance.
@@ -236,6 +242,16 @@ See [CDNA4 §§4.4, 9.1.5–9.1.8 and Table48](https://www.amd.com/content/dam/a
 and the [original N32 source/ABI identity](tests/fixtures/gfx950-raw-buffer-n32.json).
 The source identity describes the complete emitted module and its original
 launch contract; it does not establish verification of other specializations.
+
+The two-word form transfers the low register at the byte address and the high
+register at address + 4, following CDNA4 §12.13 opcodes 21/29. Final DWORD
+alignment is sufficient; no extra 8-byte alignment is assumed. The complete
+4/8-byte transfer, every active lane and every store-data word pass preflight
+before any issue/effect is recorded. DWORDX2 still charges one VM operation,
+with readiness for both destination words and no EXP or X source lease.
+See [pair value/endianness controls](tests/gfx950_raw_buffer_x2.rs),
+[pair readiness and full-output math controls](../volta_pipeline/tests/gfx950_raw_buffer_x2_tests.rs),
+and the [unchanged original N96 source/ABI identities](tests/fixtures/gfx950-raw-buffer-x2.json).
 
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
