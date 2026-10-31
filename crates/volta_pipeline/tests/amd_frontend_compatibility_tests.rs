@@ -3,7 +3,7 @@
 mod native_common;
 
 use volta_amd_analysis::frontend::{ast as upstream, parse::parse_kernel};
-use volta_amd_analysis::{LoweredInstr, lower_kernel};
+use volta_amd_analysis::{InstrId, LoweredInstr, lower_kernel};
 use volta_amdgpu_analysis::frontend::{self, Operand, RegisterClass};
 use volta_equivalence::{EquivOutcome, check_output_equivalence};
 use volta_expr::{ExprArena, SymbolicOutputs};
@@ -108,6 +108,66 @@ fn unchanged_upstream_copy_verifies_all_outputs_across_wave64_boundaries() {
     verify_copy(COPY, &[1, 63, 64, 65, 128, 256]);
 }
 
+#[test]
+fn experimental_copy_outputs_and_empty_amd_graph_do_not_supply_a_safety_proof() {
+    use volta_amd_analysis::{ArrayDef as UpstreamArray, ArrayKind as UpstreamKind};
+
+    let kernel = parse_kernel(COPY, "copy").unwrap();
+    let arrays = [
+        UpstreamArray {
+            name: "x".into(),
+            base: 0x10000,
+            len: 64,
+            kind: UpstreamKind::Input,
+        },
+        UpstreamArray {
+            name: "out".into(),
+            base: 0x20000,
+            len: 64,
+            kind: UpstreamKind::Output,
+        },
+    ];
+    let kernarg: Vec<_> = arrays
+        .iter()
+        .flat_map(|array| array.base.to_le_bytes())
+        .collect();
+    let launch = volta_amd_analysis::WorkgroupLaunch {
+        kernarg_address: 0x1000,
+        workgroup_size: (64, 1, 1),
+    };
+    let result = volta_amd_analysis::analyze(&kernel, &launch, &kernarg, &arrays).unwrap();
+    assert_eq!(result.terminal, volta_amd_analysis::Terminal::Completed);
+    assert_eq!(
+        result.symbolic_outputs.as_ref().unwrap().outputs[0].1.len(),
+        64
+    );
+    assert!(result.graph.events().is_empty());
+    assert_eq!(result.graph.provenance().workgroup_id, (0, 0, 0));
+    assert_eq!(result.graph.provenance().targets, ["gfx950:xnack-"]);
+    let report = volta_graph_check::check_graph(&result.graph);
+    assert!(report.amd.is_some());
+    assert!(matches!(
+        report.conclusion(),
+        GraphConclusion::Unknown { .. }
+    ));
+
+    for target in [
+        "amdgcn-amd-amdhsa--gfx950:xnack-",
+        "amdgcn-amd-amdhsa--gfx1250",
+    ] {
+        let mut provenance = result.graph.provenance().clone();
+        provenance.targets = vec![target.into()];
+        let graph =
+            volta_graph::GraphBuilder::new(provenance).finish(volta_graph::Terminal::Completed);
+        let report = volta_graph_check::check_graph(&graph);
+        assert!(matches!(
+            report.conclusion(),
+            GraphConclusion::Unknown { reasons }
+                if reasons.iter().any(|reason| reason.contains("unsupported or conflicting graph targets"))
+        ));
+    }
+}
+
 fn verify_copy(source: &str, blocks: &[u32]) {
     let module = frontend::parse(source).unwrap();
     for &block in blocks {
@@ -147,12 +207,12 @@ fn upstream_amd_lowering_retains_shift_inputs_and_wait_classes() {
     assert_eq!(lowered.descriptor, parsed.descriptor);
     assert_eq!(lowered.instructions.len(), parsed.instructions.len());
     assert!(matches!(
-        lowered.instructions[1],
+        lowered.instructions[InstrId(1)],
         LoweredInstr::Shl32 { shift: 34, .. }
     ));
     let waits = lowered
         .instructions
-        .iter()
+        .values()
         .filter_map(|instruction| match instruction {
             LoweredInstr::WaitCnt { vmcnt, lgkmcnt } => Some((*vmcnt, *lgkmcnt)),
             _ => None,

@@ -160,6 +160,8 @@ cargo clippy --workspace --all-targets -- -D warnings
 commands are documented beside the relevant tests. Large workload proofs need
 separate capacity planning; see the [full workload runners](tests/gfx1250/full/cpu/README.md).
 To extend an instruction, follow the [development guide](docs/architecture.md#extending-an-instruction).
+The [upstream sync workflow](docs/upstream-sync.md) checks every six hours and
+prepares tested rebases as draft PRs for review.
 
 Generate library documentation with:
 

@@ -2,11 +2,17 @@
 
 use std::collections::BTreeMap;
 
+use id_collections::{IdVec, id_type};
+
+/// An instruction's position in its kernel body.
+#[id_type]
+pub struct InstrId(pub u32);
+
 #[derive(Debug, Clone)]
 pub struct LoweredKernel {
     pub name: String,
     pub target: String,
-    pub instructions: Vec<LoweredInstr>,
+    pub instructions: IdVec<InstrId, LoweredInstr>,
     pub descriptor: BTreeMap<String, u64>,
 }
 
@@ -20,6 +26,11 @@ pub struct Vgpr(pub u8);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LoweredInstr {
+    ScalarLoadDwordx2 {
+        dst: [Sgpr; 2],
+        base: [Sgpr; 2],
+        offset: u32,
+    },
     ScalarLoadDwordx4 {
         dst: [Sgpr; 4],
         base: [Sgpr; 2],
@@ -30,6 +41,11 @@ pub enum LoweredInstr {
         dst: Vgpr,
         src: Vgpr,
         shift: u32,
+    },
+    AddF32 {
+        dst: Vgpr,
+        src0: Vgpr,
+        src1: Vgpr,
     },
     GlobalLoadDword {
         dst: Vgpr,

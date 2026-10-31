@@ -469,14 +469,16 @@ impl CheckLog {
 /// Run every check on `graph`.
 pub fn check_graph(graph: &EventGraph) -> GraphReport {
     let targets = &graph.provenance().targets;
-    let amd_target = targets.iter().any(|t| t.starts_with("gfx"));
+    let amd_target = targets
+        .iter()
+        .any(|t| t.starts_with("gfx") || t.starts_with("amdgcn-"));
     if amd_target || !graph.amd_events().is_empty() {
         let supported = volta_graph::AmdArchitecture::from_targets(targets).is_some();
         return GraphReport {
             terminal:graph.terminal().clone(),
             amd:supported.then(||crate::amdgpu::check_amdgpu(graph)),
             applicable:Property::AMD.to_vec(),
-            selection_error:(!supported).then(||format!("unsupported or conflicting graph targets {targets:?}; AMD checks require gfx942 or gfx950 with recognized, nonconflicting target features")),
+            selection_error:(!supported).then(||format!("unsupported or conflicting graph targets {targets:?}; AMD checks require a supported native gfx target with recognized, nonconflicting target features")),
             named_barrier_epoch:not_applicable(),mbarrier_epoch:not_applicable(),mbarrier_ordering:not_applicable(),
             memory_conflict:not_applicable(),proxy_order:not_applicable(),tensor_order:not_applicable(),resource_lifetime:not_applicable(),
             allocation_order:not_applicable(),allocation_permit:not_applicable(),mbarrier_release_order:not_applicable(),

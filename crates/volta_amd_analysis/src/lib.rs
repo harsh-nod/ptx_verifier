@@ -2,13 +2,13 @@
 
 pub mod frontend;
 
-// Evaluator helpers are exercised by unit tests; the production API is parsing/lowering.
-#[cfg(test)]
+mod analysis;
 mod error;
-#[cfg(test)]
 mod eval;
 mod ir;
 mod lower;
 
-pub use ir::{LoweredInstr, LoweredKernel, Sgpr, Vgpr};
+pub use analysis::{AnalysisError, AnalysisResult, analyze};
+pub use eval::{ArrayDef, ArrayKind, EvalError, Terminal, WaveId, WorkgroupLaunch};
+pub use ir::{InstrId, LoweredInstr, LoweredKernel, Sgpr, Vgpr};
 pub use lower::{LowerError, lower_kernel};

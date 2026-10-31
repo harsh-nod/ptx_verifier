@@ -1,6 +1,6 @@
 use crate::frontend::ast::{Counter, Instruction, Kernel, Operand, RegFile};
 use crate::frontend::parse::parse_kernel;
-use crate::ir::{LoweredInstr, Sgpr, Vgpr};
+use crate::ir::{InstrId, LoweredInstr, Sgpr, Vgpr};
 
 use super::{LowerError, lower_instruction, lower_kernel};
 
@@ -14,7 +14,7 @@ fn lowers_the_compiled_copy_kernel() {
     assert_eq!(lowered.target, parsed.target);
     assert_eq!(lowered.descriptor, parsed.descriptor);
     assert_eq!(
-        lowered.instructions,
+        lowered.instructions.into_vec(),
         [
             LoweredInstr::ScalarLoadDwordx4 {
                 dst: [Sgpr(0), Sgpr(1), Sgpr(2), Sgpr(3)],
@@ -106,6 +106,40 @@ fn preserves_shift_input_and_combined_wait_limits() {
 }
 
 #[test]
+fn lowers_pair_argument_loads_and_real_addition_with_register_roles() {
+    let load = instr("s_load_dwordx2", &[sgpr(2, 3), sgpr(0, 1), Operand::Imm(8)]);
+    assert_eq!(
+        lower_instruction(&load),
+        Ok(LoweredInstr::ScalarLoadDwordx2 {
+            dst: [Sgpr(2), Sgpr(3)],
+            base: [Sgpr(0), Sgpr(1)],
+            offset: 8,
+        })
+    );
+    let add = instr("v_add_f32_e32", &[vgpr(3), vgpr(1), vgpr(2)]);
+    assert_eq!(
+        lower_instruction(&add),
+        Ok(LoweredInstr::AddF32 {
+            dst: Vgpr(3),
+            src0: Vgpr(1),
+            src1: Vgpr(2),
+        })
+    );
+    for invalid in [
+        instr("s_load_dwordx2", &[sgpr(1, 2), sgpr(0, 1), Operand::Imm(0)]),
+        instr(
+            "s_load_dwordx2",
+            &[sgpr(0, 1), sgpr(0, 1), Operand::Imm(0x100000)],
+        ),
+        instr("v_add_f32_e32", &[sgpr(0, 0), vgpr(1), vgpr(2)]),
+        instr("v_add_f32_e32", &[vgpr(0), sgpr(1, 1), vgpr(2)]),
+        instr("v_add_f32_e32", &[vgpr(0), vgpr(1), vgpr(256)]),
+    ] {
+        assert!(lower_instruction(&invalid).is_err(), "{invalid:?}");
+    }
+}
+
+#[test]
 fn rejects_unsupported_operand_forms() {
     use Operand::Imm;
 
@@ -172,7 +206,7 @@ fn rejects_unknown_opcodes_wrong_arity_and_duplicate_counters() {
         assert!(lower_instruction(&instruction).is_err(), "{instruction:?}");
     }
     assert_eq!(
-        lower_instruction(&instr("s_load_dwordx2", &[sgpr(0, 1), sgpr(0, 1), Imm(0)])),
+        lower_instruction(&instr("s_load_dwordx8", &[sgpr(0, 7), sgpr(0, 1), Imm(0)])),
         Err("unsupported instruction")
     );
     assert_eq!(
@@ -232,7 +266,7 @@ fn preserves_shift_input_and_combined_wait_limits_through_kernel() {
     ];
     let lowered = lower_kernel(&kernel).unwrap();
     assert_eq!(
-        lowered.instructions[1],
+        lowered.instructions[InstrId(1)],
         LoweredInstr::Shl32 {
             dst: Vgpr(0),
             src: Vgpr(7),
@@ -240,7 +274,7 @@ fn preserves_shift_input_and_combined_wait_limits_through_kernel() {
         }
     );
     assert_eq!(
-        lowered.instructions[2],
+        lowered.instructions[InstrId(2)],
         LoweredInstr::WaitCnt {
             vmcnt: Some(63),
             lgkmcnt: Some(15),
