@@ -1,0 +1,21 @@
+  time: 0.003s  instructions: 10  block syncs: 0  warp syncs: 0
+  output 'out': 16 element(s) written
+    ... (16 more)
+kernel: graph verification
+  selected workgroup: (0, 0, 0); other workgroups and inter-workgroup conflicts are outside this result
+  AMD trace completeness (native AMD graph contract)      PASS
+  AMD wait and register readiness (target-selected counters and register dependencies) PASS
+  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS
+  AMD memory-conflict freedom (AMD completed-effect happens-before) FAIL
+      MemoryConflict { kind: WriteWrite, location: ByteLocation { space: Global, addr: 131072 }, earlier: EventId(275), later: EventId(279) }
+        e275 t0           line 3093: global_store_dwordx4 v4, v[0:3], s[4:5]
+        e279 t1           line 3093: global_store_dwordx4 v4, v[0:3], s[4:5]
+      MemoryConflict { kind: WriteWrite, location: ByteLocation { space: Global, addr: 131076 }, earlier: EventId(276), later: EventId(280) }
+        e276 t0           line 3093: global_store_dwordx4 v4, v[0:3], s[4:5]
+        e280 t1           line 3093: global_store_dwordx4 v4, v[0:3], s[4:5]
+      MemoryConflict { kind: WriteWrite, location: ByteLocation { space: Global, addr: 131080 }, earlier: EventId(277), later: EventId(281) }
+        e277 t0           line 3093: global_store_dwordx4 v4, v[0:3], s[4:5]
+        e281 t1           line 3093: global_store_dwordx4 v4, v[0:3], s[4:5]
+      ... (1917 more)
+GRAPH VERIFICATION: REJECTED (no equivalence check requested)
+  AMD memory-conflict freedom failed
