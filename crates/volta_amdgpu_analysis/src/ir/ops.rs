@@ -201,6 +201,7 @@ operation_set! { AluOpcode {
     VMadI32I24 => "v_mad_i32_i24",
     VMadU32 => "v_mad_u32",
     VMadU32U24 => "v_mad_u32_u24",
+    VMadI64I32 => "v_mad_i64_i32",
     VMadU64U32 => "v_mad_u64_u32",
     VMax3F16 => "v_max3_f16",
     VMax3F32 => "v_max3_f32",

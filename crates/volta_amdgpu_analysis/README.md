@@ -143,6 +143,22 @@ BITOP3 results retain unknown upper16 bits conservatively. Native encoding,
 EXEC and undefined-bit controls are documented in the
 [selected instruction contracts](../../docs/amd-semantic-audit.md#compiler-driven-narrow-integer-forms).
 
+The selected gfx950 `v_mad_i64_i32` profile multiplies signed 32-bit factors
+and adds a signed 64-bit value. It writes the low 64 bits to a VGPR pair and
+bit 64 to each active lane's SGPR-pair/VCC mask bit; inactive vector data is
+preserved and inactive mask bits are cleared. This follows
+[CDNA4 ISA §12.11](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
+and LLVM's pinned
+[VOP3B operand profile](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/VOP3Instructions.td).
+Bare and `_e64` encodings support unmodified data registers and integer inline
+constants from −16 through 64, with at most one distinct scalar data source.
+Observed source words must be concrete and defined. Source modifiers, E32,
+clamp and other targets remain outside this profile. The
+[numerical controls](tests/gfx950_signed_mad.rs) distinguish bit 64 from signed
+overflow, while [pipeline controls](../volta_pipeline/tests/gfx950_signed_mad_tests.rs)
+check source readiness independently. This form occurs in HipKittens address
+calculations; complete application support also depends on later instructions.
+
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
 subnormal behavior are outside that model. Encoded F16, BF16 and FP8 transport
