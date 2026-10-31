@@ -1,5 +1,9 @@
 # Complete HipKittens source inventory
 
+[The compiler/verifier frontier](frontier.md) joins every definition and native
+source probe to its immutable compiler attempts, complete-module parser status
+and separately revision-labeled launch evidence.
+
 [inventory.json](inventory.json) covers every tracked C/C++/HIP source in public
 [HipKittens revision 8cde3dd](https://github.com/HazyResearch/HipKittens/tree/8cde3dd146bd1c4be78023b582c1f4375c48489f).
 It records all literal `__global__` definitions and declarations, including archive,
