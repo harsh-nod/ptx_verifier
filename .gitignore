@@ -18,6 +18,7 @@
 !/external/hipkittens/corpus/inventory.json
 !/external/hipkittens/corpus/baseline.json
 !/external/hipkittens/corpus/vec-add1-baseline.json
+!/external/hipkittens/corpus/buffer-comparison.json
 /external/output/
 
 # Local architecture validation artifacts
