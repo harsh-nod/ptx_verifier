@@ -118,6 +118,13 @@ pub(crate) struct RunArtifacts {
 }
 
 #[derive(Debug, Clone)]
+struct CallFrame {
+    call_pc: usize,
+    target: usize,
+    continuation: usize,
+}
+
+#[derive(Debug, Clone)]
 struct Wave {
     id: u32,
     width: u32,
@@ -144,6 +151,7 @@ struct Wave {
     generation: u32,
     signal_generation: Option<u32>,
     exited: bool,
+    calls: Vec<CallFrame>,
 }
 impl Wave {
     fn new(id: u32, lanes: u32, width: u32) -> Self {
@@ -176,6 +184,7 @@ impl Wave {
             generation: 0,
             signal_generation: None,
             exited: false,
+            calls: Vec::new(),
         }
     }
     fn fail(&self, lane: Option<u8>, what: impl Into<String>) -> EvalError {
@@ -1502,6 +1511,18 @@ impl<'a> Interpreter<'a> {
         }
         let mut reads = Vec::new();
         let mut writes = Vec::new();
+        match instruction.operation() {
+            Operation::Call(_) => {
+                add(&operands[0], u64::MAX, &mut writes);
+                add(&operands[1], u64::MAX, &mut reads);
+                return (reads, writes);
+            }
+            Operation::Return(_) => {
+                add(&operands[0], u64::MAX, &mut reads);
+                return (reads, writes);
+            }
+            _ => {}
+        }
         let semantic_name = if instruction.source().encoding == Encoding::Sdwa {
             std::borrow::Cow::Borrowed(instruction.mnemonic().as_str())
         } else {
@@ -1762,6 +1783,12 @@ impl<'a> Interpreter<'a> {
         masks
     }
     fn step(&mut self, wave: &mut Wave) -> Result<(), EvalError> {
+        let function_start = wave.calls.last().map_or(0, |frame| frame.target);
+        if !self.program.functions.iter().any(|function| {
+            function.start == function_start && function.start <= wave.pc && wave.pc < function.end
+        }) {
+            return Err(wave.fail(None, "execution escaped its active source function"));
+        }
         let instruction = self
             .program
             .instructions
@@ -1858,6 +1885,14 @@ impl<'a> Interpreter<'a> {
             }
         }
         match instruction.operation() {
+            Operation::Call(call) => {
+                self.call(wave, call)?;
+                return Ok(());
+            }
+            Operation::Return(ret) => {
+                self.return_from_call(wave, ret)?;
+                return Ok(());
+            }
             Operation::Memory(_) => self.memory_instruction(wave, &instruction)?,
             Operation::Wait(_) => self.wait(wave, &instruction)?,
             Operation::Barrier(barrier) if self.architecture == AmdArchitecture::Gfx1250 => {
@@ -1939,6 +1974,9 @@ impl<'a> Interpreter<'a> {
                     if self.architecture == AmdArchitecture::Gfx1250
                         && instruction.operands() == [Operand::Integer(3)] => {}
                 ControlOperation::EndProgram => {
+                    if !wave.calls.is_empty() {
+                        return Err(wave.fail(None, "device function cannot execute s_endpgm"));
+                    }
                     // CDNA4 S_ENDPGM drains all memory counters before the wave
                     // terminates and ceases participating in workgroup barriers.
                     if self.architecture != AmdArchitecture::Gfx1250 {
@@ -2198,7 +2236,7 @@ impl<'a> Interpreter<'a> {
                 Some(lane),
                 "opaque shared aperture cannot be used as integer data",
             )),
-            Value::RelocationWord { .. } => Err(wave.fail(
+            Value::RelocationWord { .. } | Value::CodeWord { .. } => Err(wave.fail(
                 Some(lane),
                 "opaque PC relocation cannot be used as integer data",
             )),
@@ -3033,6 +3071,7 @@ impl<'a> Interpreter<'a> {
             Value::Input(_)
             | Value::PredicateWord { .. }
             | Value::RelocationWord { .. }
+            | Value::CodeWord { .. }
             | Value::SharedApertureHi
             | Value::PartialBits { .. }
             | Value::NarrowInt { .. }
@@ -3129,7 +3168,9 @@ impl<'a> Interpreter<'a> {
     ) -> Result<(), EvalError> {
         let semantic_name = operation.name();
         let name = semantic_name.as_ref();
-        if self.module_address_scalar(wave, instruction)? {
+        if self.code_address_scalar(wave, instruction)?
+            || self.module_address_scalar(wave, instruction)?
+        {
             return Ok(());
         }
         if matches!(name, "s_add_nc_u64" | "s_mul_u64") {
@@ -3892,6 +3933,149 @@ impl<'a> Interpreter<'a> {
             )?;
         }
         Ok(())
+    }
+    /// Snapshot both source words before writing either saved-PC word. Physical
+    /// register/EXEC/SCC/M0/counter state is shared; a call supplies no wait.
+    fn call(&self, wave: &mut Wave, call: &CallInstruction) -> Result<(), EvalError> {
+        if self.architecture != AmdArchitecture::Gfx950 {
+            return Err(wave.fail(None, "device calls require gfx950"));
+        }
+        let low = wave.reg(call.target, 0, 0)?;
+        let high = wave.reg(call.target, 0, 1)?;
+        let Value::CodeWord {
+            target,
+            origin,
+            returning: false,
+            high: false,
+        } = low
+        else {
+            return Err(wave.fail(None, "call target is not an approved opaque code address"));
+        };
+        if high
+            != (Value::CodeWord {
+                target,
+                origin,
+                returning: false,
+                high: true,
+            })
+            || self.program.call_targets.get(&wave.pc) != Some(&(target as usize))
+            || !self
+                .program
+                .code_address_sequences
+                .get(&(origin as usize))
+                .is_some_and(|sequence| {
+                    sequence.target_pc == target as usize && sequence.register_pair == call.target
+                })
+            || !self
+                .program
+                .functions
+                .iter()
+                .skip(1)
+                .any(|function| function.start == target as usize)
+            || wave.calls.len() >= self.program.functions.len()
+        {
+            return Err(wave.fail(None, "invalid code-address identity, target or call depth"));
+        }
+        let continuation = wave
+            .pc
+            .checked_add(1)
+            .ok_or_else(|| wave.fail(None, "return PC overflow"))?;
+        let frame = CallFrame {
+            call_pc: wave.pc,
+            target: target as usize,
+            continuation,
+        };
+        let saved = |high| Value::CodeWord {
+            target: continuation as u32,
+            origin: wave.pc as u32,
+            returning: true,
+            high,
+        };
+        let lo = saved(false);
+        let hi = saved(true);
+        wave.put(call.return_address, 0, 0, lo)?;
+        wave.put(call.return_address, 0, 1, hi)?;
+        wave.calls.push(frame);
+        wave.pc = target as usize;
+        Ok(())
+    }
+    fn return_from_call(&self, wave: &mut Wave, ret: &ReturnInstruction) -> Result<(), EvalError> {
+        let frame = wave
+            .calls
+            .last()
+            .ok_or_else(|| wave.fail(None, "return without a caller"))?;
+        let saved = |high| Value::CodeWord {
+            target: frame.continuation as u32,
+            origin: frame.call_pc as u32,
+            returning: true,
+            high,
+        };
+        if wave.reg(ret.target, 0, 0)? != saved(false) || wave.reg(ret.target, 0, 1)? != saved(true)
+        {
+            return Err(wave.fail(
+                None,
+                "return address does not match the active caller continuation",
+            ));
+        }
+        let continuation = frame.continuation;
+        wave.calls.pop();
+        wave.pc = continuation;
+        Ok(())
+    }
+    fn code_address_scalar(
+        &self,
+        wave: &mut Wave,
+        instruction: &Instruction,
+    ) -> Result<bool, EvalError> {
+        let sequence = (0..=2).find_map(|stage| {
+            wave.pc.checked_sub(stage).and_then(|anchor| {
+                self.program
+                    .code_address_sequences
+                    .get(&anchor)
+                    .map(|sequence| (stage, sequence))
+            })
+        });
+        let Some((stage, sequence)) = sequence else {
+            return Ok(false);
+        };
+        if instruction.mnemonic() != GlobalAddressForm::SplitRel32.mnemonics()[stage] {
+            return Err(wave.fail(None, "invalid approved code-address stage"));
+        }
+        let anchor = sequence.anchor_pc as u32;
+        let pair = sequence.register_pair;
+        let anchor_word = |high| Value::RelocationWord { anchor, high };
+        let code_word = |high| Value::CodeWord {
+            target: sequence.target_pc as u32,
+            origin: anchor,
+            returning: false,
+            high,
+        };
+        match stage {
+            0 => {
+                wave.put(pair, 0, 0, anchor_word(false))?;
+                wave.put(pair, 0, 1, anchor_word(true))?;
+            }
+            1 => {
+                if wave.reg(pair, 0, 0)? != anchor_word(false)
+                    || wave.reg(pair, 0, 1)? != anchor_word(true)
+                {
+                    return Err(wave.fail(None, "code-address low stage lost its opaque anchor"));
+                }
+                wave.put(pair, 0, 0, code_word(false))?;
+                wave.clear_scc();
+            }
+            2 => {
+                if wave.reg(pair, 0, 0)? != code_word(false)
+                    || wave.reg(pair, 0, 1)? != anchor_word(true)
+                {
+                    return Err(wave.fail(None, "code-address high stage lost its opaque anchor"));
+                }
+                wave.put(pair, 0, 1, code_word(true))?;
+                wave.clear_scc();
+            }
+            _ => unreachable!(),
+        }
+        Ok(true)
     }
     fn module_address_scalar(
         &self,
@@ -7075,6 +7259,7 @@ impl<'a> Interpreter<'a> {
                             | Value::WidePart { .. }
                             | Value::PredicateWord { .. }
                             | Value::RelocationWord { .. }
+                            | Value::CodeWord { .. }
                             | Value::SharedApertureHi
                             | Value::PartialBits { .. }
                             | Value::PartialBytePair(..)
@@ -7246,12 +7431,19 @@ impl<'a> Interpreter<'a> {
     /// Treat each maximal contiguous SMEM run as one clause conservatively.
     fn validate_smem_clause(&self, wave: &Wave) -> Result<(), EvalError> {
         let mut start = wave.pc;
-        while start > 0 && self.program.instructions[start - 1].opcode() == Opcode::ScalarMemory {
+        let function = self
+            .program
+            .functions
+            .iter()
+            .find(|function| function.start <= wave.pc && wave.pc < function.end)
+            .ok_or_else(|| wave.fail(None, "SMEM outside its active source function"))?;
+        while start > function.start
+            && self.program.instructions[start - 1].opcode() == Opcode::ScalarMemory
+        {
             start -= 1;
         }
         let mut end = wave.pc + 1;
-        while end < self.program.instructions.len()
-            && self.program.instructions[end].opcode() == Opcode::ScalarMemory
+        while end < function.end && self.program.instructions[end].opcode() == Opcode::ScalarMemory
         {
             end += 1;
         }

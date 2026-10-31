@@ -206,12 +206,23 @@ fn entry_bodies_are_never_skipped_for_calls_or_unreachable_instructions() {
             format!("s_branch .Lend\n{instruction}\n.Lend:\ns_endpgm"),
         ] {
             let source = module("gfx950", &format!("{}{HELPER}", entry(&body)));
-            let error = frontend::parse(&source).unwrap_err();
-            assert!(
-                error.message.contains("unsupported"),
-                "{instruction}: {error}"
-            );
-            assert!(source[error.span.start..error.span.end].contains(instruction));
+            match frontend::parse(&source) {
+                Ok(module) => {
+                    // Recognized calls still require a validated reaching code
+                    // definition; an entry cannot return without a caller.
+                    assert!(
+                        lower::lower_module_kernel(&module, "k").is_err(),
+                        "{instruction}"
+                    );
+                }
+                Err(error) => {
+                    assert!(
+                        error.message.contains("unsupported"),
+                        "{instruction}: {error}"
+                    );
+                    assert!(source[error.span.start..error.span.end].contains(instruction));
+                }
+            }
         }
     }
 }

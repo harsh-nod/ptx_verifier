@@ -33,6 +33,19 @@ pub struct GlobalAddressSequence {
     pub form: GlobalAddressForm,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FunctionRange {
+    pub name: String,
+    pub start: usize,
+    pub end: usize,
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CodeAddressSequence {
+    pub anchor_pc: usize,
+    pub register_pair: Register,
+    pub target_pc: usize,
+}
+
 #[derive(Debug, Clone)]
 pub struct LoweredKernel {
     pub name: String,
@@ -43,4 +56,9 @@ pub struct LoweredKernel {
     /// Anchor-PC keyed exact native PC-relative constructions. Original
     /// instructions, PCs and register/SCC side effects remain present.
     pub global_address_sequences: BTreeMap<usize, GlobalAddressSequence>,
+    /// Entry first, then the bounded transitive helper closure. No-call PCs stay unchanged.
+    pub functions: Vec<FunctionRange>,
+    pub code_address_sequences: BTreeMap<usize, CodeAddressSequence>,
+    /// Each accepted direct call is tied to its reaching code-address definition.
+    pub call_targets: BTreeMap<usize, usize>,
 }

@@ -31,7 +31,7 @@ impl Error for ParseError {}
 /// Parse native gfx942/gfx950/gfx1250 assembly without executing it.
 ///
 /// Descriptors and AMDHSA metadata identify entry kernels. Explicitly declared,
-/// bounded non-entry functions are excluded; calls are unsupported. Every entry
+/// bounded non-entry functions are retained separately. Every entry
 /// instruction is checked, including instructions on unreachable paths. Without
 /// entry declarations, all function bodies retain the strict handwritten dialect.
 pub fn parse(source: &str) -> Result<Module, ParseError> {
@@ -175,10 +175,6 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
             });
         }
     }
-    parser
-        .module
-        .kernels
-        .retain(|kernel| !skipped.contains(&kernel.name));
     let architecture = crate::target::Architecture::from_target(
         parser.module.target.as_deref().unwrap_or("gfx950"),
     )
@@ -186,37 +182,32 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
         message: "unsupported AMD target".into(),
         span: SourceSpan::default(),
     })?;
-    for kernel in &mut parser.module.kernels {
-        if let Some(body) = parser.bodies.get(&kernel.name) {
-            for (line, span) in &body.instructions {
-                let normalized = instr::resolve_register_indices(line, &parser.module.constants)
-                    .map_err(|message| ParseError {
-                        message,
-                        span: *span,
-                    })?;
-                kernel.instructions.push(instr::parse_instruction(
-                    &normalized,
-                    *span,
-                    architecture,
-                )?);
+    let mut entries = Vec::new();
+    for mut kernel in std::mem::take(&mut parser.module.kernels) {
+        let name = kernel.name.clone();
+        let parsed = parse_body(
+            &mut kernel,
+            parser.bodies.get(&name),
+            &parser.module.constants,
+            architecture,
+        );
+        if skipped.contains(&kernel.name) {
+            let refusal = parsed.err().map(|error| (error.message, error.span));
+            // A failed prefix is never an executable helper body.
+            if refusal.is_some() {
+                kernel.instructions.clear();
             }
+            let span = parser.bodies[&kernel.name].span;
+            parser.module.functions.push(super::ast::Function {
+                name: kernel.name,
+                instructions: kernel.instructions,
+                labels: kernel.labels,
+                span,
+                refusal,
+            });
+            continue;
         }
-    }
-    for kernel in &mut parser.module.kernels {
-        for instruction in &mut kernel.instructions {
-            if instruction.opcode == super::Opcode::Branch {
-                continue;
-            }
-            for operand in &mut instruction.operands {
-                if let super::Operand::Symbol(name) = operand
-                    && let Some(value) = parser.module.constants.get(name)
-                {
-                    *operand = super::Operand::Integer(*value);
-                }
-            }
-            instr::validate_control(instruction)?;
-            instr::normalize_f64_sources(instruction)?;
-        }
+        parsed?;
         // Do not turn a physical fallthrough into an implicit return when
         // excluding another function's bytes. Branch destinations are still
         // resolved strictly within this kernel by lowering.
@@ -233,7 +224,9 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
                 span: kernel.instructions.last().unwrap().span,
             });
         }
+        entries.push(kernel);
     }
+    parser.module.kernels = entries;
     crate::target::validate(&parser.module)?;
     if parser.module.kernels.is_empty() {
         return Err(ParseError {
@@ -251,6 +244,41 @@ pub fn parse_module(source: &str) -> Result<Module, ParseError> {
         validate_descriptor(kernel)?;
     }
     Ok(parser.module)
+}
+
+fn parse_body(
+    kernel: &mut Kernel,
+    body: Option<&FunctionBody>,
+    constants: &BTreeMap<String, i64>,
+    architecture: crate::target::Architecture,
+) -> Result<(), ParseError> {
+    if let Some(body) = body {
+        for (line, span) in &body.instructions {
+            let normalized =
+                instr::resolve_register_indices(line, constants).map_err(|message| ParseError {
+                    message,
+                    span: *span,
+                })?;
+            kernel
+                .instructions
+                .push(instr::parse_instruction(&normalized, *span, architecture)?);
+        }
+    }
+    for instruction in &mut kernel.instructions {
+        if instruction.opcode == super::Opcode::Branch {
+            continue;
+        }
+        for operand in &mut instruction.operands {
+            if let super::Operand::Symbol(name) = operand
+                && let Some(value) = constants.get(name)
+            {
+                *operand = super::Operand::Integer(*value);
+            }
+        }
+        instr::validate_control(instruction)?;
+        instr::normalize_f64_sources(instruction)?;
+    }
+    Ok(())
 }
 
 struct Parser {

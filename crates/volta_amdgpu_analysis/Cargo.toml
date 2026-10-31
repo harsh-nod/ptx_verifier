@@ -19,3 +19,4 @@ serde_yaml = "0.9"
 [dev-dependencies]
 volta_spec.workspace = true
 volta_equivalence.workspace = true
+volta_graph_check.workspace = true

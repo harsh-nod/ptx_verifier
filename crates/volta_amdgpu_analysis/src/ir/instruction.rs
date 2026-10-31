@@ -644,6 +644,21 @@ pub enum Operation {
     Branch(BranchInstruction),
     Barrier(BarrierInstruction),
     Control(ControlInstruction),
+    Call(CallInstruction),
+    Return(ReturnInstruction),
+}
+
+/// An actual scalar code transfer; arguments retain exact dependency roles.
+#[derive(Debug, Clone, PartialEq)]
+pub struct CallInstruction {
+    pub return_address: Register,
+    pub target: Register,
+    arguments: Arguments,
+}
+#[derive(Debug, Clone, PartialEq)]
+pub struct ReturnInstruction {
+    pub target: Register,
+    arguments: Arguments,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -707,6 +722,8 @@ impl Instruction {
             Operation::Matrix(v) => v.operands(),
             Operation::Barrier(v) => v.arguments.slice(),
             Operation::Control(v) => v.operands(),
+            Operation::Call(v) => v.arguments.slice(),
+            Operation::Return(v) => v.arguments.slice(),
             Operation::Branch(_) | Operation::Wait(_) | Operation::Dual { .. } => &[],
         }
     }
@@ -728,7 +745,7 @@ impl Instruction {
             Operation::Wait(_) => Opcode::Wait,
             Operation::Branch(_) => Opcode::Branch,
             Operation::Barrier(_) => Opcode::Barrier,
-            Operation::Control(_) => Opcode::Control,
+            Operation::Control(_) | Operation::Call(_) | Operation::Return(_) => Opcode::Control,
         }
     }
     pub fn semantic_name(&self) -> Cow<'_, str> {
@@ -809,6 +826,29 @@ impl Instruction {
                 },
                 arguments: arguments()?,
             }),
+            Opcode::Control if stem == "s_swappc_b64" => {
+                let [
+                    frontend::Operand::Register(return_address),
+                    frontend::Operand::Register(target),
+                ] = source.operands.as_slice()
+                else {
+                    return Err("device call requires two SGPR pairs".into());
+                };
+                Operation::Call(CallInstruction {
+                    return_address: *return_address,
+                    target: *target,
+                    arguments: arguments()?,
+                })
+            }
+            Opcode::Control if stem == "s_setpc_b64" => {
+                let [frontend::Operand::Register(target)] = source.operands.as_slice() else {
+                    return Err("device return requires an SGPR pair".into());
+                };
+                Operation::Return(ReturnInstruction {
+                    target: *target,
+                    arguments: arguments()?,
+                })
+            }
             Opcode::Control => Operation::Control(ControlInstruction {
                 operation: match stem {
                     "s_endpgm" => ControlOperation::EndProgram,

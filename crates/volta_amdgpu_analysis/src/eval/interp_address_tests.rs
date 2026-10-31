@@ -19,6 +19,9 @@ fn program() -> LoweredKernel {
         args: Vec::new(),
         globals: Vec::new(),
         global_address_sequences: BTreeMap::new(),
+        functions: Vec::new(),
+        code_address_sequences: BTreeMap::new(),
+        call_targets: BTreeMap::new(),
     }
 }
 

@@ -1,6 +1,14 @@
 use super::*;
 use crate::frontend;
 
+fn entry_range(kernel: &Kernel) -> Vec<crate::ir::FunctionRange> {
+    vec![crate::ir::FunctionRange {
+        name: kernel.name.clone(),
+        start: 0,
+        end: kernel.instructions.len(),
+    }]
+}
+
 fn program(body: &str) -> String {
     format!(
         ".amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n.text\n.type copy,@function\ncopy:\n{body}\n.size copy, .-copy\n"
@@ -205,6 +213,7 @@ fn native_rel64_preserves_source_pcs_and_requires_module_globals_and_target_gate
         kernel,
         &module.globals,
         crate::target::Architecture::Gfx1250,
+        entry_range(kernel),
     )
     .unwrap();
     assert_eq!(lowered.instructions.len(), kernel.instructions.len());
@@ -219,7 +228,13 @@ fn native_rel64_preserves_source_pcs_and_requires_module_globals_and_target_gate
     assert_eq!(sequence.form.mnemonics().len(), 2);
     assert!(lower_kernel(kernel).is_err());
     assert!(
-        lower_with_globals(kernel, &module.globals, crate::target::Architecture::Gfx950).is_err()
+        lower_with_globals(
+            kernel,
+            &module.globals,
+            crate::target::Architecture::Gfx950,
+            entry_range(kernel)
+        )
+        .is_err()
     );
 }
 
@@ -263,7 +278,8 @@ fn native_rel64_rejects_unbounded_mismatched_and_branch_entered_profiles() {
             lower_with_globals(
                 &module.kernels[0],
                 &module.globals,
-                crate::target::Architecture::Gfx1250
+                crate::target::Architecture::Gfx1250,
+                entry_range(&module.kernels[0]),
             )
             .is_err(),
             "mutation {mutation}"
