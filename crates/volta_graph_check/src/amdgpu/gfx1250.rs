@@ -169,7 +169,7 @@ fn vector_tuple(registers: &[AmdRegister], count: usize) -> bool {
         })
 }
 
-fn contract(graph: &EventGraph) -> AmdTraceResult {
+fn contract(graph: &EventGraph, prefix: bool) -> AmdTraceResult {
     if let Err(defects) = graph.validate() {
         return PropertyResult::Unknown(
             defects
@@ -689,7 +689,7 @@ fn contract(graph: &EventGraph) -> AmdTraceResult {
             "completed gfx1250 trace requires an S_ENDPGM instruction for every wave",
         ));
     }
-    if waves == 0 || seen.iter().any(|seen| !seen) {
+    if waves == 0 || !prefix && seen.iter().any(|seen| !seen) {
         unresolved.push(Unresolved::global(
             "every launched gfx1250 wave requires instruction/register records",
         ));
@@ -991,12 +991,12 @@ fn wait(counter: AmdCounter, threshold: u16, pending: &[usize], operations: &mut
         .collect();
     // SMEM completion/translation may return out of order. A partial count does
     // not establish which scalar destination or replay source has retired.
-    if threshold != 0
-        && (counter == AmdCounter::Km
-            || counter == AmdCounter::X
-                && selected
-                    .iter()
-                    .any(|&i| operations[i].class == AmdMemoryClass::ScalarLoad))
+    if counter == AmdCounter::Km && !super::early_readiness::km_wait_completes(threshold)
+        || threshold != 0
+            && counter == AmdCounter::X
+            && selected
+                .iter()
+                .any(|&i| operations[i].class == AmdMemoryClass::ScalarLoad)
     {
         return;
     }
@@ -1037,7 +1037,15 @@ impl WmmaOperation {
 }
 
 pub(super) fn check(graph: &EventGraph) -> AmdReport {
-    let trace = contract(graph);
+    check_with_scope(graph, false)
+}
+
+pub(super) fn check_prefix(graph: &EventGraph) -> AmdReport {
+    check_with_scope(graph, true)
+}
+
+fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
+    let trace = contract(graph, prefix);
     if trace.verdict() != Verdict::Pass {
         return AmdReport {
             trace,
@@ -1058,6 +1066,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     let mut operations = Vec::<Operation>::new();
     let mut issue_index = HashMap::new();
     let mut hazards = Vec::new();
+    let mut scalar_readiness = super::early_readiness::ScalarReadinessState::default();
     let mut unresolved = Vec::new();
     let mut barriers = HashMap::<(i16, u32), HashMap<usize, Vec<u32>>>::new();
     let mut signals = vec![None; waves];
@@ -1115,6 +1124,7 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     }
     for record in graph.amd_events() {
         let wave = record.wave as usize;
+        hazards.extend(scalar_readiness.observe(record));
         execution_clocks[wave][wave] += 1;
         if let Some((object, phase, _)) = blocked[wave]
             && !matches!(record.kind, AmdEventKind::SplitBarrierRelease { barrier, generation } if (barrier, generation) == (object, phase))
@@ -1271,7 +1281,10 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
                     if complete(op) {
                         continue;
                     }
-                    for reg in reads {
+                    for reg in reads
+                        .iter()
+                        .filter(|_| op.class != AmdMemoryClass::ScalarLoad)
+                    {
                         if op.destinations.iter().any(|d| d.overlaps(*reg)) {
                             hazards.push(AmdRegisterHazard {
                                 issue: op.event,

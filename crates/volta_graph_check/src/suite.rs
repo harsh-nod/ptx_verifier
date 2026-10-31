@@ -72,7 +72,8 @@ pub enum GraphConclusion {
         failed: Vec<PropertySummary>,
         deadlock: Option<Deadlock>,
     },
-    /// Nothing failed, but these obligations are unresolved or the trace was aborted.
+    /// Obligations are unresolved, or an observer-stopped prefix requires a
+    /// separately validated certificate even when a per-property finding exists.
     Unknown { reasons: Vec<String> },
 }
 
@@ -338,6 +339,23 @@ impl GraphReport {
     }
 
     pub fn conclusion(&self) -> GraphConclusion {
+        // A generic observer stop supplies no certified rejection. Keep its
+        // per-property diagnostics, but only the pipeline's independently
+        // validated prefix wrapper may expose the first finding as a rejection.
+        if matches!(
+            &self.terminal,
+            Terminal::Aborted {
+                cause: volta_graph::AbortCause::Error,
+                reason,
+                ..
+            } if reason == crate::amdgpu::early_readiness::INSTRUCTION_OBSERVER_STOP_REASON
+        ) {
+            return GraphConclusion::Unknown {
+                reasons: vec![
+                    "observer-stopped prefix requires independent certificate validation".into(),
+                ],
+            };
+        }
         let summaries = self.summaries();
         let failed: Vec<PropertySummary> = summaries
             .iter()

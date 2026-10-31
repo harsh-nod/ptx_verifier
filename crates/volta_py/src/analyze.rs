@@ -13,7 +13,7 @@ use volta_ptx_analysis::frontend::parse as ptx_parse;
 use volta_ptx_analysis::{AnalysisConfig, Stats};
 
 use crate::config::ConfigPy;
-use crate::error::{VoltaError, graph_failure_to_py, parse_error_to_py};
+use crate::error::{EarlyReadinessError, VoltaError, graph_failure_to_py, parse_error_to_py};
 
 pub(crate) fn parse_module(source: &str, backend: Backend) -> PyResult<KernelModule> {
     match backend {
@@ -132,6 +132,22 @@ pub(crate) fn check_kernel(
     config: AnalysisConfig,
 ) -> PyResult<CheckedKernel> {
     let verified = verify_source_kernel(module, kernel, config).map_err(VoltaError::new_err)?;
+    if let Some(finding) = &verified.early_readiness {
+        let hazard = finding.hazard();
+        let exception = EarlyReadinessError::new_err(format!(
+            "certified scalar readiness prefix rejection: {hazard:?}; first finding only; complete outputs and equivalence unavailable"
+        ));
+        let value = exception.value(py);
+        value.setattr("issue_event", hazard.issue.0)?;
+        value.setattr("use_event", hazard.use_event.0)?;
+        value.setattr("wave", hazard.wave)?;
+        value.setattr("register_index", hazard.register.index)?;
+        value.setattr("register_file", format!("{:?}", hazard.register.file))?;
+        value.setattr("instructions", verified.analysis.stats.instructions)?;
+        value.setattr("prefix_amd_records", finding.certificate().amd_records)?;
+        value.setattr("prefix_graph_events", finding.certificate().graph_events)?;
+        return Err(exception);
+    }
     let unresolved = match verified.graph.conclusion() {
         GraphConclusion::Rejected { failed, deadlock } => {
             return Err(graph_failure_to_py(&failed, deadlock.as_ref()));

@@ -14,6 +14,10 @@ pub mod ir;
 pub mod lower;
 pub mod target;
 
-pub use analysis::{AnalysisError, AnalysisParts, AnalysisResult, analyze, write_op_counts};
+pub use analysis::{
+    AnalysisError, AnalysisParts, AnalysisResult, analyze, analyze_with_observer, write_op_counts,
+};
 pub use config::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue, SharedAllocation};
-pub use eval::{EvalError, OutputsUnavailable, Stats, ThreadId};
+pub use eval::{
+    EvalError, InstructionObserver, OBSERVER_STOP_REASON, OutputsUnavailable, Stats, ThreadId,
+};

@@ -2632,7 +2632,7 @@
       "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
       "group": "REF-AGGREGATE",
       "upstream_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a",
-      "current_source_sha256": "af98d7efe0c470b7f6690711a25c7848255838ada66516849ded59983d1e11cf",
+      "current_source_sha256": "09d3540efbe3fd9ad25ceb1ac27cdee772e74b7d6545bd2f896c3e01171df5b5",
       "source_changed_since_upstream_pin": true,
       "portable_obligation": "Retain this test/helper/stage-boundary source and map child assertions through individual fixture rows rather than inventing one native runtime case per Rust file.",
       "native_candidates": [
@@ -4821,7 +4821,7 @@
       "path": "crates/volta_pipeline/tests/rejected_tests.rs",
       "group": "REF-AGGREGATE",
       "upstream_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197",
-      "current_source_sha256": "1d8651375b993e864b6e62b99f82dcf11baa99f714a794b9f1be3b7fdb027a07",
+      "current_source_sha256": "e128af491424612267e90bfb98252ecc99039c53f9e62750a5bc4b2abf8da774",
       "source_changed_since_upstream_pin": true,
       "portable_obligation": "Retain this test/helper/stage-boundary source and map child assertions through individual fixture rows rather than inventing one native runtime case per Rust file.",
       "native_candidates": [
