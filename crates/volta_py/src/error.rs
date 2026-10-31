@@ -24,6 +24,12 @@ create_exception!(
 );
 create_exception!(
     volta,
+    EarlyReadinessError,
+    DataRaceError,
+    "A first scalar readiness finding was certified against an incomplete native graph prefix."
+);
+create_exception!(
+    volta,
     DeadlockError,
     VoltaError,
     "A thread can be blocked forever: no barrier or warp group releases it."

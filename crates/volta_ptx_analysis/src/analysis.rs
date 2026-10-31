@@ -159,6 +159,13 @@ pub fn analyze(
     kernel: Option<&str>,
     config: AnalysisConfig,
 ) -> Result<AnalysisResult, AnalysisError> {
+    if config.early_readiness {
+        return Err(AnalysisError::Eval(EvalError::Config {
+            message:
+                "early_readiness is supported only by the native gfx1250 verification pipeline"
+                    .into(),
+        }));
+    }
     if config.workgroup_id != (0, 0, 0) {
         return Err(AnalysisError::Eval(EvalError::Config {
             message: "nonzero workgroup_id is supported only by native AMD analysis; PTX analyzes CTA (0,0,0)".into(),

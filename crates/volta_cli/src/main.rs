@@ -138,7 +138,7 @@ struct LaunchArgs {
     #[arg(
         long,
         value_name = "FILE",
-        conflicts_with_all = ["block", "grid", "workgroup_id", "arrays", "params", "globals", "dyn_shared", "shared_allocations"]
+        conflicts_with_all = ["block", "grid", "workgroup_id", "early_readiness", "arrays", "params", "globals", "dyn_shared", "shared_allocations"]
     )]
     config: Option<PathBuf>,
 
@@ -153,6 +153,11 @@ struct LaunchArgs {
     /// Native AMD workgroup to analyze, exactly "X,Y,Z"; other groups are outside the result.
     #[arg(long, default_value = "0,0,0")]
     workgroup_id: String,
+
+    /// Stop at the first independently certified gfx1250 scalar-readiness finding.
+    /// Default runs retain complete traces. This option never enables early acceptance.
+    #[arg(long)]
+    early_readiness: bool,
 
     /// Global array: "name:base:elem_width:len:kind" where kind is
     /// in|out|inout|index (e.g. "in:0x10000:4:128:in"). Repeatable.
@@ -476,6 +481,7 @@ fn build_config(input: &LaunchArgs) -> Result<AnalysisConfig, String> {
     config.grid_dim = parse_dims(&input.grid).map_err(|e| format!("invalid --grid: {}", e))?;
     config.workgroup_id = parse_workgroup_id(&input.workgroup_id)
         .map_err(|e| format!("invalid --workgroup-id: {e}"))?;
+    config.early_readiness = input.early_readiness;
     config.dynamic_shared_bytes = input.dyn_shared;
     for value in &input.shared_allocations {
         let fields: Vec<_> = value.split(':').collect();
@@ -542,6 +548,23 @@ struct KernelSide {
     label: &'static str,
     graph: EventGraph,
     report: GraphReport,
+    early_readiness: Option<volta_pipeline::CertifiedScalarReadiness>,
+}
+
+/// This signal is emitted only for the pipeline's privately constructed,
+/// independently validated finding. Ordinary aborted graphs do not enter here.
+fn print_early_rejection(side: &KernelSide) -> bool {
+    let Some(finding) = &side.early_readiness else {
+        return false;
+    };
+    println!("EARLY_READINESS: CERTIFIED_REJECTION");
+    println!("  AMD wait and register readiness (certified prefix) FAIL");
+    println!("  {}: {:?}", side.label, finding.hazard());
+    println!(
+        "  first finding only; incomplete trace prefix; complete outputs and equivalence unavailable"
+    );
+    println!("VERDICT: REJECT");
+    true
 }
 
 impl KernelSide {
@@ -659,6 +682,7 @@ fn run_kernel(
             label,
             graph,
             report: verified.graph,
+            early_readiness: verified.early_readiness,
         },
     ))
 }
@@ -704,6 +728,10 @@ fn cmd_analyze(args: AnalyzeArgs, log: &mut run_log::RunLog, backend: Backend) -
         "  time: {:.3}s  instructions: {}  block syncs: {}  warp syncs: {}",
         elapsed, run.stats.instructions, run.stats.block_syncs, run.stats.warp_syncs
     );
+    if print_early_rejection(&side) {
+        log.record("analyze: certified scalar readiness prefix rejection");
+        return ExitCode::FAILURE;
+    }
     match &run.outputs {
         Ok(exprs) => {
             for (name, elems) in &exprs.outputs {
@@ -786,6 +814,13 @@ fn validate_check_arrays(arrays: &[String]) -> Result<(), String> {
 }
 
 fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog, backend: Backend) -> ExitCode {
+    if args.launch.early_readiness && (args.exprs || args.from_dump.is_some()) {
+        eprintln!(
+            "error: --early-readiness requires native source execution, not expression replay"
+        );
+        return ExitCode::FAILURE;
+    }
+
     if let Err(e) = validate_check_arrays(&args.check_arrays) {
         eprintln!("error: {}", e);
         return ExitCode::FAILURE;
@@ -870,26 +905,39 @@ fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog, backend: Backend) -
             }
 
             let start = Instant::now();
-            let analyzed = run_kernel(
+            let (run1, side1) = match run_kernel(
                 "reference kernel",
                 &module1,
                 args.kernel1.as_deref(),
                 config1,
-            )
-            .and_then(|r| {
-                run_kernel(
-                    "optimized kernel",
-                    &module2,
-                    args.kernel2.as_deref(),
-                    config2,
-                )
-                .map(|o| (r, o))
-            });
-            let ((run1, side1), (run2, side2)) = match analyzed {
-                Ok(both) => both,
+            ) {
+                Ok(result) => result,
                 Err(e) => {
-                    eprintln!("error: {}", e);
-                    log.record(&format!("compare: FAILED: {}", e));
+                    eprintln!("error: {e}");
+                    log.record(&format!("compare: FAILED: {e}"));
+                    return ExitCode::FAILURE;
+                }
+            };
+            if side1.early_readiness.is_some() {
+                println!(
+                    "Exec: {:.3}s  instructions: {}",
+                    start.elapsed().as_secs_f64(),
+                    run1.stats.instructions
+                );
+                print_early_rejection(&side1);
+                log.record("compare: certified scalar readiness prefix rejection");
+                return ExitCode::FAILURE;
+            }
+            let (run2, side2) = match run_kernel(
+                "optimized kernel",
+                &module2,
+                args.kernel2.as_deref(),
+                config2,
+            ) {
+                Ok(result) => result,
+                Err(e) => {
+                    eprintln!("error: {e}");
+                    log.record(&format!("compare: FAILED: {e}"));
                     return ExitCode::FAILURE;
                 }
             };
@@ -907,6 +955,10 @@ fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog, backend: Backend) -
                 run2.stats.block_syncs,
                 run2.stats.warp_syncs
             );
+            if print_early_rejection(&side2) {
+                log.record("compare: certified scalar readiness prefix rejection");
+                return ExitCode::FAILURE;
+            }
             print_graph_report(&side1, &source1);
             print_graph_report(&side2, &source2);
             let (reference, optimized) = match (run1.outputs, run2.outputs) {
@@ -1186,6 +1238,10 @@ fn cmd_verify(args: VerifyArgs, log: &mut run_log::RunLog, backend: Backend) -> 
         "Exec: {:.3}s  instructions: {}  block syncs: {}  warp syncs: {}",
         exec_secs, run.stats.instructions, run.stats.block_syncs, run.stats.warp_syncs
     );
+    if print_early_rejection(&side) {
+        log.record("verify: certified scalar readiness prefix rejection");
+        return ExitCode::FAILURE;
+    }
     print_graph_report(&side, &source);
     let mut kernel_exprs = match run.outputs {
         Ok(exprs) => exprs,

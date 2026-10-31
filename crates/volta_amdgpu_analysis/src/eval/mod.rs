@@ -5,7 +5,9 @@ mod matrix;
 mod memory;
 mod scalar;
 mod value;
-pub use interp::{EvalError, OutputsUnavailable, Stats, ThreadId};
+pub use interp::{
+    EvalError, InstructionObserver, OBSERVER_STOP_REASON, OutputsUnavailable, Stats, ThreadId,
+};
 pub(crate) use interp::{Interpreter, RunArtifacts};
 pub(crate) fn interp_kind(opcode: crate::ir::Opcode, mnemonic: &str) -> &'static str {
     use crate::ir::Opcode;
