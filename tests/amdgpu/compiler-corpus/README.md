@@ -48,34 +48,43 @@ Missing outputs, unknown verdicts, unsupported instructions, timeouts and proces
 crashes cannot become `verified`. The wall-clock limit applies separately to
 analysis and specification checking. This inventory is not a latency benchmark.
 
-## Baseline and blockers
+## Verification coverage
 
-On source revision `45bf80b3fdf35d818d9dbbc2ecf4c01e935cf9ed`, using the
-recorded compiler revision and unchanged modules:
+Every registered case verifies with the selected CDNA integer16 extension:
 
 | Family | gfx942 | gfx950 | gfx1250 |
 | --- | --- | --- | --- |
-| Elementwise | unsupported | unsupported | verified |
-| Reduction | unsupported | unsupported | verified |
-| Normalization | unsupported | unsupported | verified |
+| Elementwise | verified | verified | verified |
+| Reduction | verified | verified | verified |
+| Normalization | verified | verified | verified |
 | Transpose | verified | verified | verified |
-| GEMM | unsupported | unsupported | verified |
-| Attention | unsupported | unsupported | verified |
+| GEMM | verified | verified | verified |
+| Attention | verified | verified | verified |
 
-The leading blocker is **whole-module parsing of a CDNA instruction form**:
-`v_lshlrev_b16_e32` at line 709 of each CDNA portable module. The containing
-entry is `portable_softmax`, which is not one of the selected cases. The parser
-rejects that module before selected-entry execution. Thus this result establishes
-ten blocked configurations, not ten selected kernels requiring that instruction.
-Any ISA extension must first isolate the relevant computation and establish
-target-specific semantics; adding one spelling may expose additional blockers.
+These 18 configurations retain all 708 output elements. Verification includes
+independent graph checks, the exact output coordinates and every original
+specification element. Use the run command above to regenerate the result for
+a particular executable; the report binds its hash and the unchanged manifest.
 
-The complete modules are retained intentionally so this extraction boundary is
-visible. The successful transpose modules are separate and do not contain the
-blocking entry. Address forms, private spills, synchronization and capacity did
-not produce the first rejection in this bounded set; that observation does not
-establish support for their broader forms. No compiler rejection, semantic
-finding, inconclusive verdict, timeout or crash occurred in this baseline run.
+The earlier source baseline `45bf80b3fdf35d818d9dbbc2ecf4c01e935cf9ed`
+verified eight configurations and refused ten during whole-module parsing:
+`v_lshlrev_b16_e32` at line 709, in the unselected `portable_softmax` entry.
+Further required forms were `v_cmp_ne_u16_e32` and gfx950 `v_bitop3_b16`.
+The extension validates and models selected legal forms without extracting
+entries or rewriting assembly. The shared register-source `v_cmp_u_f32`
+spelling also receives its CDNA target profile. This improves module acceptance;
+it does not establish a full softmax verification result.
+
+The [selected instruction contracts](../../../docs/amd-semantic-audit.md#compiler-driven-narrow-integer-forms)
+describe low16 data, low4 shift counts, truth-table ordering, EXEC behavior,
+operand encodings and symbolic U16 comparison masking. New narrow shift/BITOP3
+results leave upper16 bits unknown conservatively; an observed unknown bit
+cannot become a value, address or control decision. The gfx1250 encoding and
+undefined-bit rules remain separate. These forms do not introduce scratch,
+general buffer addressing or new synchronization support.
+
+The complete modules remain unchanged. A successful selected entry does not
+establish execution support for every other entry in its module.
 
 The reusable source modules also contain kernels outside these registrations.
 Those kernels have no verification claim from this corpus. Preserve each row's

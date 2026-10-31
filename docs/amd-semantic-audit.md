@@ -79,3 +79,36 @@ every possible schedule or every target instruction. Matrix arithmetic, TDM
 descriptor semantics, special-register hazards and IEEE floating-point behavior
 are not newly audited here. Analysis still covers one selected workgroup;
 inter-workgroup races remain outside the result.
+
+
+## Compiler-driven narrow integer forms
+
+The unchanged [compiler corpus](../tests/amdgpu/compiler-corpus/README.md)
+contains CDNA `v_lshlrev_b16_e32` and `v_cmp_ne_u16_e32`, plus gfx950
+`v_bitop3_b16`, in an unselected softmax entry. Whole-module validation checks
+these instructions before any selected entry executes. The bounded extension
+retains that validation; it neither extracts entries nor changes fixture bytes.
+
+The public C4 §12.7/§12.11 shift equations use `S0[3:0]` and `S1.u16`;
+§12.11 BITOP3 uses truth-table index `{S0[i],S1[i],S2[i]}`; §12.9/§12.11 U16
+comparisons observe only the low16 bits. Target encodings are pinned by LLVM
+`7b800a19466229b8479a78de19143dc33c3ab9b5`:
+[VOP2](https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/lib/Target/AMDGPU/VOP2Instructions.td),
+[VOP3](https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/lib/Target/AMDGPU/VOP3Instructions.td),
+and [VOPC](https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/lib/Target/AMDGPU/VOPCInstructions.td).
+
+| Selected form | Target and value contract | Conservative boundary and controls |
+| --- | --- | --- |
+| `v_lshlrev_b16` | gfx942/gfx950 VOP2/VOP3; low16 data, low4 count, low16 result. Active EXEC lanes only. | New CDNA results retain unknown upper16 bits. Low16 masks/comparisons can consume them; a fullword output or address cannot invent the upper bits. Register halves are not preserved implicitly. `legacy_shift_observes_low16_data_and_low4_count` checks counts 0/1/15/16/17/allones and differing high data. |
+| `v_bitop3_b16` | gfx950 VOP3; three low16 sources and one explicit 8-bit truth table. gfx942 and `_e32` are refused. | New CDNA results retain unknown upper16. OPSEL, source modifiers and normal output modifiers are outside this profile. `bitop3_truth_table_uses_s0_s1_s2_bit_order` independently checks all 256 tables over all eight input triples. |
+| `v_cmp_ne_u16` | gfx942/gfx950 VOPC/VOP3 and the existing gfx1250 profile; both concrete and symbolic source words are masked to 16 bits before comparison. | An undefined observed lowbit refuses. Symbolic predicates can select data but cannot become concrete EXEC/control. `symbolic_u16_comparison_cannot_observe_high_input_bits` substitutes independently chosen 32-bit words, including nonzero high16 with zero low16. This masking also corrects the preexisting gfx1250 symbolic path. |
+| `v_cmp_u_f32` | Shared gfx942/gfx950 register-source spelling, using the existing mathematical-real comparison path. | Decoded NaNs still refuse; this is no IEEE exception or NaN-semantics extension. gfx1250 encoding checks remain separate. `shared_unordered_float_comparison_retains_the_finite_real_boundary` checks finite values and NaN refusal. |
+
+The tests in [cdna_integer16.rs](../crates/volta_amdgpu_analysis/tests/cdna_integer16.rs)
+also cover inactive-lane destination preservation, empty EXEC, undefined
+observations, invalid encodings and direct-AST lowering. CDNA `_e32` retains its
+VGPR SRC1 and fixed VCC comparison destination; VOP3 literals and multiple
+scalar sources are refused. The existing gfx1250 VOP3-only shift/BITOP3 encoding
+rules are unchanged. LLVM describes zero high bits for legacy GFX9 integer16
+results, but the selected public ISA assignments only specify the narrow result;
+this implementation conservatively does not add that highhalf guarantee.
