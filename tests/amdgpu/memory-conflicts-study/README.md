@@ -77,7 +77,7 @@ full-mode diagnostics and output-expression invariance have separate untimed
 controls. No timing result is valid amid concurrent builds. A static instruction
 position or unexecuted source suffix is not measured saved work.
 
-A prefix counts only with the exact authenticated marker, typed WriteWrite
+A prefix counts only with the marker from the validated certificate path, a typed WriteWrite
 witness, explicit rejection/exit1, and no outputs or equivalence. A generic
 property FAIL followed by an aborted/UNKNOWN graph is not a detection. Full
 graph and mathematical verification remain necessary for acceptance. The earlier
