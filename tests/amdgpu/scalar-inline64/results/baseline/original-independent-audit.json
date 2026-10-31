@@ -1,0 +1,64 @@
+{
+  "auditor_sha256": "bf4e25eab5634e538ddc2e0ed1403db82682de937a75ff2dbe0a3a58e8d073bc",
+  "binary_sha256": "66a32105a849a9eaa6ff0d19f33856f724807bfba5557b65c7737807f1078b1f",
+  "build_record_sha256": "b2a2a27751be25894ac0e75fb5276c0bbd5ee243d5aaeab09bf8f783a117c95b",
+  "checks": 78,
+  "control_provenance_sha256": "6dd29c4767d93189f6af8c15ed6be86b0a6e53faeb1b071d91ef4b257d7f653f",
+  "errors": [],
+  "gfx942_public_semantics": {
+    "LLVM_pin": "5fd50ec8e07abb94e203933017e8d6e40fb51824",
+    "exact_double_inverse2pi_bits": "0x3fc45f306dc9c882",
+    "feature_source": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNFeatures.td",
+    "guarantee": "Generic LLVM inline64 table and public MI300 precision-specific constants apply; no gfx942 execution is claimed by this audit.",
+    "inheritance": "gfx942->FeatureISAVersion9_4_2->FeatureISAVersion9_4_Common->FeatureGFX9->FeatureInv2PiInlineImm",
+    "manual": "https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-mi300-cdna3-instruction-set-architecture.pdf",
+    "section": "6.2 operand table, PDF41, printed33",
+    "target_source": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNProcessors.td"
+  },
+  "limits": [
+    "Caller-attested build/compiler process association; byte hashes and full recorded source tree are authenticated, not a cryptographic compilation proof.",
+    "Old v1/v2 incomplete controls/failures and source-review source-derived predictions remain distinct retained artifacts.",
+    "Graph safety passing here does not establish numerical correctness. Full integer output comparison independently refutes the old Float token interpretation.",
+    "No original-kernel, hardware, timing, CPU or RSS improvement claim.",
+    "The raw report key review_sha256 binds control provenance6dd29c47, not an independent source-review receipt; this original spelling is retained and its actual bytes authenticated."
+  ],
+  "pass": true,
+  "raw_report_sha256": "5978ef74439b59b36df0a7543854ac3158752073cb86b5ea0cd3d91de4cd6026",
+  "schema": 1,
+  "scope": "Independent authentication of four CPU baseline processes and two complete synthetic MC controls. No verifier/compiler/Cargo/GPU rerun by this audit.",
+  "source_artifacts": {
+    "gfx1250": {
+      "assembly_sha256": "faa0cdbdf23552ab450cbb76d537776745fbd368b6d2879b52694f22440cb016",
+      "expression_sha256": "89a28aefb60472c25f4f4ce22401132d6ab3b5ebf205ff8ea58cc93b9be58da5",
+      "graph_sha256": "51ad4421f5bd44450d2061e5a8cc386a1b716fd4480f39cc8f09cd1755c97689",
+      "launch_sha256": "77af3f5d44cdaa68575d2f365cd32e19d645189c71296c5a47414f1810e4b5d6",
+      "object_sha256": "3ffa6ee5b811d027f1a78fbcb54f156113ff439aaffa888bd976e74443074dbd"
+    },
+    "gfx950": {
+      "assembly_sha256": "76ab5b310b27f51497221e3c2f07f958d0b91ced7375e8d2cb46301c15b029e4",
+      "expression_sha256": "89a28aefb60472c25f4f4ce22401132d6ab3b5ebf205ff8ea58cc93b9be58da5",
+      "graph_sha256": "253d636af54fb48c53b984d7e6efece2bd3c59f96ddb5a5210e63294baf55601",
+      "launch_sha256": "77af3f5d44cdaa68575d2f365cd32e19d645189c71296c5a47414f1810e4b5d6",
+      "object_sha256": "e7d0b82bcdc76d57ab0f647b431e213fee6cc10c9e148a4e208459e8693b2a53"
+    }
+  },
+  "source_revision": "4b0e766a265390900f4450cab54398f1cb5cbf86",
+  "specification_sha256": "b0697b64b3180e70ad7455c2316b44cdffb23e6674a98dc6cf6bc3a35cdec7f8",
+  "summary": {
+    "actual_output_words": [
+      1065353216,
+      0
+    ],
+    "complete_integer_output_coordinates_per_target": 2,
+    "functional_processes": 4,
+    "graph_properties_pass_per_target": 4,
+    "numeric_refuted_coordinates_per_target": 2,
+    "original_kernel_or_hardware_findings": 0,
+    "public_required_output_words": [
+      0,
+      1072693248
+    ],
+    "target_instantiations": 2,
+    "underlying_verifier_defect_patterns": 1
+  }
+}

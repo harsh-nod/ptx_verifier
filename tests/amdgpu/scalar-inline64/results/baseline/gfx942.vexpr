@@ -1,0 +1,5 @@
+volta-expr 1
+n0 = int 1065353216
+n1 = int 0
+out "out" 0 n0
+out "out" 1 n1
