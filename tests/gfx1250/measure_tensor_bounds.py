@@ -54,8 +54,6 @@ def command(source, safe):
             "N=128",
             "--sample",
             "0",
-            "--check-array",
-            "out",
         ]
         if safe
         else ["analyze", str(source)]
@@ -90,17 +88,58 @@ def run(binary, source, safe):
     )
     text = result.stdout
     certified = text.count("TENSOR_BOUNDS: CERTIFIED_REJECTION") == 1
+    verdicts = re.findall(r"^VERDICT: (\w+)$", text, re.M)
+    refused = any(
+        marker in text + result.stderr
+        for marker in (
+            "execution stopped:",
+            "unsupported AMD instruction",
+            "certificate invalid",
+        )
+    )
     if safe:
-        assert result.returncode == 0 and re.search(r"^VERDICT: ACCEPT$", text, re.M), (
+        assert (
+            result.returncode == 0
+            and verdicts == ["ACCEPT"]
+            and not certified
+            and not refused
+        ), (
             text,
             result.stderr,
         )
+        checks = [
+            line.strip()
+            for line in text.splitlines()
+            if line.strip().startswith("AMD ")
+        ]
+        properties = (
+            "AMD trace completeness",
+            "AMD wait and register readiness",
+            "AMD workgroup barrier generations",
+            "AMD memory-conflict freedom",
+        )
+        assert len(checks) == len(properties)
+        assert all(
+            sum(
+                line.startswith(prop + " (") and line.endswith(" PASS")
+                for line in checks
+            )
+            == 1
+            for prop in properties
+        )
+        assert re.search(r"^VC check:.*elements: 128$", text, re.M)
+        assert "equivalence: all 128 compared elements proved equivalent" in text
         outcome = "complete_specification_proof"
     elif certified:
-        assert result.returncode == 1 and re.search(r"^VERDICT: REJECT$", text, re.M), (
+        assert result.returncode == 1 and verdicts == ["REJECT"] and not refused, (
             text,
             result.stderr,
         )
+        assert (
+            "AMD tensor LDS bounds (independently validated attempted access) FAIL"
+            in text
+        )
+        assert "TensorBoundsViolation" in text
         assert "transfer not issued" in text and "VC check:" not in text
         assert "output 'out'" not in text
         outcome = "certified_tensor_bounds_rejection"
