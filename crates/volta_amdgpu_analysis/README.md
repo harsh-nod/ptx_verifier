@@ -358,15 +358,27 @@ policies, nonzero offsets and higher M0 values remain unsupported. See the
 [native byte/footprint controls](tests/gfx950_buffer_lds.rs) and
 [completion and full-output math controls](../volta_pipeline/tests/gfx950_buffer_lds_tests.rs).
 
-The selected gfx1250 `s_cmp_eq_u64` and `s_cmp_lg_u64` profile compares two
+The selected gfx942/gfx950/gfx1250 `s_cmp_eq_u64` and `s_cmp_lg_u64` profile compares two
 fully defined concrete 64-bit values and sets SCC, including when EXEC is zero.
 Sources are plain SGPR pairs or integer inline constants −16 through 64;
 floating constants, other literal forms and special-register aliases remain
 unsupported. Undefined, opaque and mathematical values cannot supply concrete
 comparison bits. Both words of each register source retain their normal
-readiness obligations. These are the unsigned equality/inequality operations
-specified by the [public CDNA5 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf),
-§15.4.
+readiness obligations. The [CDNA3](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-mi300-cdna3-instruction-set-architecture.pdf)
+and [CDNA4](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
+§12.4 operations have different opcode encodings from
+[CDNA5](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf)
+§15.4, with the same concrete comparison semantics.
+
+On gfx942/gfx950 only, `s_addc_u32` preserves an opaque shared-aperture high word
+when the opposite operand is an integer zero or a fully defined concrete SGPR
+word zero and carry-in is known zero. Both sources and carry are read before an
+aliased plain SGPR destination changes. The result retains the opaque tag and
+carry-out becomes zero: every unsigned word H satisfies H+0+0=H without overflow.
+Nonzero or unknown offsets, carry-one or unknown carry, floating immediates and
+special destinations remain unsupported. This identity supplies no numeric
+aperture bits or additional pointer arithmetic. See the
+[scalar address controls](tests/scalar_address.rs).
 
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and

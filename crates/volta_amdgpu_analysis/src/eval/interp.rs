@@ -26,6 +26,9 @@ mod address_tests;
 #[cfg(test)]
 #[path = "interp_input_tests.rs"]
 mod input_tests;
+#[cfg(test)]
+#[path = "interp_scalar_address_tests.rs"]
+mod scalar_address_tests;
 // Synthetic module storage is disjoint from host-bound arrays and analyzer ABI
 // packets. Match the existing PTX module-window convention without a dependency.
 pub const MODULE_GLOBAL_BASE: u64 = 0x7000_0000_0000_0000;
@@ -3464,9 +3467,7 @@ impl<'a> Interpreter<'a> {
             }
             return Ok(());
         }
-        if self.architecture == AmdArchitecture::Gfx1250
-            && matches!(name, "s_cmp_eq_u64" | "s_cmp_lg_u64")
-        {
+        if matches!(name, "s_cmp_eq_u64" | "s_cmp_lg_u64") {
             // SOPC compares complete 64-bit sources. Keep ambiguous literal
             // widths and special-register aliases outside this selected profile.
             if o.iter().any(|operand| {
@@ -3476,7 +3477,10 @@ impl<'a> Interpreter<'a> {
             }) {
                 return Err(EvalError::Unsupported {
                     pc: wave.pc,
-                    what: "selected gfx1250 s_cmp_{eq,lg}_u64 requires SGPR pairs or integer inline constants -16..64".into(),
+                    what: format!(
+                        "selected {} s_cmp_{{eq,lg}}_u64 requires SGPR pairs or integer inline constants -16..64",
+                        self.architecture.name()
+                    ),
                 });
             }
             let a = wave.wide(&o[0], 0)?;
@@ -3819,6 +3823,39 @@ impl<'a> Interpreter<'a> {
                     wave.set_partial_scc(bits, defined);
                 }
                 return wave.put_value(dest, 0, Value::partial_bits(bits, defined));
+            }
+        }
+        if self.architecture != AmdArchitecture::Gfx1250 && name == "s_addc_u32" {
+            let a = wave.value(&o[1], 0)?;
+            let b = wave.value(&o[2], 0)?;
+            if a == Value::SharedApertureHi || b == Value::SharedApertureHi {
+                let plain_word = |operand: &Operand| {
+                    matches!(operand, Operand::Register(register)
+                        if register.class == RegisterClass::Scalar && register.count == 1)
+                };
+                let zero = |operand: &Operand, value: Value| {
+                    (matches!(operand, Operand::Integer(0)) || plain_word(operand))
+                        && matches!(
+                            value,
+                            Value::Bits(0) | Value::Integer(0) | Value::SignedInteger(0)
+                        )
+                };
+                if !plain_word(&o[0])
+                    || !((plain_word(&o[1]) && a == Value::SharedApertureHi && zero(&o[2], b))
+                        || (plain_word(&o[2]) && b == Value::SharedApertureHi && zero(&o[1], a)))
+                    || wave.read_scc()?
+                {
+                    return Err(EvalError::Unsupported {
+                        pc: wave.pc,
+                        what: "selected scalar aperture ADDC requires a plain SGPR destination, one plain SGPR aperture word, concrete zero and carry-in zero".into(),
+                    });
+                }
+                // For every unsigned word H, H+0+0=H with carry-out zero.
+                // Snapshot both sources and carry before any aliased write;
+                // preserving the tag never exposes a numeric aperture value.
+                wave.put_value(&o[0], 0, Value::SharedApertureHi)?;
+                wave.set_scc(false);
+                return Ok(());
             }
         }
         let a = wave.bits(&o[1], 0)?;
