@@ -20,8 +20,9 @@ flowchart LR
 The graph checker never calls the interpreter or equivalence checker. The
 equivalence checker consumes expressions, not events. This separation keeps an
 arithmetic identity from hiding a synchronization defect, and a safe execution
-from standing in for correct output values. Kernel comparison runs the assembly
-path for both kernels and checks both graphs. Dependency boundaries are enforced
+from standing in for correct output values. Accepting a kernel comparison needs
+both assembly executions and both graph checks. An early certified rejection of
+the reference can end comparison before the second execution. Dependency boundaries are enforced
 by [architecture_tests.rs](../crates/volta_pipeline/tests/architecture_tests.rs).
 
 ## Follow one kernel
@@ -47,8 +48,10 @@ by [architecture_tests.rs](../crates/volta_pipeline/tests/architecture_tests.rs)
    sets and expressions, with optional numerical oracle confirmation.
 6. `volta_pipeline::decide` combines the independent results. `ACCEPT` needs
    complete equivalence and a completed trace with every applicable graph check
-   passing. A refutation, index mismatch, failed check or deadlock yields
-   `REJECT`; a missing proof yields `UNKNOWN`.
+   passing. In ordinary execution, a refutation, index mismatch, failed check or
+   deadlock yields `REJECT`; a missing proof yields `UNKNOWN`. A generic observer
+   stop remains `UNKNOWN` even when its prefix contains failed-property diagnostics;
+   early rejection requires the separately validated readiness certificate.
 
 For native AMD, `frontend::Instruction` represents assembly syntax.
 `lower_kernel_in_module` validates the target and constructs distinct

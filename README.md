@@ -55,11 +55,16 @@ requires `--backend amdgpu`, with an explicit matching `--target` recommended.
 | `compare` | Graph properties and output equivalence between two kernels |
 | `viz` | Interactive inspection of recorded event graphs |
 
-`analyze` reports `VERIFIED`, `REJECTED` or `UNKNOWN`. `verify` and kernel-to-kernel
+Ordinary `analyze` reports `VERIFIED`, `REJECTED` or `UNKNOWN`. `verify` and kernel-to-kernel
 `compare` report `ACCEPT`, `REJECT` or `UNKNOWN`. Exit codes are 0, 1 and 2,
 respectively. Sampling that omits outputs, incomplete execution and unsupported
 semantics cannot produce full acceptance. Expression or VC replay checks
 equivalence only; those artifacts do not contain a safety graph.
+
+Opt-in [early readiness rejection](docs/early-readiness.md) can stop native
+gfx1250 execution at its first certified scalar-read hazard. All three source
+commands then print `VERDICT: REJECT` and exit 1, with an incomplete prefix and
+no output or equivalence result. Default runs retain complete traces.
 
 The [usage guide](docs/usage.md) explains launch files, specifications, kernel
 comparison, artifacts, logging and Python setup.
