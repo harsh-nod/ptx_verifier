@@ -275,24 +275,35 @@ fn numeric(
 /// Parsing may defer Symbols until declared constants are substituted; final
 /// executable construction forbids that deferred state.
 pub(crate) fn resolve(
-    stem: &str,
+    mnemonic: &str,
     operands: &[Operand],
     architecture: Architecture,
     defer_symbols: bool,
 ) -> Result<Option<ResolvedScalarSources>, String> {
-    resolve_instruction(stem, operands, architecture, defer_symbols)
+    resolve_instruction(mnemonic, operands, architecture, defer_symbols)
         .map_err(|message| format!("scalar source encoding: {message}"))
 }
 
 fn resolve_instruction(
-    stem: &str,
+    mnemonic: &str,
     operands: &[Operand],
     architecture: Architecture,
     defer_symbols: bool,
 ) -> Result<Option<ResolvedScalarSources>, String> {
+    let stem = mnemonic
+        .trim_end_matches("_e32")
+        .trim_end_matches("_e64")
+        .trim_end_matches("_sdwa");
     let Some(layout) = ScalarLayout::for_mnemonic(stem) else {
         return Ok(None);
     };
+    // MC accepts selected _e32 aliases, but this native subset deliberately
+    // retains bare SALU forms. Do not discard encoding spelling internally.
+    if mnemonic != stem {
+        return Err(format!(
+            "`{mnemonic}` selected scalar source form requires a bare SOP1/SOP2 mnemonic"
+        ));
+    }
     if operands.len() != layout.arity() {
         return Err(format!("`{stem}` has an invalid scalar source arity"));
     }
@@ -324,7 +335,7 @@ fn resolve_instruction(
         if !matches!(encoded.encoding(), ImmediateEncoding::Inline(_)) {
             if literal.is_some_and(|previous| previous != encoded.encoding()) {
                 return Err(format!(
-                    "`{stem}` requires one shared literal payload and width"
+                    "`{stem}` source{position} requires one shared literal payload and width"
                 ));
             }
             literal = Some(encoded.encoding());

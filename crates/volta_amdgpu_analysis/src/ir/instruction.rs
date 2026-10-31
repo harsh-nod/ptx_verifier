@@ -15,7 +15,6 @@ pub enum Operand {
     Register(Register),
     Integer(i64),
     Float(f64),
-    EncodedImmediate(EncodedImmediate),
     Off,
     Relocation(Relocation),
     Modified {
@@ -28,6 +27,7 @@ pub enum Operand {
         offset: u8,
         width: u8,
     },
+    EncodedImmediate(EncodedImmediate),
 }
 impl Operand {
     fn lower(value: &frontend::Operand) -> Result<Self, String> {
@@ -309,7 +309,9 @@ impl AluInstruction {
                         ScalarSource32::Immediate(immediate)
                     }
                     _ => {
-                        return Err("migrated Bits32 source lacks a word or checked encoding".into());
+                        return Err(
+                            "migrated Bits32 source lacks a word or checked encoding".into()
+                        );
                     }
                 };
                 ScalarSources::Shift64 {
@@ -889,7 +891,7 @@ impl Instruction {
                         .ok_or_else(|| format!("no typed ALU operation for {stem}"))?;
                     let arguments = if source.opcode == Opcode::ScalarAlu {
                         if let Some(resolved) = crate::source_encoding::resolve(
-                            stem,
+                            &source.mnemonic,
                             &source.operands,
                             architecture,
                             false,
@@ -1148,5 +1150,51 @@ mod scalar_source_tests {
                 .unwrap();
         let numeric = [operands[0].clone(), frontend::Operand::Integer(1)];
         assert!(Arguments::lower_scalar(&numeric, &deferred).is_err());
+    }
+
+    #[test]
+    fn private_construction_does_not_normalize_unselected_scalar_forms() {
+        for target in [
+            Architecture::Gfx942,
+            Architecture::Gfx950,
+            Architecture::Gfx1250,
+        ] {
+            for name in [
+                "s_mov_b64",
+                "s_or_b64",
+                "s_xor_b64",
+                "s_lshl_b64",
+                "s_lshr_b64",
+            ] {
+                for suffix in ["_e32", "_e64", "_sdwa"] {
+                    let mut operands = vec![
+                        frontend::Operand::Register(Register {
+                            class: frontend::RegisterClass::Scalar,
+                            index: 0,
+                            count: 2,
+                            special: None,
+                        }),
+                        frontend::Operand::Float(1.0),
+                    ];
+                    if name != "s_mov_b64" {
+                        operands.push(frontend::Operand::Integer(1));
+                    }
+                    let source = frontend::Instruction {
+                        mnemonic: format!("{name}{suffix}"),
+                        opcode: Opcode::ScalarAlu,
+                        operands,
+                        modifiers: vec![],
+                        span: SourceSpan::default(),
+                    };
+                    let error = Instruction::lower(&source, target).unwrap_err();
+                    assert!(
+                        error.contains("scalar source encoding")
+                            && error.contains(&source.mnemonic)
+                            && error.contains("bare SOP1/SOP2"),
+                        "{error}"
+                    );
+                }
+            }
+        }
     }
 }

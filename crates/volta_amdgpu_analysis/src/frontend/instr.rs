@@ -1562,7 +1562,7 @@ pub(super) fn validate_registers(
                         .ok_or("invalid scalar source position")?;
                     source_width(index, ty.words())?;
                 }
-                crate::source_encoding::resolve(stem, operands, architecture, true)?;
+                crate::source_encoding::resolve(mnemonic, operands, architecture, true)?;
             } else if compare {
                 for index in 0..operands.len() {
                     source_width(index, data_width)?;
@@ -2214,16 +2214,17 @@ pub(super) fn validate_scalar_sources(
     if instruction.opcode != Opcode::ScalarAlu {
         return Ok(());
     }
-    let stem = instruction
-        .mnemonic
-        .trim_end_matches("_e32")
-        .trim_end_matches("_e64");
-    crate::source_encoding::resolve(stem, &instruction.operands, architecture, true)
-        .map(|_| ())
-        .map_err(|message| ParseError {
-            message,
-            span: instruction.span,
-        })
+    crate::source_encoding::resolve(
+        &instruction.mnemonic,
+        &instruction.operands,
+        architecture,
+        true,
+    )
+    .map(|_| ())
+    .map_err(|message| ParseError {
+        message,
+        span: instruction.span,
+    })
 }
 
 /// Pinned gfx950 arithmetic forms: VOP2 can encode one literal in SRC0; VOP3

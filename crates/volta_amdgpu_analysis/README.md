@@ -333,6 +333,9 @@ and incompatible shared payloads are refused rather than truncated. `lit` and
 `lit64` wrappers remain unsupported. Invalid migrated sources now fail during
 parsing or lowering, before output creation; this can precede an older runtime
 Unsupported result. Instruction E32/E64 spelling is separate from payload size.
+This finite native scalar profile retains bare mnemonics. Explicit `_e32`
+aliases remain outside it even where LLVM accepts them; `_e64` is not silently
+normalized into a bare scalar instruction.
 
 On gfx1250, selected `s_and_b64` sources are register pairs or integer inline
 constants −16 through 64; floating and other literal forms remain unsupported.
