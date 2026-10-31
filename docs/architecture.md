@@ -56,7 +56,11 @@ For native AMD, `frontend::Instruction` represents assembly syntax.
 and memory/matrix operand roles. Syntax-only labels and wait lists cannot enter
 ordinary executable operands. Each instruction retains its source mnemonic,
 encoding, modifiers and span at the original PC for diagnostics and graph
-provenance. This IR is implemented in Rust; it does not depend on LLVM or MLIR.
+provenance. Parsed syntax and caller-built ASTs share normalization and operand
+validation. Lowering normalizes a clone, including implicit VCC operands and FP64
+constants, then checks target and descriptor constraints; it leaves the caller's
+AST unchanged. Executable instruction accessors are read-only. This IR is
+implemented in Rust; it does not depend on LLVM or MLIR.
 
 ## Shared contracts
 
@@ -72,6 +76,11 @@ provenance. This IR is implemented in Rust; it does not depend on LLVM or MLIR.
 The `volta_amd_analysis` crate contains an experimental parser/lowering path.
 The native `amdgpu` CLI backend uses `volta_amdgpu_analysis`; these crate names
 do not select interchangeable implementations.
+
+Shared configuration includes PTX aggregate fields and native ABI byte payloads,
+but each backend accepts only its own forms. The
+[parameter guide](launch-parameters.md) distinguishes JSON, Rust and Python
+interfaces and explains host tensor-map layouts.
 
 Native target differences belong in target profiles and explicit opcode/event
 contracts. gfx942/gfx950 use wave64 MFMA rules; gfx1250 uses wave32 WMMA and
@@ -124,6 +133,26 @@ general changes. Fixture-specific tools have their own README commands. Large
 workload proofs and hardware numerical checks run separately with explicit
 budgets. The [usage guide](usage.md) explains how to inspect logs and exported
 graphs when diagnosing a failure.
+
+Source changes can invalidate current test hashes and generated code references
+even when fixture behavior is unchanged. After reviewing those changes and
+updating their current source pins, regenerate the derived inventories:
+
+```sh
+python3 tests/gfx1250/full-parity/generate_stage_profiles.py
+python3 tests/gfx950/generate_instruction_coverage.py
+python3 tests/gfx1250/full-parity/validate_feature_mappings.py \
+  --output tests/gfx1250/full-parity/feature-mappings-index.json
+```
+
+Both stage generators invoke Cargo's `instruction_inventory` example and respect
+`CARGO_TARGET_DIR`. Use a separate target directory for each checkout. Their
+`--check` modes reject generated drift without writing files. The
+[source-contract guide](../tests/gfx1250/full-parity/README.md#validate-source-registrations)
+lists the reference, native output-contract and refusal checks. Preserve pinned
+historical references and original workload shapes, dtypes and output projections;
+refreshing current code references does not redefine those contracts or prove
+runtime coverage.
 
 Update the owning crate README when its behavior or public interface changes.
 Document lasting contracts, assumptions and failure modes rather than completed

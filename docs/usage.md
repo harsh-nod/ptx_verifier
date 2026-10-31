@@ -33,10 +33,13 @@ are placed consecutively at 64 KiB boundaries, starting at `0x10000`.
 `dtype` is a size shorthand, not a typed-array assertion; instructions and their
 consumers determine how raw words are interpreted.
 
-Arguments are positional: each entry has exactly one of `ptr`, `int`, `float`
-or `sym`. Native AMD by-value arguments also accept `bytes`, whose length and
-padding must match the kernel's ABI metadata exactly. An optional argument
-`name` is descriptive and does not change its position.
+Arguments are positional. Both backends accept `ptr`, `int`, `float` and `sym`.
+PTX also accepts `struct` fields for a declared by-value aggregate, including
+host tensor maps. Native AMD instead accepts `bytes` with the exact ABI size,
+including padding. Each entry has one value form; an optional `name` is
+descriptive and does not change its position. See the
+[parameter guide](launch-parameters.md) for field layouts, tensor maps and
+which forms the CLI and Python interfaces expose.
 
 Other launch fields are `description`, `dynamic_shared_bytes`, `globals`,
 `max_instructions` and native `shared_allocations`. The latter declares disjoint
