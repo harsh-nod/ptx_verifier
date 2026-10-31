@@ -65,9 +65,11 @@ adjacent provenance to identify what was compiled and run.
 
 ## Other targets and adapter tests
 
-The configured HipKittens extraction profile is gfx950. Requesting gfx1250
-returns an actionable `UNSUPPORTED` diagnostic; CDNA4 macros and wave64 launch
-contracts cannot be retargeted by changing a target string. For independent
+The legacy four-case extraction recipe configures gfx950. Requesting gfx1250
+there returns an actionable `UNSUPPORTED` diagnostic; CDNA4 macros and wave64 launch
+contracts cannot be retargeted by changing a target string. The pinned library
+also includes distinct CDNA3 and CDNA5 sources. The [complete source inventory](corpus/README.md)
+records those original profiles, templates and entrypoints. For independent
 native gfx1250 adapter controls, see the [gfx1250 guide](../gfx1250/README.md).
 
 ```sh
