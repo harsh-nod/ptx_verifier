@@ -9,8 +9,9 @@ no other Volta crate.
   checks geometry, binding identities and allocation layout; target-specific ABI,
   by-value payload sizes and execution restrictions stay in the selected analyzer.
   Parameters include PTX structured fields and native AMD byte payloads; each
-  analyzer rejects forms outside its ABI. Both producers re-export the shared
-  types for compatibility.
+  analyzer rejects forms outside its ABI. Both analyzers re-export the main
+  launch types for compatibility; aggregate fields and tensor-map definitions
+  are available directly from `volta_common::config` and `volta_common::tensor_map`.
 - **Selected native workgroup** (`AnalysisConfig.workgroup_id`) defaults to
   `(0,0,0)` and must be inside `grid_dim`. AMD analysis executes only this group;
   PTX rejects nonzero selection. Array indices and dispatch dimensions retain
@@ -33,6 +34,10 @@ no other Volta crate.
   `volta` binary writes (`<unix-seconds>-<pid>-<command>.log` under
   `--log-dir`, default `volta-logs/`). With the `logging` feature, `tee`
   mirrors an `env_logger` target into it.
+
+The [parameter guide](../../docs/launch-parameters.md) describes positional
+arguments, PTX field layouts and native byte payloads. Shared configuration
+types do not imply that every backend or Python constructor accepts every form.
 
 ```sh
 cargo test -p volta_common
