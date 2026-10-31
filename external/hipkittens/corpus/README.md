@@ -240,3 +240,37 @@ preserved verification transcripts and the one wrong-spec transcript produces
 zero outcome differences. The receipt retains each case identity, full original
 length and separate graph/mathematical disposition. It does not establish a
 candidate improvement or an application bug from the conservative conflicts.
+
+## Reviewed buffer coverage comparison
+
+[buffer-comparison.json](buffer-comparison.json) compares baseline `e239cfc`
+with `0e634bc`, including the selected gfx950 raw DWORD load/store profile.
+Both sides use the same current driver, compiler and unchanged complete modules,
+case identities, original launch bytes and full specifications. The copy baseline
+was rerun over all 252 cases for that comparison; the historical reports above
+remain unchanged. This compares verifier revisions containing intervening fixes,
+not a single-opcode ablation.
+
+| Original family | Cases | Combined accepts, baseline → candidate | Write/write rejections | Unsupported, baseline → candidate | Complete math proofs, baseline → candidate |
+|---|---:|---:|---:|---:|---:|
+| Vector copy | 252 | 40 → 68 | 168 → 168 | 44 → 16 | 208 → 236 |
+| Add one | 84 | 0 → 20 | 56 → 56 | 28 → 8 | 56 → 76 |
+
+Every prior combined accept is retained. The 48 new accepts comprise 20 f32,
+four f16 and four bf16 copy specializations, plus 20 f32 add-one specializations.
+Each uses its complete original length and output-coordinate set. Candidate
+wrong-equation controls refute the wrong formula on verified graphs for all
+three copy dtypes and for add-one. Mathematical proofs still include the 224
+graph-rejected cases; they are separate from combined acceptance and do not
+waive same-value write/write conflicts.
+
+Eight f32 cases in each family still require DWORDX2. Four f16 and four bf16
+copy cases reach a later packed-data reinterpretation refusal. These remain
+unsupported, and neither family is wholly verified. Reclassification of both
+candidate runs, the fresh copy baseline and the two historical primary runs
+produces zero outcome or proof-count differences.
+
+The receipt binds binary/build, source/module/object, harness, specification,
+launch and transcript-inventory hashes, including every case's two dispositions.
+Raw logs, absolute paths and timing fields stay outside Git. These CPU-only
+functional runs make no GPU, hardware floating-point or latency claim.
