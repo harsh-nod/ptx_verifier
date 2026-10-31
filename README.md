@@ -64,7 +64,8 @@ equivalence only; those artifacts do not contain a safety graph.
 Opt-in [early readiness rejection](docs/early-readiness.md) can stop native
 gfx1250 execution at its first certified scalar-read hazard. All three source
 commands then print `VERDICT: REJECT` and exit 1, with an incomplete prefix and
-no output or equivalence result. Default runs retain complete traces.
+no output or equivalence result. With this option disabled, execution uses its
+normal instruction, bounds and budget checks.
 
 Supported gfx1250 tensor transfers also receive a separate
 [LDS bounds check](docs/tensor-bounds.md). A certified out-of-bounds attempt

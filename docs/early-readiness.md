@@ -2,8 +2,9 @@
 
 The normal pipeline executes a candidate kernel, records its event graph, then
 checks safety and mathematical outputs independently. This separation keeps an
-arithmetic identity from hiding a synchronization defect and preserves all
-diagnostics from the candidate execution. See the
+arithmetic identity from hiding a synchronization defect. Completed executions
+retain their full graph diagnostics; unsupported execution and other errors can
+still abort a trace. See the
 [architecture guide](architecture.md).
 
 An optional early observer can stop execution after a checker-validated scalar
@@ -92,7 +93,10 @@ and replays that declared contract; it does not independently decode source
 bytes or attest an arbitrarily fabricated whole graph.
 
 Early mode reports the first certified finding and can omit later bug sites.
-Use full mode to retain diagnostics from the complete candidate execution.
+Leave the observer disabled to retain later diagnostics when execution can
+continue. Unsupported execution and
+[configured tensor LDS bounds faults](tensor-bounds.md) can still stop the default
+execution before completion.
 Every acceptance still needs a completed execution, all applicable graph checks
 and complete mathematical equivalence. The observer adds no early checks for
 PTX, gfx942/gfx950 or other gfx1250 properties. No general performance

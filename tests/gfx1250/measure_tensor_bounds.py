@@ -24,10 +24,100 @@ def git(*args):
     return subprocess.check_output(["git", "-C", str(ROOT), *args], text=True).strip()
 
 
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def workspace_fingerprint(revision):
+    """Tracked Rust workspace superset, including tests and embedded viewer assets."""
+    entries = subprocess.check_output(
+        [
+            "git",
+            "-C",
+            str(ROOT),
+            "ls-tree",
+            "-rz",
+            "--full-tree",
+            revision,
+            "--",
+            "crates",
+            "Cargo.toml",
+            "Cargo.lock",
+            "rust-toolchain",
+            "rust-toolchain.toml",
+            ".cargo",
+        ]
+    )
+    records = [entry for entry in entries.split(b"\0") if entry]
+    require(records, "empty Rust workspace fingerprint")
+    return {
+        "algorithm": "sha256-git-tree-v1",
+        "sha256": sha(entries),
+        "file_count": len(records),
+    }
+
+
+def build_identity(path, revision, binary):
+    raw = path.read_bytes()
+    record = json.loads(raw)
+    require(
+        record.get("schema_version") == 1 and record.get("trust") == "caller_attested",
+        "build record must explicitly identify its caller-attested schema",
+    )
+    require(
+        record.get("revision") == revision and record.get("source_clean") is True,
+        "build source revision/clean state differs",
+    )
+    require(
+        record.get("binary_sha256") == sha(binary.read_bytes()),
+        "build executable hash differs",
+    )
+    require(
+        record.get("rust_workspace_fingerprint") == workspace_fingerprint(revision),
+        "build Rust workspace fingerprint differs",
+    )
+    require(
+        record.get("profile") == "release"
+        and record.get("features") == []
+        and record.get("default_features") is True,
+        "comparison requires release profile with Cargo default features",
+    )
+    require(
+        record.get("command") == ["cargo", "build", "--release", "-p", "volta_cli"],
+        "build command differs from the declared comparison profile",
+    )
+    require(
+        all(
+            isinstance(record.get(key), str) and record[key]
+            for key in ("rustc", "cargo")
+        ),
+        "build compiler/tool versions are missing",
+    )
+    fields = (
+        "schema_version",
+        "trust",
+        "revision",
+        "source_clean",
+        "binary_sha256",
+        "rust_workspace_fingerprint",
+        "profile",
+        "features",
+        "default_features",
+        "command",
+        "rustc",
+        "cargo",
+    )
+    return {**{key: record[key] for key in fields}, "build_record_sha256": sha(raw)}
+
+
 def mutations(source):
-    assert source.count(LOAD) == 1 and source.count(STORE) == 1
+    require(
+        source.count(LOAD) == 1 and source.count(STORE) == 1,
+        "tensor mutation anchors changed",
+    )
     load = source.replace(LOAD, f"s_mov_b32 s5, 256\n\t{LOAD}", 1)
-    assert "s_wait_kmcnt 0x0" in load
+    require("s_wait_kmcnt 0x0" in load, "pending-descriptor completion anchor missing")
     return {
         "original": source,
         "load_bounds": load,
@@ -44,12 +134,12 @@ def mutations(source):
     }
 
 
-def command(source, safe):
+def command(source, safe, spec=SPEC):
     args = (
         [
             "verify",
             str(source),
-            SPEC,
+            str(spec),
             "--dim",
             "N=128",
             "--sample",
@@ -81,129 +171,250 @@ def command(source, safe):
     ]
 
 
-def run(binary, source, safe):
-    args = command(source, safe)
-    result = subprocess.run(
-        [str(binary), *args], cwd=ROOT, capture_output=True, text=True, timeout=60
+PROPERTIES = (
+    "AMD trace completeness",
+    "AMD wait and register readiness",
+    "AMD workgroup barrier generations",
+    "AMD memory-conflict freedom",
+)
+
+
+def classify(stdout, stderr, code, safe, expected_access=None):
+    combined = stdout + "\n" + stderr
+    marker = "TENSOR_BOUNDS: CERTIFIED_REJECTION"
+    marker_count = combined.count(marker)
+    certified = re.findall(r"^TENSOR_BOUNDS: CERTIFIED_REJECTION$", stdout, re.M)
+    verdicts = re.findall(r"^VERDICT: (\w+)$", combined, re.M)
+    graph = re.findall(
+        r"^GRAPH VERIFICATION: (VERIFIED|REJECTED|UNKNOWN)\b", combined, re.M
     )
-    text = result.stdout
-    certified = text.count("TENSOR_BOUNDS: CERTIFIED_REJECTION") == 1
-    verdicts = re.findall(r"^VERDICT: (\w+)$", text, re.M)
-    refused = any(
-        marker in text + result.stderr
-        for marker in (
-            "execution stopped:",
-            "unsupported AMD instruction",
-            "certificate invalid",
-        )
+    refused = re.search(
+        r"execution (?:stopped|aborted):|trace generator aborted|unsupported AMD instruction|certificate invalid",
+        combined,
+        re.I,
     )
+    require("EARLY_READINESS:" not in combined, "unexpected scalar-readiness outcome")
+    counts = re.findall(r"^VC check:.*elements: (\d+)(?:/(\d+))?$", combined, re.M)
     if safe:
-        assert (
-            result.returncode == 0
+        require(
+            code == 0
             and verdicts == ["ACCEPT"]
-            and not certified
+            and marker_count == 0
             and not refused
-        ), (
-            text,
-            result.stderr,
+            and graph in ([], ["VERIFIED"]),
+            "inconsistent safe outcome",
         )
         checks = [
             line.strip()
-            for line in text.splitlines()
+            for line in combined.splitlines()
             if line.strip().startswith("AMD ")
         ]
-        properties = (
-            "AMD trace completeness",
-            "AMD wait and register readiness",
-            "AMD workgroup barrier generations",
-            "AMD memory-conflict freedom",
+        require(
+            len(checks) == len(PROPERTIES)
+            and all(
+                sum(
+                    line.startswith(prop + " (") and line.endswith(" PASS")
+                    for line in checks
+                )
+                == 1
+                for prop in PROPERTIES
+            ),
+            "incomplete or failing native properties",
         )
-        assert len(checks) == len(properties)
-        assert all(
-            sum(
-                line.startswith(prop + " (") and line.endswith(" PASS")
-                for line in checks
+        require(
+            counts == [("128", "")]
+            and len(re.findall(r"^[ \t]*VC check:.*$", combined, re.M)) == 1,
+            "incomplete, duplicate or contradictory VC counts",
+        )
+        equivalents = re.findall(r"^\s*equivalence: (.*)$", combined, re.M)
+        require(
+            equivalents == ["all 128 compared elements proved equivalent"]
+            and "NOT EQUIVALENT" not in combined,
+            "missing or contradictory complete specification proof",
+        )
+        return "complete_specification_proof"
+    if marker_count:
+        require(
+            marker_count == 1
+            and len(certified) == 1
+            and code == 1
+            and verdicts == ["REJECT"]
+            and not refused
+            and graph in ([], ["UNKNOWN"]),
+            "inconsistent certified rejection",
+        )
+        require(
+            combined.count(
+                "AMD tensor LDS bounds (independently validated attempted access) FAIL"
             )
-            == 1
-            for prop in properties
+            == 1,
+            "missing or duplicate tensor bounds property",
         )
-        assert re.search(r"^VC check:.*elements: 128$", text, re.M)
-        assert "equivalence: all 128 compared elements proved equivalent" in text
-        outcome = "complete_specification_proof"
-    elif certified:
-        assert result.returncode == 1 and verdicts == ["REJECT"] and not refused, (
-            text,
-            result.stderr,
+        witnesses = re.findall(
+            r"TensorBoundsViolation \{[^{}\n]*access: (Read|Write), address: 256, bytes: 256, configured_lds_bytes: 256 \}",
+            stdout,
         )
-        assert (
-            "AMD tensor LDS bounds (independently validated attempted access) FAIL"
-            in text
+        require(
+            len(witnesses) == 1
+            and (expected_access is None or witnesses == [expected_access]),
+            "missing, mismatched or duplicate typed attempted-access witness",
         )
-        assert "TensorBoundsViolation" in text
-        assert "address: 256, bytes: 256, configured_lds_bytes: 256" in text
-        assert "transfer not issued" in text and "VC check:" not in text
-        assert "output 'out'" not in text
-        outcome = "certified_tensor_bounds_rejection"
-    else:
-        assert result.returncode == 2 and "UNKNOWN" in text, (text, result.stderr)
-        outcome = "unknown"
-    # A portable command template, rather than the temporary file's local path.
+        require(
+            "transfer not issued" in stdout
+            and "VC check:" not in combined
+            and "output '" not in combined
+            and "EQUIVALENT" not in combined,
+            "certified prefix contains outputs or equivalence",
+        )
+        return "certified_tensor_bounds_rejection"
+    require(
+        code == 2
+        and graph == ["UNKNOWN"]
+        and verdicts in ([], ["UNKNOWN"])
+        and "VC check:" not in combined
+        and "EQUIVALENT" not in combined,
+        "missing or contradictory inconclusive graph outcome",
+    )
+    return "unknown"
+
+
+def run(binary, source, safe, spec=SPEC, expected_access=None):
+    args = command(source, safe, spec)
+    result = subprocess.run(
+        [str(binary), *args], cwd=ROOT, capture_output=True, text=True, timeout=60
+    )
+    outcome = classify(
+        result.stdout, result.stderr, result.returncode, safe, expected_access
+    )
     args[args.index(str(source))] = "{case}.s"
-    return {"command": args, "exit_code": result.returncode, "outcome": outcome}
+    if safe:
+        args[args.index(str(spec))] = "{spec}.spec"
+    return {
+        "command": args,
+        "exit_code": result.returncode,
+        "outcome": outcome,
+        "stdout_sha256": sha(result.stdout.encode()),
+        "stderr_sha256": sha(result.stderr.encode()),
+    }
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--fingerprint-revision",
+        help="Print a tracked Rust workspace fingerprint; no measurement",
+    )
     for role in ("baseline", "candidate"):
-        parser.add_argument(f"--{role}", type=Path, required=True)
-        parser.add_argument(f"--{role}-revision", required=True)
-    parser.add_argument("--output", type=Path, required=True)
+        parser.add_argument(f"--{role}", type=Path)
+        parser.add_argument(f"--{role}-revision")
+        parser.add_argument(f"--{role}-build-record", type=Path)
+    parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    if args.output.exists():
-        parser.error("output already exists; preserve prior results")
-    source = (ROOT / ASSEMBLY).read_bytes()
-    spec = (ROOT / SPEC).read_bytes()
-    versions = {}
+    if args.fingerprint_revision:
+        print(
+            json.dumps(
+                workspace_fingerprint(
+                    git("rev-parse", f"{args.fingerprint_revision}^{{commit}}")
+                ),
+                indent=2,
+            )
+        )
+        return
+    require(
+        all(
+            getattr(args, role)
+            and getattr(args, role + "_revision")
+            and getattr(args, role + "_build_record")
+            for role in ("baseline", "candidate")
+        )
+        and args.output,
+        "both binaries, revisions, build records and output are required",
+    )
+    require(not args.output.exists(), "output already exists; preserve prior results")
+    paths = {
+        ASSEMBLY: ROOT / ASSEMBLY,
+        SPEC: ROOT / SPEC,
+        "harness": Path(__file__).resolve(),
+    }
+    snapshots = {name: path.read_bytes() for name, path in paths.items()}
+    source, spec = snapshots[ASSEMBLY], snapshots[SPEC]
+    versions, binaries, build_paths = {}, {}, {}
     for role in ("baseline", "candidate"):
         revision = git("rev-parse", f"{getattr(args, role + '_revision')}^{{commit}}")
         for path, content in ((ASSEMBLY, source), (SPEC, spec)):
             pinned = subprocess.check_output(
                 ["git", "-C", str(ROOT), "show", f"{revision}:{path}"]
             )
-            assert pinned == content, f"{role} source contract differs: {path}"
-        binary = getattr(args, role).resolve(strict=True)
-        versions[role] = {
-            "revision": revision,
-            "binary_sha256": sha(binary.read_bytes()),
-        }
-    cases = mutations(source.decode())
+            require(pinned == content, f"{role} source contract differs: {path}")
+        binaries[role] = getattr(args, role).resolve(strict=True)
+        build_paths[role] = getattr(args, role + "_build_record").resolve(strict=True)
+        versions[role] = build_identity(build_paths[role], revision, binaries[role])
+
+    def unchanged():
+        require(
+            all(path.read_bytes() == snapshots[name] for name, path in paths.items()),
+            "source, specification or harness changed during comparison",
+        )
+        for role, version in versions.items():
+            require(
+                sha(binaries[role].read_bytes()) == version["binary_sha256"],
+                "binary changed",
+            )
+            require(
+                sha(build_paths[role].read_bytes()) == version["build_record_sha256"],
+                "build record changed",
+            )
+
     rows = []
     with tempfile.TemporaryDirectory(prefix="volta-bounds-comparison-") as temp:
-        for name, text in cases.items():
+        frozen_spec = Path(temp) / "frozen.spec"
+        frozen_spec.write_bytes(spec)
+        for name, text in mutations(source.decode()).items():
             path = Path(temp) / (name + ".s")
-            path.write_text(text)
-            row = {"case": name, "assembly_sha256": sha(path.read_bytes())}
+            case_bytes = text.encode()
+            path.write_bytes(case_bytes)
+            row = {"case": name, "assembly_sha256": sha(case_bytes)}
             for role in versions:
-                row[role] = run(getattr(args, role).resolve(), path, name == "original")
+                unchanged()
+                require(
+                    path.read_bytes() == case_bytes
+                    and frozen_spec.read_bytes() == spec,
+                    "frozen case inputs changed",
+                )
+                access = {"load_bounds": "Write", "store_bounds": "Read"}.get(name)
+                row[role] = run(
+                    binaries[role], path, name == "original", frozen_spec, access
+                )
+                require(
+                    path.read_bytes() == case_bytes
+                    and frozen_spec.read_bytes() == spec,
+                    "frozen case inputs changed",
+                )
+                unchanged()
             rows.append(row)
-    for role, version in versions.items():
-        assert (
-            sha(getattr(args, role).resolve().read_bytes()) == version["binary_sha256"]
-        ), "binary changed"
+    unchanged()
     hazards = [row for row in rows if row["case"] in ("load_bounds", "store_bounds")]
-    assert all(row["baseline"]["outcome"] == "unknown" for row in hazards)
-    assert all(
-        row["candidate"]["outcome"] == "certified_tensor_bounds_rejection"
-        for row in hazards
+    require(
+        len(hazards) == 2
+        and all(row["baseline"]["outcome"] == "unknown" for row in hazards),
+        "baseline seeded-bound outcomes changed",
     )
-    assert all(
-        row[role]["outcome"] == "unknown" for row in rows[3:] for role in versions
+    require(
+        all(
+            row["candidate"]["outcome"] == "certified_tensor_bounds_rejection"
+            for row in hazards
+        ),
+        "candidate seeded-bound outcomes changed",
+    )
+    require(
+        all(row[role]["outcome"] == "unknown" for row in rows[3:] for role in versions),
+        "a refusal control acquired detection credit",
     )
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "scope": "Two seeded configured-LDS bounds violations in one compiler kernel; functional outcomes only.",
         "source_sha256": {ASSEMBLY: sha(source), SPEC: sha(spec)},
-        "harness_sha256": sha(Path(__file__).read_bytes()),
+        "harness_sha256": sha(snapshots["harness"]),
         "versions": versions,
         "configured_lds_bytes": 256,
         "invalid_interval_bytes": [256, 512],
@@ -214,7 +425,7 @@ def main():
             "No latency, GPU speed, upstream comparison or whole-ISA claim.",
             "Harmful variants run only in the CPU verifier.",
             "The prior 77-configuration study and its historical 29/30 result are unchanged.",
-            "Binary/source revisions are caller-supplied build provenance, verified by hashes and immutable fixture contracts.",
+            "Build records are caller attestations, not an independent proof of binary-to-source correspondence. Hashes bind those records to the declared revision, tracked Rust workspace superset, executable and fixture contracts.",
         ],
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

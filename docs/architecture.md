@@ -87,10 +87,12 @@ The optional gfx1250 [early readiness observer](early-readiness.md) consumes
 complete instruction batches using checker-owned scalar readiness transitions.
 The pipeline replays a proposed witness and revalidates the halted prefix before
 exposing a certified rejection. A generic observer stop remains inconclusive.
-No early acceptance path is added; default execution retains complete traces.
+No early acceptance path is added. Disabling the observer retains the ordinary
+diagnostic path; unsupported execution or other errors can still abort a trace.
 
 Supported gfx1250 [tensor LDS bounds faults](tensor-bounds.md) have a separate
-prefix certificate. The producer records an attempted access and aborts before
+prefix certificate, including in default mode. The producer records an attempted
+access and aborts before
 memory issue. The checker validates its descriptor, configured LDS extent,
 source readiness and barrier reachability. The pipeline exposes only the
 certified rejection; the incomplete graph and absent outputs cannot establish
