@@ -278,3 +278,13 @@ The receipt binds binary/build, source/module/object, harness, specification,
 launch and transcript-inventory hashes, including every case's two dispositions.
 Raw logs, absolute paths and timing fields stay outside Git. These CPU-only
 functional runs make no GPU, hardware floating-point or latency claim.
+
+The [independent frontier audit](frontier-audit-20261031.json) checks all 205
+compiler attempts, 68 parser records and imported 336 launch outcomes against
+the retained artifacts: 23,900 checks, zero errors. This is an accounting audit;
+it does not establish instruction legality or executable build provenance.
+
+[Original-shape GEMM contracts](../complex/README.md) separately describe all
+four public gfx1250 rung-00 host shapes and seven gfx950 BF16 GEMM host shapes,
+including full input allocations and every selected-workgroup output. The
+recorded runs stop at parser refusals; they establish no execution or proof.
