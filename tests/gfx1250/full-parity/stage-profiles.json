@@ -94,12 +94,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 158
+          "line": 159
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 781
+          "line": 786
         }
       ],
       "primary_sources": [
@@ -166,12 +166,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 158
+          "line": 159
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 781
+          "line": 786
         }
       ],
       "primary_sources": [
@@ -229,7 +229,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "vector",
-          "line": 4204
+          "line": 4231
         }
       ],
       "event_semantics": [
@@ -248,12 +248,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 158
+          "line": 159
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 781
+          "line": 786
         }
       ],
       "primary_sources": [
@@ -321,7 +321,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "memory_instruction",
-          "line": 6344
+          "line": 6388
         }
       ],
       "event_semantics": [
@@ -340,12 +340,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 158
+          "line": 159
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 781
+          "line": 786
         }
       ],
       "primary_sources": [
@@ -409,7 +409,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "permute",
-          "line": 7183
+          "line": 7246
         }
       ],
       "event_semantics": [
@@ -428,12 +428,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 158
+          "line": 159
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 781
+          "line": 786
         }
       ],
       "primary_sources": [
@@ -481,7 +481,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "atomic_add_f32_no_return",
-          "line": 6098
+          "line": 6131
         }
       ],
       "event_semantics": [
@@ -500,12 +500,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 158
+          "line": 159
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 781
+          "line": 786
         }
       ],
       "primary_sources": [
@@ -577,12 +577,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 158
+          "line": 159
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 781
+          "line": 786
         }
       ],
       "primary_sources": [
@@ -649,12 +649,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 158
+          "line": 159
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 781
+          "line": 786
         }
       ],
       "primary_sources": [
@@ -712,7 +712,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "wait",
-          "line": 5862
+          "line": 5895
         }
       ],
       "event_semantics": [
@@ -731,12 +731,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 158
+          "line": 159
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 781
+          "line": 786
         }
       ],
       "primary_sources": [
@@ -803,12 +803,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 158
+          "line": 159
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 781
+          "line": 786
         }
       ],
       "primary_sources": [
@@ -861,7 +861,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "wmma",
-          "line": 3959
+          "line": 3986
         }
       ],
       "event_semantics": [
@@ -880,12 +880,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 158
+          "line": 159
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 781
+          "line": 786
         }
       ],
       "primary_sources": [
@@ -958,12 +958,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 158
+          "line": 159
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 781
+          "line": 786
         }
       ],
       "primary_sources": [

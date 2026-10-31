@@ -96,6 +96,12 @@ EXEC changes must be concrete. Symbolic comparisons may select data through
 supported masks, but cannot control addresses, branches or carry inputs.
 Observing undefined flags or unavailable ABI fields stops execution.
 
+Exact halfword masks and complementary OR operations transport encoded F16/BF16
+data without decoding it as an integer or choosing a floating format. A separate
+high-half value tag records an exactly zero low half; mathematical zero is not
+used to infer cleared bits. Undefined selected halves, overlapping encoded ORs
+and arbitrary floating bitcasts remain unsupported.
+
 Kernel descriptors determine user/system register assignments and LDS limits.
 AMDHSA argument offsets and sizes determine explicit kernarg layout. By-value
 arguments require exact caller-supplied bytes. Partial native loads preserve
