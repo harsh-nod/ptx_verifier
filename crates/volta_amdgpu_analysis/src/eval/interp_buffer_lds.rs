@@ -133,7 +133,7 @@ impl Interpreter<'_> {
                 },
                 counters: vec![(AmdCounter::Vm, 1)],
                 destinations,
-                // Address/resource/M0 inputs are captured at issue. Ordinary
+                // The model snapshots address/resource/M0 inputs at issue. Ordinary
                 // producer-readiness checks remain in Instruction source roles.
                 held_sources: Vec::new(),
             },

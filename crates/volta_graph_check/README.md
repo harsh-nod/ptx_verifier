@@ -260,7 +260,7 @@ DMA shares the ordinary counter-wide pending VM inventory but has a separate,
 initially unordered completion domain. Mixed or DMA-only partial VM waits retire
 no contributor; ordinary-only FIFO behavior stays unchanged. VM0 completes DMA;
 LGKM/EXP waits and barriers alone do not. FLAT still needs both remaining
-charges. Address, resource and M0 operands are captured at issue, with their
+charges. The model snapshots address, resource and M0 operands at issue, with their
 normal producer-readiness checks and no invented EXP/X source lease.
 
 A SALU write to M0 needs **one independent state** before an active DMA reads it,
