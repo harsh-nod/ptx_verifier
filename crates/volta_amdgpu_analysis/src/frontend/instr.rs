@@ -1554,7 +1554,16 @@ pub(super) fn validate_registers(
                 || stem.starts_with("s_bitcmp");
             let wide = stem.ends_with("b64") || stem.ends_with("i64") || stem.ends_with("u64");
             let data_width = if wide { 2 } else { 1 };
-            if compare {
+            if let Some(layout) = crate::source_encoding::ScalarLayout::for_mnemonic(stem) {
+                require(0, &[Scalar, Special], 2)?;
+                for index in 1..operands.len() {
+                    let ty = layout
+                        .source_type(index)
+                        .ok_or("invalid scalar source position")?;
+                    source_width(index, ty.words())?;
+                }
+                crate::source_encoding::resolve(stem, operands, architecture, true)?;
+            } else if compare {
                 for index in 0..operands.len() {
                     source_width(index, data_width)?;
                 }
@@ -2195,6 +2204,26 @@ pub(super) fn validate_registers(
         _ => {}
     }
     Ok(())
+}
+
+/// Recheck selected scalar constants after assembly Symbol substitution.
+pub(super) fn validate_scalar_sources(
+    instruction: &Instruction,
+    architecture: crate::target::Architecture,
+) -> Result<(), ParseError> {
+    if instruction.opcode != Opcode::ScalarAlu {
+        return Ok(());
+    }
+    let stem = instruction
+        .mnemonic
+        .trim_end_matches("_e32")
+        .trim_end_matches("_e64");
+    crate::source_encoding::resolve(stem, &instruction.operands, architecture, true)
+        .map(|_| ())
+        .map_err(|message| ParseError {
+            message,
+            span: instruction.span,
+        })
 }
 
 /// Pinned gfx950 arithmetic forms: VOP2 can encode one literal in SRC0; VOP3

@@ -6,6 +6,9 @@ pub use crate::frontend::ast::{
     Global, Kernel, KernelArg, KernelDescriptor, Modifier, Module, Opcode, Register, RegisterClass,
     Relocation, RelocationKind, SourceSpan, SpecialRegister,
 };
+pub use crate::source_encoding::{
+    EncodedImmediate, ImmediateEncoding, InlineSelector, ScalarSourceType,
+};
 pub use instruction::*;
 pub use ops::{AluOpcode, MatrixOpcode, MemoryOpcode};
 use std::collections::BTreeMap;

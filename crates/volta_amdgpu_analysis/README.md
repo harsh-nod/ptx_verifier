@@ -318,6 +318,22 @@ spellings remain unsupported in those positions. Shift counts retain their
 [complete word controls](tests/fixtures/scalar-inline64/README.md) cover all three
 AMD targets. This does not broaden integer-literal or mathematical FP64 profiles.
 
+`s_mov_b64`, `s_or_b64`, `s_xor_b64`, `s_lshl_b64` and `s_lshr_b64`
+resolve each immediate into a checked inline selector or appended payload before
+execution. Their data sources are Binary64; the two shift counts are Bits32.
+The same layout validates register widths and constructs immutable executable
+operands. Register MOV still copies both Values, including opaque/code values,
+without observing their bits. Each instruction has at most one shared appended
+payload and width. On gfx942/gfx950, the selected data-literal subset retains
+integer inlines and nonnegative low31-bit words; high-bit/noninline-negative
+data and arbitrary literal64 are refused until their SALU expansion has a
+supported architectural premise. Gfx1250 uses its documented Binary64 literal
+rules and target-specific canonical literal32/64 selection. Over-width32 counts
+and incompatible shared payloads are refused rather than truncated. `lit` and
+`lit64` wrappers remain unsupported. Invalid migrated sources now fail during
+parsing or lowering, before output creation; this can precede an older runtime
+Unsupported result. Instruction E32/E64 spelling is separate from payload size.
+
 On gfx1250, selected `s_and_b64` sources are register pairs or integer inline
 constants −16 through 64; floating and other literal forms remain unsupported.
 It tracks each source word's defined bits separately.

@@ -2,6 +2,10 @@
 //! only source identity and modifier spelling remain alongside semantic operations.
 use super::ops::{AluOpcode, MatrixOpcode, MemoryOpcode, canonical_alu};
 use crate::frontend::{self, Modifier, Opcode, Register, Relocation, SourceSpan};
+use crate::source_encoding::{
+    EncodedImmediate, ResolvedScalarSources, ScalarLayout, ScalarSourceType,
+};
+use crate::target::Architecture;
 use std::borrow::Cow;
 use volta_graph::AmdCounter;
 
@@ -11,6 +15,7 @@ pub enum Operand {
     Register(Register),
     Integer(i64),
     Float(f64),
+    EncodedImmediate(EncodedImmediate),
     Off,
     Relocation(Relocation),
     Modified {
@@ -73,6 +78,28 @@ impl Arguments {
             .iter()
             .map(Operand::lower)
             .collect::<Result<Vec<_>, _>>()?;
+        Self::from_values(values)
+    }
+    fn lower_scalar(
+        values: &[frontend::Operand],
+        resolved: &ResolvedScalarSources,
+    ) -> Result<Self, String> {
+        let values = values
+            .iter()
+            .enumerate()
+            .map(|(position, operand)| match operand {
+                frontend::Operand::Integer(_) | frontend::Operand::Float(_) => resolved
+                    .immediate_at(position)
+                    .map(Operand::EncodedImmediate)
+                    .ok_or_else(|| {
+                        "migrated scalar numeric source lacks a checked encoding".into()
+                    }),
+                _ => Operand::lower(operand),
+            })
+            .collect::<Result<Vec<_>, String>>()?;
+        Self::from_values(values)
+    }
+    fn from_values(values: Vec<Operand>) -> Result<Self, String> {
         Ok(match values.len() {
             0 => Self::None,
             1 => Self::One(values.try_into().unwrap()),
@@ -222,7 +249,7 @@ pub enum AluOperation {
     Compare(Comparison),
 }
 impl AluOperation {
-    fn parse(name: &str) -> Option<Self> {
+    pub(crate) fn parse(name: &str) -> Option<Self> {
         let name = canonical_alu(name);
         Comparison::parse(name)
             .map(Self::Compare)
@@ -244,6 +271,77 @@ impl AluInstruction {
     pub fn operands(&self) -> &[Operand] {
         self.arguments.slice()
     }
+    pub(crate) fn scalar_sources(&self) -> Result<Option<ScalarSources<'_>>, String> {
+        let Some(layout) = ScalarLayout::for_operation(self.operation) else {
+            return Ok(None);
+        };
+        let operands = self.operands();
+        if operands.len() != layout.arity() {
+            return Err("invalid migrated scalar operand count".into());
+        }
+        let source64 = |position: usize| match operands.get(position) {
+            Some(Operand::Register(register)) if register.count == 2 => {
+                Ok(ScalarSource64::Register(*register))
+            }
+            Some(Operand::EncodedImmediate(immediate))
+                if immediate.source_type() == ScalarSourceType::Binary64 =>
+            {
+                Ok(ScalarSource64::Immediate(immediate))
+            }
+            _ => Err(
+                "migrated Binary64 source lacks a register pair or checked encoding".to_string(),
+            ),
+        };
+        Ok(Some(match layout {
+            ScalarLayout::Move64 => ScalarSources::Move64(source64(1)?),
+            ScalarLayout::Binary64 => ScalarSources::Binary64 {
+                left: source64(1)?,
+                right: source64(2)?,
+            },
+            ScalarLayout::Shift64 => {
+                let count = match operands.get(2) {
+                    Some(Operand::Register(register)) if register.count == 1 => {
+                        ScalarSource32::Register(*register)
+                    }
+                    Some(Operand::EncodedImmediate(immediate))
+                        if immediate.source_type() == ScalarSourceType::Bits32 =>
+                    {
+                        ScalarSource32::Immediate(immediate)
+                    }
+                    _ => {
+                        return Err("migrated Bits32 source lacks a word or checked encoding".into());
+                    }
+                };
+                ScalarSources::Shift64 {
+                    data: source64(1)?,
+                    count,
+                }
+            }
+        }))
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum ScalarSource64<'a> {
+    Register(Register),
+    Immediate(&'a EncodedImmediate),
+}
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum ScalarSource32<'a> {
+    Register(Register),
+    Immediate(&'a EncodedImmediate),
+}
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum ScalarSources<'a> {
+    Move64(ScalarSource64<'a>),
+    Binary64 {
+        left: ScalarSource64<'a>,
+        right: ScalarSource64<'a>,
+    },
+    Shift64 {
+        data: ScalarSource64<'a>,
+        count: ScalarSource32<'a>,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -769,7 +867,10 @@ impl Instruction {
             _ => Cow::Borrowed(&self.source.mnemonic),
         }
     }
-    pub(crate) fn lower(source: &frontend::Instruction) -> Result<Self, String> {
+    pub(crate) fn lower(
+        source: &frontend::Instruction,
+        architecture: Architecture,
+    ) -> Result<Self, String> {
         let stem = source
             .mnemonic
             .trim_end_matches("_e32")
@@ -780,15 +881,33 @@ impl Instruction {
             Opcode::ScalarAlu | Opcode::VectorAlu => {
                 if let [frontend::Operand::Dual(x, y)] = source.operands.as_slice() {
                     Operation::Dual {
-                        x: Box::new(Self::lower(x)?),
-                        y: Box::new(Self::lower(y)?),
+                        x: Box::new(Self::lower(x, architecture)?),
+                        y: Box::new(Self::lower(y, architecture)?),
                     }
                 } else {
-                    let alu = AluInstruction {
-                        operation: AluOperation::parse(stem)
-                            .ok_or_else(|| format!("no typed ALU operation for {stem}"))?,
-                        arguments: arguments()?,
+                    let operation = AluOperation::parse(stem)
+                        .ok_or_else(|| format!("no typed ALU operation for {stem}"))?;
+                    let arguments = if source.opcode == Opcode::ScalarAlu {
+                        if let Some(resolved) = crate::source_encoding::resolve(
+                            stem,
+                            &source.operands,
+                            architecture,
+                            false,
+                        )? {
+                            Arguments::lower_scalar(&source.operands, &resolved)?
+                        } else {
+                            arguments()?
+                        }
+                    } else {
+                        arguments()?
                     };
+                    let alu = AluInstruction {
+                        operation,
+                        arguments,
+                    };
+                    // Construction must establish the typed view; execution
+                    // never recovers a migrated source through raw numerics.
+                    alu.scalar_sources()?;
                     if source.opcode == Opcode::ScalarAlu {
                         Operation::ScalarAlu(alu)
                     } else {
@@ -959,4 +1078,75 @@ fn lower_wait(name: &str, operands: &[frontend::Operand]) -> Result<WaitInstruct
             threshold: immediate()?,
         },
     })
+}
+
+#[cfg(test)]
+mod scalar_source_tests {
+    use super::*;
+    fn pair() -> Operand {
+        Operand::Register(Register {
+            class: frontend::RegisterClass::Scalar,
+            index: 0,
+            count: 2,
+            special: None,
+        })
+    }
+    #[test]
+    fn raw_numeric_operands_cannot_enter_a_migrated_source_view() {
+        for raw in [Operand::Integer(1), Operand::Float(1.0)] {
+            let instruction = AluInstruction {
+                operation: AluOperation::Opcode(AluOpcode::SMovB64),
+                arguments: Arguments::Two([pair(), raw]),
+            };
+            assert!(instruction.scalar_sources().is_err());
+        }
+        let missing = AluInstruction {
+            operation: AluOperation::Opcode(AluOpcode::SLshlB64),
+            arguments: Arguments::None,
+        };
+        assert!(missing.scalar_sources().is_err());
+    }
+    #[test]
+    fn checked_count_immediate_cannot_masquerade_as_binary64_data() {
+        let operands = [
+            frontend::Operand::Register(Register {
+                class: frontend::RegisterClass::Scalar,
+                index: 0,
+                count: 2,
+                special: None,
+            }),
+            frontend::Operand::Integer(1),
+            frontend::Operand::Float(0.5),
+        ];
+        let checked =
+            crate::source_encoding::resolve("s_lshl_b64", &operands, Architecture::Gfx950, false)
+                .unwrap()
+                .unwrap();
+        let instruction = AluInstruction {
+            operation: AluOperation::Opcode(AluOpcode::SMovB64),
+            arguments: Arguments::Two([
+                pair(),
+                Operand::EncodedImmediate(checked.immediate_at(2).unwrap()),
+            ]),
+        };
+        assert!(instruction.scalar_sources().is_err());
+    }
+    #[test]
+    fn a_deferred_plan_cannot_copy_raw_numeric_operands_into_ir() {
+        let operands = [
+            frontend::Operand::Register(Register {
+                class: frontend::RegisterClass::Scalar,
+                index: 0,
+                count: 2,
+                special: None,
+            }),
+            frontend::Operand::Symbol("CONSTANT".into()),
+        ];
+        let deferred =
+            crate::source_encoding::resolve("s_mov_b64", &operands, Architecture::Gfx950, true)
+                .unwrap()
+                .unwrap();
+        let numeric = [operands[0].clone(), frontend::Operand::Integer(1)];
+        assert!(Arguments::lower_scalar(&numeric, &deferred).is_err());
+    }
 }

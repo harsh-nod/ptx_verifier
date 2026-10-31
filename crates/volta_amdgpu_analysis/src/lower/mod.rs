@@ -529,7 +529,7 @@ fn lower_with_globals(
         instructions: instructions
             .iter()
             .map(|instruction| {
-                LoweredInstruction::lower(instruction).map_err(|message| LowerError {
+                LoweredInstruction::lower(instruction, architecture).map_err(|message| LowerError {
                     message,
                     span: instruction.span,
                 })

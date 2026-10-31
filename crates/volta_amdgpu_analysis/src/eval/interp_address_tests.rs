@@ -154,13 +154,16 @@ fn rel64_materializes_only_the_approved_pair_and_preserves_scc() {
         ("s_endpgm", Opcode::Control, vec![]),
     ] {
         program.instructions.push(
-            Instruction::lower(&crate::frontend::Instruction {
-                mnemonic: name.into(),
-                opcode,
-                operands,
-                modifiers: Vec::new(),
-                span: SourceSpan::default(),
-            })
+            Instruction::lower(
+                &crate::frontend::Instruction {
+                    mnemonic: name.into(),
+                    opcode,
+                    operands,
+                    modifiers: Vec::new(),
+                    span: SourceSpan::default(),
+                },
+                crate::target::Architecture::Gfx1250,
+            )
             .unwrap(),
         );
     }
