@@ -517,6 +517,7 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "flat_load_dword" | "flat_load_dwordx2" | "flat_load_dwordx3" | "flat_load_dwordx4"
         | "flat_store_byte" | "flat_store_short" | "flat_store_dword" | "flat_store_dwordx2"
         | "flat_store_dwordx3" | "flat_store_dwordx4" => (VectorMemory, 2, 2),
+        "buffer_load_b128" | "buffer_store_b64" => (VectorMemory, 4, 4),
         "buffer_load_ubyte"
         | "buffer_load_sbyte"
         | "buffer_load_ushort"
@@ -1662,6 +1663,58 @@ pub(super) fn validate_registers(
             } else if buffer {
                 require(2, &[Scalar], 4)?;
                 source_width(3, 1)?;
+                if architecture == crate::target::Architecture::Gfx950
+                    && matches!(stem, "buffer_load_dword" | "buffer_store_dword")
+                    && (mnemonic != stem
+                        || !matches!(operands[0], Operand::Register(r) if r.class == Vector && r.count == 1)
+                        || !matches!(operands[1], Operand::Register(r) if r.class == Vector && r.count == 1)
+                        || !matches!(operands[2], Operand::Register(r) if r.class == Scalar && r.count == 4)
+                        || !matches!(operands[3], Operand::Integer(0))
+                        || !modifiers
+                            .iter()
+                            .any(|m| m.name == "offen" && m.value.is_none())
+                        || modifiers.iter().any(|m| match m.name.as_str() {
+                            "offen" => m.value.is_some(),
+                            "offset" => m
+                                .value
+                                .as_deref()
+                                .and_then(integer)
+                                .is_none_or(|offset| !(0..=4095).contains(&offset)),
+                            _ => true,
+                        }))
+                {
+                    return Err("selected gfx950 buffer DWORD requires plain four-operand VGPR/SGPR-quad/zero OFFEN, default policy and unsigned12-bit offset".into());
+                }
+                if matches!(stem, "buffer_load_b128" | "buffer_store_b64") {
+                    // CDNA5 VBUFFER raw OFFEN subset, distinct from CDNA4's
+                    // three-operand buffer->LDS instructions and M0 address.
+                    require(0, &[Vector], memory_width(stem))?;
+                    require(1, &[Vector], 1)?;
+                    if architecture != crate::target::Architecture::Gfx1250
+                        || mnemonic != stem
+                        || !matches!(operands[0], Operand::Register(r)
+                            if r.class == Vector && u32::from(r.index) + u32::from(r.count) <= 256)
+                        || !matches!(operands[1], Operand::Register(r)
+                            if r.class == Vector && r.count == 1 && r.index < 256)
+                        || !matches!(operands[2], Operand::Register(r) if r.class == Scalar && r.count == 4)
+                        || !matches!(operands[3], Operand::Register(r)
+                            if r.special == Some(SpecialRegister::Null))
+                        || !modifiers
+                            .iter()
+                            .any(|m| m.name == "offen" && m.value.is_none())
+                        || modifiers.iter().any(|m| match m.name.as_str() {
+                            "offen" => m.value.is_some(),
+                            "offset" => m
+                                .value
+                                .as_deref()
+                                .and_then(integer)
+                                .is_none_or(|offset| !(0..=0x7f_ffff).contains(&offset)),
+                            _ => true,
+                        })
+                    {
+                        return Err("selected gfx1250 buffer loadB128/storeB64 requires plain four-operand VGPR/SGPR-quad/null OFFEN, default policy and nonnegative23-bit offset".into());
+                    }
+                }
             }
         }
         Opcode::Lds => {

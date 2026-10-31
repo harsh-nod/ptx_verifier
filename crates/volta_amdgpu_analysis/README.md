@@ -190,6 +190,47 @@ LLVM's pinned
 [numerical controls](tests/gfx1250_mul_u64.rs) and
 [source-readiness controls](../volta_pipeline/tests/gfx1250_mul_u64_tests.rs).
 
+The selected gfx1250 raw-buffer profile accepts `buffer_load_b128` into four
+VGPRs and `buffer_store_b64` from two VGPRs, each with a VGPR byte offset,
+plain four-SGPR resource, `null` scalar offset and `offen`. Optional immediate
+offsets are nonnegative 23-bit values. IDXEN, nondefault cache/scope flags,
+implicit LDS, swizzle, nonzero OOB_SELECT, other resource types and unbound
+or bounds-disabled resources remain unsupported. Each active transfer must
+fit both the resource and a configured allocation; resource-OOB zero-fill or
+suppression needs a separate graph contract. Register results use LOADcnt,
+stores use STOREcnt, and descriptor/address/EXEC/data leases use XCNT.
+
+Resources retain their raw
+[CDNA5 §9.4/§9.6 fields](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf):
+57-bit base and 45-bit byte count, with stride ignored in this IDXEN=0,
+OOB_SELECT=0 linear profile. A host aggregate shaped as
+`{pointer64, range32, config32}` is not a target-neutral descriptor: for a
+pointer below 2^57 and config 0x20000, these raw words encode `range * 128`
+bytes and stride 32. The evaluator never replaces that hardware count with
+the host field's name or intent. Configured allocation bounds remain
+independent of a wider resource bound. See LLVM's pinned
+[encoding controls](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/test/MC/AMDGPU/gfx1250_asm_vbuffer_mubuf.s),
+[value/profile controls](tests/gfx1250_raw_buffer.rs) and
+[readiness/lease controls](../volta_pipeline/tests/gfx1250_raw_buffer_tests.rs).
+
+The selected gfx950 raw-buffer profile supports four-operand
+`buffer_load_dword` / `buffer_store_dword` with plain VGPRs, an SGPR-quad
+resource, scalar offset `0`, `offen`, and an optional unsigned 12-bit byte
+offset. CDNA4 resources retain their 48-bit base and 32-bit byte bound;
+stride is ignored without indexing. The finite profile requires linear
+resources with word3 `0x20000`, nonzero DWORD-aligned bounds and aligned
+addresses. Resource suppression, other policies and DWORDX2 remain
+unsupported. Resource checks and configured allocation checks are separate.
+All active addresses are captured before issuing VM memory effects.
+Descriptor/address sources have ordinary readiness obligations, with no
+CDNA5 X lease: the descriptor may be reused immediately after issuance.
+See [CDNA4 §§4.4, 9.1.5–9.1.8 and Table48](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf),
+[value controls](tests/gfx950_raw_buffer.rs),
+[readiness and full-output math controls](../volta_pipeline/tests/gfx950_raw_buffer_tests.rs),
+and the [original N32 source/ABI identity](tests/fixtures/gfx950-raw-buffer-n32.json).
+The source identity describes the complete emitted module and its original
+launch contract; it does not establish verification of other specializations.
+
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
 subnormal behavior are outside that model. Encoded F16, BF16 and FP8 transport

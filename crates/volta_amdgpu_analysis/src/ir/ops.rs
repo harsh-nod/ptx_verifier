@@ -275,6 +275,7 @@ operation_set! { AluOpcode {
 }}
 
 operation_set! { MemoryOpcode {
+    BufferLoadB128 => "buffer_load_b128",
     BufferLoadDword => "buffer_load_dword",
     BufferLoadDwordx2 => "buffer_load_dwordx2",
     BufferLoadDwordx3 => "buffer_load_dwordx3",
@@ -283,6 +284,7 @@ operation_set! { MemoryOpcode {
     BufferLoadSshort => "buffer_load_sshort",
     BufferLoadUbyte => "buffer_load_ubyte",
     BufferLoadUshort => "buffer_load_ushort",
+    BufferStoreB64 => "buffer_store_b64",
     BufferStoreByte => "buffer_store_byte",
     BufferStoreDword => "buffer_store_dword",
     BufferStoreDwordx2 => "buffer_store_dwordx2",

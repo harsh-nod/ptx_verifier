@@ -6196,6 +6196,151 @@ impl<'a> Interpreter<'a> {
         }
         Ok(())
     }
+    /// Selected CDNA4 raw DWORD profile (ISA 9.1.5, 9.1.7, Table48).
+    /// This descriptor is not the CDNA5 base57/records45 layout.
+    fn gfx950_raw_buffer_addresses(
+        &self,
+        wave: &Wave,
+        instruction: &Instruction,
+        immediate: u64,
+        store: bool,
+    ) -> Result<[u64; 64], EvalError> {
+        let o = instruction.operands();
+        let descriptor = wave.destination(&o[2])?;
+        let mut words = [0u32; 4];
+        for (component, word) in words.iter_mut().enumerate() {
+            *word = wave
+                .reg(descriptor, 0, component as u16)?
+                .bits()
+                .map_err(|error| wave.fail(None, error))?;
+        }
+        // Cache/swizzle are zero; raw IDXEN=0 ignores the 14-bit stride.
+        // The observed format word has DFMT=4 (32 bits), other fields zero.
+        // Untyped DWORD transfers do not apply channel selection/conversion.
+        if words[1] >> 30 != 0 || words[3] != 0x20000 {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "selected gfx950 raw buffer requires linear/cache-swizzle0 and descriptor word3=0x20000".into(),
+            });
+        }
+        let base = u64::from(words[0]) | (u64::from(words[1] & 0xffff) << 32);
+        let records = u64::from(words[2]);
+        if records == 0 || !records.is_multiple_of(4) {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "selected gfx950 raw buffer requires a nonzero DWORD-aligned byte bound"
+                    .into(),
+            });
+        }
+        let mut addresses = [0u64; 64];
+        for lane in wave.active() {
+            // Both components are unsigned. Refuse a resource boundary rather
+            // than inventing zero-fill/drop effects or wrapping a large offset.
+            let offset = u64::from(wave.bits(&o[1], lane)?) + immediate;
+            if offset + 4 > records {
+                return Err(EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "resource-OOB buffer DWORD needs explicit suppression/zero-fill graph evidence".into(),
+                });
+            }
+            let address = base
+                .checked_add(offset)
+                .filter(|address| address.checked_add(4).is_some_and(|end| end <= 1u64 << 48))
+                .ok_or_else(|| EvalError::Unsupported {
+                    pc: wave.pc,
+                    what:
+                        "selected gfx950 buffer footprint escapes the bounded48-bit address domain"
+                            .into(),
+                })?;
+            // Hardware ignores the final address low2 bits; this finite profile
+            // accepts already-aligned addresses, without importing SMEM masks.
+            if !address.is_multiple_of(4) {
+                return Err(EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "selected gfx950 raw buffer requires an aligned DWORD address".into(),
+                });
+            }
+            self.validate_memory_range(wave, lane, false, address, 4, store)?;
+            if store
+                && matches!(
+                    wave.value(&o[0], lane)?,
+                    Value::PartialBits { .. }
+                        | Value::Low16Integer(_)
+                        | Value::PartialBytePair(..)
+                        | Value::PartialHalves(None, _)
+                        | Value::PartialHalves(_, None)
+                )
+            {
+                return Err(wave.fail(
+                    Some(lane),
+                    "buffer DWORD store observes undefined data bits",
+                ));
+            }
+            addresses[usize::from(lane)] = address;
+        }
+        Ok(addresses)
+    }
+    /// Public CDNA5 Tables54-57: raw linear VBUFFER, IDXEN=0/OOB_SELECT=0.
+    fn raw_buffer_addresses(
+        &self,
+        wave: &Wave,
+        instruction: &Instruction,
+        immediate: u64,
+        bytes: u64,
+    ) -> Result<[u64; 64], EvalError> {
+        let o = instruction.operands();
+        let descriptor = wave.destination(&o[2])?;
+        let mut resource = 0u128;
+        for component in 0..4 {
+            let word = wave
+                .reg(descriptor, 0, component)?
+                .bits()
+                .map_err(|error| wave.fail(None, error))?;
+            resource |= u128::from(word) << (u32::from(component) * 32);
+        }
+        let base = (resource & ((1u128 << 57) - 1)) as u64;
+        let records = ((resource >> 57) & ((1u128 << 45) - 1)) as u64;
+        // Bits107:102 are reserved; bits124/125 select swizzle and the extra
+        // stride bound, and bits127:126 select resource type. Stride/scale
+        // themselves do not contribute when IDXEN=0 and OOB_SELECT=0.
+        if ((resource >> 102) & 63) != 0 || resource >> 124 != 0 {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "selected gfx1250 raw buffer requires reserved=0, linear OOB_SELECT=0 and buffer type0".into(),
+            });
+        }
+        if records == 0 || records == (1u64 << 45) - 1 {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "unbound or bounds-disabled buffer resource is outside the selected finite profile".into(),
+            });
+        }
+        let mut addresses = [0u64; 64];
+        for lane in wave.active() {
+            let offset = (u64::from(wave.bits(&o[1], lane)?) + immediate) & ((1u64 << 45) - 1);
+            if offset + bytes > records {
+                return Err(EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "resource-OOB buffer components need explicit suppression/zero-fill graph evidence".into(),
+                });
+            }
+            let address = base
+                .checked_add(offset)
+                .filter(|address| {
+                    address
+                        .checked_add(bytes)
+                        .is_some_and(|end| end <= 1u64 << 57)
+                })
+                .ok_or_else(|| EvalError::Unsupported {
+                    pc: wave.pc,
+                    what:
+                        "selected buffer address/footprint escapes the bounded57-bit address domain"
+                            .into(),
+                })?;
+            addresses[usize::from(lane)] = address;
+        }
+        Ok(addresses)
+    }
     fn memory_instruction(
         &mut self,
         wave: &mut Wave,
@@ -6247,9 +6392,21 @@ impl<'a> Interpreter<'a> {
             return Err(EvalError::Unsupported {pc:wave.pc,what:"XNACK-enabled vector memory replay clauses and source retention are not modeled".into()});
         }
         let flat = matches!(memory.kind, MemoryKind::FlatLoad | MemoryKind::FlatStore);
+        let gfx950_buffer = self.architecture == AmdArchitecture::Gfx950
+            && matches!(
+                memory.operation,
+                MemoryOpcode::BufferLoadDword | MemoryOpcode::BufferStoreDword
+            );
+        let buffer = gfx950_buffer
+            || self.architecture == AmdArchitecture::Gfx1250
+                && matches!(
+                    memory.operation,
+                    MemoryOpcode::BufferLoadB128 | MemoryOpcode::BufferStoreB64
+                );
         if !(name.starts_with("s_load_")
             || name.starts_with("global_load_")
             || name.starts_with("global_store_")
+            || buffer
             || flat
             || name.starts_with("ds_read_")
             || name.starts_with("ds_write_")
@@ -6273,6 +6430,7 @@ impl<'a> Interpreter<'a> {
                     .and_then(|value| parse_i64(value))
                     .ok_or_else(|| self.unsupported(wave, instruction)),
                 "glc" | "slc" | "dlc" | "sc0" | "sc1" | "scale_offset" => Ok(offset),
+                "offen" if buffer => Ok(offset),
                 "scope"
                     if self.architecture == AmdArchitecture::Gfx1250
                         && flat
@@ -6291,7 +6449,11 @@ impl<'a> Interpreter<'a> {
                 }
                 _ => Err(self.unsupported(wave, instruction)),
             })?;
-        let offset_valid = if lds {
+        let offset_valid = if gfx950_buffer {
+            (0..=4095).contains(&offset)
+        } else if buffer {
+            (0..=0x7f_ffff).contains(&offset)
+        } else if lds {
             (0..=65535).contains(&offset)
         } else if flat && self.architecture == AmdArchitecture::Gfx1250 {
             // Native VFLAT_Real carries a signed24 byte displacement in bits95:72,
@@ -6325,6 +6487,21 @@ impl<'a> Interpreter<'a> {
             });
         }
         let width = u64::from(bytes_per_register);
+        // Capture descriptor and every active lane's offset before any aliased
+        // VGPR load result is written. Resource-OOB modes cannot fabricate
+        // memory effects in the ordinary VectorLoad/Store graph contract.
+        let buffer_addresses = if gfx950_buffer {
+            Some(self.gfx950_raw_buffer_addresses(wave, instruction, offset as u64, store)?)
+        } else if buffer {
+            Some(self.raw_buffer_addresses(
+                wave,
+                instruction,
+                offset as u64,
+                width * u64::from(registers),
+            )?)
+        } else {
+            None
+        };
         let scalar_displacement = if scalar {
             wave.wide(&o[2], 0)?
                 .checked_mul(
@@ -6522,6 +6699,8 @@ impl<'a> Interpreter<'a> {
                         &o[0],
                     )
                 }
+            } else if let Some(addresses) = &buffer_addresses {
+                (addresses[usize::from(lane)], &o[0])
             } else if flat {
                 let operand = if store { &o[0] } else { &o[1] };
                 let (address, shared) = if self.architecture == AmdArchitecture::Gfx1250 {
