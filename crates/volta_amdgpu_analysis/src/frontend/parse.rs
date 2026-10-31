@@ -750,6 +750,10 @@ impl Parser {
                 }
                 if self.data_object.is_some() {
                     self.object_data(name, args, span)?;
+                } else if name == ".asciz" {
+                    return Err(fail(
+                        "module .asciz requires an active declared object".into(),
+                    ));
                 }
             }
             _ => return Err(fail(format!("unsupported assembly directive `{name}`"))),
@@ -778,6 +782,10 @@ impl Parser {
             message: message.into(),
             span,
         };
+        if directive == ".asciz" {
+            let bytes = nul_terminated_ascii(args).map_err(fail)?;
+            return self.append_object_bytes(&bytes, span);
+        }
         if directive == ".ascii" {
             // LLVM emits printable lookup-table bytes as .ascii. Keep this
             // profile exact: one quoted literal, no escapes or terminator.
@@ -862,6 +870,39 @@ impl Parser {
         object.initial_bytes.extend_from_slice(bytes);
         Ok(())
     }
+}
+
+/// One bounded assembler literal, including its exact terminating NUL. This
+/// deliberately excludes the rest of LLVM's string/escape grammar rather than
+/// treating an unknown escape or a second literal as bytes.
+fn nul_terminated_ascii(args: &str) -> Result<Vec<u8>, &'static str> {
+    if args.len() as u64 > MAX_OBJECT_BYTES + 1 {
+        return Err("module .asciz literal exceeds bounded16MiB envelope");
+    }
+    let literal = args
+        .strip_prefix('"')
+        .and_then(|text| text.strip_suffix('"'))
+        .ok_or("module .asciz requires one terminated quoted ASCII literal")?;
+    let mut bytes = Vec::with_capacity(literal.len() + 1);
+    let mut source = literal.bytes();
+    while let Some(byte) = source.next() {
+        let value = match byte {
+            b'\\' => match source.next() {
+                Some(b'\\') => b'\\',
+                Some(b'"') => b'"',
+                Some(b'n') => b'\n',
+                Some(b'r') => b'\r',
+                Some(b't') => b'\t',
+                _ => return Err("unsupported or unterminated module .asciz escape"),
+            },
+            b'"' => return Err("module .asciz requires exactly one quoted literal"),
+            0x20..=0x7e => byte,
+            _ => return Err("module .asciz requires printable ASCII or supported escapes"),
+        };
+        bytes.push(value);
+    }
+    bytes.push(0);
+    Ok(bytes)
 }
 
 pub(super) fn unquote(value: &str) -> &str {
