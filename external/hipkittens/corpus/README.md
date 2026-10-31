@@ -227,3 +227,16 @@ original report/driver, current classifier/shared checks, and every transcript's
 hash. Changed outcomes, incomplete mathematical proofs and unavailable dtype
 controls remain explicit. The recorded baseline's post-review reclassification
 retains all 252 cases with zero outcome or proof-count differences.
+
+[vec-add1-baseline.json](vec-add1-baseline.json) records a separate baseline run
+of all 84 original add-one specializations with the same immutable verifier
+binary. None passes combined verification: all 28 naive specializations stop at
+unsupported buffer loads (20 DWORD, eight DWORDX2), while the 28 align and
+28 ortho specializations complete with typed write/write rejections. Those 56 completed
+cases match the full `x+1` specification. The `x+2` control refutes that wrong
+equation on a graph-rejected trace, with `graph_verified=false`; it is a
+mathematical control, not a combined safe-control pass. Reclassifying the 84
+preserved verification transcripts and the one wrong-spec transcript produces
+zero outcome differences. The receipt retains each case identity, full original
+length and separate graph/mathematical disposition. It does not establish a
+candidate improvement or an application bug from the conservative conflicts.
