@@ -39,7 +39,16 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
         }
         for kernel in &module.kernels {
             for instruction in &kernel.instructions {
-                if crate::frontend::gfx1250::signature(&instruction.mnemonic).is_some()
+                // These forms share a spelling with the wave32 profile, but
+                // also have CDNA encodings and target-specific value rules.
+                let shared = matches!(
+                    instruction
+                        .mnemonic
+                        .trim_end_matches("_e32")
+                        .trim_end_matches("_e64"),
+                    "v_lshlrev_b16" | "v_cmp_ne_u16" | "v_bitop3_b16" | "v_cmp_u_f32"
+                );
+                if (crate::frontend::gfx1250::signature(&instruction.mnemonic).is_some() && !shared)
                     || instruction.operands.iter().any(native_operand)
                     || instruction
                         .modifiers
@@ -191,6 +200,7 @@ pub fn validate(module: &Module) -> Result<Architecture, ParseError> {
             } else if matches!(
                 name,
                 "v_bitop3_b32"
+                    | "v_bitop3_b16"
                     | "v_cvt_pk_f16_f32"
                     | "v_cvt_f32_bf16"
                     | "v_cvt_bf16_f32"
