@@ -595,7 +595,9 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         "v_add_u16"
         | "v_sub_u16"
         | "v_mul_lo_u16"
+        | "v_lshlrev_b16"
         | "v_lshrrev_b16"
+        | "v_cmp_ne_u16"
         | "v_fmac_f32"
         | "v_fmac_f64"
         | "v_cvt_pk_f16_f32"
@@ -659,7 +661,9 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_min3_f32" | "v_fma_f32" | "v_mad_f32" | "v_fma_f16" | "v_pk_fma_f16" | "v_fma_f64"
         | "v_mad_u32_u24" | "v_mad_i32_i24" | "v_add3_u32" | "v_add_lshl_u32"
         | "v_lshl_add_u32" | "v_lshl_add_u64" | "v_lshl_or_b32" | "v_and_or_b32" | "v_bfi_b32"
-        | "v_bfe_u32" | "v_bfe_i32" | "v_perm_b32" | "v_bitop3_b32" => (VectorAlu, 4, 4),
+        | "v_bfe_u32" | "v_bfe_i32" | "v_perm_b32" | "v_bitop3_b32" | "v_bitop3_b16" => {
+            (VectorAlu, 4, 4)
+        }
         "v_mfma_scale_f32_16x16x128_f8f6f4" | "v_mfma_scale_f32_32x32x64_f8f6f4" => (Matrix, 6, 6),
         "v_mfma_f32_16x16x4_f32"
         | "v_mfma_f32_32x32x2_f32"
@@ -1063,6 +1067,7 @@ fn validate_post_parse(
         ));
     }
     validate_registers(mnemonic, opcode, operands, modifiers, architecture).map_err(&fail)?;
+    validate_cdna_integer16(mnemonic, operands, modifiers, architecture).map_err(&fail)?;
     if modifiers.iter().any(|m| {
         if architecture == crate::target::Architecture::Gfx1250 {
             matches!(
@@ -1124,6 +1129,101 @@ fn validate_post_parse(
             }
         }
         if operands.len() == 6 && operands[4..].iter().any(|operand| !matches!(operand, Operand::Register(register) if register.class == RegisterClass::Vector && register.count == 1)) { return Err(fail("scaled MFMA requires one VGPR per scale source".into())); }
+    }
+    Ok(())
+}
+
+/// Selected CDNA integer16 encodings, shared by parsed and caller-built ASTs.
+/// No source modifiers, OPSEL, saturation or literal-bearing VOP3 variants are
+/// modeled here. The gfx1250 true16 profile has its own encoding checks.
+fn validate_cdna_integer16(
+    mnemonic: &str,
+    operands: &[Operand],
+    modifiers: &[Modifier],
+    architecture: crate::target::Architecture,
+) -> Result<(), String> {
+    use RegisterClass::{Scalar, Special, Vector};
+    if architecture == crate::target::Architecture::Gfx1250 {
+        return Ok(());
+    }
+    let stem = mnemonic.trim_end_matches("_e32").trim_end_matches("_e64");
+    if stem == "v_cmp_u_f32" {
+        // The shared finite-real form is used with encoded register sources.
+        // Keep the native VOPC fixed destination and SRC1 restriction too.
+        if !modifiers.is_empty() || operands.iter().skip(1).any(|source| {
+            !matches!(source, Operand::Register(r) if matches!(r.class, Scalar | Vector) && r.count == 1)
+        }) || (mnemonic.ends_with("_e32")
+            && (!matches!(operands.get(2), Some(Operand::Register(r)) if r.class == Vector)
+                || !matches!(operands.first(), Some(Operand::Register(r))
+                    if r.class == Special && r.special == Some(SpecialRegister::Vcc))))
+        {
+            return Err("selected CDNA unordered comparison requires native register operands".into());
+        }
+        let mut scalar = None;
+        for source in operands.iter().skip(1) {
+            if let Operand::Register(r) = source
+                && r.class == Scalar
+            {
+                if scalar.is_some_and(|previous| previous != *r) {
+                    return Err("CDNA comparison reads more than one scalar source".into());
+                }
+                scalar = Some(*r);
+            }
+        }
+        return Ok(());
+    }
+    if !matches!(stem, "v_lshlrev_b16" | "v_cmp_ne_u16" | "v_bitop3_b16") {
+        return Ok(());
+    }
+    let bitop = stem == "v_bitop3_b16";
+    if bitop && mnemonic.ends_with("_e32") {
+        return Err("V_BITOP3_B16 requires VOP3 encoding".into());
+    }
+    if (!bitop && !modifiers.is_empty())
+        || (bitop && (modifiers.len() != 1 || modifiers[0].name != "bitop3"))
+    {
+        return Err("selected CDNA integer16 form does not support these modifiers".into());
+    }
+    let src1_vgpr =
+        matches!(operands.get(2), Some(Operand::Register(r)) if r.class == Vector && r.count == 1);
+    if mnemonic.ends_with("_e32")
+        && (!src1_vgpr
+            || (stem == "v_cmp_ne_u16"
+                && !matches!(operands.first(), Some(Operand::Register(r))
+                    if r.class == Special && r.special == Some(SpecialRegister::Vcc))))
+    {
+        return Err("CDNA integer16 e32 requires VGPR SRC1 and the native destination".into());
+    }
+    let vop3 = bitop || mnemonic.ends_with("_e64") || !src1_vgpr;
+    let mut scalar_source = None;
+    for (index, source) in operands.iter().enumerate().skip(1) {
+        match source {
+            Operand::Register(r)
+                if matches!(r.class, Vector | Scalar | Special) && r.count == 1 =>
+            {
+                if r.class != Vector {
+                    if scalar_source.is_some_and(|previous| previous != *r) {
+                        return Err("CDNA integer16 form reads more than one scalar source".into());
+                    }
+                    scalar_source = Some(*r);
+                }
+            }
+            Operand::Integer(n) if (i16::MIN as i64..=u16::MAX as i64).contains(n) => {
+                let inline = (-16..=64).contains(n)
+                    || (65520..=65535).contains(n)
+                    || [
+                        0x3800, 0xb800, 0x3c00, 0xbc00, 0x4000, 0xc000, 0x4400, 0xc400, 0x3118,
+                    ]
+                    .contains(n);
+                if !inline && (vop3 || index != 1 || scalar_source.is_some()) {
+                    return Err("CDNA integer16 literal requires VOP2/VOPC SRC0".into());
+                }
+            }
+            _ => return Err(
+                "CDNA integer16 source requires one unmodified register or encoded16bit integer"
+                    .into(),
+            ),
+        }
     }
     Ok(())
 }

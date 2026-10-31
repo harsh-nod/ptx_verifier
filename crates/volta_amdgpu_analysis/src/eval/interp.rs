@@ -4268,14 +4268,16 @@ impl<'a> Interpreter<'a> {
             }
             return Ok(());
         }
-        if self.architecture == AmdArchitecture::Gfx1250
+        if (self.architecture == AmdArchitecture::Gfx1250
             && matches!(
                 name,
                 "v_lshlrev_b16" | "v_lshrrev_b16" | "v_sub_u16" | "v_mul_lo_u16" | "v_bitop3_b16"
-            )
+            ))
+            || matches!(name, "v_lshlrev_b16" | "v_bitop3_b16")
         {
-            // True16 shifts observe low16 data and low4 count bits. The
-            // remaining destination bits stay undefined in this profile.
+            // The selected equations observe low16 data and low4 shift bits.
+            // Upper destination bits are not inferred from a narrow ISA
+            // assignment, including the newly selected CDNA forms.
             if (name != "v_bitop3_b16" && !instruction.modifiers().is_empty())
                 || (name == "v_bitop3_b16"
                     && (instruction.modifiers().len() != 1
@@ -4743,8 +4745,15 @@ impl<'a> Interpreter<'a> {
                                 && kind == CompareType::U32
                                 && matches!(operation, CmpOp::Eq | CmpOp::Ne)),
                     };
-                    let a = self.integer_expression(wave, &o[start], lane, ty)?;
-                    let b = self.integer_expression(wave, &o[start + 1], lane, ty)?;
+                    let mut a = self.integer_expression(wave, &o[start], lane, ty)?;
+                    let mut b = self.integer_expression(wave, &o[start + 1], lane, ty)?;
+                    if kind == CompareType::U16 {
+                        // The comparison width applies to symbolic words too;
+                        // high16 input bits cannot change a U16 predicate.
+                        let mask = self.arena.int(65535);
+                        a = self.arena.bit_and(a, mask);
+                        b = self.arena.bit_and(b, mask);
+                    }
                     (ScalarType::Int(ty), a, b)
                 };
                 let predicate = super::scalar::compare(&mut self.arena, ty, operation, a, b)

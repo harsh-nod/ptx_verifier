@@ -130,6 +130,13 @@ bytes. Selected PC-relative relocation sequences resolve object addresses
 without inventing linker addresses. Undefined externs, GOT relocations,
 arbitrary PC arithmetic and writes to read-only objects are rejected.
 
+Selected CDNA integer16 forms include `v_lshlrev_b16`, `v_cmp_ne_u16`
+and gfx950 `v_bitop3_b16`. Shifts observe low4 count bits and low16 data;
+U16 comparisons mask concrete and symbolic words alike. New narrow shift and
+BITOP3 results retain unknown upper16 bits conservatively. Native encoding,
+EXEC and undefined-bit controls are documented in the
+[selected instruction contracts](../../docs/amd-semantic-audit.md#compiler-driven-narrow-integer-forms).
+
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
 subnormal behavior are outside that model. Encoded F16, BF16 and FP8 transport
