@@ -3134,6 +3134,9 @@ impl<'a> Interpreter<'a> {
             };
             return wave.put_value(&instruction.operands()[0], 0, Value::Real(expr));
         }
+        if name == "s_bfe_i64" {
+            return self.signed_bitfield64(wave, instruction);
+        }
         if name == "s_getreg_b32" {
             if self.architecture != AmdArchitecture::Gfx1250
                 || !matches!(&instruction.operands()[1],Operand::HardwareRegister{name,offset:6,width:4} if name=="HW_REG_IB_STS2")
@@ -3719,6 +3722,87 @@ impl<'a> Interpreter<'a> {
                 Value::Integer(value)
             },
         )
+    }
+    /// CDNA4 SOP2 opcode 40 / CDNA5 SOP2 opcode 41, with a 32-bit control.
+    fn signed_bitfield64(
+        &self,
+        wave: &mut Wave,
+        instruction: &Instruction,
+    ) -> Result<(), EvalError> {
+        let o = instruction.operands();
+        let control = wave.bits(&o[2], 0)?;
+        let offset = control & 63;
+        let width = (control >> 16) & 127;
+        if width > 64 {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "selected s_bfe_i64 profile supports field widths 0 through 64".into(),
+            });
+        }
+        let mut bits = 0u64;
+        let mut defined = u64::MAX;
+        if width != 0 {
+            // Arithmetic right shift repeats source bit 63 beyond the source
+            // boundary; sign extension repeats the selected field's top bit.
+            // Mapping each output bit also propagates ABI padding exactly.
+            let source_bit = |bit: u32| (offset + bit.min(width - 1)).min(63);
+            let needed = (0..64).fold(0u64, |mask, bit| mask | (1u64 << source_bit(bit)));
+            let (input_bits, input_defined) = match &o[1] {
+                Operand::Integer(value) => (*value as u64, u64::MAX),
+                Operand::Register(register) => {
+                    let mut input_bits = 0u64;
+                    let mut input_defined = 0u64;
+                    for word in 0..2 {
+                        if (needed >> (word * 32)) as u32 == 0 {
+                            continue;
+                        }
+                        let (word_bits, word_defined) =
+                            match wave.scalar[register.index as usize + word] {
+                                None => (0, 0),
+                                Some(Value::PartialBits { bits, defined }) => (bits, defined),
+                                Some(value) => (
+                                    value.bits().map_err(|error| wave.fail(None, error))?,
+                                    u32::MAX,
+                                ),
+                            };
+                        input_bits |= u64::from(word_bits) << (word * 32);
+                        input_defined |= u64::from(word_defined) << (word * 32);
+                    }
+                    (input_bits, input_defined)
+                }
+                _ => return Err(self.unsupported(wave, instruction)),
+            };
+            defined = 0;
+            for bit in 0..64 {
+                let source = 1u64 << source_bit(bit);
+                if input_defined & source != 0 {
+                    defined |= 1u64 << bit;
+                    if input_bits & source != 0 {
+                        bits |= 1u64 << bit;
+                    }
+                }
+            }
+        }
+        if bits != 0 {
+            wave.set_scc(true);
+        } else if defined == u64::MAX {
+            wave.set_scc(false);
+        } else {
+            wave.clear_scc();
+        }
+        let destination = wave.destination(&o[0])?;
+        for word in 0..2 {
+            wave.put(
+                destination,
+                0,
+                word,
+                Value::partial_bits(
+                    (bits >> (word * 32)) as u32,
+                    (defined >> (word * 32)) as u32,
+                ),
+            )?;
+        }
+        Ok(())
     }
     fn module_address_scalar(
         &self,
