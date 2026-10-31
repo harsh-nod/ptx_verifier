@@ -63,6 +63,10 @@ unproved observations. Expected paired launch/storage errors retain a failed
 scheduled row and collection continues through the fixed denominator.
 Positive canonical mismatch counts from raw stdout fail this gate even when
 only some outputs mismatch and the frozen summary classifier says inconclusive.
+The new candidate-report processing also checks canonical graph FAIL properties
+in all28 raw qualification transcripts. A readiness/barrier/trace failure in the
+baseline-unqualified safe GEMM remains an explicit failed functional control,
+even when the frozen qualification status is inconclusive rather than a WW finding.
 
 The independently reviewed comparator and its22 synthetic groups are copied
 byte-identically as `compare_vexpr_structure_20261031.py` and its test file. Their

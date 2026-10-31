@@ -130,7 +130,20 @@ def candidate_report(path, expected_sha, plan, prepared):
             + (path.parent / row["case"] / "stderr").stat().st_size,
             "candidate raw log byte count differs",
         )
+        row.update(
+            qualification_graph_diagnostics(stdout, case_row["case"]["expectation"])
+        )
     return result
+
+
+def qualification_graph_diagnostics(stdout, expectation):
+    graph = frozen.corpus.harness.parse_cli(stdout)
+    return {
+        "declared_expectation": expectation,
+        "graph_failure_names": [
+            name for name, verdict, _ in graph.checks if verdict == "FAIL"
+        ],
+    }
 
 
 def schedule_valid(schedule, eligible):
@@ -372,11 +385,20 @@ def functional(report, candidate):
     old = {r["case"]: r for r in report["results"]}
     rows = candidate["results"]
     retained = all(r["qualified"] for r in rows if old[r["case"]]["qualified"])
+    safe_graph_failures = [
+        r
+        for r in rows
+        if r.get("declared_expectation") == "safe" and r.get("graph_failure_names")
+    ]
     return {
         "candidate_cases": len(rows),
         "baseline_qualified": len(report["timing_eligible"]),
         "all_baseline_qualifiers_retained": retained,
         "false_findings": sum(r["false_positive"] for r in rows),
+        "safe_graph_failures": [
+            {"case": r["case"], "properties": r["graph_failure_names"]}
+            for r in safe_graph_failures
+        ],
         "unsafe_acceptances": sum(r["unsafe_acceptance"] for r in rows),
         "baseline_unqualified_outcomes": [
             {
@@ -389,6 +411,7 @@ def functional(report, candidate):
             if not old[r["case"]]["qualified"]
         ],
         "passed": retained
+        and not safe_graph_failures
         and not any(r["false_positive"] or r["unsafe_acceptance"] for r in rows),
     }
 

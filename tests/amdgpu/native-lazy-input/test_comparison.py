@@ -15,6 +15,49 @@ SPEC.loader.exec_module(comparison)
 
 
 class Controls(unittest.TestCase):
+    def test_unqualified_safe_readiness_failure_with_unknown_is_not_waived(self):
+        stdout = """  time: 0.001s  instructions: 5  block syncs: 0  warp syncs: 0
+kernel: graph verification
+  AMD trace completeness (native AMD graph contract) PASS
+  AMD wait and register readiness (target-selected counters and register dependencies) FAIL
+  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS
+  AMD memory-conflict freedom (AMD completed-effect happens-before) PASS
+GRAPH VERIFICATION: UNKNOWN (trace generator aborted)
+"""
+        diagnostics = comparison.qualification_graph_diagnostics(stdout, "safe")
+        self.assertEqual(
+            diagnostics["graph_failure_names"], ["AMD wait and register readiness"]
+        )
+        baseline = {
+            "timing_eligible": ["retained"],
+            "results": [
+                {"case": "retained", "qualified": True},
+                {"case": "unqualified-safe", "qualified": False},
+            ],
+        }
+        candidate = {
+            "results": [
+                {
+                    "case": "retained",
+                    "qualified": True,
+                    "false_positive": False,
+                    "unsafe_acceptance": False,
+                },
+                {
+                    "case": "unqualified-safe",
+                    "qualified": False,
+                    "status": "inconclusive",
+                    "measurement_errors": [],
+                    "false_positive": False,
+                    "unsafe_acceptance": False,
+                    **diagnostics,
+                },
+            ]
+        }
+        result = comparison.functional(baseline, candidate)
+        self.assertFalse(result["passed"])
+        self.assertEqual(result["safe_graph_failures"][0]["case"], "unqualified-safe")
+
     def test_pair_capture_errors_are_retained_without_changing_schedule(self):
         row = {
             "case": {
