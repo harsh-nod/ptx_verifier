@@ -52,8 +52,7 @@ fn charges(class: AmdMemoryClass) -> Option<Vec<(AmdCounter, u16)>> {
         }
         AmdMemoryClass::ScalarLoad => vec![(Km, 1), (X, 1)],
         AmdMemoryClass::Ds | AmdMemoryClass::CrossLane => vec![(Ds, 1)],
-        AmdMemoryClass::AsyncLoadToLds => vec![(Load, 1), (X, 1), (Async, 1)],
-        AmdMemoryClass::AsyncStoreFromLds => vec![(Store, 1), (X, 1), (Async, 1)],
+        AmdMemoryClass::AsyncLoadToLds | AmdMemoryClass::AsyncStoreFromLds => vec![(Async, 1)],
         AmdMemoryClass::TensorLoadToLds | AmdMemoryClass::TensorStoreFromLds => vec![(Tensor, 1)],
         _ => return None,
     })
@@ -69,8 +68,6 @@ fn replay_group(class: AmdMemoryClass) -> Option<bool> {
         AmdMemoryClass::VectorLoad
         | AmdMemoryClass::VectorStore
         | AmdMemoryClass::GlobalAtomicAddF32NoReturn
-        | AmdMemoryClass::AsyncLoadToLds
-        | AmdMemoryClass::AsyncStoreFromLds
         | AmdMemoryClass::FlatGlobalLoad
         | AmdMemoryClass::FlatGlobalStore => Some(true),
         _ => None,
@@ -186,6 +183,12 @@ fn contract(graph: &EventGraph, prefix: bool) -> AmdTraceResult {
         );
     }
     let mut unresolved = Vec::new();
+    let default_scheduling_count = graph
+        .provenance()
+        .assumptions
+        .iter()
+        .filter(|&&assumption| assumption == Assumption::AmdDefaultScheduling)
+        .count();
     let named_allocations: Vec<_> = graph
         .provenance()
         .assumptions
@@ -346,20 +349,30 @@ fn contract(graph: &EventGraph, prefix: bool) -> AmdTraceResult {
             } => {
                 let instruction =
                     claim(graph, record, &mut instructions, "memory", &mut unresolved);
+                if matches!(
+                    class,
+                    AmdMemoryClass::AsyncLoadToLds | AmdMemoryClass::AsyncStoreFromLds
+                ) && default_scheduling_count != 1
+                {
+                    unresolved.push(Unresolved::at(record.event,
+                        "per-lane async copies require exactly one explicit default-scheduling premise"));
+                }
                 registers(destinations, physical_mask, record.event, &mut unresolved);
                 registers(held_sources, physical_mask, record.event, &mut unresolved);
                 if matches!(
                     class,
-                    AmdMemoryClass::TensorLoadToLds | AmdMemoryClass::TensorStoreFromLds
+                    AmdMemoryClass::TensorLoadToLds
+                        | AmdMemoryClass::TensorStoreFromLds
+                        | AmdMemoryClass::AsyncLoadToLds
+                        | AmdMemoryClass::AsyncStoreFromLds
                 ) && !held_sources.is_empty()
                 {
-                    // Tensor descriptors are SReg inputs consumed at issue.
-                    // LLVM classifies TDM as TENSOR_ACCESS without X/VMEM_GROUP
-                    // and scores no source registers against Tensor completion.
+                    // TDM and default-scheduled per-lane async copies capture
+                    // their inputs at issue. Neither has VMEM_GROUP/X leases.
                     // Read readiness still comes from the Instruction record.
                     unresolved.push(Unresolved::at(
                         record.event,
-                        "tensor descriptors are captured at issue and have no completion-held register sources",
+                        "async and tensor inputs are captured at issue and have no completion-held register sources",
                     ));
                 }
                 let correct_destinations = match class {
@@ -1059,14 +1072,6 @@ fn wait(counter: AmdCounter, threshold: u16, pending: &[usize], operations: &mut
     for index in selected.into_iter().take(count) {
         let op = &mut operations[index];
         op.remaining.retain(|&(c, _)| c != counter);
-        // Async completion includes the whole memory-to-LDS transfer. Its
-        // own global side and address sources have necessarily completed too.
-        // A LOAD/STORE wait alone does not establish the converse LDS fact.
-        if counter == AmdCounter::Async {
-            op.remaining.retain(|&(c, _)| {
-                !matches!(c, AmdCounter::Load | AmdCounter::Store | AmdCounter::X)
-            });
-        }
         // Data cannot complete before its own address translation. This does
         // not drain translations of unrelated operations or other counters.
         if matches!(

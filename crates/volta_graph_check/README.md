@@ -286,6 +286,19 @@ obligation. Advanced barrier/cache/tensor modes outside the documented subset
 cannot inherit gfx942/gfx950 certificates. Extending a graph profile does not
 establish a hardware result. Numerical agreement remains separate from these
 graph obligations.
+
+Per-lane async GLOBAL/LDS transfers charge ASYNCCNT alone and require an explicit
+`AmdDefaultScheduling` premise. Addresses are captured at issue; their ordinary
+instruction reads still require ready producers, but later ALU overwrites do not
+need Load/X completion. A matching async wait completes the transfer; Load,
+Store, DS and X waits alone do not. Partial async waits cannot identify a FIFO
+prefix across mixed load/store completion streams. The pinned LLVM
+[async encoding](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/FLATInstructions.td#L393-L446),
+[VMEM classification](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIInstrInfo.cpp#L4765)
+and [event selection](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/AMDGPUHWEvents.cpp#L119-L139)
+establish this distinction even with XNACK enabled. Expert scheduling and its
+separate register dependency counters remain unsupported.
+
 For ordinary gfx1250 GLOBAL and resolved-global FLAT accesses, explicit
 `SCOPE_SYS` at both endpoints supplies cache visibility under the pinned
 [LLVM GFX125x memory model](https://github.com/ROCm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUUsage.md#memory-model-gfx125x).

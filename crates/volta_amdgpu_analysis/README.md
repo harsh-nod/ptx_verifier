@@ -132,7 +132,11 @@ the global source is a VGPR pair followed by `off`. A signed24 byte offset
 applies to both addresses. This bounded profile requires aligned, nonwrapping
 footprints within the original global and LDS allocations; scalar-base and
 scaled forms remain unsupported. It uses async completion events rather than
-tensor descriptors. `s_wait_asynccnt 0` completes the entire transfer; a global
+tensor descriptors. The copy charges ASYNCCNT alone and captures address inputs
+at issue, so later ordinary ALU overwrites do not need an X-count wait. Input
+readiness is still checked at issue. Expert scheduling mode changes remain
+unsupported, and the graph records an explicit default-scheduling premise.
+`s_wait_asynccnt 0` completes the entire transfer; a global
 load wait alone does not publish its LDS writes. Partial async waits do not
 infer FIFO completion across mixed load/store streams. See the public
 [CDNA5 ISA, section 10.8](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf)

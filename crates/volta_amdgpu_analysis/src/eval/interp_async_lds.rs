@@ -2,8 +2,9 @@
 //!
 //! Public CDNA5 ISA, sections 10.8 and 15.18: the byte displacement applies to
 //! both addresses, VDST is an address input, and ASYNCCNT tracks LDS completion.
-//! LLVM 5fd50ec8e07abb94e203933017e8d6e40fb51824, AMDGPUHWEvents.cpp and
-//! SIInsertWaitcnts.cpp also classify the global read separately from ASYNC.
+//! LLVM 5fd50ec8e07abb94e203933017e8d6e40fb51824, FLATInstructions.td,
+//! SIInstrInfo.cpp and AMDGPUHWEvents.cpp: IsAsync disables VM_CNT, so this
+//! opcode uses ASYNC without the ordinary VMEM Load/X completion tokens.
 use super::*;
 
 impl Interpreter<'_> {
@@ -75,20 +76,19 @@ impl Interpreter<'_> {
             }
             transfers.push((lane, global, shared, words));
         }
-        let (held_sources, destinations) = self.instruction_registers(instruction, wave);
+        let (_, destinations) = self.instruction_registers(instruction, wave);
         debug_assert!(destinations.is_empty());
         let issue = self.builder.amd_event(
             wave.id,
             ProgramPoint(wave.pc as u32),
             AmdEventKind::MemoryIssue {
                 class: AmdMemoryClass::AsyncLoadToLds,
-                counters: vec![
-                    (AmdCounter::Load, 1),
-                    (AmdCounter::X, 1),
-                    (AmdCounter::Async, 1),
-                ],
+                counters: vec![(AmdCounter::Async, 1)],
                 destinations,
-                held_sources,
+                // Ordinary instruction reads still check address readiness.
+                // Default scheduling captures these sources at issue; expert
+                // scheduling mode changes remain outside the native profile.
+                held_sources: Vec::new(),
             },
         );
         for (lane, global, shared, words) in transfers {

@@ -592,11 +592,17 @@ pub enum Assumption {
     /// Static descriptor LDS plus configured dynamic LDS for native execution.
     /// A caller/frontend premise, not an inferred hardware allocation.
     ConfiguredLdsBytes(u64),
+    /// Native AMD execution uses default scheduling; expert-mode transitions
+    /// and its separate register dependency counters are outside this profile.
+    AmdDefaultScheduling,
 }
 
 impl Assumption {
     pub fn describe(self) -> &'static str {
         match self {
+            Assumption::AmdDefaultScheduling => {
+                "native AMD execution uses default scheduling; expert scheduling and mode transitions are outside this result"
+            }
             Assumption::ConfiguredLdsBytes(_) => {
                 "native LDS extent is the descriptor's static allocation plus configured dynamic bytes"
             }

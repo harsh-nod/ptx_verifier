@@ -147,6 +147,12 @@ fn analyze_internal(
         == Some(crate::target::Architecture::Gfx1250)
     {
         assumptions.push(Assumption::UnclusteredWorkgroup);
+        if program.instructions.iter().any(|instruction| {
+            matches!(instruction.operation(), crate::ir::Operation::Memory(memory)
+                if memory.kind == crate::ir::MemoryKind::AsyncLoadToLds)
+        }) {
+            assumptions.push(Assumption::AmdDefaultScheduling);
+        }
         let named = kernel.descriptor.value("named_barrier_count", 0);
         if named != 0 {
             assumptions.push(Assumption::AllocatedNamedBarriers((named * 4) as u8));

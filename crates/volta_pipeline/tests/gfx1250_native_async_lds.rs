@@ -113,6 +113,11 @@ fn async_zero_wait_preserves_every_lane_word_and_both_byte_displacements() {
                 assert_eq!(*actual, index + offset as u64 / 4);
             }
             let graph = checked.analysis.graph();
+            assert!(
+                graph
+                    .provenance()
+                    .assumes(volta_graph::Assumption::AmdDefaultScheduling)
+            );
             for issue in graph.amd_events().iter().filter(|event| {
                 matches!(
                     event.kind,
@@ -130,6 +135,7 @@ fn async_zero_wait_preserves_every_lane_word_and_both_byte_displacements() {
                 let lanes = threads.min(32);
                 assert_eq!(effects.len(), lanes as usize * 8);
                 let AmdEventKind::MemoryIssue {
+                    counters,
                     destinations,
                     held_sources,
                     ..
@@ -138,7 +144,8 @@ fn async_zero_wait_preserves_every_lane_word_and_both_byte_displacements() {
                     unreachable!()
                 };
                 assert!(destinations.is_empty());
-                assert!(!held_sources.is_empty());
+                assert_eq!(counters, &[(volta_graph::AmdCounter::Async, 1)]);
+                assert!(held_sources.is_empty());
                 let mut reads = BTreeSet::new();
                 let mut writes = BTreeSet::new();
                 for link in effects {
@@ -183,6 +190,62 @@ fn unrelated_or_insufficient_waits_do_not_publish_async_lds_writes() {
             checked.checks.verdict(Property::AmdMemoryConflict),
             Verdict::Fail,
             "{wait}: {:?}",
+            checked.checks
+        );
+    }
+}
+
+#[test]
+fn captured_async_addresses_allow_immediate_valu_overwrites() {
+    let body = copy("s_wait_asynccnt 0", 0)
+        .replace(
+            "global_load_async_to_lds_b128 v1,v[2:3],off offset:0",
+            "global_load_async_to_lds_b128 v1,v[2:3],off offset:0\n\
+             v_mov_b32 v12,v1\nv_mov_b64 v[2:3],0\nv_mov_b32 v1,0",
+        )
+        .replace("ds_load_b128 v[8:11],v1", "ds_load_b128 v[8:11],v12")
+        .replace("global_store_b128 v1,", "global_store_b128 v12,");
+    let checked = run(&body, 32, 128);
+    assert_eq!(
+        checked.checks.conclusion(),
+        GraphConclusion::Verified,
+        "{:?}",
+        checked.checks
+    );
+    let outputs = checked.analysis.symbolic_outputs().unwrap();
+    for index in 0..128 {
+        let ExprNode::InputElement {
+            array,
+            index: actual,
+        } = outputs.arena.node(outputs.element("out", index).unwrap())
+        else {
+            panic!("input transport")
+        };
+        assert_eq!(outputs.arena.string(*array), "input");
+        assert_eq!(*actual, index);
+    }
+}
+
+#[test]
+fn captured_addresses_still_require_source_readiness_at_issue() {
+    for wait in ["", "s_wait_dscnt 0"] {
+        let body = copy("s_wait_asynccnt 0", 0).replace(
+            "global_load_async_to_lds_b128",
+            &format!(
+                "v_mov_b32 v13,0\nv_mov_b32 v14,0\n\
+                 ds_store_b32 v13,v14\ns_wait_dscnt 0\n\
+                 ds_load_b32 v1,v13\n{wait}\nglobal_load_async_to_lds_b128"
+            ),
+        );
+        let checked = run(&body, 1, 4);
+        assert_eq!(
+            checked.checks.verdict(Property::AmdWaitReadiness),
+            if wait.is_empty() {
+                Verdict::Fail
+            } else {
+                Verdict::Pass
+            },
+            "wait={wait}: {:?}",
             checked.checks
         );
     }
