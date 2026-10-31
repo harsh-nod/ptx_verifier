@@ -62,6 +62,42 @@ This route currently diagnoses configured LDS extent violations in that tensor
 profile. Global allocation errors and source subobject errors still use their
 existing conservative handling. It does not establish general memory safety.
 
+## Functional comparison
+
+The [recorded comparison](../tests/gfx1250/results/tensor-bounds-20261031.json)
+uses the same compiler assembly, launch and complete specification in both
+versions. Each harmful case changes only the first transfer's LDS start to 256;
+the attempted interval is `[256,512)` against 256 configured bytes.
+
+| Control | Earlier version (`e239cfc`) | Bounds checker |
+| --- | --- | --- |
+| Original kernel, all 128 specification elements | Accept | Accept |
+| Seeded load overrun | Unknown | Certified rejection |
+| Seeded store overrun | Unknown | Certified rejection |
+| Unsupported descriptor | Unknown | Unknown |
+| Pending descriptor load | Unknown | Unknown |
+| Transfer under empty EXEC | Unknown | Unknown |
+
+This is two seeded hazards in one kernel, with three refusal controls and one
+complete positive control. It measures functional detection only. The frozen
+77-configuration study retains its historical 29/30 result; these controls do
+not establish a new full-suite detection rate, speedup or comparison against
+upstream Volta.
+
+Reproduce with binaries built from the receipt's two source revisions:
+
+```sh
+python3 tests/gfx1250/measure_tensor_bounds.py \
+  --baseline /tmp/baseline-volta --baseline-revision e239cfc \
+  --candidate /tmp/candidate-volta --candidate-revision CANDIDATE_REVISION \
+  --output /tmp/tensor-bounds-comparison.json
+```
+
+The script records executable, source, specification and harness hashes, retains
+every outcome and refuses to overwrite existing results. Build provenance is
+supplied by the caller; the script verifies fixture identity at both revisions
+and unchanged binaries during measurement. All variants run in the CPU verifier.
+
 ## Reproduction
 
 The compiler-generated [tensor roundtrip fixture](../tests/gfx1250/fixtures/native-tensor-roundtrip.hip)
