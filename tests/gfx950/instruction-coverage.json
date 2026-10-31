@@ -52,12 +52,12 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "parse_instruction",
-          "line": 864
+          "line": 865
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1391
+          "line": 1392
         }
       ]
     },
@@ -68,7 +68,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_vop_literal_positions",
-          "line": 2070
+          "line": 2123
         }
       ]
     },
@@ -79,7 +79,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1391
+          "line": 1392
         }
       ]
     },
@@ -133,12 +133,12 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "memory_instruction",
-          "line": 6199
+          "line": 6344
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "permute",
-          "line": 7004
+          "line": 7183
         }
       ]
     },
@@ -670,17 +670,17 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "memory_instruction",
-          "line": 6199
+          "line": 6344
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "flat_memory_address",
-          "line": 6884
+          "line": 7063
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "validate_address",
-          "line": 7053
+          "line": 7232
         }
       ],
       "positive_controls": [
@@ -727,7 +727,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "permute",
-          "line": 7004
+          "line": 7183
         }
       ],
       "positive_controls": [
@@ -924,7 +924,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "memory_instruction",
-          "line": 6199
+          "line": 6344
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
