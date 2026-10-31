@@ -148,7 +148,7 @@ fn attempted_load_and_store_have_typed_bounds_but_no_full_graph_rejection() {
 fn exact_prefix_identity_refuses_stale_or_forged_certificates() {
     let g = graph(|_, _, _, _| {}, true, false, None);
     let cert = tensor_bounds_candidate(&g).unwrap();
-    for field in 0..7 {
+    for field in 0..8 {
         let mut c = cert.clone();
         match field {
             0 => c.amd_records += 1,
@@ -160,11 +160,15 @@ fn exact_prefix_identity_refuses_stale_or_forged_certificates() {
                 .provenance
                 .assumptions
                 .push(Assumption::ConfiguredLdsBytes(512)),
-            _ => {
+            6 => {
                 if let AmdEventKind::TensorAccessFault { descriptor, .. } = &mut c.fault_record.kind
                 {
                     descriptor.d0[1] += 4;
                 }
+            }
+            _ => {
+                c.event = EventId(u32::MAX);
+                c.fault_record.event = EventId(u32::MAX);
             }
         }
         assert!(
@@ -172,6 +176,19 @@ fn exact_prefix_identity_refuses_stale_or_forged_certificates() {
             "field{field}"
         );
     }
+}
+
+#[test]
+fn malformed_instruction_source_pc_is_refused_before_prefix_replay() {
+    let g = graph(|p, _, _, _| p.instructions.clear(), true, false, None);
+    let certificate = tensor_bounds_candidate(&g).unwrap();
+    let errors = validate_tensor_bounds_prefix(&g, &certificate).unwrap_err();
+    assert!(
+        errors
+            .iter()
+            .any(|error| error.reason.contains("program point")),
+        "{errors:?}"
+    );
 }
 
 #[test]

@@ -3,7 +3,7 @@
 use crate::{Unresolved, Verdict};
 use volta_graph::{
     AbortCause, AccessMode, AmdArchitecture, AmdEvent, AmdEventKind, Assumption, EventGraph,
-    EventId, Provenance, TENSOR_BOUNDS_ABORT_REASON, Terminal,
+    EventId, ProgramPoint, Provenance, TENSOR_BOUNDS_ABORT_REASON, Terminal,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -39,6 +39,21 @@ pub fn tensor_bounds_candidate(graph: &EventGraph) -> Option<TensorBoundsCertifi
     })
 }
 
+fn fault_source_pc(
+    graph: &EventGraph,
+    event: EventId,
+) -> Result<Option<ProgramPoint>, Vec<Unresolved>> {
+    graph
+        .events()
+        .get(event)
+        .map(|event| event.pc)
+        .ok_or_else(|| {
+            vec![Unresolved::global(
+                "tensor fault record has an invalid graph event ID",
+            )]
+        })
+}
+
 pub fn validate_tensor_bounds_prefix(
     graph: &EventGraph,
     certificate: &TensorBoundsCertificate,
@@ -53,6 +68,19 @@ pub fn validate_tensor_bounds_prefix(
             "tensor bounds certificate does not identify this exact gfx1250 prefix",
         ));
     }
+    if let Err(defects) = graph.validate() {
+        return Err(defects
+            .into_iter()
+            .map(|defect| Unresolved {
+                events: defect
+                    .event
+                    .filter(|event| graph.events().get(*event).is_some())
+                    .into_iter()
+                    .collect(),
+                reason: defect.message,
+            })
+            .collect());
+    }
     let record = graph
         .amd_events()
         .last()
@@ -66,8 +94,9 @@ pub fn validate_tensor_bounds_prefix(
             "tensor bounds certificate is not an attempted tensor access",
         ));
     };
+    let source_pc = fault_source_pc(graph, record.event)?;
     if !matches!(graph.terminal(), Terminal::Aborted { cause: AbortCause::Error, reason, thread: Some(thread), pc }
-        if reason == TENSOR_BOUNDS_ABORT_REASON && record.wave.checked_mul(32) == Some(thread.0) && *pc == graph.event(record.event).pc)
+        if reason == TENSOR_BOUNDS_ABORT_REASON && record.wave.checked_mul(32) == Some(thread.0) && *pc == source_pc)
     {
         return Err(fail(
             "tensor bounds requires the matching typed access abort, without completed execution",
@@ -131,4 +160,32 @@ pub fn validate_tensor_bounds_prefix(
         bytes: footprint.bytes,
         configured_lds_bytes: limits[0],
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use volta_graph::GraphBuilder;
+
+    #[test]
+    fn malformed_fault_event_id_uses_checked_lookup() {
+        let graph = GraphBuilder::new(Provenance {
+            kernel: "malformed_fault".into(),
+            block_dim: (1, 1, 1),
+            grid_dim: (1, 1, 1),
+            workgroup_id: (0, 0, 0),
+            targets: vec!["gfx1250".into()],
+            assumptions: vec![],
+            instructions: vec![],
+        })
+        .finish(Terminal::Aborted {
+            thread: None,
+            pc: None,
+            cause: AbortCause::Error,
+            reason: TENSOR_BOUNDS_ABORT_REASON.into(),
+        });
+        for event in [EventId(0), EventId(u32::MAX)] {
+            assert!(fault_source_pc(&graph, event).is_err());
+        }
+    }
 }
