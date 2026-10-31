@@ -11,6 +11,7 @@
 //! all handwritten function bodies are parsed strictly.
 
 pub mod ast;
+mod constant_expr;
 pub(crate) mod gfx1250;
 mod instr;
 mod metadata;
