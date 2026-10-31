@@ -54,3 +54,47 @@ is not a valid way to obtain them. Compiler/toolchain and verifier refusals must
 remain explicit for any unsupported cluster or instruction profile. Whole-source
 compilation and actual launch/output contracts are required before making a
 support claim.
+
+## Compile, assemble and analyze a campaign
+
+The campaign driver compiles every inventoried standalone translation unit under
+its original architecture profile. It obtains defines, optimization and math
+flags from the pinned upstream Makefile's dry run, then invokes ROCm clang directly
+with device-only assembly output. Host linking, output filenames, diagnostic-only
+flags and temporary-file settings are removed; kernel sources are not rewritten.
+Printed shell pipelines and log-directory commands are never executed. Unit
+sources use the upstream `TEST_ALL` selector and `TEST_INTENSITY=2` sweep.
+
+```sh
+uv run external/extraction/hipkittens_corpus.py \
+  --binary /absolute/path/to/volta --binary-revision SOURCE_COMMIT \
+  --output /tmp/hipkittens-baseline --jobs 2 --timeout 180
+```
+
+The output must be a new directory outside the repository and upstream checkout.
+`--source-root` selects another clean checkout of the pinned revision. Use
+`--source relative/path.cpp` repeatedly to select translation units, or `--target`
+to filter original profiles. The filter never retargets source. `--compiler`,
+`--assembler`, `--rocm` and `--pybind11-include` select installed tooling; normal
+`uv run` supplies the small Python binding/YAML dependencies. No GPU, PyTorch or
+AITER installation is required unless an original source itself includes those
+external dependencies; such missing dependencies are retained as compiler
+failures, not silently removed from source.
+
+Each translation-unit/profile pair retains its upstream recipe, actual compiler
+arguments, source/assembly/object hashes, emitted AMDHSA kernel metadata and
+separate recipe/compile/assemble/parse/analyze process records. Signals, timeouts,
+missing tools, normal compiler rejections and unsupported parser forms have
+separate statuses. The target and emitted wave size must match the original
+profile. A successful compiler invocation with no entrypoints is reported as
+`compiled_no_entrypoints`, not kernel support.
+
+Analysis uses an existing exact launch contract where available: the original
+softmax, rotary and BF16 GEMM configurations from the legacy CDNA4 extractor.
+Other emitted entrypoints remain `launch_contract_required`; the driver does not
+invent tensor dimensions, by-value payloads or reduced executions. Successful
+analysis requires the expected per-array footprint and passing graph properties.
+It is a graph-safety result, not a mathematical-equivalence or whole-grid claim.
+All source and validation helpers plus their hashes are copied into the raw run
+for reproducibility; changing them during a campaign invalidates the final report.
+Machine paths and raw diagnostic logs remain outside Git.
