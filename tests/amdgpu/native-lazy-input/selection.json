@@ -1,0 +1,376 @@
+{
+  "schema_version": 1,
+  "source_parent": "c256801df19928b3c24cbb62ebc40a4c8f9f4dc1",
+  "baseline_binary_sha256": "a774984789ee54e93797906fe5b51d37faf0c18f019aeece5323fdff1a932f76",
+  "original_study_manifest_sha256": "f61df7312961ad8540b34de6f41647df9b165e2ae068dc9a2a25672d90f83886",
+  "seed": 20261031,
+  "repeats": 5,
+  "timeout_seconds": 60,
+  "qualification_processes_per_arm": 28,
+  "cases": [
+    {
+      "id": "memory-gfx950-elementwise-address-alias",
+      "expectation": "hazard",
+      "primary": false,
+      "target": "gfx950",
+      "input_elements": 64,
+      "input_bytes": 256,
+      "expected_outputs": 64,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-gfx950-reduction-address-alias",
+      "expectation": "hazard",
+      "primary": false,
+      "target": "gfx950",
+      "input_elements": 64,
+      "input_bytes": 256,
+      "expected_outputs": 2,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-gfx950-normalization-address-alias",
+      "expectation": "hazard",
+      "primary": false,
+      "target": "gfx950",
+      "input_elements": 128,
+      "input_bytes": 512,
+      "expected_outputs": 64,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-gfx950-gemm-address-alias",
+      "expectation": "hazard",
+      "primary": false,
+      "target": "gfx950",
+      "input_elements": 192,
+      "input_bytes": 768,
+      "expected_outputs": 32,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-gfx950-attention-address-alias",
+      "expectation": "hazard",
+      "primary": false,
+      "target": "gfx950",
+      "input_elements": 72,
+      "input_bytes": 288,
+      "expected_outputs": 10,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-gfx1250-elementwise-address-alias",
+      "expectation": "hazard",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 64,
+      "input_bytes": 256,
+      "expected_outputs": 64,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-gfx1250-reduction-address-alias",
+      "expectation": "hazard",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 64,
+      "input_bytes": 256,
+      "expected_outputs": 2,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-gfx1250-normalization-address-alias",
+      "expectation": "hazard",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 128,
+      "input_bytes": 512,
+      "expected_outputs": 64,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-gfx1250-gemm-address-alias",
+      "expectation": "hazard",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 192,
+      "input_bytes": 768,
+      "expected_outputs": 32,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-gfx1250-attention-address-alias",
+      "expectation": "hazard",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 72,
+      "input_bytes": 288,
+      "expected_outputs": 10,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-wide-gfx1250-matvec_f16-inserted-collision",
+      "expectation": "hazard",
+      "primary": true,
+      "target": "gfx1250",
+      "input_elements": 135168,
+      "input_bytes": 270336,
+      "expected_outputs": 32,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-wide-gfx1250-convolution_f16_original-inserted-collision",
+      "expectation": "hazard",
+      "primary": true,
+      "target": "gfx1250",
+      "input_elements": 274432,
+      "input_bytes": 548864,
+      "expected_outputs": 16384,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-wide-gfx1250-flash_attention_original-inserted-collision",
+      "expectation": "hazard",
+      "primary": true,
+      "target": "gfx1250",
+      "input_elements": 139264,
+      "input_bytes": 278528,
+      "expected_outputs": 8320,
+      "previous_complete_equation_proved": null
+    },
+    {
+      "id": "memory-gfx950-elementwise-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx950",
+      "input_elements": 64,
+      "input_bytes": 256,
+      "expected_outputs": 64,
+      "previous_complete_equation_proved": true
+    },
+    {
+      "id": "memory-gfx950-reduction-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx950",
+      "input_elements": 64,
+      "input_bytes": 256,
+      "expected_outputs": 2,
+      "previous_complete_equation_proved": true
+    },
+    {
+      "id": "memory-gfx950-normalization-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx950",
+      "input_elements": 128,
+      "input_bytes": 512,
+      "expected_outputs": 64,
+      "previous_complete_equation_proved": true
+    },
+    {
+      "id": "memory-gfx950-gemm-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx950",
+      "input_elements": 192,
+      "input_bytes": 768,
+      "expected_outputs": 32,
+      "previous_complete_equation_proved": true
+    },
+    {
+      "id": "memory-gfx950-attention-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx950",
+      "input_elements": 72,
+      "input_bytes": 288,
+      "expected_outputs": 10,
+      "previous_complete_equation_proved": true
+    },
+    {
+      "id": "memory-gfx1250-elementwise-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 64,
+      "input_bytes": 256,
+      "expected_outputs": 64,
+      "previous_complete_equation_proved": true
+    },
+    {
+      "id": "memory-gfx1250-reduction-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 64,
+      "input_bytes": 256,
+      "expected_outputs": 2,
+      "previous_complete_equation_proved": true
+    },
+    {
+      "id": "memory-gfx1250-normalization-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 128,
+      "input_bytes": 512,
+      "expected_outputs": 64,
+      "previous_complete_equation_proved": true
+    },
+    {
+      "id": "memory-gfx1250-gemm-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 192,
+      "input_bytes": 768,
+      "expected_outputs": 32,
+      "previous_complete_equation_proved": true
+    },
+    {
+      "id": "memory-gfx1250-attention-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 72,
+      "input_bytes": 288,
+      "expected_outputs": 10,
+      "previous_complete_equation_proved": true
+    },
+    {
+      "id": "memory-wide-gfx1250-matvec_f16-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 135168,
+      "input_bytes": 270336,
+      "expected_outputs": 32,
+      "previous_complete_equation_proved": true
+    },
+    {
+      "id": "memory-wide-gfx1250-convolution_f16_original-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 274432,
+      "input_bytes": 548864,
+      "expected_outputs": 16384,
+      "previous_complete_equation_proved": false
+    },
+    {
+      "id": "memory-wide-gfx1250-flash_attention_original-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 139264,
+      "input_bytes": 278528,
+      "expected_outputs": 8320,
+      "previous_complete_equation_proved": false
+    },
+    {
+      "id": "memory-wide-gfx1250-gemm_f16-full-input-inserted-collision",
+      "template_case": "memory-wide-gfx1250-gemm_f16_full-inserted-collision",
+      "expectation": "hazard",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 33554432,
+      "input_bytes": 67108864,
+      "expected_outputs": 65536,
+      "previous_complete_equation_proved": null,
+      "new_contract": true
+    },
+    {
+      "id": "memory-wide-gfx1250-gemm_f16-full-input-safe",
+      "template_case": "memory-wide-gfx1250-gemm_f16_full-safe",
+      "expectation": "safe",
+      "primary": false,
+      "target": "gfx1250",
+      "input_elements": 33554432,
+      "input_bytes": 67108864,
+      "expected_outputs": 65536,
+      "previous_complete_equation_proved": false,
+      "new_contract": true
+    }
+  ],
+  "gates": {
+    "minimum_primary_improvement_fraction": 0.2,
+    "minimum_primary_improvement_seconds": 0.005,
+    "minimum_primary_wins": 2,
+    "maximum_endpoint_multiplier": 1.1,
+    "endpoint_additive_seconds": 0.002,
+    "maximum_rss_fraction_additive": 0.05,
+    "rss_additive_kib": 8192
+  },
+  "new_gemm": {
+    "dimensions": {
+      "M": 4096,
+      "N": 4096,
+      "K": 4096,
+      "TILE": 256
+    },
+    "block": [
+      1024,
+      1,
+      1
+    ],
+    "grid": [
+      16,
+      16,
+      1
+    ],
+    "workgroup": [
+      0,
+      0,
+      0
+    ],
+    "array_bases": {
+      "a": 268435456,
+      "b": 536870912,
+      "out000": 805306368
+    },
+    "input_length_each": 16777216,
+    "output_rows": 256,
+    "output_row_length": 256,
+    "output_row_pitch_bytes": 8192,
+    "abi_pointer_offsets": [
+      0,
+      8,
+      16
+    ],
+    "kernarg_size": 24,
+    "static_lds_bytes": 65536,
+    "source_ground_truth_first_collision": {
+      "source_batch": 133,
+      "executed_instructions": 4225,
+      "wave": 0,
+      "physical_threads": [
+        0,
+        1
+      ],
+      "space": "Shared",
+      "byte_address": 0,
+      "event_ids": "Not statically guessed; must be distinct and within printed complete-prefix frame; independent source/witness audit before coverage credit."
+    }
+  },
+  "storage": {
+    "reserve_bytes": 2147483648,
+    "semantic_gzip_budget_bytes": 2147483648,
+    "other_budget_bytes": 268435456,
+    "log_budget_bytes": 134217728
+  },
+  "exclusions": [
+    "transpose cases",
+    "unsupported tails",
+    "natural wide address replacements",
+    "historical GEMM prefix-A contract",
+    "old heldouts",
+    "unseen reserved configurations"
+  ],
+  "limits": [
+    "New full-input GEMM is a derived allocation/grid contract, not recovered host provenance or original HipKittens coverage.",
+    "Registered matvec A is32by4096; no larger host extent is established.",
+    "Selected workgroup only; no full-grid proof.",
+    "Five observations support descriptive point gates only; no p95/CI/phase attribution."
+  ]
+}
