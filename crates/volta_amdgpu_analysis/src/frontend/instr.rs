@@ -653,7 +653,7 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "v_max_f64"
         | "v_mul_f64" => (VectorAlu, 3, 3),
         "v_add_co_u32" | "v_sub_co_u32" | "v_subrev_co_u32" => (VectorAlu, 4, 4),
-        "v_mad_u64_u32" => (VectorAlu, 5, 5),
+        "v_mad_u64_u32" | "v_mad_i64_i32" => (VectorAlu, 5, 5),
         "v_addc_co_u32" | "v_subb_co_u32" | "v_subbrev_co_u32" => (VectorAlu, 5, 5),
         "v_cndmask_b32" => (VectorAlu, if mnemonic.ends_with("_e32") { 3 } else { 4 }, 4),
         "v_fmamk_f32" | "v_or3_b32" | "v_fma_mixlo_f16" | "v_fma_mixhi_f16" | "v_fma_mix_f32"
@@ -1868,7 +1868,7 @@ pub(super) fn validate_registers(
                         },
                     )?;
                 }
-            } else if stem == "v_mad_u64_u32" {
+            } else if matches!(stem, "v_mad_u64_u32" | "v_mad_i64_i32") {
                 require(0, &[Vector], 2)?;
                 require(
                     1,
@@ -1885,6 +1885,39 @@ pub(super) fn validate_registers(
                         2
                     },
                 )?;
+                if stem == "v_mad_i64_i32" {
+                    // CDNA4 VOP3B: two 32-bit factors, one 64-bit addend and
+                    // a wave64 scalar result mask. Keep a finite unmodified
+                    // register/inline profile rather than guessing literal,
+                    // clamp, floating-inline or special-source semantics.
+                    if architecture != crate::target::Architecture::Gfx950
+                        || mnemonic.ends_with("_e32")
+                        || !modifiers.is_empty()
+                        || !matches!(operands[0], Operand::Register(_))
+                        || !matches!(operands[1], Operand::Register(r)
+                            if r.class == Scalar || r.special == Some(SpecialRegister::Vcc))
+                    {
+                        return Err("selected signed64 MAD requires unmodified gfx950 VOP3B and an SGPR-pair/VCC mask".into());
+                    }
+                    let mut scalar_sources = std::collections::BTreeSet::new();
+                    for (index, operand) in operands.iter().enumerate().skip(2) {
+                        match operand {
+                            Operand::Register(r)
+                                if matches!(r.class, Scalar | Vector)
+                                    && r.count == if index == 4 { 2 } else { 1 } =>
+                            {
+                                if r.class == Scalar {
+                                    scalar_sources.insert((r.index, r.count));
+                                }
+                            }
+                            Operand::Integer(value) if (-16..=64).contains(value) => {}
+                            _ => return Err("signed64 MAD sources require plain data registers or integer inline constants".into()),
+                        }
+                    }
+                    if scalar_sources.len() > 1 {
+                        return Err("selected signed64 MAD supports at most one distinct scalar data source".into());
+                    }
+                }
             } else if ["v_cvt_pk_f32_fp8", "v_cvt_pk_f32_bf8", "v_cvt_f64_f32"].contains(&stem) {
                 require(0, &[Vector], 2)?;
                 source_width(1, 1)?;

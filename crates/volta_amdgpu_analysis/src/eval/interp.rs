@@ -1528,6 +1528,7 @@ impl<'a> Interpreter<'a> {
                         | "v_subrev_co_u32"
                         | "v_subbrev_co_u32"
                         | "v_mad_u64_u32"
+                        | "v_mad_i64_i32"
                 ) {
                     operands.get(1)
                 } else {
@@ -1613,7 +1614,7 @@ impl<'a> Interpreter<'a> {
                         || mnemonic.starts_with("v_subb_co_")
                         || mnemonic.starts_with("v_subrev_co_")
                         || mnemonic.starts_with("v_subbrev_co_")
-                        || mnemonic == "v_mad_u64_u32")))
+                        || matches!(mnemonic, "v_mad_u64_u32" | "v_mad_i64_i32"))))
                 && !store
                 && !no_destination
             {
@@ -1803,6 +1804,7 @@ impl<'a> Interpreter<'a> {
                     | "v_subrev_co_u32"
                     | "v_subbrev_co_u32"
                     | "v_mad_u64_u32"
+                    | "v_mad_i64_i32"
             );
             for (index, operand) in instruction.operands().iter().enumerate() {
                 if instruction.opcode() != Opcode::VectorMemory
@@ -4674,15 +4676,25 @@ impl<'a> Interpreter<'a> {
             }
             return Ok(());
         }
-        if name == "v_mad_u64_u32" {
+        if matches!(
+            operation,
+            AluOperation::Opcode(AluOpcode::VMadI64I32 | AluOpcode::VMadU64U32)
+        ) {
             let mut mask = 0;
             for lane in lanes {
-                let a = wave.bits(&o[2], lane)? as u64;
-                let b = wave.bits(&o[3], lane)? as u64;
+                let a = wave.bits(&o[2], lane)?;
+                let b = wave.bits(&o[3], lane)?;
                 let addend = wave.wide(&o[4], lane)?;
-                let (result, carry) = a.wrapping_mul(b).overflowing_add(addend);
-                wave.put_wide(&o[0], lane, result)?;
-                if carry {
+                // Public CDNA4 ISA 12.11 defines {D1,D0} as the 65-bit
+                // multiply-add result. For signed MAD D1 is bit64, which is
+                // distinct from a signed64 overflow predicate.
+                let result = if operation == AluOperation::Opcode(AluOpcode::VMadI64I32) {
+                    i128::from(a as i32) * i128::from(b as i32) + i128::from(addend as i64)
+                } else {
+                    i128::from(a) * i128::from(b) + i128::from(addend)
+                };
+                wave.put_wide(&o[0], lane, result as u64)?;
+                if (result >> 64) & 1 != 0 {
                     mask |= 1u64 << lane;
                 }
             }
