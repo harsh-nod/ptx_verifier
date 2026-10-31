@@ -1,0 +1,53 @@
+name: Upstream sync
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  rebase:
+    if: github.repository == 'harsh-nod/ptx_verifier'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CARGO_BUILD_JOBS: '2'
+      RUST_TEST_THREADS: '2'
+      CARGO_INCREMENTAL: '0'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+    steps:
+      - name: Clone the fork
+        run: |
+          gh auth setup-git
+          gh repo clone "$GITHUB_REPOSITORY" "$GITHUB_WORKSPACE/source" -- --branch main
+      - name: Prepare Rust checks
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt --component clippy
+          rustup default stable
+          python3 "$GITHUB_WORKSPACE/source/scripts/test_sync_upstream.py"
+      - name: Rebase and check an isolated candidate
+        run: |
+          python3 "$GITHUB_WORKSPACE/source/scripts/sync_upstream.py" \
+            --repo "$GITHUB_WORKSPACE/source" \
+            --output "$RUNNER_TEMP/upstream-sync" --publish
+      - name: Show check failures
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP']) / 'upstream-sync'
+          for log in sorted(root.glob('check-*.log')):
+              print(f'--- {log.name} ---')
+              print(log.read_text()[-20000:])
+          PY
