@@ -36,6 +36,12 @@ class CorpusTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 expression_indices(text)
 
+    def test_unsupported_execution_cannot_count_a_partial_trace_failure_as_a_finding(self):
+        stdout = '  AMD memory-conflict freedom (native) FAIL\nVERDICT: REJECT\n'
+        for code in (0, 1, 2):
+            self.assertEqual(classify(code, stdout, 'unsupported AMD instruction `new_opcode`')[0],
+                             'unsupported')
+
     def test_real_manifest_rejects_dropped_coordinates_even_with_changed_count(self):
         document = json.loads(MANIFEST.read_text())
         altered = copy.deepcopy(document)

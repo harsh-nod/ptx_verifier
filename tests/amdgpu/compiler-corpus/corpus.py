@@ -75,11 +75,11 @@ def classify(returncode, stdout, stderr, *, timed_out=False):
     if returncode < 0 or returncode not in (0, 1, 2):
         return "crash", f"process exit {returncode}"
     text = stdout + "\n" + stderr
-    if re.search(r"^VERDICT: (REJECT|REFUTED)$", stdout, re.M) or re.search(r"^  .*\sFAIL$", stdout, re.M):
-        return "finding", next((line.strip() for line in text.splitlines() if "FAIL" in line or "REJECT" in line), "verification rejected")
     unsupported = next((line.strip() for line in text.splitlines() if "unsupported" in line.lower()), None)
     if unsupported:
         return "unsupported", unsupported
+    if re.search(r"^VERDICT: (REJECT|REFUTED)$", stdout, re.M) or re.search(r"^  .*\sFAIL$", stdout, re.M):
+        return "finding", next((line.strip() for line in text.splitlines() if "FAIL" in line or "REJECT" in line), "verification rejected")
     if returncode != 0 or re.search(r"\bUNKNOWN\b", stdout):
         return "inconclusive", next((line.strip() for line in text.splitlines() if line.strip()), "no conclusive verdict")
     return "inconclusive", "successful process alone is not verification"
