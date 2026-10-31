@@ -164,7 +164,9 @@ and verifier runs are unsuitable for measuring latency changes.
 
 [baseline.json](baseline.json) binds the public source pin, compiler/assembler,
 verifier binary and source helpers to the complete baseline and separately
-recorded recipe correction. The initial 173 source/profile probes included 12
+recorded recipe correction. Each measured driver revision is retained in Git;
+use that revision to reproduce its recorded helper hashes after later code
+changes. The initial 173 source/profile probes included 12
 included-source fragments. All attempts remain in the denominator. Corrected
 recipes added six MC-accepted modules; the explicit current overlay contains
 68 modules with entrypoints and 3,484 emitted entrypoint occurrences. Three

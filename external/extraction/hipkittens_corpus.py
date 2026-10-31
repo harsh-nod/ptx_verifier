@@ -13,7 +13,6 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import hashlib
 import json
 import math
 import os

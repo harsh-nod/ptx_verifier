@@ -99,7 +99,8 @@
     },
     "emitted_entrypoint_occurrences": 3476,
     "parsed_modules": 3,
-    "verified_launches": 0
+    "verified_launches": 0,
+    "driver_revision": "906d2ca07b11b953df15e41152f5f93d32ca4d6c"
   },
   "recipe_followup": {
     "report_sha256": "fa67309015f36a7e26cffae67f2dc3220b70a6cc9f1a2560ff110d1df72d4ca9",
@@ -130,7 +131,8 @@
     },
     "additional_MC_accepted_modules": 6,
     "additional_emitted_entrypoint_occurrences": 8,
-    "verified_launches": 0
+    "verified_launches": 0,
+    "driver_revision": "6042215cb2a37a41f7b5acb39534f12e8feb6182"
   },
   "current_probe_overlay": {
     "scope": "Use followup outcome for its same source/profile ID; retain every original probe and both raw reports. This is an explicit overlay, not a rewritten original run.",
@@ -239,7 +241,8 @@
     ],
     "all_original_cases_verified": false,
     "graph_rejection_interpretation": "168 original align/ortho cases have typed same-address WriteWrite conflicts despite complete identity-equivalent final outputs. This is not evidence of a numerical mismatch or an upstream application bug.",
-    "unsupported_profile": "44 original naive cases reach currently unsupported buffer_load_dword offen; unknown/refusal is not verification."
+    "unsupported_profile": "44 original naive cases reach currently unsupported buffer_load_dword offen; unknown/refusal is not verification.",
+    "driver_revision": "2258547b5b0ae169b13d0cb44076f071dbe7eda5"
   },
   "preserved_first_vector_run": {
     "report_sha256": "21f381bcd5ef4b70b13e36449e28d2f65b743b370d4dbcabbc5716756ca6824b",
@@ -296,6 +299,7 @@
     "transcript_inventory_sha256": "285ce7960dd20623ba753bfd23ca6e72158d5ce24a811635c3d229072c869328",
     "receipt_sha256": "7f02e0baedcaa41a1c045008d779c6904725354243bda945ed1d23db86a4de67",
     "scope": "Reclassified every preserved stdout/stderr pair; no verifier execution, rewritten original record, changed source or changed expectation.",
-    "original_compiler_assembler_and_binary_hashes_rechecked": true
+    "original_compiler_assembler_and_binary_hashes_rechecked": true,
+    "driver_revision": "6e0304fec19d8ffc7599a8d778b9ceaf8941e8d8"
   }
 }

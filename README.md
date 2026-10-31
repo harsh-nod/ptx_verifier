@@ -139,6 +139,10 @@ Each crate has a README explaining its public entry points and internal modules.
 Start with `volta_pipeline/src/backend.rs` for backend dispatch and
 `volta_pipeline/src/aggregate.rs` for verdict rules.
 
+The [HipKittens corpus](external/hipkittens/corpus/README.md) explains source
+enumeration, native compilation, launch extraction and complete mathematical
+and graph checks, with a source-preserving copy-kernel baseline.
+
 The [AMD technical report](docs/paper/amd-volta.pdf) compares gfx942, gfx950 and
 gfx1250, explains which parts of Volta's approach are reused, and describes the
 native execution and safety models required by each target. It includes
