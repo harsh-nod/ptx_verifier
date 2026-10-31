@@ -229,7 +229,10 @@ fn known_nonzero_scc_does_not_make_other_result_bits_known() {
             error.contains("undefined") || error.contains("uninitialized SCC"),
             "{error}"
         );
-        assert_eq!(checked.checks.conclusion(), GraphConclusion::Unknown);
+        assert!(matches!(
+            checked.checks.conclusion(),
+            GraphConclusion::Unknown { .. }
+        ));
     }
 }
 
@@ -302,7 +305,10 @@ fn opaque_math_data_cannot_become_concrete_bits_even_under_a_zero_mask() {
             .to_string()
             .contains("symbolic mathematical data")
     );
-    assert_eq!(checked.checks.conclusion(), GraphConclusion::Unknown);
+    assert!(matches!(
+        checked.checks.conclusion(),
+        GraphConclusion::Unknown { .. }
+    ));
 }
 
 #[test]
@@ -322,7 +328,10 @@ fn unknown_result_bits_cannot_supply_addresses_or_execution_masks() {
                 .to_string()
                 .contains("undefined")
         );
-        assert_eq!(checked.checks.conclusion(), GraphConclusion::Unknown);
+        assert!(matches!(
+            checked.checks.conclusion(),
+            GraphConclusion::Unknown { .. }
+        ));
     }
 }
 
@@ -338,13 +347,19 @@ fn other_64bit_operations_keep_their_existing_undefined_input_boundary() {
                 .to_string()
                 .contains("uninitialized Scalar register 7")
         );
-        assert_eq!(checked.checks.conclusion(), GraphConclusion::Unknown);
+        assert!(matches!(
+            checked.checks.conclusion(),
+            GraphConclusion::Unknown { .. }
+        ));
     }
 }
 
 #[test]
 fn float_and_noninline_literal_widths_remain_explicitly_unsupported() {
-    for literal in ["0.5", "-1.0", "65", "-17", "0xffffffff", "0x100000000"] {
+    // Negative floating spelling is already outside scalar frontend syntax;
+    // the recognized positive floating form must also refuse during execution.
+    assert!(frontend::parse(&source("s_mov_b64 s[6:7],-1\ns_and_b64 s[8:9],s[6:7],-1.0")).is_err());
+    for literal in ["0.5", "65", "-17", "0xffffffff", "0x100000000"] {
         let checked = run(&format!(
             "s_mov_b64 s[6:7],-1\ns_and_b64 s[8:9],s[6:7],{literal}"
         ));
@@ -357,6 +372,9 @@ fn float_and_noninline_literal_widths_remain_explicitly_unsupported() {
                 .contains("requires register pairs or integer inline constants"),
             "{literal}"
         );
-        assert_eq!(checked.checks.conclusion(), GraphConclusion::Unknown);
+        assert!(matches!(
+            checked.checks.conclusion(),
+            GraphConclusion::Unknown { .. }
+        ));
     }
 }
