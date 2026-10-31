@@ -473,8 +473,7 @@ fn malformed_typed_scalar_exp_cannot_read_a_vector_lane() {
             special: None,
         });
     let error = analyze(&module, None, simple_config(1, &[("out", 1, 4, false)]))
-        .err()
-        .expect("typed invalid source rejected before execution");
+        .expect_err("typed invalid source rejected before execution");
     assert!(format!("{error:?}").contains("scalar"));
 }
 

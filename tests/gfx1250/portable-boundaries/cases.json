@@ -15,7 +15,7 @@
     "tests/gfx1250/portable-boundaries/native-signed-byte.hip": "b16c5dc7e12619987e7584bb65f6f8a85045b5a72ff187044a8330567f289507",
     "tests/gfx1250/portable-boundaries/native-signed-byte.s": "287b2da6ceac040fbd93276d5384360bfaa1a554d99cc4439928e124f3582eb5",
     "tests/gfx1250/portable-boundaries/syntax-mutations.tsv": "ba1efaf4f2c7d5210973e7d587d8ffad5d985287296276c04a542d097e2f26b8",
-    "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs": "c23635c671317eccfaea7af97d10f25131e6505dc055a7483fb0c8c6d45cc649"
+    "crates/volta_pipeline/tests/gfx1250_boundary_parity_tests.rs": "097665366763802200936055d5514372d3d29da33afe3e3bc7b22cc8dd5dab49"
   },
   "rows": [
     {

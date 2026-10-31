@@ -1116,16 +1116,15 @@ pub(super) fn check(graph: &EventGraph) -> AmdReport {
     for record in graph.amd_events() {
         let wave = record.wave as usize;
         execution_clocks[wave][wave] += 1;
-        if let Some((object, phase, _)) = blocked[wave] {
-            if !matches!(record.kind, AmdEventKind::SplitBarrierRelease { barrier, generation } if (barrier, generation) == (object, phase))
-            {
-                barrier_violations.push(AmdBarrierViolation {
-                    generation: phase,
-                    event: record.event,
-                    wave: record.wave,
-                    reason: "wave progressed while blocked at its split-barrier wait".into(),
-                });
-            }
+        if let Some((object, phase, _)) = blocked[wave]
+            && !matches!(record.kind, AmdEventKind::SplitBarrierRelease { barrier, generation } if (barrier, generation) == (object, phase))
+        {
+            barrier_violations.push(AmdBarrierViolation {
+                generation: phase,
+                event: record.event,
+                wave: record.wave,
+                reason: "wave progressed while blocked at its split-barrier wait".into(),
+            });
         }
         match &record.kind {
             AmdEventKind::Instruction { reads, writes, .. } => {

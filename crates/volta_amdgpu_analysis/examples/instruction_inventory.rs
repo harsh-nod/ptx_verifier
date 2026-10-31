@@ -124,12 +124,10 @@ fn main() {
         }
         for kernel in module.kernels {
             for instruction in kernel.instructions {
-                if components {
-                    if let [Operand::Dual(x, y)] = instruction.operands.as_slice() {
-                        emit(&path, &kernel.name, x, Some("X"));
-                        emit(&path, &kernel.name, y, Some("Y"));
-                        continue;
-                    }
+                if components && let [Operand::Dual(x, y)] = instruction.operands.as_slice() {
+                    emit(&path, &kernel.name, x, Some("X"));
+                    emit(&path, &kernel.name, y, Some("Y"));
+                    continue;
                 }
                 emit(&path, &kernel.name, &instruction, None);
             }
