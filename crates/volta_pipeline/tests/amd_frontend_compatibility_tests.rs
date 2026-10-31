@@ -160,10 +160,10 @@ fn experimental_copy_outputs_and_empty_amd_graph_do_not_supply_a_safety_proof() 
         let graph =
             volta_graph::GraphBuilder::new(provenance).finish(volta_graph::Terminal::Completed);
         let report = volta_graph_check::check_graph(&graph);
-        assert!(report.amd.is_some());
         assert!(matches!(
             report.conclusion(),
-            GraphConclusion::Unknown { .. }
+            GraphConclusion::Unknown { reasons }
+                if reasons.iter().any(|reason| reason.contains("unsupported or conflicting graph targets"))
         ));
     }
 }
