@@ -315,6 +315,7 @@ pub(crate) fn signature(name: &str) -> Option<(Opcode, usize, usize)> {
             | "s_load_b512" | "s_load_u8" | "s_load_u16" => (ScalarMemory, 3, 3),
             "s_get_pc_i64" => (ScalarAlu, 1, 1),
             "s_cvt_f32_i32" | "s_cvt_f32_u32" => (ScalarAlu, 2, 2),
+            "global_load_async_to_lds_b128" => (VectorMemory, 3, 3),
             "flat_load_u8"
             | "flat_load_i8"
             | "flat_load_u16"

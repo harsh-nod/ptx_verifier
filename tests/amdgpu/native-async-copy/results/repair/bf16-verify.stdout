@@ -1,0 +1,20 @@
+Exec: 0.003s  instructions: 62  block syncs: 0  warp syncs: 0
+kernel: graph verification
+  selected workgroup: (0, 0, 0); other workgroups and inter-workgroup conflicts are outside this result
+  AMD trace completeness (native AMD graph contract)      PASS
+  AMD wait and register readiness (target-selected counters and register dependencies) PASS
+  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS
+  AMD memory-conflict freedom (AMD completed-effect happens-before) PASS
+VC check: 0.001s (decision procedure 0.001s)  elements: 256
+EQUIVALENT (matches spec)
+VERDICT: ACCEPT
+  equivalence: all 256 compared elements proved equivalent
+  kernel: every graph check passed
+  under the assumptions:
+    - only the selected AMD workgroup is analyzed; other workgroups and inter-workgroup conflicts are outside this result
+    - workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result
+    - arithmetic is modeled over mathematical reals, not bit-exact floating-point
+    - addresses, branch conditions and synchronization parameters are concrete
+    - asynchronous operations compute their data at issue; only completion is asynchronous
+    - native LDS extent is the descriptor's static allocation plus configured dynamic bytes
+    - native AMD execution uses default scheduling; expert scheduling and mode transitions are outside this result

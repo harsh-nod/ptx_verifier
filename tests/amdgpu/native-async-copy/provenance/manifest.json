@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "scope": "Prepared full original host/ABI contracts only; no new runtime or verification result. Padding is explicit but source loads only each pointer field; no dynamic GL dimensions.",
+  "repository": "https://github.com/HazyResearch/HipKittens",
+  "revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+  "source_hashes": {
+    "tests/unit/cdna5/warp/memory/tile/shared_to_register.cu": "b747cc54bbd4fe9a29c8c59dfe2994077355d560783d518e570edee4e350a94f",
+    "tests/unit/common/testing_commons/testing_commons.cuh": "fd9cec649447f74b0eb1f8d1f6c84e2387de01685cd82e6d7ead083e42006b41",
+    "include/cdna5/types/global/gl.cuh": "2f5bac177cd6de8349c704f2ea8152c33843b4049f55c8fdc3e299f491fe6339",
+    "include/cdna5/types/global/util.cuh": "735cda03066360ce5e827940ae01f60e427e65f9570cc82a11f1f850eddf3b33",
+    "include/cdna5/common/util.cuh": "3f2826742aeae82c4391e5ab31033698a52a2b2a8016315c430b1f72745ddab4",
+    "include/cdna5/ops/warp/memory/tile/global_to_shared.cuh": "e6008d77b09c4dc64921b8d0820e24625179e40c019531dff6510b34ee658b6d",
+    "include/cdna5/ops/warp/sync/sync.cuh": "e7f5679b4247e03744abb9149d4a3ee3eee413dd52120170ebe0ba9f09ae4795",
+    "include/cdna5/ops/warp/sync/barrier.cuh": "244e79f7ab1c841c1c1466d09820035edff1e75412ed5a2620ff54aaf6426205"
+  },
+  "assembly": "/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-07a5080231865d32/kernel.s",
+  "assembly_sha256": "b9dfc61f31ae53f46452cb8c411301bc21b9eb64970929594840332cdd3b62a8",
+  "object_sha256": "5f0c71c17f9e305a14bfc8a1085465543ae9bb520d620ea1d35eace86a02b8b4",
+  "cases": [
+    {
+      "dtype": "bf16",
+      "kernel": "_ZL17global_wrapper_2dI20sharedreg_load_storeI14__hip_bfloat16EN7kittens5ducks8rt_shape8rt_shapeILi16ELi16ELi4EEENS4_8st_shape8st_16x16ES1_Li1ELi1ELi1ENS3_2glIS1_Li1ELi1ELi16ELi16ENS4_9gl_layout9row_majorEEEJNS4_9rt_layout3rowEEEvT6_SG_",
+      "launch": "bf16.launch.json",
+      "launch_sha256": "9bbbff1e4a90e0bee4abc7b08e26933dd09f3d7c92dc38b862d1a7eb178b9d69",
+      "input_bytes": 512,
+      "output_bytes": 512,
+      "elements": 256
+    },
+    {
+      "dtype": "f16",
+      "kernel": "_ZL17global_wrapper_2dI20sharedreg_load_storeI6__halfEN7kittens5ducks8rt_shape8rt_shapeILi16ELi16ELi4EEENS4_8st_shape8st_16x16ES1_Li1ELi1ELi1ENS3_2glIS1_Li1ELi1ELi16ELi16ENS4_9gl_layout9row_majorEEEJNS4_9rt_layout3rowEEEvT6_SG_",
+      "launch": "f16.launch.json",
+      "launch_sha256": "8fb0320557456e9811c08c4a8badb715db706828a8daed87fa4eed24e3c8b16e",
+      "input_bytes": 512,
+      "output_bytes": 512,
+      "elements": 256
+    }
+  ],
+  "spec_sha256": "dfaaf87789dfec7bcaadc0e1a4dd9863575540ed223799561770c53ea60b438b"
+}

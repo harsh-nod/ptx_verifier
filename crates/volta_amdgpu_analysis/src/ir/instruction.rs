@@ -336,6 +336,7 @@ pub enum MemoryKind {
     LdsReadPair,
     LdsWritePair,
     Permute,
+    AsyncLoadToLds,
     TensorLoadToLds,
     TensorStoreFromLds,
     AtomicNoReturn,
@@ -351,6 +352,8 @@ pub enum TransferShape {
         registers_per_part: u8,
         parts: u8,
     },
+    /// Direct memory-to-memory payload, with no register data tuple.
+    PerLaneBytes(u8),
     /// Extent and element width are read from captured descriptor registers.
     TensorDescriptor,
 }
@@ -374,6 +377,10 @@ pub enum MemoryAddress<'a> {
     Global {
         vector: &'a Operand,
         scalar: &'a Operand,
+    },
+    GlobalToLds {
+        global: &'a Operand,
+        lds: &'a Operand,
     },
     Flat {
         vector: &'a Operand,
@@ -425,6 +432,10 @@ impl MemoryInstruction {
             MemoryKind::GlobalLoad => MemoryAddress::Global {
                 vector: &o[1],
                 scalar: &o[2],
+            },
+            MemoryKind::AsyncLoadToLds => MemoryAddress::GlobalToLds {
+                global: &o[1],
+                lds: &o[0],
             },
             MemoryKind::GlobalStore => MemoryAddress::Global {
                 vector: &o[0],
@@ -500,6 +511,8 @@ impl MemoryInstruction {
             MemoryKind::TensorLoadToLds
         } else if name == "tensor_store_from_lds" {
             MemoryKind::TensorStoreFromLds
+        } else if name == "global_load_async_to_lds_b128" {
+            MemoryKind::AsyncLoadToLds
         } else if name.starts_with("global_atomic_") {
             if operands.len() == 4 {
                 MemoryKind::AtomicReturning
@@ -567,6 +580,8 @@ impl MemoryInstruction {
                 MemoryKind::TensorLoadToLds | MemoryKind::TensorStoreFromLds
             ) {
                 TransferShape::TensorDescriptor
+            } else if kind == MemoryKind::AsyncLoadToLds {
+                TransferShape::PerLaneBytes(16)
             } else {
                 TransferShape::Registers {
                     bytes_per_register,

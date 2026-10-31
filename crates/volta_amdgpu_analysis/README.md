@@ -126,6 +126,23 @@ resolved-shared FLAT transfer must fit one object and aggregate LDS. Empty
 configuration retains aggregate bounds. Raw descriptors do not infer
 source-language LDS objects.
 
+The selected gfx1250 `global_load_async_to_lds_b128` GV form copies 16 bytes
+per active lane directly into LDS. Its first VGPR is an LDS address input;
+the global source is a VGPR pair followed by `off`. A signed24 byte offset
+applies to both addresses. This bounded profile requires aligned, nonwrapping
+footprints within the original global and LDS allocations; scalar-base and
+scaled forms remain unsupported. It uses async completion events rather than
+tensor descriptors. The copy charges ASYNCCNT alone. The model snapshots address
+inputs at issue; default scheduling permits later ordinary ALU overwrites without
+a software source-completion wait. Input
+readiness is still checked at issue. Expert scheduling mode changes remain
+unsupported, and the graph records an explicit default-scheduling premise.
+`s_wait_asynccnt 0` completes the entire transfer; a global
+load wait alone does not publish its LDS writes. Partial async waits do not
+infer FIFO completion across mixed load/store streams. See the public
+[CDNA5 ISA, section 10.8](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf)
+and the independent [native-copy controls](../volta_pipeline/tests/gfx1250_native_async_lds.rs).
+
 Configured input elements are backed by their array name and original index,
 and materialized only when an executed global access touches them. Allocation
 bounds remain the complete configured extents; this does not shorten loops or
@@ -272,6 +289,27 @@ with readiness for both destination words and no EXP or X source lease.
 See [pair value/endianness controls](tests/gfx950_raw_buffer_x2.rs),
 [pair readiness and full-output math controls](../volta_pipeline/tests/gfx950_raw_buffer_x2_tests.rs),
 and the [unchanged original N96 source/ABI identities](tests/fixtures/gfx950-raw-buffer-x2.json).
+
+On gfx1250, selected `s_and_b64` sources are register pairs or integer inline
+constants −16 through 64; floating and other literal forms remain unsupported.
+It tracks each source word's defined bits separately.
+A zero mask determines cleared result bits without observing discarded SGPR
+bits or ABI padding. SCC is true if any result bit is known one, false if the
+entire result is known zero, and otherwise remains undefined. Unknown result
+bits cannot supply concrete data, addresses or execution masks. Mathematical
+and opaque values retain their existing bit-reinterpretation restrictions.
+All source register words remain recorded reads with their normal completion
+obligations, even when a mask determines the data result.
+
+The selected gfx1250 `s_cmp_eq_u64` and `s_cmp_lg_u64` profile compares two
+fully defined concrete 64-bit values and sets SCC, including when EXEC is zero.
+Sources are plain SGPR pairs or integer inline constants −16 through 64;
+floating constants, other literal forms and special-register aliases remain
+unsupported. Undefined, opaque and mathematical values cannot supply concrete
+comparison bits. Both words of each register source retain their normal
+readiness obligations. These are the unsigned equality/inequality operations
+specified by the [public CDNA5 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf),
+§15.4.
 
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and

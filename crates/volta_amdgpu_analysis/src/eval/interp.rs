@@ -11,6 +11,8 @@ use std::{collections::BTreeMap, error::Error, fmt};
 use volta_expr::{ExprArena, ExprId, ExprNode};
 use volta_graph::*;
 
+#[path = "interp_async_lds.rs"]
+mod async_lds;
 #[path = "named_barrier.rs"]
 mod named_barrier;
 
@@ -419,6 +421,35 @@ impl Wave {
             Operand::Integer(v) => Ok(*v as u64),
             Operand::Off => Ok(0),
             _ => Ok(self.bits(operand, lane)? as u64),
+        }
+    }
+    /// Defined bits for a gfx1250 scalar bitwise word. An unset plain SGPR
+    /// remains unknown; opaque and mathematical values still require bits().
+    /// Instruction register roles independently retain every source word.
+    fn scalar_bitword(&self, operand: &Operand, word: u16) -> Result<(u32, u32), EvalError> {
+        let value = match operand {
+            Operand::Register(register) => {
+                if register.class == RegisterClass::Scalar
+                    && self
+                        .scalar
+                        .get((register.index + word) as usize)
+                        .copied()
+                        .flatten()
+                        .is_none()
+                {
+                    return Ok((0, 0));
+                }
+                self.reg(*register, 0, word)?
+            }
+            Operand::Integer(value) => Value::Bits((*value as u64 >> (32 * word)) as u32),
+            _ => self.value(operand, 0)?,
+        };
+        match value {
+            Value::PartialBits { bits, defined } => Ok((bits, defined)),
+            value => Ok((
+                value.bits().map_err(|error| self.fail(None, error))?,
+                u32::MAX,
+            )),
         }
     }
     fn destination(&self, operand: &Operand) -> Result<Register, EvalError> {
@@ -1584,6 +1615,7 @@ impl<'a> Interpreter<'a> {
             || instruction.mnemonic().starts_with("ds_write")
             || instruction.mnemonic() == "global_atomic_add_f32";
         let no_destination = instruction.mnemonic().starts_with("tensor_")
+            || instruction.mnemonic() == "global_load_async_to_lds_b128"
             || (wave.width == 32 && mnemonic.starts_with("v_cmpx_"))
             || matches!(
                 instruction.opcode(),
@@ -3354,6 +3386,30 @@ impl<'a> Interpreter<'a> {
             }
             return Ok(());
         }
+        if self.architecture == AmdArchitecture::Gfx1250
+            && matches!(name, "s_cmp_eq_u64" | "s_cmp_lg_u64")
+        {
+            // SOPC compares complete 64-bit sources. Keep ambiguous literal
+            // widths and special-register aliases outside this selected profile.
+            if o.iter().any(|operand| {
+                !matches!(operand, Operand::Register(register)
+                    if register.class == RegisterClass::Scalar && register.count == 2)
+                    && !matches!(operand, Operand::Integer(value) if (-16..=64).contains(value))
+            }) {
+                return Err(EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "selected gfx1250 s_cmp_{eq,lg}_u64 requires SGPR pairs or integer inline constants -16..64".into(),
+                });
+            }
+            let a = wave.wide(&o[0], 0)?;
+            let b = wave.wide(&o[1], 0)?;
+            wave.set_scc(if name == "s_cmp_eq_u64" {
+                a == b
+            } else {
+                a != b
+            });
+            return Ok(());
+        }
         if name.starts_with("s_cmp_") {
             let a = wave.bits(&o[0], 0)?;
             let b = wave.bits(&o[1], 0)?;
@@ -3469,6 +3525,43 @@ impl<'a> Interpreter<'a> {
                 wave.put_value(dest, 0, value)
             };
         }
+        if name == "s_and_b64" && self.architecture == AmdArchitecture::Gfx1250 {
+            if o[1..].iter().any(|operand| {
+                !matches!(operand, Operand::Register(register) if register.count == 2)
+                    && !matches!(operand, Operand::Integer(value) if (-16..=64).contains(value))
+            }) {
+                return Err(EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: "selected gfx1250 s_and_b64 requires register pairs or integer inline constants -16..64".into(),
+                });
+            }
+            // Read both words before writing an aliased destination. A zero
+            // mask determines its result without observing discarded bits.
+            let mut result = [(0, 0); 2];
+            for (word, output) in result.iter_mut().enumerate() {
+                let (a, da) = wave.scalar_bitword(&o[1], word as u16)?;
+                let (b, db) = wave.scalar_bitword(&o[2], word as u16)?;
+                let defined = (da & db) | (da & !a) | (db & !b);
+                *output = (a & b & defined, defined);
+            }
+            if result.iter().any(|&(bits, _)| bits != 0) {
+                wave.set_scc(true);
+            } else if result.iter().all(|&(_, defined)| defined == u32::MAX) {
+                wave.set_scc(false);
+            } else {
+                wave.clear_scc();
+            }
+            let destination = wave.destination(dest)?;
+            for (word, (bits, defined)) in result.into_iter().enumerate() {
+                wave.put(
+                    destination,
+                    0,
+                    word as u16,
+                    Value::partial_bits(bits, defined),
+                )?;
+            }
+            return Ok(());
+        }
         if name.ends_with("b64") {
             let a = wave.wide(&o[1], 0)?;
             let b = if o.len() > 2 { wave.wide(&o[2], 0)? } else { 0 };
@@ -3566,26 +3659,9 @@ impl<'a> Interpreter<'a> {
                 "s_and_b32" | "s_andn2_b32" | "s_or_b32" | "s_nor_b32" | "s_xor_b32" | "s_not_b32"
             )
         {
-            fn partial(wave: &Wave, operand: &Operand) -> Result<(u32, u32), EvalError> {
-                if let Operand::Register(r) = operand
-                    && r.class == RegisterClass::Scalar
-                    && wave
-                        .scalar
-                        .get(r.index as usize)
-                        .copied()
-                        .flatten()
-                        .is_none()
-                {
-                    return Ok((0, 0));
-                }
-                match wave.value(operand, 0)? {
-                    Value::PartialBits { bits, defined } => Ok((bits, defined)),
-                    v => Ok((v.bits().map_err(|e| wave.fail(None, e))?, u32::MAX)),
-                }
-            }
-            let (a, da) = partial(wave, &o[1])?;
+            let (a, da) = wave.scalar_bitword(&o[1], 0)?;
             let (mut b, db) = if o.len() > 2 {
-                partial(wave, &o[2])?
+                wave.scalar_bitword(&o[2], 0)?
             } else {
                 (0, u32::MAX)
             };
@@ -6371,6 +6447,9 @@ impl<'a> Interpreter<'a> {
             unreachable!("typed memory dispatch")
         };
         let o = memory.operands();
+        if memory.kind == MemoryKind::AsyncLoadToLds {
+            return self.async_load_to_lds(wave, instruction);
+        }
         if name == "global_atomic_add_f32" {
             return self.atomic_add_f32_no_return(wave, instruction);
         }

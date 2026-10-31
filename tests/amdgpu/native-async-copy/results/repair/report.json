@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "scope": "Separately labeled CPU-only repair control: complete original two-entry module plus exactly one ASYNC0 wait after each async copy. No GPU execution; not an original kernel or a new bug count, speed or RSS result.",
+  "original_assembly_sha256": "b9dfc61f31ae53f46452cb8c411301bc21b9eb64970929594840332cdd3b62a8",
+  "control_assembly_sha256": "5a10cbacc0f8698ece7ebebac16da51d7a3924d1a69bc48e54a53ab3f5743367",
+  "diff_sha256": "b0d791c09cca07bd352cf42a0e3736af785584b76068e468682e11a659f5fb0c",
+  "inserted_waits": 2,
+  "binary_sha256": "d01199805733cd2a46d73a4ea84ae11623731f4a28c5ce22128b3696056bbce2",
+  "build_record_sha256": "00748cebc219638f9c0b3086142298dba1a6e69eb77edc64307b8fac2ee12d18",
+  "contract_manifest_sha256": "e25d69135dc9b9a4f34c82fca64d560aab905c95246ee291172de76c4333b3cb",
+  "mc": {
+    "command": [
+      "/opt/rocm/llvm/bin/llvm-mc",
+      "-triple=amdgcn-amd-amdhsa",
+      "-mcpu=gfx1250",
+      "-filetype=obj",
+      "/tmp/ptx-native-async-repair-control-20261031/two-waits-control.s",
+      "-o",
+      "/tmp/ptx-native-async-repair-control-20261031/two-waits-control.o"
+    ],
+    "returncode": 0,
+    "elapsed_ns": 10864395,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "mc_tool_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "mc_version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n",
+  "object_sha256": "fc822e07d858a86dc3985950e6edd706e752390d149e134df9f95b0bf9290ec3",
+  "cases": [
+    {
+      "dtype": "bf16",
+      "launch_sha256": "9bbbff1e4a90e0bee4abc7b08e26933dd09f3d7c92dc38b862d1a7eb178b9d69",
+      "verify": {
+        "command": [
+          "/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta",
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "verify",
+          "/tmp/ptx-native-async-repair-control-20261031/two-waits-control.s",
+          "/tmp/ptx-native-async-original-contract-20261031/identity.spec",
+          "--config",
+          "/tmp/ptx-native-async-original-contract-20261031/bf16.launch.json",
+          "--sample",
+          "0",
+          "--dim",
+          "N=256",
+          "--verify-numeric",
+          "--no-profile"
+        ],
+        "returncode": 0,
+        "elapsed_ns": 12489391,
+        "stdout_sha256": "598b99097086c3f76afdb5d880516571b3305176a51f189c10c133d7c6c01df2",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "analyze": {
+        "command": [
+          "/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta",
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "analyze",
+          "/tmp/ptx-native-async-repair-control-20261031/two-waits-control.s",
+          "--config",
+          "/tmp/ptx-native-async-original-contract-20261031/bf16.launch.json",
+          "--print-outputs",
+          "256",
+          "--no-profile",
+          "--emit-exprs",
+          "/tmp/ptx-native-async-repair-control-20261031/bf16.vexpr",
+          "--dump-graph",
+          "/tmp/ptx-native-async-repair-control-20261031/bf16.graph"
+        ],
+        "returncode": 0,
+        "elapsed_ns": 14155752,
+        "stdout_sha256": "f90ca415b0b63e34596c7cbf83d807676a89f775333f41e8a5a570e8d34b88f9",
+        "stderr_sha256": "7e918f5fd3cd3b6e25049a48de6b6ff928486797eb3b24bd281689429dc260ab"
+      },
+      "artifacts": {
+        "bf16.vexpr": "49415efc4361635a5ca51eec0e882a8c9da079331f15737ae39dc33e4a29e5ad",
+        "bf16.graph": "6de6524684d0e40579e4a1cdbf43a3b0f4c2c0097a21da592b7244c603dc8722"
+      },
+      "output_expr_bytes_equal_original": true
+    },
+    {
+      "dtype": "f16",
+      "launch_sha256": "8fb0320557456e9811c08c4a8badb715db706828a8daed87fa4eed24e3c8b16e",
+      "verify": {
+        "command": [
+          "/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta",
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "verify",
+          "/tmp/ptx-native-async-repair-control-20261031/two-waits-control.s",
+          "/tmp/ptx-native-async-original-contract-20261031/identity.spec",
+          "--config",
+          "/tmp/ptx-native-async-original-contract-20261031/f16.launch.json",
+          "--sample",
+          "0",
+          "--dim",
+          "N=256",
+          "--verify-numeric",
+          "--no-profile"
+        ],
+        "returncode": 0,
+        "elapsed_ns": 10391073,
+        "stdout_sha256": "598b99097086c3f76afdb5d880516571b3305176a51f189c10c133d7c6c01df2",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "analyze": {
+        "command": [
+          "/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta",
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "analyze",
+          "/tmp/ptx-native-async-repair-control-20261031/two-waits-control.s",
+          "--config",
+          "/tmp/ptx-native-async-original-contract-20261031/f16.launch.json",
+          "--print-outputs",
+          "256",
+          "--no-profile",
+          "--emit-exprs",
+          "/tmp/ptx-native-async-repair-control-20261031/f16.vexpr",
+          "--dump-graph",
+          "/tmp/ptx-native-async-repair-control-20261031/f16.graph"
+        ],
+        "returncode": 0,
+        "elapsed_ns": 12834488,
+        "stdout_sha256": "58b52122ff51254f580b025cc32a93b765a27b627151c3a3e6e7a56575cb2c72",
+        "stderr_sha256": "fc47cc78667b9ee2e930e6b28394cd597af42a61070d024a8b512c6dd76152d9"
+      },
+      "artifacts": {
+        "f16.vexpr": "49415efc4361635a5ca51eec0e882a8c9da079331f15737ae39dc33e4a29e5ad",
+        "f16.graph": "1a04071308d8344a8e9ea411abc7bd021e0eb273fbb00fba5365bff923c73d3e"
+      },
+      "output_expr_bytes_equal_original": true
+    }
+  ]
+}

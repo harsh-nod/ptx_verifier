@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/opt/rocm/llvm/bin/llvm-mc",
+    "-triple=amdgcn-amd-amdhsa",
+    "-mcpu=gfx1250",
+    "-filetype=obj",
+    "/tmp/ptx-native-async-repair-control-20261031/two-waits-control.s",
+    "-o",
+    "/tmp/ptx-native-async-repair-control-20261031/two-waits-control.o"
+  ],
+  "returncode": 0,
+  "elapsed_ns": 10864395,
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

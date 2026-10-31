@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "trust": "caller_attested",
+  "revision": "bd591464883c21150495fba3baa3328a133e05de",
+  "source_clean": true,
+  "binary_sha256": "d01199805733cd2a46d73a4ea84ae11623731f4a28c5ce22128b3696056bbce2",
+  "rust_workspace_fingerprint": {
+    "algorithm": "sha256-git-tree-v1",
+    "sha256": "1bc1aa9296382d1f627b2466e2e28384efeeee9051cff9dc87f25764e29a2b98",
+    "file_count": 1232
+  },
+  "profile": "release",
+  "features": [],
+  "default_features": true,
+  "command": [
+    "cargo",
+    "build",
+    "--release",
+    "--offline",
+    "-p",
+    "volta_cli"
+  ],
+  "cargo_target_dir": "/tmp/ptx-native-async-combined-target-20261031",
+  "target_isolated_to_worktree": true,
+  "target_initial_revision": "0925aeeff41582ce9d20b32fe674298edb470809",
+  "build_log_sha256": "ee088b4180700031e5026e4826e73897989e2541fad6d3d098171d0843dcce2b",
+  "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)\nbinary: rustc\ncommit-hash: 8bab26f4f68e0e26f0bb7960be334d5b520ea452\ncommit-date: 2026-07-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.97.1\nLLVM version: 22.1.6",
+  "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)"
+}

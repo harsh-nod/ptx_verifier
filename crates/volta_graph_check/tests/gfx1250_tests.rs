@@ -188,7 +188,13 @@ impl Trace {
         issue
     }
     fn new(threads: u32) -> Self {
-        Self::with_assumptions(threads, vec![Assumption::UnclusteredWorkgroup])
+        Self::with_assumptions(
+            threads,
+            vec![
+                Assumption::UnclusteredWorkgroup,
+                Assumption::AmdDefaultScheduling,
+            ],
+        )
     }
     fn with_assumptions(threads: u32, assumptions: Vec<Assumption>) -> Self {
         Self::with_geometry(threads, (1, 1, 1), assumptions)
@@ -328,18 +334,7 @@ impl Trace {
             ),
             AmdMemoryClass::AsyncLoadToLds | AmdMemoryClass::AsyncStoreFromLds => (
                 9,
-                vec![
-                    (
-                        if class == AmdMemoryClass::AsyncLoadToLds {
-                            AmdCounter::Load
-                        } else {
-                            AmdCounter::Store
-                        },
-                        1,
-                    ),
-                    (AmdCounter::X, 1),
-                    (AmdCounter::Async, 1),
-                ],
+                vec![(AmdCounter::Async, 1)],
                 Space::Global,
                 class == AmdMemoryClass::AsyncStoreFromLds,
             ),
@@ -352,6 +347,14 @@ impl Trace {
             _ => panic!("test class needs a native profile"),
         };
         self.ins(wave, pc, held_sources.clone(), destinations.clone());
+        let held_sources = if matches!(
+            class,
+            AmdMemoryClass::AsyncLoadToLds | AmdMemoryClass::AsyncStoreFromLds
+        ) {
+            vec![]
+        } else {
+            held_sources
+        };
         let issue = self.b.amd_event(
             wave,
             ProgramPoint(pc),
@@ -1616,7 +1619,68 @@ fn completed_prefix_and_progress_after_endpgm_cannot_claim_a_complete_native_tra
 }
 
 #[test]
-fn async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse() {
+fn async_counter_and_captured_source_contract_cannot_be_forged() {
+    for class in [
+        AmdMemoryClass::AsyncLoadToLds,
+        AmdMemoryClass::AsyncStoreFromLds,
+    ] {
+        for forged_sources in [false, true] {
+            let mut t = Trace::new(1);
+            t.ins(0, 9, vec![s(2)], vec![]);
+            let event = t.b.amd_event(
+                0,
+                ProgramPoint(9),
+                AmdEventKind::MemoryIssue {
+                    class,
+                    counters: if forged_sources {
+                        vec![(AmdCounter::Async, 1)]
+                    } else {
+                        vec![
+                            (AmdCounter::Load, 1),
+                            (AmdCounter::X, 1),
+                            (AmdCounter::Async, 1),
+                        ]
+                    },
+                    destinations: vec![],
+                    held_sources: if forged_sources { vec![s(2)] } else { vec![] },
+                },
+            );
+            let load = class == AmdMemoryClass::AsyncLoadToLds;
+            t.effect(event, 0, 9, Space::Global, !load, 4096);
+            t.effect(event, 0, 9, Space::Shared, load, 0);
+            let report = check_graph(&t.finish());
+            assert_eq!(
+                report.verdict(Property::AmdTrace),
+                Verdict::Unknown,
+                "{report:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn async_copies_require_an_explicit_unambiguous_default_scheduling_premise() {
+    for count in [0, 1, 2] {
+        let mut assumptions = vec![Assumption::UnclusteredWorkgroup];
+        assumptions.extend(std::iter::repeat_n(Assumption::AmdDefaultScheduling, count));
+        let mut t = Trace::with_assumptions(1, assumptions);
+        t.issue(0, AmdMemoryClass::AsyncLoadToLds, vec![], vec![], 4096);
+        t.wait(0, AmdCounter::Async, 0);
+        let report = check_graph(&t.finish());
+        assert_eq!(
+            report.verdict(Property::AmdTrace),
+            if count == 1 {
+                Verdict::Pass
+            } else {
+                Verdict::Unknown
+            },
+            "{report:?}"
+        );
+    }
+}
+
+#[test]
+fn only_async_completion_orders_the_complete_memory_to_memory_transfer() {
     for class in [
         AmdMemoryClass::AsyncLoadToLds,
         AmdMemoryClass::AsyncStoreFromLds,
@@ -1644,11 +1708,82 @@ fn async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse() {
             assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass);
             assert_eq!(
                 r.verdict(Property::AmdMemoryConflict),
-                if data_wait && async_wait {
+                if async_wait {
                     Verdict::Pass
                 } else {
                     Verdict::Fail
                 }
+            );
+        }
+    }
+}
+
+#[test]
+fn partial_async_waits_do_not_invent_fifo_between_loads_and_stores() {
+    fn issue(t: &mut Trace, load: bool, global: u64, shared: u64) {
+        t.ins(0, 9, vec![], vec![]);
+        let event = t.b.amd_event(
+            0,
+            ProgramPoint(9),
+            AmdEventKind::MemoryIssue {
+                class: if load {
+                    AmdMemoryClass::AsyncLoadToLds
+                } else {
+                    AmdMemoryClass::AsyncStoreFromLds
+                },
+                counters: vec![(AmdCounter::Async, 1)],
+                destinations: vec![],
+                held_sources: vec![],
+            },
+        );
+        for lane in 0..32 {
+            t.effect(
+                event,
+                lane,
+                9,
+                Space::Global,
+                !load,
+                global + u64::from(lane) * 4,
+            );
+            t.effect(
+                event,
+                lane,
+                9,
+                Space::Shared,
+                load,
+                shared + u64::from(lane) * 4,
+            );
+        }
+    }
+    for mixed in [false, true] {
+        for threshold in [0, 1] {
+            let mut t = Trace::new(32);
+            issue(&mut t, true, 4096, 0);
+            issue(&mut t, !mixed, 8192, 256);
+            t.wait(0, AmdCounter::Load, 0);
+            t.wait(0, AmdCounter::Store, 0);
+            t.wait(0, AmdCounter::Async, threshold);
+            t.issue(
+                0,
+                AmdMemoryClass::Ds,
+                vec![v(8, u32::MAX as u64)],
+                vec![],
+                0,
+            );
+            let report = check_graph(&t.finish());
+            assert_eq!(
+                report.verdict(Property::AmdTrace),
+                Verdict::Pass,
+                "{report:?}"
+            );
+            assert_eq!(
+                report.verdict(Property::AmdMemoryConflict),
+                if mixed && threshold != 0 {
+                    Verdict::Fail
+                } else {
+                    Verdict::Pass
+                },
+                "mixed={mixed},threshold={threshold}: {report:?}"
             );
         }
     }
@@ -1669,11 +1804,7 @@ fn legacy_cache_scope_and_unpaired_async_lane_effects_cannot_forge_publication()
                     AmdMemoryClass::VectorStore
                 },
                 counters: if unpaired {
-                    vec![
-                        (AmdCounter::Load, 1),
-                        (AmdCounter::X, 1),
-                        (AmdCounter::Async, 1),
-                    ]
+                    vec![(AmdCounter::Async, 1)]
                 } else {
                     vec![(AmdCounter::Store, 1), (AmdCounter::X, 1)]
                 },

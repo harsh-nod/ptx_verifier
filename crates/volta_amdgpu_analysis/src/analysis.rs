@@ -147,6 +147,12 @@ fn analyze_internal(
         == Some(crate::target::Architecture::Gfx1250)
     {
         assumptions.push(Assumption::UnclusteredWorkgroup);
+        if program.instructions.iter().any(|instruction| {
+            matches!(instruction.operation(), crate::ir::Operation::Memory(memory)
+                if memory.kind == crate::ir::MemoryKind::AsyncLoadToLds)
+        }) {
+            assumptions.push(Assumption::AmdDefaultScheduling);
+        }
         let named = kernel.descriptor.value("named_barrier_count", 0);
         if named != 0 {
             assumptions.push(Assumption::AllocatedNamedBarriers((named * 4) as u8));
@@ -183,6 +189,8 @@ fn analyze_internal(
                     "flat memory"
                 } else if instruction.mnemonic().starts_with("tensor_") {
                     "tensor memory"
+                } else if instruction.mnemonic() == "global_load_async_to_lds_b128" {
+                    "async memory"
                 } else if instruction.mnemonic() == "v_nop" {
                     "vector ALU"
                 } else if instruction.mnemonic() == "s_getreg_b32"

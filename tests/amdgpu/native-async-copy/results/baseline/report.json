@@ -1,0 +1,59 @@
+{
+  "binary_sha256": "f0ec7cac3074786eb99f78258da1328844d18e6def19c6bbc8d4c1c8df33ed2e",
+  "source_commit": "1c33069b53dc29409e95d6c0f9a52cd2cd423b01",
+  "scope": "Full unchanged original 2-entry module and original host contracts. Timing is one diagnostic observation, not a speed comparison.",
+  "rows": [
+    {
+      "dtype": "bf16",
+      "command": [
+        "/tmp/ptx-native-lazy-candidate-freeze-20261031/candidate-volta",
+        "--no-log-file",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx1250",
+        "verify",
+        "/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-07a5080231865d32/kernel.s",
+        "/tmp/ptx-native-async-original-contract-20261031/identity.spec",
+        "--config",
+        "/tmp/ptx-native-async-original-contract-20261031/bf16.launch.json",
+        "--sample",
+        "0",
+        "--dim",
+        "N=256",
+        "--no-profile"
+      ],
+      "returncode": 1,
+      "elapsed_ns": 5385122,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "6f660ed128a99a366188c4dada6ea6265d1c027640dd8f2a5f53d451194c5afc",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-07a5080231865d32/kernel.s: 49:2: unsupported AMD instruction `global_load_async_to_lds_b128`"
+    },
+    {
+      "dtype": "f16",
+      "command": [
+        "/tmp/ptx-native-lazy-candidate-freeze-20261031/candidate-volta",
+        "--no-log-file",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx1250",
+        "verify",
+        "/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-07a5080231865d32/kernel.s",
+        "/tmp/ptx-native-async-original-contract-20261031/identity.spec",
+        "--config",
+        "/tmp/ptx-native-async-original-contract-20261031/f16.launch.json",
+        "--sample",
+        "0",
+        "--dim",
+        "N=256",
+        "--no-profile"
+      ],
+      "returncode": 1,
+      "elapsed_ns": 5085851,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "6f660ed128a99a366188c4dada6ea6265d1c027640dd8f2a5f53d451194c5afc",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-07a5080231865d32/kernel.s: 49:2: unsupported AMD instruction `global_load_async_to_lds_b128`"
+    }
+  ]
+}
