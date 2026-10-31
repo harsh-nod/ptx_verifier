@@ -30,6 +30,14 @@ pub struct Stats {
     pub block_syncs: u64,
     pub warp_syncs: u64,
 }
+/// The graph remains an incomplete prefix when an instruction observer stops it.
+pub const OBSERVER_STOP_REASON: &str = "execution stopped by instruction observer";
+
+/// Called only after a successfully executed, complete instruction batch.
+/// Breaking stops execution without producing outputs or a completed trace.
+/// The callback itself supplies no native safety or acceptance claim.
+pub type InstructionObserver<'a> = dyn FnMut(&EventGraph) -> std::ops::ControlFlow<()> + 'a;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EvalError {
     InvalidConfig(String),
@@ -46,6 +54,7 @@ pub enum EvalError {
     BudgetExceeded {
         limit: u64,
     },
+    ObserverStopped,
 }
 impl fmt::Display for EvalError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -64,6 +73,7 @@ impl fmt::Display for EvalError {
                 f,
                 "analysis instruction budget {limit} exhausted (inconclusive)"
             ),
+            Self::ObserverStopped => f.write_str(OBSERVER_STOP_REASON),
         }
     }
 }
@@ -1144,8 +1154,8 @@ impl<'a> Interpreter<'a> {
         }
         Ok(())
     }
-    pub fn execute(mut self) -> RunArtifacts {
-        let end = self.run();
+    pub fn execute(mut self, observer: Option<&mut InstructionObserver<'_>>) -> RunArtifacts {
+        let end = self.run(observer);
         let (terminal, outputs) = match end {
             Ok(()) => {
                 let outputs = self.extract().map_err(OutputsUnavailable::Extraction);
@@ -1286,7 +1296,7 @@ impl<'a> Interpreter<'a> {
         }
         Ok(outputs)
     }
-    fn run(&mut self) -> Result<(), EvalError> {
+    fn run(&mut self, mut observer: Option<&mut InstructionObserver<'_>>) -> Result<(), EvalError> {
         loop {
             if self.waves.iter().all(|wave| wave.exited) {
                 return Ok(());
@@ -1311,6 +1321,11 @@ impl<'a> Interpreter<'a> {
                 let step = self.step(&mut wave);
                 self.waves[index] = wave;
                 step?;
+                if let Some(observer) = observer.as_mut()
+                    && observer(self.builder.graph_so_far()).is_break()
+                {
+                    return Err(EvalError::ObserverStopped);
+                }
                 progress = true;
             }
             if self.architecture == AmdArchitecture::Gfx1250 {

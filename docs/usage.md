@@ -63,7 +63,8 @@ with sampling. Selection never rebases outputs or fills missing ones.
 
 `--config FILE` replaces launch flags and cannot be combined with `--block`,
 `--grid`, `--array`, `--param`, `--global`, `--dyn-shared` or
-`--shared-allocation` or `--workgroup-id`. Backend and target selection remain separate options.
+`--shared-allocation`, `--workgroup-id` or `--early-readiness`.
+Backend and target selection remain separate options.
 See [launch_file.rs](../crates/volta_ptx_analysis/src/launch_file.rs) for the
 shared JSON schema and validation rules.
 
@@ -86,6 +87,14 @@ execution and graph checks; `--no-profile` suppresses the instruction profile.
 For PTX, omit `--backend` and `--target`, and provide its own source and matching
 launch. Native AMD defaults to gfx950 if its target is omitted; selecting the
 target explicitly makes a source mismatch an error.
+
+Native gfx1250 source execution also offers opt-in
+[early scalar readiness rejection](early-readiness.md). Set `early_readiness`
+to `true` inside launch JSON, or pass `--early-readiness` with launch flags.
+A certified finding prints `EARLY_READINESS: CERTIFIED_REJECTION`, its typed
+witness and `VERDICT: REJECT` with exit code 1. The result contains an incomplete
+prefix and no output expressions or equivalence claim. Ordinary execution is
+the default; every acceptance still requires complete execution and checking.
 
 ## Verify a mathematical specification
 
@@ -150,14 +159,17 @@ events, target geometry, source links and typed findings.
 
 | Operation | Success / failure / inconclusive | Exit codes |
 | --- | --- | --- |
-| `analyze` | `VERIFIED` / `REJECTED` / `UNKNOWN` | 0 / 1 / 2 |
+| Ordinary `analyze` | `VERIFIED` / `REJECTED` / `UNKNOWN` | 0 / 1 / 2 |
 | `verify`, source `compare` | `ACCEPT` / `REJECT` / `UNKNOWN` | 0 / 1 / 2 |
+| Certified early finding, any source command | `VERDICT: REJECT` with incomplete prefix | 1 |
 | Expression/VC replay | Equivalence result without a graph verdict | 0 / 1 / 2 |
 
 A completed trace with passing graph checks is distinct from a proof of output
 equivalence. Unsupported instructions, uninitialized values, budgets and missing
 synchronization evidence must be understood from their diagnostics; they are
-not successful results. Reports list the modeling assumptions used by the result.
+not successful results. Ordinary graph reports list the modeling assumptions
+used by the result. Early output identifies the witness; its full provenance
+and trust boundary are described in the [early-readiness guide](early-readiness.md).
 
 The CLI writes per-invocation logs to `volta-logs/`. Use `--log-dir DIR` to move
 them or `--no-log-file` to disable them. Stage logging is available with:

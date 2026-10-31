@@ -1,7 +1,7 @@
 //! Candidate execution and the two existing downstream artifacts, without verdicts.
 use crate::{
     config::AnalysisConfig,
-    eval::{EvalError, Interpreter, OutputsUnavailable, RunArtifacts, Stats},
+    eval::{EvalError, InstructionObserver, Interpreter, OutputsUnavailable, RunArtifacts, Stats},
     frontend::Module,
     lower::{LowerError, lower_kernel_in_module},
 };
@@ -82,6 +82,40 @@ pub fn analyze(
     name: Option<&str>,
     config: AnalysisConfig,
 ) -> Result<AnalysisResult, AnalysisError> {
+    analyze_internal(module, name, config, None)
+}
+
+/// Execute with a callback after each successfully completed instruction batch.
+/// This requires `early_readiness` and gfx1250. The pipeline supplies the
+/// checker-backed observer; a callback stop alone is never a verified finding.
+pub fn analyze_with_observer(
+    module: &Module,
+    name: Option<&str>,
+    config: AnalysisConfig,
+    observer: &mut InstructionObserver<'_>,
+) -> Result<AnalysisResult, AnalysisError> {
+    analyze_internal(module, name, config, Some(observer))
+}
+
+fn analyze_internal(
+    module: &Module,
+    name: Option<&str>,
+    config: AnalysisConfig,
+    observer: Option<&mut InstructionObserver<'_>>,
+) -> Result<AnalysisResult, AnalysisError> {
+    if config.early_readiness != observer.is_some() {
+        return Err(AnalysisError::Eval(EvalError::InvalidConfig(
+            "early_readiness requires an explicit checker-backed instruction observer".into(),
+        )));
+    }
+    if config.early_readiness
+        && crate::target::Architecture::from_target(module.target.as_deref().unwrap_or("gfx950"))
+            != Some(crate::target::Architecture::Gfx1250)
+    {
+        return Err(AnalysisError::Eval(EvalError::InvalidConfig(
+            "early_readiness currently supports only gfx1250 scalar-load readiness".into(),
+        )));
+    }
     let kernel = module
         .kernels
         .iter()
@@ -202,7 +236,7 @@ pub fn analyze(
     };
     let interpreter =
         Interpreter::new(&program, config, provenance).map_err(AnalysisError::Eval)?;
-    Ok(AnalysisResult::from_run(interpreter.execute()))
+    Ok(AnalysisResult::from_run(interpreter.execute(observer)))
 }
 
 pub fn write_op_counts(

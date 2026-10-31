@@ -202,6 +202,9 @@ pub struct AnalysisConfig {
     pub grid_dim: (u32, u32, u32),
     /// The single native AMD workgroup to analyze. PTX currently requires zero.
     pub workgroup_id: (u32, u32, u32),
+    /// Opt in to the pipeline's first certified gfx1250 scalar-readiness finding.
+    /// Default false preserves complete candidate traces and complete-trace diagnostics.
+    pub early_readiness: bool,
     /// Parameter values in `ParamId` (declaration) order
     pub params: Vec<ParamValue>,
     /// Global-memory arrays
@@ -223,6 +226,7 @@ impl AnalysisConfig {
             block_dim,
             grid_dim: (1, 1, 1),
             workgroup_id: (0, 0, 0),
+            early_readiness: false,
             params: Vec::new(),
             arrays: Vec::new(),
             global_values: Vec::new(),
