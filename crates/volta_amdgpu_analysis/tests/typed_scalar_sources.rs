@@ -425,6 +425,80 @@ fn independently_qualified_noninline_float_counts_keep_their_finite_f32_bits() {
     );
 }
 
+#[test]
+fn rounded_up_tiny_count_remains_a_normal_literal32() {
+    // 2^-126 - 2^-151 rounds up to the smallest normal F32. Its source
+    // value is tiny, but the rounded result has no underflow condition.
+    for target in TARGETS {
+        for (operation, data, expected) in
+            [("s_lshl_b64", "1", [1, 0]), ("s_lshr_b64", "16", [16, 0])]
+        {
+            let body = format!("{operation} s[8:9],{data},1.1754943157898259e-38");
+            immediate(
+                &module(target, &body),
+                operation,
+                2,
+                ir::ScalarSourceType::Bits32,
+                Encoding::Word(0x0080_0000),
+                0x0080_0000,
+            );
+            verified(target, &body, expected);
+        }
+    }
+}
+
+#[test]
+fn f32_count_boundaries_preserve_exact_subnormals_and_refuse_lossy_conversions() {
+    for target in TARGETS {
+        for (literal, bits, left, right) in [
+            ("1.1754943508222875e-38", 0x0080_0000, [1, 0], [16, 0]),
+            (
+                "1.1754942106924411e-38",
+                0x007f_ffff,
+                [0, 0x8000_0000],
+                [0, 0],
+            ),
+            ("1.401298464324817e-45", 1, [2, 0], [8, 0]),
+        ] {
+            for (operation, data, expected) in
+                [("s_lshl_b64", "1", left), ("s_lshr_b64", "16", right)]
+            {
+                let body = format!("{operation} s[8:9],{data},{literal}");
+                immediate(
+                    &module(target, &body),
+                    operation,
+                    2,
+                    ir::ScalarSourceType::Bits32,
+                    // Raw word1 has the canonical integer-inline selector.
+                    if bits == 1 {
+                        Encoding::Inline(129)
+                    } else {
+                        Encoding::Word(bits)
+                    },
+                    u64::from(bits),
+                );
+                verified(target, &body, expected);
+            }
+        }
+        for (literal, reason) in [
+            ("1.1754942106924412e-38", "unsupported lossy F32 underflow"),
+            ("1.5e-45", "unsupported lossy F32 underflow"),
+            ("1.0e-100", "unsupported lossy F32 underflow"),
+            ("1.0e100", "finite F32 conversion without overflow"),
+        ] {
+            for (operation, data) in [("s_lshl_b64", "1"), ("s_lshr_b64", "16")] {
+                source_refused(
+                    target,
+                    &format!("{operation} s[8:9],{data},{literal}"),
+                    operation,
+                    2,
+                    reason,
+                );
+            }
+        }
+    }
+}
+
 fn source_error(message: &str, operation: &str, position: usize, reason: &str) {
     assert!(message.contains("scalar source encoding"), "{message}");
     assert!(

@@ -241,7 +241,7 @@ fn numeric(
             }
             // LLVM permits ordinary precision loss, but rejects lossy
             // underflow. Exact subnormals retain their actual bits.
-            if value.abs() < f64::from(f32::MIN_POSITIVE) && f64::from(single) != *value {
+            if single.abs() < f32::MIN_POSITIVE && f64::from(single) != *value {
                 return Err("Bits32 Float source has an unsupported lossy F32 underflow".into());
             }
             let bits = single.to_bits();
