@@ -450,3 +450,104 @@ fn complete_compiler_modules_retain_real_leaf_and_scratch_refusal() {
             .contains("called function `outer`")
     );
 }
+
+#[test]
+fn complete_qualified_compiler_leaf_matches_all_64_input_output_coordinates() {
+    use volta_equivalence::{EquivCheckOptions, EquivOutcome, check_output_equivalence_with};
+
+    const SOURCE: &str = include_str!("fixtures/device-calls/qualified-add1.s");
+    const SPEC: &str = include_str!("fixtures/device-calls/qualified-add1.spec");
+    let launch: serde_yaml::Value = serde_yaml::from_str(include_str!(
+        "fixtures/device-calls/qualified-add1.launch.json"
+    ))
+    .unwrap();
+    assert_eq!(launch["block"], serde_yaml::to_value([64, 1, 1]).unwrap());
+    assert_eq!(launch["grid"], serde_yaml::to_value([1, 1, 1]).unwrap());
+    assert_eq!(
+        launch["workgroup_id"],
+        serde_yaml::to_value([0, 0, 0]).unwrap()
+    );
+    assert_eq!(launch["dynamic_shared_bytes"].as_u64(), Some(0));
+    let mut config = AnalysisConfig::new((64, 1, 1));
+    for array in launch["arrays"].as_sequence().unwrap() {
+        assert_eq!(array["dtype"].as_str(), Some("f32"));
+        assert_eq!(array["shape"], serde_yaml::to_value([64]).unwrap());
+        config.arrays.push(ArrayDef {
+            name: array["name"].as_str().unwrap().into(),
+            base: array["base"].as_u64().unwrap(),
+            elem_width: 4,
+            len: 64,
+            kind: match array["kind"].as_str().unwrap() {
+                "in" => ArrayKind::Input,
+                "out" => ArrayKind::Output,
+                other => panic!("unexpected array role {other}"),
+            },
+        });
+    }
+    for param in launch["params"].as_sequence().unwrap() {
+        config
+            .params
+            .push(volta_amdgpu_analysis::ParamValue::ArrayPtr(
+                param["ptr"].as_str().unwrap().into(),
+            ));
+    }
+    let module = frontend::parse(SOURCE).unwrap();
+    assert_eq!(module.source, SOURCE);
+    assert_eq!(module.kernels.len(), 1);
+    assert_eq!(module.functions.len(), 1);
+    let kernel = launch["kernel"].as_str().unwrap();
+    let lowered = lower::lower_module_kernel(&module, kernel).unwrap();
+    assert_eq!(lowered.call_targets.len(), 1);
+    assert_eq!(
+        lowered
+            .instructions
+            .iter()
+            .filter(|instruction| matches!(instruction.operation(), ir::Operation::Return(_)))
+            .count(),
+        1,
+    );
+    let result = analyze(&module, Some(kernel), config).unwrap();
+    assert_eq!(result.stats.instructions, 21);
+    result.graph().validate().unwrap();
+    let checked = check_graph(result.graph());
+    assert_eq!(
+        checked.conclusion(),
+        GraphConclusion::Verified,
+        "{checked:#?}"
+    );
+    let actual = result.symbolic_outputs().unwrap();
+    assert_eq!(actual.outputs.len(), 1);
+    assert_eq!(actual.outputs[0].0, "out");
+    assert_eq!(
+        actual.outputs[0]
+            .1
+            .iter()
+            .map(|(index, _)| *index)
+            .collect::<Vec<_>>(),
+        (0..64).collect::<Vec<_>>(),
+    );
+    let parsed = volta_spec::parse_spec(SPEC).unwrap();
+    let (env, specs) = volta_spec::instantiate(
+        &parsed,
+        &std::collections::HashMap::from([("N".into(), 64)]),
+    )
+    .unwrap();
+    let expected = volta_spec::unfold(&specs, &env, 0).unwrap();
+    let report = check_output_equivalence_with(
+        actual,
+        &expected,
+        &["out".into()],
+        &EquivCheckOptions {
+            sample: 0,
+            verify_numeric: true,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(report.elements_total, 64);
+    assert_eq!(report.elements_checked, 64);
+    assert!(
+        matches!(report.outcome, EquivOutcome::Equivalent),
+        "{report:?}"
+    );
+}
