@@ -507,3 +507,67 @@ fn only_the_explicit_observer_stop_reason_allows_post_halt_revalidation() {
         );
     }
 }
+
+#[test]
+fn generic_late_stop_preserves_diagnostics_but_requires_a_certificate_to_reject() {
+    for reason in [
+        "execution stopped by instruction observer",
+        "ordinary evaluation error",
+    ] {
+        let mut trace = Trace::new(32);
+        trace.load(0, s(4));
+        trace.read(0, s(4));
+        let certificate = trace.certificate();
+        let graph = trace.builder.finish(Terminal::Aborted {
+            thread: None,
+            pc: None,
+            cause: AbortCause::Error,
+            reason: reason.into(),
+        });
+        let report = check_graph(&graph);
+        assert_eq!(
+            report.amd.as_ref().unwrap().wait_readiness.verdict(),
+            Verdict::Fail
+        );
+        assert_eq!(report.verdict_overall(), Verdict::Fail);
+        if reason == "execution stopped by instruction observer" {
+            assert!(matches!(
+                report.conclusion(),
+                GraphConclusion::Unknown { .. }
+            ));
+            assert!(validate_scalar_readiness_prefix(&graph, &certificate).is_ok());
+        } else {
+            assert!(matches!(
+                report.conclusion(),
+                GraphConclusion::Rejected { .. }
+            ));
+            assert!(validate_scalar_readiness_prefix(&graph, &certificate).is_err());
+        }
+    }
+}
+
+#[test]
+fn an_unrelated_unknown_tensor_wait_neither_repairs_nor_is_certified_by_a_scalar_witness() {
+    let mut trace = Trace::new(32);
+    trace.load(0, s(4));
+    // Nonzero TENSOR_CNT has no pinned width contract. This valid wait form
+    // cannot change KM destination availability and is not part of its proof.
+    trace.wait(0, vec![(AmdCounter::Tensor, 1)]);
+    trace.read(0, s(4));
+    let certificate = trace.certificate();
+    assert!(validate_scalar_readiness_prefix(trace.builder.graph_so_far(), &certificate).is_ok());
+
+    let mut unresolved_only = Trace::new(32);
+    unresolved_only.wait(0, vec![(AmdCounter::Tensor, 1)]);
+    assert!(
+        ScalarReadinessObserver::new()
+            .observe(unresolved_only.builder.graph_so_far())
+            .unwrap()
+            .is_none()
+    );
+    let report = check_graph(&unresolved_only.complete());
+    assert_eq!(
+        report.amd.as_ref().unwrap().wait_readiness.verdict(),
+        Verdict::Unknown
+    );
+}

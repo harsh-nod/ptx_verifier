@@ -22,6 +22,9 @@ use volta_graph::{
 use super::{AmdCounter, AmdRegisterHazard, AmdRegisterHazardKind, gfx1250};
 use crate::{Unresolved, Verdict};
 
+pub(crate) const INSTRUCTION_OBSERVER_STOP_REASON: &str =
+    "execution stopped by instruction observer";
+
 /// Scalar completion is unordered: a nonzero count gives no per-load readiness
 /// certificate. The full memory-effect replay also uses this predicate.
 pub(super) fn km_wait_completes(threshold: u16) -> bool {
@@ -148,7 +151,9 @@ impl ScalarReadinessObserver {
 /// Structural, instruction/effect, target, counter and barrier prerequisites
 /// must pass. Unscheduled other waves are allowed because KM readiness is
 /// wave-local; no END or complete-execution claim is synthesized for them.
-/// Unsupported/error/deadlocked prefixes cannot be promoted into a certificate.
+/// Generic unsupported/error/deadlocked prefixes cannot be promoted into a
+/// certificate. Unresolved readiness outside the scalar witness's dependency
+/// premises does not repair that witness and is not certified by this result.
 pub fn validate_scalar_readiness_prefix(
     graph: &EventGraph,
     certificate: &ScalarReadinessCertificate,
@@ -168,7 +173,7 @@ pub fn validate_scalar_readiness_prefix(
             cause: AbortCause::Error,
             reason,
             ..
-        } if reason == "graph under construction" || reason == "execution stopped by instruction observer"
+        } if reason == "graph under construction" || reason == INSTRUCTION_OBSERVER_STOP_REASON
     ) {
         return Err(vec![Unresolved::global(
             "scalar readiness certificates require a live graph-construction prefix",
