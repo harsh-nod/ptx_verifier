@@ -213,6 +213,24 @@ independent of a wider resource bound. See LLVM's pinned
 [value/profile controls](tests/gfx1250_raw_buffer.rs) and
 [readiness/lease controls](../volta_pipeline/tests/gfx1250_raw_buffer_tests.rs).
 
+The selected gfx950 raw-buffer profile supports four-operand
+`buffer_load_dword` / `buffer_store_dword` with plain VGPRs, an SGPR-quad
+resource, scalar offset `0`, `offen`, and an optional unsigned 12-bit byte
+offset. CDNA4 resources retain their 48-bit base and 32-bit byte bound;
+stride is ignored without indexing. The finite profile requires linear
+resources with word3 `0x20000`, nonzero DWORD-aligned bounds and aligned
+addresses. Resource suppression, other policies and DWORDX2 remain
+unsupported. Resource checks and configured allocation checks are separate.
+All active addresses are captured before issuing VM memory effects.
+Descriptor/address sources have ordinary readiness obligations, with no
+CDNA5 X lease: the descriptor may be reused immediately after issuance.
+See [CDNA4 §§4.4, 9.1.5–9.1.8 and Table48](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf),
+[value controls](tests/gfx950_raw_buffer.rs),
+[readiness and full-output math controls](../volta_pipeline/tests/gfx950_raw_buffer_tests.rs),
+and the [original N32 source/ABI identity](tests/fixtures/gfx950-raw-buffer-n32.json).
+The source identity describes the complete emitted module and its original
+launch contract; it does not establish verification of other specializations.
+
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
 subnormal behavior are outside that model. Encoded F16, BF16 and FP8 transport

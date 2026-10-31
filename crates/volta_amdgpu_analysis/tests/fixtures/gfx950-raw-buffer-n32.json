@@ -1,0 +1,46 @@
+{
+  "description": "Original HipKittens vec_add1 N32 source and ABI identity for the selected CDNA4 raw DWORD profile.",
+  "source": {
+    "revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+    "path": "tests/unit/cdna4/warp/register/vec/maps.cu",
+    "url": "https://github.com/HazyResearch/HipKittens/blob/8cde3dd146bd1c4be78023b582c1f4375c48489f/tests/unit/cdna4/warp/register/vec/maps.cu",
+    "sha256": "77c66d287961f0f4e7ad3d828ffc4e7cd16c27e5b967b54c730cbab6762d94f5"
+  },
+  "assembly": {
+    "target": "gfx950",
+    "whole_module_sha256": "872ea25e828b871411b1aa75239509d8a476035c13120815146c10f6f8e2b0a5",
+    "kernel": "_ZL17global_wrapper_1dI8vec_add1N7kittens5ducks8rt_shape8rt_shapeILi16ELi32ELi8EEENS2_8st_shape8st_16x16EfLi1ELi1ETkNS2_2gl3allENS1_2glIfLi1ELi1ELi1ELi32EJEEEJNS2_9rv_layout5naiveEEEvT5_SD_"
+  },
+  "launch": {
+    "block": [64, 1, 1],
+    "grid": [1, 1, 1],
+    "workgroup_id": [0, 0, 0],
+    "dynamic_shared_bytes": 80000,
+    "kernarg_bytes": 32,
+    "parameters": [
+      {"name": "input_gl", "offset": 0, "size": 16, "pointer_offset": 0},
+      {"name": "output_gl", "offset": 16, "size": 16, "pointer_offset": 0}
+    ],
+    "arrays": [
+      {"name": "x", "base": 65536, "elements": 32, "dtype": "f32"},
+      {"name": "out", "base": 131072, "elements": 32, "dtype": "f32"}
+    ],
+    "relation": "out[i] = x[i] + 1 for every 0 <= i < 32 under the mathematical-real profile"
+  },
+  "first_buffer_access": {
+    "load_words": [65536, 0, 128, 131072],
+    "store_words": [131072, 0, 128, 131072],
+    "active_lane_interval": [0, 32],
+    "vector_byte_offset": "4 * lane",
+    "scalar_byte_offset": 0,
+    "instruction_byte_offset": 0,
+    "load_address_interval": [65536, 65664],
+    "store_address_interval": [131072, 131200],
+    "interval_convention": "half-open"
+  },
+  "public_contract": {
+    "isa": "https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf",
+    "sections": ["4.4", "9.1.5.1", "9.1.7", "9.1.8 Table48", "12.13"],
+    "encoding_controls": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/test/MC/AMDGPU/gfx9_asm_mubuf.s"
+  }
+}
