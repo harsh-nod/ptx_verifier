@@ -313,7 +313,7 @@ fn broader_resource_bound_never_replaces_a_real_allocation_bound() {
 }
 
 #[test]
-fn other_targets_x2_encodings_and_nonselected_operand_modes_stay_unsupported() {
+fn other_targets_wider_encodings_and_nonselected_operand_modes_stay_unsupported() {
     for operation in [
         LOAD.replace("dword", "dword_e64"),
         LOAD.replace("v1", "a1"),
@@ -322,8 +322,8 @@ fn other_targets_x2_encodings_and_nonselected_operand_modes_stay_unsupported() {
         LOAD.replace("offen", "idxen"),
         LOAD.replace("offen", "offen glc"),
         LOAD.replace("offen", "offen lds"),
-        LOAD.replace("dword v1", "dwordx2 v[0:1]"),
-        STORE.replace("dword v1", "dwordx2 v[0:1]"),
+        LOAD.replace("dword v1", "dwordx3 v[0:2]"),
+        STORE.replace("dword v1", "dwordx4 v[0:3]"),
         format!("{LOAD} offset:4096"),
         format!("{LOAD} offset:-1"),
     ] {

@@ -109,8 +109,9 @@ contains source-level object boundaries.
 
 Opt-in certified memory-conflict rejection detects **20/20 core seeded hazardous
 configurations**, compared with **13/20** for this fork's frozen full-trace
-baseline. The 40-configuration development study preserves original compiler
-modules, launches and output contracts. Three predeclared inserted-store primaries
+baseline. The 40-configuration development study preserves complete compiler
+modules and original launches/output contracts, with explicit seeded store
+mutations for hazardous cases. Three predeclared inserted-store primaries
 have these parent-observed first-diagnostic medians on CPU:
 
 | Original configuration | Full trace | Certified prefix | Speedup |
@@ -123,15 +124,16 @@ Each comparison uses 31 paired fresh-process repeats and a separate first run;
 all three descriptive 95% bootstrap ratio intervals are below 1. The fourth
 primary, GEMM, times out at baseline and has **no speedup ratio**. Nine of ten
 portable late-store cases have slower medians; five are 8.3%–13.4% slower with
-ratio intervals above 1. All 15 baseline complete safe proofs and their per-case
-time/memory limits are retained; three other safe configurations remain unproved.
+ratio intervals above 1. All 15 baseline complete safe proofs are retained, and all 15 meet their
+analysis/export time and memory limits; full mathematical proofs are separate
+untimed controls. Three other safe configurations remain unproved.
 Six reserved mutation/configuration cases retain all three safe proofs and the
 same two of three hazard detections, with the transpose case inconclusive.
 These are seeded configurations and CPU verifier timings. See the
 [full results, every comparison and audit receipts](tests/amdgpu/memory-conflicts-study/results/README.md)
 and [protocol](tests/amdgpu/memory-conflicts-study/protocol.md).
 
-### Scalar-read readiness
+### Historical scalar-read readiness study
 
 Opt-in certified readiness rejection detects an unsafe gfx1250 scalar read
 before executing the remaining symbolic trace. Against this fork's full-trace
@@ -187,7 +189,10 @@ Start with `volta_pipeline/src/backend.rs` for backend dispatch and
 
 The [HipKittens corpus](external/hipkittens/corpus/README.md) explains source
 enumeration, native compilation, launch extraction and complete mathematical
-and graph checks, with a source-preserving copy-kernel baseline.
+and graph checks. The latest [vector coverage comparison](external/hipkittens/corpus/README.md#dwordx2-and-packed-half-coverage-comparison)
+retains all 336 original cases: 112 pass safety and full-output equivalence,
+224 retain write/write rejections, and none remains unsupported. These are
+selected-workgroup results for two families, without a latency claim.
 
 The [AMD technical report](docs/paper/amd-volta.pdf) compares gfx942, gfx950 and
 gfx1250, explains which parts of Volta's approach are reused, and describes the

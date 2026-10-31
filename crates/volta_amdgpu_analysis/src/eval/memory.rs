@@ -388,7 +388,7 @@ impl Memory {
             Value::Bits(0) => Ok(arena.int(0)),
             Value::Bits(_) => Err("raw register bits have ambiguous integer/float output type; convert explicitly before storing".into()),
             Value::PartialBits { .. } => Err("output observes undefined bits from ABI padding".into()),
-            Value::Halves(..)|Value::BytePair(..) => Err("packed output needs element-width extraction".into()),
+            Value::HighHalf(_)|Value::Halves(..)|Value::BytePair(..) => Err("packed output needs element-width extraction".into()),
             Value::PartialHalves(..)|Value::Bytes(..)|Value::PartialBytePair(..)=>Err("packed/partially initialized output needs element-width extraction".into()),
             Value::WidePart { .. } => Err("one word of a 64-bit mathematical value cannot be extracted as a scalar32".into()),
             Value::PredicateWord { .. } => Err("symbolic predicate mask cannot be extracted as data bits".into()),

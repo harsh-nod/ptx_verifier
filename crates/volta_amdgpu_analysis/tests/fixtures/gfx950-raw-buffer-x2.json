@@ -1,0 +1,109 @@
+{
+  "description": "Original HipKittens N96 source/ABI identities for the bounded gfx950 DWORDX2 profile; source identity alone does not assert whole-launch verification.",
+  "originals": [
+    {
+      "family": "copy",
+      "source": {
+        "revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+        "path": "tests/unit/cdna4/warp/memory/vec/global_to_register.cu",
+        "sha256": "4f5a1597fdb607f3af9bfbbb2c7f016cc030b54d13e628cb7aeefb4c200a1be5"
+      },
+      "assembly": {
+        "target": "gfx950",
+        "whole_module_sha256": "41b72bb3f54aca7ab312614cd93837cffcd5a6395a98e9721ccbae8c8f448dad",
+        "kernel": "_ZL17global_wrapper_1dI18reg_vec_load_storeIfEN7kittens5ducks8rt_shape8rt_shapeILi16ELi32ELi8EEENS3_8st_shape8st_16x16EfLi3ELi1ETkNS3_2gl3allENS2_2glIfLi1ELi1ELi1ELi96EJEEEJNS3_9rv_layout5naiveEEEvT5_SE_"
+      },
+      "case_id": "f32-rt16x32x8-s3-naive",
+      "launch_sha256": "c6727b104b9a6e35c648b078dfa4557fa7b66b2dcd5e9ad65473798bc2a49b3e",
+      "elements": 96
+    },
+    {
+      "family": "vec-add1",
+      "source": {
+        "revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+        "path": "tests/unit/cdna4/warp/register/vec/maps.cu",
+        "sha256": "77c66d287961f0f4e7ad3d828ffc4e7cd16c27e5b967b54c730cbab6762d94f5"
+      },
+      "assembly": {
+        "target": "gfx950",
+        "whole_module_sha256": "872ea25e828b871411b1aa75239509d8a476035c13120815146c10f6f8e2b0a5",
+        "kernel": "_ZL17global_wrapper_1dI8vec_add1N7kittens5ducks8rt_shape8rt_shapeILi16ELi32ELi8EEENS2_8st_shape8st_16x16EfLi3ELi1ETkNS2_2gl3allENS1_2glIfLi1ELi1ELi1ELi96EJEEEJNS2_9rv_layout5naiveEEEvT5_SD_"
+      },
+      "case_id": "f32-rt16x32x8-s3-naive",
+      "launch_sha256": "35c7649418810789cc7d4e53920d5b6e05d226963a6e1acfd8400634d3f79bea",
+      "elements": 96
+    }
+  ],
+  "launch": {
+    "block": [
+      64,
+      1,
+      1
+    ],
+    "grid": [
+      1,
+      1,
+      1
+    ],
+    "workgroup_id": [
+      0,
+      0,
+      0
+    ],
+    "dynamic_shared_bytes": 80000,
+    "kernarg_bytes": 32,
+    "parameters": [
+      {
+        "name": "input_gl",
+        "offset": 0,
+        "size": 16,
+        "pointer_offset": 0
+      },
+      {
+        "name": "output_gl",
+        "offset": 16,
+        "size": 16,
+        "pointer_offset": 0
+      }
+    ],
+    "dtype": "f32",
+    "elements": 96
+  },
+  "first_buffer_access": {
+    "load_words": [
+      65536,
+      0,
+      384,
+      131072
+    ],
+    "store_words": [
+      131072,
+      0,
+      384,
+      131072
+    ],
+    "active_lane_interval": [
+      0,
+      48
+    ],
+    "vector_byte_offset": "8 * lane",
+    "scalar_byte_offset": 0,
+    "instruction_byte_offset": 0,
+    "word_addresses": [
+      "base + 8 * lane",
+      "base + 8 * lane + 4"
+    ],
+    "interval_convention": "half-open"
+  },
+  "public_contract": {
+    "isa": "https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf",
+    "sections": [
+      "4.4",
+      "9.1.5.1",
+      "9.1.7",
+      "9.1.8 Table48",
+      "12.13 opcodes21 and29"
+    ],
+    "encoding_controls": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/test/MC/AMDGPU/gfx9_asm_mubuf.s"
+  }
+}
