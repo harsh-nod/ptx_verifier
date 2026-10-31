@@ -1,0 +1,301 @@
+{
+  "schema_version": 1,
+  "scope": "Independent raw-data audit of the fixed instrumented prefix-validation phase-attribution experiment.",
+  "pass": true,
+  "checks": 8317,
+  "errors": [],
+  "report_sha256": "b7b5fc03a96b1d416f8ddcea44b3015760e2a7721f61f8740248649623419b9d",
+  "plan_sha256": "42abaf77f355f0e909e4100abf8fc18192ead98b961c857ad6d4c171018732e2",
+  "auditor_script_sha256": "b464c2a299c9c01008f8776a2b5704720a8e4970cd08aa9b22634c09719c8e29",
+  "source_parent": "f0ee44285286aa1ea92f3e99aed6574ad89f3c82",
+  "instrumented_revision": "4be3a57f7493271d635f9e9399dd1998c1c4ce49",
+  "binaries_sha256": {
+    "current_on": "57d555dbafee093f804b2c0744c477c4a5e567726aece81017f828647bdbc167",
+    "instrumented": "d58991cdb7d41ec42744068caacb2e65a6e0559c27e675c0b3895585029ed45e"
+  },
+  "manifest_sha256": "f61df7312961ad8540b34de6f41647df9b165e2ae068dc9a2a25672d90f83886",
+  "archived_preflight_sha256": "9f5e49d9421a9369b6d24a04c3dbbb33f53e17b5ef22c40aa3e7d3c63b3d2c15",
+  "archived_paired_report_sha256": "e2d567e159769ed939923b552990740b7206c49ef0268fee1f97fcde43483f76",
+  "processes": 130,
+  "configurations": 26,
+  "repetitions": 5,
+  "seed": 20261031,
+  "wall_timeout_seconds": 60,
+  "computed_counts": {
+    "safe_analysis": 65,
+    "previous_full_equation_proof": 55,
+    "certified_rejection": 65,
+    "previous_full_equation_unproved": 10
+  },
+  "retained_actual_safe_expression_bytes": 5654460115,
+  "retained_actual_safe_output_coordinates": 125400,
+  "unique_expression_bytes_audited_including_archives": 6785352138,
+  "raw_process_digests_sha256": "a829206a51b88d5d42d0d6de840895d29bf7bd13ae86c238c4abe5248179bdca",
+  "raw_phase_files_sha256": "c1bc132d92bb5ecc2fe214c4d551bcce419a7ee07d93bff70389717995b8a443",
+  "gate_cases": [
+    {
+      "case": "memory-gfx950-normalization-address-alias",
+      "all_five_valid": true,
+      "gate_case": true,
+      "median_final_prefix_validation_ns": 2124301,
+      "median_per_sample_final_share": 0.09665767445436416,
+      "meets_cost_gate": false
+    },
+    {
+      "case": "memory-gfx950-gemm-address-alias",
+      "all_five_valid": true,
+      "gate_case": true,
+      "median_final_prefix_validation_ns": 975159,
+      "median_per_sample_final_share": 0.05230857779551443,
+      "meets_cost_gate": false
+    },
+    {
+      "case": "memory-gfx1250-normalization-address-alias",
+      "all_five_valid": true,
+      "gate_case": true,
+      "median_final_prefix_validation_ns": 2296080,
+      "median_per_sample_final_share": 0.09432437496522206,
+      "meets_cost_gate": false
+    },
+    {
+      "case": "memory-gfx1250-gemm-address-alias",
+      "all_five_valid": true,
+      "gate_case": true,
+      "median_final_prefix_validation_ns": 1376059,
+      "median_per_sample_final_share": 0.06578248791322619,
+      "meets_cost_gate": false
+    },
+    {
+      "case": "memory-gfx1250-attention-address-alias",
+      "all_five_valid": true,
+      "gate_case": true,
+      "median_final_prefix_validation_ns": 925364,
+      "median_per_sample_final_share": 0.05063720800422849,
+      "meets_cost_gate": false
+    }
+  ],
+  "computed_summary": {
+    "cases": [
+      {
+        "case": "memory-gfx950-elementwise-address-alias",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 643526,
+        "median_per_sample_final_share": 0.040605691342433116,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx950-reduction-address-alias",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 172541,
+        "median_per_sample_final_share": 0.01365710202631253,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx950-normalization-address-alias",
+        "all_five_valid": true,
+        "gate_case": true,
+        "median_final_prefix_validation_ns": 2124301,
+        "median_per_sample_final_share": 0.09665767445436416,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx950-gemm-address-alias",
+        "all_five_valid": true,
+        "gate_case": true,
+        "median_final_prefix_validation_ns": 975159,
+        "median_per_sample_final_share": 0.05230857779551443,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx950-attention-address-alias",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 728080,
+        "median_per_sample_final_share": 0.04229079639217005,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx1250-elementwise-address-alias",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 264802,
+        "median_per_sample_final_share": 0.01830706805070451,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx1250-reduction-address-alias",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 165745,
+        "median_per_sample_final_share": 0.01101446628858396,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx1250-normalization-address-alias",
+        "all_five_valid": true,
+        "gate_case": true,
+        "median_final_prefix_validation_ns": 2296080,
+        "median_per_sample_final_share": 0.09432437496522206,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx1250-gemm-address-alias",
+        "all_five_valid": true,
+        "gate_case": true,
+        "median_final_prefix_validation_ns": 1376059,
+        "median_per_sample_final_share": 0.06578248791322619,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx1250-attention-address-alias",
+        "all_five_valid": true,
+        "gate_case": true,
+        "median_final_prefix_validation_ns": 925364,
+        "median_per_sample_final_share": 0.05063720800422849,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-wide-gfx1250-matvec_f16-inserted-collision",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 2137680,
+        "median_per_sample_final_share": 0.04266819789671307,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-wide-gfx1250-convolution_f16_original-inserted-collision",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 1160638,
+        "median_per_sample_final_share": 0.014007084292374896,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-wide-gfx1250-flash_attention_original-inserted-collision",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 825661,
+        "median_per_sample_final_share": 0.015846738980064792,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx950-elementwise-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx950-reduction-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx950-normalization-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx950-gemm-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx950-attention-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx1250-elementwise-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx1250-reduction-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx1250-normalization-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx1250-gemm-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-gfx1250-attention-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-wide-gfx1250-matvec_f16-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-wide-gfx1250-convolution_f16_original-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      },
+      {
+        "case": "memory-wide-gfx1250-flash_attention_original-safe",
+        "all_five_valid": true,
+        "gate_case": false,
+        "median_final_prefix_validation_ns": 0,
+        "median_per_sample_final_share": 0.0,
+        "meets_cost_gate": false
+      }
+    ],
+    "qualifying_gate_cases": 0,
+    "all130_samples_valid": true,
+    "gate_pass": false
+  },
+  "decision": "STOP: preregistered attribution gate failed; no suspension API implementation justified.",
+  "limits": [
+    "Exclusive durations are instrumented process wall-clock observations, not CPU attribution or uninstrumented performance gains.",
+    "Recorded parent marker-reception endpoints are checked for consistency; plain stdout logs cannot independently reconstruct their timestamps.",
+    "Source/build association remains caller-attested; independent hashes bind the supplied executables and complete tracked Rust/viewer trees.",
+    "Raw certified outcomes and witnesses are parsed independently; trusted frontend and declared-graph certificate authority are not re-executed.",
+    "Safe output bytes and full coordinates match archived exports; 10 observations from two previously unproved wide equations remain unproved.",
+    "No verifier, compiler, Cargo, GPU, retry or timing process was executed by this audit."
+  ]
+}

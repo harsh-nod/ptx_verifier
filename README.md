@@ -133,6 +133,11 @@ These are seeded configurations and CPU verifier timings. See the
 [full results, every comparison and audit receipts](tests/amdgpu/memory-conflicts-study/results/README.md)
 and [protocol](tests/amdgpu/memory-conflicts-study/protocol.md).
 
+A [26-configuration attribution experiment](tests/amdgpu/sealed-prefix-attribution/README.md)
+found final validation below its 15% cost gate in all five predeclared target
+cases. The planned execution API change was rejected; all 130 observations and
+the negative result are published.
+
 ### Historical scalar-read readiness study
 
 Opt-in certified readiness rejection detects an unsafe gfx1250 scalar read

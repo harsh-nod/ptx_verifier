@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "scope": "Independent public projection/CSV/prose audit against an already independently audited immutable130-process dataset.",
+  "pass": true,
+  "checks": 1631,
+  "errors": [],
+  "auditor_script_sha256": "64ccde885d516aa6b25cec5c7007ced4f363937dbe586bd728959e74a7e62986",
+  "artifacts_sha256": {
+    "observations.json": "d860f1ff12b6897fee1154966febc22e426bd8bcb22d242ef511e8fea2d207b2",
+    "phase-distributions.csv": "ee6b5e1a316cd778931b25e107b6462536209612a170d5c9a4894d114370c15b",
+    "README.md": "f7e786dd429f51b0b877dbc83a3551180fd7391be97633efbcfcd22589ff76d4",
+    "independent-audit.json": "e82f6a53aeb2fcd77b28734ecfe794c69c524fbd47d17fec50ea08585613c79a"
+  },
+  "raw_report_sha256": "b7b5fc03a96b1d416f8ddcea44b3015760e2a7721f61f8740248649623419b9d",
+  "raw_plan_sha256": "42abaf77f355f0e909e4100abf8fc18192ead98b961c857ad6d4c171018732e2",
+  "publisher_sha256": "564d34d63024f165ebfbb88ec29acd86ee7b0b746c3eb764fbfd9a3526b7377b",
+  "configuration_count": 26,
+  "observation_count": 130,
+  "case_phase_csv_rows": 130,
+  "all_case_phase_distributions_exact": true,
+  "qualifying_gate_cases": 0,
+  "gate_pass": false,
+  "decision": "STOP suspension proposal before implementation.",
+  "gate_cases": [
+    {
+      "case": "memory-gfx950-normalization-address-alias",
+      "gate_case": true,
+      "median_final_prefix_validation_ns": 2124301,
+      "median_per_sample_final_share": 0.09665767445436416,
+      "meets_cost_gate": false
+    },
+    {
+      "case": "memory-gfx950-gemm-address-alias",
+      "gate_case": true,
+      "median_final_prefix_validation_ns": 975159,
+      "median_per_sample_final_share": 0.05230857779551443,
+      "meets_cost_gate": false
+    },
+    {
+      "case": "memory-gfx1250-normalization-address-alias",
+      "gate_case": true,
+      "median_final_prefix_validation_ns": 2296080,
+      "median_per_sample_final_share": 0.09432437496522206,
+      "meets_cost_gate": false
+    },
+    {
+      "case": "memory-gfx1250-gemm-address-alias",
+      "gate_case": true,
+      "median_final_prefix_validation_ns": 1376059,
+      "median_per_sample_final_share": 0.06578248791322619,
+      "meets_cost_gate": false
+    },
+    {
+      "case": "memory-gfx1250-attention-address-alias",
+      "gate_case": true,
+      "median_final_prefix_validation_ns": 925364,
+      "median_per_sample_final_share": 0.05063720800422849,
+      "meets_cost_gate": false
+    }
+  ],
+  "limits": [
+    "This projection review relies on the bound8317-check raw audit for complete safe-expression byte/coordinate verification; no verifier or raw-expression reexecution occurred.",
+    "Phase distributions describe instrumented wall time; no phase CPU attribution, speedup or new mathematical proof is inferred.",
+    "Caller-attested source/build and recorded parent-reception timestamp limits remain those of the raw audit.",
+    "No source, report, study, publication or raw artifact was modified."
+  ]
+}

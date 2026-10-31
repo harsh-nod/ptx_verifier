@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "scope": "Final integrated StageA negative-result documentation and artifact consistency review.",
+  "pass": true,
+  "checks": 48,
+  "errors": [],
+  "integration_parent": "c256801df19928b3c24cbb62ebc40a4c8f9f4dc1",
+  "files_sha256": {
+    "README.md": "66ef77e7c36524f552c359a0dab670d38f8f7c97bd8a40eb128996ac8fe30929",
+    "tests/amdgpu/sealed-prefix-attribution/README.md": "a5e31f7a9569e961d580847b8ecf7bf15c0f67ccd5e836d9877de472bbadbd26",
+    "tests/amdgpu/sealed-prefix-attribution/publish.py": "564d34d63024f165ebfbb88ec29acd86ee7b0b746c3eb764fbfd9a3526b7377b",
+    "tests/amdgpu/sealed-prefix-attribution/results/publication-audit.json": "7392f8d8b2aad5ea6ca9433d97cd2c93dfbcdedb55dc2a79edcd02c19dfbd16e",
+    "tests/amdgpu/sealed-prefix-attribution/results/independent-audit.json": "e82f6a53aeb2fcd77b28734ecfe794c69c524fbd47d17fec50ea08585613c79a",
+    "tests/amdgpu/sealed-prefix-attribution/results/phase-distributions.csv": "ee6b5e1a316cd778931b25e107b6462536209612a170d5c9a4894d114370c15b",
+    "tests/amdgpu/sealed-prefix-attribution/results/README.md": "f7e786dd429f51b0b877dbc83a3551180fd7391be97633efbcfcd22589ff76d4",
+    "tests/amdgpu/sealed-prefix-attribution/results/observations.json": "d860f1ff12b6897fee1154966febc22e426bd8bcb22d242ef511e8fea2d207b2"
+  },
+  "gate_share_range_percent_rounded": [
+    5.06,
+    9.67
+  ],
+  "limits": [
+    "Remote experiment-source link must resolve to the retained public experiment commit.",
+    "No verifier, compiler, Cargo or profiling runs; exact prior raw and projection audits supply data authority."
+  ]
+}
