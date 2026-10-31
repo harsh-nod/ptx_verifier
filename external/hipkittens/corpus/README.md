@@ -151,10 +151,35 @@ The source host reference copies the whole input vector. Every case therefore
 checks `out[i] = x[i]` over its complete original length, without sampling.
 Verification requires an overall `ACCEPT`, all native graph properties passing,
 and an exact full VC element count. An intentionally different equation must be
-rejected with a mathematical mismatch on an otherwise passing graph, once per
-dtype. Unsupported forms, incomplete proofs, graph failures, process errors and
+rejected with a mathematical mismatch on an otherwise passing graph for every
+dtype with a verified original case. A dtype without one has an explicit
+unavailable control. Unsupported forms, incomplete proofs, graph failures, process errors and
 timeouts stay separate; 252 parsed entrypoints do not imply 252 proofs.
 
 Run the extractor once per frozen binary into distinct directories before any
 comparison. These coverage runs make no latency claim; concurrent compilation
 and verifier runs are unsuitable for measuring latency changes.
+
+## Recorded baseline scope
+
+[baseline.json](baseline.json) binds the public source pin, compiler/assembler,
+verifier binary and source helpers to the complete baseline and separately
+recorded recipe correction. The initial 173 source/profile probes included 12
+included-source fragments. All attempts remain in the denominator. Corrected
+recipes added six MC-accepted modules; the explicit current overlay contains
+68 modules with entrypoints and 3,484 emitted entrypoint occurrences. Three
+modules parse in the baseline. These are compilation/parser counts.
+
+The vector proof run records all 252 original specializations: 40 pass complete
+graph and mathematical verification, 168 have typed write/write conflicts despite
+identity-equivalent final outputs, and 44 reach unsupported buffer loads. The
+208 complete identity proofs therefore establish a different property from the
+40 combined accepts. Redundant same-value stores are not, by themselves,
+evidence of a numerical application bug. bf16 and f16 wrong-equation controls
+pass; the f32 control is unavailable because no f32 case passes the graph checks.
+
+The receipt preserves the hash and counts of an earlier vector reporting error
+that labeled the 168 graph rejections as `contract_error`; it never counted them
+as verified. Corrected results are a separate run. Raw logs, absolute machine
+paths and generated assembly remain outside Git. This is baseline coverage,
+without a candidate comparison, hardware run or speed claim.

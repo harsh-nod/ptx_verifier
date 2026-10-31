@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "scope": "Complete unchanged main-pin source/profile probes, followed by exact original vector specialization proofs. No GPU or latency measurement.",
+  "upstream": {
+    "repository": "https://github.com/HazyResearch/HipKittens",
+    "revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+    "tree": "091ef2266e93f05996272313652e557724ac2204",
+    "inventory_schema": 2,
+    "inventory_sha256": "de7924dffa94767892feaf11fa078bad00cecf743a7fe76f84a12610fae41172",
+    "summary": {
+      "tracked_files": 808,
+      "source_files": 416,
+      "build_files": 60,
+      "kernel_definitions": 140,
+      "kernel_declarations": 0,
+      "sources_by_role": {
+        "header": 243,
+        "included_source_fragment": 12,
+        "kernel_header": 2,
+        "translation_unit_source": 159
+      },
+      "relative_literal_include_edges": 535,
+      "definitions_by_scope": {
+        "analysis": 39,
+        "application": 60,
+        "archive": 25,
+        "distributed": 1,
+        "training": 5,
+        "unit_test": 10
+      },
+      "definitions_by_target": {
+        "gfx1250": 18,
+        "gfx942": 7,
+        "gfx950": 118
+      }
+    }
+  },
+  "verifier": {
+    "revision": "e239cfc851a32114dcfbf9d22616aeadb7c4ee24",
+    "binary_sha256": "6354b2327247d298d68e67d71cffb3dd458b554877c65dc0657a4f6efd2e35ca"
+  },
+  "toolchain": {
+    "compiler": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)",
+    "compiler_sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+    "assembler": "AMD LLVM version 22.0.0git",
+    "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771"
+  },
+  "original_probe_run": {
+    "report_sha256": "3f657d104de8144e5a58a4b5edec889bcbf4a72e1e0ef63b41f4c4a223f90ab4",
+    "inventory_sha256": "a7ffc8b354a73287ec3454f1c5c69e6391577bfefe39e205b34dc091111229e0",
+    "driver_source_sha256": {
+      "campaign": "209f79d83ad6db8bee47f92de33a37dfced9d7c920075df26c9ac65930b59484",
+      "inventory": "e56d3165c5641ae90b4b2ebae94838e288581cc55e1b21cf318d592d4b04749f",
+      "launch_validation": "0990a4822a3b6a210075ae6dbb29dc994eee130901d052b1cb80ffbd5fae2a99",
+      "outcome_validation": "f24a8ded535fa8b7e6ee257e88d19bfccfc11abdc7246864fe2713d94c40f307"
+    },
+    "source_profile_probes": 173,
+    "source_files_selected_by_suffix": 171,
+    "target_probe_counts": {
+      "gfx1250": 21,
+      "gfx942": 8,
+      "gfx950": 144
+    },
+    "outcomes": {
+      "compile_rejected": 50,
+      "compile_timeout": 6,
+      "compiled_no_entrypoints": 23,
+      "parse_rejected": 23,
+      "parse_unsupported": 36,
+      "parsed": 3,
+      "recipe_refused": 2,
+      "recipe_rejected": 27,
+      "recipe_unavailable": 3
+    },
+    "analysis_outcomes": {
+      "blocked_by_parse": 59,
+      "launch_contract_required": 3,
+      "no_emitted_entrypoints": 23,
+      "not_reached": 88
+    },
+    "outcomes_by_role": {
+      "included_source_fragment": {
+        "compile_rejected": 3,
+        "compiled_no_entrypoints": 3,
+        "recipe_refused": 2,
+        "recipe_rejected": 3,
+        "recipe_unavailable": 1
+      },
+      "translation_unit_source": {
+        "compile_rejected": 47,
+        "compile_timeout": 6,
+        "compiled_no_entrypoints": 20,
+        "parse_rejected": 23,
+        "parse_unsupported": 36,
+        "parsed": 3,
+        "recipe_rejected": 24,
+        "recipe_unavailable": 2
+      }
+    },
+    "emitted_entrypoint_occurrences": 3476,
+    "parsed_modules": 3,
+    "verified_launches": 0
+  },
+  "recipe_followup": {
+    "report_sha256": "fa67309015f36a7e26cffae67f2dc3220b70a6cc9f1a2560ff110d1df72d4ca9",
+    "inventory_sha256": "de7924dffa94767892feaf11fa078bad00cecf743a7fe76f84a12610fae41172",
+    "driver_source_sha256": {
+      "campaign": "a0a497348718e1b197d29edbb81622e046192965e2881180a838128236c44d5a",
+      "inventory": "f036610cc6ee2ff114ba6ff3723b830cd20dd444aae2e1fc6cc5dd9234c3e265",
+      "launch_validation": "0990a4822a3b6a210075ae6dbb29dc994eee130901d052b1cb80ffbd5fae2a99",
+      "outcome_validation": "f24a8ded535fa8b7e6ee257e88d19bfccfc11abdc7246864fe2713d94c40f307"
+    },
+    "source_profile_probes": 32,
+    "scope": "Every original recipe-stage outcome, including configured recipe refusals/unavailable profiles. Absolute SRC and host artifact TARGET corrected; original run retained.",
+    "outcomes": {
+      "compile_rejected": 19,
+      "compiled_no_entrypoints": 2,
+      "parse_rejected": 2,
+      "parse_unsupported": 4,
+      "recipe_refused": 2,
+      "recipe_unavailable": 3
+    },
+    "transitions": {
+      "recipe_refused -> recipe_refused": 2,
+      "recipe_rejected -> compile_rejected": 19,
+      "recipe_rejected -> compiled_no_entrypoints": 2,
+      "recipe_rejected -> parse_rejected": 2,
+      "recipe_rejected -> parse_unsupported": 4,
+      "recipe_unavailable -> recipe_unavailable": 3
+    },
+    "additional_MC_accepted_modules": 6,
+    "additional_emitted_entrypoint_occurrences": 8,
+    "verified_launches": 0
+  },
+  "current_probe_overlay": {
+    "scope": "Use followup outcome for its same source/profile ID; retain every original probe and both raw reports. This is an explicit overlay, not a rewritten original run.",
+    "source_profile_probes": 173,
+    "outcomes": {
+      "compile_rejected": 69,
+      "compile_timeout": 6,
+      "compiled_no_entrypoints": 25,
+      "parse_rejected": 25,
+      "parse_unsupported": 40,
+      "parsed": 3,
+      "recipe_refused": 2,
+      "recipe_unavailable": 3
+    },
+    "outcomes_by_role": {
+      "included_source_fragment": {
+        "compile_rejected": 4,
+        "compiled_no_entrypoints": 5,
+        "recipe_refused": 2,
+        "recipe_unavailable": 1
+      },
+      "translation_unit_source": {
+        "compile_rejected": 65,
+        "compile_timeout": 6,
+        "compiled_no_entrypoints": 20,
+        "parse_rejected": 25,
+        "parse_unsupported": 40,
+        "parsed": 3,
+        "recipe_unavailable": 2
+      }
+    },
+    "MC_accepted_modules": 68,
+    "emitted_entrypoint_occurrences": 3484,
+    "parsed_entrypoint_occurrences": 420,
+    "unconfigured_build_inputs": [
+      "distributed-kernels/CMakeLists.txt",
+      "kernels/common.mk"
+    ]
+  },
+  "original_vector_proofs": {
+    "report_sha256": "f38e916208f8a15b3c9f3250be8a962ca28b6d38f32d266bd0a71652edf53765",
+    "source": "tests/unit/cdna4/warp/memory/vec/global_to_register.cu",
+    "source_sha256": {
+      "tests/unit/cdna4/warp/memory/vec/global_to_register.cu": "4f5a1597fdb607f3af9bfbbb2c7f016cc030b54d13e628cb7aeefb4c200a1be5",
+      "tests/unit/common/testing_commons/testing_commons.cuh": "fd9cec649447f74b0eb1f8d1f6c84e2387de01685cd82e6d7ead083e42006b41",
+      "tests/unit/common/testing_commons/testing_flags.cuh": "1cc0f42e6b3bdd64d2c1d03ea086d486bb9ac78fd0a03ee1fceab67b3c0a9365",
+      "include/cdna4/common/util.cuh": "c11f7787e33d5f5fc2b1781550e9b30b3f0423c3447b54610804767e4ce0b1b9",
+      "include/cdna4/types/global/gl.cuh": "e1e8484f5bc444c2c4f3254f5d76a89f32fae6e8fb0364572d70dbe87bd6940d",
+      "include/cdna4/types/global/util.cuh": "735cda03066360ce5e827940ae01f60e427e65f9570cc82a11f1f850eddf3b33"
+    },
+    "input_sha256": {
+      "driver": "11b629bbe08bb26530b1030304d52aaec471817f61b1a68fb5049fc7365f731b",
+      "inventory": "f036610cc6ee2ff114ba6ff3723b830cd20dd444aae2e1fc6cc5dd9234c3e265",
+      "corpus": "a0a497348718e1b197d29edbb81622e046192965e2881180a838128236c44d5a",
+      "legacy_import": "0990a4822a3b6a210075ae6dbb29dc994eee130901d052b1cb80ffbd5fae2a99",
+      "source_inventory": "de7924dffa94767892feaf11fa078bad00cecf743a7fe76f84a12610fae41172",
+      "assembly": "41b72bb3f54aca7ab312614cd93837cffcd5a6395a98e9721ccbae8c8f448dad",
+      "object": "a5b95e588a0b43a2610e36e26d84d509f20d49b2bc2b83c70f926b232837f773",
+      "source_report": "3f657d104de8144e5a58a4b5edec889bcbf4a72e1e0ef63b41f4c4a223f90ab4",
+      "binary": "6354b2327247d298d68e67d71cffb3dd458b554877c65dc0657a4f6efd2e35ca",
+      "compiler": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28"
+    },
+    "cases": 252,
+    "shape_preservation": "Every original seven RT shapes/four size multipliers/three dtypes/three layouts, SIZE=S*cols, block64/grid1, dynamic_LDS80000, two16-byte byvalue GL arguments.",
+    "outcomes": {
+      "graph_rejected": 168,
+      "unsupported": 44,
+      "verified": 40
+    },
+    "full_identity_proofs": 208,
+    "outcomes_by_dtype": {
+      "bf16": {
+        "graph_rejected": 56,
+        "unsupported": 8,
+        "verified": 20
+      },
+      "f16": {
+        "graph_rejected": 56,
+        "unsupported": 8,
+        "verified": 20
+      },
+      "f32": {
+        "graph_rejected": 56,
+        "unsupported": 28
+      }
+    },
+    "mathematical_controls": [
+      {
+        "case": "bf16-rt16x16x4-s1-naive",
+        "dtype": "bf16",
+        "status": "mathematical_mismatch",
+        "passed": true
+      },
+      {
+        "case": "f16-rt16x16x4-s1-naive",
+        "dtype": "f16",
+        "status": "mathematical_mismatch",
+        "passed": true
+      },
+      {
+        "case": null,
+        "dtype": "f32",
+        "status": "no_verified_original_case",
+        "passed": false
+      }
+    ],
+    "all_original_cases_verified": false,
+    "graph_rejection_interpretation": "168 original align/ortho cases have typed same-address WriteWrite conflicts despite complete identity-equivalent final outputs. This is not evidence of a numerical mismatch or an upstream application bug.",
+    "unsupported_profile": "44 original naive cases reach currently unsupported buffer_load_dword offen; unknown/refusal is not verification."
+  },
+  "preserved_first_vector_run": {
+    "report_sha256": "21f381bcd5ef4b70b13e36449e28d2f65b743b370d4dbcabbc5716756ca6824b",
+    "driver_sha256": "0a584dab8bd49fd69957b0a45285472ee78be4454dc79785a72eb00db3748591",
+    "outcomes": {
+      "contract_error": 168,
+      "unsupported": 44,
+      "verified": 40
+    },
+    "reporting_correction": "The first driver mislabeled168 math-equivalent/graph-rejected cases as contract_error. No false verified result. The corrected separate run classifies all252 again and chooses wrong-spec controls only from actual verified original cases; f32 has none and stays explicitly unavailable."
+  },
+  "limits": [
+    "Kernel definitions, source/profile probes, compiler entrypoint occurrences and verified launches are separate denominators.",
+    "Compiler and recipe rejections include source fragments, missing configured dependencies, pinned API incompatibilities and toolchain limits; they are not uniformly broken upstream builds.",
+    "Four original gfx1250 cluster rungs require the upstream documented newer compiler profile; no CDNA4 wave64 source was retargeted.",
+    "The distributed CMake project depends on unconfigured Iris/MPI; no mutable dependency branch was fetched.",
+    "The separate public cdna3 branch was not substituted for the main pin.",
+    "Only the selected original workgroup is modeled; no whole-grid or hardware execution claim.",
+    "No latency comparison was performed amid concurrent compilation.",
+    "The frozen published early-readiness study is unchanged."
+  ]
+}

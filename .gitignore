@@ -16,6 +16,7 @@
 /external/**/*.json
 !/external/**/*.launch.json
 !/external/hipkittens/corpus/inventory.json
+!/external/hipkittens/corpus/baseline.json
 /external/output/
 
 # Local architecture validation artifacts
