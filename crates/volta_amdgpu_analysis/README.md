@@ -329,6 +329,34 @@ and opaque values retain their existing bit-reinterpretation restrictions.
 All source register words remain recorded reads with their normal completion
 obligations, even when a mask determines the data result.
 
+On gfx950, the selected `buffer_load_dword` and `buffer_load_dwordx4`
+three-operand `offen lds` forms copy 4 or 16 bytes per active physical lane
+directly from a raw buffer to LDS. There is no register data destination.
+The descriptor retains its 48-bit base and 32-bit byte extent; word3 must be
+`0x110000`, with cache swizzle and address swizzle disabled. Its valid resource
+data format does not change the unformatted opcode's transfer width. Scalar
+and instruction offsets are zero in this profile.
+
+M0 must first be initialized by a concrete `s_mov_b32` from an SGPR or a
+32-bit integer. DMA then requires DWORD alignment and a value at most `0xffff`:
+the [public CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
+§3.7/§9.1.9 text describes an 18-bit M0 offset, while its address figure labels
+16 bits. This common subset avoids choosing an interpretation of higher bits.
+The final LDS address is `M0 + physical_lane * bytes_per_lane`, without wrapping
+at 64 KiB. Complete global resource/allocation and LDS allocation/subobject
+footprints are checked for every active lane before an issue is recorded.
+DWORDX4 requires DWORD alignment; it does not impose 16-byte alignment.
+
+Each DMA charges VM once, with no LGKM/EXP/ASYNC charge, register destination
+or completion-held source lease. Address, descriptor and M0 producer reads
+retain their readiness checks, including the one independent state after a
+SALU M0 write. Missing VM completion cannot publish the LDS data. A partial VM
+wait with mixed DMA and ordinary contributors retains all pending obligations;
+`vmcnt(0)` drains the shared counter. Clamping, OOB suppression, other resource
+policies, nonzero offsets and higher M0 values remain unsupported. See the
+[native byte/footprint controls](tests/gfx950_buffer_lds.rs) and
+[completion and full-output math controls](../volta_pipeline/tests/gfx950_buffer_lds_tests.rs).
+
 The selected gfx1250 `s_cmp_eq_u64` and `s_cmp_lg_u64` profile compares two
 fully defined concrete 64-bit values and sets SCC, including when EXEC is zero.
 Sources are plain SGPR pairs or integer inline constants −16 through 64;

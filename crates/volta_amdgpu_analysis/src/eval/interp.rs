@@ -13,6 +13,8 @@ use volta_graph::*;
 
 #[path = "interp_async_lds.rs"]
 mod async_lds;
+#[path = "interp_buffer_lds.rs"]
+mod buffer_lds;
 #[path = "named_barrier.rs"]
 mod named_barrier;
 
@@ -810,7 +812,12 @@ impl<'a> Interpreter<'a> {
         result
             .builder
             .set_shared_allocation_layout(result.config.shared_allocations.clone());
-        if architecture == AmdArchitecture::Gfx1250 {
+        if architecture == AmdArchitecture::Gfx1250
+            || architecture == AmdArchitecture::Gfx950
+                && program.instructions.iter().any(|instruction| {
+                    matches!(instruction.operation(), Operation::Memory(memory) if memory.kind == MemoryKind::BufferLoadToLds)
+                })
+        {
             result
                 .builder
                 .assume(Assumption::ConfiguredLdsBytes(lds_size));
@@ -1643,6 +1650,7 @@ impl<'a> Interpreter<'a> {
             || instruction.mnemonic() == "global_atomic_add_f32";
         let no_destination = instruction.mnemonic().starts_with("tensor_")
             || instruction.mnemonic() == "global_load_async_to_lds_b128"
+            || matches!(instruction.operation(), Operation::Memory(memory) if memory.kind == MemoryKind::BufferLoadToLds)
             || (wave.width == 32 && mnemonic.starts_with("v_cmpx_"))
             || matches!(
                 instruction.opcode(),
@@ -1667,6 +1675,14 @@ impl<'a> Interpreter<'a> {
             } else {
                 add(operand, wave.exec, &mut reads)
             }
+        }
+        if matches!(instruction.operation(), Operation::Memory(memory) if memory.kind == MemoryKind::BufferLoadToLds)
+        {
+            reads.push(AmdRegister {
+                file: AmdRegisterFile::Scalar,
+                index: 124,
+                lanes: u64::MAX,
+            });
         }
         if matches!(
             mnemonic,
@@ -3177,6 +3193,21 @@ impl<'a> Interpreter<'a> {
         if self.code_address_scalar(wave, instruction)?
             || self.module_address_scalar(wave, instruction)?
         {
+            return Ok(());
+        }
+        if self.architecture == AmdArchitecture::Gfx950
+            && name == "s_mov_b32"
+            && matches!(instruction.operands()[0], Operand::Register(register) if register.special == Some(SpecialRegister::M0))
+        {
+            if !instruction.modifiers().is_empty()
+                || !matches!(instruction.operands()[1], Operand::Register(register)
+                    if register.class == RegisterClass::Scalar && register.count == 1)
+                    && !matches!(instruction.operands()[1], Operand::Integer(value) if (i32::MIN as i64..=u32::MAX as i64).contains(&value))
+            {
+                return Err(self.unsupported(wave, instruction));
+            }
+            wave.m0 = wave.bits(&instruction.operands()[1], 0)?;
+            wave.m0_defined = true;
             return Ok(());
         }
         if matches!(name, "s_add_nc_u64" | "s_mul_u64") {
@@ -6647,6 +6678,9 @@ impl<'a> Interpreter<'a> {
         let o = memory.operands();
         if memory.kind == MemoryKind::AsyncLoadToLds {
             return self.async_load_to_lds(wave, instruction);
+        }
+        if memory.kind == MemoryKind::BufferLoadToLds {
+            return self.buffer_load_to_lds(wave, instruction);
         }
         if name == "global_atomic_add_f32" {
             return self.atomic_add_f32_no_return(wave, instruction);

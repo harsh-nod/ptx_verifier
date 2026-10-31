@@ -342,6 +342,7 @@ pub enum MemoryKind {
     AtomicNoReturn,
     AtomicReturning,
     BufferLoad,
+    BufferLoadToLds,
     BufferStore,
     Swizzle,
 }
@@ -393,6 +394,10 @@ pub enum MemoryAddress<'a> {
         vector: &'a Operand,
         descriptor: &'a Operand,
         offset: &'a Operand,
+    },
+    BufferToLds {
+        vector: &'a Operand,
+        descriptor: &'a Operand,
     },
     CrossLane {
         index: &'a Operand,
@@ -464,6 +469,10 @@ impl MemoryInstruction {
                 descriptor: &o[2],
                 offset: &o[3],
             },
+            MemoryKind::BufferLoadToLds => MemoryAddress::BufferToLds {
+                vector: &o[0],
+                descriptor: &o[1],
+            },
             MemoryKind::Permute => MemoryAddress::CrossLane { index: &o[1] },
             _ => MemoryAddress::Descriptor { operands: o },
         }
@@ -527,6 +536,8 @@ impl MemoryInstruction {
             MemoryKind::FlatLoad
         } else if name.starts_with("flat_store_") {
             MemoryKind::FlatStore
+        } else if name.starts_with("buffer_load_") && operands.len() == 3 {
+            MemoryKind::BufferLoadToLds
         } else if name.starts_with("buffer_load_") {
             MemoryKind::BufferLoad
         } else if name.starts_with("buffer_store_") {
@@ -582,6 +593,8 @@ impl MemoryInstruction {
                 TransferShape::TensorDescriptor
             } else if kind == MemoryKind::AsyncLoadToLds {
                 TransferShape::PerLaneBytes(16)
+            } else if kind == MemoryKind::BufferLoadToLds {
+                TransferShape::PerLaneBytes(4 * registers_per_part)
             } else {
                 TransferShape::Registers {
                     bytes_per_register,
