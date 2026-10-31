@@ -56,7 +56,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1290
+          "line": 1390
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
@@ -128,7 +128,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1290
+          "line": 1390
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
@@ -200,7 +200,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1290
+          "line": 1390
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
@@ -282,7 +282,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1290
+          "line": 1390
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
@@ -301,7 +301,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "memory_instruction",
-          "line": 6069
+          "line": 6078
         }
       ],
       "event_semantics": [
@@ -370,7 +370,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1290
+          "line": 1390
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
@@ -389,7 +389,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "permute",
-          "line": 6874
+          "line": 6883
         }
       ],
       "event_semantics": [
@@ -442,7 +442,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1290
+          "line": 1390
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
@@ -461,7 +461,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "atomic_add_f32_no_return",
-          "line": 5968
+          "line": 5977
         }
       ],
       "event_semantics": [
@@ -519,7 +519,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1290
+          "line": 1390
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
@@ -591,7 +591,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1290
+          "line": 1390
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
@@ -668,7 +668,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1290
+          "line": 1390
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
@@ -692,7 +692,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "wait",
-          "line": 5720
+          "line": 5729
         }
       ],
       "event_semantics": [
@@ -745,7 +745,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1290
+          "line": 1390
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
@@ -822,7 +822,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1290
+          "line": 1390
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
@@ -900,7 +900,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1290
+          "line": 1390
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/gfx1250.rs",
