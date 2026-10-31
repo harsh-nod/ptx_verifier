@@ -139,6 +139,10 @@ pub enum AmdMemoryClass {
     FlatGlobalStore,
     FlatLdsLoad,
     FlatLdsStore,
+    /// Selected gfx950 MUBUF raw DWORD -> LDS DMA, with no register destination.
+    BufferLoadToLds32,
+    /// Selected gfx950 MUBUF raw DWORDX4 -> LDS DMA, with no register destination.
+    BufferLoadToLds128,
 }
 
 /// Encoded S_DELAY_ALU dependency selectors. These refer to prior producer

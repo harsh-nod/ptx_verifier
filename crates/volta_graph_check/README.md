@@ -220,7 +220,7 @@ it does not upgrade the ordinary graph conclusion or establish complete outputs.
 
 AMD ordering is independent of PTX certificates. The following VM/LGKM/MFMA
 profile applies to gfx942/gfx950; see the separate gfx1250 section for its
-wave32 counters, replay and WMMA rules. VM and LDS FIFO pipelines, waits
+wave32 counters, replay and WMMA rules. Ordinary VM and LDS FIFO pipelines, waits
 that guarantee completion, and validated workgroup rendezvous create completed-effect
 frontiers. Candidate trace order and a barrier alone do not complete memory operations.
 The checker reuses the existing byte-overlap domain and conflict forest, with clocks
@@ -245,6 +245,34 @@ writes replace earlier producers. Scalar-mask roles must be actual scalar reads
 of the corresponding instruction.
 VALU writes of EXEC require four states before MFMA, including writes that leave
 the active mask unchanged. MFMA traces must include both implicit EXEC reads.
+
+Selected **gfx950** MUBUF-to-LDS DMA uses distinct `BufferLoadToLds32` and
+`BufferLoadToLds128` classes. Each active physical lane records one or four
+paired DWORD Global reads and Shared writes, with no register destination and
+exactly one VM charge. The contract checks the descriptor-quad/offset/M0 source
+roles, initialized M0, complete active-lane/component coverage, a common
+DWORD-aligned M0 base at most `0xffff`, and whole LDS ranges within the declared
+extent and any configured subobject. The final lane contribution does not wrap
+at 64 KiB. Address/descriptor decoding and complete-instruction publication
+remain trusted producer premises; these checks do not reconstruct raw ISA.
+
+DMA shares the ordinary counter-wide pending VM inventory but has a separate,
+initially unordered completion domain. Mixed or DMA-only partial VM waits retire
+no contributor; ordinary-only FIFO behavior stays unchanged. VM0 completes DMA;
+LGKM/EXP waits and barriers alone do not. FLAT still needs both remaining
+charges. The model snapshots address, resource and M0 operands at issue, with their
+normal producer-readiness checks and no invented EXP/X source lease.
+
+A SALU write to M0 needs **one independent state** before an active DMA reads it,
+including a scalar write performed under EXEC0. This pins LLVM
+[`checkReadM0Hazards`](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNHazardRecognizer.cpp#L1938-L1943)
+and the [GFX9-only DMA hazard predicate](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNSubtarget.h#L566-L568).
+An intervening instruction or `s_nop 0` supplies that state; the DMA itself does
+not. Missing spacing reports `SaluM0ReadBeforeReady`. Concrete descriptor values,
+resource OOB/suppression and the public M0-width discrepancy retain the native
+profile's separate refusal boundaries. The [direct graph controls](tests/gfx950_buffer_lds.rs)
+exercise both issue orders, three-contributor partial waits, mixed DMA widths,
+FLAT counter orders, all-ones waits and cross-wave publication.
 
 The MFMA timing model pins the dense, single-block F32 16x16x4/32x32x2,
 F16/BF16 16x16x16/16x16x32/32x32x8/32x32x16, and OCP FP8

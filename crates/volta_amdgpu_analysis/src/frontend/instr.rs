@@ -520,14 +520,13 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "flat_store_byte" | "flat_store_short" | "flat_store_dword" | "flat_store_dwordx2"
         | "flat_store_dwordx3" | "flat_store_dwordx4" => (VectorMemory, 2, 2),
         "buffer_load_b128" | "buffer_store_b64" => (VectorMemory, 4, 4),
+        "buffer_load_dword" | "buffer_load_dwordx4" => (VectorMemory, 3, 4),
         "buffer_load_ubyte"
         | "buffer_load_sbyte"
         | "buffer_load_ushort"
         | "buffer_load_sshort"
-        | "buffer_load_dword"
         | "buffer_load_dwordx2"
         | "buffer_load_dwordx3"
-        | "buffer_load_dwordx4"
         | "buffer_store_byte"
         | "buffer_store_short"
         | "buffer_store_dword"
@@ -1629,6 +1628,27 @@ pub(super) fn validate_registers(
             }
         }
         Opcode::VectorMemory => {
+            if stem.starts_with("buffer_")
+                && (operands.len() == 3 || modifiers.iter().any(|m| m.name == "lds"))
+            {
+                if architecture != crate::target::Architecture::Gfx950
+                    || !matches!(stem, "buffer_load_dword" | "buffer_load_dwordx4")
+                    || mnemonic != stem
+                    || operands.len() != 3
+                    || !matches!(operands[2], Operand::Integer(0))
+                    || modifiers.len() != 2
+                    || !["offen", "lds"].iter().all(|name| {
+                        modifiers
+                            .iter()
+                            .any(|m| m.name == *name && m.value.is_none())
+                    })
+                {
+                    return Err("selected gfx950 buffer-to-LDS load requires three operands, scalar offset0 and exactly `offen lds`".into());
+                }
+                require(0, &[Vector], 1)?;
+                require(1, &[Scalar], 4)?;
+                return Ok(());
+            }
             if stem == "global_load_async_to_lds_b128" {
                 // VDST supplies an LDS address, not a four-register result.
                 // Keep the initial profile to the compiler's 64-bit GV form.

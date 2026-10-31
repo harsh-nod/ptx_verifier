@@ -2,7 +2,7 @@
 //!
 //! Common semantics: AMD MI300/CDNA3 and MI350/CDNA4 ISA §4.3–4.4
 //! (workgroups and counters), §8.3 (SMEM),
-//! §10.2 (FLAT). VM loads/stores and homogeneous LDS instructions complete in order;
+//! §10.2 (FLAT). Ordinary VM loads/stores and homogeneous LDS instructions complete in order;
 //! mixed LGKM classes, SMEM and FLAT do not. Nonzero waits only certify a FIFO
 //! prefix for a homogeneous ordered counter. FLAT requires both counters to retire.
 //! S_BARRIER joins *completed* memory effects of participating waves; it does not
@@ -21,6 +21,7 @@ use crate::memory_conflict::{
     CONFLICT_CAP, MemoryConflict, MemoryConflictEvidence, MemoryConflictResult,
 };
 use crate::{PropertyResult, Unresolved, Verdict};
+mod buffer_lds;
 pub mod early_memory_conflicts;
 pub mod early_readiness;
 mod gfx1250;
@@ -54,6 +55,8 @@ pub enum AmdRegisterHazardKind {
     ValuScalarReadBeforeReady,
     /// The atomic's implicit EXEC is unsafe while an older non-RMW translation is pending.
     AtomicReplayBeforeReady,
+    /// A gfx950 LDS DMA reads M0 before one independent state after a SALU write.
+    SaluM0ReadBeforeReady,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -92,7 +95,7 @@ pub struct AmdReport {
     pub memory_conflict: MemoryConflictResult,
 }
 
-const CLASSES: usize = 17;
+const CLASSES: usize = 18;
 fn class_index(class: AmdMemoryClass) -> usize {
     // CDNA4 §4.4 orders same-type LDS instructions. §12.12's DS_(B)PERMUTE
     // uses LDS hardware, with no LDS memory footprint. LLVM AMDGPUHWEvents.cpp
@@ -118,6 +121,9 @@ fn class_index(class: AmdMemoryClass) -> usize {
         AmdMemoryClass::FlatGlobalStore => 14,
         AmdMemoryClass::FlatLdsLoad => 15,
         AmdMemoryClass::FlatLdsStore => 16,
+        // DMA shares VM accounting with ordinary VMEM, but has no proven FIFO
+        // relation with it or with other DMA issues. It must not use slot0.
+        AmdMemoryClass::BufferLoadToLds32 | AmdMemoryClass::BufferLoadToLds128 => 17,
     }
 }
 fn ordered(class: AmdMemoryClass) -> bool {
@@ -204,6 +210,7 @@ fn trace_contract(
     let mut issues = 0;
     let mut instructions = 0;
     let mut issue_events = HashMap::new();
+    let mut dma = buffer_lds::Trace::new(architecture);
     for record in graph.amd_events() {
         if record.wave as usize >= waves {
             continue;
@@ -220,7 +227,8 @@ fn trace_contract(
                     || r.index >= 256
                     || (r.file == AmdRegisterFile::Scalar
                         && r.index > 101
-                        && !matches!(r.index, 106 | 107 | 126 | 127))
+                        && !matches!(r.index, 106 | 107 | 126 | 127)
+                        && !(architecture == AmdArchitecture::Gfx950 && r.index == 124))
                     || (r.file != AmdRegisterFile::Scalar && (r.lanes == 0 || r.lanes & !mask != 0))
                 {
                     unresolved.push(Unresolved::at(
@@ -260,6 +268,7 @@ fn trace_contract(
                 }
                 let pc = graph.event(record.event).pc;
                 let kind = pc.map(|p| graph.provenance().instructions[p.0 as usize].kind);
+                dma.instruction(record, kind, *exec_mask, reads, writes, &mut unresolved);
                 if !scalar_mask_reads.is_empty() && kind != Some("vector ALU") {
                     unresolved.push(Unresolved::at(
                         record.event,
@@ -304,6 +313,15 @@ fn trace_contract(
                     "memory",
                     &mut unresolved,
                 ) {
+                    dma.issue(
+                        graph,
+                        record,
+                        instruction,
+                        *class,
+                        destinations,
+                        held_sources,
+                        &mut unresolved,
+                    );
                     if instruction.writes.len() != destinations.len()
                         || !instruction.writes.iter().all(|r| destinations.contains(r))
                     {
@@ -322,6 +340,10 @@ fn trace_contract(
                 let valid = match class {
                     AmdMemoryClass::VectorMemory | AmdMemoryClass::VectorStoreWide => {
                         counters == &[(AmdCounter::Vm, 1)]
+                    }
+                    AmdMemoryClass::BufferLoadToLds32 | AmdMemoryClass::BufferLoadToLds128 => {
+                        architecture == AmdArchitecture::Gfx950
+                            && counters == &[(AmdCounter::Vm, 1)]
                     }
                     AmdMemoryClass::ScalarMemory => {
                         counters == &[(AmdCounter::Lgkm, 1)] || counters == &[(AmdCounter::Lgkm, 2)]
@@ -560,6 +582,7 @@ fn trace_contract(
     let mut effect_issues = HashMap::new();
     let mut shared_footprints = HashMap::<(EventId, volta_graph::ThreadIx), (u64, u64)>::new();
     for link in graph.amd_memory_effects() {
+        dma.effect(link);
         linked.insert(link.effect);
         linked_issues.insert(link.issue);
         effect_issues.insert(link.effect, link.issue);
@@ -595,6 +618,13 @@ fn trace_contract(
             }
             let correct_space = match class {
                 AmdMemoryClass::Lds => access.space == Space::Shared,
+                AmdMemoryClass::BufferLoadToLds32 | AmdMemoryClass::BufferLoadToLds128 => {
+                    matches!(
+                        (access.space, access.mode),
+                        (Space::Global, volta_graph::AccessMode::Read)
+                            | (Space::Shared, volta_graph::AccessMode::Write)
+                    )
+                }
                 AmdMemoryClass::VectorMemory
                 | AmdMemoryClass::VectorStoreWide
                 | AmdMemoryClass::ScalarMemory => access.space == Space::Global,
@@ -630,6 +660,7 @@ fn trace_contract(
             }
         }
     }
+    dma.finish(graph, &mut unresolved);
     for ((issue, _), (start, end)) in shared_footprints {
         if !layout
             .iter()
@@ -841,6 +872,8 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
     let mut shifted_writes = vec![Vec::<(EventId, u64, AmdRegister)>::new(); waves];
     let mut scalar_valu_writes = vec![HashMap::<u16, (EventId, u64)>::new(); waves];
     let mut matrix_at = HashMap::new();
+    let mut dma_at = HashSet::new();
+    let mut m0_salu_writes = vec![None::<(EventId, u64)>; waves];
     let mut last_instruction = HashMap::new();
     for record in graph.amd_events() {
         if matches!(record.kind, AmdEventKind::Instruction { .. }) {
@@ -856,6 +889,9 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                 last_instruction[&record.wave],
                 (*kind, destinations, sources_ab, accumulator),
             );
+        } else if matches!(&record.kind, AmdEventKind::MemoryIssue { class, .. } if buffer_lds::width(*class).is_some())
+        {
+            dma_at.insert(last_instruction[&record.wave]);
         }
     }
     let mut blocked_at = vec![None; waves];
@@ -886,6 +922,31 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                     .pc
                     .map(|pc| graph.provenance().instructions[pc.0 as usize].kind)
                     .unwrap_or("");
+                // LLVM GCNHazardRecognizer::checkReadM0Hazards requires one
+                // independent state from the latest SALU definition to LDS DMA.
+                if dma_at.contains(&record.event)
+                    && let Some((issue, issued)) = m0_salu_writes[wave]
+                    && tick.saturating_sub(issued).saturating_sub(1) < 1
+                {
+                    hazards.push(AmdRegisterHazard {
+                        issue,
+                        use_event: record.event,
+                        wave: record.wave,
+                        register: AmdRegister {
+                            file: AmdRegisterFile::Scalar,
+                            index: 124,
+                            lanes: u64::MAX,
+                        },
+                        kind: AmdRegisterHazardKind::SaluM0ReadBeforeReady,
+                    });
+                }
+                if instruction_kind == "scalar ALU"
+                    && writes
+                        .iter()
+                        .any(|r| r.file == AmdRegisterFile::Scalar && r.index == 124)
+                {
+                    m0_salu_writes[wave] = Some((record.event, tick));
+                }
                 // CDNA4 §4.5 Table11: VALU-produced scalar data needs two
                 // independent states before a VALU constant-data read, five
                 // before VMEM uses it. Carry/condition inputs are interlocked.
