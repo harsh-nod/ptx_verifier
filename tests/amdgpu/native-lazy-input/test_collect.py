@@ -100,6 +100,11 @@ class Controls(unittest.TestCase):
         before = copy.deepcopy(case)
         got = collect.full_gemm(case, {"id": "new", "primary": False})
         self.assertEqual(case, before)
+        hazard = collect.full_gemm(
+            {**case, "expectation": "hazard", "safe_counterpart": "historical-safe"},
+            {"id": "new-inserted-collision", "primary": False},
+        )
+        self.assertEqual(hazard["safe_counterpart"], "new-safe")
         self.assertEqual(got["grid"], [16, 16, 1])
         self.assertFalse(got["primary_latency"])
         self.assertNotIn("source_ground_truth_first_collision", got)
@@ -526,6 +531,11 @@ class Controls(unittest.TestCase):
             ]:
                 self.assertEqual(new[key], old[key])
             self.assertEqual(new["primary_latency"], definition["primary"])
+            if new["expectation"] == "hazard":
+                self.assertEqual(
+                    new["safe_counterpart"],
+                    definition["id"].removesuffix("-inserted-collision") + "-safe",
+                )
             self.assertEqual(new["original_shape"]["query_rows"], 1024)
             self.assertEqual(new["original_shape"]["selected_query_rows"], 128)
             self.assertEqual(

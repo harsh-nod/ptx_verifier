@@ -125,6 +125,9 @@ def full_gemm(case, definition):
         "byte_address": 0,
     }
     if case.get("expectation") == "hazard":
+        case["safe_counterpart"] = (
+            definition["id"].removesuffix("-inserted-collision") + "-safe"
+        )
         case["source_ground_truth_first_collision"] = collision
     return case
 
@@ -183,6 +186,9 @@ def full_attention(case, definition):
         if array["name"] == "q":
             array["length"] = 65536
     if case["expectation"] == "hazard":
+        case["safe_counterpart"] = (
+            definition["id"].removesuffix("-inserted-collision") + "-safe"
+        )
         case["source_ground_truth_first_collision"] = {
             "source_batch": 82,
             "executed_instructions": 325,
