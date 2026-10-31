@@ -1,0 +1,41 @@
+[
+  {
+    "checks": 819,
+    "errors": 0,
+    "name": "baseline",
+    "pass": true,
+    "receipt_sha256": "49b5b287a4049064e56fce2221db214208540739f897b05ab1207dd5e20c608d",
+    "script_sha256": "cf7e6dfdfb440ed780634bd07be1a65b8c6b7fcccb3c66e97f4bbe5b4618a88a"
+  },
+  {
+    "checks": 638,
+    "errors": 0,
+    "name": "candidate",
+    "pass": true,
+    "receipt_sha256": "eeebf9d211cadf46533e559b39a0d6977afc7293c6b013425b25cec215ada438",
+    "script_sha256": "09f4ed6cfd86a00c45e9f31679ca09578767d826ff674632c99b10a12bf2bf13"
+  },
+  {
+    "checks": 348,
+    "errors": 0,
+    "name": "candidate_plan",
+    "pass": true,
+    "receipt_sha256": "0bdfb92a65efc4ae9db202105e7493a1a94aafce20acadb3ac8d8cb9f0dcc6ab"
+  },
+  {
+    "checks": 4696,
+    "errors": 0,
+    "name": "paired",
+    "pass": true,
+    "receipt_sha256": "68c91d0cbfada277c1d73fbc4e615d517bae56e43c8d1e29b989d703deaf0507",
+    "script_sha256": "09f4ed6cfd86a00c45e9f31679ca09578767d826ff674632c99b10a12bf2bf13"
+  },
+  {
+    "checks": 5646,
+    "errors": 0,
+    "name": "semantics",
+    "pass": true,
+    "receipt_sha256": "0700db8ff294852f3b79e7f891ee3bcc22651282c906a956934bb5873ee8b0b3",
+    "script_sha256": "09f4ed6cfd86a00c45e9f31679ca09578767d826ff674632c99b10a12bf2bf13"
+  }
+]

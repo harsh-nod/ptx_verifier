@@ -105,6 +105,41 @@ contains source-level object boundaries.
 
 ## Measured time to a safety finding
 
+### Native AMD input materialization
+
+Native AMD now creates symbolic input elements when an executed memory access
+touches them, following the existing PTX approach. Allocation bounds, instructions
+and selected-workgroup outputs remain unchanged. Against this fork's frozen
+eager-input baseline, with certified conflict rejection enabled in both versions,
+seeded gfx1250 hazards have these CPU first-diagnostic medians:
+
+| Configuration | Eager inputs | On-demand inputs | Speedup |
+| --- | ---: | ---: | ---: |
+| Matvec, K=4096 | 52.44 ms | 24.90 ms | 2.11× |
+| Convolution, K=576 | 89.17 ms | 33.28 ms | 2.68× |
+| Attention, complete query inputs | 59.46 ms | 26.97 ms | 2.20× |
+| Full-input GEMM, M/N/K=4096 (nonprimary) | 9.551 s | 193.53 ms | 49.35× |
+
+Both versions find the same **14/14 seeded hazards**. All three primary cases
+pass the predeclared improvement gate; GEMM is a separate nonprimary result.
+GEMM hazard peak RSS falls from 3.01 GiB to 20.8 MiB (maximum of five runs).
+The 28-configuration study includes five portable families on gfx950/gfx1250
+and four complex source kernels. Baseline qualification fixes 27 timing cases;
+the safe full-input GEMM times out at 60 seconds in both versions and has no ratio.
+
+These are five paired fresh-process observations per arm and case, giving
+descriptive medians rather than confidence intervals or a universal speedup.
+**14/27 medians are slower**, including safe matvec (+7.0%) and a portable
+gfx950 elementwise hazard (+19.1%, +2.86 ms). All 27 meet the fixed
+`baseline*1.10 + 2ms` time allowance and separate peak-RSS allowance. All 13
+complete safe output structures match; all 11 previously proved full
+specifications remain proved.
+Convolution and full-query attention equations each time out in both versions
+and remain unproved.
+Results cover one selected workgroup, not a full-grid proof or GPU execution
+speed. See the [complete results and audits](tests/amdgpu/native-lazy-input/results/README.md)
+and [allocation contracts and protocol](tests/amdgpu/native-lazy-input/protocol.md).
+
 ### Ordinary write conflicts
 
 Opt-in certified memory-conflict rejection detects **20/20 core seeded hazardous
