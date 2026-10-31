@@ -140,6 +140,7 @@ def run(binary, source, safe):
             in text
         )
         assert "TensorBoundsViolation" in text
+        assert "address: 256, bytes: 256, configured_lds_bytes: 256" in text
         assert "transfer not issued" in text and "VC check:" not in text
         assert "output 'out'" not in text
         outcome = "certified_tensor_bounds_rejection"

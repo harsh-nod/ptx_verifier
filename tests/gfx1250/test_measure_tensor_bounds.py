@@ -58,6 +58,7 @@ class MeasurementControls(unittest.TestCase):
             (FAULT, 2),
             (FAULT.replace(" FAIL", " UNKNOWN"), 1),
             (FAULT.replace("TensorBoundsViolation", "GenericError"), 1),
+            (FAULT.replace("address: 256", "address: 512"), 1),
             (FAULT + "VERDICT: ACCEPT\n", 1),
             (FAULT + "TENSOR_BOUNDS: CERTIFIED_REJECTION\n", 1),
             (FAULT + "output 'out': 128 elements\n", 1),
