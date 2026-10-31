@@ -3,7 +3,8 @@
 The normal pipeline executes a candidate kernel, records its event graph, then
 checks safety and mathematical outputs independently. This separation keeps an
 arithmetic identity from hiding a synchronization defect and preserves all
-reported bug sites. See the [architecture guide](architecture.md).
+diagnostics from the candidate execution. See the
+[architecture guide](architecture.md).
 
 An optional early observer can stop execution after a checker-validated scalar
 readiness finding. It changes when a rejection becomes available. It supplies
@@ -91,10 +92,11 @@ and replays that declared contract; it does not independently decode source
 bytes or attest an arbitrarily fabricated whole graph.
 
 Early mode reports the first certified finding and can omit later bug sites.
-Use full mode for complete diagnostic enumeration. Every acceptance still needs
-a completed execution, all applicable graph checks and complete mathematical
-equivalence. PTX, gfx942/gfx950 and other gfx1250 properties retain their normal
-checking paths. No general performance improvement follows from this interface;
+Use full mode to retain diagnostics from the complete candidate execution.
+Every acceptance still needs a completed execution, all applicable graph checks
+and complete mathematical equivalence. The observer adds no early checks for
+PTX, gfx942/gfx950 or other gfx1250 properties. No general performance
+improvement follows from this interface;
 latency and overhead require controlled measurement on the supported subset.
 
 Independent graph controls are in
