@@ -2,7 +2,7 @@
 # requires-python = ">=3.10"
 # dependencies = ["pybind11>=2.13,<4", "pyyaml>=6,<7"]
 # ///
-"""Compile complete pinned HipKittens translation units; retain every pipeline outcome.
+"""Probe complete pinned HipKittens sources; retain every pipeline outcome.
 
 No kernel is run on a GPU. Original Makefiles supply semantic flags and template
 selectors; only device-only assembly/output/link settings are adapted. Missing
@@ -127,6 +127,19 @@ def metadata(assembly, target):
     return kernels
 
 
+def recipe_command(build, source, profile, options, source_root):
+    """Source is absolute; TARGET/KERNEL only select host artifact names."""
+    includes = "-I" + str(options.pybind11_include) + " -I" + sysconfig.get_path("include")
+    command = ["make", "-B", "-n", "--no-print-directory", "-C", str(build.parent), "all",
+               "SRC=" + str(source), "TARGET=" + source.stem, "KERNEL=" + source.stem,
+               "GPU_TARGET=" + profile["architecture"].upper(), "THUNDERKITTENS_ROOT=" + str(source_root),
+               "ROCM_PATH=" + str(options.rocm), "ROCM_INSTALL_DIR=" + str(options.rocm),
+               "PY_INCLUDES=" + includes, "PY_LDFLAGS=", "PY_EXT_SUFFIX=.so"]
+    if source.is_relative_to(source_root / "tests/unit"):
+        command += ["TEST_DEFINES=-DTEST_ALL", "TEST_INTENSITY=2"]
+    return command
+
+
 def analyze_launch(binary, assembly, config, target, directory, timeout):
     payload = json.loads(config.read_text())
     expected = {}
@@ -165,22 +178,18 @@ def process_unit(unit, profile, options, source_root, output):
     directory = output / identifier
     directory.mkdir()
     result = {"id": identifier, "source": unit["source"], "scope": unit["scope"], "profile": profile,
+              "source_role": unit["source_role"], "literal_include_parents": unit["literal_include_parents"],
               "source_sha256": inventory.sha(source.read_bytes()), "analysis": {"status": "not_reached"}}
     try:
         build = source_root / unit["build_file"] if unit["build_file"] else None
         if unit["source"].startswith("tests/unit/"):
             build = source_root / "tests/unit" / profile["architecture"] / "Makefile"
         if not build or not build.is_file():
-            result.update(status="recipe_unavailable", error="no upstream Makefile for translation unit")
+            result.update(status="recipe_unavailable", error="no configured upstream Makefile recipe for source probe",
+                          other_build_inputs=unit["other_build_inputs"])
             return result
         cwd = build.parent
-        includes = "-I" + str(options.pybind11_include) + " -I" + sysconfig.get_path("include")
-        recipe = ["make", "-B", "-n", "--no-print-directory", "-C", str(cwd), "all",
-                  "SRC=" + source.name, "KERNEL=" + source.stem, "GPU_TARGET=" + profile["architecture"].upper(),
-                  "THUNDERKITTENS_ROOT=" + str(source_root), "ROCM_PATH=" + str(options.rocm),
-                  "ROCM_INSTALL_DIR=" + str(options.rocm), "PY_INCLUDES=" + includes, "PY_LDFLAGS=", "PY_EXT_SUFFIX=.so"]
-        if unit["source"].startswith("tests/unit/"):
-            recipe += ["TEST_DEFINES=-DTEST_ALL", "TEST_INTENSITY=2"]
+        recipe = recipe_command(build, source, profile, options, source_root)
         run, stdout, _ = stage(recipe, directory, "recipe", options.timeout)
         if run["status"] != "succeeded":
             result["status"] = "recipe_" + run["status"]
@@ -255,7 +264,7 @@ def main():
     parser.add_argument("--pybind11-include", type=Path)
     parser.add_argument("--jobs", type=int, choices=(1, 2), default=2)
     parser.add_argument("--timeout", type=float, default=180)
-    parser.add_argument("--source", action="append", default=[], help="Exact inventoried translation unit; repeatable")
+    parser.add_argument("--source", action="append", default=[], help="Exact inventoried source probe; repeatable")
     parser.add_argument("--target", choices=("gfx942", "gfx950", "gfx1250"), action="append", default=[])
     options = parser.parse_args()
     try:
@@ -268,7 +277,7 @@ def main():
             options.pybind11_include = Path(pybind11.get_include())
         inventory.require((options.pybind11_include / "pybind11/pybind11.h").is_file(), "missing pybind11 headers")
         options.binary = options.binary.resolve(strict=True)
-        selected = [(unit, profile) for unit in document["compilation_units"] if unit["standalone_translation_unit"]
+        selected = [(unit, profile) for unit in document["compilation_units"] if unit["translation_unit_probe"]
                     and (not options.source or unit["source"] in options.source) for profile in unit["profiles"]
                     if not options.target or profile["target"] in options.target]
         inventory.require(selected and set(options.source) <= {unit["source"] for unit, _ in selected}, "empty or unknown source selection")
@@ -281,12 +290,13 @@ def main():
         driver_hashes = {name: inventory.sha(path.read_bytes()) for name, path in driver_inputs.items()}
         for name, path in driver_inputs.items():
             (output / (name + "-source.py")).write_bytes(path.read_bytes())
-        identity = {"schema_version": 1, "source_revision": inventory.REVISION,
+        (output / "source-inventory.json").write_bytes(options.inventory.read_bytes())
+        identity = {"schema_version": 2, "source_revision": inventory.REVISION,
                     "inventory_sha256": inventory.sha(options.inventory.read_bytes()), "binary_revision": options.binary_revision,
                     "binary_sha256": inventory.sha(options.binary.read_bytes()), "driver_sha256": inventory.sha(Path(__file__).read_bytes()),
                     "compiler_sha256": inventory.sha(options.compiler.read_bytes()), "assembler_sha256": inventory.sha(options.assembler.read_bytes()),
                     "driver_source_sha256": driver_hashes,
-                    "jobs": options.jobs, "timeout_seconds": options.timeout, "selected_translation_unit_profiles": len(selected)}
+                    "jobs": options.jobs, "timeout_seconds": options.timeout, "selected_source_profile_probes": len(selected)}
         (output / "identity.json").write_text(json.dumps(identity, indent=2) + "\n")
         results = []
         with ThreadPoolExecutor(max_workers=options.jobs) as executor:
