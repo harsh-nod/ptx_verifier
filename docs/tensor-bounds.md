@@ -84,6 +84,17 @@ complete positive control. It measures functional detection only. The frozen
 not establish a new full-suite detection rate, speedup or comparison against
 upstream Volta.
 
+A [separate hardened recheck](../tests/gfx1250/results/tensor-bounds-recheck-summary-20261031.json)
+repeated all 12 process invocations twice and retained the same outcomes and
+source/binary contracts. The original receipt is unchanged. The
+[new receipt](../tests/gfx1250/results/tensor-bounds-20261031-recheck.json) includes
+the validated build records and stdout/stderr hashes; the normalized
+[baseline](../tests/gfx1250/results/tensor-bounds-baseline-build-20261031.json) and
+[candidate](../tests/gfx1250/results/tensor-bounds-candidate-build-20261031.json)
+build records are also available separately. Diagnostic hashes can vary between
+runs because the CLI prints elapsed times; this comparison checks outcomes and
+input identities, with no latency claim.
+
 Reproduce with binaries built from the receipt's two source revisions:
 
 ```sh

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "scope": "Independent later functional recheck; original receipt preserved. No timing claim.",
+  "original_receipt": {
+    "path": "tests/gfx1250/results/tensor-bounds-20261031.json",
+    "sha256": "7f3f9fd3056668757beb6425c095353582ae56bdd1b1709a39a018dbcb89c0b2"
+  },
+  "recheck_receipt": {
+    "path": "tests/gfx1250/results/tensor-bounds-20261031-recheck.json",
+    "sha256": "aac9f8ae50ef5b631078099a0a66e4c4ef76c3ef185caece73a2d2ec5fc4b76e"
+  },
+  "second_recheck_receipt_sha256": "38d1752658389e3b4ce0c5f41e5cd0de07dc9b8b472468efcdbeac2047443599",
+  "driver_revision": "a5e7e5fdafb70df91e736c28c37aae9d9836bb11",
+  "driver_sha256": "a143a1f8625ccb6412ef695e4734eba1d9967a69cfbc4d52e3d80d23a0f3b6f4",
+  "compared_runs": 2,
+  "processes_per_run": 12,
+  "all_case_outcomes_match_original": true,
+  "functional_projection_sha256": "56efd0c31e47221fa41f3c664537101edf6a204545c77d158bf563d44399cf45",
+  "seeded_bounds_detected": {
+    "baseline": 0,
+    "candidate": 2,
+    "total": 2
+  },
+  "safe_specification_elements": 128,
+  "refusal_controls": 3,
+  "input_build_and_binary_identities_checked": true,
+  "all_24_process_stdout_stderr_and_stage_hashes_checked": true,
+  "limits": "CLI text includes elapsed times, so transcript hashes can differ between runs. Equality here covers functional outcomes and source/binary contracts, not timing or exact diagnostic bytes."
+}
