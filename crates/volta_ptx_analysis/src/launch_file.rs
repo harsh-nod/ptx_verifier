@@ -96,6 +96,7 @@ impl LaunchFile {
 
         let [x, y, z] = raw.workgroup_id;
         config.workgroup_id = (x, y, z);
+        config.early_readiness = raw.early_readiness;
         config.dynamic_shared_bytes = raw.dynamic_shared_bytes;
         config.shared_allocations = raw
             .shared_allocations
@@ -167,6 +168,8 @@ struct RawLaunch {
     grid: Option<RawDims>,
     #[serde(default)]
     workgroup_id: [u32; 3],
+    #[serde(default)]
+    early_readiness: bool,
     #[serde(default)]
     dynamic_shared_bytes: u64,
     #[serde(default)]
@@ -585,6 +588,28 @@ fn tensor_elem_type(dtype: &str) -> Result<TensorElemType, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn early_readiness_json_is_an_optional_strict_boolean() {
+        assert!(
+            !LaunchFile::from_json(r#"{"block":1}"#)
+                .unwrap()
+                .config
+                .early_readiness
+        );
+        assert!(
+            LaunchFile::from_json(r#"{"block":1,"early_readiness":true}"#)
+                .unwrap()
+                .config
+                .early_readiness
+        );
+        for value in ["1", "0", "null", "[]", "\"true\""] {
+            assert!(
+                LaunchFile::from_json(&format!(r#"{{"block":1,"early_readiness":{value}}}"#))
+                    .is_err()
+            );
+        }
+    }
 
     #[test]
     fn selected_workgroup_json_is_an_exact_three_coordinate_launch_field() {

@@ -3,6 +3,12 @@ use std::collections::BTreeMap;
 
 use volta_expr::SymbolicOutputs;
 use volta_graph::EventGraph;
+use volta_graph_check::amdgpu::{
+    AmdRegisterHazard,
+    early_readiness::{
+        ScalarReadinessCertificate, ScalarReadinessObserver, validate_scalar_readiness_prefix,
+    },
+};
 use volta_graph_check::{GraphReport, check_graph};
 use volta_ptx_analysis::{AnalysisConfig, Stats};
 
@@ -79,6 +85,28 @@ pub struct SourceAnalysisParts {
 pub struct SourceKernelVerification {
     pub analysis: SourceAnalysisParts,
     pub graph: GraphReport,
+    /// A first finding certified against this exact incomplete graph prefix.
+    /// This supplies no full-trace, output or equivalence evidence.
+    pub early_readiness: Option<CertifiedScalarReadiness>,
+}
+
+/// Checker-validated scalar readiness rejection. Only the pipeline constructs it
+/// after independently validating the final prefix. The checker trusts declared
+/// graph/provenance contracts; this is not an independent raw ISA decoder.
+#[derive(Debug, Clone)]
+pub struct CertifiedScalarReadiness {
+    certificate: ScalarReadinessCertificate,
+    hazard: AmdRegisterHazard,
+}
+
+impl CertifiedScalarReadiness {
+    pub fn certificate(&self) -> &ScalarReadinessCertificate {
+        &self.certificate
+    }
+
+    pub fn hazard(&self) -> &AmdRegisterHazard {
+        &self.hazard
+    }
 }
 
 pub fn verify_source_kernel(
@@ -86,6 +114,7 @@ pub fn verify_source_kernel(
     kernel: Option<&str>,
     config: AnalysisConfig,
 ) -> Result<SourceKernelVerification, String> {
+    let mut early_readiness = None;
     let analysis = match module {
         KernelModule::Ptx(module) => {
             let parts = volta_ptx_analysis::analyze(module, kernel, config)
@@ -99,9 +128,48 @@ pub fn verify_source_kernel(
             }
         }
         KernelModule::Amdgpu(module) => {
-            let parts = volta_amdgpu_analysis::analyze(module, kernel, config)
-                .map_err(|error| error.to_string())?
-                .into_parts();
+            let result = if config.early_readiness {
+                let mut observer = ScalarReadinessObserver::new();
+                let mut candidate = None;
+                let mut observing = true;
+                let mut hook = |graph: &EventGraph| {
+                    if observing {
+                        match observer.observe(graph) {
+                            Ok(Some(certificate)) => {
+                                if validate_scalar_readiness_prefix(graph, &certificate).is_ok() {
+                                    candidate = Some(certificate);
+                                    return std::ops::ControlFlow::Break(());
+                                }
+                                // Missing prefix prerequisites never become a finding.
+                                observing = false;
+                            }
+                            Err(_) => observing = false,
+                            Ok(None) => {}
+                        }
+                    }
+                    std::ops::ControlFlow::Continue(())
+                };
+                let result =
+                    volta_amdgpu_analysis::analyze_with_observer(module, kernel, config, &mut hook)
+                        .map_err(|error| error.to_string())?;
+                if let Some(certificate) = candidate {
+                    let hazard = validate_scalar_readiness_prefix(result.graph(), &certificate)
+                        .map_err(|reasons| {
+                            format!(
+                                "early readiness prefix certificate validation failed: {reasons:?}"
+                            )
+                        })?;
+                    early_readiness = Some(CertifiedScalarReadiness {
+                        certificate,
+                        hazard,
+                    });
+                }
+                result
+            } else {
+                volta_amdgpu_analysis::analyze(module, kernel, config)
+                    .map_err(|error| error.to_string())?
+            };
+            let parts = result.into_parts();
             SourceAnalysisParts {
                 outputs: parts.outputs.map_err(|error| error.to_string()),
                 graph: parts.graph,
@@ -115,7 +183,11 @@ pub fn verify_source_kernel(
         }
     };
     let graph = check_graph(&analysis.graph);
-    Ok(SourceKernelVerification { analysis, graph })
+    Ok(SourceKernelVerification {
+        analysis,
+        graph,
+        early_readiness,
+    })
 }
 
 #[cfg(test)]

@@ -20,7 +20,8 @@ mod logging;
 
 pub use aggregate::{Decision, KernelEvidence, Verdict, decide};
 pub use backend::{
-    Backend, KernelModule, SourceAnalysisParts, SourceKernelVerification, verify_source_kernel,
+    Backend, CertifiedScalarReadiness, KernelModule, SourceAnalysisParts, SourceKernelVerification,
+    verify_source_kernel,
 };
 pub use equivalence::{Element, EquivalenceVerdict, check_equivalence, confirm_differences};
 pub use kernel::{KernelVerification, verify_kernel};
