@@ -5,7 +5,8 @@
 It records all literal `__global__` definitions and declarations, including archive,
 analysis, training, distributed and unit-test sources. Each definition is identified
 by source path and line, with its complete declaration, template prefix and hash.
-Every source and upstream build recipe is separately hashed.
+Every source, Makefile, CMake project and shell build/benchmark input is separately
+hashed.
 
 ```sh
 git submodule update --init external/sources/HipKittens
@@ -29,8 +30,12 @@ which concrete entrypoints a translation unit actually emits. A unit-test wrappe
 can serve many type/shape combinations selected by the upstream test definitions;
 its one declaration does not establish that all those combinations compile.
 
-The inventory includes headers containing kernel wrappers and all standalone
-`.cpp`, `.cu` and `.hip` translation units. A source fragment, an unused template,
+The inventory includes headers containing kernel wrappers and every `.cpp`,
+`.cu` and `.hip` source probe. `source_role` distinguishes included source
+fragments, other translation-unit sources, kernel headers and ordinary headers.
+Relative quoted include edges record the actual parent and source line. These
+lexical edges retain conditional includes; they do not evaluate the preprocessor
+or guess compiler include-path resolution. A source fragment, an unused template,
 a missing dependency, a compiler rejection, a parser rejection and a completed
 execution are different outcomes. A file that emits no kernel must not count as
 an analyzed kernel, and parsing a module does not establish a correct launch or
@@ -55,15 +60,26 @@ remain explicit for any unsupported cluster or instruction profile. Whole-source
 compilation and actual launch/output contracts are required before making a
 support claim.
 
+The main pin includes CDNA3 sources. The separate public `cdna3` branch is a
+different source revision and is outside this inventory; it requires its own pin
+and campaign rather than substitution into a main-pin report.
+
 ## Compile, assemble and analyze a campaign
 
-The campaign driver compiles every inventoried standalone translation unit under
-its original architecture profile. It obtains defines, optimization and math
+The campaign driver attempts every suffix-selected source probe under its
+original architecture profile, including included fragments as explicitly labeled
+probes. A fragment's failure when compiled alone does not establish a broken
+application build. The driver obtains defines, optimization and math
 flags from the pinned upstream Makefile's dry run, then invokes ROCm clang directly
 with device-only assembly output. Host linking, output filenames, diagnostic-only
 flags and temporary-file settings are removed; kernel sources are not rewritten.
 Printed shell pipelines and log-directory commands are never executed. Unit
 sources use the upstream `TEST_ALL` selector and `TEST_INTENSITY=2` sweep.
+Absolute `SRC` paths retain archive sources outside a parent Makefile directory;
+`TARGET` and `KERNEL` set host artifact names. Sources with another build system
+remain `recipe_unavailable` until an exact recipe/dependency profile is configured.
+For example, the distributed CMake project requires external Iris and MPI; the
+driver does not automatically fetch a mutable Iris branch.
 
 ```sh
 uv run external/extraction/hipkittens_corpus.py \
@@ -81,7 +97,7 @@ AITER installation is required unless an original source itself includes those
 external dependencies; such missing dependencies are retained as compiler
 failures, not silently removed from source.
 
-Each translation-unit/profile pair retains its upstream recipe, actual compiler
+Each source/profile probe retains its role, include parents, upstream recipe, actual compiler
 arguments, source/assembly/object hashes, emitted AMDHSA kernel metadata and
 separate recipe/compile/assemble/parse/analyze process records. Signals, timeouts,
 missing tools, normal compiler rejections and unsupported parser forms have
@@ -98,3 +114,10 @@ It is a graph-safety result, not a mathematical-equivalence or whole-grid claim.
 All source and validation helpers plus their hashes are copied into the raw run
 for reproducibility; changing them during a campaign invalidates the final report.
 Machine paths and raw diagnostic logs remain outside Git.
+
+Schema version 1 used `standalone_translation_unit` for filename-suffix selection;
+that name did not establish a source's build role. Version 2 calls the same
+selection `translation_unit_probe` and records roles independently. A version 1
+report and its original inventory/source snapshots remain immutable when joined
+to newer role annotations or compared with a separately run recipe correction.
+Retain every attempted probe, including the original recipe failures and timeouts.

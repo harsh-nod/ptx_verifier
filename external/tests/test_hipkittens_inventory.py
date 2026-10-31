@@ -58,6 +58,30 @@ hipLaunchKernelGGL(k, grid, block, 0, stream, g);
         self.assertEqual(INVENTORY.profiles("analysis/bf16_gemm/mi325x/k.cpp", "")[0]["target"], "gfx942")
         self.assertEqual({row["target"] for row in INVENTORY.profiles("tests/unit/common/wrapper.cuh", "")}, {"gfx950", "gfx1250"})
 
+    def test_literal_include_edges_distinguish_fragments_without_preprocessing(self):
+        texts = {
+            "kernel/main.cpp": '''#include "../helpers/body.cpp"
+// #include "../helpers/comment.cpp"
+const char *text = R"tag(
+#include "../helpers/raw.cpp"
+)tag";
+#if 0
+#include "../helpers/conditional.cpp"
+#endif
+#include "not-found.cuh"
+''',
+            "helpers/body.cpp": "// included source\n",
+            "helpers/comment.cpp": "",
+            "helpers/raw.cpp": "",
+            "helpers/conditional.cpp": "",
+        }
+        edges = INVENTORY.literal_include_edges(texts)
+        self.assertEqual([(row["included_source"], row["line"]) for row in edges],
+                         [("helpers/body.cpp", 1), ("helpers/conditional.cpp", 7)])
+        self.assertEqual(INVENTORY.source_role("helpers/body.cpp", [], edges), "included_source_fragment")
+        self.assertEqual(INVENTORY.source_role("kernel/main.cpp", [], []), "translation_unit_source")
+        self.assertEqual(INVENTORY.source_role("wrappers.cuh", [{"definition": True}], []), "kernel_header")
+
     def test_exact_tracked_sources_and_build_recipes_are_bound(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -88,6 +112,11 @@ hipLaunchKernelGGL(k, grid, block, 0, stream, g);
         self.assertEqual(len(rows), len({(row["source"], row["line"]) for row in rows}))
         self.assertEqual(sum(row["definition"] for row in rows), document["summary"]["kernel_definitions"])
         self.assertTrue(all(row["source"] in document["source_sha256"] for row in rows))
+        self.assertEqual(sum(unit["translation_unit_probe"] for unit in document["compilation_units"]), 171)
+        fragments = [path for path, role in document["source_roles"].items() if role == "included_source_fragment"]
+        self.assertEqual(len(fragments), 12)
+        self.assertTrue(all(any(edge["included_source"] == path for edge in document["literal_include_edges"])
+                            for path in fragments))
 
 
 if __name__ == "__main__":

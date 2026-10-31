@@ -20,6 +20,7 @@ DEFAULT_OUTPUT = EXTERNAL / "hipkittens/corpus/inventory.json"
 REVISION = "8cde3dd146bd1c4be78023b582c1f4375c48489f"
 REPOSITORY = "https://github.com/HazyResearch/HipKittens"
 SOURCE_SUFFIXES = {".cpp", ".cu", ".cuh", ".h", ".hpp", ".hip"}
+TRANSLATION_SUFFIXES = {".cpp", ".cu", ".hip"}
 LITERALS = re.compile(r'//[^\n]*|/\*.*?\*/|R"(?P<delimiter>[^ ()\\\t\r\n]{0,16})\(.*?\)(?P=delimiter)"|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'', re.S)
 
 
@@ -108,6 +109,38 @@ def launches(text):
     return sorted(result, key=lambda row: row["line"])
 
 
+def literal_include_edges(texts):
+    """Resolve quoted includes relative to their source, without preprocessing.
+
+    Conditional edges remain visible. Include-path search, macros and generated
+    files are intentionally not guessed from a lexical source inventory.
+    """
+    edges = []
+    for source, text in texts.items():
+        masked = mask_literals(text)
+        for match in re.finditer(r'(?m)^[ \t]*#[ \t]*include[ \t]*"([^"\n]+)"', text):
+            directive = text.index("#", match.start(), match.end())
+            if masked[directive] != "#":
+                continue
+            parts = []
+            for part in (Path(source).parent / match[1]).parts:
+                if part == ".." and parts and parts[-1] != "..":
+                    parts.pop()
+                elif part != ".":
+                    parts.append(part)
+            included = "/".join(parts)
+            if included in texts:
+                edges.append({"source": source, "line": line_at(text, directive),
+                              "spelling": match[1], "included_source": included})
+    return edges
+
+
+def source_role(path, kernel_rows, include_parents):
+    if Path(path).suffix in TRANSLATION_SUFFIXES:
+        return "included_source_fragment" if include_parents else "translation_unit_source"
+    return "kernel_header" if kernel_rows else "header"
+
+
 def scope(path):
     if "/archive/" in path or "/data_logs/" in path:
         return "archive"
@@ -140,34 +173,47 @@ def build_inventory(root):
     require(not git(root, "status", "--porcelain", "--untracked-files=all").strip(), "HipKittens source is modified or has untracked files")
     tracked = sorted(path.decode() for path in git(root, "ls-tree", "-r", "--name-only", "-z", REVISION).split(b"\0") if path)
     source_paths = [path for path in tracked if Path(path).suffix in SOURCE_SUFFIXES]
-    build_paths = [path for path in tracked if Path(path).name == "Makefile" or Path(path).suffix == ".mk"]
+    build_paths = [path for path in tracked if Path(path).name in {"Makefile", "CMakeLists.txt"}
+                   or Path(path).suffix in {".mk", ".sh"}]
     builds = {path: (root / path).read_bytes().decode() for path in build_paths}
+    texts = {path: (root / path).read_bytes().decode() for path in source_paths}
+    includes = literal_include_edges(texts)
+    parents = {path: [edge for edge in includes if edge["included_source"] == path] for path in source_paths}
     sources, kernels, units = {}, [], []
+    roles = {}
     for path in source_paths:
         raw = (root / path).read_bytes()
-        text = raw.decode()
+        text = texts[path]
         sources[path] = sha(raw)
         rows = declarations(text)
+        roles[path] = source_role(path, rows, parents[path])
         ancestors = [str(parent / "Makefile") for parent in Path(path).parents if str(parent) != "."]
         nearest = next((candidate for candidate in ancestors if candidate in builds), None)
         native_profiles = profiles(path, builds.get(nearest))
         for row in rows:
             kernels.append({"source": path, "scope": scope(path), "profiles": native_profiles, **row})
-        if rows or (Path(path).suffix in {".cpp", ".cu", ".hip"}):
+        if rows or Path(path).suffix in TRANSLATION_SUFFIXES:
             units.append({"source": path, "scope": scope(path), "profiles": native_profiles,
-                          "standalone_translation_unit": Path(path).suffix in {".cpp", ".cu", ".hip"},
+                          "translation_unit_probe": Path(path).suffix in TRANSLATION_SUFFIXES,
+                          "source_role": roles[path], "literal_include_parents": parents[path],
                           "build_file": nearest, "kernel_declarations": len(rows),
+                          "other_build_inputs": [candidate for candidate in build_paths
+                                                 if Path(candidate).name != "Makefile"
+                                                 and Path(candidate).parent in Path(path).parents],
                           "launch_sites": launches(text)})
     definitions = [row for row in kernels if row["definition"]]
-    return {"schema_version": 1, "repository": REPOSITORY, "revision": REVISION,
+    return {"schema_version": 2, "repository": REPOSITORY, "revision": REVISION,
             "tree": git(root, "rev-parse", REVISION + "^{tree}").decode().strip(),
             "inventory_scope": "Every tracked C/C++/HIP source; all lexical __global__ definitions and declarations, including archives, analysis, training, distributed and unit wrappers.",
             "template_scope": "Template declarations and source launch expressions are recorded without inventing instantiations. Actual emitted specializations belong to compiler metadata.",
             "summary": {"tracked_files": len(tracked), "source_files": len(sources), "build_files": len(builds),
                         "kernel_definitions": len(definitions), "kernel_declarations": len(kernels) - len(definitions),
+                        "sources_by_role": dict(sorted(Counter(roles.values()).items())),
+                        "relative_literal_include_edges": len(includes),
                         "definitions_by_scope": dict(sorted(Counter(row["scope"] for row in definitions).items())),
                         "definitions_by_target": dict(sorted(Counter(profile["target"] for row in definitions for profile in row["profiles"]).items()))},
-            "source_sha256": sources, "build_sha256": {path: sha(text.encode()) for path, text in builds.items()},
+            "source_sha256": sources, "source_roles": roles, "literal_include_edges": includes,
+            "build_sha256": {path: sha(text.encode()) for path, text in builds.items()},
             "kernels": kernels, "compilation_units": units}
 
 

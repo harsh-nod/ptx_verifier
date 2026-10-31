@@ -2,6 +2,8 @@
 import importlib.util
 import json
 from pathlib import Path
+from types import SimpleNamespace
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -14,6 +16,28 @@ SPEC.loader.exec_module(CORPUS)
 
 
 class HipKittensCorpusTests(unittest.TestCase):
+    def test_archive_source_and_required_target_use_real_upstream_recipe(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            (root / "archive").mkdir()
+            source = root / "archive/kernel.cpp"
+            source.write_text("// complete source\n")
+            build = root / "Makefile"
+            build.write_text('''ifeq ($(strip $(TARGET)),)
+$(error TARGET is required)
+endif
+all: $(TARGET)
+$(TARGET): $(SRC)
+\thipcc $(SRC) -DKITTENS_CDNA4 --offload-arch=gfx950 -DORIGINAL=7 -o $(TARGET).so
+''')
+            options = SimpleNamespace(pybind11_include=root, rocm=Path('/opt/rocm'))
+            command = CORPUS.recipe_command(build, source, {"architecture": "cdna4"}, options, root)
+            output = subprocess.check_output(command, text=True)
+            actual = CORPUS.compiler_line(output, source, root)
+            self.assertIn(str(source), actual)
+            self.assertIn('-DORIGINAL=7', actual)
+            self.assertIn('kernel.so', actual)
+
     def test_dry_run_selects_exact_source_without_executing_shell_pipeline(self):
         cwd = Path('/source/dir')
         text = '''mkdir -p /never/execute\n/opt/rocm/bin/hipcc other.cpp -DOTHER -o other.o\n/opt/rocm/bin/hipcc kernel.cpp -DKITTENS_CDNA4 --offload-arch=gfx950 \\\n  -DATTN_N=2048 -O3 -o module.so 2>&1 | tee /never/execute/log\n'''
