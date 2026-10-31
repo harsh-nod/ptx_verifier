@@ -85,9 +85,11 @@ impl fmt::Display for OutputsUnavailable {
         }
     }
 }
+type ExtractedOutputs = Vec<(String, Vec<(u64, ExprId)>)>;
+
 pub(crate) struct RunArtifacts {
     pub arena: ExprArena,
-    pub outputs: Result<Vec<(String, Vec<(u64, ExprId)>)>, OutputsUnavailable>,
+    pub outputs: Result<ExtractedOutputs, OutputsUnavailable>,
     pub graph: EventGraph,
     pub stats: Stats,
     pub op_counts: BTreeMap<&'static str, u64>,
@@ -418,13 +420,13 @@ impl Wave {
         Ok(())
     }
     fn move_wide(&mut self, destination: &Operand, source: &Operand) -> Result<(), EvalError> {
-        if let Operand::Register(source) = source {
-            if source.count == 2 {
-                let values = [self.reg(*source, 0, 0)?, self.reg(*source, 0, 1)?];
-                let destination = self.destination(destination)?;
-                self.put(destination, 0, 0, values[0])?;
-                return self.put(destination, 0, 1, values[1]);
-            }
+        if let Operand::Register(source) = source
+            && source.count == 2
+        {
+            let values = [self.reg(*source, 0, 0)?, self.reg(*source, 0, 1)?];
+            let destination = self.destination(destination)?;
+            self.put(destination, 0, 0, values[0])?;
+            return self.put(destination, 0, 1, values[1]);
         }
         let bits = self.wide(source, 0)?;
         self.put_wide(destination, 0, bits)
@@ -1229,7 +1231,7 @@ impl<'a> Interpreter<'a> {
             op_counts: self.op_counts,
         }
     }
-    fn extract(&mut self) -> Result<Vec<(String, Vec<(u64, ExprId)>)>, EvalError> {
+    fn extract(&mut self) -> Result<ExtractedOutputs, EvalError> {
         let mut outputs = Vec::new();
         for array in &self.config.arrays {
             if !array.kind.is_output() {
@@ -2046,13 +2048,13 @@ impl<'a> Interpreter<'a> {
             self.claim_word_format(wave, expr, WordFormat::Float32)?;
             return Ok(expr);
         }
-        if let Value::IntExpr(expr) = value {
-            if let Some(pattern) = self.float_bit_patterns.get(&expr).cloned() {
-                for input in pattern.input_words {
-                    self.claim_word_format(wave, input, WordFormat::Float32)?;
-                }
-                return Ok(pattern.decoded);
+        if let Value::IntExpr(expr) = value
+            && let Some(pattern) = self.float_bit_patterns.get(&expr).cloned()
+        {
+            for input in pattern.input_words {
+                self.claim_word_format(wave, input, WordFormat::Float32)?;
             }
+            return Ok(pattern.decoded);
         }
         value
             .real(&mut self.arena)
@@ -2595,13 +2597,12 @@ impl<'a> Interpreter<'a> {
             } else {
                 None
             };
-            if let Some(source) = source {
-                if let Some(masked) = source
+            if let Some(source) = source
+                && let Some(masked) = source
                     .mask_low16()
                     .map_err(|error| wave.fail(Some(lane), error))?
-                {
-                    return Ok(Some(masked));
-                }
+            {
+                return Ok(Some(masked));
             }
         }
         if matches!(name, "v_and_b32" | "v_xor_b32") {
@@ -3395,35 +3396,36 @@ impl<'a> Interpreter<'a> {
             let value = wave.value(&o[1], 0)?;
             return wave.put_value(dest, 0, value);
         }
-        if name == "s_cselect_b32" && self.architecture == AmdArchitecture::Gfx1250 {
-            if let Some(mut condition) = wave.scc_condition {
-                let a = wave.value(&o[1], 0)?;
-                let b = wave.value(&o[2], 0)?;
-                if matches!(
-                    (a.bits(), b.bits()),
-                    (Ok(u32::MAX), Ok(0)) | (Ok(0), Ok(u32::MAX))
-                ) {
-                    if a.bits() == Ok(0) {
-                        condition = self.arena.not(condition);
-                    }
-                    return self.write_predicates(wave, Some(dest), [condition; 64]);
+        if name == "s_cselect_b32"
+            && self.architecture == AmdArchitecture::Gfx1250
+            && let Some(mut condition) = wave.scc_condition
+        {
+            let a = wave.value(&o[1], 0)?;
+            let b = wave.value(&o[2], 0)?;
+            if matches!(
+                (a.bits(), b.bits()),
+                (Ok(u32::MAX), Ok(0)) | (Ok(0), Ok(u32::MAX))
+            ) {
+                if a.bits() == Ok(0) {
+                    condition = self.arena.not(condition);
                 }
-                let ty = super::scalar::IntType {
-                    bits: 32,
-                    signed: false,
-                };
-                let a = self.integer_expression(wave, &o[1], 0, ty)?;
-                let b = self.integer_expression(wave, &o[2], 0, ty)?;
-                let expr = super::scalar::select(
-                    &mut self.arena,
-                    super::scalar::ScalarType::Int(ty),
-                    condition,
-                    a,
-                    b,
-                )
-                .map_err(|e| wave.fail(None, e))?;
-                return wave.put_value(dest, 0, Value::IntExpr(expr));
+                return self.write_predicates(wave, Some(dest), [condition; 64]);
             }
+            let ty = super::scalar::IntType {
+                bits: 32,
+                signed: false,
+            };
+            let a = self.integer_expression(wave, &o[1], 0, ty)?;
+            let b = self.integer_expression(wave, &o[2], 0, ty)?;
+            let expr = super::scalar::select(
+                &mut self.arena,
+                super::scalar::ScalarType::Int(ty),
+                condition,
+                a,
+                b,
+            )
+            .map_err(|e| wave.fail(None, e))?;
+            return wave.put_value(dest, 0, Value::IntExpr(expr));
         }
         if name == "s_cselect_b32" || name == "s_cselect_b64" {
             let source = if wave.read_scc()? { &o[1] } else { &o[2] };
@@ -3492,16 +3494,17 @@ impl<'a> Interpreter<'a> {
             wave.set_scc(wave.exec != 0);
             return wave.put_value(dest, 0, Value::Bits(old as u32));
         }
-        if name == "s_and_b32" && self.architecture != AmdArchitecture::Gfx1250 {
-            if let Value::PartialBits { bits, defined } = wave.value(&o[1], 0)? {
-                let mask = wave.bits(&o[2], 0)?;
-                if mask & !defined != 0 {
-                    return Err(wave.fail(None, "and observes undefined architected system bits"));
-                }
-                let result = bits & mask;
-                wave.set_scc(result != 0);
-                return wave.put_value(dest, 0, Value::Integer(result));
+        if name == "s_and_b32"
+            && self.architecture != AmdArchitecture::Gfx1250
+            && let Value::PartialBits { bits, defined } = wave.value(&o[1], 0)?
+        {
+            let mask = wave.bits(&o[2], 0)?;
+            if mask & !defined != 0 {
+                return Err(wave.fail(None, "and observes undefined architected system bits"));
             }
+            let result = bits & mask;
+            wave.set_scc(result != 0);
+            return wave.put_value(dest, 0, Value::Integer(result));
         }
         if name == "s_bfe_u32" {
             let control = wave.bits(&o[2], 0)?;
@@ -3531,17 +3534,16 @@ impl<'a> Interpreter<'a> {
             )
         {
             fn partial(wave: &Wave, operand: &Operand) -> Result<(u32, u32), EvalError> {
-                if let Operand::Register(r) = operand {
-                    if r.class == RegisterClass::Scalar
-                        && wave
-                            .scalar
-                            .get(r.index as usize)
-                            .copied()
-                            .flatten()
-                            .is_none()
-                    {
-                        return Ok((0, 0));
-                    }
+                if let Operand::Register(r) = operand
+                    && r.class == RegisterClass::Scalar
+                    && wave
+                        .scalar
+                        .get(r.index as usize)
+                        .copied()
+                        .flatten()
+                        .is_none()
+                {
+                    return Ok((0, 0));
                 }
                 match wave.value(operand, 0)? {
                     Value::PartialBits { bits, defined } => Ok((bits, defined)),
@@ -3801,10 +3803,10 @@ impl<'a> Interpreter<'a> {
         };
         match kind {
             InputKind::F32 => self.real(wave, &selected, lane),
-            InputKind::F16 => self.half(wave, &selected, lane, item % 2 != 0),
+            InputKind::F16 => self.half(wave, &selected, lane, !item.is_multiple_of(2)),
             InputKind::Fp8E4m3 => self.fp8(wave, &selected, lane, item % 4),
             InputKind::Bf16 => {
-                let high = item % 2 != 0;
+                let high = !item.is_multiple_of(2);
                 let symbolic = match wave.value(&selected, lane)? {
                     Value::Half(expr) if !high => Some(expr),
                     Value::Half(_) if high => Some(self.arena.int(0)),
@@ -3914,17 +3916,22 @@ impl<'a> Interpreter<'a> {
             }
         };
         let destination = wave.destination(&o[0])?;
-        for lane in 0..32u8 {
-            for component in 0..8 {
-                let row = (lane as usize / 16) * 8 + component;
-                let col = lane as usize % 16;
-                let mut value = c[lane as usize][component];
+        for (lane, accumulator) in c.iter().enumerate() {
+            for (component, &initial) in accumulator.iter().enumerate() {
+                let row = (lane / 16) * 8 + component;
+                let col = lane % 16;
+                let mut value = initial;
                 for kk in 0..k {
                     let (al, av) = input(row, kk);
                     let (bl, bv) = input(col, kk);
                     value = self.arena.fma(a[al][av], b[bl][bv], value);
                 }
-                wave.put(destination, lane, component as u16, Value::Real(value))?;
+                wave.put(
+                    destination,
+                    lane as u8,
+                    component as u16,
+                    Value::Real(value),
+                )?;
             }
         }
         Ok(())
@@ -3993,10 +4000,10 @@ impl<'a> Interpreter<'a> {
                 return Err(self.unsupported(wave, instruction));
             }
         }
-        if let Operand::Register(register) = o[3] {
-            if register.count as usize != output_items {
-                return Err(wave.fail(None, "MFMA accumulator register count mismatch"));
-            }
+        if let Operand::Register(register) = o[3]
+            && register.count as usize != output_items
+        {
+            return Err(wave.fail(None, "MFMA accumulator register count mismatch"));
         }
         if form.is_scaled() {
             if o.len() != 6 {
@@ -4841,11 +4848,11 @@ impl<'a> Interpreter<'a> {
             return wave.put_wide(&o[1], 0, mask);
         }
         for lane in lanes {
-            if matches!(name, "v_and_b32" | "v_xor_b32" | "v_bfi_b32") {
-                if let Some(value) = self.float_bit_logic(wave, instruction, name, lane)? {
-                    wave.put_value(&o[0], lane, value)?;
-                    continue;
-                }
+            if matches!(name, "v_and_b32" | "v_xor_b32" | "v_bfi_b32")
+                && let Some(value) = self.float_bit_logic(wave, instruction, name, lane)?
+            {
+                wave.put_value(&o[0], lane, value)?;
+                continue;
             }
             let value = match name {
                 "v_perm_b32" => {
@@ -5287,34 +5294,29 @@ impl<'a> Interpreter<'a> {
                 "v_lshl_add_u64" => {
                     let base = wave.wide(&o[1], lane)?;
                     let shift = wave.bits(&o[2], lane)? & 63;
-                    if self.architecture == AmdArchitecture::Gfx1250 {
-                        if let Operand::Register(addend) = &o[3] {
-                            if addend.count == 2
-                                && wave.reg(*addend, lane, 1)? == Value::SharedApertureHi
-                            {
-                                let low = wave
-                                    .reg(*addend, lane, 0)?
-                                    .bits()
-                                    .map_err(|error| wave.fail(Some(lane), error))?;
-                                // Preserve the opaque aperture, rather than assigning
-                                // it numeric bits. Only a provably non-wrapping low32
-                                // offset is supported by this exact address idiom.
-                                let offset = base
-                                    .checked_mul(1u64 << shift)
-                                    .and_then(|index| index.checked_add(u64::from(low)))
-                                    .filter(|offset| *offset <= u64::from(u32::MAX))
-                                    .ok_or_else(|| {
-                                        wave.fail(
-                                            Some(lane),
-                                            "scaled offset escapes the shared aperture",
-                                        )
-                                    })?;
-                                let destination = wave.destination(&o[0])?;
-                                wave.put(destination, lane, 0, Value::Bits(offset as u32))?;
-                                wave.put(destination, lane, 1, Value::SharedApertureHi)?;
-                                continue;
-                            }
-                        }
+                    if self.architecture == AmdArchitecture::Gfx1250
+                        && let Operand::Register(addend) = &o[3]
+                        && addend.count == 2
+                        && wave.reg(*addend, lane, 1)? == Value::SharedApertureHi
+                    {
+                        let low = wave
+                            .reg(*addend, lane, 0)?
+                            .bits()
+                            .map_err(|error| wave.fail(Some(lane), error))?;
+                        // Preserve the opaque aperture, rather than assigning
+                        // it numeric bits. Only a provably non-wrapping low32
+                        // offset is supported by this exact address idiom.
+                        let offset = base
+                            .checked_mul(1u64 << shift)
+                            .and_then(|index| index.checked_add(u64::from(low)))
+                            .filter(|offset| *offset <= u64::from(u32::MAX))
+                            .ok_or_else(|| {
+                                wave.fail(Some(lane), "scaled offset escapes the shared aperture")
+                            })?;
+                        let destination = wave.destination(&o[0])?;
+                        wave.put(destination, lane, 0, Value::Bits(offset as u32))?;
+                        wave.put(destination, lane, 1, Value::SharedApertureHi)?;
+                        continue;
                     }
                     let addend = wave.wide(&o[3], lane)?;
                     wave.put_wide(&o[0], lane, base.wrapping_shl(shift).wrapping_add(addend))?;
@@ -5558,26 +5560,21 @@ impl<'a> Interpreter<'a> {
                         if self.architecture == AmdArchitecture::Gfx1250
                             && name == "v_ashrrev_i32"
                             && wave.bits(&o[1], lane).is_ok_and(|count| count & 31 == 31)
-                        {
-                            if let (Operand::Register(dest), Operand::Register(source)) =
+                            && let (Operand::Register(dest), Operand::Register(source)) =
                                 (&o[0], &o[2])
-                            {
-                                if dest.class == RegisterClass::Vector
-                                    && source.class == RegisterClass::Vector
-                                    && dest.count == 1
-                                    && source.count == 1
-                                    && dest.index % 2 == 1
-                                    && source.index + 1 == dest.index
-                                {
-                                    if let Ok(bits) = wave.bits(&o[2], lane) {
-                                        value = Value::WidePart {
-                                            expr: self.arena.int(bits as i32 as i64),
-                                            high: true,
-                                            kind: WideKind::Integer,
-                                        };
-                                    }
-                                }
-                            }
+                            && dest.class == RegisterClass::Vector
+                            && source.class == RegisterClass::Vector
+                            && dest.count == 1
+                            && source.count == 1
+                            && dest.index % 2 == 1
+                            && source.index + 1 == dest.index
+                            && let Ok(bits) = wave.bits(&o[2], lane)
+                        {
+                            value = Value::WidePart {
+                                expr: self.arena.int(bits as i32 as i64),
+                                high: true,
+                                kind: WideKind::Integer,
+                            };
                         }
                         wave.put_value(&o[0], lane, value)?;
                         continue;
@@ -6761,20 +6758,19 @@ impl<'a> Interpreter<'a> {
         lane: u8,
         offset: u64,
     ) -> Result<(u64, bool), EvalError> {
-        if let Operand::Register(register) = operand {
-            if register.count == 2 && wave.reg(*register, lane, 1)? == Value::SharedApertureHi {
-                let low =
-                    wave.reg(*register, lane, 0)?
-                        .bits()
-                        .map_err(|error| wave.fail(Some(lane), error))? as u64;
-                let address = low
-                    .checked_add(offset)
-                    .filter(|value| *value <= u32::MAX as u64)
-                    .ok_or_else(|| {
-                        wave.fail(Some(lane), "FLAT offset escapes the shared aperture")
-                    })?;
-                return Ok((address, true));
-            }
+        if let Operand::Register(register) = operand
+            && register.count == 2
+            && wave.reg(*register, lane, 1)? == Value::SharedApertureHi
+        {
+            let low = wave
+                .reg(*register, lane, 0)?
+                .bits()
+                .map_err(|error| wave.fail(Some(lane), error))? as u64;
+            let address = low
+                .checked_add(offset)
+                .filter(|value| *value <= u32::MAX as u64)
+                .ok_or_else(|| wave.fail(Some(lane), "FLAT offset escapes the shared aperture"))?;
+            return Ok((address, true));
         }
         Ok((wave.wide(operand, lane)?.wrapping_add(offset), false))
     }
@@ -6809,23 +6805,22 @@ impl<'a> Interpreter<'a> {
         } else {
             0
         };
-        if let Operand::Register(register) = base {
-            if register.count == 2 && wave.reg(*register, lane, 1)? == Value::SharedApertureHi {
-                let low = wave
-                    .reg(*register, lane, 0)?
-                    .bits()
-                    .map_err(|error| wave.fail(Some(lane), error))?;
-                let displacement = vector_offset
-                    .checked_add(offset)
-                    .ok_or_else(|| wave.fail(Some(lane), "scaled FLAT offset overflow"))?;
-                let address = u64::from(low)
-                    .checked_add_signed(displacement)
-                    .filter(|value| *value <= u64::from(u32::MAX))
-                    .ok_or_else(|| {
-                        wave.fail(Some(lane), "FLAT offset escapes the shared aperture")
-                    })?;
-                return Ok((address, true));
-            }
+        if let Operand::Register(register) = base
+            && register.count == 2
+            && wave.reg(*register, lane, 1)? == Value::SharedApertureHi
+        {
+            let low = wave
+                .reg(*register, lane, 0)?
+                .bits()
+                .map_err(|error| wave.fail(Some(lane), error))?;
+            let displacement = vector_offset
+                .checked_add(offset)
+                .ok_or_else(|| wave.fail(Some(lane), "scaled FLAT offset overflow"))?;
+            let address = u64::from(low)
+                .checked_add_signed(displacement)
+                .filter(|value| *value <= u64::from(u32::MAX))
+                .ok_or_else(|| wave.fail(Some(lane), "FLAT offset escapes the shared aperture"))?;
+            return Ok((address, true));
         }
         Ok((
             self.global_memory_address(wave, vector, scalar, lane, offset, scale)?,
@@ -6853,28 +6848,25 @@ impl<'a> Interpreter<'a> {
         let mut sources = std::collections::BTreeSet::new();
         for instruction in clause {
             for operand in instruction.operands().iter().skip(1) {
-                if let Operand::Register(register) = operand {
-                    if register.class == RegisterClass::Scalar {
-                        sources.extend(register.index..register.index + register.count);
-                    }
+                if let Operand::Register(register) = operand
+                    && register.class == RegisterClass::Scalar
+                {
+                    sources.extend(register.index..register.index + register.count);
                 }
             }
         }
         for instruction in clause {
-            if let Some(Operand::Register(destination)) = instruction.operands().first() {
-                if destination.class == RegisterClass::Scalar {
-                    if let Some(overlap) = (destination.index
-                        ..destination.index + destination.count)
-                        .find(|index| sources.contains(index))
-                    {
-                        return Err(EvalError::Unsupported {
-                            pc: wave.pc,
-                            what: format!(
-                                "SMEM clause destination s{overlap} overlaps an address source; only an isolated single-DWORD load permits this alias"
-                            ),
-                        });
-                    }
-                }
+            if let Some(Operand::Register(destination)) = instruction.operands().first()
+                && destination.class == RegisterClass::Scalar
+                && let Some(overlap) = (destination.index..destination.index + destination.count)
+                    .find(|index| sources.contains(index))
+            {
+                return Err(EvalError::Unsupported {
+                    pc: wave.pc,
+                    what: format!(
+                        "SMEM clause destination s{overlap} overlaps an address source; only an isolated single-DWORD load permits this alias"
+                    ),
+                });
             }
         }
         Ok(())
@@ -6938,7 +6930,7 @@ impl<'a> Interpreter<'a> {
         write: bool,
     ) -> Result<(), EvalError> {
         self.validate_memory_range(wave, lane, lds, addr, width, write)?;
-        if addr % width.min(4) != 0 {
+        if !addr.is_multiple_of(width.min(4)) {
             return Err(wave.fail(
                 Some(lane),
                 format!("misaligned access at {addr:#x} width {width}"),
