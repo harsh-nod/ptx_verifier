@@ -114,12 +114,12 @@ pub(super) fn apply_metadata(
             .iter_mut()
             .find(|kernel| kernel.name == name)
             .ok_or_else(|| fail(format!("metadata refers to undefined kernel `{name}`")))?;
-        if let Some(wavefront_size) = get(entry, ".wavefront_size") {
-            if number(wavefront_size) != Some(wave_size) {
-                return Err(fail(format!(
-                    "kernel `{name}` must use wavefront_size {wave_size}"
-                )));
-            }
+        if let Some(wavefront_size) = get(entry, ".wavefront_size")
+            && number(wavefront_size) != Some(wave_size)
+        {
+            return Err(fail(format!(
+                "kernel `{name}` must use wavefront_size {wave_size}"
+            )));
         }
         if let Some(symbol) = get(entry, ".symbol")
             && string(symbol).as_deref() != Some(&format!("{name}.kd"))

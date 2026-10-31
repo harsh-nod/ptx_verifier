@@ -538,7 +538,7 @@ fn zero_over_zero_native_control_cannot_become_a_successful_equivalence() {
         }
         Ok(outputs) => {
             assert_eq!(run.checks.conclusion(), GraphConclusion::Verified);
-            let error = check_output_equivalence(&outputs, &outputs, &["out".into()])
+            let error = check_output_equivalence(outputs, outputs, &["out".into()])
                 .expect_err("undefined division must not be an equivalent real constant");
             assert!(
                 error.to_string().contains("division") || error.to_string().contains("infinite"),

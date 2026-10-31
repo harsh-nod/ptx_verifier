@@ -119,7 +119,7 @@ supported controls when testing errors. Do not turn unsupported or incomplete
 execution into an expected successful result.
 
 Use `cargo test --release --workspace`, `just test-python`,
-`cargo fmt --all -- --check` and `cargo clippy --workspace --all-targets` for
+`cargo fmt --all -- --check` and `cargo clippy --workspace --all-targets -- -D warnings` for
 general changes. Fixture-specific tools have their own README commands. Large
 workload proofs and hardware numerical checks run separately with explicit
 budgets. The [usage guide](usage.md) explains how to inspect logs and exported

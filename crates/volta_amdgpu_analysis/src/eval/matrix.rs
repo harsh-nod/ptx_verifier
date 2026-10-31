@@ -167,11 +167,11 @@ pub(crate) fn compute(
         return Err("MFMA mathematical arithmetic requires finite concrete operands".into());
     }
     let mut result = Vec::with_capacity(64);
-    for lane in 0..64 {
+    for (lane, accumulator) in c.iter().enumerate() {
         let mut row = Vec::with_capacity(outputs);
-        for item in 0..outputs {
+        for (item, &initial) in accumulator.iter().enumerate() {
             let (i, j) = form.output_coordinate(lane, item);
-            let mut value = c[lane][item];
+            let mut value = initial;
             for k in 0..form.k {
                 let (al, ai) = form.input_location(i, k);
                 let (bl, bi) = form.input_location(j, k);
@@ -284,8 +284,8 @@ mod tests {
                 }
             }
             let output = compute(&mut arena, form, &a, &b, &c).unwrap();
-            for lane in 0..64 {
-                for item in 0..form.accumulator_items_per_lane() {
+            for (lane, values) in output.iter().enumerate() {
+                for (item, &value) in values.iter().enumerate() {
                     let row = if form.m == 16 {
                         lane / 16 * 4 + item
                     } else {
@@ -295,7 +295,7 @@ mod tests {
                     let expected = (lane * 17 + item * 3) as i64
                         + (0..form.k).map(|k| av(row, k) * bv(k, col)).sum::<i64>();
                     assert_eq!(
-                        arena.as_i64(output[lane][item]),
+                        arena.as_i64(value),
                         Some(expected),
                         "{name}, lane={lane}, item={item}, row={row}, col={col}"
                     );

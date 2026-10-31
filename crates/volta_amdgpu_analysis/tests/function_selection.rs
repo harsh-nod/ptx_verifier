@@ -316,7 +316,7 @@ fn missing_or_mismatched_entry_definitions_and_descriptors_fail() {
         source.replace(".amdhsa_kernel k", ".amdhsa_kernel missing"),
         source.clone() + &metadata("gfx950", "missing"),
         source.clone() + &descriptor("gfx950", "k"),
-        source.clone() + &HELPER,
+        source.clone() + HELPER,
         source.clone() + &entry("s_endpgm"),
         source.clone()
             + ".amdgpu_metadata\n---\namdhsa.version: [1,2]\namdhsa.kernels: [{.name: k, .symbol: helper.kd}]\n.end_amdgpu_metadata\n",
