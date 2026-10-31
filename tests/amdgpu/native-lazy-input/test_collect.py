@@ -62,13 +62,15 @@ class Controls(unittest.TestCase):
         selected = collect.selection()
         self.assertEqual(
             sum(
-                c["input_elements"] for c in selected["cases"] if c.get("new_contract")
+                c["input_elements"]
+                for c in selected["cases"]
+                if c.get("contract_kind") == "gemm_full_inputs"
             ),
             67108864,
         )
         self.assertEqual(
             [c["input_elements"] for c in selected["cases"] if c["primary"]],
-            [135168, 274432, 139264],
+            [135168, 274432, 196608],
         )
 
     def test_new_full_gemm_preserves_every_other_field(self):
@@ -356,13 +358,26 @@ class Controls(unittest.TestCase):
     def test_complete_spec_accept_is_distinct_from_graph_accept(self):
         r = record()
         r["returncode"] = 0
-        proof = SAFE.replace(
-            "GRAPH VERIFICATION: VERIFIED (no equivalence check requested)",
-            "VC check: 0.001s  elements: 1\nEQUIVALENT (matches spec)\nVERDICT: ACCEPT",
+        proof = (
+            SAFE.replace("  time: ", "Exec: ")
+            .replace("  output 'out': 1 element(s) written\n", "")
+            .replace(
+                "GRAPH VERIFICATION: VERIFIED (no equivalence check requested)",
+                "VC check: 0.001s  elements: 1\nEQUIVALENT (matches spec)\nVERDICT: ACCEPT",
+            )
         )
         got = collect.observe(r, row("safe"), proof, "", verify=True)
         self.assertEqual(got["status"], "spec_verified")
         self.assertTrue(got["qualified"])
+        self.assertFalse(
+            collect.observe(
+                r,
+                row("safe"),
+                proof.replace("Exec: 0.001s  instructions: 5", "Exec: 0.001s"),
+                "",
+                verify=True,
+            )["qualified"]
+        )
         self.assertFalse(
             collect.observe(
                 r,
@@ -481,6 +496,68 @@ class Controls(unittest.TestCase):
             self.assertFalse(result["detected"])
             self.assertIsNone(result["detection_mode"])
             self.assertEqual(result["status"], "contract_error")
+
+    def test_full_query_attention_inputs_and_selected_output_scope(self):
+        document = collect.study.load_cases()
+        workloads = {w["id"]: w for w in document["workloads"]}
+        cases = {c["id"]: c for c in document["cases"]}
+        for definition in collect.selection()["cases"]:
+            if definition.get("contract_kind") != "attention_full_query":
+                continue
+            template = cases[definition["template_case"]]
+            old = collect.study.expanded_case(workloads[template["workload"]], template)
+            original = copy.deepcopy(old)
+            new = collect.full_attention(old, definition)
+            self.assertEqual(old, original)
+            self.assertEqual([a["length"] for a in new["arrays"][:3]], [65536] * 3)
+            self.assertEqual(
+                [a["base_address"] for a in new["arrays"]],
+                [0x10000000, 0x20000000, 0x30000000, 0x40000000, 0x50000000],
+            )
+            self.assertEqual(new["expected_outputs"], 8320)
+            self.assertEqual(new["output_indices"], old["output_indices"])
+            for key in [
+                "params",
+                "block",
+                "grid",
+                "workgroup",
+                "dimensions",
+                "materialized_assembly_sha256",
+            ]:
+                self.assertEqual(new[key], old[key])
+            self.assertEqual(new["primary_latency"], definition["primary"])
+            self.assertEqual(new["original_shape"]["query_rows"], 1024)
+            self.assertEqual(new["original_shape"]["selected_query_rows"], 128)
+            self.assertEqual(
+                new["logical_full_grid_output_elements"], {"out": 65536, "lse": 1024}
+            )
+            cfg = collect.configuration(new)
+            self.assertEqual(
+                [a["len"] for a in cfg["arrays"]], [65536, 65536, 65536, 8192, 128]
+            )
+            self.assertTrue(cfg["early_memory_conflicts"])
+
+    def test_attention_spec_only_widens_query_input_declaration(self):
+        settings = collect.selection()["new_attention"]
+        old = (collect.ROOT / settings["template_spec"]).read_bytes()
+        new = (collect.ROOT / settings["spec"]).read_bytes()
+        self.assertEqual(new, old.replace(b"array q[Q,D];", b"array q[T,D];"))
+        self.assertEqual(
+            collect.sha(collect.ROOT / settings["spec"]), settings["spec_sha256"]
+        )
+        selected = collect.selection()["cases"]
+        self.assertEqual(sum(c.get("new_contract", False) for c in selected), 4)
+        self.assertEqual(sum(not c.get("new_contract", False) for c in selected), 24)
+        self.assertFalse(
+            any(
+                c["id"]
+                in {
+                    "memory-wide-gfx1250-flash_attention_original-safe",
+                    "memory-wide-gfx1250-flash_attention_original-inserted-collision",
+                }
+                for c in selected
+            )
+        )
 
 
 if __name__ == "__main__":

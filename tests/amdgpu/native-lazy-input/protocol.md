@@ -10,9 +10,11 @@ The candidate may change expression IDs and construction order, not expressions.
 
 ## Frozen population and allocation scope
 
-There are 28 configurations: the 26 previously declared prefix-attribution cases
-and two new full-input GEMM contracts. These are seen regression cases and a new
-allocation contract, not a heldout population or new HipKittens coverage.
+There are 28 configurations:24 previously declared prefix-attribution cases,
+two new full-query attention contracts and two new full-input GEMM contracts.
+The earlier attention pair allocated only the selected query prefix and is
+explicitly replaced before any new measurements. These are seen regression cases and new
+derived full-input allocation contracts, not a heldout population or new HipKittens coverage.
 
 | Target/family | Hazard/safe cases | Input elements per case | Input bytes | Selected outputs |
 | --- | ---: | ---: | ---: | ---: |
@@ -24,17 +26,30 @@ allocation contract, not a heldout population or new HipKittens coverage.
 | gfx1250 same five portable families | 5/5 | same as above | same as above | same as above |
 | gfx1250 registered matvec | 1/1 | 135,168 | 270,336 | 32 |
 | gfx1250 original convolution | 1/1 | 274,432 | 548,864 | 16,384 |
-| gfx1250 original attention | 1/1 | 139,264 | 278,528 | 8,320 |
+| gfx1250 full-query attention | 1/1 | 196,608 | 393,216 | 8,320 |
 | gfx1250 new full-input GEMM | 1/1 | 33,554,432 | 67,108,864 | 65,536 |
 
 Portable hazards preserve the existing address-replacement modules; wide hazards
 preserve their existing inserted-collision modules. Each complete module and
-original source/specification is hash-bound. The 26 existing contracts retain
+original source/specification is hash-bound. The24 retained contracts preserve
 their exact allocations, ABI, block/grid, selected workgroup `(0,0,0)`, dimensions
 and output-coordinate sets. Matvec retains the registered 32-row A allocation
 (`32*4096` elements) plus its 4096-element vector; the available provenance does
 not establish a larger host matrix. Convolution retains C64/H56/W56/O128/R3/S3.
-Attention retains Q128/T1024/D64 and grid `(16,1,1)`.
+The new attention pair retains the unchanged complete source/mutant module,
+Q128 selected output rows/T1024/D64, grid `(16,1,1)`, block128 and workgroup0.
+Mode0 uses `sequence=gridDim.x*64=1024`, and even CTAs cover all1024 query rows.
+Q/K/V therefore each declare65,536 F16 inputs, starting respectively at
+`0x10000000`, `0x20000000`, `0x30000000`. Selected output views remain8192 F16 at
+`0x40000000` and128 LSE F32 at `0x50000000`. Full-grid logical output extents are
+65,536 F16 elements (131,072bytes) and1024 F32 elements (4096bytes); these extents
+are metadata, not additional analyzed workgroups or claimed written coordinates.
+All seven ABI arguments remain q,k,v,zero-bias,out,lse,zero-tmp. A new spec copy
+changes only `array q[Q,D];` to `array q[T,D];`: every equation, dimension and output
+domain stays byte-identical. Original spec/launch and derived copies have
+separate hashes. The unchanged inserted Shared-byte0 collision keeps its archived
+first witness/instruction/prefix contract. The old query-prefix pair is excluded
+from this new study; older publications and raw artifacts remain unchanged.
 
 The new GEMM pair uses the unchanged `gemm_f16_full` entry in
 `tests/gfx1250/full/fixtures/original-matrix.s` and its existing inserted-collision
@@ -109,9 +124,9 @@ Compare normalized event/role/counter/barrier/footprint and stored-expression
 semantics in focused eager/lazy controls; raw ID-dependent dump hashes need not
 match. Preserve all existing supported/refused behavior and output dirty ranges.
 
-Run the unchanged complete specification once per arm for these qualified safe
+Run each declared complete specification once per arm for these qualified safe
 cases with `verify --sample 0`, all frozen dimensions, 60 seconds and no export.
-All old proved equations must remain proved. Convolution and attention equations
+All old proved equations must remain proved. Convolution and full-query attention equations
 were not previously proved under this short budget and remain explicitly
 unproved unless complete verification actually succeeds. No sampled outputs,
 matching graph verdict or matching expression pair substitutes for a full proof.
@@ -124,7 +139,7 @@ timeout, mismatch, process/export failure or incomplete artifact is reported.
 All gates are frozen before qualification. The candidate passes only if:
 
 * At least two of the three predefined inserted-collision families (registered
-  matvec, original convolution, original attention) improve median first
+  matvec, original convolution, full-query attention) improve median first
   certified diagnostic by at least20 percent **and** at least5ms. All five
   observations must retain the exact expected finding; an unqualified primary
   does not count as a win and cannot be replaced.

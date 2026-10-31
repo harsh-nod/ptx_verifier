@@ -115,6 +115,7 @@ def full_gemm(case, definition):
     case.pop("launch_config_sha256", None)
     case["primary_latency"] = definition["primary"]
     case["new_contract"] = True
+    case["contract_kind"] = "gemm_full_inputs"
     collision = {
         "source_batch": 133,
         "executed_instructions": 4225,
@@ -125,6 +126,71 @@ def full_gemm(case, definition):
     }
     if case.get("expectation") == "hazard":
         case["source_ground_truth_first_collision"] = collision
+    return case
+
+
+def full_attention(case, definition):
+    """Full physical query inputs, unchanged selected-workgroup equations."""
+    case = copy.deepcopy(case)
+    selected = selection()["new_attention"]
+    original_spec = ROOT / selected["template_spec"]
+    original_launch = ROOT / selected["template_launch"]
+    spec, launch = ROOT / selected["spec"], ROOT / selected["launch"]
+    text = original_spec.read_bytes()
+    require(text.count(b"array q[Q,D];") == 1, "attention spec template changed")
+    require(
+        spec.read_bytes() == text.replace(b"array q[Q,D];", b"array q[T,D];"),
+        "attention equations changed",
+    )
+    require(
+        sha(spec) == selected["spec_sha256"]
+        and sha(launch) == selected["launch_sha256"],
+        "derived attention input changed",
+    )
+    expected = json.loads(original_launch.read_text())
+    observed = json.loads(launch.read_text())
+    for array in expected["arrays"]:
+        array["base"] = selected["array_bases"][array["name"]]
+        if array["name"] == "q":
+            array["len"] = 65536
+    expected["description"] = observed["description"]
+    require(
+        expected == observed, "attention launch changed beyond declared allocations"
+    )
+    case.update(
+        id=definition["id"],
+        primary_latency=definition["primary"],
+        new_contract=True,
+        contract_kind="attention_full_query",
+        spec_template=selected["template_spec"],
+        spec_template_sha256=sha(original_spec),
+        launch_template=selected["template_launch"],
+        launch_template_sha256=sha(original_launch),
+        spec=selected["spec"],
+        spec_sha256=sha(spec),
+        launch_config=selected["launch"],
+        launch_config_sha256=sha(launch),
+    )
+    case["original_shape"].update(query_rows=1024, selected_query_rows=128)
+    case["logical_full_grid_output_elements"] = selected[
+        "logical_full_grid_output_elements"
+    ]
+    case["configured_selected_output_elements"] = selected[
+        "configured_selected_output_elements"
+    ]
+    for array in case["arrays"]:
+        array["base_address"] = selected["array_bases"][array["name"]]
+        if array["name"] == "q":
+            array["length"] = 65536
+    if case["expectation"] == "hazard":
+        case["source_ground_truth_first_collision"] = {
+            "source_batch": 82,
+            "executed_instructions": 325,
+            "wave": 0,
+            "physical_threads": [0, 1],
+            "space": "Shared",
+            "byte_address": 0,
+        }
     return case
 
 
@@ -197,9 +263,16 @@ def prepare(args):
         source_case = cases[definition.get("template_case", definition["id"])]
         workload = workloads[source_case["workload"]]
         case = study.expanded_case(workload, source_case)
-        if definition.get("new_contract"):
+        if definition.get("contract_kind") == "attention_full_query":
+            case = full_attention(case, definition)
+        elif definition.get("contract_kind") == "gemm_full_inputs":
             case = full_gemm(case, definition)
         else:
+            require(
+                not definition.get("new_contract")
+                and definition.get("contract_kind") is None,
+                "unknown derived contract",
+            )
             require(
                 case == old[case["id"]]["case"], "existing selected contract changed"
             )
@@ -230,15 +303,42 @@ def prepare(args):
         if case.get("launch_config"):
             path = ROOT / case["launch_config"]
             frozen[str(path)] = sha(path)
+        for key in ("spec_template", "launch_template"):
+            if key in case:
+                path = ROOT / case[key]
+                frozen[str(path)] = sha(path)
+        template_id = definition.get("template_case", case["id"])
+        expected_reference = (
+            copy.deepcopy(old[template_id]["expected"]) if template_id in old else None
+        )
+        if (
+            definition.get("contract_kind") == "attention_full_query"
+            and case["expectation"] == "hazard"
+        ):
+            old_stdout = (
+                Path(old[template_id]["reference_configuration"]["path"]).parent
+                / "stdout"
+            )
+            require(
+                sha(old_stdout) == archived["input_sha256"][str(old_stdout)],
+                "archived attention stdout changed",
+            )
+            archived_frames = [
+                list(map(int, frame)) for frame in FRAME.findall(old_stdout.read_text())
+            ]
+            require(
+                archived_frames == [[804, 805, 0, 0, 1]],
+                "archived attention physical frame changed",
+            )
+            expected_reference["certificate_frame"] = archived_frames[0]
+            frozen[str(old_stdout)] = sha(old_stdout)
         rows.append(
             {
                 "definition": definition,
                 "case": case,
                 "assembly": str(assembly),
                 "configuration": str(config),
-                "expected_reference": old[case["id"]]["expected"]
-                if case["id"] in old
-                else None,
+                "expected_reference": expected_reference,
             }
         )
     for path in [
@@ -459,7 +559,8 @@ def observe(record, row, stdout, stderr, reference=None, *, verify=False):
         errors.append("missing or invalid resources")
     witness = [list(x) for x in study.WITNESS.findall(stdout)]
     frames = [list(map(int, x)) for x in FRAME.findall(stdout)]
-    counts = re.findall(r"^  time: [\d.]+s\s+instructions: (\d+)\b", stdout, re.M)
+    count_header = r"^Exec: " if verify else r"^  time: "
+    counts = re.findall(count_header + r"[\d.]+s\s+instructions: (\d+)\b", stdout, re.M)
     prefixes = re.findall(
         r"^  prefix: instructions=(\d+) amd_records=(\d+) graph_events=(\d+)$",
         stdout,
@@ -547,7 +648,7 @@ def observe(record, row, stdout, stderr, reference=None, *, verify=False):
             and all(0 <= int(e) < signature["prefix_counts"][2] for e in witness[0][2:])
         ):
             errors.append(
-                "new GEMM witness differs from frozen source-ground-truth address/batch/frame"
+                "new contract witness differs from frozen source-ground-truth address/batch/frame"
             )
     if reference:
         keys = ["first_typed_witness", "executed_instructions", "prefix_counts"]

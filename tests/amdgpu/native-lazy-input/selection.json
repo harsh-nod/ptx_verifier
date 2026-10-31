@@ -129,14 +129,17 @@
       "previous_complete_equation_proved": null
     },
     {
-      "id": "memory-wide-gfx1250-flash_attention_original-inserted-collision",
+      "id": "memory-wide-gfx1250-flash_attention_original-full-query-inserted-collision",
       "expectation": "hazard",
       "primary": true,
       "target": "gfx1250",
-      "input_elements": 139264,
-      "input_bytes": 278528,
+      "input_elements": 196608,
+      "input_bytes": 393216,
       "expected_outputs": 8320,
-      "previous_complete_equation_proved": null
+      "previous_complete_equation_proved": null,
+      "template_case": "memory-wide-gfx1250-flash_attention_original-inserted-collision",
+      "new_contract": true,
+      "contract_kind": "attention_full_query"
     },
     {
       "id": "memory-gfx950-elementwise-safe",
@@ -259,14 +262,17 @@
       "previous_complete_equation_proved": false
     },
     {
-      "id": "memory-wide-gfx1250-flash_attention_original-safe",
+      "id": "memory-wide-gfx1250-flash_attention_original-full-query-safe",
       "expectation": "safe",
       "primary": false,
       "target": "gfx1250",
-      "input_elements": 139264,
-      "input_bytes": 278528,
+      "input_elements": 196608,
+      "input_bytes": 393216,
       "expected_outputs": 8320,
-      "previous_complete_equation_proved": false
+      "previous_complete_equation_proved": false,
+      "template_case": "memory-wide-gfx1250-flash_attention_original-safe",
+      "new_contract": true,
+      "contract_kind": "attention_full_query"
     },
     {
       "id": "memory-wide-gfx1250-gemm_f16-full-input-inserted-collision",
@@ -278,7 +284,8 @@
       "input_bytes": 67108864,
       "expected_outputs": 65536,
       "previous_complete_equation_proved": null,
-      "new_contract": true
+      "new_contract": true,
+      "contract_kind": "gemm_full_inputs"
     },
     {
       "id": "memory-wide-gfx1250-gemm_f16-full-input-safe",
@@ -290,7 +297,8 @@
       "input_bytes": 67108864,
       "expected_outputs": 65536,
       "previous_complete_equation_proved": false,
-      "new_contract": true
+      "new_contract": true,
+      "contract_kind": "gemm_full_inputs"
     }
   ],
   "gates": {
@@ -360,6 +368,7 @@
     "log_budget_bytes": 134217728
   },
   "exclusions": [
+    "historical attention selected-query input prefix pair",
     "transpose cases",
     "unsupported tails",
     "natural wide address replacements",
@@ -372,5 +381,86 @@
     "Registered matvec A is32by4096; no larger host extent is established.",
     "Selected workgroup only; no full-grid proof.",
     "Five observations support descriptive point gates only; no p95/CI/phase attribution."
-  ]
+  ],
+  "new_attention": {
+    "template_launch": "tests/gfx1250/full/launch/flash_attention_original.json",
+    "template_spec": "tests/gfx1250/full/specs/flash_attention_original.spec",
+    "launch": "tests/amdgpu/native-lazy-input/launch/flash_attention_full_query.json",
+    "spec": "tests/amdgpu/native-lazy-input/specs/flash_attention_full_query.spec",
+    "launch_sha256": "86b54c0036f37db447c973f55a7406daab5da6869c0f1a30404f4bec8423a268",
+    "spec_sha256": "f1d22e4e67e20ddf06382d1e9de3822047b4d0bad486c3efdd3431f48b25d283",
+    "dimensions": {
+      "Q": 128,
+      "T": 1024,
+      "D": 64
+    },
+    "block": [
+      128,
+      1,
+      1
+    ],
+    "grid": [
+      16,
+      1,
+      1
+    ],
+    "workgroup": [
+      0,
+      0,
+      0
+    ],
+    "input_length_each": 65536,
+    "input_arrays": [
+      "q",
+      "k",
+      "v"
+    ],
+    "logical_full_grid_output_elements": {
+      "out": 65536,
+      "lse": 1024
+    },
+    "configured_selected_output_elements": {
+      "out": 8192,
+      "lse": 128
+    },
+    "array_bases": {
+      "q": 268435456,
+      "k": 536870912,
+      "v": 805306368,
+      "out": 1073741824,
+      "lse": 1342177280
+    },
+    "spec_change_only": "array q[Q,D]; -> array q[T,D]; equations, output domains and dimensions unchanged.",
+    "logical_full_grid_output_bytes": {
+      "out": 131072,
+      "lse": 4096
+    },
+    "configured_selected_output_bytes": {
+      "out": 16384,
+      "lse": 512
+    },
+    "archived_template_collision": {
+      "executed_instructions": 325,
+      "prefix_counts": [
+        325,
+        378,
+        838
+      ],
+      "first_typed_witness": [
+        [
+          "Shared",
+          "0",
+          "806",
+          "807"
+        ]
+      ],
+      "certificate_frame": [
+        804,
+        805,
+        0,
+        0,
+        1
+      ]
+    }
+  }
 }
