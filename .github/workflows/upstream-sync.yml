@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  rebase:
+  sync:
     if: github.repository == 'harsh-nod/ptx_verifier'
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -35,7 +35,7 @@ jobs:
           rustup toolchain install stable --profile minimal --component rustfmt --component clippy
           rustup default stable
           python3 "$GITHUB_WORKSPACE/source/scripts/test_sync_upstream.py"
-      - name: Rebase and check an isolated candidate
+      - name: Merge and check an isolated candidate
         run: |
           python3 "$GITHUB_WORKSPACE/source/scripts/sync_upstream.py" \
             --repo "$GITHUB_WORKSPACE/source" \

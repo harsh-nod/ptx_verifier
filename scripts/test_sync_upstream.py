@@ -1,4 +1,4 @@
-"""Temporary Git histories exercise the actual rebase and refusal boundaries."""
+"""Temporary Git histories exercise isolated merges and refusal boundaries."""
 
 import importlib.util
 from pathlib import Path
@@ -56,18 +56,69 @@ class SyncTests(unittest.TestCase):
         self.assertEqual(result["status"], "up_to_date")
         self.assertFalse(path.exists())
 
-    def test_rebase_retains_both_trees_and_leaves_checkout_and_dirty_files_alone(self):
+    def test_merge_retains_both_histories_and_leaves_checkout_and_dirty_files_alone(
+        self,
+    ):
         self.diverge()
         before = self.git("rev-parse", "main")
         (self.repo / "common").write_text("uncommitted user work\n")
         path = self.root / "worktree"
         result = sync.prepare(self.repo, path, "main", "upstream")
-        self.assertEqual(result["status"], "rebased")
+        self.assertEqual(result["status"], "merged")
+        self.assertTrue(sync.ancestor(path, before, "HEAD"))
         self.assertTrue(sync.ancestor(path, result["upstream"], "HEAD"))
         self.assertEqual((path / "fork-only").read_text(), "fork\n")
         self.assertEqual((path / "upstream-only").read_text(), "upstream\n")
         self.assertEqual(self.git("rev-parse", "main"), before)
         self.assertEqual((self.repo / "common").read_text(), "uncommitted user work\n")
+
+    def test_previous_resolved_upstream_merge_and_published_history_are_preserved(self):
+        self.git("config", "rerere.enabled", "false")
+        self.diverge(conflict=True)
+        fork = self.git("rev-parse", "HEAD")
+        first_upstream = self.git("rev-parse", "upstream")
+        merge = sync.git(self.repo, "merge", "--no-ff", "upstream", check=False)
+        self.assertNotEqual(merge.returncode, 0)
+        (self.repo / "common").write_text("reviewed combined resolution\n")
+        self.git("add", "common")
+        self.git("commit", "-m", "resolve the first upstream integration")
+        self.commit("published-contract", "immutable source identity\n")
+        before = self.git("rev-parse", "HEAD")
+        self.git("checkout", "upstream")
+        self.commit("new-frontend", "new upstream parser\n")
+        upstream = self.git("rev-parse", "HEAD")
+        self.git("checkout", "main")
+
+        replay = self.root / "historical-replay"
+        self.git("worktree", "add", "--detach", str(replay), before)
+        failed = sync.git(
+            replay,
+            "-c",
+            "core.editor=true",
+            "rebase",
+            "--rebase-merges",
+            upstream,
+            check=False,
+        )
+        self.assertNotEqual(failed.returncode, 0)
+        self.assertEqual(
+            sync.git(replay, "diff", "--name-only", "--diff-filter=U").stdout.strip(),
+            "common",
+        )
+
+        path = self.root / "worktree"
+        result = sync.prepare(self.repo, path, "main", "upstream")
+        self.assertEqual(result["status"], "merged")
+        for commit in (before, fork, first_upstream, upstream):
+            self.assertTrue(sync.ancestor(path, commit, "HEAD"))
+        self.assertEqual(
+            (path / "common").read_text(), "reviewed combined resolution\n"
+        )
+        self.assertEqual(
+            (path / "published-contract").read_text(), "immutable source identity\n"
+        )
+        self.assertEqual(result["changed_files"], ["new-frontend"])
+        self.assertEqual(self.git("rev-parse", "main"), before)
 
     def test_conflicts_stay_unresolved_and_cannot_publish(self):
         self.diverge(conflict=True)
@@ -176,7 +227,7 @@ class SyncTests(unittest.TestCase):
                 "commit",
                 "--amend",
                 "-m",
-                "new rebase identity with identical source",
+                "new merge identity with identical source",
             )
             prepared = {**report, "candidate": sync.oid(path, "HEAD")}
             self.assertNotEqual(prepared["candidate"], pushed)
@@ -217,6 +268,24 @@ class SyncTests(unittest.TestCase):
             ],
             report["base"],
         )
+
+    def test_matching_published_tree_cannot_drop_the_existing_fork_history(self):
+        self.diverge()
+        self.remote()
+        path = self.root / "worktree"
+        report = sync.prepare(self.repo, path, "main", "upstream")
+        tree = sync.git(path, "rev-parse", "HEAD^{tree}").stdout.strip()
+        without_fork = self.git(
+            "commit-tree",
+            tree,
+            "-p",
+            report["upstream"],
+            "-m",
+            "same source, lost fork history",
+        )
+        self.git("push", "origin", f"{without_fork}:refs/heads/{report['branch']}")
+        with self.assertRaisesRegex(ValueError, "differs"):
+            sync.reuse_published_head(self.repo, path, report)
 
 
 if __name__ == "__main__":

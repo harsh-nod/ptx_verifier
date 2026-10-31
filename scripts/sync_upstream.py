@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare and check an isolated upstream rebase; optionally open a fork draft PR."""
+"""Merge upstream in isolation, check the result and optionally open a fork draft PR."""
 
 import argparse
 import json
@@ -59,13 +59,13 @@ def ancestor(repo, older, newer):
 def prepare(repo, worktree, base, upstream):
     """Never change the caller's checkout or resolve a conflict automatically."""
     base_sha, upstream_sha = oid(repo, base), oid(repo, upstream)
-    result = {"base": base_sha, "upstream": upstream_sha}
+    result = {"base": base_sha, "upstream": upstream_sha, "strategy": "merge"}
     if ancestor(repo, upstream_sha, base_sha):
         return {**result, "status": "up_to_date"}
     if worktree.exists():
-        raise ValueError("rebase worktree must be a new path")
+        raise ValueError("integration worktree must be a new path")
     git(repo, "worktree", "add", "--detach", str(worktree), base_sha)
-    rebased = git(
+    merged = git(
         worktree,
         "-c",
         "core.editor=true",
@@ -73,28 +73,29 @@ def prepare(repo, worktree, base, upstream):
         "user.name=Upstream sync",
         "-c",
         "user.email=upstream-sync@users.noreply.github.com",
-        "rebase",
-        "--rebase-merges",
+        "merge",
+        "--no-ff",
+        "--no-edit",
         upstream_sha,
         check=False,
     )
-    if rebased.returncode:
+    if merged.returncode:
         conflicts = git(
             worktree, "diff", "--name-only", "--diff-filter=U"
         ).stdout.splitlines()
         return {
             **result,
-            "status": "conflict" if conflicts else "rebase_failed",
+            "status": "conflict" if conflicts else "merge_failed",
             "conflicts": conflicts,
-            "diagnostic": rebased.stderr[-12000:],
+            "diagnostic": (merged.stdout + merged.stderr)[-12000:],
         }
-    if not ancestor(worktree, upstream_sha, "HEAD"):
+    if not all(ancestor(worktree, ref, "HEAD") for ref in (base_sha, upstream_sha)):
         raise RuntimeError(
-            "completed rebase does not contain the requested upstream revision"
+            "completed merge does not preserve both fork and upstream ancestry"
         )
     return {
         **result,
-        "status": "rebased",
+        "status": "merged",
         "candidate": oid(worktree, "HEAD"),
         "branch": f"sync/upstream-{upstream_sha[:12]}-{base_sha[:12]}",
         "changed_files": git(
@@ -105,8 +106,8 @@ def prepare(repo, worktree, base, upstream):
 
 def reuse_published_head(repo, worktree, report):
     """Recover a push whose PR creation failed, before testing the exact head."""
-    if report["status"] != "rebased":
-        raise ValueError("only a fresh rebase can recover a published branch")
+    if report["status"] != "merged":
+        raise ValueError("only a fresh merge can recover a published branch")
     remote_ref = f"refs/heads/{report['branch']}"
     if not git(repo, "ls-remote", "origin", remote_ref).stdout.strip():
         return report
@@ -114,18 +115,20 @@ def reuse_published_head(repo, worktree, report):
     existing = oid(repo, "FETCH_HEAD")
     expected_tree = git(worktree, "rev-parse", report["candidate"] + "^{tree}").stdout
     actual_tree = git(repo, "rev-parse", existing + "^{tree}").stdout
-    if actual_tree != expected_tree or not ancestor(repo, report["upstream"], existing):
+    if actual_tree != expected_tree or not all(
+        ancestor(repo, ref, existing) for ref in (report["base"], report["upstream"])
+    ):
         raise ValueError(
             "existing sync branch differs from the prepared source/upstream"
         )
     if git(worktree, "status", "--porcelain", "--untracked-files=no").stdout.strip():
-        raise ValueError("rebase worktree changed before published-head recovery")
+        raise ValueError("integration worktree changed before published-head recovery")
     git(worktree, "checkout", "--detach", existing)
     return {**report, "candidate": existing, "reused_published_head": True}
 
 
 def validate(worktree, report, log_dir, checks=CHECKS):
-    """A rebase alone never marks its checks passed."""
+    """A merge alone never marks its checks passed."""
     results = []
     for number, check in enumerate(checks):
         log_path = log_dir / f"check-{number}.log"
@@ -149,7 +152,7 @@ def validate(worktree, report, log_dir, checks=CHECKS):
 def publish(repo, worktree, report, output):
     """Only publish a checked candidate, and only to this fork's draft queue."""
     if report["status"] != "checked":
-        raise ValueError("only checked rebases may be published")
+        raise ValueError("only checked integrations may be published")
     remote_base = git(repo, "ls-remote", "origin", "refs/heads/main").stdout.split()
     if not remote_base or remote_base[0] != report["base"]:
         return {**report, "status": "base_changed"}
@@ -173,8 +176,8 @@ def publish(repo, worktree, report, output):
     git(worktree, "push", "origin", f"HEAD:refs/heads/{branch}")
     body = output / "pull-request.md"
     body.write_text(
-        f"Rebase the fork's `{report['base']}` onto upstream `{report['upstream']}` "
-        "while preserving merge structure. No conflicts were resolved automatically.\n\n"
+        f"Merge upstream `{report['upstream']}` into the fork's `{report['base']}`, "
+        "preserving both histories. No conflicts were resolved automatically.\n\n"
         "Validation completed before publication:\n\n"
         + "\n".join("- `" + " ".join(row["argv"]) + "`" for row in report["checks"])
         + "\n\nReview the combined change and any backend contract differences before merging.\n"
@@ -192,7 +195,7 @@ def publish(repo, worktree, report, output):
         branch,
         "--draft",
         "--title",
-        f"Rebase onto upstream {report['upstream'][:12]}",
+        f"Merge upstream {report['upstream'][:12]}",
         "--body-file",
         str(body),
     )
@@ -208,7 +211,7 @@ def main():
         "--output",
         type=Path,
         required=True,
-        help="New directory for the rebase and logs",
+        help="New directory for the isolated merge and logs",
     )
     parser.add_argument(
         "--publish", action="store_true", help="Open a checked draft PR in the fork"
@@ -236,7 +239,7 @@ def main():
         git(repo, "fetch", "upstream", "master")
         worktree = output / "worktree"
         report = prepare(repo, worktree, "origin/main", "upstream/master")
-        if report["status"] == "rebased":
+        if report["status"] == "merged":
             if args.publish:
                 report = reuse_published_head(repo, worktree, report)
             report = validate(worktree, report, output)
