@@ -110,15 +110,22 @@ contains source-level object boundaries.
 Opt-in certified memory-conflict rejection detects **20/20 core seeded hazardous
 configurations**, compared with **13/20** for this fork's frozen full-trace
 baseline. The 40-configuration development study preserves complete compiler
-modules and original launches/output contracts, with explicit seeded store
-mutations for hazardous cases. Three predeclared inserted-store primaries
+modules and frozen selected-workgroup launch/output contracts, with explicit
+seeded store mutations for hazardous cases. Three predeclared inserted-store primaries
 have these parent-observed first-diagnostic medians on CPU:
 
-| Original configuration | Full trace | Certified prefix | Speedup |
+| Measured configuration | Full trace | Certified prefix | Speedup |
 | --- | ---: | ---: | ---: |
-| F16 matvec, K=4096 | 1.091 s | 49.18 ms | 22.2× |
+| F16 matvec, 32 rows, K=4096 | 1.091 s | 49.18 ms | 22.2× |
 | F16 convolution, K=576 | 8.526 s | 83.86 ms | 101.7× |
-| F16 attention, 1024 keys | 11.095 s | 48.68 ms | 227.9× |
+| F16 attention, 128 query rows, 1024 keys | 11.095 s | 48.68 ms | 227.9× |
+
+The [historical attention launch](tests/gfx1250/full/launch/flash_attention_original.json)
+allocates 128 query rows; its full 16-CTA grid would need 1024. The
+[historical GEMM launch](tests/gfx1250/full/launch/gemm_f16_full.json) allocates
+256 A rows out of 4096. Those two cases do not establish timings with complete
+host input allocations. All measurements cover one selected workgroup. Their
+modules, datasets and published results remain unchanged.
 
 Each comparison uses 31 paired fresh-process repeats and a separate first run;
 all three descriptive 95% bootstrap ratio intervals are below 1. The fourth
