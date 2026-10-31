@@ -21,6 +21,9 @@ under ordinary and optimized Python. Validation also refuses a
 changed source tree or commit. A changed remote base defers publication. With
 `--publish`, a passing candidate opens a draft PR in this fork for review. It
 never writes upstream, approves a PR, merges it or force-pushes `main`.
+Publication rechecks the source and remote base, then pushes the exact tested
+commit. A checked follow-up may advance the same draft branch by fast-forward.
+Land reviewed PRs with a merge commit so original upstream ancestry stays intact.
 If an earlier branch push succeeded but PR creation failed, retry requires the
 same complete source tree and both fork/upstream ancestry, then reruns checks on that
 exact published head before creating the PR.

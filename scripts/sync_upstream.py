@@ -56,6 +56,20 @@ def ancestor(repo, older, newer):
     return result.returncode == 0
 
 
+def candidate_unchanged(worktree, report):
+    return (
+        oid(worktree, "HEAD") == report["candidate"]
+        and not git(
+            worktree, "status", "--porcelain", "--untracked-files=no"
+        ).stdout.strip()
+    )
+
+
+def remote_base_matches(repo, report):
+    remote = git(repo, "ls-remote", "origin", "refs/heads/main").stdout.split()
+    return bool(remote) and remote[0] == report["base"]
+
+
 def prepare(repo, worktree, base, upstream):
     """Never change the caller's checkout or resolve a conflict automatically."""
     base_sha, upstream_sha = oid(repo, base), oid(repo, upstream)
@@ -141,10 +155,7 @@ def validate(worktree, report, log_dir, checks=CHECKS):
         )
         if run.returncode:
             return {**report, "status": "checks_failed", "checks": results}
-    if (
-        oid(worktree, "HEAD") != report["candidate"]
-        or git(worktree, "status", "--porcelain", "--untracked-files=no").stdout.strip()
-    ):
+    if not candidate_unchanged(worktree, report):
         return {**report, "status": "checks_modified_source", "checks": results}
     return {**report, "status": "checked", "checks": results}
 
@@ -153,8 +164,9 @@ def publish(repo, worktree, report, output):
     """Only publish a checked candidate, and only to this fork's draft queue."""
     if report["status"] != "checked":
         raise ValueError("only checked integrations may be published")
-    remote_base = git(repo, "ls-remote", "origin", "refs/heads/main").stdout.split()
-    if not remote_base or remote_base[0] != report["base"]:
+    if not candidate_unchanged(worktree, report):
+        raise ValueError("checked candidate changed before publication")
+    if not remote_base_matches(repo, report):
         return {**report, "status": "base_changed"}
     branch = report["branch"]
     existing = command(
@@ -171,9 +183,13 @@ def publish(repo, worktree, report, output):
         "--json",
         "url,state",
     ).stdout
+    if not candidate_unchanged(worktree, report):
+        raise ValueError("checked candidate changed before publication")
+    if not remote_base_matches(repo, report):
+        return {**report, "status": "base_changed"}
+    git(worktree, "push", "origin", f"{report['candidate']}:refs/heads/{branch}")
     if rows := json.loads(existing):
         return {**report, "status": "existing_pr", "pull_request": rows[0]}
-    git(worktree, "push", "origin", f"HEAD:refs/heads/{branch}")
     body = output / "pull-request.md"
     body.write_text(
         f"Merge upstream `{report['upstream']}` into the fork's `{report['base']}`, "
