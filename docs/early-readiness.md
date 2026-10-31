@@ -10,6 +10,12 @@ readiness finding. It changes when a rejection becomes available. It supplies
 no acceptance evidence and does not establish the safety or output values of an
 unexecuted suffix. Ordinary execution remains the default.
 
+Enable it for native gfx1250 source execution with `--early-readiness`, or set
+`"early_readiness": true` inside a JSON launch configuration. Use the JSON field
+when passing `--config`; launch flags cannot override that file. Rust and Python
+configuration objects expose the same `early_readiness` option, defaulting to
+false. Other targets and expression-only replay reject the CLI option.
+
 ## Supported finding
 
 The observer currently handles gfx1250 `ScalarLoad` destinations and
@@ -68,6 +74,13 @@ The integration layer must revalidate the halted graph before exposing a typed
 certified rejection. The graph remains an aborted prefix: no `END`, completed
 trace, symbolic output set or equivalence result is fabricated. Ordinary graph
 serialization carries no trusted early-acceptance marker.
+
+The CLI emits `EARLY_READINESS: CERTIFIED_REJECTION` only for the pipeline's
+validated result, followed by the scalar-read witness and `VERDICT: REJECT`.
+Python raises `EarlyReadinessError`, a `DataRaceError` subclass, without output
+expressions. Its fields identify the issue/use events, wave, register file/index,
+instruction count and prefix record/event counts. These diagnostic fields do
+not certify full-trace completion or mathematical equivalence.
 
 ## Trust and diagnostic scope
 
