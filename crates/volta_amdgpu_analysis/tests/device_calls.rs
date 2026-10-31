@@ -170,6 +170,15 @@ fn callee_changes_to_exec_and_flags_remain_visible_to_the_caller() {
     );
     // Code words cannot enter integer compares, even when EXEC is empty.
     assert!(run(&empty, 1).symbolic_outputs().is_err());
+    let empty = module(
+        &("s_mov_b64 exec,0\n".to_string()
+            + &call("leaf", 0, 30)
+            + "s_mov_b64 exec,1\nv_mov_b32 v1,s4\n"
+            + store()),
+        &body("leaf", "s_mov_b32 s4,7\ns_setpc_b64 s[30:31]"),
+    );
+    // Both scalar transfers and the callee's scalar write execute under EXEC=0.
+    values(&run(&empty, 1), 7., 1);
 }
 
 #[test]
@@ -213,6 +222,31 @@ fn scalar_load_readiness_is_shared_across_call_and_return_without_implicit_wait(
     ));
     let good = src.replace("v_mov_b32 v1,s4", "s_waitcnt lgkmcnt(0)\nv_mov_b32 v1,s4");
     let good = analyze(&frontend::parse(&good).unwrap(), Some("k"), cfg).unwrap();
+    values(&good, 0., 1);
+    assert_eq!(
+        check_graph(good.graph()).conclusion(),
+        GraphConclusion::Verified
+    );
+    let helper = body("leaf", &(prologue.to_owned() + "s_setpc_b64 s[30:31]"));
+    let source = module(
+        &(call("leaf", 0, 30) + "v_mov_b32 v1,s4\n" + store()),
+        &helper,
+    );
+    let mut cfg = config(1);
+    cfg.arrays.push(ArrayDef {
+        name: "x".into(),
+        base: 0x20000,
+        elem_width: 4,
+        len: 1,
+        kind: ArrayKind::IndexInput,
+    });
+    let bad = analyze(&frontend::parse(&source).unwrap(), Some("k"), cfg.clone()).unwrap();
+    assert!(matches!(
+        check_graph(bad.graph()).conclusion(),
+        GraphConclusion::Rejected { .. }
+    ));
+    let waited = source.replace("v_mov_b32 v1,s4", "s_waitcnt lgkmcnt(0)\nv_mov_b32 v1,s4");
+    let good = analyze(&frontend::parse(&waited).unwrap(), Some("k"), cfg).unwrap();
     values(&good, 0., 1);
     assert_eq!(
         check_graph(good.graph()).conclusion(),
