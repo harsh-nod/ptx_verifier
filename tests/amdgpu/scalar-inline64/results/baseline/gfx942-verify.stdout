@@ -1,0 +1,27 @@
+instruction profile:
+  vector ALU                5  ( 41.7%)
+  vector memory             2  ( 16.7%)
+  wait                      2  ( 16.7%)
+  control                   1  (  8.3%)
+  scalar ALU                1  (  8.3%)
+  scalar memory             1  (  8.3%)
+Exec: 0.000s  instructions: 12  block syncs: 0  warp syncs: 0
+kernel: graph verification
+  selected workgroup: (0, 0, 0); other workgroups and inter-workgroup conflicts are outside this result
+  AMD trace completeness (native AMD graph contract)      PASS
+  AMD wait and register readiness (target-selected counters and register dependencies) PASS
+  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS
+  AMD memory-conflict freedom (AMD completed-effect happens-before) PASS
+VC check: 0.000s (decision procedure 0.000s)  elements: 2
+NOT EQUIVALENT: 2 mismatched element(s) vs spec
+  out[0]
+  out[1]
+VERDICT: REJECT
+  equivalence: 2 element(s) refuted by a numeric counterexample, first out[0]
+  under the assumptions:
+    - the analyzed AMD execution has XNACK memory replay disabled; replay-enabled executions are outside this result
+    - only the selected AMD workgroup is analyzed; other workgroups and inter-workgroup conflicts are outside this result
+    - all waves of the analyzed AMD workgroup share one CU; threadgroup splitting is disabled
+    - arithmetic is modeled over mathematical reals, not bit-exact floating-point
+    - addresses, branch conditions and synchronization parameters are concrete
+    - asynchronous operations compute their data at issue; only completion is asynchronous

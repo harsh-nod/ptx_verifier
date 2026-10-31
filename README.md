@@ -109,6 +109,11 @@ wait-repair control passes all graph checks with identical expressions for all
 256 outputs. The [complete functional comparison](tests/amdgpu/native-async-copy/README.md)
 includes the original module, full launch contracts, repair diff and replay script.
 
+The [scalar-inline controls](tests/amdgpu/scalar-inline64/README.md) check complete
+64-bit constant encodings on all three AMD targets. Their baseline and corrected
+output records show why passing graph checks alone does not establish numerical
+correctness.
+
 ## Measured time to a safety finding
 
 ### Native AMD input materialization

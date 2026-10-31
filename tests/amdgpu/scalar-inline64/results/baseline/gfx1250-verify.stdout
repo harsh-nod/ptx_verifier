@@ -1,0 +1,27 @@
+instruction profile:
+  vector ALU                5  ( 38.5%)
+  wait                      3  ( 23.1%)
+  vector memory             2  ( 15.4%)
+  control                   1  (  7.7%)
+  scalar ALU                1  (  7.7%)
+  scalar memory             1  (  7.7%)
+Exec: 0.000s  instructions: 13  block syncs: 0  warp syncs: 0
+kernel: graph verification
+  selected workgroup: (0, 0, 0); other workgroups and inter-workgroup conflicts are outside this result
+  AMD trace completeness (native AMD graph contract)      PASS
+  AMD wait and register readiness (target-selected counters and register dependencies) PASS
+  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS
+  AMD memory-conflict freedom (AMD completed-effect happens-before) PASS
+VC check: 0.000s (decision procedure 0.000s)  elements: 2
+NOT EQUIVALENT: 2 mismatched element(s) vs spec
+  out[0]
+  out[1]
+VERDICT: REJECT
+  equivalence: 2 element(s) refuted by a numeric counterexample, first out[0]
+  under the assumptions:
+    - only the selected AMD workgroup is analyzed; other workgroups and inter-workgroup conflicts are outside this result
+    - workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result
+    - arithmetic is modeled over mathematical reals, not bit-exact floating-point
+    - addresses, branch conditions and synchronization parameters are concrete
+    - asynchronous operations compute their data at issue; only completion is asynchronous
+    - native LDS extent is the descriptor's static allocation plus configured dynamic bytes

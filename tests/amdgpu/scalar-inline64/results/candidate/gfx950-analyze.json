@@ -1,0 +1,24 @@
+{
+  "command": [
+    "{binary}",
+    "analyze",
+    "{repo}/crates/volta_amdgpu_analysis/tests/fixtures/scalar-inline64/gfx950.s",
+    "--config",
+    "{repo}/crates/volta_amdgpu_analysis/tests/fixtures/scalar-inline64/gfx950.launch.json",
+    "--backend",
+    "amdgpu",
+    "--target",
+    "gfx950",
+    "--no-log-file",
+    "--print-outputs",
+    "2",
+    "--dump-graph",
+    "gfx950.graph",
+    "--emit-exprs",
+    "gfx950.vexpr"
+  ],
+  "returncode": 0,
+  "timed_out": false,
+  "stdout_sha256": "99a921de9b74c6b028a73b28bffd1fb90674635ed2f1593f4a24c222b52294ef",
+  "stderr_sha256": "4c05541943cba81909bf142b20c1d567475547c23a150772f2563a924ee5066b"
+}

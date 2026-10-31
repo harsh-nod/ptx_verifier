@@ -1,0 +1,24 @@
+{
+  "command": [
+    "{binary}",
+    "analyze",
+    "{repo}/crates/volta_amdgpu_analysis/tests/fixtures/scalar-inline64/gfx942.s",
+    "--config",
+    "{repo}/crates/volta_amdgpu_analysis/tests/fixtures/scalar-inline64/gfx942.launch.json",
+    "--backend",
+    "amdgpu",
+    "--target",
+    "gfx942",
+    "--no-log-file",
+    "--print-outputs",
+    "2",
+    "--dump-graph",
+    "gfx942.graph",
+    "--emit-exprs",
+    "gfx942.vexpr"
+  ],
+  "returncode": 0,
+  "timed_out": false,
+  "stdout_sha256": "d56eb6694e3624d5305716f6409f89ce572cfe58d96bbcc47af21daf8c11e438",
+  "stderr_sha256": "96ea6fddaaf5ab611ff8a13e6cf6dddd2e7f90cfcf6b473228f94858c2151284"
+}

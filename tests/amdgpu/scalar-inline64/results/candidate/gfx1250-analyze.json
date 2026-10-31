@@ -1,0 +1,24 @@
+{
+  "command": [
+    "{binary}",
+    "analyze",
+    "{repo}/crates/volta_amdgpu_analysis/tests/fixtures/scalar-inline64/gfx1250.s",
+    "--config",
+    "{repo}/crates/volta_amdgpu_analysis/tests/fixtures/scalar-inline64/gfx1250.launch.json",
+    "--backend",
+    "amdgpu",
+    "--target",
+    "gfx1250",
+    "--no-log-file",
+    "--print-outputs",
+    "2",
+    "--dump-graph",
+    "gfx1250.graph",
+    "--emit-exprs",
+    "gfx1250.vexpr"
+  ],
+  "returncode": 0,
+  "timed_out": false,
+  "stdout_sha256": "969c8f0bc6f13747c3218cfb4d46352ce35082ddc0421c7b27d602b265583b3c",
+  "stderr_sha256": "bf63b83650c3dc7463092117e2e0dd4ede037ff592be24e93677c40addc3f946"
+}
