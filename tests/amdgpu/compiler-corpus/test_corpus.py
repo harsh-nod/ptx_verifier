@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from corpus import classify, expression_indices, load_manifest, MANIFEST, ROOT
+from corpus import classify, compiler_status, expression_indices, load_manifest, MANIFEST, ROOT
 
 
 class CorpusTests(unittest.TestCase):
@@ -41,6 +41,13 @@ class CorpusTests(unittest.TestCase):
         for code in (0, 1, 2):
             self.assertEqual(classify(code, stdout, 'unsupported AMD instruction `new_opcode`')[0],
                              'unsupported')
+
+    def test_compiler_crashes_are_not_instruction_coverage_rejections(self):
+        for code in (-11, -9, 134, 137, 139):
+            self.assertEqual(compiler_status(code), 'compiler_crash')
+        self.assertEqual(compiler_status(0), 'compiled')
+        self.assertEqual(compiler_status(1), 'compiler_unsupported')
+        self.assertEqual(compiler_status(127), 'compiler_error')
 
     def test_real_manifest_rejects_dropped_coordinates_even_with_changed_count(self):
         document = json.loads(MANIFEST.read_text())

@@ -147,8 +147,24 @@ def run_case(binary, case, output, timeout):
     return result
 
 
+def compiler_status(returncode):
+    if returncode == 0:
+        return "compiled"
+    if returncode < 0 or returncode in (134, 137, 139):
+        return "compiler_crash"
+    return "compiler_unsupported" if returncode in (1, 2) else "compiler_error"
+
+
+def compile_stage(command, *, cwd=None):
+    try:
+        result = subprocess.run(command, cwd=cwd, capture_output=True, text=True, timeout=60)
+    except subprocess.TimeoutExpired:
+        return "compiler_timeout", "compiler/assembler exceeded its 60-second stage budget"
+    return compiler_status(result.returncode), result.stderr
+
+
 def extract(document, llvm, rocm, output):
-    version = subprocess.run([str(llvm / "clang++"), "--version"], capture_output=True, text=True, check=True).stdout
+    version = subprocess.run([str(llvm / "clang++"), "--version"], capture_output=True, text=True, check=True, timeout=15).stdout
     require(document["compiler"]["revision"] in version, "compiler revision differs from pinned extraction")
     output.mkdir(parents=True, exist_ok=True)
     results = []
@@ -158,16 +174,11 @@ def extract(document, llvm, rocm, output):
         command = [str(llvm / "clang++"), "-x", "hip", "--offload-device-only", "--offload-arch=" + target,
                    "--rocm-path=" + str(rocm), "-cuid=amd_corpus_" + target + "_" + row["source_sha256"][:16],
                    "-O2", "-std=c++17", "-S", source, "-o", str(assembly)]
-        run = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
-        status, diagnostic = "compiled", run.stderr
-        if run.returncode:
-            status = "compiler_unsupported"
-        else:
-            check = subprocess.run([str(llvm / "llvm-mc"), "--triple=amdgcn-amd-amdhsa", "--mcpu=" + target,
-                                    "-filetype=obj", str(assembly), "-o", str(assembly.with_suffix(".o"))], capture_output=True, text=True)
-            if check.returncode:
-                status, diagnostic = "compiler_unsupported", check.stderr
-            else:
+        status, diagnostic = compile_stage(command, cwd=ROOT)
+        if status == "compiled":
+            status, diagnostic = compile_stage([str(llvm / "llvm-mc"), "--triple=amdgcn-amd-amdhsa", "--mcpu=" + target,
+                                                "-filetype=obj", str(assembly), "-o", str(assembly.with_suffix(".o"))])
+            if status == "compiled":
                 require(sha(assembly) == row["assembly_sha256"], "regenerated assembly differs; review source/compiler/flags")
         results.append({"target": target, "source": source, "extraction": status, "diagnostic": diagnostic})
     print(json.dumps(results, indent=2))

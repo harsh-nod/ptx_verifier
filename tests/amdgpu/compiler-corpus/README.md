@@ -36,7 +36,8 @@ expressions and software run records stay outside the repository.
 Extraction requires the pinned LLVM revision. It invokes Clang separately for
 each target, then checks every module with `llvm-mc`. Compiler/assembler rejection
 is reported as `compiler_unsupported`, separately from verifier gaps. Successful
-compilation alone makes no verification claim.
+compilation alone makes no verification claim. Compiler crashes, unexpected
+process errors, and 60-second stage timeouts have distinct statuses.
 The explicit `-cuid` uses the target and source hash, so changing an output
 directory does not change HIP's compilation-unit symbol or the assembly hash.
 
