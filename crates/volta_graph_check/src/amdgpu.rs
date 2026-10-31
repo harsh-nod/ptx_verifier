@@ -21,6 +21,7 @@ use crate::memory_conflict::{
     CONFLICT_CAP, MemoryConflict, MemoryConflictEvidence, MemoryConflictResult,
 };
 use crate::{PropertyResult, Unresolved, Verdict};
+pub mod early_memory_conflicts;
 pub mod early_readiness;
 mod gfx1250;
 pub mod tensor_bounds;
@@ -155,7 +156,11 @@ fn unknown<E, V>(reason: &str) -> PropertyResult<E, V> {
     PropertyResult::Unknown(vec![Unresolved::global(reason)])
 }
 
-fn trace_contract(graph: &EventGraph, architecture: AmdArchitecture) -> AmdTraceResult {
+fn trace_contract(
+    graph: &EventGraph,
+    architecture: AmdArchitecture,
+    prefix: bool,
+) -> AmdTraceResult {
     let mut unresolved = Vec::new();
     if graph
         .provenance()
@@ -545,7 +550,7 @@ fn trace_contract(graph: &EventGraph, architecture: AmdArchitecture) -> AmdTrace
     for instruction in last_instruction.values() {
         check_missing_semantic(instruction, &mut unresolved);
     }
-    if waves == 0 || seen.iter().any(|v| !v) {
+    if waves == 0 || (!prefix && seen.iter().any(|v| !v)) {
         unresolved.push(Unresolved::global(
             "each launched wave requires AMD instruction/register records",
         ));
@@ -779,6 +784,15 @@ impl MatrixOperation {
 
 /// Select the native contract from provenance, including for direct callers.
 pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
+    check_with_scope(graph, false)
+}
+
+/// A construction prefix is never full-execution or acceptance evidence.
+fn check_prefix(graph: &EventGraph) -> AmdReport {
+    check_with_scope(graph, true)
+}
+
+fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
     let Some(architecture) = AmdArchitecture::from_targets(&graph.provenance().targets) else {
         return AmdReport {
             trace: unknown("AMD checks require one recognized gfx942/gfx950/gfx1250 target"),
@@ -790,9 +804,13 @@ pub fn check_amdgpu(graph: &EventGraph) -> AmdReport {
     // Each generation owns its completion and synchronization contract;
     // gfx1250 wave32 must never inherit legacy CDNA counter/barrier semantics.
     if architecture == AmdArchitecture::Gfx1250 {
-        return gfx1250::check(graph);
+        return if prefix {
+            gfx1250::check_prefix(graph)
+        } else {
+            gfx1250::check(graph)
+        };
     }
-    let trace = trace_contract(graph, architecture);
+    let trace = trace_contract(graph, architecture, prefix);
     if trace.verdict() != Verdict::Pass {
         return AmdReport {
             trace,
