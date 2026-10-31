@@ -32,6 +32,8 @@ CHECKS = (
         "-p",
         "test_*.py",
     ),
+    ("python3", "tests/gfx1250/test_measure_tensor_bounds.py"),
+    ("python3", "-O", "tests/gfx1250/test_measure_tensor_bounds.py"),
 )
 
 

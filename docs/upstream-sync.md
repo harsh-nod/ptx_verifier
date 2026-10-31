@@ -12,7 +12,8 @@ Conflicts stop the run with their paths and diagnostics; the script neither
 chooses a side nor skips a conflicting commit.
 
 A completed rebase must pass workspace formatting, release Rust tests, strict
-release Clippy and the measurement host controls. Validation also refuses a
+release Clippy, the frozen-study host controls and the tensor comparison controls
+under ordinary and optimized Python. Validation also refuses a
 changed source tree or commit. A changed remote base defers publication. With
 `--publish`, a passing candidate opens a draft PR in this fork for review. It
 never writes upstream, approves a PR, merges it or force-pushes `main`.
