@@ -55,6 +55,8 @@ pub(super) enum Value {
     },
     /// One encoded half in bits 15:0, with a zero-filled upper half.
     Half(ExprId),
+    /// One encoded high half, with an exactly zero low half.
+    HighHalf(ExprId),
     Halves(ExprId, ExprId),
     PartialHalves(Option<ExprId>, Option<ExprId>),
     /// Encoded input bytes; the first numeric decoder fixes the array format.
@@ -86,6 +88,7 @@ impl Value {
     pub fn mask_low16(self) -> Result<Option<Self>, String> {
         Ok(match self {
             Self::Half(_) | Self::Byte(_) | Self::BytePair(..) => Some(self),
+            Self::HighHalf(_) => Some(Self::Bits(0)),
             Self::Halves(low, _) | Self::PartialHalves(Some(low), _) => Some(Self::Half(low)),
             Self::PartialHalves(None, _) => return Err("AND observes an undefined low half".into()),
             Self::PartialBytePair(low, high) => Some(Self::BytePair(low, high)),
@@ -98,11 +101,51 @@ impl Value {
         })
     }
 
+    /// Exact AND with 0xffff0000 on encoded halves. Discarding the low half
+    /// does not decode either format or require the discarded bits to exist.
+    pub fn mask_high16(self) -> Result<Option<Self>, String> {
+        Ok(match self {
+            Self::Halves(_, high) | Self::PartialHalves(_, Some(high)) => {
+                Some(Self::HighHalf(high))
+            }
+            Self::HighHalf(_) => Some(self),
+            Self::Half(_) => Some(Self::Bits(0)),
+            Self::PartialHalves(_, None) => {
+                return Err("AND observes an undefined high half".into());
+            }
+            _ => None,
+        })
+    }
+
+    /// Reassemble an encoded low half and an encoded high half. Clear bits
+    /// come from the value tags, never from equality of mathematical values.
+    pub fn or_disjoint_halves(self, other: Self) -> Result<Option<Self>, String> {
+        let packed = |value| {
+            matches!(
+                value,
+                Self::Half(_) | Self::HighHalf(_) | Self::Halves(..) | Self::PartialHalves(..)
+            )
+        };
+        Ok(match (self, other) {
+            (Self::Half(low), Self::HighHalf(high)) | (Self::HighHalf(high), Self::Half(low)) => {
+                Some(Self::Halves(low, high))
+            }
+            (value, zero) if packed(value) && zero.bits() == Ok(0) => Some(value),
+            (zero, value) if packed(value) && zero.bits() == Ok(0) => Some(value),
+            (a, b) if packed(a) && packed(b) => {
+                return Err("OR of overlapping encoded halves is unsupported".into());
+            }
+            _ => None,
+        })
+    }
+
     /// Encoded bits31:16 selected by the native high-half store. The result
     /// remains raw or typed exactly as its source; no F32-to-F16 bitcast occurs.
     pub fn high16(self) -> Result<Self, String> {
         match self {
-            Self::Halves(_, high) | Self::PartialHalves(_, Some(high)) => Ok(Self::Half(high)),
+            Self::HighHalf(high) | Self::Halves(_, high) | Self::PartialHalves(_, Some(high)) => {
+                Ok(Self::Half(high))
+            }
             Self::Half(_) | Self::Byte(_) | Self::BytePair(..) => Ok(Self::Bits(0)),
             Self::Bytes(bytes) => Ok(Self::BytePair(bytes[2], bytes[3])),
             Self::Integer(word) => Ok(Self::Integer(word >> 16)),
@@ -178,6 +221,7 @@ impl Value {
             | Self::Low16Integer(_)
             | Self::WidePart { .. }
             | Self::Half(..)
+            | Self::HighHalf(..)
             | Self::Halves(..)
             | Self::PartialHalves(..)
             | Self::Byte(..)

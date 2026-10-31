@@ -2599,6 +2599,42 @@ impl<'a> Interpreter<'a> {
             _ => None,
         })
     }
+    fn packed_half_bit_logic(
+        &mut self,
+        wave: &Wave,
+        instruction: &Instruction,
+        name: &str,
+        lane: u8,
+    ) -> Result<Option<Value>, EvalError> {
+        if !instruction.modifiers().is_empty()
+            || instruction
+                .operands()
+                .iter()
+                .any(|op| matches!(op, Operand::Modified { .. }))
+        {
+            return Ok(None);
+        }
+        let o = instruction.operands();
+        let a = wave.value(&o[1], lane)?;
+        let b = wave.value(&o[2], lane)?;
+        let result = if name == "v_and_b32" {
+            let (mask, source) = if let Ok(mask) = a.bits() {
+                (mask, b)
+            } else if let Ok(mask) = b.bits() {
+                (mask, a)
+            } else {
+                return Ok(None);
+            };
+            match mask {
+                0xffff => source.mask_low16(),
+                0xffff0000 => source.mask_high16(),
+                _ => return Ok(None),
+            }
+        } else {
+            a.or_disjoint_halves(b)
+        };
+        result.map_err(|error| wave.fail(Some(lane), error))
+    }
     fn float_bit_logic(
         &mut self,
         wave: &Wave,
@@ -2616,24 +2652,6 @@ impl<'a> Interpreter<'a> {
             return Ok(None);
         }
         let o = instruction.operands();
-        if name == "v_and_b32" {
-            let a = wave.value(&o[1], lane)?;
-            let b = wave.value(&o[2], lane)?;
-            let source = if a.bits() == Ok(0xffff) {
-                Some(b)
-            } else if b.bits() == Ok(0xffff) {
-                Some(a)
-            } else {
-                None
-            };
-            if let Some(source) = source
-                && let Some(masked) = source
-                    .mask_low16()
-                    .map_err(|error| wave.fail(Some(lane), error))?
-            {
-                return Ok(Some(masked));
-            }
-        }
         if matches!(name, "v_and_b32" | "v_xor_b32") {
             let mask = if name == "v_and_b32" {
                 0x7fff_ffff
@@ -2917,6 +2935,7 @@ impl<'a> Interpreter<'a> {
     ) -> Result<ExprId, EvalError> {
         match wave.value(operand, lane)? {
             Value::Half(expr) => Ok(if high { self.arena.int(0) } else { expr }),
+            Value::HighHalf(expr) => Ok(if high { expr } else { self.arena.int(0) }),
             Value::Halves(lo, hi) => Ok(if high { hi } else { lo }),
             Value::PartialHalves(lo, hi) => {
                 if high { hi } else { lo }.ok_or_else(|| EvalError::Unsupported {
@@ -2956,6 +2975,14 @@ impl<'a> Interpreter<'a> {
             return Ok(expr);
         }
         match wave.value(operand, lane)? {
+            Value::HighHalf(expr) => {
+                if high {
+                    self.claim_half_format(wave, expr, WordFormat::Float16)?;
+                    Ok(expr)
+                } else {
+                    Ok(self.arena.int(0))
+                }
+            }
             Value::Halves(lo, hi) => {
                 let expr = if high { hi } else { lo };
                 self.claim_half_format(wave, expr, WordFormat::Float16)?;
@@ -4990,6 +5017,12 @@ impl<'a> Interpreter<'a> {
             return wave.put_wide(&o[1], 0, mask);
         }
         for lane in lanes {
+            if matches!(name, "v_and_b32" | "v_or_b32")
+                && let Some(value) = self.packed_half_bit_logic(wave, instruction, name, lane)?
+            {
+                wave.put_value(&o[0], lane, value)?;
+                continue;
+            }
             if matches!(name, "v_and_b32" | "v_xor_b32" | "v_bfi_b32")
                 && let Some(value) = self.float_bit_logic(wave, instruction, name, lane)?
             {
@@ -6868,6 +6901,15 @@ impl<'a> Interpreter<'a> {
                     } else {
                         wave.reg(source_register, lane, source_component)?
                     };
+                    // The tag carries an exact zero-filled low half. Expand
+                    // only when storing, without inferring bits from a real zero.
+                    let value = match value {
+                        Value::HighHalf(high) if width == 4 => {
+                            Value::Halves(self.arena.int(0), high)
+                        }
+                        Value::HighHalf(_) if width == 1 || width == 2 => Value::Bits(0),
+                        value => value,
+                    };
                     let memory = if effective_lds {
                         &mut self.lds
                     } else {
@@ -6967,6 +7009,7 @@ impl<'a> Interpreter<'a> {
                             }
                             Value::Bytes(bytes) => StoredValue::Quad(bytes),
                             Value::PartialHalves(..)
+                            | Value::HighHalf(_)
                             | Value::WidePart { .. }
                             | Value::PredicateWord { .. }
                             | Value::RelocationWord { .. }
