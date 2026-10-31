@@ -303,8 +303,13 @@ fn source_reuse_does_not_invent_a_dma_register_destination_or_lease() {
 fn wave_local_lane_pitch_and_disjoint_m0_bases_preserve_multiwave_outputs() {
     for bytes in [4, 16] {
         let len = 128 * bytes / 4;
-        let body = fixture::copy(bytes, 0, (len*4) as u32).replace("s_mov_b32 m0,0", &format!(
-            "v_and_b32 v9,-64,v0\nv_readfirstlane_b32 s6,v9\ns_lshl_b32 s6,s6,{}\ns_mov_b32 m0,s6", bytes.trailing_zeros()));
+        let body = fixture::copy(bytes, 0, (len * 4) as u32).replace(
+            "s_mov_b32 m0,0",
+            &format!(
+                "v_cmp_le_u32 vcc,64,v0\ns_cbranch_vccnz .Lwave1\ns_mov_b32 m0,0\ns_branch .Lready\n.Lwave1:\ns_mov_b32 m0,{}\n.Lready:",
+                bytes * 64
+            ),
+        );
         let checked = run(&body, fixture::config(128, len, 4096));
         assert_eq!(
             checked.checks.conclusion(),

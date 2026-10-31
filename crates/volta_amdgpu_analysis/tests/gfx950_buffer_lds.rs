@@ -101,6 +101,9 @@ fn every_word_and_physical_lane_retains_its_input_identity() {
             .replace("s_mov_b32 s9,0", &format!("s_mov_b32 s9,{}", stride << 16));
         inputs(&run(&body, 1, 4, 1024), &[0, 1, 2, 3]);
     }
+    let sgpr_m0 =
+        fixture::copy(4, 4, 4).replace("s_mov_b32 m0,4", "s_mov_b32 s6,4\ns_mov_b32 m0,s6");
+    inputs(&run(&sgpr_m0, 1, 1, 1024), &[0]);
 }
 
 #[test]

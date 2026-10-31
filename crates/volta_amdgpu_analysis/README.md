@@ -348,7 +348,8 @@ footprints are checked for every active lane before an issue is recorded.
 DWORDX4 requires DWORD alignment; it does not impose 16-byte alignment.
 
 Each DMA charges VM once, with no LGKM/EXP/ASYNC charge, register destination
-or completion-held source lease. Address, descriptor and M0 producer reads
+or completion-held source lease. The model snapshots sources at issue.
+Address, descriptor and M0 producer reads
 retain their readiness checks, including the one independent state after a
 SALU M0 write. Missing VM completion cannot publish the LDS data. A partial VM
 wait with mixed DMA and ordinary contributors retains all pending obligations;
