@@ -245,7 +245,7 @@ zero outcome differences. The receipt retains each case identity, full original
 length and separate graph/mathematical disposition. It does not establish a
 candidate improvement or an application bug from the conservative conflicts.
 
-## Reviewed buffer coverage comparison
+## Earlier DWORD coverage comparison
 
 [buffer-comparison.json](buffer-comparison.json) compares baseline `e239cfc`
 with `0e634bc`, including the selected gfx950 raw DWORD load/store profile.
@@ -268,9 +268,10 @@ three copy dtypes and for add-one. Mathematical proofs still include the 224
 graph-rejected cases; they are separate from combined acceptance and do not
 waive same-value write/write conflicts.
 
-Eight f32 cases in each family still require DWORDX2. Four f16 and four bf16
-copy cases reach a later packed-data reinterpretation refusal. These remain
-unsupported, and neither family is wholly verified. Reclassification of both
+At `0e634bc`, eight f32 cases in each family still require DWORDX2. Four f16
+and four bf16 copy cases reach a later packed-data reinterpretation refusal.
+Those 24 cases are unsupported in that earlier comparison; neither family is
+wholly verified. Reclassification of both
 candidate runs, the fresh copy baseline and the two historical primary runs
 produces zero outcome or proof-count differences.
 
@@ -288,3 +289,49 @@ it does not establish instruction legality or executable build provenance.
 four public gfx1250 rung-00 host shapes and seven gfx950 BF16 GEMM host shapes,
 including full input allocations and every selected-workgroup output. The
 recorded runs stop at parser refusals; they establish no execution or proof.
+
+## DWORDX2 and packed-half coverage comparison
+
+[vector-comparison-20261031.json](vector-comparison-20261031.json) compares
+`0e634bc` with `90e172f`, adding the selected gfx950 raw DWORDX2 load/store
+profile and exact encoded-half mask/OR transport. Complete original modules,
+compiler, driver, every case identity, launch bytes and full specifications
+are identical between the two runs. This is a functional coverage comparison;
+it makes no latency or GPU execution claim.
+
+| Original family | Cases | Combined accepts, previous → candidate | Write/write rejections | Unsupported, previous → candidate | Complete math proofs, previous → candidate |
+|---|---:|---:|---:|---:|---:|
+| Vector copy | 252 | 68 → 84 | 168 → 168 | 16 → 0 | 236 → 252 |
+| Add one | 84 | 20 → 28 | 56 → 56 | 8 → 0 | 76 → 84 |
+
+All 88 prior combined accepts and all 224 typed write/write rejections are
+retained, including their printed event-pair/byte witnesses. The 24 new accepts
+comprise eight f32 copies and eight f32 add-one cases using DWORDX2, plus four
+f16 and four bf16 copies requiring packed transport. All 336 equations cover
+their complete original outputs, totaling 21,120 coordinates. Mathematical
+agreement on the 224 graph-rejected cases does not waive their conflicts or
+establish numerical application bugs. Only the 112 combined accepts pass both
+safety and full-output equivalence. Four candidate wrong-equation controls
+refute every expected element on graphs that pass all safety properties.
+
+The [independent raw audit](vector-independent-audit-20261031.json) checks all
+680 process records across both revisions: 15,431 checks, zero errors. A
+[separate publication audit](vector-publication-audit-20261031.json) recomputes
+the projected rows, launches, transcript identities and totals: 14,121 checks,
+zero errors. Raw diagnostics, private machine paths and timing fields remain
+outside Git. Build associations remain caller-attested, with executable and
+committed Rust-tree fingerprints checked independently.
+
+To reproduce the public projection from the preserved four raw report trees
+and two build records:
+
+```sh
+python3 external/extraction/publish_vector_comparison.py \
+  --reports /path/to/vector-runs --builds /path/to/frozen-builds \
+  --audit external/hipkittens/corpus/vector-independent-audit-20261031.json \
+  --output external/hipkittens/corpus/vector-comparison-20261031.json --check
+```
+
+The earlier buffer receipt and frontier ledger retain their original measured
+revisions and outcomes. This newer comparison does not rewrite either record
+or extend support to other HipKittens families.
