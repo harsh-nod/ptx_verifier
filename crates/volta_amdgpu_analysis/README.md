@@ -321,6 +321,11 @@ AMD targets. This does not broaden integer-literal or mathematical FP64 profiles
 `s_mov_b64`, `s_or_b64`, `s_xor_b64`, `s_lshl_b64` and `s_lshr_b64`
 resolve each immediate into a checked inline selector or appended payload before
 execution. Their data sources are Binary64; the two shift counts are Bits32.
+Finite Float counts retain their converted F32 bits, using an inline selector
+or literal32 payload; ordinary rounding is allowed, while nonfinite values,
+overflow and lossy underflow are refused. Binary64 Float data remains restricted
+to exact floating inline constants. Scalar negative-float source syntax keeps
+its existing modifier refusal.
 The same layout validates register widths and constructs immutable executable
 operands. Register MOV still copies both Values, including opaque/code values,
 without observing their bits. Each instruction has at most one shared appended

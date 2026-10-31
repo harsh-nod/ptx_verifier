@@ -158,14 +158,11 @@ fn inline_bits(bits: u64, ty: ScalarSourceType) -> Option<InlineSelector> {
         .map(|index| InlineSelector(240 + index as u8))
 }
 
-fn inline_float(value: f64, ty: ScalarSourceType) -> Option<InlineSelector> {
+fn inline_float64(value: f64) -> Option<InlineSelector> {
     if !value.is_finite() {
         return None;
     }
-    let bits = match ty {
-        ScalarSourceType::Binary64 => value.to_bits(),
-        ScalarSourceType::Bits32 => u64::from((value as f32).to_bits()),
-    };
+    let bits = value.to_bits();
     // Floating syntax denotes floating bits, never an integer-inline numeric
     // conversion. Positive zero shares the integer zero selector.
     if bits == 0 {
@@ -173,10 +170,7 @@ fn inline_float(value: f64, ty: ScalarSourceType) -> Option<InlineSelector> {
     } else {
         FLOAT_INLINES
             .iter()
-            .position(|&(single, double)| match ty {
-                ScalarSourceType::Binary64 => bits == double,
-                ScalarSourceType::Bits32 => bits == u64::from(single),
-            })
+            .position(|&(_, double)| bits == double)
             .map(|index| InlineSelector(240 + index as u8))
     }
 }
@@ -184,8 +178,7 @@ fn inline_float(value: f64, ty: ScalarSourceType) -> Option<InlineSelector> {
 /// Exact issue107 helper for unselected wide consumers. Produced mathematical
 /// values retain their separate re-encoding and arithmetic-model checks.
 pub(crate) fn exact_inline_double(value: f64) -> Option<u64> {
-    inline_float(value, ScalarSourceType::Binary64)
-        .and_then(|selector| selector.bits(ScalarSourceType::Binary64))
+    inline_float64(value).and_then(|selector| selector.bits(ScalarSourceType::Binary64))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -239,8 +232,26 @@ fn numeric(
     architecture: Architecture,
 ) -> Result<EncodedImmediate, String> {
     let encoding = match operand {
+        Operand::Float(value) if ty == ScalarSourceType::Bits32 => {
+            let single = *value as f32;
+            if !value.is_finite() || !single.is_finite() {
+                return Err(
+                    "Bits32 Float source requires a finite F32 conversion without overflow".into(),
+                );
+            }
+            // LLVM permits ordinary precision loss, but rejects lossy
+            // underflow. Exact subnormals retain their actual bits.
+            if value.abs() < f64::from(f32::MIN_POSITIVE) && f64::from(single) != *value {
+                return Err("Bits32 Float source has an unsupported lossy F32 underflow".into());
+            }
+            let bits = single.to_bits();
+            inline_bits(u64::from(bits), ty).map_or(
+                ImmediateEncoding::Literal32(bits),
+                ImmediateEncoding::Inline,
+            )
+        }
         Operand::Float(value) => {
-            ImmediateEncoding::Inline(inline_float(*value, ty).ok_or_else(|| {
+            ImmediateEncoding::Inline(inline_float64(*value).ok_or_else(|| {
                 format!("{ty:?} source requires an exact floating inline constant")
             })?)
         }
@@ -472,6 +483,68 @@ mod tests {
             resolve("s_cmp_eq_u64", &[], Architecture::Gfx950, false)
                 .unwrap()
                 .is_none()
+        );
+    }
+
+    #[test]
+    fn finite_float_counts_share_the_actual_f32_payload() {
+        for target in [
+            Architecture::Gfx942,
+            Architecture::Gfx950,
+            Architecture::Gfx1250,
+        ] {
+            let same = [
+                register(0, 2),
+                Operand::Integer(0x3fc0_0000),
+                Operand::Float(1.5),
+            ];
+            let resolved = resolve("s_lshl_b64", &same, target, false)
+                .unwrap()
+                .unwrap();
+            let data = resolved.immediate_at(1).unwrap();
+            let count = resolved.immediate_at(2).unwrap();
+            assert_eq!(data.source_type(), ScalarSourceType::Binary64);
+            assert_eq!(count.source_type(), ScalarSourceType::Bits32);
+            assert_eq!(data.encoding(), ImmediateEncoding::Literal32(0x3fc0_0000));
+            assert_eq!(count.encoding(), ImmediateEncoding::Literal32(0x3fc0_0000));
+            let different = [register(0, 2), Operand::Integer(0x100), Operand::Float(1.5)];
+            let error = resolve("s_lshr_b64", &different, target, false).unwrap_err();
+            assert!(error.contains("source2") && error.contains("shared literal"));
+            let data_float = [register(0, 2), Operand::Float(1.5)];
+            assert!(
+                resolve("s_mov_b64", &data_float, target, false)
+                    .unwrap_err()
+                    .contains("Binary64 source requires an exact floating inline")
+            );
+        }
+    }
+
+    #[test]
+    fn float_count_conversion_cannot_invent_finite_or_underflowed_bits() {
+        for value in [f64::INFINITY, f64::NAN, f64::MAX, 1e-40, f64::from_bits(1)] {
+            let operands = [register(0, 2), Operand::Integer(1), Operand::Float(value)];
+            assert!(resolve("s_lshl_b64", &operands, Architecture::Gfx950, false).is_err());
+        }
+        let exact_subnormal = [
+            register(0, 2),
+            Operand::Integer(1),
+            Operand::Float(f64::from(f32::from_bits(1))),
+        ];
+        let resolved = resolve("s_lshl_b64", &exact_subnormal, Architecture::Gfx1250, false)
+            .unwrap()
+            .unwrap();
+        assert_eq!(resolved.immediate_at(2).unwrap().bits(), 1);
+        let rounded = [
+            register(0, 2),
+            Operand::Integer(1),
+            Operand::Float(1.0000000001),
+        ];
+        let resolved = resolve("s_lshl_b64", &rounded, Architecture::Gfx950, false)
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            resolved.immediate_at(2).unwrap().encoding(),
+            ImmediateEncoding::Inline(InlineSelector(242))
         );
     }
 }
