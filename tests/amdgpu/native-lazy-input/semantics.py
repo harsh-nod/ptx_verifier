@@ -8,6 +8,7 @@ import gzip
 import hashlib
 import importlib.util
 import os
+import re
 from pathlib import Path
 import select
 import shutil
@@ -196,12 +197,20 @@ def annotate(result, row, directory, reference=None, *, verify=False):
         (directory / name).read_text(errors="replace") for name in ("stdout", "stderr")
     ]
     graph = frozen.corpus.harness.parse_cli(stdout)
+    mismatches = [
+        int(n)
+        for n in re.findall(
+            r"^NOT EQUIVALENT: (\d+) mismatched element\(s\) vs spec$", stdout, re.M
+        )
+        if int(n) > 0
+    ]
     return {
         **result,
         **frozen.observe(result, row, stdout, stderr, reference, verify=verify),
         "graph_failure_names": [
             name for name, verdict, _ in graph.checks if verdict == "FAIL"
         ],
+        "mathematical_mismatch_elements": mismatches,
         "stdout_sha256": sha(directory / "stdout"),
         "stderr_sha256": sha(directory / "stderr"),
         "resources_sha256": sha(directory / "resources.txt")
@@ -265,7 +274,11 @@ def semantic_gates(results, comparisons, plan):
         bool(r.get("false_positive") or r.get("graph_failure_names")) for r in results
     )
     unsafe = sum(bool(r.get("unsafe_acceptance")) for r in results)
-    refutations = sum(r["status"] == "mathematical_refutation" for r in results)
+    refutations = sum(
+        r["status"] == "mathematical_refutation"
+        or bool(r.get("mathematical_mismatch_elements"))
+        for r in results
+    )
     return {
         "proofs": proofs,
         "false_findings": false_findings,

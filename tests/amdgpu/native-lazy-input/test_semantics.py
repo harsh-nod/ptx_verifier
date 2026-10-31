@@ -30,6 +30,72 @@ def child(fifo, data=VEXPR, *, fail=False):
 
 
 class Controls(unittest.TestCase):
+    def test_actual_verify_partial_and_full_mismatches_both_fail(self):
+        row = {
+            "case": {
+                "expectation": "safe",
+                "expected_outputs": 2,
+                "output_indices": {"out": [0, 1]},
+                "target": "gfx950",
+                "block": [64, 1, 1],
+            }
+        }
+        plan = {
+            "cases": [
+                {
+                    "case": {"id": "unproved"},
+                    "definition": {
+                        "expectation": "safe",
+                        "previous_complete_equation_proved": False,
+                    },
+                }
+            ]
+        }
+        header = """Exec: 0.001s  instructions: 5  block syncs: 0  warp syncs: 0
+kernel: graph verification
+  AMD trace completeness (native AMD graph contract) PASS
+  AMD wait and register readiness (target-selected counters and register dependencies) PASS
+  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS
+  AMD memory-conflict freedom (AMD completed-effect happens-before) PASS
+VC check: 0.001s  elements: 2
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            for n in (1, 2):
+                (directory / "stdout").write_text(
+                    header
+                    + f"NOT EQUIVALENT: {n} mismatched element(s) vs spec\nVERDICT: REJECT\n"
+                )
+                (directory / "stderr").write_bytes(b"")
+                result = sem.annotate(
+                    {
+                        "returncode": 1,
+                        "timed_out": False,
+                        "log_limit_exceeded": False,
+                        "seconds": 0.01,
+                        "first_marker_seconds": None,
+                        "usage": {
+                            "max_rss_kib": 1000,
+                            "user_seconds": 0.01,
+                            "system_seconds": 0,
+                        },
+                    },
+                    row,
+                    directory,
+                    verify=True,
+                )
+                self.assertEqual(result["mathematical_mismatch_elements"], [n])
+                self.assertEqual(
+                    result["status"],
+                    "inconclusive" if n == 1 else "mathematical_refutation",
+                )
+                result.update(case="unproved", role="candidate", stage="verify")
+                self.assertFalse(
+                    sem.semantic_gates([result], [{"structural_match": True}], plan)[
+                        "all_semantic_controls_pass"
+                    ]
+                )
+
     def test_streams_from_first_byte_into_repeatable_gzip(self):
         with tempfile.TemporaryDirectory() as tmp:
             raw = Path(tmp)

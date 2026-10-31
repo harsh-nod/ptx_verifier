@@ -61,6 +61,8 @@ An explicit mathematical refutation also fails the semantic gate, including for
 the two previously unproved equations; only genuine unknown/timeouts remain
 unproved observations. Expected paired launch/storage errors retain a failed
 scheduled row and collection continues through the fixed denominator.
+Positive canonical mismatch counts from raw stdout fail this gate even when
+only some outputs mismatch and the frozen summary classifier says inconclusive.
 
 The independently reviewed comparator and its22 synthetic groups are copied
 byte-identically as `compare_vexpr_structure_20261031.py` and its test file. Their
