@@ -159,6 +159,24 @@ overflow, while [pipeline controls](../volta_pipeline/tests/gfx950_signed_mad_te
 check source readiness independently. This form occurs in HipKittens address
 calculations; complete application support also depends on later instructions.
 
+The selected `s_bfe_i64` profile is common to gfx942, gfx950 and gfx1250:
+a plain SGPR destination pair, SGPR data pair or integer inline constant, and
+a 32-bit SGPR or integer control. Control bits 5:0 select the offset and
+22:16 select the width; widths 0 through 64 are modeled, while larger widths
+remain unsupported. Signed shift padding and field sign extension preserve
+unknown source bits, including ABI padding; SCC is known only when the result
+is provably zero or nonzero. Scalar execution is independent of EXEC, and
+source readiness remains subject to the target's scalar-load counter.
+The contract follows
+[CDNA3 ISA §12.1](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-mi300-cdna3-instruction-set-architecture.pdf),
+[CDNA4 ISA §12.1](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf),
+[CDNA5 ISA §15.1](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf)
+and LLVM's pinned
+[SOP2 operand profile](https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SOPInstructions.td).
+[Value controls](tests/cdna_bfe64.rs) cover signed fields and definedness;
+[pipeline controls](../volta_pipeline/tests/cdna_bfe64_tests.rs) distinguish
+correct, absent and unrelated waits for both the data and control registers.
+
 Input identities come from launch-config array and parameter names. Floating
 arithmetic uses mathematical reals: IEEE rounding, NaNs, exceptions and
 subnormal behavior are outside that model. Encoded F16, BF16 and FP8 transport

@@ -472,7 +472,7 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "s_xnor_b32" | "s_xnor_b64" | "s_lshl_b32" | "s_lshl_b64" | "s_lshr_b32"
         | "s_lshr_b64" | "s_ashr_i32" | "s_ashr_i64" | "s_min_u32" | "s_min_i32" | "s_max_u32"
         | "s_max_i32" | "s_cselect_b32" | "s_cselect_b64" | "s_bfe_u32" | "s_bfe_i32"
-        | "s_bfm_b32" | "s_bfm_b64" => (ScalarAlu, 3, 3),
+        | "s_bfe_i64" | "s_bfm_b32" | "s_bfm_b64" => (ScalarAlu, 3, 3),
         "s_and_saveexec_b64"
         | "s_or_saveexec_b64"
         | "s_xor_saveexec_b64"
@@ -1535,8 +1535,26 @@ pub(super) fn validate_registers(
                     let shift =
                         index == 2 && (stem.starts_with("s_lsh") || stem.starts_with("s_ashr"));
                     let bfm = stem.starts_with("s_bfm_");
-                    source_width(index, if shift || bfm { 1 } else { data_width })?;
+                    let bfe_control = stem == "s_bfe_i64" && index == 2;
+                    source_width(
+                        index,
+                        if shift || bfm || bfe_control {
+                            1
+                        } else {
+                            data_width
+                        },
+                    )?;
                 }
+            }
+            if stem == "s_bfe_i64"
+                && (!matches!(operands[0], Operand::Register(r) if r.class == Scalar && r.count == 2)
+                    || !matches!(operands[1], Operand::Register(r) if r.class == Scalar && r.count == 2)
+                        && !matches!(operands[1], Operand::Integer(value) if (-16..=64).contains(&value))
+                    || !matches!(operands[2], Operand::Register(r) if r.class == Scalar && r.count == 1)
+                        && !matches!(operands[2], Operand::Integer(value) if (i32::MIN as i64..=u32::MAX as i64).contains(&value))
+                    || !modifiers.is_empty())
+            {
+                return Err("selected s_bfe_i64 requires a plain SGPR destination pair, SGPR data pair/integer inline, and one 32-bit SGPR/integer control".into());
             }
         }
         Opcode::ScalarMemory => {

@@ -34,6 +34,7 @@ operation_set! { AluOpcode {
     SAshrI32 => "s_ashr_i32",
     SAshrI64 => "s_ashr_i64",
     SBfeI32 => "s_bfe_i32",
+    SBfeI64 => "s_bfe_i64",
     SBfeU32 => "s_bfe_u32",
     SBfmB32 => "s_bfm_b32",
     SBfmB64 => "s_bfm_b64",
