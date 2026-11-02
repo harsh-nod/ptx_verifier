@@ -901,8 +901,8 @@ impl ExprArena {
     /// canonicalize exactly to a spec's `exp` form and `exp2(log2(x))` cancels, where an f64
     /// `ln 2` would leave ~1e-8 error.
     fn ln2_f32(&mut self) -> ExprId {
-        let log2e = Real::from_f64(f64::from(std::f64::consts::LOG2_E as f32))
-            .expect("log2(e) is not NaN");
+        let log2e =
+            Real::from_f64(f64::from(std::f64::consts::LOG2_E as f32)).expect("log2(e) is not NaN");
         self.real(log2e.try_recip().expect("log2(e) is nonzero"))
     }
 
