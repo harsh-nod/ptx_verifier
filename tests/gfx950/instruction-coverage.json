@@ -52,12 +52,12 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "parse_instruction",
-          "line": 865
+          "line": 869
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1392
+          "line": 1427
         }
       ]
     },
@@ -68,7 +68,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_vop_literal_positions",
-          "line": 2129
+          "line": 2237
         }
       ]
     },
@@ -79,7 +79,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1392
+          "line": 1427
         }
       ]
     },
@@ -90,7 +90,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/lower/mod.rs",
           "function": "lower_with_globals",
-          "line": 76
+          "line": 215
         }
       ]
     },
@@ -101,7 +101,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/lower/mod.rs",
           "function": "lower_with_globals",
-          "line": 76
+          "line": 215
         }
       ]
     },
@@ -112,17 +112,17 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1758
+          "line": 1853
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "instruction_registers",
-          "line": 1427
+          "line": 1500
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "scalar_mask_reads",
-          "line": 1690
+          "line": 1785
         }
       ]
     },
@@ -133,12 +133,12 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "memory_instruction",
-          "line": 6388
+          "line": 6862
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "permute",
-          "line": 7246
+          "line": 7725
         }
       ]
     },
@@ -149,7 +149,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "matrix",
-          "line": 4079
+          "line": 4488
         }
       ]
     },
@@ -160,17 +160,17 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/ir/instruction.rs",
           "function": "lower_wait",
-          "line": 836
+          "line": 1025
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "wait",
-          "line": 5895
+          "line": 6371
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1758
+          "line": 1853
         }
       ]
     },
@@ -181,7 +181,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1758
+          "line": 1853
         }
       ]
     },
@@ -192,7 +192,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1758
+          "line": 1853
         }
       ]
     },
@@ -203,17 +203,17 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 159
+          "line": 165
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 786
+          "line": 817
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_missing_semantic",
-          "line": 723
+          "line": 754
         }
       ]
     },
@@ -224,17 +224,17 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 786
+          "line": 817
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "memory_conflicts",
-          "line": 1440
+          "line": 1501
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "missing_global_publication",
-          "line": 1411
+          "line": 1472
         }
       ]
     },
@@ -245,7 +245,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 786
+          "line": 817
         }
       ]
     },
@@ -256,7 +256,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 786
+          "line": 817
         }
       ]
     }
@@ -270,7 +270,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "scalar",
-          "line": 1722
+          "line": 1817
         }
       ],
       "positive_controls": [
@@ -317,7 +317,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "module_address_scalar",
-          "line": 3846
+          "line": 4255
         }
       ],
       "positive_controls": [
@@ -344,17 +344,17 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "vector",
-          "line": 4231
+          "line": 4640
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "integer_expression",
-          "line": 2139
+          "line": 2251
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "integer_result",
-          "line": 2213
+          "line": 2325
         }
       ],
       "positive_controls": [
@@ -391,22 +391,22 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "vector",
-          "line": 4231
+          "line": 4640
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "real",
-          "line": 2056
+          "line": 2168
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "exp2",
-          "line": 3045
+          "line": 3184
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "factor_exp2_idiom",
-          "line": 3064
+          "line": 3203
         }
       ],
       "positive_controls": [
@@ -438,17 +438,17 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "vector",
-          "line": 4231
+          "line": 4640
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "real64",
-          "line": 2393
+          "line": 2505
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "put_real64",
-          "line": 2465
+          "line": 2577
         }
       ],
       "positive_controls": [
@@ -475,22 +475,22 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "vector",
-          "line": 4231
+          "line": 4640
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "half",
-          "line": 2949
+          "line": 3087
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "signed16_to_half",
-          "line": 2855
+          "line": 2993
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "selected_bits",
-          "line": 2526
+          "line": 2638
         }
       ],
       "positive_controls": [
@@ -522,17 +522,17 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "vector",
-          "line": 4231
+          "line": 4640
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "real_component",
-          "line": 2497
+          "line": 2609
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "half",
-          "line": 2949
+          "line": 3087
         }
       ],
       "positive_controls": [
@@ -559,17 +559,17 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "vector",
-          "line": 4231
+          "line": 4640
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "fp8",
-          "line": 2765
+          "line": 2903
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "claim_byte_format",
-          "line": 2832
+          "line": 2970
         }
       ],
       "positive_controls": [
@@ -601,22 +601,22 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "vector",
-          "line": 4231
+          "line": 4640
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "write_predicates",
-          "line": 2220
+          "line": 2332
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "predicate_condition",
-          "line": 2269
+          "line": 2381
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "select_word",
-          "line": 2306
+          "line": 2418
         }
       ],
       "positive_controls": [
@@ -643,7 +643,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "vector",
-          "line": 4231
+          "line": 4640
         }
       ],
       "positive_controls": [
@@ -665,22 +665,27 @@
     "M": {
       "stage": "value",
       "status": "implemented_with_explicit_limits",
-      "meaning": "Typed global/kernarg/LDS byte storage, per-component SMEM low-bit masking, encoded nonnegative scalar offsets, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. XNACK replay, atomics, buffers, arbitrary apertures and equal-offset dual DS are outside the envelope.",
+      "meaning": "Typed global/kernarg/LDS byte storage, per-component SMEM low-bit masking, encoded nonnegative scalar offsets, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. Selected gfx950 raw-buffer DWORD/DWORDX2 loads/stores require four-operand offen and word3 0x20000; direct-to-LDS DWORD/DWORDX4 loads require three-operand offen lds and word3 0x110000. Both retain separate resource/allocation bounds and VM completion; direct LDS also checks M0 readiness and LDS bounds. Other buffer modes, atomics, arbitrary apertures and equal-offset dual DS remain unsupported. Explicit xnack+ checks selected SMEM clause aliases; vector-memory replay remains unsupported.",
       "references": [
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "memory_instruction",
-          "line": 6388
+          "line": 6862
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "flat_memory_address",
-          "line": 7126
+          "line": 7598
+        },
+        {
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "function": "gfx950_raw_buffer_addresses",
+          "line": 6708
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "validate_address",
-          "line": 7295
+          "line": 7774
         }
       ],
       "positive_controls": [
@@ -698,6 +703,21 @@
           "path": "crates/volta_pipeline/tests/gfx950_memory_control_tests.rs",
           "function": "smem_discards_each_component_low_bits_before_addition",
           "line": 1111
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx950_raw_buffer_tests.rs",
+          "function": "full_output_copy_and_add_one_survive_descriptor_reuse_before_vm_completion",
+          "line": 144
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx950_raw_buffer_x2_tests.rs",
+          "function": "complete_two_word_copy_and_packed_add_match_full_output_specs_and_refute_swaps",
+          "line": 144
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx950_buffer_lds_tests.rs",
+          "function": "completed_dma_preserves_all_outputs_and_refutes_a_different_equation",
+          "line": 65
         }
       ],
       "negative_controls": [
@@ -715,6 +735,26 @@
           "path": "crates/volta_pipeline/tests/gfx950_memory_control_tests.rs",
           "function": "smem_masking_preserves_readiness_bounds_and_exec_independence",
           "line": 1149
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx950_raw_buffer_tests.rs",
+          "function": "all_descriptor_words_require_lgkm_and_load_results_require_vm",
+          "line": 175
+        },
+        {
+          "path": "crates/volta_amdgpu_analysis/tests/gfx950_raw_buffer_x2.rs",
+          "function": "resource_allocation_and_domain_preflight_cover_the_complete_pair_and_every_lane",
+          "line": 183
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx950_buffer_lds_tests.rs",
+          "function": "missing_or_unrelated_completion_does_not_publish_dma_to_ds",
+          "line": 119
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx950_buffer_lds_tests.rs",
+          "function": "one_independent_m0_state_is_required_even_when_the_payload_is_available",
+          "line": 154
         }
       ],
       "test_scope": "Named representative controls exercise this semantic profile; these are not assertions that every corpus PC/operand combination was executed."
@@ -727,7 +767,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "permute",
-          "line": 7246
+          "line": 7725
         }
       ],
       "positive_controls": [
@@ -754,12 +794,12 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "matrix",
-          "line": 4079
+          "line": 4488
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "matrix_input",
-          "line": 3921
+          "line": 4330
         }
       ],
       "positive_controls": [
@@ -806,7 +846,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1758
+          "line": 1853
         }
       ],
       "positive_controls": [
@@ -828,12 +868,12 @@
     "W": {
       "stage": "value",
       "status": "implemented_with_explicit_limits",
-      "meaning": "Native counter thresholds retire actual in-order counter prefixes; maximal thresholds do not falsely mean full completion.",
+      "meaning": "Selected ordinary counter contributors retire in-order prefixes; maximal thresholds do not falsely mean full completion. Partial VM waits across mixed direct-to-LDS DMA and ordinary memory retain all pending obligations rather than inferring FIFO completion; vmcnt(0) drains the counter.",
       "references": [
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "wait",
-          "line": 5895
+          "line": 6371
         }
       ],
       "positive_controls": [
@@ -860,7 +900,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1758
+          "line": 1853
         }
       ],
       "positive_controls": [
@@ -882,12 +922,12 @@
     "T": {
       "stage": "value",
       "status": "implemented_with_explicit_limits",
-      "meaning": "Endpgm implicit counter drain and lane termination; NOP encoded 0..15 gives 1..16 states. No fabricated handler/call/return semantics.",
+      "meaning": "Endpgm implicit counter drain and lane termination; NOP encoded 0..15 gives 1..16 states. Exception handlers and general computed calls remain unsupported. The separate gfx950 CALL profile executes checked rel32 helper calls and matching returns without implicit waits or register resets.",
       "references": [
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1758
+          "line": 1853
         }
       ],
       "positive_controls": [
@@ -911,6 +951,48 @@
       ],
       "test_scope": "Named representative controls exercise this semantic profile; these are not assertions that every corpus PC/operand combination was executed."
     },
+    "CALL": {
+      "stage": "value",
+      "status": "implemented_with_explicit_limits",
+      "meaning": "Selected gfx950 s_swappc_b64/s_setpc_b64 calls and matching returns use plain SGPR pairs, validated adjacent getpc/rel32-lo+4/hi+12 target construction and bounded complete helper bodies. Nested calls preserve return words explicitly. Flags, EXEC, registers and asynchronous counters remain shared. Arbitrary/loaded/external targets, recursion, scratch execution and unavailable ABI inputs remain unsupported.",
+      "references": [
+        {
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "function": "call",
+          "line": 4114
+        },
+        {
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "function": "return_from_call",
+          "line": 4177
+        }
+      ],
+      "positive_controls": [
+        {
+          "path": "crates/volta_amdgpu_analysis/tests/device_calls.rs",
+          "function": "complete_qualified_compiler_leaf_matches_all_64_input_output_coordinates",
+          "line": 455
+        },
+        {
+          "path": "crates/volta_amdgpu_analysis/tests/device_calls.rs",
+          "function": "nested_calls_share_registers_and_explicitly_preserve_the_outer_return",
+          "line": 125
+        }
+      ],
+      "negative_controls": [
+        {
+          "path": "crates/volta_amdgpu_analysis/tests/device_calls.rs",
+          "function": "calls_require_actual_reaching_definitions_and_local_function_bounds",
+          "line": 270
+        },
+        {
+          "path": "crates/volta_amdgpu_analysis/tests/device_calls.rs",
+          "function": "scalar_load_readiness_is_shared_across_call_and_return_without_implicit_wait",
+          "line": 203
+        }
+      ],
+      "test_scope": "Named representative controls exercise this semantic profile; these are not assertions that every corpus PC/operand combination was executed."
+    },
     "U": {
       "stage": "value",
       "status": "recognized_but_execution_unsupported",
@@ -919,17 +1001,17 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "vector",
-          "line": 4231
+          "line": 4640
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "memory_instruction",
-          "line": 6388
+          "line": 6862
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "unsupported",
-          "line": 2050
+          "line": 2162
         }
       ],
       "positive_controls": [],
