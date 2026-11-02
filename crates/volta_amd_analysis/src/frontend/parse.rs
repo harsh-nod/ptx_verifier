@@ -19,10 +19,29 @@ fn integer(text: &str) -> Option<u64> {
     }
 }
 
-/// Parse a register, register range, integer, or wait counter.
+/// The inline float constants CDNA4 encodes without a literal (§6.2), as Clang prints them.
+const INLINE_FLOATS: [f32; 8] = [0.5, -0.5, 1.0, -1.0, 2.0, -2.0, 4.0, -4.0];
+
+/// Parse a register, register range, integer, inline float, wait counter, or memory offset.
 fn operand(text: &str) -> Option<Operand> {
     if let Some(value) = integer(text) {
         return Some(Operand::Imm(value));
+    }
+    if text == "vcc" {
+        return Some(Operand::Vcc);
+    }
+    if text.contains('.') {
+        let value = text.parse::<f32>().ok()?;
+        return INLINE_FLOATS
+            .contains(&value)
+            .then_some(Operand::InlineFloat(value.to_bits()));
+    }
+    if let Some(offset) = text.strip_prefix("offset:") {
+        let value = match offset.strip_prefix('-') {
+            Some(magnitude) => -i64::try_from(integer(magnitude)?).ok()?,
+            None => i64::try_from(integer(offset)?).ok()?,
+        };
+        return Some(Operand::Offset(value));
     }
     if let Some((name, rest)) = text.split_once('(') {
         let counter = match name {
@@ -49,6 +68,16 @@ fn operand(text: &str) -> Option<Operand> {
         }
     };
     (first <= last).then_some(Operand::Reg { file, first, last })
+}
+
+fn unsupported_operand(piece: &str, line: &str) -> String {
+    if piece.contains('.') && piece.parse::<f32>().is_ok() {
+        format!(
+            "float operand {piece:?} in {line:?} is not one of the inline constants {INLINE_FLOATS:?}"
+        )
+    } else {
+        format!("unsupported operand {piece:?} in {line:?}")
+    }
 }
 
 pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
@@ -106,9 +135,7 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
         let operands = rest
             .split([',', ' ', '\t'])
             .filter(|piece| !piece.is_empty())
-            .map(|piece| {
-                operand(piece).ok_or_else(|| format!("unsupported operand {piece:?} in {line:?}"))
-            })
+            .map(|piece| operand(piece).ok_or_else(|| unsupported_operand(piece, line)))
             .collect::<Result<_, _>>()?;
         instructions.push(Instruction {
             opcode: opcode.into(),
@@ -236,6 +263,15 @@ mod tests {
         assert_eq!(
             parse_kernel(&source, "copy").unwrap_err(),
             format!("unsupported operand \"glc\" in \"{line} glc\"")
+        );
+
+        let line = "v_add_f32_e32 v1, 1.5, v1";
+        assert_eq!(
+            parse_kernel(&kernel_source(line, ""), "test").unwrap_err(),
+            format!(
+                "float operand \"1.5\" in {line:?} is not one of the inline constants \
+                 [0.5, -0.5, 1.0, -1.0, 2.0, -2.0, 4.0, -4.0]"
+            )
         );
     }
 
