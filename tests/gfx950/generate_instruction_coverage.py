@@ -334,17 +334,50 @@ def main():
     )
     value(
         "M",
-        "Typed global/kernarg/LDS byte storage, per-component SMEM low-bit masking, encoded nonnegative scalar offsets, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. XNACK replay, atomics, buffers, arbitrary apertures and equal-offset dual DS are outside the envelope.",
-        ["memory_instruction", "flat_memory_address", "validate_address"],
+        "Typed global/kernarg/LDS byte storage, per-component SMEM low-bit masking, encoded nonnegative scalar offsets, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. Selected gfx950 raw-buffer DWORD/DWORDX2 loads/stores require four-operand offen and word3 0x20000; direct-to-LDS DWORD/DWORDX4 loads require three-operand offen lds and word3 0x110000. Both retain separate resource/allocation bounds and VM completion; direct LDS also checks M0 readiness and LDS bounds. Other buffer modes, atomics, arbitrary apertures and equal-offset dual DS remain unsupported. Explicit xnack+ checks selected SMEM clause aliases; vector-memory replay remains unsupported.",
+        [
+            "memory_instruction",
+            "flat_memory_address",
+            "gfx950_raw_buffer_addresses",
+            "validate_address",
+        ],
         [
             (MEM, "compiler_static_and_dynamic_lds_share_bytes_through_flat_and_ds"),
             (MEM, "an_lds_128_bit_read_preserves_four_independently_stored_words"),
             (MEM, "smem_discards_each_component_low_bits_before_addition"),
+            (
+                PIPE + "gfx950_raw_buffer_tests.rs",
+                "full_output_copy_and_add_one_survive_descriptor_reuse_before_vm_completion",
+            ),
+            (
+                PIPE + "gfx950_raw_buffer_x2_tests.rs",
+                "complete_two_word_copy_and_packed_add_match_full_output_specs_and_refute_swaps",
+            ),
+            (
+                PIPE + "gfx950_buffer_lds_tests.rs",
+                "completed_dma_preserves_all_outputs_and_refutes_a_different_equation",
+            ),
         ],
         [
             (MEM, "vector_transfers_check_every_component_at_the_region_end"),
             (MEM, "initialized_bytes_and_halves_do_not_define_the_rest_of_a_word"),
             (MEM, "smem_masking_preserves_readiness_bounds_and_exec_independence"),
+            (
+                PIPE + "gfx950_raw_buffer_tests.rs",
+                "all_descriptor_words_require_lgkm_and_load_results_require_vm",
+            ),
+            (
+                "crates/volta_amdgpu_analysis/tests/gfx950_raw_buffer_x2.rs",
+                "resource_allocation_and_domain_preflight_cover_the_complete_pair_and_every_lane",
+            ),
+            (
+                PIPE + "gfx950_buffer_lds_tests.rs",
+                "missing_or_unrelated_completion_does_not_publish_dma_to_ds",
+            ),
+            (
+                PIPE + "gfx950_buffer_lds_tests.rs",
+                "one_independent_m0_state_is_required_even_when_the_payload_is_available",
+            ),
         ],
     )
     value(
@@ -386,7 +419,7 @@ def main():
     )
     value(
         "W",
-        "Native counter thresholds retire actual in-order counter prefixes; maximal thresholds do not falsely mean full completion.",
+        "Selected ordinary counter contributors retire in-order prefixes; maximal thresholds do not falsely mean full completion. Partial VM waits across mixed direct-to-LDS DMA and ordinary memory retain all pending obligations rather than inferring FIFO completion; vmcnt(0) drains the counter.",
         ["wait"],
         [(MEM, "partial_vmcnt_only_retires_the_completed_load_prefix")],
         [(MEM, "a_wait_on_the_wrong_counter_does_not_make_a_register_ready")],
@@ -400,7 +433,7 @@ def main():
     )
     value(
         "T",
-        "Endpgm implicit counter drain and lane termination; NOP encoded 0..15 gives 1..16 states. No fabricated handler/call/return semantics.",
+        "Endpgm implicit counter drain and lane termination; NOP encoded 0..15 gives 1..16 states. Exception handlers and general computed calls remain unsupported. The separate gfx950 CALL profile executes checked rel32 helper calls and matching returns without implicit waits or register resets.",
         ["step"],
         [
             (
@@ -410,6 +443,31 @@ def main():
             (SOFT, "valu_scalar_data_requires_two_independent_states"),
         ],
         [(FRONT + "tests.rs", "control_immediates_have_explicit_encoded_ranges")],
+    )
+    value(
+        "CALL",
+        "Selected gfx950 s_swappc_b64/s_setpc_b64 calls and matching returns use plain SGPR pairs, validated adjacent getpc/rel32-lo+4/hi+12 target construction and bounded complete helper bodies. Nested calls preserve return words explicitly. Flags, EXEC, registers and asynchronous counters remain shared. Arbitrary/loaded/external targets, recursion, scratch execution and unavailable ABI inputs remain unsupported.",
+        ["call", "return_from_call"],
+        [
+            (
+                "crates/volta_amdgpu_analysis/tests/device_calls.rs",
+                "complete_qualified_compiler_leaf_matches_all_64_input_output_coordinates",
+            ),
+            (
+                "crates/volta_amdgpu_analysis/tests/device_calls.rs",
+                "nested_calls_share_registers_and_explicitly_preserve_the_outer_return",
+            ),
+        ],
+        [
+            (
+                "crates/volta_amdgpu_analysis/tests/device_calls.rs",
+                "calls_require_actual_reaching_definitions_and_local_function_bounds",
+            ),
+            (
+                "crates/volta_amdgpu_analysis/tests/device_calls.rs",
+                "scalar_load_readiness_is_shared_across_call_and_return_without_implicit_wait",
+            ),
+        ],
     )
     value(
         "U",
@@ -427,6 +485,8 @@ def main():
 
     def category(name, family):
         plain = re.sub(r"_(e32|e64|sdwa)$", "", name)
+        if plain in {"s_swappc_b64", "s_setpc_b64"}:
+            return "CALL"
         if (
             plain in {"v_readlane_b32", "v_readfirstlane_b32", "v_writelane_b32"}
             or "atomic" in plain
@@ -680,7 +740,9 @@ def main():
         "",
         f"The corpus contains **{len(source_rows)} sources**, including **{len(compiler)} pinned compiler outputs**, **{len(instructions):,} instructions**, **{len(opcodes)} exact mnemonic forms** and **{inventory['totals']['observed_profiles']} operand/modifier profiles**. [The JSON inventory](instruction-coverage.json) records every profile, exact modifier value, tuple size, source hash and example PC.",
         "",
-        "Parsing does not establish execution support. Each column below points to a distinct stage implementation. Value IDs name reviewed, bounded semantic profiles with real positive and negative tests. Representative family controls do not assert runtime coverage of every corpus PC or every possible operand combination. `U` deliberately aborts; BF16/E5M2 symbolic storage, nonunit MFMA scale, F6/F4, arbitrary relocations, XNACK replay, unmodeled lane hazards and unknown modifiers remain outside their stated envelopes.",
+        "Parsing does not establish execution support. Each column below points to a distinct stage implementation. Value IDs name reviewed, bounded semantic profiles with real positive and negative tests. Representative family controls do not assert runtime coverage of every corpus PC or every possible operand combination. `U` deliberately aborts; BF16/E5M2 symbolic storage, nonunit MFMA scale, F6/F4, arbitrary relocations, vector-memory XNACK replay, unmodeled lane hazards and unknown modifiers remain outside their stated envelopes.",
+        "",
+        "The [gfx950 semantic coverage guide](../../docs/gfx950-instruction-coverage.md) describes the sign-bit/F32 contracts and complete unchanged compiler-kernel proof. Its inline Rust controls and upstream float_ops fixture are outside this pinned source inventory and do not increase the denominator above.",
         "",
         "The mixed by-value compiler source is included: `s_sext_i32_i16` and `v_cvt_f32_ubyte2_e32` have integrated positive and unknown-padding negative controls in `gfx950_byvalue_tests.rs`. Source counts are regenerated in `emitted-instructions.json`; those counts alone make no support claim.",
         "",

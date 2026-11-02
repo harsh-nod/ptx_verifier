@@ -7,6 +7,7 @@ format and visibility contracts are separate from gfx1250's wave32 model.
 | Path | Purpose |
 | --- | --- |
 | [instruction-coverage.md](instruction-coverage.md) | Generated exact operand/modifier profiles and stage/test references |
+| [Semantic coverage guide](../../docs/gfx950-instruction-coverage.md) | Bounded sign-bit/F32 contracts and the complete unchanged compiler-kernel proof |
 | [portable-scalar/](portable-scalar/README.md) | Scalar, packed data, address and ABI mappings |
 | [portable-matrix/](portable-matrix/README.md) | LDS layouts, matrix fragments, storage formats and complete tile outputs |
 | [portable-workload/](portable-workload/README.md) | Full matvec/scan publication controls |
