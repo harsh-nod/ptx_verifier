@@ -435,6 +435,13 @@ the supported ring/bit operations, while concrete integer and address
 arithmetic wraps at its native width. Exact compiler exponential idioms and
 base2 conversions record their distinct modeling assumptions.
 
+Selected gfx950 and gfx1250 vector sign masks preserve the distinction between
+raw words and F32 values: AND with `0x7fffffff`, XOR with `0x80000000` and OR
+with `0x80000000` decode only with an actual F32 interpretation. Untyped words
+retain deferred raw transport; conflicting integer/float consumers are refused.
+The [gfx950 coverage inventory](../../docs/gfx950-instruction-coverage.md)
+describes independent controls and the unchanged complete compiler fixture.
+
 Execution calculates candidate asynchronous data eagerly and separately
 records instruction operands, memory issues, register leases, counter charges
 and byte effects. Eager calculation is not a readiness or publication proof.
