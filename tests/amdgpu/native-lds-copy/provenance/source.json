@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "repository": "https://github.com/HazyResearch/HipKittens",
+  "revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+  "source_hashes": {
+    "tests/unit/cdna4/warp/memory/vec/global_to_shared.cu": "9e8d1abd2223422476e5ecee24c3a362fb90297d54f64a740d1ade4d4311bc31",
+    "tests/unit/common/testing_commons/testing_commons.cuh": "fd9cec649447f74b0eb1f8d1f6c84e2387de01685cd82e6d7ead083e42006b41",
+    "include/cdna4/types/global/gl.cuh": "e1e8484f5bc444c2c4f3254f5d76a89f32fae6e8fb0364572d70dbe87bd6940d",
+    "include/cdna4/common/util.cuh": "c11f7787e33d5f5fc2b1781550e9b30b3f0423c3447b54610804767e4ce0b1b9",
+    "include/cdna4/ops/warp/memory/vec/global_to_shared.cuh": "4f274aa32b3692f2dc80d67dcb4eb95e0230b3faabb937fb84c2c19b518f502b",
+    "include/cdna4/ops/warp/memory/util/util.cuh": "a8c97773d9532d448d89bbca9bc73d3c635ac1fab97fe8438ea8f2170dfb643d"
+  },
+  "original_contract_sha256": "b861213a8e66785e05f4b36d722ca2d3990ae453e5a7784cb01aef4da5b24be6",
+  "compile": {
+    "original_record_sha256": "a6d74bad5c2c8a32dbe2cd83c21f03204340f44a74b23ac4b541a2a290de5e00",
+    "command_template": [
+      "${ROCM}/llvm/bin/clang++",
+      "-x",
+      "hip",
+      "--cuda-device-only",
+      "-S",
+      "-std=c++20",
+      "-I${ROCM}/include/hip",
+      "-I.",
+      "-I../common/testing_commons",
+      "-I../../../include",
+      "-Wall",
+      "-Wextra",
+      "-DTEST_INTENSITY=2",
+      "-DTEST_ALL",
+      "-O3",
+      "-DKITTENS_CDNA4",
+      "--offload-arch=gfx950",
+      "-DHIP_ENABLE_WARP_SYNC_BUILTINS",
+      "-w",
+      "-Wno-pass-failed",
+      "-I${HIPKITTENS}/include",
+      "-I${HIPKITTENS}/prototype",
+      "-I${PYBIND11_INCLUDE}",
+      "-I${PYTHON_INCLUDE}",
+      "${HIPKITTENS}/tests/unit/cdna4/warp/memory/vec/global_to_shared.cu",
+      "-o",
+      "${OUTPUT}/kernel.s"
+    ],
+    "cwd_template": "${HIPKITTENS}/tests/unit/cdna4",
+    "exit_code": 0,
+    "compiler_sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+    "compiler_revision": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+    "compiler_revision_source": "whole-module .ident",
+    "template_note": "Paths replaced with placeholders; this is not the byte-exact original record."
+  },
+  "assemble": {
+    "original_record_sha256": "a8a33030b0b104046da2bba9b354ae2f3f6b917fef49ba9e8eb380a97e057340",
+    "command_template": [
+      "${ROCM}/llvm/bin/llvm-mc",
+      "--triple=amdgcn-amd-amdhsa",
+      "--mcpu=gfx950",
+      "-filetype=obj",
+      "${OUTPUT}/kernel.s",
+      "-o",
+      "${OUTPUT}/kernel.o"
+    ],
+    "exit_code": 0,
+    "object_sha256": "e580dc4fffff2e2db4ead5c78b3ff16d4af19a092fbeb0ae0a31ea8406a34076",
+    "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771"
+  },
+  "layout": {
+    "exit_code": 0,
+    "compiler_sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+    "layout_sha256": "9787991afe92342a6cd6b77a6176ee39fd0cc7ebdc4d208e225933bf2386e118",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command_template": [
+      "${ROCM}/llvm/bin/clang++",
+      "-x",
+      "hip",
+      "--cuda-device-only",
+      "-std=c++20",
+      "-I${ROCM}/include/hip",
+      "-I.",
+      "-I../common/testing_commons",
+      "-I../../../include",
+      "-Wall",
+      "-Wextra",
+      "-DTEST_INTENSITY=2",
+      "-DTEST_ALL",
+      "-O3",
+      "-DKITTENS_CDNA4",
+      "--offload-arch=gfx950",
+      "-DHIP_ENABLE_WARP_SYNC_BUILTINS",
+      "-w",
+      "-Wno-pass-failed",
+      "-I${HIPKITTENS}/include",
+      "-I${HIPKITTENS}/prototype",
+      "-I${PYBIND11_INCLUDE}",
+      "-I${PYTHON_INCLUDE}",
+      "-fsyntax-only",
+      "${CONTRACT}/layout.cpp"
+    ],
+    "cwd_template": "${HIPKITTENS}/tests/unit/cdna4",
+    "original_record_sha256": "f67a670401b429771f7f3d54e11cfc6d1d59ddfbafb011b79cb6c28d95d11620"
+  },
+  "derivation": "S=4,RT_SHAPE::cols=16,NW=1; host SIZE=S*cols=64, identity host_func, grid1/blockNW*64, dynamic LDSMAX_SHARED_MEMORY/2. No shape, allocation, ABI, instruction, target or grid changes.",
+  "abi": {
+    "gl_size": 16,
+    "gl_alignment": 8,
+    "pointer_offset": 0,
+    "argument_offsets": [
+      0,
+      16
+    ],
+    "kernarg_size": 32,
+    "argument_padding": "explicit zero; not loaded by this module"
+  },
+  "instantiation": {
+    "S": 4,
+    "RT_SHAPE_cols": 16,
+    "NW": 1,
+    "N": 64,
+    "dtype": "f32",
+    "wavefront_size": 64,
+    "grid": [
+      1,
+      1,
+      1
+    ],
+    "block": [
+      64,
+      1,
+      1
+    ],
+    "dynamic_lds_bytes": 80000,
+    "input_bytes": 256,
+    "output_bytes": 256,
+    "host_reference": "identity"
+  },
+  "source_license": "fixtures/LICENSE.HipKittens",
+  "campaign_receipt": {
+    "original_report_sha256": "3f657d104de8144e5a58a4b5edec889bcbf4a72e1e0ef63b41f4c4a223f90ab4",
+    "compiler_sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+    "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+    "driver_sha256": "209f79d83ad6db8bee47f92de33a37dfced9d7c920075df26c9ac65930b59484",
+    "source_revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+    "note": "Historical compilation/encoding provenance only; old parse outcomes do not describe the later before/after verifier runs."
+  }
+}

@@ -1,0 +1,129 @@
+volta-expr 1
+n0 = elem "x" 0
+n1 = elem "x" 1
+n2 = elem "x" 2
+n3 = elem "x" 3
+n4 = elem "x" 4
+n5 = elem "x" 5
+n6 = elem "x" 6
+n7 = elem "x" 7
+n8 = elem "x" 8
+n9 = elem "x" 9
+n10 = elem "x" 10
+n11 = elem "x" 11
+n12 = elem "x" 12
+n13 = elem "x" 13
+n14 = elem "x" 14
+n15 = elem "x" 15
+n16 = elem "x" 16
+n17 = elem "x" 17
+n18 = elem "x" 18
+n19 = elem "x" 19
+n20 = elem "x" 20
+n21 = elem "x" 21
+n22 = elem "x" 22
+n23 = elem "x" 23
+n24 = elem "x" 24
+n25 = elem "x" 25
+n26 = elem "x" 26
+n27 = elem "x" 27
+n28 = elem "x" 28
+n29 = elem "x" 29
+n30 = elem "x" 30
+n31 = elem "x" 31
+n32 = elem "x" 32
+n33 = elem "x" 33
+n34 = elem "x" 34
+n35 = elem "x" 35
+n36 = elem "x" 36
+n37 = elem "x" 37
+n38 = elem "x" 38
+n39 = elem "x" 39
+n40 = elem "x" 40
+n41 = elem "x" 41
+n42 = elem "x" 42
+n43 = elem "x" 43
+n44 = elem "x" 44
+n45 = elem "x" 45
+n46 = elem "x" 46
+n47 = elem "x" 47
+n48 = elem "x" 48
+n49 = elem "x" 49
+n50 = elem "x" 50
+n51 = elem "x" 51
+n52 = elem "x" 52
+n53 = elem "x" 53
+n54 = elem "x" 54
+n55 = elem "x" 55
+n56 = elem "x" 56
+n57 = elem "x" 57
+n58 = elem "x" 58
+n59 = elem "x" 59
+n60 = elem "x" 60
+n61 = elem "x" 61
+n62 = elem "x" 62
+n63 = elem "x" 63
+out "out" 0 n0
+out "out" 1 n1
+out "out" 2 n2
+out "out" 3 n3
+out "out" 4 n4
+out "out" 5 n5
+out "out" 6 n6
+out "out" 7 n7
+out "out" 8 n8
+out "out" 9 n9
+out "out" 10 n10
+out "out" 11 n11
+out "out" 12 n12
+out "out" 13 n13
+out "out" 14 n14
+out "out" 15 n15
+out "out" 16 n16
+out "out" 17 n17
+out "out" 18 n18
+out "out" 19 n19
+out "out" 20 n20
+out "out" 21 n21
+out "out" 22 n22
+out "out" 23 n23
+out "out" 24 n24
+out "out" 25 n25
+out "out" 26 n26
+out "out" 27 n27
+out "out" 28 n28
+out "out" 29 n29
+out "out" 30 n30
+out "out" 31 n31
+out "out" 32 n32
+out "out" 33 n33
+out "out" 34 n34
+out "out" 35 n35
+out "out" 36 n36
+out "out" 37 n37
+out "out" 38 n38
+out "out" 39 n39
+out "out" 40 n40
+out "out" 41 n41
+out "out" 42 n42
+out "out" 43 n43
+out "out" 44 n44
+out "out" 45 n45
+out "out" 46 n46
+out "out" 47 n47
+out "out" 48 n48
+out "out" 49 n49
+out "out" 50 n50
+out "out" 51 n51
+out "out" 52 n52
+out "out" 53 n53
+out "out" 54 n54
+out "out" 55 n55
+out "out" 56 n56
+out "out" 57 n57
+out "out" 58 n58
+out "out" 59 n59
+out "out" 60 n60
+out "out" 61 n61
+out "out" 62 n62
+out "out" 63 n63

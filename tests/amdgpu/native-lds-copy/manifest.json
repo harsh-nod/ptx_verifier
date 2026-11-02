@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "target": "gfx950",
+  "kernel": "_ZL17global_wrapper_1dI21shared_vec_load_storeIfEN7kittens5ducks8rt_shape8rt_shapeILi16ELi16ELi4EEENS3_8st_shape8st_16x16EfLi4ELi1ETkNS3_2gl3allENS2_2glIfLi1ELi1ELi1ELi64EJEEEJEEvT5_SC_",
+  "assembly_sha256": "5cd06ff39ac43a8178c89d570361a5329c39b0d2077020438fbc93701ffe9542",
+  "launch_sha256": "3e1054f80948e9cafe11a8ca008c097939b8b5a44955ba585104ddfaab67150b",
+  "spec_sha256": "dfaaf87789dfec7bcaadc0e1a4dd9863575540ed223799561770c53ea60b438b",
+  "roles": {
+    "baseline": {
+      "revision": "70df9b1e9282cd1697b44d3fc8d5214af0cd81df",
+      "binary_sha256": "de6760c38e7f8f9ea41e8f81958cad31e17f5a68c22825cc138d65f1c15a508b",
+      "source_clean": true,
+      "profile": "release",
+      "features": [],
+      "default_features": true,
+      "rust_workspace_fingerprint": {
+        "algorithm": "sha256-git-tree-v1",
+        "sha256": "fb0f5e001c9e0db3c5a28a94b9093726c0975cd3ad53d9f759a3c15fe8d6c0dd",
+        "file_count": 1262
+      },
+      "build_log_sha256": "8306bee743cd19cc403fd06053947119e58838cef24dcc7f117fc459b00e458f",
+      "build_record_sha256": "22252de61fb7b7c915434e0726474a88cff7ad01ba20be65a7b60e73331cd4e8",
+      "captured_report_sha256": "abd0129ef22ad2bae317ea126f342300f349ba4217014b2525d1f9348710707c",
+      "trust": "caller-attested source/build/process association; hashes identify retained bytes, not execution proof"
+    },
+    "candidate": {
+      "revision": "8eae0e69755612acaee48dbe26c46b80de81b7b1",
+      "binary_sha256": "d505e4da4573dfa46f30b99c10f1081f055b55f7c8fbd7d509b5d443d38e2f14",
+      "source_clean": true,
+      "profile": "release",
+      "features": [],
+      "default_features": true,
+      "rust_workspace_fingerprint": {
+        "algorithm": "sha256-git-tree-v1",
+        "sha256": "03fea4385fcaca346ed0e5308db663e1ea3049b1122101e2f0cc0d5a53b4f20e",
+        "file_count": 1266
+      },
+      "build_log_sha256": "9a1d69a9801a8dd6bbac1d30a9019cf53c924e2146482aea8d22d4fb949e3ef9",
+      "build_record_sha256": "7850ac1dbc20e0c03630938c531e4e7026deba7cede27234d53ced8d7c1fd185",
+      "captured_report_sha256": "69f44ed0999462b827279147f7e2e8d2800f2d995c695d5e9ecdf61c20c418f6",
+      "trust": "caller-attested source/build/process association; hashes identify retained bytes, not execution proof"
+    }
+  },
+  "scope": {
+    "original_specializations": 1,
+    "new_bugs": 0,
+    "elements": 64,
+    "baseline": "UNKNOWN, 25 instruction records, aborted at pc24; no outputs",
+    "candidate": "ACCEPT, 31 instruction records, completed; 64 complete identity roots",
+    "timing_or_rss_claim": false,
+    "hardware_execution": false
+  },
+  "independent_audit_sha256": "b5873081a7d454d0e1a6068a267bb85e4488d2362ff2aecf8aa37ba29e77773b"
+}
