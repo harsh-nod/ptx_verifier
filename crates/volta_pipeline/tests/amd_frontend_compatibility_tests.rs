@@ -75,6 +75,11 @@ fn native_operand(operand: &upstream::Operand) -> Operand {
             .into(),
             value: (*value).try_into().unwrap(),
         },
+        upstream::Operand::InlineFloat(_)
+        | upstream::Operand::Vcc
+        | upstream::Operand::Offset(_) => {
+            panic!("copy fixture contains an operand outside its shared grammar: {operand:?}")
+        }
     }
 }
 

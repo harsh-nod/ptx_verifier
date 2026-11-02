@@ -10,11 +10,14 @@ pub enum EvalError {
     InvalidLane(usize),
     UninitializedSgpr(Sgpr),
     UninitializedVgpr { lane: usize, reg: Vgpr },
+    UninitializedVcc { lane: usize },
     PendingSgpr(Sgpr),
     PendingVgpr { lane: usize, reg: Vgpr },
     InvalidAddressRegister(Sgpr),
     InvalidAddressVgpr { lane: usize, reg: Vgpr },
     InvalidFloatVgpr { lane: usize, reg: Vgpr },
+    InvalidFloatSgpr(Sgpr),
+    InvalidFloatConstant(u32),
     AddressOverflow,
     KernargRead { address: u64 },
     GlobalRead { address: u64 },
@@ -34,6 +37,7 @@ impl fmt::Display for EvalError {
             Self::UninitializedVgpr { lane, reg } => {
                 write!(f, "uninitialized vector register v{} in lane {lane}", reg.0)
             }
+            Self::UninitializedVcc { lane } => write!(f, "uninitialized VCC bit in lane {lane}"),
             Self::PendingSgpr(reg) => write!(f, "scalar register s{} has a pending load", reg.0),
             Self::PendingVgpr { lane, reg } => {
                 write!(
@@ -62,6 +66,16 @@ impl fmt::Display for EvalError {
                     "f32 operand v{} in lane {lane} must not be a NaN or wider than 32 bits",
                     reg.0
                 )
+            }
+            Self::InvalidFloatSgpr(reg) => {
+                write!(
+                    f,
+                    "scalar register s{} must hold an f32 other than a NaN",
+                    reg.0
+                )
+            }
+            Self::InvalidFloatConstant(bits) => {
+                write!(f, "f32 constant {bits:#x} must not be a NaN")
             }
             Self::AddressOverflow => write!(f, "memory address overflows 64 bits"),
             Self::KernargRead { address } => {

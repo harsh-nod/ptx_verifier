@@ -8,7 +8,9 @@ use std::fmt;
 use id_collections::IdVec;
 
 use crate::frontend::ast::{Counter, Instruction, Kernel, Operand, RegFile};
-use crate::ir::{LoweredInstr, LoweredKernel, Sgpr, Vgpr};
+use crate::ir::{
+    self, GlobalAddress, LoweredInstr, LoweredKernel, ScalarSrc, Sgpr, Src0, Vgpr, Vop3Src,
+};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum LowerError {
@@ -103,36 +105,156 @@ fn lower_instruction(instruction: &Instruction) -> Result<LoweredInstr, &'static
             offset: immediate(offset, 0xfffff)
                 .ok_or("expected a nonnegative 20-bit byte offset")?,
         }),
+        ("s_mov_b32", [dst, src]) => Ok(MovScalar32 {
+            dst: sgpr(dst).ok_or("expected one destination SGPR")?,
+            src: scalar_source(src).ok_or("expected an SGPR or a 32-bit constant source")?,
+        }),
         ("v_lshlrev_b32_e32", [dst, shift, src]) => Ok(Shl32 {
             dst: vgpr(dst).ok_or("expected one destination VGPR")?,
             src: vgpr(src).ok_or("expected one source VGPR")?,
             shift: immediate(shift, u32::MAX).ok_or("expected a 32-bit immediate shift input")?,
         }),
+        ("v_lshrrev_b32_e32", [dst, shift, src]) => Ok(LShr32 {
+            dst: vgpr(dst).ok_or("expected one destination VGPR")?,
+            src: vgpr(src).ok_or("expected one source VGPR")?,
+            shift: immediate(shift, u32::MAX).ok_or("expected a 32-bit immediate shift input")?,
+        }),
+        ("v_add_lshl_u32", [dst, src0, src1, shift]) => Ok(AddShl32 {
+            dst: vgpr(dst).ok_or("expected one destination VGPR")?,
+            src0: vgpr(src0).ok_or("expected one VGPR first source")?,
+            src1: vgpr(src1).ok_or("expected one VGPR second source")?,
+            // Before GFX10, VOP3 takes no literal (see `vop3_src`).
+            shift: immediate(shift, 64).ok_or("expected an inline integer shift input")?,
+        }),
+        ("v_and_b32_e32", operands) => lower_bin_op(ir::BinOp::And32, operands),
+        ("v_or_b32_e32", operands) => lower_bin_op(ir::BinOp::Or32, operands),
+        ("v_xor_b32_e32", operands) => lower_bin_op(ir::BinOp::Xor32, operands),
+        ("v_add_f32_e32", operands) => lower_bin_op(ir::BinOp::AddF32, operands),
+        ("v_sub_f32_e32", operands) => lower_bin_op(ir::BinOp::SubF32, operands),
+        ("v_mul_f32_e32", operands) => lower_bin_op(ir::BinOp::MulF32, operands),
+        ("v_min_f32_e32", operands) => lower_bin_op(ir::BinOp::MinF32, operands),
+        ("v_max_f32_e32", operands) => lower_bin_op(ir::BinOp::MaxF32, operands),
+        ("v_exp_f32_e32", operands) => lower_unary_op(ir::UnaryOp::Exp2F32, operands),
+        ("v_log_f32_e32", operands) => lower_unary_op(ir::UnaryOp::Log2F32, operands),
+        ("v_rcp_f32_e32", operands) => lower_unary_op(ir::UnaryOp::RcpF32, operands),
+        ("v_sqrt_f32_e32", operands) => lower_unary_op(ir::UnaryOp::SqrtF32, operands),
+        ("v_rsq_f32_e32", operands) => lower_unary_op(ir::UnaryOp::RsqF32, operands),
+        ("v_cmp_lt_f32_e32", operands) => lower_cmp(ir::CmpOp::LtF32, operands),
+        ("v_cmp_le_f32_e32", operands) => lower_cmp(ir::CmpOp::LeF32, operands),
+        ("v_cmp_eq_f32_e32", operands) => lower_cmp(ir::CmpOp::EqF32, operands),
+        ("v_cmp_lg_f32_e32", operands) => lower_cmp(ir::CmpOp::LgF32, operands),
+        ("v_cndmask_b32_e32", [dst, src0, src1, vcc]) => {
+            expect_vcc(vcc)?;
+            Ok(CndMask32 {
+                dst: vgpr(dst).ok_or("expected one destination VGPR")?,
+                src0: first_source(src0)?,
+                src1: vgpr(src1).ok_or("expected one VGPR second source")?,
+            })
+        }
+        ("v_fma_f32", [dst, src0, src1, src2]) => Ok(FmaF32 {
+            dst: vgpr(dst).ok_or("expected one destination VGPR")?,
+            src0: vop3_src(src0).ok_or("expected a VGPR or an inline constant first source")?,
+            src1: vop3_src(src1).ok_or("expected a VGPR or an inline constant second source")?,
+            src2: vop3_src(src2).ok_or("expected a VGPR or an inline constant third source")?,
+        }),
         // VOP2 also accepts an SGPR or a constant as src0; only VGPR sources are supported.
-        ("v_add_f32_e32", [dst, src0, src1]) => Ok(AddF32 {
+        ("v_fmac_f32_e32", [dst, src0, src1]) => Ok(FmacF32 {
             dst: vgpr(dst).ok_or("expected one destination VGPR")?,
             src0: vgpr(src0).ok_or("expected one VGPR first source")?,
             src1: vgpr(src1).ok_or("expected one VGPR second source")?,
         }),
-        ("global_load_dword", [dst, vaddr, saddr]) => Ok(GlobalLoadDword {
+        ("global_load_dword", [dst, vaddr, saddr, offset @ ..]) => Ok(GlobalLoadDword {
             dst: vgpr(dst).ok_or("expected one destination VGPR")?,
-            vaddr: vgpr(vaddr).ok_or("expected one address VGPR")?,
-            saddr: sgprs(saddr).ok_or("expected an aligned SGPR base pair")?,
+            address: global_address(vaddr, saddr, offset)?,
         }),
-        ("global_store_dword", [vaddr, src, saddr]) => Ok(GlobalStoreDword {
-            vaddr: vgpr(vaddr).ok_or("expected one address VGPR")?,
+        ("global_load_dwordx3", [dst, vaddr, saddr, offset @ ..]) => Ok(GlobalLoadDwordx3 {
+            dst: vgprs(dst).ok_or("expected an even-aligned three-VGPR destination")?,
+            address: global_address(vaddr, saddr, offset)?,
+        }),
+        ("global_load_dwordx4", [dst, vaddr, saddr, offset @ ..]) => Ok(GlobalLoadDwordx4 {
+            dst: vgprs(dst).ok_or("expected an even-aligned four-VGPR destination")?,
+            address: global_address(vaddr, saddr, offset)?,
+        }),
+        ("global_store_dword", [vaddr, src, saddr, offset @ ..]) => Ok(GlobalStoreDword {
             src: vgpr(src).ok_or("expected one source VGPR")?,
-            saddr: sgprs(saddr).ok_or("expected an aligned SGPR base pair")?,
+            address: global_address(vaddr, saddr, offset)?,
+        }),
+        ("global_store_dwordx2", [vaddr, src, saddr, offset @ ..]) => Ok(GlobalStoreDwordx2 {
+            src: vgprs(src).ok_or("expected an even-aligned VGPR source pair")?,
+            address: global_address(vaddr, saddr, offset)?,
+        }),
+        ("global_store_dwordx3", [vaddr, src, saddr, offset @ ..]) => Ok(GlobalStoreDwordx3 {
+            src: vgprs(src).ok_or("expected an even-aligned three-VGPR source")?,
+            address: global_address(vaddr, saddr, offset)?,
+        }),
+        ("global_store_dwordx4", [vaddr, src, saddr, offset @ ..]) => Ok(GlobalStoreDwordx4 {
+            src: vgprs(src).ok_or("expected an even-aligned four-VGPR source")?,
+            address: global_address(vaddr, saddr, offset)?,
         }),
         ("s_waitcnt", operands) => lower_wait(operands),
+        ("s_nop", [wait_states]) => {
+            immediate(wait_states, 15).ok_or("expected a wait count from 0 to 15")?;
+            Ok(Nop)
+        }
         ("s_endpgm", []) => Ok(EndPgm),
         (
-            "s_load_dwordx2" | "s_load_dwordx4" | "v_lshlrev_b32_e32" | "v_add_f32_e32"
-            | "global_load_dword" | "global_store_dword" | "s_endpgm",
+            "s_load_dwordx2"
+            | "s_load_dwordx4"
+            | "s_mov_b32"
+            | "v_lshlrev_b32_e32"
+            | "v_lshrrev_b32_e32"
+            | "v_add_lshl_u32"
+            | "v_cndmask_b32_e32"
+            | "v_fma_f32"
+            | "v_fmac_f32_e32"
+            | "global_load_dword"
+            | "global_load_dwordx3"
+            | "global_load_dwordx4"
+            | "global_store_dword"
+            | "global_store_dwordx2"
+            | "global_store_dwordx3"
+            | "global_store_dwordx4"
+            | "s_nop"
+            | "s_endpgm",
             _,
         ) => Err("unsupported operand count"),
         _ => Err("unsupported instruction"),
     }
+}
+
+fn lower_bin_op(op: ir::BinOp, operands: &[Operand]) -> Result<LoweredInstr, &'static str> {
+    let [dst, src0, src1] = operands else {
+        return Err("unsupported operand count");
+    };
+    Ok(LoweredInstr::BinOp {
+        op,
+        dst: vgpr(dst).ok_or("expected one destination VGPR")?,
+        src0: first_source(src0)?,
+        src1: vgpr(src1).ok_or("expected one VGPR second source")?,
+    })
+}
+
+fn lower_unary_op(op: ir::UnaryOp, operands: &[Operand]) -> Result<LoweredInstr, &'static str> {
+    let [dst, src] = operands else {
+        return Err("unsupported operand count");
+    };
+    Ok(LoweredInstr::UnaryOp {
+        op,
+        dst: vgpr(dst).ok_or("expected one destination VGPR")?,
+        src: first_source(src)?,
+    })
+}
+
+fn lower_cmp(op: ir::CmpOp, operands: &[Operand]) -> Result<LoweredInstr, &'static str> {
+    let [vcc, src0, src1] = operands else {
+        return Err("unsupported operand count");
+    };
+    expect_vcc(vcc)?;
+    Ok(LoweredInstr::Cmp {
+        op,
+        src0: first_source(src0)?,
+        src1: vgpr(src1).ok_or("expected one VGPR second source")?,
+    })
 }
 
 fn sgprs<const N: usize>(operand: &Operand) -> Option<[Sgpr; N]> {
@@ -150,6 +272,10 @@ fn sgprs<const N: usize>(operand: &Operand) -> Option<[Sgpr; N]> {
     Some(std::array::from_fn(|i| Sgpr((*first + i as u32) as u8)))
 }
 
+fn sgpr(operand: &Operand) -> Option<Sgpr> {
+    sgprs(operand).map(|[reg]| reg)
+}
+
 fn vgpr(operand: &Operand) -> Option<Vgpr> {
     match operand {
         Operand::Reg {
@@ -158,6 +284,91 @@ fn vgpr(operand: &Operand) -> Option<Vgpr> {
             last,
         } if first == last => u8::try_from(*first).ok().map(Vgpr),
         _ => None,
+    }
+}
+
+/// gfx950 requires VGPR tuples to start at an even register (LLVM 21.1.8's `validateVGPRAlign`).
+fn vgprs<const N: usize>(operand: &Operand) -> Option<[Vgpr; N]> {
+    let Operand::Reg {
+        file: RegFile::Vector,
+        first,
+        last,
+    } = *operand
+    else {
+        return None;
+    };
+    let first = u8::try_from(first).ok()?;
+    let last = u8::try_from(last).ok()?;
+    let count = usize::from(last.checked_sub(first)?) + 1;
+    if count != N || first % 2 != 0 {
+        return None;
+    }
+    Some(std::array::from_fn(|i| Vgpr(first + i as u8)))
+}
+
+/// Before GFX10, VOP3 takes no literal, only inline constants (LLVM 21.1.8's
+/// `validateVOPLiteral`), of which the frontend reads the integers 0 to 64 and the floats.
+fn vop3_src(operand: &Operand) -> Option<Vop3Src> {
+    match operand {
+        Operand::Imm(value) if *value <= 64 => Some(Vop3Src::Inline(*value as u32)),
+        Operand::InlineFloat(bits) => Some(Vop3Src::Inline(*bits)),
+        _ => vgpr(operand).map(Vop3Src::Vgpr),
+    }
+}
+
+/// Only src0 of a VOP2 encoding can name an SGPR or a 32-bit literal; src1 is a VGPR.
+fn first_source(operand: &Operand) -> Result<Src0, &'static str> {
+    if let Some(bits) = constant(operand) {
+        return Ok(Src0::Const(bits));
+    }
+    if let Some(reg) = vgpr(operand) {
+        return Ok(Src0::Vgpr(reg));
+    }
+    sgpr(operand)
+        .map(Src0::Sgpr)
+        .ok_or("expected a VGPR, an SGPR or a 32-bit constant first source")
+}
+
+fn scalar_source(operand: &Operand) -> Option<ScalarSrc> {
+    constant(operand)
+        .map(ScalarSrc::Const)
+        .or_else(|| sgpr(operand).map(ScalarSrc::Sgpr))
+}
+
+/// An e32 comparison writes, and `v_cndmask_b32_e32` reads, VCC implicitly; Clang still prints it.
+fn expect_vcc(operand: &Operand) -> Result<(), &'static str> {
+    match operand {
+        Operand::Vcc => Ok(()),
+        _ => Err("expected vcc"),
+    }
+}
+
+/// Global offsets are signed 13-bit before GFX10 (LLVM 21.1.8's `validateFlatOffset`).
+fn global_address(
+    vaddr: &Operand,
+    saddr: &Operand,
+    offset: &[Operand],
+) -> Result<GlobalAddress, &'static str> {
+    let offset = match offset {
+        [] => 0,
+        [Operand::Offset(offset)] => i16::try_from(*offset)
+            .ok()
+            .filter(|offset| (-4096..=4095).contains(offset))
+            .ok_or("expected a signed 13-bit byte offset")?,
+        _ => return Err("unsupported operand count"),
+    };
+    Ok(GlobalAddress {
+        vaddr: vgpr(vaddr).ok_or("expected one address VGPR")?,
+        saddr: sgprs(saddr).ok_or("expected an aligned SGPR base pair")?,
+        offset,
+    })
+}
+
+/// A 32-bit literal or an inline float, as the 32 bits of the operand.
+fn constant(operand: &Operand) -> Option<u32> {
+    match operand {
+        Operand::InlineFloat(bits) => Some(*bits),
+        _ => immediate(operand, u32::MAX),
     }
 }
 

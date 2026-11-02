@@ -23,20 +23,22 @@ launches in 1D, 2D or 3D workgroups. They support an optional kernarg pointer an
 enabled workgroup IDs, with X advancing fastest and local coordinates packed
 into `v0`. Scalar loads read concrete kernarg bytes and keep their destinations
 unavailable until `s_waitcnt lgkmcnt(0)` under an XNACK-disabled premise. The
-evaluator supports scalar argument pairs/quads, lane shifts, real-valued F32
-addition, and global dword loads/stores. Unsupported instruction forms,
-launch layouts, uninitialized reads and pending-load uses return `EvalError`.
+evaluator supports scalar argument pairs/quads and moves, lane shifts and bitwise
+operations, real-valued F32 arithmetic and elementary functions, per-lane VCC
+comparisons and conditional selection, and global dword/vector loads and stores
+with signed immediate byte offsets. Unsupported instruction forms, launch layouts,
+uninitialized reads and pending-load uses return `EvalError`.
 
 `ArrayDef` assigns each concrete global range an input or output role. Completed
-runs expose written `SymbolicOutputs`; aborted runs expose none. Copy and add
-fixtures compare every output against checked-in expressions. The returned graph
+runs expose written `SymbolicOutputs`; aborted runs expose none. Kernel fixtures
+compare every written output against checked-in expressions. The returned graph
 currently carries launch/target provenance and a terminal state without access
 events. It supplies no native AMD safety proof and is not used by the CLI/Python
 pipeline, which records and checks events through `volta_amdgpu_analysis`.
 
 Operand and scalar-memory rules follow the
 [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
-(§6.2, §8.2–8.3, §12.6–12.7), LLVM 21.1.8's
+(§6.2, §8.2–8.3, §12.6–12.7, §12.11), LLVM 21.1.8's
 [operand validation](https://github.com/llvm/llvm-project/blob/llvmorg-21.1.8/llvm/lib/Target/AMDGPU/AsmParser/AMDGPUAsmParser.cpp)
 and [counter widths](https://github.com/llvm/llvm-project/blob/llvmorg-21.1.8/llvm/lib/Target/AMDGPU/Utils/AMDGPUBaseInfo.cpp).
 Launch-register placement follows the
@@ -45,12 +47,16 @@ Launch-register placement follows the
 ## Tests
 
 Unit tests cover parser refusals, typed lowering, target features and instruction
-operand bounds. Compiled-copy and add integration tests exercise symbolic
-execution and complete output expressions. Run:
+operand bounds. Kernel tests in `tests/kernels.rs` parse, lower and execute
+compiled copy, add, ReLU, sigmoid, matrix multiplication, transpose and floating
+operation fixtures, then compare their written symbolic outputs with the
+corresponding `.out` files. Run all crate tests from the repository root:
 
 ```sh
 cargo test -p volta_amd_analysis
 ```
+
+`just amd` runs only the compiled kernel tests.
 
 ### Regenerating the copy fixture
 
