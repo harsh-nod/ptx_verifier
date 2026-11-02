@@ -5279,6 +5279,11 @@ impl<'a> Interpreter<'a> {
             let operation = match comparison.relation {
                 Relation::Eq => CmpOp::Eq,
                 Relation::Ne | Relation::NotEq => CmpOp::Ne,
+                Relation::Lg
+                    if kind == CompareType::F32 && self.architecture == AmdArchitecture::Gfx950 =>
+                {
+                    CmpOp::Ne
+                }
                 Relation::Lt => CmpOp::Lt,
                 Relation::Le => CmpOp::Le,
                 Relation::Gt => CmpOp::Gt,

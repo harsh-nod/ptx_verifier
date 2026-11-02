@@ -3,7 +3,7 @@ mod gfx950_common;
 
 use volta_amdgpu_analysis::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue, frontend};
 use volta_equivalence::{EquivOutcome, check_output_equivalence};
-use volta_expr::SymbolicOutputs;
+use volta_expr::{ExprNode, Real, SymbolicOutputs};
 use volta_graph_check::GraphConclusion;
 
 const FLOAT_OPS: &str = include_str!("../../volta_amd_analysis/tests/fixtures/float_ops.s");
@@ -25,8 +25,8 @@ fn expected_float_ops() -> SymbolicOutputs {
     let arena = &mut expected.arena;
     let a = arena.intern_string("a");
     let b = arena.intern_string("b");
-    let numerator = arena.int(8_388_608);
-    let denominator = arena.int(12_102_203);
+    let numerator = arena.real(Real::from_i64(8_388_608));
+    let denominator = arena.real(Real::from_i64(12_102_203));
     let ln2 = arena.div(numerator, denominator);
     let two = arena.int(2);
     let mut outputs = Vec::new();
@@ -347,7 +347,7 @@ fn sign_logic_preserves_flags_and_exec_skips_undefined_operands() {
     assert_eq!(checked.checks.conclusion(), GraphConclusion::Verified);
     let actual = checked.analysis.symbolic_outputs().unwrap();
     assert_eq!(actual.outputs[0].1.len(), 3);
-    for (index, expected) in [7, 17, 4].into_iter().enumerate() {
+    for (index, expected) in [7, 17].into_iter().enumerate() {
         assert_eq!(
             actual
                 .arena
@@ -355,6 +355,10 @@ fn sign_logic_preserves_flags_and_exec_skips_undefined_operands() {
             Some(expected)
         );
     }
+    assert!(matches!(
+        actual.arena.node(actual.element("out", 2).unwrap()),
+        ExprNode::RealConst(value) if *value == Real::from_i64(4)
+    ));
 }
 
 #[test]
@@ -375,4 +379,144 @@ fn sign_logic_requires_load_readiness_even_with_known_float_provenance() {
             .len(),
         1
     );
+}
+
+#[test]
+fn exact_concrete_integer_words_never_take_float_sign_semantics() {
+    let (_, _, store) = memory_ops("gfx950");
+    for input in [
+        0u32,
+        1,
+        0x8000_0000,
+        u32::MAX,
+        0x3f80_0000,
+        0xbf80_0000,
+        0x7fc0_0001,
+    ] {
+        for operation in ["and", "or", "xor"] {
+            let mask = if operation == "and" {
+                0x7fff_ffff
+            } else {
+                0x8000_0000
+            };
+            let body = format!(
+                "v_mov_b32 v1,{input}\nv_add_u32 v1,0,v1\n\
+                 v_{operation}_b32_e32 v1,{mask},v1\n{store} v0,v1,s[6:7]"
+            );
+            let checked = run(&body, 1, "gfx950");
+            assert_eq!(checked.checks.conclusion(), GraphConclusion::Verified);
+            let expected = match operation {
+                "and" => input & mask,
+                "or" => input | mask,
+                _ => input ^ mask,
+            };
+            let actual = checked.analysis.symbolic_outputs().unwrap();
+            assert_eq!(actual.outputs[0].1.len(), 1);
+            assert_eq!(
+                actual.arena.as_int_const(actual.element("out", 0).unwrap()),
+                Some(i64::from(expected))
+            );
+        }
+    }
+}
+
+#[test]
+fn register_masks_and_both_source_orders_preserve_float_results() {
+    let (load, wait, store) = memory_ops("gfx950");
+    for operation in ["and", "or", "xor"] {
+        let mask = if operation == "and" {
+            "0x7fffffff"
+        } else {
+            "0x80000000"
+        };
+        for sources in ["v2,v1", "v1,v2", "s8,v1", "v1,s8"] {
+            let checked = run(
+                &format!(
+                    "{load}\n{wait}\nv_add_f32 v3,0,v1\n\
+                     s_mov_b32 s8,{mask}\nv_mov_b32 v2,s8\n\
+                     v_{operation}_b32_e64 v1,{sources}\n{store} v0,v1,s[6:7]"
+                ),
+                1,
+                "gfx950",
+            );
+            assert_eq!(checked.checks.conclusion(), GraphConclusion::Verified);
+            assert!(matches!(
+                check_output_equivalence(
+                    checked.analysis.symbolic_outputs().unwrap(),
+                    &expected_sign_chain(&[operation], false),
+                    &["out".into()]
+                )
+                .unwrap(),
+                EquivOutcome::Equivalent
+            ));
+        }
+        let invalid = source(&format!("v_{operation}_b32_e64 v2,{mask},v1"), "gfx950");
+        assert!(
+            frontend::parse(&invalid)
+                .unwrap_err()
+                .to_string()
+                .contains("VOP3 has no literal word")
+        );
+    }
+}
+
+#[test]
+fn arbitrary_masks_and_modified_sources_remain_explicitly_unsupported() {
+    let (load, wait, store) = memory_ops("gfx950");
+    for operation in [
+        "v_or_b32_e32 v1,0x40000000,v1",
+        "v_and_b32_e32 v1,0x7ffffffe,v1",
+        "v_xor_b32_e32 v1,0x40000000,v1",
+        "v_mov_b32 v2,0x80000000\nv_or_b32_e64 v1,v2,-v1",
+    ] {
+        let checked = run(
+            &format!("{load}\n{wait}\n{operation}\nv_add_f32 v1,0,v1\n{store} v0,v1,s[6:7]"),
+            1,
+            "gfx950",
+        );
+        assert!(checked.analysis.symbolic_outputs().is_err());
+    }
+}
+
+#[test]
+fn ordered_less_or_greater_selects_only_unequal_f32_values() {
+    let (_, _, store) = memory_ops("gfx950");
+    for (left, right, expected) in [
+        (1.0, 1.0, 7),
+        (1.0, 2.0, 11),
+        (2.0, 1.0, 11),
+        (-1.0, 1.0, 11),
+    ] {
+        let checked = run(
+            &format!(
+                "v_mov_b32 v1,{left:?}\nv_mov_b32 v2,{right:?}\n\
+             s_cmp_eq_u32 s4,s4\nv_cmp_lg_f32_e32 vcc,v1,v2\n\
+             v_mov_b32 v3,11\nv_cndmask_b32_e32 v3,7,v3,vcc\nv_add_u32 v3,0,v3\n\
+             s_cselect_b32 s8,13,17\nv_mov_b32 v4,s8\nv_add_u32 v4,0,v4\n\
+             {store} v0,v3,s[6:7]\n{store} v0,v4,s[6:7] offset:4"
+            ),
+            2,
+            "gfx950",
+        );
+        assert_eq!(checked.checks.conclusion(), GraphConclusion::Verified);
+        let actual = checked.analysis.symbolic_outputs().unwrap();
+        assert_eq!(actual.outputs[0].1.len(), 2);
+        assert_eq!(
+            actual.arena.as_int_const(actual.element("out", 0).unwrap()),
+            Some(expected)
+        );
+        assert_eq!(
+            actual.arena.as_int_const(actual.element("out", 1).unwrap()),
+            Some(13)
+        );
+    }
+    for nan in [0x7fc0_0000u32, 0x7f80_0001, 0xffc0_0000] {
+        let checked = run(
+            &format!("v_mov_b32 v1,{nan}\nv_cmp_lg_f32_e32 vcc,v1,v0"),
+            1,
+            "gfx950",
+        );
+        let error = checked.analysis.symbolic_outputs().unwrap_err().to_string();
+        assert!(error.contains("NaN"), "{error}");
+    }
 }
