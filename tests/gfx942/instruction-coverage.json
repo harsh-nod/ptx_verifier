@@ -1,0 +1,4197 @@
+{
+  "schema_version": 1,
+  "target": "gfx942",
+  "wavefront_size": 64,
+  "scope": "Unchanged compiler assemblies in tests/gfx942/cases.json; not the complete ISA or all inline Rust fixtures.",
+  "interpretation": [
+    "Regeneration parses and lowers every selected entry in each complete original module. It does not execute instructions.",
+    "Profiles distinguish exact mnemonic suffixes, register classes/tuple widths, source modifiers and instruction modifiers. Integer values remain in exact source occurrences, not profile keys.",
+    "Execution, independent mathematical semantics and complete selected-workgroup proofs are separate named test references. They do not assert every static PC or every encodable operand executes.",
+    "Incomplete execution remains UNKNOWN. A readiness or synchronization rejection is distinct from an output-equivalence proof."
+  ],
+  "generator": "tests/gfx942/generate_instruction_coverage.py",
+  "parse_lower_command": [
+    "cargo",
+    "run",
+    "--release",
+    "--quiet",
+    "--locked",
+    "--offline",
+    "-p",
+    "volta_amdgpu_analysis",
+    "--example",
+    "instruction_inventory",
+    "--",
+    "--lower",
+    "tests/gfx942/fixtures/native-copy-add.s",
+    "tests/gfx942/fixtures/native-lds-ids.s",
+    "tests/gfx942/fixtures/native-mfma.s",
+    "tests/gfx942/fixtures/native-pipeline-f16.s"
+  ],
+  "totals": {
+    "compiler_modules": 4,
+    "kernel_configurations": 8,
+    "instructions": 228,
+    "exact_mnemonics": 55,
+    "observed_operand_modifier_profiles": 72
+  },
+  "inputs": [
+    {
+      "path": "tests/gfx942/cases.json",
+      "sha256": "10f64fe5fdfd9cbcad1cd0c5b4b387b57887daef90713ff0c31da9706e46f453"
+    },
+    {
+      "path": "tests/gfx942/fixtures/compiler-provenance.json",
+      "sha256": "2c6a76856a971a60f8817ff43ffb9bbd1bfe9637d2ccfaf5e5fffb8fda2d66c3"
+    },
+    {
+      "path": "tests/gfx942/fixtures/native-copy-add.s",
+      "sha256": "8a5ad0e582a6a4b0d61c8a91242459c0cccf59cddd79cf9b3d56534a3e41ac57"
+    },
+    {
+      "path": "tests/gfx942/fixtures/native-lds-ids.s",
+      "sha256": "9608b0cde97271c00bfcc9be0c18358eec31f655187351769066ee41b3fbe865"
+    },
+    {
+      "path": "tests/gfx942/fixtures/native-mfma.s",
+      "sha256": "1c52b31917fe837e8ecea8701f24e56692241e75797b727d3ea5fba73d65416a"
+    },
+    {
+      "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+      "sha256": "50a234e1b7aa8e0b9cdef9bd54005a288b58253eb4e810e4910cb90db7e86015"
+    }
+  ],
+  "kernel_proofs": [
+    {
+      "kernel": "copy",
+      "assembly": "tests/gfx942/fixtures/native-copy-add.s",
+      "launch_and_allocations": "tests/gfx942/cases.json",
+      "specification": "tests/gfx942/specs/copy.spec",
+      "complete_output_elements": 65,
+      "independent_semantics_and_graph_check": {
+        "path": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+        "function": "real_gfx942_manifest_tail_and_nonzero_groups_preserve_absolute_output_indices"
+      }
+    },
+    {
+      "kernel": "add",
+      "assembly": "tests/gfx942/fixtures/native-copy-add.s",
+      "launch_and_allocations": "tests/gfx942/cases.json",
+      "specification": "tests/gfx942/specs/add.spec",
+      "complete_output_elements": 65,
+      "independent_semantics_and_graph_check": {
+        "path": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+        "function": "real_gfx942_manifest_tail_and_nonzero_groups_preserve_absolute_output_indices"
+      }
+    },
+    {
+      "kernel": "exchange",
+      "assembly": "tests/gfx942/fixtures/native-lds-ids.s",
+      "launch_and_allocations": "tests/gfx942/cases.json",
+      "specification": "tests/gfx942/specs/exchange.spec",
+      "complete_output_elements": 128,
+      "independent_semantics_and_graph_check": {
+        "path": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+        "function": "real_gfx942_crosswave_lds_exchange_and_complete_wave64_reduction"
+      }
+    },
+    {
+      "kernel": "reduce",
+      "assembly": "tests/gfx942/fixtures/native-lds-ids.s",
+      "launch_and_allocations": "tests/gfx942/cases.json",
+      "specification": "tests/gfx942/specs/reduce.spec",
+      "complete_output_elements": 2,
+      "independent_semantics_and_graph_check": {
+        "path": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+        "function": "real_gfx942_crosswave_lds_exchange_and_complete_wave64_reduction"
+      }
+    },
+    {
+      "kernel": "ids_3d",
+      "assembly": "tests/gfx942/fixtures/native-lds-ids.s",
+      "launch_and_allocations": "tests/gfx942/cases.json",
+      "specification": "tests/gfx942/specs/ids.spec",
+      "complete_output_elements": 24,
+      "independent_semantics_and_graph_check": {
+        "path": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+        "function": "real_gfx942_three_dimensional_ids_match_all_24_coordinates"
+      }
+    },
+    {
+      "kernel": "mfma_f32",
+      "assembly": "tests/gfx942/fixtures/native-mfma.s",
+      "launch_and_allocations": "tests/gfx942/cases.json",
+      "specification": "tests/gfx942/specs/mfma.spec",
+      "complete_output_elements": 256,
+      "independent_semantics_and_graph_check": {
+        "path": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+        "function": "real_gfx942_f32_and_f16_mfma_match_all_independent_dot_products"
+      }
+    },
+    {
+      "kernel": "mfma_f16",
+      "assembly": "tests/gfx942/fixtures/native-mfma.s",
+      "launch_and_allocations": "tests/gfx942/cases.json",
+      "specification": "tests/gfx942/specs/mfma.spec",
+      "complete_output_elements": 256,
+      "independent_semantics_and_graph_check": {
+        "path": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+        "function": "real_gfx942_f32_and_f16_mfma_match_all_independent_dot_products"
+      }
+    },
+    {
+      "kernel": "pipelined_mfma_f16",
+      "assembly": "tests/gfx942/fixtures/native-pipeline-f16.s",
+      "launch_and_allocations": "tests/gfx942/cases.json",
+      "specification": "tests/gfx942/specs/pipeline.spec",
+      "complete_output_elements": 512,
+      "independent_semantics_and_graph_check": {
+        "path": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+        "function": "real_gfx942_two_wave_lds_mfma_pipeline_computes_all_512_outputs"
+      }
+    }
+  ],
+  "interaction_controls": [
+    {
+      "path": "crates/volta_amdgpu_analysis/tests/gfx942_scalar_memory.rs",
+      "function": "wide_loads_mask_components_before_addition_and_snapshot_the_aliased_base"
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/tests/gfx942_scalar_memory.rs",
+      "function": "every_loaded_word_needs_lgkm_completion_even_when_exec_was_empty"
+    },
+    {
+      "path": "crates/volta_amdgpu_analysis/tests/gfx942_scalar_memory.rs",
+      "function": "masking_keeps_the_full_wide_allocation_footprint"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+      "function": "removing_real_gfx942_lds_publication_barriers_exposes_typed_shared_conflicts"
+    },
+    {
+      "path": "crates/volta_pipeline/tests/gfx942_compiler_tests.rs",
+      "function": "removing_real_gfx942_load_waits_or_matrix_result_spacing_cannot_verify"
+    }
+  ],
+  "explicit_boundaries": [
+    {
+      "profile": "gfx942 FP8/BF8 FNUZ decoding and CDNA4-only matrix forms",
+      "status": "unsupported",
+      "control": {
+        "path": "crates/volta_amdgpu_analysis/tests/targets.rs",
+        "function": "cdna4_forms_and_different_fp8_numbers_cannot_be_relabelled_as_gfx942"
+      }
+    },
+    {
+      "profile": "gfx942 raw buffers, direct-to-LDS, atomics, scratch/private and general device calls",
+      "status": "unsupported",
+      "contract": "crates/volta_amdgpu_analysis/README.md"
+    },
+    {
+      "profile": "All other ISA forms absent from this compiler corpus",
+      "status": "not inventoried; absence is not support or refusal evidence"
+    }
+  ],
+  "public_semantic_sources": [
+    {
+      "title": "AMD Instinct MI300 CDNA3 ISA",
+      "url": "https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-mi300-cdna3-instruction-set-architecture.pdf",
+      "sections": [
+        "4.4 counters",
+        "8.2.1.1 scalar address components",
+        "8.4 alignment",
+        "12.6 scalar memory widths"
+      ]
+    },
+    {
+      "title": "Pinned LLVM SMEM encoding",
+      "url": "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SMInstructions.td"
+    }
+  ],
+  "forms": [
+    {
+      "mnemonic": "ds_bpermute_b32",
+      "profile": {
+        "family": "Lds",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 125,
+          "text": "ds_bpermute_b32 v3, v3, v1"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 131,
+          "text": "ds_bpermute_b32 v3, v5, v1"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 137,
+          "text": "ds_bpermute_b32 v3, v5, v1"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 143,
+          "text": "ds_bpermute_b32 v3, v5, v1"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 149,
+          "text": "ds_bpermute_b32 v3, v5, v1"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 154,
+          "text": "ds_bpermute_b32 v2, v2, v1"
+        }
+      ]
+    },
+    {
+      "mnemonic": "ds_read_b32",
+      "profile": {
+        "family": "Lds",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "exchange"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 20,
+          "text": "ds_read_b32 v0, v0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "ds_read_b64",
+      "profile": {
+        "family": "Lds",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 50,
+          "text": "ds_read_b64 v[0:1], v10"
+        }
+      ]
+    },
+    {
+      "mnemonic": "ds_read_b64",
+      "profile": {
+        "family": "Lds",
+        "modifiers": [
+          {
+            "name": "offset",
+            "value": "1024"
+          }
+        ],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 64,
+          "text": "ds_read_b64 v[0:1], v10 offset:1024"
+        }
+      ]
+    },
+    {
+      "mnemonic": "ds_read_u16",
+      "profile": {
+        "family": "Lds",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 46,
+          "text": "ds_read_u16 v12, v11"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 47,
+          "text": "ds_read_u16 v14, v1"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 48,
+          "text": "ds_read_u16 v7, v7"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 49,
+          "text": "ds_read_u16 v15, v0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "ds_read_u16",
+      "profile": {
+        "family": "Lds",
+        "modifiers": [
+          {
+            "name": "offset",
+            "value": "1024"
+          }
+        ],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 65,
+          "text": "ds_read_u16 v2, v11 offset:1024"
+        }
+      ]
+    },
+    {
+      "mnemonic": "ds_read_u16",
+      "profile": {
+        "family": "Lds",
+        "modifiers": [
+          {
+            "name": "offset",
+            "value": "1056"
+          }
+        ],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 66,
+          "text": "ds_read_u16 v4, v11 offset:1056"
+        }
+      ]
+    },
+    {
+      "mnemonic": "ds_read_u16",
+      "profile": {
+        "family": "Lds",
+        "modifiers": [
+          {
+            "name": "offset",
+            "value": "1088"
+          }
+        ],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 67,
+          "text": "ds_read_u16 v3, v11 offset:1088"
+        }
+      ]
+    },
+    {
+      "mnemonic": "ds_read_u16",
+      "profile": {
+        "family": "Lds",
+        "modifiers": [
+          {
+            "name": "offset",
+            "value": "1120"
+          }
+        ],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 68,
+          "text": "ds_read_u16 v5, v11 offset:1120"
+        }
+      ]
+    },
+    {
+      "mnemonic": "ds_write2st64_b64",
+      "profile": {
+        "family": "Lds",
+        "modifiers": [
+          {
+            "name": "offset0",
+            "value": "2"
+          },
+          {
+            "name": "offset1",
+            "value": "6"
+          }
+        ],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 61,
+          "text": "ds_write2st64_b64 v8, v[2:3], v[4:5] offset0:2 offset1:6"
+        }
+      ]
+    },
+    {
+      "mnemonic": "ds_write2st64_b64",
+      "profile": {
+        "family": "Lds",
+        "modifiers": [
+          {
+            "name": "offset1",
+            "value": "4"
+          }
+        ],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 29,
+          "text": "ds_write2st64_b64 v8, v[2:3], v[4:5] offset1:4"
+        }
+      ]
+    },
+    {
+      "mnemonic": "ds_write_b32",
+      "profile": {
+        "family": "Lds",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "exchange"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 17,
+          "text": "ds_write_b32 v1, v2"
+        }
+      ]
+    },
+    {
+      "mnemonic": "global_load_dword",
+      "profile": {
+        "family": "VectorMemory",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "exchange",
+        "mfma_f32",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 15,
+          "text": "global_load_dword v2, v1, s[0:1]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 120,
+          "text": "global_load_dword v1, v1, s[0:1]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f32",
+          "line": 15,
+          "text": "global_load_dword v2, v1, s[4:5]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f32",
+          "line": 16,
+          "text": "global_load_dword v3, v1, s[6:7]"
+        }
+      ]
+    },
+    {
+      "mnemonic": "global_load_dword",
+      "profile": {
+        "family": "VectorMemory",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "kind": "symbol",
+            "value": "off"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 25,
+          "text": "global_load_dword v2, v[2:3], off"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 138,
+          "text": "global_load_dword v6, v[4:5], off"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 139,
+          "text": "global_load_dword v7, v[2:3], off"
+        }
+      ]
+    },
+    {
+      "mnemonic": "global_load_dwordx2",
+      "profile": {
+        "family": "VectorMemory",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "mfma_f16",
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f16",
+          "line": 117,
+          "text": "global_load_dwordx2 v[2:3], v1, s[4:5]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f16",
+          "line": 118,
+          "text": "global_load_dwordx2 v[4:5], v1, s[6:7]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 23,
+          "text": "global_load_dwordx2 v[2:3], v9, s[4:5]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 24,
+          "text": "global_load_dwordx2 v[4:5], v10, s[6:7]"
+        }
+      ]
+    },
+    {
+      "mnemonic": "global_load_dwordx2",
+      "profile": {
+        "family": "VectorMemory",
+        "modifiers": [
+          {
+            "name": "offset",
+            "value": "32"
+          }
+        ],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 32,
+          "text": "global_load_dwordx2 v[2:3], v9, s[4:5] offset:32"
+        }
+      ]
+    },
+    {
+      "mnemonic": "global_load_dwordx2",
+      "profile": {
+        "family": "VectorMemory",
+        "modifiers": [
+          {
+            "name": "offset",
+            "value": "512"
+          }
+        ],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 33,
+          "text": "global_load_dwordx2 v[4:5], v10, s[6:7] offset:512"
+        }
+      ]
+    },
+    {
+      "mnemonic": "global_store_dword",
+      "profile": {
+        "family": "VectorMemory",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "exchange",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 22,
+          "text": "global_store_dword v1, v0, s[2:3]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 163,
+          "text": "global_store_dword v0, v1, s[2:3]"
+        }
+      ]
+    },
+    {
+      "mnemonic": "global_store_dword",
+      "profile": {
+        "family": "VectorMemory",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "symbol",
+            "value": "off"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy",
+        "ids_3d"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 28,
+          "text": "global_store_dword v[0:1], v2, off"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 143,
+          "text": "global_store_dword v[0:1], v2, off"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 272,
+          "text": "global_store_dword v[0:1], v2, off"
+        }
+      ]
+    },
+    {
+      "mnemonic": "global_store_dwordx4",
+      "profile": {
+        "family": "VectorMemory",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Accumulator",
+            "kind": "register",
+            "special": "None",
+            "words": 4
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "mfma_f16",
+        "mfma_f32"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f32",
+          "line": 20,
+          "text": "global_store_dwordx4 v0, a[0:3], s[2:3]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f16",
+          "line": 122,
+          "text": "global_store_dwordx4 v0, a[0:3], s[2:3]"
+        }
+      ]
+    },
+    {
+      "mnemonic": "global_store_short",
+      "profile": {
+        "family": "VectorMemory",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 85,
+          "text": "global_store_short v9, v0, s[2:3]"
+        }
+      ]
+    },
+    {
+      "mnemonic": "global_store_short",
+      "profile": {
+        "family": "VectorMemory",
+        "modifiers": [
+          {
+            "name": "offset",
+            "value": "32"
+          }
+        ],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 86,
+          "text": "global_store_short v9, v1, s[2:3] offset:32"
+        }
+      ]
+    },
+    {
+      "mnemonic": "global_store_short",
+      "profile": {
+        "family": "VectorMemory",
+        "modifiers": [
+          {
+            "name": "offset",
+            "value": "64"
+          }
+        ],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 87,
+          "text": "global_store_short v9, v2, s[2:3] offset:64"
+        }
+      ]
+    },
+    {
+      "mnemonic": "global_store_short",
+      "profile": {
+        "family": "VectorMemory",
+        "modifiers": [
+          {
+            "name": "offset",
+            "value": "96"
+          }
+        ],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 88,
+          "text": "global_store_short v9, v3, s[2:3] offset:96"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_and_b32",
+      "profile": {
+        "family": "ScalarAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy",
+        "ids_3d"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 13,
+          "text": "s_and_b32 s3, s3, 0xffff"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 124,
+          "text": "s_and_b32 s3, s3, 0xffff"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 267,
+          "text": "s_and_b32 s1, s4, 0xffff"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_and_saveexec_b64",
+      "profile": {
+        "family": "ScalarAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Special",
+            "kind": "register",
+            "special": "Some(Vcc)",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 17,
+          "text": "s_and_saveexec_b64 s[2:3], vcc"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 128,
+          "text": "s_and_saveexec_b64 s[2:3], vcc"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 157,
+          "text": "s_and_saveexec_b64 s[0:1], vcc"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_barrier",
+      "profile": {
+        "family": "Barrier",
+        "modifiers": [],
+        "operands": []
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "exchange",
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 19,
+          "text": "s_barrier"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 31,
+          "text": "s_barrier"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 58,
+          "text": "s_barrier"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 63,
+          "text": "s_barrier"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 70,
+          "text": "s_barrier"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 73,
+          "text": "s_barrier"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_cbranch_execz",
+      "profile": {
+        "family": "Branch",
+        "modifiers": [],
+        "operands": [
+          {
+            "kind": "symbol",
+            "value": "label_or_constant"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 18,
+          "text": "s_cbranch_execz .LBB0_2"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 129,
+          "text": "s_cbranch_execz .LBB1_2"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 158,
+          "text": "s_cbranch_execz .LBB1_2"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_endpgm",
+      "profile": {
+        "family": "Control",
+        "modifiers": [],
+        "operands": []
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy",
+        "exchange",
+        "ids_3d",
+        "mfma_f16",
+        "mfma_f32",
+        "pipelined_mfma_f16",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 30,
+          "text": "s_endpgm"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 145,
+          "text": "s_endpgm"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 23,
+          "text": "s_endpgm"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 165,
+          "text": "s_endpgm"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 273,
+          "text": "s_endpgm"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f32",
+          "line": 21,
+          "text": "s_endpgm"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f16",
+          "line": 123,
+          "text": "s_endpgm"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 89,
+          "text": "s_endpgm"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_load_dword",
+      "profile": {
+        "family": "ScalarMemory",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy",
+        "ids_3d"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 10,
+          "text": "s_load_dword s3, s[0:1], 0x24"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 11,
+          "text": "s_load_dword s4, s[0:1], 0x10"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 121,
+          "text": "s_load_dword s3, s[0:1], 0x2c"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 122,
+          "text": "s_load_dword s4, s[0:1], 0x18"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 256,
+          "text": "s_load_dword s4, s[0:1], 0x14"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_load_dwordx2",
+      "profile": {
+        "family": "ScalarMemory",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "ids_3d",
+        "mfma_f16",
+        "mfma_f32",
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 132,
+          "text": "s_load_dwordx2 s[2:3], s[0:1], 0x10"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 257,
+          "text": "s_load_dwordx2 s[2:3], s[0:1], 0x0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f32",
+          "line": 11,
+          "text": "s_load_dwordx2 s[2:3], s[0:1], 0x10"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f16",
+          "line": 113,
+          "text": "s_load_dwordx2 s[2:3], s[0:1], 0x10"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 12,
+          "text": "s_load_dwordx2 s[2:3], s[0:1], 0x10"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_load_dwordx4",
+      "profile": {
+        "family": "ScalarMemory",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 4
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy",
+        "exchange",
+        "mfma_f16",
+        "mfma_f32",
+        "pipelined_mfma_f16",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 20,
+          "text": "s_load_dwordx4 s[0:3], s[0:1], 0x0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 131,
+          "text": "s_load_dwordx4 s[4:7], s[0:1], 0x0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 10,
+          "text": "s_load_dwordx4 s[0:3], s[0:1], 0x0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 114,
+          "text": "s_load_dwordx4 s[0:3], s[0:1], 0x0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f32",
+          "line": 10,
+          "text": "s_load_dwordx4 s[4:7], s[0:1], 0x0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f16",
+          "line": 112,
+          "text": "s_load_dwordx4 s[4:7], s[0:1], 0x0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 11,
+          "text": "s_load_dwordx4 s[4:7], s[0:1], 0x0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_lshr_b32",
+      "profile": {
+        "family": "ScalarAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "ids_3d"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 262,
+          "text": "s_lshr_b32 s0, s4, 16"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_mov_b32",
+      "profile": {
+        "family": "ScalarAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 27,
+          "text": "s_mov_b32 s0, 0x5040100"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_mul_i32",
+      "profile": {
+        "family": "ScalarAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 14,
+          "text": "s_mul_i32 s2, s2, s3"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 125,
+          "text": "s_mul_i32 s2, s2, s3"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_nop",
+      "profile": {
+        "family": "Control",
+        "modifiers": [],
+        "operands": [
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "mfma_f16",
+        "mfma_f32",
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f32",
+          "line": 19,
+          "text": "s_nop 9"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f16",
+          "line": 121,
+          "text": "s_nop 6"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 74,
+          "text": "s_nop 0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 76,
+          "text": "s_nop 6"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_waitcnt",
+      "profile": {
+        "family": "Wait",
+        "modifiers": [],
+        "operands": [
+          {
+            "kind": "wait_counter",
+            "name": "lgkmcnt"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy",
+        "exchange",
+        "ids_3d",
+        "mfma_f16",
+        "mfma_f32",
+        "pipelined_mfma_f16",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 12,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 23,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 123,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 135,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 14,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 18,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 21,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 119,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 129,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 135,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 141,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 147,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 152,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 160,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 261,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f32",
+          "line": 14,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f16",
+          "line": 116,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 22,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 30,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 53,
+          "text": "s_waitcnt lgkmcnt(3)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 55,
+          "text": "s_waitcnt lgkmcnt(1)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 57,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 62,
+          "text": "s_waitcnt lgkmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 69,
+          "text": "s_waitcnt lgkmcnt(0)"
+        }
+      ]
+    },
+    {
+      "mnemonic": "s_waitcnt",
+      "profile": {
+        "family": "Wait",
+        "modifiers": [],
+        "operands": [
+          {
+            "kind": "wait_counter",
+            "name": "vmcnt"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy",
+        "exchange",
+        "mfma_f16",
+        "mfma_f32",
+        "pipelined_mfma_f16",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 27,
+          "text": "s_waitcnt vmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 141,
+          "text": "s_waitcnt vmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 16,
+          "text": "s_waitcnt vmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 124,
+          "text": "s_waitcnt vmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f32",
+          "line": 17,
+          "text": "s_waitcnt vmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f16",
+          "line": 119,
+          "text": "s_waitcnt vmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 28,
+          "text": "s_waitcnt vmcnt(0)"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 60,
+          "text": "s_waitcnt vmcnt(0)"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_accvgpr_read_b32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Accumulator",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 77,
+          "text": "v_accvgpr_read_b32 v0, a0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 78,
+          "text": "v_accvgpr_read_b32 v1, a1"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 80,
+          "text": "v_accvgpr_read_b32 v2, a2"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 82,
+          "text": "v_accvgpr_read_b32 v3, a3"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_add3_u32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "ids_3d"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 266,
+          "text": "v_add3_u32 v1, v1, v0, v2"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_add_f32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 142,
+          "text": "v_add_f32_e32 v2, v6, v7"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 130,
+          "text": "v_add_f32_e32 v1, v1, v3"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 136,
+          "text": "v_add_f32_e32 v1, v1, v3"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 142,
+          "text": "v_add_f32_e32 v1, v1, v3"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 148,
+          "text": "v_add_f32_e32 v1, v1, v3"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 153,
+          "text": "v_add_f32_e32 v1, v1, v3"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 161,
+          "text": "v_add_f32_e32 v1, v1, v2"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_add_lshl_u32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 127,
+          "text": "v_add_lshl_u32 v5, v5, v2, 2"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 133,
+          "text": "v_add_lshl_u32 v5, v5, v2, 2"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 139,
+          "text": "v_add_lshl_u32 v5, v5, v2, 2"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 145,
+          "text": "v_add_lshl_u32 v5, v5, v2, 2"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_add_u32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 15,
+          "text": "v_add_u32_e32 v0, s2, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 126,
+          "text": "v_add_u32_e32 v0, s2, v0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_addc_co_u32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Special",
+            "kind": "register",
+            "special": "Some(Vcc)",
+            "words": 2
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Special",
+            "kind": "register",
+            "special": "Some(Vcc)",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 150,
+          "text": "v_addc_co_u32_e32 v2, vcc, 0, v2, vcc"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_and_b32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "ids_3d",
+        "pipelined_mfma_f16",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 122,
+          "text": "v_and_b32_e32 v4, 63, v2"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 155,
+          "text": "v_and_b32_e32 v3, 63, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 260,
+          "text": "v_and_b32_e32 v0, 0x3ff, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 17,
+          "text": "v_and_b32_e32 v2, 0x1e0, v8"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 18,
+          "text": "v_and_b32_e32 v3, 12, v1"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 21,
+          "text": "v_and_b32_e32 v10, 0x1f8, v8"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 25,
+          "text": "v_and_b32_e32 v13, 0xc0, v1"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 34,
+          "text": "v_and_b32_e32 v9, 15, v0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_bfe_u32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "ids_3d",
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 258,
+          "text": "v_bfe_u32 v1, v0, 10, 10"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 259,
+          "text": "v_bfe_u32 v2, v0, 20, 10"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 35,
+          "text": "v_bfe_u32 v0, v0, 4, 2"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_cmp_eq_u32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Special",
+            "kind": "register",
+            "special": "Some(Vcc)",
+            "words": 2
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 156,
+          "text": "v_cmp_eq_u32_e32 vcc, 0, v3"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_cmp_gt_u32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Special",
+            "kind": "register",
+            "special": "Some(Vcc)",
+            "words": 2
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 16,
+          "text": "v_cmp_gt_u32_e32 vcc, s4, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 127,
+          "text": "v_cmp_gt_u32_e32 vcc, s4, v0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_cmp_gt_u32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Special",
+            "kind": "register",
+            "special": "Some(Vcc)",
+            "words": 2
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 123,
+          "text": "v_cmp_gt_u32_e32 vcc, 48, v4"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 128,
+          "text": "v_cmp_gt_u32_e32 vcc, 56, v4"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 134,
+          "text": "v_cmp_gt_u32_e32 vcc, 60, v4"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 140,
+          "text": "v_cmp_gt_u32_e32 vcc, 62, v4"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_cmp_ne_u32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Special",
+            "kind": "register",
+            "special": "Some(Vcc)",
+            "words": 2
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 146,
+          "text": "v_cmp_ne_u32_e32 vcc, 63, v4"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_cndmask_b32_e64",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Special",
+            "kind": "register",
+            "special": "Some(Vcc)",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 126,
+          "text": "v_cndmask_b32_e64 v5, 0, 16, vcc"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 132,
+          "text": "v_cndmask_b32_e64 v5, 0, 8, vcc"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 138,
+          "text": "v_cndmask_b32_e64 v5, 0, 4, vcc"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 144,
+          "text": "v_cndmask_b32_e64 v5, 0, 2, vcc"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_cvt_f16_f32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 79,
+          "text": "v_cvt_f16_f32_e32 v0, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 81,
+          "text": "v_cvt_f16_f32_e32 v1, v1"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 83,
+          "text": "v_cvt_f16_f32_e32 v2, v2"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 84,
+          "text": "v_cvt_f16_f32_e32 v3, v3"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_cvt_f32_u32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "ids_3d"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 268,
+          "text": "v_cvt_f32_u32_e32 v2, v1"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_lshl_add_u64",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 24,
+          "text": "v_lshl_add_u64 v[2:3], s[0:1], 0, v[0:1]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 26,
+          "text": "v_lshl_add_u64 v[0:1], s[2:3], 0, v[0:1]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 136,
+          "text": "v_lshl_add_u64 v[4:5], s[4:5], 0, v[0:1]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 137,
+          "text": "v_lshl_add_u64 v[2:3], s[6:7], 0, v[0:1]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 140,
+          "text": "v_lshl_add_u64 v[0:1], s[2:3], 0, v[0:1]"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_lshl_add_u64",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "ids_3d"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 271,
+          "text": "v_lshl_add_u64 v[0:1], v[0:1], 2, s[2:3]"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_lshl_or_b32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 121,
+          "text": "v_lshl_or_b32 v3, v2, 2, v3"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_lshlrev_b32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "exchange",
+        "mfma_f16",
+        "mfma_f32",
+        "pipelined_mfma_f16",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 11,
+          "text": "v_lshlrev_b32_e32 v1, 2, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 13,
+          "text": "v_lshlrev_b32_e32 v0, 2, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 115,
+          "text": "v_lshlrev_b32_e32 v1, 2, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 151,
+          "text": "v_lshlrev_b32_e32 v2, 2, v2"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f32",
+          "line": 12,
+          "text": "v_lshlrev_b32_e32 v1, 2, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f32",
+          "line": 13,
+          "text": "v_lshlrev_b32_e32 v0, 4, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f16",
+          "line": 114,
+          "text": "v_lshlrev_b32_e32 v1, 3, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f16",
+          "line": 115,
+          "text": "v_lshlrev_b32_e32 v0, 4, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 13,
+          "text": "v_lshlrev_b32_e32 v1, 2, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 14,
+          "text": "v_lshlrev_b32_e32 v2, 9, v6"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 15,
+          "text": "v_lshlrev_b32_e32 v8, 3, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 20,
+          "text": "v_lshlrev_b32_e32 v9, 1, v2"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 26,
+          "text": "v_lshlrev_b32_e32 v6, 8, v6"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 36,
+          "text": "v_lshlrev_b32_e32 v11, 3, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 37,
+          "text": "v_lshlrev_b32_e32 v0, 7, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 38,
+          "text": "v_lshlrev_b32_e32 v12, 1, v9"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 39,
+          "text": "v_lshlrev_b32_e32 v10, 5, v9"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 52,
+          "text": "v_lshlrev_b32_e32 v9, 1, v6"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_lshlrev_b64",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 22,
+          "text": "v_lshlrev_b64 v[0:1], 2, v[0:1]"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 134,
+          "text": "v_lshlrev_b64 v[0:1], 2, v[0:1]"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_lshrrev_b32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 162,
+          "text": "v_lshrrev_b32_e32 v0, 4, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 10,
+          "text": "v_lshrrev_b32_e32 v6, 6, v0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_mad_u32_u24",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "ids_3d"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 263,
+          "text": "v_mad_u32_u24 v3, v2, s0, v1"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_mad_u64_u32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "ids_3d"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 269,
+          "text": "v_mad_u64_u32 v[0:1], s[0:1], v3, s1, v[0:1]"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_mbcnt_hi_u32_b32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 118,
+          "text": "v_mbcnt_hi_u32_b32 v2, -1, v2"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_mbcnt_lo_u32_b32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 116,
+          "text": "v_mbcnt_lo_u32_b32 v2, -1, 0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_mfma_f32_16x16x16_f16",
+      "profile": {
+        "family": "Matrix",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Accumulator",
+            "kind": "register",
+            "special": "None",
+            "words": 4
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Accumulator",
+            "kind": "register",
+            "special": "None",
+            "words": 4
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 75,
+          "text": "v_mfma_f32_16x16x16_f16 a[0:3], v[0:1], v[2:3], a[0:3]"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_mfma_f32_16x16x16_f16",
+      "profile": {
+        "family": "Matrix",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Accumulator",
+            "kind": "register",
+            "special": "None",
+            "words": 4
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 2
+          },
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "mfma_f16",
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f16",
+          "line": 120,
+          "text": "v_mfma_f32_16x16x16_f16 a[0:3], v[2:3], v[4:5], 0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 59,
+          "text": "v_mfma_f32_16x16x16_f16 a[0:3], v[0:1], v[6:7], 0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_mfma_f32_16x16x4_f32",
+      "profile": {
+        "family": "Matrix",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Accumulator",
+            "kind": "register",
+            "special": "None",
+            "words": 4
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "mfma_f32"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-mfma.s",
+          "kernel": "mfma_f32",
+          "line": 18,
+          "text": "v_mfma_f32_16x16x4_f32 a[0:3], v2, v3, 0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_mov_b32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "add",
+        "copy",
+        "ids_3d",
+        "reduce"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "copy",
+          "line": 21,
+          "text": "v_mov_b32_e32 v1, 0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-copy-add.s",
+          "kernel": "add",
+          "line": 133,
+          "text": "v_mov_b32_e32 v1, 0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "reduce",
+          "line": 117,
+          "text": "v_mov_b32_e32 v3, 0x80"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 270,
+          "text": "v_mov_b32_e32 v1, 0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_mul_u32_u24_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "ids_3d"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 264,
+          "text": "v_mul_u32_u24_e32 v1, 10, v1"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "ids_3d",
+          "line": 265,
+          "text": "v_mul_u32_u24_e32 v2, 0x64, v2"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_or3_b32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 19,
+          "text": "v_or3_b32 v2, v7, v2, v3"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 40,
+          "text": "v_or3_b32 v0, v0, v7, v12"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 41,
+          "text": "v_or3_b32 v10, v10, v11, v7"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 51,
+          "text": "v_or3_b32 v6, v6, v13, v9"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_or_b32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 42,
+          "text": "v_or_b32_e32 v11, 0x800, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 43,
+          "text": "v_or_b32_e32 v1, 0x820, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 44,
+          "text": "v_or_b32_e32 v7, 0x840, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 45,
+          "text": "v_or_b32_e32 v0, 0x860, v0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_perm_b32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "class": "Scalar",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 54,
+          "text": "v_perm_b32 v6, v14, v12, s0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 56,
+          "text": "v_perm_b32 v7, v15, v7, s0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 71,
+          "text": "v_perm_b32 v2, v4, v2, s0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 72,
+          "text": "v_perm_b32 v3, v5, v3, s0"
+        }
+      ]
+    },
+    {
+      "mnemonic": "v_xor_b32_e32",
+      "profile": {
+        "family": "VectorAlu",
+        "modifiers": [],
+        "operands": [
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          },
+          {
+            "kind": "integer"
+          },
+          {
+            "class": "Vector",
+            "kind": "register",
+            "special": "None",
+            "words": 1
+          }
+        ]
+      },
+      "frontend": "parsed",
+      "typed_lowering": "lowered",
+      "execution": "not measured per form; see separate complete-kernel tests",
+      "independent_semantics": "not measured per form; see separate kernel proofs and interaction controls",
+      "complete_kernel_proof": "not measured per form; see separate kernel_proofs",
+      "kernel_contexts": [
+        "exchange",
+        "pipelined_mfma_f16"
+      ],
+      "occurrences": [
+        {
+          "path": "tests/gfx942/fixtures/native-lds-ids.s",
+          "kernel": "exchange",
+          "line": 12,
+          "text": "v_xor_b32_e32 v0, 64, v0"
+        },
+        {
+          "path": "tests/gfx942/fixtures/native-pipeline-f16.s",
+          "kernel": "pipelined_mfma_f16",
+          "line": 16,
+          "text": "v_xor_b32_e32 v7, 0x200, v2"
+        }
+      ]
+    }
+  ]
+}
