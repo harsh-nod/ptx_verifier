@@ -79,6 +79,8 @@ identical FP8 instruction spellings do not establish equivalent CDNA3 FNUZ and
 CDNA4 OCP value semantics. No FP8 support is claimed by this fixture set.
 
 The symbolic tests retain the existing mathematical-real contract, excluding
-IEEE rounding/NaN/denormal equivalence. They analyze workgroup zero. Complete
-physical copy/add grids and guarded numeric tests do not extend that proof
-scope. Keep generated logs and device receipts outside the repository.
+IEEE rounding/NaN/denormal equivalence. Each symbolic result covers one selected
+workgroup. Compiler tests include workgroup zero and copy/add groups 1 and 2.
+Complete physical copy/add grids and guarded numeric tests provide separate
+numerical checks; symbolic proof scope remains the selected workgroup. Keep
+generated logs and device receipts outside the repository.
