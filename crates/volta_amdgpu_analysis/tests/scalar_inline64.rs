@@ -7,15 +7,18 @@ use volta_graph_check::{GraphConclusion, Property, Verdict, check_graph};
 
 const TARGETS: [&str; 3] = ["gfx942", "gfx950", "gfx1250"];
 
-fn module(target: &str, body: &str) -> frontend::Module {
+fn source(target: &str, body: &str) -> String {
     let template = match target {
         "gfx942" => include_str!("fixtures/scalar-inline64/gfx942.s"),
         "gfx950" => include_str!("fixtures/scalar-inline64/gfx950.s"),
         "gfx1250" => include_str!("fixtures/scalar-inline64/gfx1250.s"),
         _ => unreachable!(),
     };
-    let source = template.replace("s_mov_b64 s[8:9],1.0", body);
-    frontend::parse(&source).unwrap()
+    template.replace("s_mov_b64 s[8:9],1.0", body)
+}
+
+fn module(target: &str, body: &str) -> frontend::Module {
+    frontend::parse(&source(target, body)).unwrap()
 }
 
 fn execute(module: &frontend::Module) -> AnalysisResult {
@@ -239,20 +242,34 @@ fn scalar_flags_and_empty_exec_do_not_change_inline_bit_semantics() {
 fn noninline_or_rounded_decimal_float_sources_refuse_without_outputs() {
     for target in TARGETS {
         for literal in ["1.5", "1.0000000001", "0.15915494"] {
-            let result = run(target, &format!("s_mov_b64 s[8:9],{literal}"));
-            assert!(result.symbolic_outputs().is_err());
-            let report = check_graph(result.graph());
-            assert!(
-                matches!(report.conclusion(), GraphConclusion::Unknown { .. }),
-                "{report:#?}"
-            );
-            assert!(
-                result
-                    .symbolic_outputs()
-                    .unwrap_err()
-                    .to_string()
-                    .contains("exact floating inline constant")
-            );
+            // Refusal now precedes executable construction and output creation.
+            let error = frontend::parse(&source(target, &format!("s_mov_b64 s[8:9],{literal}")))
+                .unwrap_err();
+            assert_eq!(error.span.line, 8, "{target}: {literal}: {error}");
+            for context in [
+                "scalar source encoding",
+                "s_mov_b64",
+                "source1",
+                "Binary64",
+                "exact floating inline constant",
+            ] {
+                assert!(
+                    error.message.contains(context),
+                    "{target}: {literal}: {error}"
+                );
+            }
+            let mut typed = module(target, "s_mov_b64 s[8:9],1.0");
+            typed.kernels[0]
+                .instructions
+                .iter_mut()
+                .find(|instruction| instruction.mnemonic == "s_mov_b64")
+                .unwrap()
+                .operands[1] = frontend::Operand::Float(literal.parse().unwrap());
+            let error =
+                volta_amdgpu_analysis::lower::lower_kernel_in_module(&typed, &typed.kernels[0])
+                    .unwrap_err();
+            assert!(error.message.contains("scalar source encoding"));
+            assert!(error.message.contains("exact floating inline constant"));
         }
     }
 }

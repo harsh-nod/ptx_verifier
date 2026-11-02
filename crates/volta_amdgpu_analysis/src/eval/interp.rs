@@ -446,6 +446,46 @@ impl Wave {
             _ => Ok(self.bits(operand, lane)? as u64),
         }
     }
+    fn scalar_source32(&self, source: ScalarSource32<'_>) -> Result<u32, EvalError> {
+        match source {
+            ScalarSource32::Register(register) => self
+                .reg(register, 0, 0)?
+                .bits()
+                .map_err(|error| self.fail(None, error)),
+            ScalarSource32::Immediate(immediate) => Ok(immediate.bits() as u32),
+        }
+    }
+    fn scalar_source64(&self, source: ScalarSource64<'_>) -> Result<u64, EvalError> {
+        match source {
+            ScalarSource64::Register(register) => {
+                let low = self
+                    .reg(register, 0, 0)?
+                    .bits()
+                    .map_err(|error| self.fail(None, error))?;
+                let high = self
+                    .reg(register, 0, 1)?
+                    .bits()
+                    .map_err(|error| self.fail(None, error))?;
+                Ok(u64::from(low) | (u64::from(high) << 32))
+            }
+            ScalarSource64::Immediate(immediate) => Ok(immediate.bits()),
+        }
+    }
+    fn move_scalar64(
+        &mut self,
+        destination: &Operand,
+        source: ScalarSource64<'_>,
+    ) -> Result<(), EvalError> {
+        match source {
+            ScalarSource64::Register(register) => {
+                let values = [self.reg(register, 0, 0)?, self.reg(register, 0, 1)?];
+                let destination = self.destination(destination)?;
+                self.put(destination, 0, 0, values[0])?;
+                self.put(destination, 0, 1, values[1])
+            }
+            ScalarSource64::Immediate(immediate) => self.put_wide(destination, 0, immediate.bits()),
+        }
+    }
     /// Defined bits for a gfx1250 scalar bitwise word. An unset plain SGPR
     /// remains unknown; opaque and mathematical values still require bits().
     /// Instruction register roles independently retain every source word.
@@ -3201,6 +3241,41 @@ impl<'a> Interpreter<'a> {
         {
             return Ok(());
         }
+        if let Operation::ScalarAlu(alu) = instruction.operation()
+            && let Some(sources) = alu
+                .scalar_sources()
+                .map_err(|error| wave.fail(None, error))?
+        {
+            let destination = &instruction.operands()[0];
+            let value = match sources {
+                ScalarSources::Move64(source) => return wave.move_scalar64(destination, source),
+                ScalarSources::Binary64 { left, right } => {
+                    let a = wave.scalar_source64(left)?;
+                    let b = wave.scalar_source64(right)?;
+                    match alu.operation {
+                        AluOperation::Opcode(AluOpcode::SOrB64) => a | b,
+                        AluOperation::Opcode(AluOpcode::SXorB64) => a ^ b,
+                        _ => return Err(self.unsupported(wave, instruction)),
+                    }
+                }
+                ScalarSources::Shift64 { data, count } => {
+                    let data = wave.scalar_source64(data)?;
+                    let count = wave.scalar_source32(count)? & 63;
+                    match alu.operation {
+                        AluOperation::Opcode(AluOpcode::SLshlB64) => data.wrapping_shl(count),
+                        AluOperation::Opcode(AluOpcode::SLshrB64) => data.wrapping_shr(count),
+                        _ => return Err(self.unsupported(wave, instruction)),
+                    }
+                }
+            };
+            wave.set_scc(value != 0);
+            if self.architecture == AmdArchitecture::Gfx1250 {
+                let destination = wave.destination(destination)?;
+                wave.put(destination, 0, 0, Value::Integer(value as u32))?;
+                return wave.put(destination, 0, 1, Value::Integer((value >> 32) as u32));
+            }
+            return wave.put_wide(destination, 0, value);
+        }
         if self.architecture == AmdArchitecture::Gfx950
             && name == "s_mov_b32"
             && matches!(instruction.operands()[0], Operand::Register(register) if register.special == Some(SpecialRegister::M0))
@@ -3563,9 +3638,6 @@ impl<'a> Interpreter<'a> {
             let multiplier = wave.bits(&o[1], 0)? as i16 as i32 as u32;
             return wave.put_value(dest, 0, Value::Integer(old.wrapping_mul(multiplier)));
         }
-        if name == "s_mov_b64" {
-            return wave.move_wide(dest, &o[1]);
-        }
         if name == "s_mov_b32" {
             let value = wave.value(&o[1], 0)?;
             return wave.put_value(dest, 0, value);
@@ -3649,20 +3721,14 @@ impl<'a> Interpreter<'a> {
         }
         if name.ends_with("b64") {
             let a = wave.wide(&o[1], 0)?;
-            let b = match o.get(2) {
-                // SOP2_64_32: the data source is 64 bits, but the shift
-                // count uses 32-bit inline/literal encoding.
-                Some(source) if matches!(name, "s_lshl_b64" | "s_lshr_b64") => {
-                    u64::from(wave.bits(source, 0)?)
-                }
-                Some(source) => wave.wide(source, 0)?,
-                None => 0,
-            };
+            let b = o
+                .get(2)
+                .map(|source| wave.wide(source, 0))
+                .transpose()?
+                .unwrap_or(0);
             let old_exec = wave.exec;
             let value = match name {
                 "s_and_b64" => a & b,
-                "s_or_b64" => a | b,
-                "s_xor_b64" => a ^ b,
                 "s_andn2_b64" => a & !b,
                 "s_orn2_b64" => a | !b,
                 "s_not_b64" => !a,
@@ -3683,8 +3749,6 @@ impl<'a> Interpreter<'a> {
                     wave.exec = a & !old_exec;
                     old_exec
                 }
-                "s_lshl_b64" => a.wrapping_shl((b & 63) as u32),
-                "s_lshr_b64" => a.wrapping_shr((b & 63) as u32),
                 _ => return Err(self.unsupported(wave, instruction)),
             };
             wave.set_scc(if name.contains("saveexec") {

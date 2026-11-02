@@ -14,6 +14,7 @@ mod eval;
 pub mod frontend;
 pub mod ir;
 pub mod lower;
+mod source_encoding;
 pub mod target;
 
 pub use analysis::{

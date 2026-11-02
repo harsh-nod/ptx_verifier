@@ -288,6 +288,7 @@ fn parse_body(
         }
         instr::validate_control(instruction)?;
         instr::normalize_f64_sources(instruction)?;
+        instr::validate_scalar_sources(instruction, architecture)?;
     }
     Ok(())
 }
