@@ -2754,8 +2754,10 @@ impl<'a> Interpreter<'a> {
         name: &str,
         lane: u8,
     ) -> Result<Option<Value>, EvalError> {
-        if self.architecture != AmdArchitecture::Gfx1250
-            || !instruction.modifiers().is_empty()
+        if !matches!(
+            self.architecture,
+            AmdArchitecture::Gfx950 | AmdArchitecture::Gfx1250
+        ) || !instruction.modifiers().is_empty()
             || instruction
                 .operands()
                 .iter()
@@ -2764,7 +2766,7 @@ impl<'a> Interpreter<'a> {
             return Ok(None);
         }
         let o = instruction.operands();
-        if matches!(name, "v_and_b32" | "v_xor_b32") {
+        if matches!(name, "v_and_b32" | "v_or_b32" | "v_xor_b32") {
             let mask = if name == "v_and_b32" {
                 0x7fff_ffff
             } else {
@@ -2779,7 +2781,35 @@ impl<'a> Interpreter<'a> {
             } else {
                 return Ok(None);
             };
-            // Concrete bit operations keep their ordinary typed integer path.
+            let transform = |arena: &mut ExprArena, decoded| match name {
+                "v_and_b32" => arena.abs(decoded),
+                "v_or_b32" => {
+                    let magnitude = arena.abs(decoded);
+                    arena.neg(magnitude)
+                }
+                _ => arena.neg(decoded),
+            };
+            let is_float_input = |expr| match self.arena.node(expr) {
+                ExprNode::InputElement { array, .. } => {
+                    self.word_formats.get(array) == Some(&WordFormat::Float32)
+                }
+                _ => false,
+            };
+            let decoded = match source {
+                Value::Real(expr) => Some(expr),
+                Value::Input(expr) if is_float_input(expr) => Some(expr),
+                Value::IntExpr(expr) => self.float_bit_patterns.get(&expr).and_then(|pattern| {
+                    (!pattern.input_words.is_empty()
+                        && pattern.input_words.iter().copied().all(is_float_input))
+                    .then_some(pattern.decoded)
+                }),
+                _ => None,
+            };
+            if let Some(decoded) = decoded {
+                return Ok(Some(Value::Real(transform(&mut self.arena, decoded))));
+            }
+            // Untyped inputs retain raw words until a numeric consumer fixes
+            // their format. Concrete integer sources keep the integer path.
             if !matches!(source, Value::Input(_) | Value::IntExpr(_)) {
                 return Ok(None);
             }
@@ -2788,21 +2818,17 @@ impl<'a> Interpreter<'a> {
                 .map_err(|e| wave.fail(Some(lane), e))?
             {
                 let mask = self.arena.int(i64::from(mask));
-                let raw = if name == "v_and_b32" {
-                    self.arena.bit_and(source, mask)
-                } else {
-                    self.arena.bit_xor(source, mask)
+                let raw = match name {
+                    "v_and_b32" => self.arena.bit_and(source, mask),
+                    "v_or_b32" => self.arena.bit_or(source, mask),
+                    _ => self.arena.bit_xor(source, mask),
                 };
-                pattern.decoded = if name == "v_and_b32" {
-                    self.arena.abs(pattern.decoded)
-                } else {
-                    self.arena.neg(pattern.decoded)
-                };
+                pattern.decoded = transform(&mut self.arena, pattern.decoded);
                 self.float_bit_patterns.insert(raw, pattern);
                 return Ok(Some(Value::IntExpr(raw)));
             }
         }
-        if name == "v_bfi_b32" {
+        if name == "v_bfi_b32" && self.architecture == AmdArchitecture::Gfx1250 {
             // Halfword copies have their own tagged path, which preserves an
             // unavailable unselected half. Do not eagerly demand both sources
             // merely to decide whether this is an F32 sign/magnitude idiom.
@@ -5406,7 +5432,7 @@ impl<'a> Interpreter<'a> {
                 wave.put_value(&o[0], lane, value)?;
                 continue;
             }
-            if matches!(name, "v_and_b32" | "v_xor_b32" | "v_bfi_b32")
+            if matches!(name, "v_and_b32" | "v_or_b32" | "v_xor_b32" | "v_bfi_b32")
                 && let Some(value) = self.float_bit_logic(wave, instruction, name, lane)?
             {
                 wave.put_value(&o[0], lane, value)?;
