@@ -121,10 +121,8 @@ fn unchanged_float_ops_proves_all_1344_writes_and_preserves_row_holes() {
             );
         }
     }
-    assert!(matches!(
-        check_output_equivalence(actual, &expected_float_ops(), &["out".into()]).unwrap(),
-        EquivOutcome::Equivalent
-    ));
+    let outcome = check_output_equivalence(actual, &expected_float_ops(), &["out".into()]).unwrap();
+    assert!(matches!(outcome, EquivOutcome::Equivalent), "{outcome:?}");
 }
 
 fn source(body: &str, target: &str) -> String {
