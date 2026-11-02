@@ -1,6 +1,6 @@
 use crate::frontend::ast::{Counter, Instruction, Kernel, Operand, RegFile};
 use crate::frontend::parse::parse_kernel;
-use crate::ir::{InstrId, LoweredInstr, Sgpr, Vgpr};
+use crate::ir::{BinOp, GlobalAddress, InstrId, LoweredInstr, Sgpr, Src0, Vgpr};
 
 use super::{LowerError, lower_instruction, lower_kernel};
 
@@ -32,17 +32,23 @@ fn lowers_the_compiled_copy_kernel() {
             },
             LoweredInstr::GlobalLoadDword {
                 dst: Vgpr(1),
-                vaddr: Vgpr(0),
-                saddr: [Sgpr(0), Sgpr(1)],
+                address: GlobalAddress {
+                    vaddr: Vgpr(0),
+                    saddr: [Sgpr(0), Sgpr(1)],
+                    offset: 0,
+                },
             },
             LoweredInstr::WaitCnt {
                 vmcnt: Some(0),
                 lgkmcnt: None,
             },
             LoweredInstr::GlobalStoreDword {
-                vaddr: Vgpr(0),
                 src: Vgpr(1),
-                saddr: [Sgpr(2), Sgpr(3)],
+                address: GlobalAddress {
+                    vaddr: Vgpr(0),
+                    saddr: [Sgpr(2), Sgpr(3)],
+                    offset: 0,
+                },
             },
             LoweredInstr::EndPgm,
         ]
@@ -119,9 +125,19 @@ fn lowers_pair_argument_loads_and_real_addition_with_register_roles() {
     let add = instr("v_add_f32_e32", &[vgpr(3), vgpr(1), vgpr(2)]);
     assert_eq!(
         lower_instruction(&add),
-        Ok(LoweredInstr::AddF32 {
+        Ok(LoweredInstr::BinOp {
+            op: BinOp::AddF32,
             dst: Vgpr(3),
-            src0: Vgpr(1),
+            src0: Src0::Vgpr(Vgpr(1)),
+            src1: Vgpr(2),
+        })
+    );
+    assert_eq!(
+        lower_instruction(&instr("v_add_f32_e32", &[vgpr(3), sgpr(1, 1), vgpr(2)])),
+        Ok(LoweredInstr::BinOp {
+            op: BinOp::AddF32,
+            dst: Vgpr(3),
+            src0: Src0::Sgpr(Sgpr(1)),
             src1: Vgpr(2),
         })
     );
@@ -132,7 +148,6 @@ fn lowers_pair_argument_loads_and_real_addition_with_register_roles() {
             &[sgpr(0, 1), sgpr(0, 1), Operand::Imm(0x100000)],
         ),
         instr("v_add_f32_e32", &[sgpr(0, 0), vgpr(1), vgpr(2)]),
-        instr("v_add_f32_e32", &[vgpr(0), sgpr(1, 1), vgpr(2)]),
         instr("v_add_f32_e32", &[vgpr(0), vgpr(1), vgpr(256)]),
     ] {
         assert!(lower_instruction(&invalid).is_err(), "{invalid:?}");
