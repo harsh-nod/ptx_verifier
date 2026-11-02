@@ -83,6 +83,23 @@ fn expected(arena: ExprArena, elements: Vec<(u64, ExprId)>) -> SymbolicOutputs {
     }
 }
 
+fn expected_copy(add: bool, indices: std::ops::Range<u64>) -> SymbolicOutputs {
+    let mut arena = ExprArena::new();
+    let values = indices
+        .map(|i| {
+            let x = input(&mut arena, "x", i);
+            let value = if add {
+                let y = input(&mut arena, "y", i);
+                arena.add(x, y)
+            } else {
+                x
+            };
+            (i, value)
+        })
+        .collect();
+    expected(arena, values)
+}
+
 #[test]
 fn real_gfx942_copy_and_add_preserve_every_tail_and_wave_boundary_element() {
     for block in [1_u32, 63, 64, 65, 128, 256] {
@@ -96,21 +113,25 @@ fn real_gfx942_copy_and_add_preserve_every_tail_and_wave_boundary_element() {
                     if add { "add" } else { "copy" },
                     copy_config(block, n as u64, add),
                 );
-                let mut arena = ExprArena::new();
-                let values = (0..n as u64)
-                    .map(|i| {
-                        let x = input(&mut arena, "x", i);
-                        let value = if add {
-                            let y = input(&mut arena, "y", i);
-                            arena.add(x, y)
-                        } else {
-                            x
-                        };
-                        (i, value)
-                    })
-                    .collect();
-                equivalent(&actual, expected(arena, values));
+                equivalent(&actual, expected_copy(add, 0..u64::from(n)));
             }
+        }
+    }
+}
+
+#[test]
+fn real_gfx942_manifest_tail_and_nonzero_groups_preserve_absolute_output_indices() {
+    for (n, grid, group, indices) in [
+        (65, 1, 0, 0..65),
+        (257, 3, 1, 128..256),
+        (257, 3, 2, 256..257),
+    ] {
+        for add in [false, true] {
+            let mut config = copy_config(128, n, add);
+            config.grid_dim = (grid, 1, 1);
+            config.workgroup_id = (group, 0, 0);
+            let actual = verified(COPY, if add { "add" } else { "copy" }, config);
+            equivalent(&actual, expected_copy(add, indices.clone()));
         }
     }
 }

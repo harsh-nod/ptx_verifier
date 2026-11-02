@@ -8,8 +8,27 @@ The fixtures cover selected forms rather than complete gfx942 ISA support.
 `cases.json` contains eight kernel configurations and independent mathematical
 specifications. `fixtures/compiler-provenance.json` pins HIP, assembly, object
 and code-object hashes, exact commands and the ROCm LLVM toolchain. The
-instruction inventory records actual source lines; parsing/counts alone do not
-establish value semantics or safety.
+[instruction inventory](instruction-coverage.json) records each observed
+operand/modifier profile and its original source lines. Regeneration checks all
+four complete modules with the native parser and typed lowerer. Execution,
+independent semantics and full selected-workgroup proofs have separate named
+test references; the inventory does not measure execution of every static PC.
+
+```sh
+python3 tests/gfx942/generate_instruction_coverage.py --check
+cargo test --release -p volta_amdgpu_analysis --test gfx942_scalar_memory
+cargo test --release -p volta_pipeline --test gfx942_compiler_tests
+```
+
+The scalar-memory controls check 64/128-bit loads with independently expected
+input-word identities. They combine per-component address masking, addresses
+across the 32-bit boundary, aliased base/destination registers and empty EXEC,
+retaining all 128/256 output words for a full wave. Missing, unrelated VM and
+nonzero LGKM waits retain typed readiness failures; a truncated allocation
+remains UNKNOWN. The original compiler copy/add tests also cover the exact
+manifest tail and nonzero selected workgroups with complete allocations and
+absolute output indices. These controls extend test coverage without adding
+new instruction support or a measured bug-finding advantage.
 
 | Native behavior | Checked footprint |
 | --- | --- |
@@ -60,6 +79,8 @@ identical FP8 instruction spellings do not establish equivalent CDNA3 FNUZ and
 CDNA4 OCP value semantics. No FP8 support is claimed by this fixture set.
 
 The symbolic tests retain the existing mathematical-real contract, excluding
-IEEE rounding/NaN/denormal equivalence. They analyze workgroup zero. Complete
-physical copy/add grids and guarded numeric tests do not extend that proof
-scope. Keep generated logs and device receipts outside the repository.
+IEEE rounding/NaN/denormal equivalence. Each symbolic result covers one selected
+workgroup. Compiler tests include workgroup zero and copy/add groups 1 and 2.
+Complete physical copy/add grids and guarded numeric tests provide separate
+numerical checks; symbolic proof scope remains the selected workgroup. Keep
+generated logs and device receipts outside the repository.
