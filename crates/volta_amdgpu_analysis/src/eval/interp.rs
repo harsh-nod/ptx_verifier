@@ -5280,7 +5280,9 @@ impl<'a> Interpreter<'a> {
                 Relation::Eq => CmpOp::Eq,
                 Relation::Ne | Relation::NotEq => CmpOp::Ne,
                 Relation::Lg
-                    if kind == CompareType::F32 && self.architecture == AmdArchitecture::Gfx950 =>
+                    if kind == CompareType::F32
+                        && self.architecture == AmdArchitecture::Gfx950
+                        && !cmpx =>
                 {
                     CmpOp::Ne
                 }

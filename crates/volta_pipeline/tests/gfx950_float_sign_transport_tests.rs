@@ -52,11 +52,12 @@ fn expected_float_ops() -> SymbolicOutputs {
         let fma = arena.fma(x, y, x);
         let lt = arena.lt(x, y);
         let select_lt = arena.select(lt, x, two);
-        let gt = arena.gt(x, y);
+        // Use one predicate orientation: x > y is y < x, and x >= y is y <= x.
+        let gt = arena.lt(y, x);
         let select_gt = arena.select(gt, x, mul);
         let le = arena.le(x, y);
         let select_le = arena.select(le, x, mul);
-        let ge = arena.ge(x, y);
+        let ge = arena.le(y, x);
         let select_ge = arena.select(ge, x, mul);
         let eq = arena.eq(x, y);
         let select_eq = arena.select(eq, x, mul);
@@ -111,6 +112,7 @@ fn unchanged_float_ops_proves_all_1344_writes_and_preserves_row_holes() {
     let checked = gfx950_common::check(FLOAT_OPS, &module, Some("float_ops"), config).unwrap();
     let actual = checked.analysis.symbolic_outputs().unwrap();
     assert_eq!(checked.checks.conclusion(), GraphConclusion::Verified);
+    assert_eq!(checked.analysis.stats.instructions, 44);
     assert_eq!(actual.outputs.len(), 1);
     assert_eq!(actual.outputs[0].1.len(), 1344);
     for lane in 0..64 {
@@ -517,4 +519,6 @@ fn ordered_less_or_greater_selects_only_unequal_f32_values() {
         let error = checked.analysis.symbolic_outputs().unwrap_err().to_string();
         assert!(error.contains("NaN"), "{error}");
     }
+    let cmpx = run("v_cmpx_lg_f32_e32 vcc,v0,v0", 1, "gfx950");
+    assert!(cmpx.analysis.symbolic_outputs().is_err());
 }
