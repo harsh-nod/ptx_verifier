@@ -759,7 +759,10 @@ fn parse_modifier(token: &str, opcode: Opcode, mnemonic: &str) -> Result<Modifie
         "cbsz" | "abid" | "blgp" => opcode == Opcode::Matrix,
         "bitop3" => matches!(mnemonic, "v_bitop3_b32" | "v_bitop2_b32" | "v_bitop3_b16"),
         "scale_offset" => matches!(opcode, Opcode::ScalarMemory | Opcode::VectorMemory),
-        "byte_sel" => mnemonic.trim_end_matches("_e64") == "v_cvt_f32_fp8",
+        "byte_sel" => matches!(
+            mnemonic.trim_end_matches("_e64"),
+            "v_cvt_f32_fp8" | "v_cvt_f32_bf8"
+        ),
         "scope" => mnemonic == "global_atomic_add_f32" || mnemonic.starts_with("flat_"),
         "dst_sel" | "dst_unused" | "src0_sel" | "src1_sel" => mnemonic.ends_with("_sdwa"),
         _ => false,

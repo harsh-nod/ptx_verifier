@@ -132,7 +132,7 @@ fn symbolic_e5m2_storage_remains_explicitly_unsupported() {
 #[test]
 fn selected_e5m2_profile_does_not_accept_unmodeled_encodings_or_modifiers() {
     for conversion in [
-        "v_cvt_f32_bf8_e64 v1,s6",
+        "v_cvt_f32_bf8_e64 v1,s6 clamp",
         "v_cvt_f32_bf8_e32 v1,s6 byte_sel:1",
         "v_cvt_f32_bf8_e32 v1,-s6",
     ] {

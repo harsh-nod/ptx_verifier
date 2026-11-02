@@ -4996,6 +4996,16 @@ impl<'a> Interpreter<'a> {
                     .as_deref()
                     .and_then(parse_u64)
                     .is_some_and(|value| value <= 255)
+        } else if name == "v_cvt_f32_bf8" {
+            self.architecture == AmdArchitecture::Gfx1250
+                && instruction.modifiers().iter().all(|modifier| {
+                    modifier.name == "byte_sel"
+                        && modifier
+                            .value
+                            .as_deref()
+                            .and_then(parse_u64)
+                            .is_some_and(|byte| byte <= 3)
+                })
         } else if name == "v_cvt_f32_fp8" {
             instruction.modifiers().iter().all(|modifier| {
                 (self.architecture == AmdArchitecture::Gfx1250
@@ -5653,23 +5663,29 @@ impl<'a> Interpreter<'a> {
                     continue;
                 }
                 "v_cvt_f32_bf8" => {
-                    // The selected gfx1250 VOP1 profile decodes only byte0.
                     // No symbolic E5M2 storage interpretation is inferred.
                     if self.architecture != AmdArchitecture::Gfx1250
                         || !matches!(
                             instruction.mnemonic().as_str(),
-                            "v_cvt_f32_bf8" | "v_cvt_f32_bf8_e32"
+                            "v_cvt_f32_bf8" | "v_cvt_f32_bf8_e32" | "v_cvt_f32_bf8_e64"
                         )
-                        || !instruction.modifiers().is_empty()
                     {
                         return Err(self.unsupported(wave, instruction));
                     }
-                    let bits = wave.value(&o[1], lane)?.selected_bits(0, 8).map_err(|_| {
-                        EvalError::Unsupported {
+                    let byte = instruction
+                        .modifiers()
+                        .iter()
+                        .find(|modifier| modifier.name == "byte_sel")
+                        .and_then(|modifier| modifier.value.as_deref())
+                        .and_then(parse_u64)
+                        .unwrap_or(0) as u32;
+                    let bits = wave
+                        .value(&o[1], lane)?
+                        .selected_bits(byte * 8, 8)
+                        .map_err(|_| EvalError::Unsupported {
                             pc: wave.pc,
                             what: "symbolic E5M2 decoding is not modeled".into(),
-                        }
-                    })?;
+                        })?;
                     let decoded =
                         super::matrix::decode_bits(super::matrix::InputKind::Fp8E5m2, bits)
                             .map_err(|_| {

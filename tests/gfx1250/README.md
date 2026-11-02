@@ -21,6 +21,8 @@ The [model contract](CONTRACT.md) defines the selected instruction and launch
 profile. The [stage table](full-parity/stage-support.md) links parser, lowering,
 value, event and checker behavior to tests. [Public sources](PUBLIC_SOURCES.md)
 identify the pinned ABI, synchronization, memory and fragment-layout references.
+The [instruction coverage inventory](instruction-coverage.md) distinguishes
+source occurrences from executable and independently checked operand forms.
 
 ## Run tests
 

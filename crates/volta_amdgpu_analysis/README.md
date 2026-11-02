@@ -456,7 +456,7 @@ unsupported instructions leave a partial graph and unavailable outputs.
 | Wave width | 64 | 64 | 32 |
 | Aggregate static + dynamic LDS | 65,536 bytes | 163,840 bytes | 327,680 bytes |
 | Matrix operations | Selected F32, F16 and BF16 `_1k` MFMA | Selected F32/F16/BF16 MFMA and OCP F8F6F4 forms | F32 16×16×4 and F16/BF16 16×16×32 WMMA with F32 accumulators |
-| Floating-byte interpretation | FNUZ FP8/BF8 decoding unsupported | Selected OCP E4M3 symbolic and finite E5M2 profiles | Selected E4M3 transport/conversion and finite concrete E5M2 byte-zero conversion |
+| Floating-byte interpretation | FNUZ FP8/BF8 decoding unsupported | Selected OCP E4M3 symbolic and finite E5M2 profiles | Selected E4M3 transport/conversion; finite concrete E5M2 VOP1 byte-zero and VOP3 byte selection |
 | Memory completion | VM/LGKM counters and matrix state delays | VM/LGKM counters and matrix state delays | Separate Load/Store/DS/KM/X/Async/Tensor counters |
 | Replay premise | Generic or `xnack-` records disabled replay; explicit `xnack+` checks SMEM clause aliases and refuses vector-memory replay | Same | X replay-source retention is modeled separately from data completion |
 
