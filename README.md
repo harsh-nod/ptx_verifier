@@ -109,6 +109,13 @@ wait-repair control passes all graph checks with identical expressions for all
 256 outputs. The [complete functional comparison](tests/amdgpu/native-async-copy/README.md)
 includes the original module, full launch contracts, repair diff and replay script.
 
+An unchanged HipKittens gfx950 F32 global-to-LDS copy now passes all four graph
+checks and proves all 64 identity outputs. The prior version stopped at PC24
+without outputs. The full module, two 256-byte allocations and 80,000-byte LDS
+launch are preserved. This adds one original coverage result, with zero new
+bugs and no performance claim. See the [source, ABI and before/after replay
+package](tests/amdgpu/native-lds-copy/README.md).
+
 The [scalar-inline controls](tests/amdgpu/scalar-inline64/README.md) check complete
 64-bit constant encodings on all three AMD targets. Their baseline and corrected
 output records show why passing graph checks alone does not establish numerical

@@ -1,0 +1,79 @@
+{
+  "auditor_sha256": "5b48f89c0ff6658897ec8d612be9ac54135e6f4afaab5dd6ff18bff1c5bd4da6",
+  "binary_sha256": "d505e4da4573dfa46f30b99c10f1081f055b55f7c8fbd7d509b5d443d38e2f14",
+  "build_record_sha256": "7850ac1dbc20e0c03630938c531e4e7026deba7cede27234d53ced8d7c1fd185",
+  "checks": 1137,
+  "errors": [],
+  "limits": [
+    "Build/command/process association remains caller-attested; byte hashes authenticate retained files, not a cryptographic compilation or execution proof.",
+    "One unchanged public original f32 copy specialization under its full host launch/allocation contract now passes modeled safety and complete output equivalence; this is coverage, not a new bug finding.",
+    "The model retains documented 64-bit FLAT, disabled replay, one-CU workgroup, mathematical arithmetic and issue-time async-data assumptions; no hardware-mode attestation.",
+    "The source already contains both completion waits and a barrier; this result establishes no missing-wait defect.",
+    "No whole68-module syntax rerun, hardware execution, timing/RSS advantage or broad HipKittens coverage claim.",
+    "Existing inline64 and async original/repair replays are regressions, not new defect/configuration gains."
+  ],
+  "logs": {
+    "cli-build": "9a1d69a9801a8dd6bbac1d30a9019cf53c924e2146482aea8d22d4fb949e3ef9",
+    "clippy": "caf9126173c86916bedef85758393aac7f024615cdfe0795f11bedfb36b38df8",
+    "fmt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "workspace": "87116f226945245586a7ebf36938bb6b668226b4612e57c5655bbb588873548d"
+  },
+  "original_expression_sha256": "d15c79d78d39509d7df0f7fc3b618b78e6b9f09da953fc7384279e7e9a78e6ef",
+  "original_graph_sha256": "ecabdbd17426f5990ad7ccab71fa16eb9533b9c6fdd83cfd7ab2da9b18d29408",
+  "original_report_sha256": "69f44ed0999462b827279147f7e2e8d2800f2d995c695d5e9ecdf61c20c418f6",
+  "passed": true,
+  "regressions": {
+    "async": {
+      "processes": 8,
+      "report_sha256": "e11f360fdffb41a66c85bc6f6fe39d9592d2a3e874e890f8bf8797149fa3728e"
+    },
+    "inline64": {
+      "processes": 6,
+      "report_sha256": "3045803d4f78dcc69f039b23804023fe01bcedfe0d24d8f752497a9972e35677"
+    }
+  },
+  "revision": "8eae0e69755612acaee48dbe26c46b80de81b7b1",
+  "runner_sha256": "d39cc707a37eaeca2f2f6c4165b4379033f810e2454c438d0495e36074b461f3",
+  "rust_workspace_fingerprint": {
+    "algorithm": "sha256-git-tree-v1",
+    "file_count": 1266,
+    "sha256": "03fea4385fcaca346ed0e5308db663e1ea3049b1122101e2f0cc0d5a53b4f20e"
+  },
+  "schema": 1,
+  "scope": "Independent read-only source/build/log/raw original and existing regression authentication; no verifier/compiler/Cargo/GPU reruns.",
+  "source_review_sha256": "46cd486d402835d174ce6990c9f81e4960447ed52fbbf17776f2e1641752a1a6",
+  "summary": {
+    "DMA": {
+      "Shared_write_components": 64,
+      "bytes_each": 256,
+      "class": "BufferLoadToLds32",
+      "counter": "Vm1",
+      "global_read_components": 64,
+      "issue": 29,
+      "pc": 21
+    },
+    "FLAT": {
+      "Shared_read_components": 64,
+      "counters": [
+        "Vm1",
+        "Lgkm1"
+      ],
+      "issue": 167,
+      "pc": 27,
+      "wait_pc": 28
+    },
+    "complete_graph_properties_pass": 4,
+    "full_equation_elements": 64,
+    "full_output_roots": 64,
+    "global_output_components": 64,
+    "instructions": 31,
+    "new_original_bug_findings": 0,
+    "original_configurations": 1,
+    "original_processes": 2,
+    "outcome": "ACCEPT",
+    "prior_original_outcome": "UNKNOWN at pc24/nooutputs",
+    "regression_processes": 14,
+    "terminal": "completed"
+  },
+  "test_record_sha256": "c62d482a615108e647f92ae6bf2311259b6a1a038c1890999d7868e6715d5aae"
+}
