@@ -244,11 +244,14 @@ pub(crate) fn validate_typed_profile(instruction: &Instruction) -> Result<(), St
         };
         if !matches!(
             instruction.mnemonic.as_str(),
-            "v_cvt_f32_bf8" | "v_cvt_f32_bf8_e32"
-        ) || !instruction.modifiers.is_empty()
+            "v_cvt_f32_bf8" | "v_cvt_f32_bf8_e32" | "v_cvt_f32_bf8_e64"
+        ) || !instruction
+            .modifiers
+            .iter()
+            .all(|modifier| modifier.name == "byte_sel")
             || !source_is_word
         {
-            return Err("selected gfx1250 E5M2 decoder requires a plain word source and byte0 VOP1 encoding".into());
+            return Err("selected gfx1250 E5M2 decoder requires a plain word source and VOP1 byte0 or VOP3 byte selection".into());
         }
     }
     let byte_selectors = instruction
@@ -261,7 +264,7 @@ pub(crate) fn validate_typed_profile(instruction: &Instruction) -> Result<(), St
             .mnemonic
             .trim_end_matches("_e32")
             .trim_end_matches("_e64");
-        if stem != "v_cvt_f32_fp8"
+        if !matches!(stem, "v_cvt_f32_fp8" | "v_cvt_f32_bf8")
             || instruction.mnemonic.ends_with("_e32")
             || byte_selectors.len() != 1
             || !byte_selectors[0]

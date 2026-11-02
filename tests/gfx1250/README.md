@@ -21,6 +21,11 @@ The [model contract](CONTRACT.md) defines the selected instruction and launch
 profile. The [stage table](full-parity/stage-support.md) links parser, lowering,
 value, event and checker behavior to tests. [Public sources](PUBLIC_SOURCES.md)
 identify the pinned ABI, synchronization, memory and fragment-layout references.
+The [instruction coverage inventory](instruction-coverage.md) distinguishes
+source occurrences from executable and independently checked operand forms.
+The preserved [E5M2 decoder receipt](fixtures/e5m2-decoder-contract.json)
+describes the historical byte-zero profile; the inventory documents current
+VOP3 byte selection.
 
 ## Run tests
 
