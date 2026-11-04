@@ -9,6 +9,8 @@ compares a kernel's outputs with another kernel or a mathematical specification.
 It supports NVIDIA PTX and selected native AMD instructions for gfx942, gfx950
 and gfx1250. This experimental fork of [Volta](https://github.com/willtunnels/volta)
 keeps the `volta` command and Python module names.
+Fork-specific implementation and upstream contributions focus on AMD;
+NVIDIA/PTX instruction semantics follow upstream Volta.
 
 The engine symbolically executes a concrete launch configuration. It produces
 output expressions and an event graph, then checks mathematical equivalence and

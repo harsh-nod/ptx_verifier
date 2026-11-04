@@ -78,6 +78,9 @@ python3 tests/gfx1250/full-parity/validate_feature_mappings.py \
 ```
 
 Preserve original reference fixtures and complete goldens.
+Frozen PTX inputs describe AMD portability obligations. Removed NVIDIA-only
+regression sources remain available at the recorded Git revision; current
+execution evidence comes from the mapped native AMD controls.
 
 The reference contract links PTX fixtures, shared specifications and aggregate
 Rust tests to exact native controls or narrow target-specific differences.

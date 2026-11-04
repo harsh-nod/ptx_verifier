@@ -4,7 +4,6 @@
 
 mod arithm;
 mod async_bulk;
-mod barrier_flow;
 mod cluster_launch_control;
 mod cp_async;
 mod error;
