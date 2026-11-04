@@ -3,6 +3,10 @@
   "upstream_commit": "b3a37911b8bd87352996403e8471a1fe18c4e975",
   "historical_only_sources": [
     {
+      "path": "crates/volta_pipeline/tests/false_positive_tests.rs",
+      "sha256": "504f847ff99edbad3799a057c05382b4344117cc3010440e096323f914205990"
+    },
+    {
       "path": "crates/volta_pipeline/tests/ptx/execution_error/tcgen05_mma_reader_without_fence_after_thread_sync_is_rejected.ptx",
       "sha256": "86de880448966bd4c9995f0c4f5a31a14f84a20e7077259e73c3f8fc2ff68813"
     }
@@ -12,9 +16,9 @@
     "model_refusal": 1,
     "native_assertion": 278,
     "native_memory_negative": 8,
-    "shared_assertion": 154,
+    "shared_assertion": 153,
     "target_boundary": 65,
-    "target_contract_difference": 14
+    "target_contract_difference": 15
   },
   "source_inventory": [
     {
@@ -628,10 +632,6 @@
     {
       "path": "crates/volta_pipeline/tests/common/mod.rs",
       "sha256": "33d8c90b30740ed86cea57a14f96336f8e47c123f2116ec6e7aff00bddb7c71e"
-    },
-    {
-      "path": "crates/volta_pipeline/tests/false_positive_tests.rs",
-      "sha256": "a5a9cc8e896a641958b71007ad34518001f5f2cd91b98921281c75a0aef4cd13"
     },
     {
       "path": "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs",
@@ -2847,7 +2847,7 @@
     },
     {
       "path": "crates/volta_pipeline/tests/rejected_tests.rs",
-      "sha256": "e128af491424612267e90bfb98252ecc99039c53f9e62750a5bc4b2abf8da774"
+      "sha256": "1557ec969edb9dc7fa84face641eb225802dd743b6f5a8898b73ae50437cacc3"
     },
     {
       "path": "crates/volta_pipeline/tests/resource_lifetime_tests.rs",
@@ -4490,9 +4490,9 @@
       "path": "crates/volta_pipeline/tests/false_positive_tests.rs",
       "group": "REF-AGGREGATE",
       "manifest": "tests/gfx1250/full-parity/scalar-mappings.json",
-      "mapping_kind": "shared_assertion",
+      "mapping_kind": "target_contract_difference",
       "tests": [
-        "crates/volta_pipeline/tests/false_positive_tests.rs"
+        "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs::three_single_participant_arrivals_preserve_the_exact_baseline_expression"
       ]
     },
     {

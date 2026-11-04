@@ -6,6 +6,13 @@ and extension workflow. The CLI also exposes upstream `solve` and `extract lean`
 workflows through its command modules. Each crate README describes its own
 modules and public entry points; Rustdoc is the reference for individual types and functions.
 
+## Scope
+
+This fork develops AMD support. Keep fork-specific implementation changes and
+upstream submissions focused on AMD. Preserve upstream NVIDIA/PTX instruction
+semantics and tests; shared interfaces and launch adapters may change as needed
+to integrate AMD backends.
+
 ## Code conventions
 
 - Use distinct types for values with different roles; avoid interchangeable
@@ -30,8 +37,14 @@ Use focused tests while editing, then run the appropriate workspace checks:
 cargo test --release --workspace
 just test-python
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy --workspace --all-targets --all-features
+cargo clippy --workspace --exclude volta_ptx_analysis --all-targets --all-features --no-deps -- -D warnings
+cargo clippy -p volta_ptx_analysis --lib --all-features --no-deps -- -D warnings
 ```
+
+Workspace Clippy covers every target. Strict checks cover all targets outside
+the PTX crate and its production library with all features. PTX test, example
+and benchmark targets retain upstream's warning policy.
 
 Preserve actual compiler fixtures, meaningful positive controls, exact output
 indices and typed negative witnesses. Native source provenance and independent
@@ -39,10 +52,6 @@ numerical oracles live beside their fixtures. Keep generated graphs, logs and
 hardware run artifacts outside tracked source.
 
 ## Frontend and proof boundaries
-
-PTX aligned named barriers match the instruction and exact enclosing-loop
-iteration context within each warp. Ambiguous or irreducible contexts are
-unsupported; unaligned barriers retain thread-count semantics.
 
 Explicit native AMD selection uses `volta_amdgpu_analysis` and its target-selected
 graph/certificate contracts. Extension-inferred `.s` solve/extract uses upstream

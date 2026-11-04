@@ -36,7 +36,7 @@
     },
     {
       "id": "aggregate",
-      "command": "cargo test -p volta_pipeline --test architecture_tests --test aggregation_tests --test graph_tests --test soundness_tests --test negative_equivalence_tests --test false_positive_tests --test accepted_tests --test rejected_tests --test allocation_order_tests --test allocation_permit_tests --test mbarrier_epoch_tests --test mbarrier_ordering_tests --test mbarrier_release_order_tests --test memory_conflict_tests --test proxy_order_tests --test resource_lifetime_tests --test tensor_order_tests",
+      "command": "cargo test -p volta_pipeline --test architecture_tests --test aggregation_tests --test graph_tests --test soundness_tests --test negative_equivalence_tests --test accepted_tests --test rejected_tests --test allocation_order_tests --test allocation_permit_tests --test mbarrier_epoch_tests --test mbarrier_ordering_tests --test mbarrier_release_order_tests --test memory_conflict_tests --test proxy_order_tests --test resource_lifetime_tests --test tensor_order_tests",
       "scope": "Shared pipeline, graph and equivalence suites; common/mod.rs provides helpers compiled through the calling suites."
     },
     {
@@ -2560,17 +2560,16 @@
       "path": "crates/volta_pipeline/tests/false_positive_tests.rs",
       "group": "REF-AGGREGATE",
       "upstream_sha256": "504f847ff99edbad3799a057c05382b4344117cc3010440e096323f914205990",
-      "current_source_sha256": "a5a9cc8e896a641958b71007ad34518001f5f2cd91b98921281c75a0aef4cd13",
-      "source_changed_since_upstream_pin": true,
-      "portable_obligation": "Retain this test/helper/stage-boundary source and map child assertions through individual fixture rows rather than inventing one native runtime case per Rust file.",
-      "native_candidates": [
+      "portable_obligation": "Keep the frozen PTX aligned-barrier assertion as a portability reference for the native AMD barrier contract.",
+      "mapping_kind": "target_contract_difference",
+      "target_contract_residual": "AMD barriers are scalar per wave; PTX per-lane aligned and unaligned rendezvous is a distinct execution contract. The existing native control checks its own exact payload and phases without claiming to reproduce the PTX lane contract.",
+      "native_evidence": [
         {
-          "path": "crates/volta_pipeline/tests/false_positive_tests.rs",
-          "kind": "retained_baseline_guard_source"
+          "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
+          "function": "three_single_participant_arrivals_preserve_the_exact_baseline_expression",
+          "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
         }
-      ],
-      "target_specific_residual": "Source organization and PTX-only IR/resource APIs stay target-specific at that exact boundary. Every actual portable child computation and synchronization property remains required in its own mapping.",
-      "mapping_kind": "shared_assertion"
+      ]
     },
     {
       "path": "crates/volta_pipeline/tests/graph_tests.rs",
@@ -4821,7 +4820,7 @@
       "path": "crates/volta_pipeline/tests/rejected_tests.rs",
       "group": "REF-AGGREGATE",
       "upstream_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197",
-      "current_source_sha256": "e128af491424612267e90bfb98252ecc99039c53f9e62750a5bc4b2abf8da774",
+      "current_source_sha256": "1557ec969edb9dc7fa84face641eb225802dd743b6f5a8898b73ae50437cacc3",
       "source_changed_since_upstream_pin": true,
       "portable_obligation": "Retain this test/helper/stage-boundary source and map child assertions through individual fixture rows rather than inventing one native runtime case per Rust file.",
       "native_candidates": [
