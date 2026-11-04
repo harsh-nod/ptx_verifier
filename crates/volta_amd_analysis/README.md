@@ -41,6 +41,16 @@ sign-mask tricks for negation and absolute value; floating-point arithmetic and 
 including lane exchanges, remain supported. A select between two different constant words
 under a symbolic condition is rejected, since the words could encode floats or integers.
 
+`v_cmp_lt_f32_e64` can store symbolic comparison bits in an SGPR pair for
+`v_cndmask_b32_e64`. Each scalar word retains its own mask bits; a scalar write
+or load replaces them. Reading such a mask as an ordinary integer or address
+is rejected. The e64 select also supports a single-register floating-point NEG
+modifier: concrete words keep their bits with the sign bit flipped, while
+symbolic reals are negated. Other instruction forms do not inherit this modifier.
+`v_pk_add_f32` supports aligned VGPR source/destination pairs and a broadcast
+inline constant with default `op_sel:[0,0]` and explicit `op_sel_hi:[1,0]`;
+other selector and modifier profiles are rejected.
+
 `ArrayDef` marks each global-memory array `Input` or `Output(OutputType)`. Output
 stores decode `F32` constants into mathematical reals and preserve existing real
 expressions; `U32` outputs require concrete 32-bit words. Invalid values abort at
@@ -52,7 +62,7 @@ access events. It supplies no native AMD safety proof. The CLI/Python native
 backend records and checks events through `volta_amdgpu_analysis`.
 
 Supported operand forms follow the [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
-(§6.2, §12.6, §12.7, §12.11, §12.12); scalar addressing and completion follow §8.2–8.3. Operand checks
+(§6.2, §6.7, §12.6, §12.7, §12.10–12.12); scalar addressing and completion follow §8.2–8.3. Operand checks
 also follow LLVM 21.1.8's
 [operand validation](https://github.com/llvm/llvm-project/blob/llvmorg-21.1.8/llvm/lib/Target/AMDGPU/AsmParser/AMDGPUAsmParser.cpp)
 and [counter widths](https://github.com/llvm/llvm-project/blob/llvmorg-21.1.8/llvm/lib/Target/AMDGPU/Utils/AMDGPUBaseInfo.cpp).
@@ -75,6 +85,11 @@ cargo test -p volta_amd_analysis
 ```
 
 `just amd` runs only the compiled kernel tests.
+
+The CK GEMM and fused-Sigmoid fixtures use the same complete 8 × 8 × 8 problem,
+128 work-items and all 64 output equations. The fused golden records the
+compiler's piecewise exponential rescaling, including its rounded f32 constant;
+it does not establish exact equality to ideal real-valued Sigmoid.
 
 `tests/lean_tests.rs` states the sigmoid fixture's outputs against
 `tests/fixtures/sigmoid.spec` (`1 / (1 + exp(-a[i]))`) as a Lean challenge and writes it to

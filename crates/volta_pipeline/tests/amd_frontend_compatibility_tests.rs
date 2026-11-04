@@ -76,7 +76,9 @@ fn native_operand(operand: &upstream::Operand) -> Operand {
             .into(),
             value: (*value).try_into().unwrap(),
         },
-        upstream::Operand::InlineFloat(_)
+        upstream::Operand::NegatedReg { .. }
+        | upstream::Operand::OpSelHi(_)
+        | upstream::Operand::InlineFloat(_)
         | upstream::Operand::Vcc
         | upstream::Operand::Exec
         | upstream::Operand::Label(_)
