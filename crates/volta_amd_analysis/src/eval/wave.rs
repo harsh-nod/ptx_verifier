@@ -79,15 +79,15 @@ pub(super) enum LoadCounter {
 }
 
 /// One lane's vector and accumulation registers, its VCC bit as a boolean expression, and the
-/// destinations of each of its loads still pending per counter, oldest first; only VGPRs are
-/// loaded.
+/// destinations of each pending operation, oldest first. An LDS write occupies one empty
+/// destination entry, so LGKM waits count reads and writes in the same issue order.
 #[derive(Debug, Clone)]
 struct LaneRegisters {
     values: [RegValue; 256],
     accumulators: [Option<ExprId>; 256],
     vcc: Option<ExprId>,
     pending_loads: VecDeque<Vec<Vgpr>>,
-    pending_lds_reads: VecDeque<Vec<Vgpr>>,
+    pending_lds: VecDeque<Vec<Vgpr>>,
 }
 
 // Initialize the wave with all registers unwritten.
@@ -98,7 +98,7 @@ impl Default for WaveRegisters {
             accumulators: [None; 256],
             vcc: None,
             pending_loads: VecDeque::new(),
-            pending_lds_reads: VecDeque::new(),
+            pending_lds: VecDeque::new(),
         };
         Self {
             scalar: [ScalarValue::Uninitialized; 102],
@@ -523,9 +523,22 @@ impl WaveRegisters {
         }
         match counter {
             LoadCounter::Vm => registers.pending_loads.push_back(dst.to_vec()),
-            LoadCounter::Lgkm => registers.pending_lds_reads.push_back(dst.to_vec()),
+            LoadCounter::Lgkm => registers.pending_lds.push_back(dst.to_vec()),
         }
         Ok(())
+    }
+
+    pub(super) fn start_lds_store(&mut self, lane: usize) -> Result<(), EvalError> {
+        self.vector
+            .get_mut(lane)
+            .ok_or(EvalError::InvalidLane(lane))?
+            .pending_lds
+            .push_back(Vec::new());
+        Ok(())
+    }
+
+    pub(super) fn has_pending_lds(&self) -> bool {
+        self.vector.iter().any(|lane| !lane.pending_lds.is_empty())
     }
 
     /// Store the word of each register of `src` to consecutive addresses.
@@ -557,14 +570,17 @@ impl WaveRegisters {
         }
     }
 
-    /// Wait until at most `outstanding` loads counted by `counter` are in flight per lane. Loads
-    /// return in issue order, so the most recent stay pending; counting no stores or LDS writes
-    /// keeps more loads pending than the hardware does.
+    /// Retire the guaranteed FIFO prefix. LGKM includes LDS reads, writes and exchanges;
+    /// the VM queue still counts only loads, conservatively retaining extra pending results.
     pub(super) fn finish_vector_loads(&mut self, counter: LoadCounter, outstanding: usize) {
+        // The all-ones LGKM field is don't-care, not a bound on logical issue history.
+        if counter == LoadCounter::Lgkm && outstanding == 15 {
+            return;
+        }
         for registers in &mut self.vector {
             let pending = match counter {
                 LoadCounter::Vm => &mut registers.pending_loads,
-                LoadCounter::Lgkm => &mut registers.pending_lds_reads,
+                LoadCounter::Lgkm => &mut registers.pending_lds,
             };
             let completed = pending.len().saturating_sub(outstanding);
 

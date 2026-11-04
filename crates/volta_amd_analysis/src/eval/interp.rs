@@ -187,7 +187,12 @@ impl<'a> Interpreter<'a> {
                 self.waves[wave].status = Status::Exited;
                 return Ok(());
             }
-            LoweredInstr::Barrier => self.waves[wave].status = Status::AtBarrier,
+            LoweredInstr::Barrier => {
+                if self.waves[wave].registers.has_pending_lds() {
+                    return Err(EvalError::PendingLdsAtBarrier);
+                }
+                self.waves[wave].status = Status::AtBarrier;
+            }
             LoweredInstr::Branch { target } => next = *target,
             LoweredInstr::CondBranch { condition, target } => {
                 if self.branch_taken(wave, *condition)? {
@@ -497,7 +502,7 @@ impl<'a> Interpreter<'a> {
             }
             self.lds.write(start_address, &values)?;
         }
-        Ok(())
+        self.waves[wave].registers.start_lds_store(lane)
     }
 
     /// Load every access's words, pending until `lgkmcnt` establishes the read's completion.

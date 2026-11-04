@@ -23,6 +23,7 @@ pub enum EvalError {
     UninitializedLds { address: u32 },
     PendingSgpr(Sgpr),
     PendingVgpr { lane: usize, reg: Vgpr },
+    PendingLdsAtBarrier,
     InvalidAddressRegister(Sgpr),
     InvalidAddressVgpr { lane: usize, reg: Vgpr },
     InvalidFloatVgpr { lane: usize, reg: Vgpr },
@@ -111,6 +112,10 @@ impl fmt::Display for EvalError {
                     reg.0
                 )
             }
+            Self::PendingLdsAtBarrier => write!(
+                f,
+                "s_barrier reached with pending LDS operations; wait with s_waitcnt lgkmcnt(0)"
+            ),
             Self::InvalidAddressRegister(reg) => {
                 write!(
                     f,

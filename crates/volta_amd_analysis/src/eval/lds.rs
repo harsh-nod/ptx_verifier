@@ -7,8 +7,8 @@ use volta_expr::ExprId;
 
 use super::EvalError;
 
-/// The workgroup's `size` bytes of LDS as 32-bit words keyed by byte address. A write takes
-/// effect at once, so a wave that reads after a barrier observes every write before it.
+/// Issue-time LDS payloads. Barrier admission separately requires completion of the
+/// arriving wave's LDS operations; this storage does not enumerate memory interleavings.
 #[derive(Debug)]
 pub(super) struct Lds {
     size: u32,

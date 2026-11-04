@@ -27,6 +27,17 @@ global inputs and keep their destinations unavailable until `s_waitcnt lgkmcnt(0
 Scalar execution requires XNACK to be disabled; partial LGKM waits with pending scalar
 loads are rejected. `ds_bpermute_b32` exchanges register values across a wave without
 accessing LDS memory; its results remain pending until an LGKM wait completes them.
+Ordinary LDS reads, writes and lane exchanges share an issue-ordered LGKM queue;
+each DS instruction counts once, including multiword or dual-offset transfers.
+Partial waits release only the guaranteed prefix; the maximum LGKM field (15)
+provides no completion evidence for an overfull logical issue history.
+An arriving wave with pending LDS operations aborts at `s_barrier` with
+`EvalError::PendingLdsAtBarrier` and no symbolic outputs. This deliberately
+conservative profile requires completion even when the remaining accesses do
+not overlap. It follows the [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
+§4.4 and §12.5: `s_barrier` does not itself drain memory counters.
+Payloads are still evaluated at issue. This check does not add a race graph,
+cover cross-wave conflicts without a barrier, or change vector-memory/DMA semantics.
 Launch initialization supports full waves in 1D, 2D, and 3D workgroups, matching
 [AMD's X/Y/Z launch interface](https://releases.llvm.org/21.1.0/docs/AMDGPUUsage.html#initial-kernel-execution-state),
 with an optional kernarg pointer and enabled workgroup IDs. Work-items are ordered
@@ -77,6 +88,8 @@ lower and execute compiled assembly fixtures, then compare their symbolic output
 with the corresponding `.out` files.
 The `scalar_ops` fixture checks signed arithmetic, 64-bit comparisons and uniform loop branches.
 Rejection fixtures instead require a specific lowering or execution error.
+LDS completion controls in `tests/kernels.rs` check complete two-wave write/read and read/overwrite
+barrier controls, mixed LDS partial waits and unchanged scalar-memory refusals.
 Specification comparisons live in `volta_pipeline/tests/amd_equivalence_tests.rs`.
 Run the crate tests from the repository root:
 

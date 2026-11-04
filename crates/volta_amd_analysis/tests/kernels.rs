@@ -508,3 +508,249 @@ fn intra_wave_divergence_is_rejected() {
         )
     });
 }
+
+mod lds_completion {
+    //! Ordinary LDS issue order, completion and conservative barrier admission.
+
+    use volta_amd_analysis::frontend::parse::parse_kernel;
+    use volta_amd_analysis::{
+        AnalysisResult, ArrayDef, ArrayKind, EvalError, InstrId, OutputType, Terminal, Vgpr,
+        WaveId, WorkgroupLaunch, analyze,
+    };
+    use volta_expr::ExprNode;
+
+    const WRITE: &str = include_str!("fixtures/lds_write_before_barrier.s");
+    const READ: &str = include_str!("fixtures/lds_read_before_barrier.s");
+
+    fn run(source: &str, kernel: &str, workitems: u32) -> AnalysisResult {
+        let kernel = parse_kernel(source, kernel).unwrap();
+        let mut args = 0x10000_u64.to_le_bytes().to_vec();
+        args.extend(0x20000_u64.to_le_bytes());
+        analyze(
+            &kernel,
+            &WorkgroupLaunch {
+                kernarg_address: 0x1000,
+                workgroup_size: (workitems, 1, 1),
+            },
+            &args,
+            &[
+                ArrayDef {
+                    name: "input".into(),
+                    base: 0x10000,
+                    len: u64::from(workitems),
+                    kind: ArrayKind::Input,
+                },
+                ArrayDef {
+                    name: "out".into(),
+                    base: 0x20000,
+                    len: u64::from(workitems),
+                    kind: ArrayKind::Output(OutputType::F32),
+                },
+            ],
+        )
+        .unwrap()
+    }
+
+    fn assert_outputs(result: AnalysisResult, workitems: u64, xor: u64) {
+        assert_eq!(result.terminal, Terminal::Completed);
+        let outputs = result.symbolic_outputs.unwrap();
+        assert_eq!(outputs.outputs.len(), 1);
+        assert_eq!(outputs.outputs[0].0, "out");
+        assert_eq!(outputs.outputs[0].1.len(), workitems as usize);
+        for i in 0..workitems {
+            let id = outputs.element("out", i).unwrap();
+            assert!(matches!(
+                outputs.arena.node(id),
+                ExprNode::InputElement { array, index }
+                    if outputs.arena.string(*array) == "input" && *index == (i ^ xor)
+            ));
+        }
+    }
+
+    fn assert_barrier_refused(result: AnalysisResult, pc: u32) {
+        assert_eq!(
+            result.terminal,
+            Terminal::Aborted {
+                wave: WaveId(0),
+                pc: InstrId(pc),
+                error: EvalError::PendingLdsAtBarrier,
+            }
+        );
+        assert!(result.symbolic_outputs.is_none());
+    }
+
+    fn single_wave(body: &str) -> String {
+        format!(
+            r#".amdgcn_target "amdgcn-amd-amdhsa--gfx950:xnack-"
+    .text
+    k:
+    s_load_dwordx4 s[4:7], s[0:1], 0
+    s_waitcnt lgkmcnt(0)
+    v_lshlrev_b32_e32 v2, 2, v0
+    global_load_dword v1, v2, s[4:5]
+    s_waitcnt vmcnt(0)
+    {body}
+    s_endpgm
+    .section .rodata
+    .amdhsa_kernel k
+    .amdhsa_group_segment_fixed_size 512
+    .amdhsa_user_sgpr_count 2
+    .amdhsa_user_sgpr_kernarg_segment_ptr 1
+    .amdhsa_system_sgpr_workgroup_id_x 0
+    .amdhsa_system_sgpr_workgroup_id_y 0
+    .amdhsa_system_sgpr_workgroup_id_z 0
+    .amdhsa_system_vgpr_workitem_id 0
+    .end_amdhsa_kernel
+    "#
+        )
+    }
+
+    #[test]
+    fn cross_wave_write_then_read_requires_completion_before_the_barrier() {
+        assert_barrier_refused(run(WRITE, "lds_write_before_barrier", 128), 6);
+        let safe = WRITE.replacen(
+            "ds_write_b32 v2, v1\ns_barrier",
+            "ds_write_b32 v2, v1\ns_waitcnt lgkmcnt(0)\ns_barrier",
+            1,
+        );
+        assert_ne!(safe, WRITE);
+        assert_outputs(run(&safe, "lds_write_before_barrier", 128), 128, 64);
+    }
+
+    #[test]
+    fn cross_wave_read_then_overwrite_requires_completion_before_the_barrier() {
+        assert_barrier_refused(run(READ, "lds_read_before_barrier", 128), 10);
+        let safe = READ.replacen(
+            "ds_read_b32 v4, v3\ns_barrier",
+            "ds_read_b32 v4, v3\ns_waitcnt lgkmcnt(0)\ns_barrier",
+            1,
+        );
+        assert_ne!(safe, READ);
+        assert_outputs(run(&safe, "lds_read_before_barrier", 128), 128, 64);
+    }
+
+    #[test]
+    fn a_wrong_or_partial_wait_does_not_complete_the_pending_lds_write() {
+        for wait in [
+            "s_waitcnt vmcnt(0)",
+            "s_waitcnt lgkmcnt(1)",
+            "s_waitcnt lgkmcnt(15)",
+        ] {
+            let source = WRITE.replacen(
+                "ds_write_b32 v2, v1\ns_barrier",
+                &format!("ds_write_b32 v2, v1\n{wait}\ns_barrier"),
+                1,
+            );
+            assert_ne!(source, WRITE);
+            assert_barrier_refused(run(&source, "lds_write_before_barrier", 128), 7);
+        }
+    }
+
+    #[test]
+    fn a_later_write_counts_toward_the_partial_wait_and_releases_the_older_read() {
+        let body = "ds_write_b32 v2, v1\ns_waitcnt lgkmcnt(0)\nds_read_b32 v4, v2\nds_write_b32 v2, v1\ns_waitcnt lgkmcnt(1)\nglobal_store_dword v2, v4, s[6:7]";
+        assert_outputs(run(&single_wave(body), "k", 64), 64, 0);
+        let barrier = body.replace("global_store_dword", "s_barrier\nglobal_store_dword");
+        assert_barrier_refused(run(&single_wave(&barrier), "k", 64), 10);
+        let drained = barrier.replace("s_barrier", "s_waitcnt lgkmcnt(0)\ns_barrier");
+        assert_outputs(run(&single_wave(&drained), "k", 64), 64, 0);
+    }
+
+    #[test]
+    fn a_partial_wait_keeps_the_newer_read_pending_after_an_older_write() {
+        let body = "ds_write_b32 v2, v1\nds_read_b32 v4, v2\ns_waitcnt lgkmcnt(1)\nglobal_store_dword v2, v4, s[6:7]";
+        let result = run(&single_wave(body), "k", 64);
+        assert_eq!(
+            result.terminal,
+            Terminal::Aborted {
+                wave: WaveId(0),
+                pc: InstrId(8),
+                error: EvalError::PendingVgpr {
+                    lane: 0,
+                    reg: Vgpr(4),
+                },
+            }
+        );
+        assert!(result.symbolic_outputs.is_none());
+        let drained = body.replace("lgkmcnt(1)", "lgkmcnt(0)");
+        assert_outputs(run(&single_wave(&drained), "k", 64), 64, 0);
+    }
+
+    #[test]
+    fn wide_lds_stores_have_one_completion_entry_for_the_whole_instruction() {
+        let body = "ds_write2_b32 v2, v1, v1 offset0:0 offset1:64\nds_read_b32 v4, v2\nds_write2_b32 v2, v1, v1 offset0:0 offset1:64\ns_waitcnt lgkmcnt(2)\nglobal_store_dword v2, v4, s[6:7]";
+        let result = run(&single_wave(body), "k", 64);
+        assert!(matches!(
+            result.terminal,
+            Terminal::Aborted {
+                error: EvalError::PendingVgpr {
+                    lane: 0,
+                    reg: Vgpr(4)
+                },
+                ..
+            }
+        ));
+        assert!(result.symbolic_outputs.is_none());
+        let released = body.replace("lgkmcnt(2)", "lgkmcnt(1)");
+        assert_outputs(run(&single_wave(&released), "k", 64), 64, 0);
+    }
+
+    #[test]
+    fn a_maximal_lgkm_field_does_not_release_a_read_from_a_long_logical_history() {
+        let writes = "ds_write_b32 v2, v1\n".repeat(16);
+        let body = format!(
+            "ds_write_b32 v2, v1\ns_waitcnt lgkmcnt(0)\nds_read_b32 v4, v2\n{writes}s_waitcnt lgkmcnt(15)\nglobal_store_dword v2, v4, s[6:7]"
+        );
+        let result = run(&single_wave(&body), "k", 64);
+        assert_eq!(
+            result.terminal,
+            Terminal::Aborted {
+                wave: WaveId(0),
+                pc: InstrId(25),
+                error: EvalError::PendingVgpr {
+                    lane: 0,
+                    reg: Vgpr(4),
+                },
+            }
+        );
+        assert!(result.symbolic_outputs.is_none());
+        let drained = body.replace("lgkmcnt(15)", "lgkmcnt(0)");
+        assert_outputs(run(&single_wave(&drained), "k", 64), 64, 0);
+    }
+
+    #[test]
+    fn empty_lds_queues_allow_repeated_barriers_and_vm_only_work_is_separate() {
+        let body = "s_barrier\ns_barrier\nglobal_store_dword v2, v1, s[6:7]";
+        assert_outputs(run(&single_wave(body), "k", 64), 64, 0);
+        let vm_pending = "global_load_dword v4, v2, s[4:5]\ns_barrier\ns_waitcnt vmcnt(0)\nglobal_store_dword v2, v4, s[6:7]";
+        assert_outputs(run(&single_wave(vm_pending), "k", 64), 64, 0);
+        assert!(
+            EvalError::PendingLdsAtBarrier
+                .to_string()
+                .contains("lgkmcnt(0)")
+        );
+    }
+
+    #[test]
+    fn pending_scalar_memory_does_not_inherit_the_lds_fifo() {
+        let body = "s_load_dword s8, s[0:1], 0\nds_write_b32 v2, v1\ns_waitcnt lgkmcnt(1)\ns_barrier\nds_read_b32 v4, v2\ns_waitcnt lgkmcnt(0)\nglobal_store_dword v2, v4, s[6:7]";
+        let result = run(&single_wave(body), "k", 64);
+        assert_eq!(
+            result.terminal,
+            Terminal::Aborted {
+                wave: WaveId(0),
+                pc: InstrId(7),
+                error: EvalError::UnsupportedInstruction,
+            }
+        );
+        assert!(result.symbolic_outputs.is_none());
+        let drained = body.replace("lgkmcnt(1)", "lgkmcnt(0)");
+        assert_outputs(run(&single_wave(&drained), "k", 64), 64, 0);
+    }
+
+    #[test]
+    fn lane_exchanges_and_lds_writes_share_the_existing_ds_completion_order() {
+        let body = "ds_bpermute_b32 v4, v2, v1\nds_write_b32 v2, v1\ns_waitcnt lgkmcnt(1)\nglobal_store_dword v2, v4, s[6:7]";
+        assert_outputs(run(&single_wave(body), "k", 64), 64, 0);
+    }
+}
