@@ -1,7 +1,9 @@
 """Measurement controls: verdicts, scope, timing summaries and launch validity."""
 from pathlib import Path
 import copy
+import hashlib
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -10,6 +12,92 @@ import benchmark
 
 
 class BenchmarkTests(unittest.TestCase):
+    def expectation_repository(self, directory):
+        root = Path(directory)
+        subprocess.run(["git", "init", "-q", str(root)], check=True, capture_output=True)
+        path = root / "tests" / "expectation.rs"
+        path.parent.mkdir()
+        original = b"fn historical_oracle() { assert_eq!(answer, 7); }\n"
+        path.write_bytes(original)
+        subprocess.run(["git", "-C", str(root), "add", "tests/expectation.rs"], check=True, capture_output=True)
+        subprocess.run(["git", "-C", str(root), "-c", "user.name=Study test", "-c",
+                        "user.email=study-test@example.invalid", "commit", "-qm", "pinned expectation"],
+                       check=True, capture_output=True)
+        revision = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
+        case = {"expectation_source": "tests/expectation.rs",
+                "expectation_source_sha256": hashlib.sha256(original).hexdigest()}
+        return root, path, original, {"baseline_source_revision": revision}, case
+
+    def test_historical_expectation_uses_exact_old_bytes_after_current_test_changes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, path, original, document, case = self.expectation_repository(directory)
+            self.assertEqual(benchmark.expectation_text(document, case, root), original.decode())
+            path.write_text("fn new_oracle() { assert_eq!(answer, 99); }\n")
+            self.assertEqual(benchmark.expectation_text(document, case, root), original.decode())
+            path.unlink()
+            self.assertEqual(benchmark.expectation_text(document, case, root), original.decode())
+
+    def test_expectation_wrong_commit_missing_history_and_tampered_hash_refuse(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, path, _, document, case = self.expectation_repository(directory)
+            path.write_text("fn wrong_oracle() {}\n")
+            for revision in ("HEAD", "0" * 40):
+                with self.subTest(revision=revision), self.assertRaises(ValueError):
+                    benchmark.expectation_text({"baseline_source_revision": revision}, case, root)
+            for object_name in ("HEAD^{tree}", "HEAD:tests/expectation.rs"):
+                object_sha = subprocess.check_output(["git", "-C", str(root), "rev-parse", object_name], text=True).strip()
+                with self.subTest(object_name=object_name), self.assertRaisesRegex(ValueError, "commit object"):
+                    benchmark.expectation_text({"baseline_source_revision": object_sha}, case, root)
+            subprocess.run(["git", "-C", str(root), "add", "tests/expectation.rs"], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(root), "-c", "user.name=Study test", "-c",
+                            "user.email=study-test@example.invalid", "commit", "-qm", "different source"],
+                           check=True, capture_output=True)
+            wrong_commit = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
+            with self.assertRaisesRegex(ValueError, "stale independent"):
+                benchmark.expectation_text({"baseline_source_revision": wrong_commit}, case, root)
+            with self.assertRaisesRegex(ValueError, "stale independent"):
+                benchmark.expectation_text(document, {**case, "expectation_source_sha256": "0" * 64}, root)
+            with self.assertRaisesRegex(ValueError, "invalid independent"):
+                benchmark.expectation_text(document, {**case, "expectation_source_sha256": "not-a-sha"}, root)
+            # A source-only archive cannot silently substitute the changed file.
+            (root / ".git").rename(root / "archived-git")
+            with self.assertRaisesRegex(ValueError, "full-history study checkout"):
+                benchmark.expectation_text(document, case, root)
+
+    def test_expectation_paths_and_historical_symlinks_are_not_regular_sources(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, path, _, document, case = self.expectation_repository(directory)
+            for source in ("../outside.rs", "/outside.rs", "tests/../expectation.rs", "tests\\expectation.rs"):
+                with self.subTest(source=source), self.assertRaisesRegex(ValueError, "unsafe"):
+                    benchmark.expectation_text(document, {**case, "expectation_source": source}, root)
+            path.unlink()
+            path.symlink_to("elsewhere.rs")
+            with self.assertRaisesRegex(ValueError, "regular file"):
+                benchmark.expectation_text(document, case, root)
+            subprocess.run(["git", "-C", str(root), "add", "tests/expectation.rs"], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(root), "-c", "user.name=Study test", "-c",
+                            "user.email=study-test@example.invalid", "commit", "-qm", "symlink is not source"],
+                           check=True, capture_output=True)
+            revision = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
+            path.unlink()
+            with self.assertRaisesRegex(ValueError, "regular file"):
+                benchmark.expectation_text({"baseline_source_revision": revision}, case, root)
+            with self.assertRaisesRegex(ValueError, "missing historical"):
+                benchmark.expectation_text(document, {**case, "expectation_source": "tests/missing.rs"}, root)
+
+    def test_frozen_function_and_anchor_checks_use_historical_not_current_text(self):
+        original = benchmark.load_cases()
+        row = next(i for i, case in enumerate(original["cases"])
+                   if case.get("expectation_source", "").endswith("gfx942_compiler_tests.rs"))
+        for field, value in (
+            ("expectation_function", "real_gfx942_manifest_tail_and_nonzero_groups_preserve_absolute_output_indices"),
+            ("expectation_anchor", "an_assertion_not_in_the_frozen_function"),
+        ):
+            changed = copy.deepcopy(original)
+            changed["cases"][row][field] = value
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, "ground-truth"):
+                benchmark.validate_cases(changed)
+
     def run_fake(self, case, stdout, code, *, stderr="", expressions=None, stale=False, delay=0, timeout=5):
         with tempfile.TemporaryDirectory() as name:
             directory = Path(name)

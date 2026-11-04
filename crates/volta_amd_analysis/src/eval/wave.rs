@@ -5,7 +5,7 @@ use std::collections::VecDeque;
 use id_collections::id_type;
 use volta_expr::{ExprArena, ExprId};
 
-use crate::ir::{GlobalAddress, InstrId, Sgpr, Src0, Vgpr, Vop3Src};
+use crate::ir::{Agpr, GlobalAddress, InstrId, LaneMask, LaneReg, Sgpr, Src0, Vgpr, Vop3Src};
 
 use super::EvalError;
 use super::global::GlobalMemory;
@@ -17,6 +17,8 @@ pub struct WaveId(pub u32);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Status {
     Ready,
+    /// Executed `s_barrier` and waits for the workgroup's other waves.
+    AtBarrier,
     /// Executed `s_endpgm`.
     Exited,
 }
@@ -49,20 +51,33 @@ enum RegValue {
     Pending(ExprId),
 }
 
-/// Register storage for one CDNA4 wave.
+/// Register storage for one CDNA4 wave. EXEC is not stored: no supported instruction writes
+/// it, so every lane of the full waves Volta launches stays active.
 #[derive(Debug)]
 pub(crate) struct WaveRegisters {
     scalar: [RegValue; 102],    // Scalar registers are shared by the wave.
+    scc: Option<bool>,          // The scalar condition code, once an instruction writes it.
     vector: Vec<LaneRegisters>, // Vector registers have a value per lane.
 }
 
-/// One lane's vector registers, its VCC bit as a boolean expression, and the destinations of
-/// each of its loads still pending, oldest first.
+/// The counter whose wait completes a vector register load: `vmcnt` for global and buffer
+/// loads, `lgkmcnt` for LDS reads and lane exchanges.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum LoadCounter {
+    Vm,
+    Lgkm,
+}
+
+/// One lane's vector and accumulation registers, its VCC bit as a boolean expression, and the
+/// destinations of each of its loads still pending per counter, oldest first; only VGPRs are
+/// loaded.
 #[derive(Debug, Clone)]
 struct LaneRegisters {
     values: [RegValue; 256],
+    accumulators: [Option<ExprId>; 256],
     vcc: Option<ExprId>,
     pending_loads: VecDeque<Vec<Vgpr>>,
+    pending_lds_reads: VecDeque<Vec<Vgpr>>,
 }
 
 // Initialize the wave with all registers unwritten.
@@ -70,11 +85,14 @@ impl Default for WaveRegisters {
     fn default() -> Self {
         let lane = LaneRegisters {
             values: [RegValue::Uninitialized; 256],
+            accumulators: [None; 256],
             vcc: None,
             pending_loads: VecDeque::new(),
+            pending_lds_reads: VecDeque::new(),
         };
         Self {
             scalar: [RegValue::Uninitialized; 102],
+            scc: None,
             vector: vec![lane; 64],
         }
     }
@@ -122,6 +140,12 @@ impl WaveRegisters {
         Ok(())
     }
 
+    pub(super) fn has_pending_scalar_loads(&self) -> bool {
+        self.scalar
+            .iter()
+            .any(|slot| matches!(slot, RegValue::Pending(_)))
+    }
+
     /// Make all pending scalar loads readable after lgkmcnt(0).
     pub(super) fn finish_scalar_loads(&mut self) {
         for slot in &mut self.scalar {
@@ -131,8 +155,87 @@ impl WaveRegisters {
         }
     }
 
+    /// A scalar register's concrete 32-bit word.
+    pub fn read_sgpr_word(&self, arena: &ExprArena, reg: Sgpr) -> Result<u32, EvalError> {
+        let value = self.read_sgpr(reg)?;
+        concrete_word(arena, value).ok_or(EvalError::SymbolicSgpr(reg))
+    }
+
+    /// The concrete 64-bit word an aligned SGPR pair holds, low word first.
+    pub fn read_sgpr_pair(&self, arena: &ExprArena, pair: [Sgpr; 2]) -> Result<u64, EvalError> {
+        let low = self.read_sgpr_word(arena, pair[0])?;
+        let high = self.read_sgpr_word(arena, pair[1])?;
+        Ok(u64::from(low) | (u64::from(high) << 32))
+    }
+
+    pub fn write_sgpr_pair(
+        &mut self,
+        arena: &mut ExprArena,
+        pair: [Sgpr; 2],
+        value: u64,
+    ) -> Result<(), EvalError> {
+        // Check both destinations before changing either register.
+        for reg in pair {
+            self.check_scalar_destination(reg)?;
+        }
+        let low = arena.int(i64::from(value as u32));
+        let high = arena.int(i64::from((value >> 32) as u32));
+        self.write_sgpr(pair[0], low)?;
+        self.write_sgpr(pair[1], high)
+    }
+
+    pub fn read_scc(&self) -> Result<bool, EvalError> {
+        self.scc.ok_or(EvalError::UninitializedScc)
+    }
+
+    pub fn write_scc(&mut self, scc: bool) {
+        self.scc = Some(scc);
+    }
+
+    /// VCC as a 64-bit lane mask; every lane's bit must be a concrete boolean.
+    pub fn read_vcc_mask(&self, arena: &ExprArena) -> Result<u64, EvalError> {
+        let mut mask = 0;
+        for lane in 0..self.vector.len() {
+            let bit = self.read_vcc(lane)?;
+            match arena.as_bool(bit) {
+                Some(true) => mask |= 1 << lane,
+                Some(false) => {}
+                None => return Err(EvalError::SymbolicVcc { lane }),
+            }
+        }
+        Ok(mask)
+    }
+
+    pub fn write_vcc_mask(&mut self, arena: &mut ExprArena, mask: u64) -> Result<(), EvalError> {
+        for lane in 0..self.vector.len() {
+            let bit = arena.bool_val(lane_bit(mask, lane));
+            self.write_vcc(lane, bit)?;
+        }
+        Ok(())
+    }
+
+    /// `lane`'s bit of `mask` as a boolean expression; a VCC bit may be symbolic.
+    pub fn read_lane_condition(
+        &self,
+        arena: &mut ExprArena,
+        lane: usize,
+        mask: LaneMask,
+    ) -> Result<ExprId, EvalError> {
+        match mask {
+            LaneMask::Vcc => self.read_vcc(lane),
+            LaneMask::Sgprs(pair) => {
+                let mask = self.read_sgpr_pair(arena, pair)?;
+                Ok(arena.bool_val(lane_bit(mask, lane)))
+            }
+        }
+    }
+
     /// Read the 64-bit address an SGPR pair holds as two concrete words, low word first.
-    pub fn read_address(&self, arena: &ExprArena, base: [Sgpr; 2]) -> Result<u64, EvalError> {
+    pub fn read_concrete_address(
+        &self,
+        arena: &ExprArena,
+        base: [Sgpr; 2],
+    ) -> Result<u64, EvalError> {
         let mut words = [0u32; 2];
         for (word, reg) in words.iter_mut().zip(base) {
             let value = self.read_sgpr(reg)?;
@@ -167,6 +270,18 @@ impl WaveRegisters {
         as_f32(arena, value).ok_or(EvalError::InvalidFloatVgpr { lane, reg })
     }
 
+    pub fn read_agpr(&self, lane: usize, reg: Agpr) -> Result<ExprId, EvalError> {
+        let registers = self.vector.get(lane).ok_or(EvalError::InvalidLane(lane))?;
+        registers.accumulators[usize::from(reg.0)].ok_or(EvalError::UninitializedAgpr { lane, reg })
+    }
+
+    pub fn read_lane_reg(&self, lane: usize, reg: LaneReg) -> Result<ExprId, EvalError> {
+        match reg {
+            LaneReg::Vgpr(reg) => self.read_vgpr(lane, reg),
+            LaneReg::Agpr(reg) => self.read_agpr(lane, reg),
+        }
+    }
+
     /// `lane`'s value of a first source, as its 32 bits.
     pub fn read_src0(
         &self,
@@ -196,6 +311,20 @@ impl WaveRegisters {
         })
     }
 
+    /// `lane`'s value of a VOP3 source, as its 32 bits.
+    pub fn read_src(
+        &self,
+        arena: &mut ExprArena,
+        lane: usize,
+        src: Vop3Src,
+    ) -> Result<ExprId, EvalError> {
+        match src {
+            Vop3Src::Vgpr(reg) => self.read_vgpr(lane, reg),
+            Vop3Src::Sgpr(reg) => self.read_sgpr(reg),
+            Vop3Src::Inline(bits) => Ok(arena.int(i64::from(bits))),
+        }
+    }
+
     /// `lane`'s value of a VOP3 f32 source; a constant is the float its bits encode.
     pub fn read_f32_src(
         &self,
@@ -205,6 +334,10 @@ impl WaveRegisters {
     ) -> Result<ExprId, EvalError> {
         match src {
             Vop3Src::Vgpr(reg) => self.read_f32(arena, lane, reg),
+            Vop3Src::Sgpr(reg) => {
+                let value = self.read_sgpr(reg)?;
+                as_f32(arena, value).ok_or(EvalError::InvalidFloatSgpr(reg))
+            }
             Vop3Src::Inline(bits) => {
                 f32_from_bits(arena, bits).ok_or(EvalError::InvalidFloatConstant(bits))
             }
@@ -220,18 +353,22 @@ impl WaveRegisters {
         lane: usize,
         address: GlobalAddress,
     ) -> Result<u64, EvalError> {
-        let base = self.read_address(arena, address.saddr)?;
-        let offset = self.read_vgpr(lane, address.vaddr)?;
-        let offset = arena
-            .as_int_const(offset)
-            .and_then(|offset| u32::try_from(offset).ok())
-            .ok_or(EvalError::InvalidAddressVgpr {
-                lane,
-                reg: address.vaddr,
-            })?;
+        let base = self.read_concrete_address(arena, address.saddr)?;
+        let offset = self.read_concrete_address_vgpr(arena, lane, address.vaddr)?;
         base.checked_add(u64::from(offset))
             .and_then(|sum| sum.checked_add_signed(i64::from(address.offset)))
             .ok_or(EvalError::AddressOverflow)
+    }
+
+    /// `lane`'s concrete 32-bit word in an address VGPR.
+    pub fn read_concrete_address_vgpr(
+        &self,
+        arena: &ExprArena,
+        lane: usize,
+        reg: Vgpr,
+    ) -> Result<u32, EvalError> {
+        let value = self.read_vgpr(lane, reg)?;
+        concrete_word(arena, value).ok_or(EvalError::InvalidAddressVgpr { lane, reg })
     }
 
     /// `lane`'s VCC bit, which must have been written by a comparison.
@@ -256,6 +393,28 @@ impl WaveRegisters {
         Ok(())
     }
 
+    pub fn write_lane_reg(
+        &mut self,
+        lane: usize,
+        reg: LaneReg,
+        value: ExprId,
+    ) -> Result<(), EvalError> {
+        match reg {
+            LaneReg::Vgpr(reg) => self.write_vgpr(lane, reg, value),
+            LaneReg::Agpr(reg) => self.write_agpr(lane, reg, value),
+        }
+    }
+
+    /// AGPRs are never a load's destination, so a write needs no pending check.
+    pub fn write_agpr(&mut self, lane: usize, reg: Agpr, value: ExprId) -> Result<(), EvalError> {
+        let registers = self
+            .vector
+            .get_mut(lane)
+            .ok_or(EvalError::InvalidLane(lane))?;
+        registers.accumulators[usize::from(reg.0)] = Some(value);
+        Ok(())
+    }
+
     /// Load one input word per register of `dst` from consecutive addresses, keeping the results
     /// unreadable until a wait establishes the load's completion.
     pub(super) fn global_load(
@@ -272,33 +431,47 @@ impl WaveRegisters {
             let word_address = start.checked_add(4 * i).ok_or(EvalError::AddressOverflow)?;
             values.push(global.load_dword(word_address, arena)?);
         }
+        self.start_vector_load(lane, dst, &values, LoadCounter::Vm)
+    }
 
+    /// Give each register of `dst` its loaded value, unreadable until a wait on `counter`
+    /// establishes the load's completion.
+    pub(super) fn start_vector_load(
+        &mut self,
+        lane: usize,
+        dst: &[Vgpr],
+        values: &[ExprId],
+        counter: LoadCounter,
+    ) -> Result<(), EvalError> {
         // Check every destination before changing any register.
         for &reg in dst {
             self.vector_destination(lane, reg)?;
         }
 
         let registers = &mut self.vector[lane];
-        for (&reg, value) in dst.iter().zip(values) {
+        for (&reg, &value) in dst.iter().zip(values) {
             registers.values[usize::from(reg.0)] = RegValue::Pending(value);
         }
-        registers.pending_loads.push_back(dst.to_vec());
+        match counter {
+            LoadCounter::Vm => registers.pending_loads.push_back(dst.to_vec()),
+            LoadCounter::Lgkm => registers.pending_lds_reads.push_back(dst.to_vec()),
+        }
         Ok(())
     }
 
     /// Store the word of each register of `src` to consecutive addresses.
     pub(super) fn global_store(
         &self,
-        arena: &ExprArena,
+        arena: &mut ExprArena,
         global: &mut GlobalMemory,
         lane: usize,
-        src: &[Vgpr],
+        src: &[LaneReg],
         address: GlobalAddress,
     ) -> Result<(), EvalError> {
         let start = self.global_address(arena, lane, address)?;
         for (i, &reg) in (0u64..).zip(src) {
             let word_address = start.checked_add(4 * i).ok_or(EvalError::AddressOverflow)?;
-            global.store_dword(word_address, self.read_vgpr(lane, reg)?)?;
+            global.store_dword(word_address, self.read_lane_reg(lane, reg)?, arena)?;
         }
         Ok(())
     }
@@ -315,13 +488,18 @@ impl WaveRegisters {
         }
     }
 
-    /// Wait until at most `outstanding` loads per lane are in flight. Loads return in issue order,
-    /// so only the most recent ones stay pending; stores are assumed to have completed.
-    pub(super) fn finish_vector_loads(&mut self, outstanding: usize) {
+    /// Wait until at most `outstanding` loads counted by `counter` are in flight per lane. Loads
+    /// return in issue order, so the most recent stay pending; counting no stores or LDS writes
+    /// keeps more loads pending than the hardware does.
+    pub(super) fn finish_vector_loads(&mut self, counter: LoadCounter, outstanding: usize) {
         for registers in &mut self.vector {
-            let completed = registers.pending_loads.len().saturating_sub(outstanding);
+            let pending = match counter {
+                LoadCounter::Vm => &mut registers.pending_loads,
+                LoadCounter::Lgkm => &mut registers.pending_lds_reads,
+            };
+            let completed = pending.len().saturating_sub(outstanding);
 
-            for load in registers.pending_loads.drain(..completed) {
+            for load in pending.drain(..completed) {
                 for reg in load {
                     let slot = &mut registers.values[usize::from(reg.0)];
 
@@ -334,9 +512,16 @@ impl WaveRegisters {
     }
 }
 
+/// A concrete value as the 32-bit word it is; `None` for a symbolic or wider value.
+pub(super) fn concrete_word(arena: &ExprArena, value: ExprId) -> Option<u32> {
+    arena
+        .as_int_const(value)
+        .and_then(|value| u32::try_from(value).ok())
+}
+
 /// `value` as an f32 operand: a concrete word is the float its bits encode, and a symbolic value
 /// is a real; `None` for a NaN or a concrete value wider than 32 bits.
-fn as_f32(arena: &mut ExprArena, value: ExprId) -> Option<ExprId> {
+pub(super) fn as_f32(arena: &mut ExprArena, value: ExprId) -> Option<ExprId> {
     match arena.as_int_const(value) {
         Some(word) => u32::try_from(word)
             .ok()
@@ -346,6 +531,11 @@ fn as_f32(arena: &mut ExprArena, value: ExprId) -> Option<ExprId> {
 }
 
 /// The f32 that `bits` encode, as an exact real; `None` for a NaN.
-fn f32_from_bits(arena: &mut ExprArena, bits: u32) -> Option<ExprId> {
+pub(super) fn f32_from_bits(arena: &mut ExprArena, bits: u32) -> Option<ExprId> {
     arena.float_from_f64(f64::from(f32::from_bits(bits))).ok()
+}
+
+/// Whether `lane`'s bit of a 64-bit lane mask is set.
+pub(super) fn lane_bit(mask: u64, lane: usize) -> bool {
+    (mask >> lane) & 1 == 1
 }

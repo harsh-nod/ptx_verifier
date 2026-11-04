@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use crate::ir::{Sgpr, Vgpr};
+use crate::ir::{Agpr, Sgpr, Vgpr};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum EvalError {
@@ -10,18 +10,31 @@ pub enum EvalError {
     InvalidLane(usize),
     UninitializedSgpr(Sgpr),
     UninitializedVgpr { lane: usize, reg: Vgpr },
+    UninitializedAgpr { lane: usize, reg: Agpr },
     UninitializedVcc { lane: usize },
+    UninitializedScc,
+    SymbolicSgpr(Sgpr),
+    SymbolicVcc { lane: usize },
+    SymbolicWord { lane: usize },
+    AmbiguousSelect { lane: usize },
+    UnsupportedBufferResource { reason: &'static str },
+    PartialBufferAccess { buffer_offset: u64 },
+    LdsAccess { address: u64, size: u32 },
+    UninitializedLds { address: u32 },
     PendingSgpr(Sgpr),
     PendingVgpr { lane: usize, reg: Vgpr },
     InvalidAddressRegister(Sgpr),
     InvalidAddressVgpr { lane: usize, reg: Vgpr },
     InvalidFloatVgpr { lane: usize, reg: Vgpr },
+    InvalidFloatAgpr { lane: usize, reg: Agpr },
     InvalidFloatSgpr(Sgpr),
     InvalidFloatConstant(u32),
     AddressOverflow,
     KernargRead { address: u64 },
     GlobalRead { address: u64 },
     GlobalWrite { address: u64 },
+    InvalidFloatOutput { address: u64 },
+    InvalidIntegerOutput { address: u64 },
     UnsupportedInstruction,
     MissingEndPgm,
     Launch { message: String },
@@ -37,7 +50,59 @@ impl fmt::Display for EvalError {
             Self::UninitializedVgpr { lane, reg } => {
                 write!(f, "uninitialized vector register v{} in lane {lane}", reg.0)
             }
+            Self::UninitializedAgpr { lane, reg } => {
+                write!(
+                    f,
+                    "uninitialized accumulation register a{} in lane {lane}",
+                    reg.0
+                )
+            }
             Self::UninitializedVcc { lane } => write!(f, "uninitialized VCC bit in lane {lane}"),
+            Self::UninitializedScc => write!(f, "uninitialized SCC"),
+            Self::SymbolicSgpr(reg) => {
+                write!(
+                    f,
+                    "scalar register s{} must contain a concrete 32-bit word",
+                    reg.0
+                )
+            }
+            Self::SymbolicVcc { lane } => {
+                write!(
+                    f,
+                    "VCC bit in lane {lane} must be concrete to form a lane mask"
+                )
+            }
+            Self::SymbolicWord { lane } => {
+                write!(
+                    f,
+                    "integer operand in lane {lane} must be a concrete 32-bit word"
+                )
+            }
+            Self::AmbiguousSelect { lane } => {
+                write!(
+                    f,
+                    "lane {lane} selects between two constant words under a symbolic condition, \
+                     which may encode floats or integers"
+                )
+            }
+            Self::UnsupportedBufferResource { reason } => {
+                write!(f, "unsupported buffer resource: {reason}")
+            }
+            Self::PartialBufferAccess { buffer_offset } => {
+                write!(
+                    f,
+                    "buffer access at byte offset {buffer_offset:#x} is partially out of range"
+                )
+            }
+            Self::LdsAccess { address, size } => {
+                write!(
+                    f,
+                    "LDS access at {address:#x} is misaligned or outside the {size}-byte allocation"
+                )
+            }
+            Self::UninitializedLds { address } => {
+                write!(f, "LDS read at {address:#x} of a word no wave has written")
+            }
             Self::PendingSgpr(reg) => write!(f, "scalar register s{} has a pending load", reg.0),
             Self::PendingVgpr { lane, reg } => {
                 write!(
@@ -67,6 +132,13 @@ impl fmt::Display for EvalError {
                     reg.0
                 )
             }
+            Self::InvalidFloatAgpr { lane, reg } => {
+                write!(
+                    f,
+                    "f32 operand a{} in lane {lane} must not be a NaN or wider than 32 bits",
+                    reg.0
+                )
+            }
             Self::InvalidFloatSgpr(reg) => {
                 write!(
                     f,
@@ -81,7 +153,7 @@ impl fmt::Display for EvalError {
             Self::KernargRead { address } => {
                 write!(
                     f,
-                    "16-byte read at {address:#x} is outside the kernel argument buffer"
+                    "scalar read at {address:#x} is outside the kernel argument buffer"
                 )
             }
             Self::GlobalRead { address } => {
@@ -94,6 +166,18 @@ impl fmt::Display for EvalError {
                 write!(
                     f,
                     "4-byte write at {address:#x} is not an element of an output array"
+                )
+            }
+            Self::InvalidFloatOutput { address } => {
+                write!(
+                    f,
+                    "f32 output at {address:#x} must not be a NaN or wider than 32 bits"
+                )
+            }
+            Self::InvalidIntegerOutput { address } => {
+                write!(
+                    f,
+                    "u32 output at {address:#x} must be a concrete 32-bit word"
                 )
             }
             Self::UnsupportedInstruction => write!(f, "unsupported instruction"),

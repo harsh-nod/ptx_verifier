@@ -22,13 +22,39 @@ fn integer(text: &str) -> Option<u64> {
 /// The inline float constants CDNA4 encodes without a literal (§6.2), as Clang prints them.
 const INLINE_FLOATS: [f32; 8] = [0.5, -0.5, 1.0, -1.0, 2.0, -2.0, 4.0, -4.0];
 
-/// Parse a register, register range, integer, inline float, wait counter, or memory offset.
+/// Parse a signed decimal or hexadecimal integer.
+fn signed_integer(text: &str) -> Option<i64> {
+    match text.strip_prefix('-') {
+        Some(magnitude) => i64::try_from(integer(magnitude)?).ok()?.checked_neg(),
+        None => i64::try_from(integer(text)?).ok(),
+    }
+}
+
+/// Parse a register, register range, integer, inline float, wait counter, memory offset,
+/// modifier, or branch target.
 fn operand(text: &str) -> Option<Operand> {
-    if let Some(value) = integer(text) {
+    if let Some(value) = signed_integer(text) {
         return Some(Operand::Imm(value));
     }
-    if text == "vcc" {
-        return Some(Operand::Vcc);
+    match text {
+        "vcc" => return Some(Operand::Vcc),
+        "exec" => return Some(Operand::Exec),
+        "offen" => return Some(Operand::Offen),
+        _ => {}
+    }
+    if text.starts_with(".L") {
+        return Some(Operand::Label(text.into()));
+    }
+    if let Some(offset) = text.strip_prefix("offset0:") {
+        return integer(offset).map(Operand::Offset0);
+    }
+    if let Some(offset) = text.strip_prefix("offset1:") {
+        return integer(offset).map(Operand::Offset1);
+    }
+    if let Some(table) = text.strip_prefix("bitop3:") {
+        return integer(table)
+            .and_then(|table| u8::try_from(table).ok())
+            .map(Operand::BitOp3);
     }
     if text.contains('.') {
         let value = text.parse::<f32>().ok()?;
@@ -37,11 +63,7 @@ fn operand(text: &str) -> Option<Operand> {
             .then_some(Operand::InlineFloat(value.to_bits()));
     }
     if let Some(offset) = text.strip_prefix("offset:") {
-        let value = match offset.strip_prefix('-') {
-            Some(magnitude) => -i64::try_from(integer(magnitude)?).ok()?,
-            None => i64::try_from(integer(offset)?).ok()?,
-        };
-        return Some(Operand::Offset(value));
+        return signed_integer(offset).map(Operand::Offset);
     }
     if let Some((name, rest)) = text.split_once('(') {
         let counter = match name {
@@ -52,11 +74,13 @@ fn operand(text: &str) -> Option<Operand> {
         let value = integer(rest.strip_suffix(')')?)?;
         return Some(Operand::Wait { counter, value });
     }
-    let (file, rest) = if let Some(rest) = text.strip_prefix('s') {
-        (RegFile::Scalar, rest)
-    } else {
-        (RegFile::Vector, text.strip_prefix('v')?)
+    let file = match text.chars().next()? {
+        's' => RegFile::Scalar,
+        'v' => RegFile::Vector,
+        'a' => RegFile::Accumulator,
+        _ => return None,
     };
+    let rest = &text[1..];
     let (first, last): (u32, u32) = match rest.strip_prefix('[').and_then(|r| r.strip_suffix(']')) {
         Some(range) => {
             let (first, last) = range.split_once(':')?;
@@ -115,10 +139,23 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
         return Err(format!("multiple entry labels for kernel {name:?}"));
     }
     let mut instructions = Vec::new();
+    let mut labels = BTreeMap::new();
     for line in &lines[entry + 1..] {
         let (opcode, rest) = word(line);
         if opcode == ".section" || opcode.starts_with(".Lfunc_end") {
             break;
+        }
+        if let Some(label) = line
+            .strip_suffix(':')
+            .filter(|label| label.starts_with(".L"))
+        {
+            if labels
+                .insert(label.to_owned(), instructions.len())
+                .is_some()
+            {
+                return Err(format!("duplicate label {label:?}"));
+            }
+            continue;
         }
         if opcode.starts_with('.') || line.ends_with(':') {
             return Err(format!("unsupported statement {line:?}"));
@@ -163,6 +200,7 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
                 name: name.into(),
                 target,
                 instructions,
+                labels,
                 descriptor,
             });
         }
@@ -252,7 +290,16 @@ mod tests {
             value: 3,
         };
         assert_eq!(operand("vmcnt(3)"), Some(vm3));
-        for bad in ["s[3:0]", "s[0]", "x0", "glc", "expcnt(0)", "vmcnt(x)", "-1"] {
+        assert_eq!(operand("-1"), Some(Imm(-1)));
+        for bad in [
+            "s[3:0]",
+            "s[0]",
+            "x0",
+            "glc",
+            "expcnt(0)",
+            "vmcnt(x)",
+            "--1",
+        ] {
             assert_eq!(operand(bad), None, "{bad}");
         }
 
@@ -424,11 +471,12 @@ mod tests {
     #[test]
     fn rejects_what_it_cannot_represent() {
         assert!(parse_kernel(COPY, "other").is_err());
-        let with_label = COPY.replacen("\ncopy:\n", "\ncopy:\n.LBB0_1:\n", 1);
+        // Only Clang's local `.L` labels can mark a branch target.
+        let with_label = COPY.replacen("\ncopy:\n", "\ncopy:\nloop:\n", 1);
         assert_ne!(with_label, COPY, "the copy: label was not found");
         assert_eq!(
             parse_kernel(&with_label, "copy").unwrap_err(),
-            "unsupported statement \".LBB0_1:\""
+            "unsupported statement \"loop:\""
         );
 
         // A descriptor cut off before its end marker.

@@ -1,8 +1,10 @@
 # volta_cli
 
-The `volta` binary (`src/main.rs`). It parses command-line flags into an
-`AnalysisConfig`, drives `volta_pipeline`, and prints results with exit codes.
-It holds no verification logic of its own.
+The `volta` binary parses command-line flags into a launch configuration,
+drives `volta_pipeline`, and prints results with exit codes. It holds no
+verification logic of its own. `src/main.rs` handles startup and dispatch;
+`src/cli.rs` defines the command tree, and `src/commands/` contains handlers.
+Shared launch, source, specification and output helpers remain separate.
 
 | command | does | exit |
 |---------|------|------|
@@ -10,9 +12,27 @@ It holds no verification logic of its own.
 | `volta analyze <file> -k K ...` | analysis + target-selected graph checks: prints the symbolic outputs, a per-instruction-kind profile (`--no-profile`), each check's verdict, any deadlock and the first failure; `GRAPH VERIFICATION: VERIFIED \| REJECTED \| UNKNOWN` | 0 / 1 / 2 |
 | `volta compare <ref> <opt> --kernel1 .. --kernel2 .. --check-array A` | both kernels through both branches, then `decide`: `VERDICT: ACCEPT \| REJECT \| UNKNOWN` | 0 / 1 / 2 |
 | `volta verify <file> <spec> -k K --dim N=..` | one kernel against a `.spec` (file or inline string), through both branches and `decide` | 0 / 1 / 2 |
+| `volta solve <file> --spec SPEC --dim N=..` | canonical output checking, with graph checks when recorded | 0 / 1 / 2 |
+| `volta extract lean <file> --spec SPEC -o challenge.lean` | applicable graph gates, then mathematical obligations for Lean | 0 / 1 |
 | `volta viz <store> -o page.html` | the `volta_viz` page over a run store | |
 
 ## Flow of a command
+
+`solve` and `extract lean` infer PTX, experimental AMD gfx950 or Trainium NKI
+from `.ptx`, `.s` and `.py` when `--backend` is omitted. The extension-selected
+AMD and NKI interpreters record no race graph; a mathematical `ACCEPT` from
+those paths supplies no race-freedom evidence. Explicit `--backend amdgpu
+--target gfx942|gfx950|gfx1250` uses the native checked frontend instead,
+including its complete outputs and independently validated prefix rejections.
+`--backend ptx` selects PTX explicitly; `--target` without AMD selection is
+rejected. Existing `parse`/`analyze`/`verify`/`compare` default to PTX.
+
+Lean extraction accepts a spec from `--spec` or launch JSON, and optionally
+`--tolerance 1/1000`. `-o`/`--output` selects the module; otherwise it uses the
+kernel filename's stem. Rejected or incomplete checked graphs, including
+certified native prefixes, prevent successful extraction. Exit code 0 means proof
+obligations were written, not that Lean proved them. `solve` and extraction use
+`volta_pipeline`'s shared frontend/solver APIs.
 
 ```text
 source + backend/target + launch flags ──► KernelModule + AnalysisConfig
@@ -62,9 +82,11 @@ See [usage](../../docs/usage.md) for launch formats, examples and replay command
 
 ## Native gfx1250
 
-Use `--backend amdgpu --target gfx1250` with `parse`, `analyze`, `verify` and
-`compare`. The same launch JSON, output footprints, numeric confirmation,
-expression/VC replay, profiles, logs and graph viewer apply. Source targets
+Use `--backend amdgpu --target gfx1250` with `parse`, `analyze`, `verify`,
+`compare`, `solve` and `extract lean`. The same native launch JSON, exact output
+footprints and graph rules apply. Numeric confirmation, expression/VC replay,
+profiles, logs and the graph viewer remain available through their respective
+commands. Source targets
 must match explicit selection; omitted AMD targets remain gfx950. Native graph
 failures exit 1, inconclusive checks exit 2, and success exits 0. Expression-only
 replay reports equivalence without claiming any graph checks. See the

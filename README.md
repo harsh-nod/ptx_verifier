@@ -53,6 +53,8 @@ requires `--backend amdgpu`, with an explicit matching `--target` recommended.
 | `analyze` | One candidate execution and its graph properties |
 | `verify` | Graph properties and complete outputs against a specification |
 | `compare` | Graph properties and output equivalence between two kernels |
+| `solve` | Canonical output checking through an extension-selected or explicitly selected frontend |
+| `extract lean` | Export mathematical proof obligations after the applicable graph gates |
 | `viz` | Interactive inspection of recorded event graphs |
 
 Ordinary `analyze` reports `VERIFIED`, `REJECTED` or `UNKNOWN`. `verify` and kernel-to-kernel
@@ -62,7 +64,7 @@ semantics cannot produce full acceptance. Expression or VC replay checks
 equivalence only; those artifacts do not contain a safety graph.
 
 Opt-in [early readiness rejection](docs/early-readiness.md) can stop native
-gfx1250 execution at its first certified scalar-read hazard. All three source
+gfx1250 execution at its first certified scalar-read hazard. Native source
 commands then print `VERDICT: REJECT` and exit 1, with an incomplete prefix and
 no output or equivalence result. With this option disabled, execution uses its
 normal instruction, bounds and budget checks.
@@ -80,6 +82,24 @@ outputs; its ordinary incomplete graph remains `UNKNOWN`.
 
 The [usage guide](docs/usage.md) explains launch files, specifications, kernel
 comparison, artifacts, logging and Python setup.
+
+Upstream's `solve SOURCE --spec SPEC` and `extract lean SOURCE --spec SPEC`
+workflows are also available. Without `--backend`, they select a frontend from
+`.ptx`, `.s` or `.py`. Extension-selected `.s` uses the upstream experimental
+gfx950 output interpreter; it and Trainium NKI currently record no race graph.
+Their mathematical results do not establish native graph safety.
+
+For target-selected native checking, use `--backend amdgpu --target gfx942`,
+`gfx950` or `gfx1250` with these commands. That explicit route uses the same
+native execution, complete-output and certified rejection gates as `verify`.
+`--target` alone is rejected. Lean extraction writes proof obligations; a
+successful export does not prove them, and rejected or incomplete native
+executions cannot produce a successful extraction.
+
+The [quickstart examples](examples/quickstart) show the extension-selected
+Python APIs; [Lean examples](examples/lean) demonstrate extraction. A Python
+configuration with an explicit backend selects that backend rather than
+inferring it from the filename.
 
 ## Supported targets and scope
 

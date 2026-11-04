@@ -45,6 +45,59 @@ def median(values):
     return ordered[middle] if len(ordered) % 2 else (ordered[middle - 1] + ordered[middle]) / 2
 
 
+def expectation_text(document, case, root):
+    """Read exactly the pinned Rust expectation, not a newer test at its old path.
+
+    Historical lookup requires the manifest's full baseline commit locally. A
+    shallow/source-only checkout must fetch that history or use the frozen study
+    checkout; missing history never relaxes the declared content hash.
+    """
+    source = case["expectation_source"]
+    relative = Path(source)
+    corpus.require(not relative.is_absolute() and relative.parts
+                   and ".." not in relative.parts and relative.as_posix() == source
+                   and relative.suffix == ".rs" and "\\" not in source,
+                   "unsafe independent expectation path")
+    expected = case.get("expectation_source_sha256", "")
+    corpus.require(re.fullmatch(r"[0-9a-f]{64}", expected), "missing or invalid independent expectation pin")
+    revision = document.get("baseline_source_revision", "")
+    corpus.require(re.fullmatch(r"[0-9a-f]{40}", revision), "expectation baseline must be a full commit SHA")
+    path = root / relative
+    corpus.require(path.resolve().is_relative_to(root.resolve()), "unsafe independent expectation path")
+    if path.exists() or path.is_symlink():
+        corpus.require(path.is_file() and not path.is_symlink(), "independent expectation must be a regular file")
+        current = path.read_bytes()
+        if hashlib.sha256(current).hexdigest() == expected:
+            return current.decode("utf-8")
+
+    def git(*args):
+        try:
+            result = subprocess.run(
+                ["git", "--no-replace-objects", "-C", str(root), "--literal-pathspecs", *args],
+                capture_output=True, timeout=10,
+            )
+        except (OSError, subprocess.TimeoutExpired) as error:
+            raise ValueError(f"cannot read pinned expectation history at {revision}; "
+                             "use a full-history checkout containing that commit") from error
+        corpus.require(result.returncode == 0,
+                       f"cannot read pinned expectation history at {revision}; "
+                       "fetch that baseline commit or use its full-history study checkout")
+        return result.stdout
+
+    corpus.require(git("cat-file", "-t", revision) == b"commit\n", "expectation baseline must be a commit object")
+    entries = git("ls-tree", "-z", revision, "--", source).split(b"\0")
+    entries = [entry for entry in entries if entry]
+    corpus.require(len(entries) == 1, "missing historical independent expectation file")
+    header, name = entries[0].split(b"\t", 1)
+    mode, kind, blob = header.split()
+    corpus.require(mode in (b"100644", b"100755") and kind == b"blob"
+                   and name.decode("utf-8") == source and re.fullmatch(rb"[0-9a-f]{40}", blob),
+                   "historical independent expectation must be a regular file")
+    historical = git("cat-file", "blob", blob.decode("ascii"))
+    corpus.require(hashlib.sha256(historical).hexdigest() == expected, "stale independent expectation source")
+    return historical.decode("utf-8")
+
+
 def validate_cases(document, root=ROOT):
     corpus.require(document["schema_version"] == 1, "unsupported measurement schema")
     cases = document["cases"]
@@ -96,17 +149,21 @@ def validate_cases(document, root=ROOT):
             corpus.require(case.get("mutated_source_sha256"), "unbound harmful mutation")
         if case.get("launch_config"):
             corpus.require(corpus.sha(root / case["launch_config"]) == case["launch_config_sha256"], "stale launch")
+        pinned_expectation = None
         for field in ("expectation_source", "assembly_mutation_manifest"):
             if ((field == "assembly_mutation_manifest" and case.get(field))
                     or (field == "expectation_source" and case[field].endswith(".rs"))):
                 corpus.require(case.get(field + "_sha256"), "missing independent expectation pin")
             if case.get(field + "_sha256"):
-                corpus.require(corpus.sha(root / case[field]) == case[field + "_sha256"], "stale independent expectation source")
+                if field == "expectation_source" and case[field].endswith(".rs"):
+                    pinned_expectation = expectation_text(document, case, root)
+                else:
+                    corpus.require(corpus.sha(root / case[field]) == case[field + "_sha256"], "stale independent expectation source")
         if case["expectation_source"].endswith(".rs"):
             corpus.require(case.get("expectation_function") and case.get("expectation_anchor"), "missing exact ground-truth assertion")
         if case.get("expectation_function"):
             corpus.require(case.get("expectation_source_sha256"), "unbound ground-truth function")
-            text = (root / case["expectation_source"]).read_text()
+            text = pinned_expectation if pinned_expectation is not None else (root / case["expectation_source"]).read_text()
             matches = list(re.finditer(r"\bfn\s+" + re.escape(case["expectation_function"]) + r"\s*\(", text))
             corpus.require(len(matches) == 1, "missing or duplicate ground-truth test function")
             match = matches[0]

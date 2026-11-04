@@ -1,8 +1,15 @@
 use crate::frontend::ast::{Counter, Instruction, Kernel, Operand, RegFile};
 use crate::frontend::parse::parse_kernel;
-use crate::ir::{BinOp, GlobalAddress, InstrId, LoweredInstr, Sgpr, Src0, Vgpr};
+use crate::ir::{
+    BinOp, BranchCondition, GlobalAddress, GlobalLoadDst, GlobalStoreSrc, InstrId, LaneReg,
+    LoweredInstr, ScalarLoadDst, Sgpr, Src0, Vgpr,
+};
 
-use super::{LowerError, lower_instruction, lower_kernel};
+use super::{LowerError, lower_kernel};
+
+fn lower_instruction(instruction: &Instruction) -> Result<LoweredInstr, &'static str> {
+    super::lower_instruction(instruction, &Default::default())
+}
 
 const COPY: &str = include_str!("../../tests/fixtures/copy.s");
 
@@ -16,22 +23,23 @@ fn lowers_the_compiled_copy_kernel() {
     assert_eq!(
         lowered.instructions.into_vec(),
         [
-            LoweredInstr::ScalarLoadDwordx4 {
-                dst: [Sgpr(0), Sgpr(1), Sgpr(2), Sgpr(3)],
+            LoweredInstr::ScalarLoad {
+                dst: ScalarLoadDst::Dwordx4([Sgpr(0), Sgpr(1), Sgpr(2), Sgpr(3)]),
                 base: [Sgpr(0), Sgpr(1)],
                 offset: 0,
             },
-            LoweredInstr::Shl32 {
+            LoweredInstr::BinOp {
+                op: BinOp::LShlRev32,
                 dst: Vgpr(0),
-                src: Vgpr(0),
-                shift: 2,
+                src0: Src0::Const(2),
+                src1: Vgpr(0),
             },
             LoweredInstr::WaitCnt {
                 vmcnt: None,
                 lgkmcnt: Some(0),
             },
-            LoweredInstr::GlobalLoadDword {
-                dst: Vgpr(1),
+            LoweredInstr::GlobalLoad {
+                dst: GlobalLoadDst::Dword(Vgpr(1)),
                 address: GlobalAddress {
                     vaddr: Vgpr(0),
                     saddr: [Sgpr(0), Sgpr(1)],
@@ -42,8 +50,8 @@ fn lowers_the_compiled_copy_kernel() {
                 vmcnt: Some(0),
                 lgkmcnt: None,
             },
-            LoweredInstr::GlobalStoreDword {
-                src: Vgpr(1),
+            LoweredInstr::GlobalStore {
+                src: GlobalStoreSrc::Dword(LaneReg::Vgpr(Vgpr(1))),
                 address: GlobalAddress {
                     vaddr: Vgpr(0),
                     saddr: [Sgpr(2), Sgpr(3)],
@@ -83,10 +91,11 @@ fn preserves_shift_input_and_combined_wait_limits() {
     let shift = instr("v_lshlrev_b32_e32", &[vgpr(0), Operand::Imm(34), vgpr(7)]);
     assert_eq!(
         lower_instruction(&shift),
-        Ok(LoweredInstr::Shl32 {
+        Ok(LoweredInstr::BinOp {
+            op: BinOp::LShlRev32,
             dst: Vgpr(0),
-            src: Vgpr(7),
-            shift: 34,
+            src0: Src0::Const(34),
+            src1: Vgpr(7),
         })
     );
     let wait = instr(
@@ -116,8 +125,8 @@ fn lowers_pair_argument_loads_and_real_addition_with_register_roles() {
     let load = instr("s_load_dwordx2", &[sgpr(2, 3), sgpr(0, 1), Operand::Imm(8)]);
     assert_eq!(
         lower_instruction(&load),
-        Ok(LoweredInstr::ScalarLoadDwordx2 {
-            dst: [Sgpr(2), Sgpr(3)],
+        Ok(LoweredInstr::ScalarLoad {
+            dst: ScalarLoadDst::Dwordx2([Sgpr(2), Sgpr(3)]),
             base: [Sgpr(0), Sgpr(1)],
             offset: 8,
         })
@@ -165,7 +174,7 @@ fn rejects_unsupported_operand_forms() {
         instr("s_load_dwordx4", &[sgpr(0, 3), sgpr(1, 2), Imm(0)]),
         instr("s_load_dwordx4", &[sgpr(0, 3), sgpr(0, 1), Imm(0x100000)]),
         instr("v_lshlrev_b32_e32", &[sgpr(0, 0), Imm(2), vgpr(0)]),
-        instr("v_lshlrev_b32_e32", &[vgpr(0), Imm(1u64 << 32), vgpr(0)]),
+        instr("v_lshlrev_b32_e32", &[vgpr(0), Imm(1i64 << 32), vgpr(0)]),
         instr(
             "global_load_dword",
             &[
@@ -221,7 +230,10 @@ fn rejects_unknown_opcodes_wrong_arity_and_duplicate_counters() {
         assert!(lower_instruction(&instruction).is_err(), "{instruction:?}");
     }
     assert_eq!(
-        lower_instruction(&instr("s_load_dwordx8", &[sgpr(0, 7), sgpr(0, 1), Imm(0)])),
+        lower_instruction(&instr(
+            "s_load_dwordx32",
+            &[sgpr(0, 31), sgpr(0, 1), Imm(0)]
+        )),
         Err("unsupported instruction")
     );
     assert_eq!(
@@ -236,6 +248,7 @@ fn reports_instruction_error_location() {
         name: "test".into(),
         target: "amdgcn-amd-amdhsa--gfx950".into(),
         instructions: vec![instr("s_endpgm", &[]), instr("unknown", &[])],
+        labels: Default::default(),
         descriptor: Default::default(),
     };
     assert_eq!(
@@ -282,10 +295,11 @@ fn preserves_shift_input_and_combined_wait_limits_through_kernel() {
     let lowered = lower_kernel(&kernel).unwrap();
     assert_eq!(
         lowered.instructions[InstrId(1)],
-        LoweredInstr::Shl32 {
+        LoweredInstr::BinOp {
+            op: BinOp::LShlRev32,
             dst: Vgpr(0),
-            src: Vgpr(7),
-            shift: 34,
+            src0: Src0::Const(34),
+            src1: Vgpr(7),
         }
     );
     assert_eq!(
@@ -307,7 +321,7 @@ fn rejects_unsupported_operand_forms_through_kernel() {
         (0, 1, register(RegFile::Scalar, 1, 2)),
         (0, 2, Operand::Imm(0x100000)),
         (1, 0, register(RegFile::Scalar, 0, 0)),
-        (1, 1, Operand::Imm(1u64 << 32)),
+        (1, 1, Operand::Imm(1i64 << 32)),
         (3, 1, register(RegFile::Vector, 0, 1)),
         (3, 0, register(RegFile::Vector, 256, 256)),
         (5, 2, register(RegFile::Scalar, 2, 4)),
@@ -396,4 +410,75 @@ fn validates_target_feature_grammar_without_discarding_features() {
             kernel.target
         );
     }
+}
+
+#[test]
+fn local_branch_targets_keep_instruction_positions_with_optional_trailing_commas() {
+    let source = COPY.replacen(
+        "v_lshlrev_b32_e32 v0, 2, v0",
+        ".Lagain:\nv_lshlrev_b32_e32 v0, 2, v0,\ns_cbranch_scc1 .Ldone\ns_branch .Lagain\n.Ldone:",
+        1,
+    );
+    assert_ne!(source, COPY);
+    let kernel = parse_kernel(&source, "copy").unwrap();
+    assert_eq!(kernel.labels[".Lagain"], 1);
+    assert_eq!(kernel.labels[".Ldone"], 4);
+    let lowered = lower_kernel(&kernel).unwrap();
+    assert_eq!(
+        lowered.instructions[InstrId(2)],
+        LoweredInstr::CondBranch {
+            condition: BranchCondition::Scc1,
+            target: InstrId(4),
+        }
+    );
+    assert_eq!(
+        lowered.instructions[InstrId(3)],
+        LoweredInstr::Branch { target: InstrId(1) }
+    );
+    assert!(
+        parse_kernel(&source.replace(".Ldone:", ".Lagain:"), "copy")
+            .unwrap_err()
+            .contains("duplicate label")
+    );
+    assert!(matches!(
+        lower_kernel(
+            &parse_kernel(
+                &source.replace("s_branch .Lagain", "s_branch .Lmissing"),
+                "copy"
+            )
+            .unwrap()
+        ),
+        Err(LowerError::Instruction {
+            index: 3,
+            reason: "undefined label",
+            ..
+        })
+    ));
+}
+
+#[test]
+fn preserves_new_accumulator_forms_and_wide_scalar_loads() {
+    let accumulator = Operand::Reg {
+        file: RegFile::Accumulator,
+        first: 3,
+        last: 3,
+    };
+    assert_eq!(
+        lower_instruction(&instr("v_accvgpr_read_b32", &[vgpr(4), accumulator])),
+        Ok(LoweredInstr::AccvgprRead32 {
+            dst: Vgpr(4),
+            src: crate::ir::Agpr(3)
+        })
+    );
+    assert_eq!(
+        lower_instruction(&instr(
+            "s_load_dwordx8",
+            &[sgpr(4, 11), sgpr(0, 1), Operand::Imm(32)]
+        )),
+        Ok(LoweredInstr::ScalarLoad {
+            dst: ScalarLoadDst::Dwordx8(std::array::from_fn(|i| Sgpr(4 + i as u8))),
+            base: [Sgpr(0), Sgpr(1)],
+            offset: 32,
+        })
+    );
 }

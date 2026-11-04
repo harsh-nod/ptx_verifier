@@ -1,12 +1,14 @@
 //! Python bindings for PTX and native AMD parsing, analysis and specification
-//! verification through `parse`, `analyze` and `verify`. Kernel comparison and
-//! expression/VC replay are exposed through `volta_cli`.
+//! verification, with file-based `solve` and `extract_lean` for PTX, AMD and NKI.
+//! Kernel comparison and expression/VC replay are exposed through `volta_cli`.
 
 use pyo3::prelude::*;
 
 mod analyze;
 mod config;
 mod error;
+mod extract;
+mod solve;
 mod verify;
 
 use config::{ArrayDefPy, ArrayKindPy, ConfigPy, ParamPy};
@@ -24,10 +26,14 @@ fn volta(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<analyze::StatsPy>()?;
     m.add_class::<analyze::AnalyzeResultPy>()?;
     m.add_class::<verify::VerifyResultPy>()?;
+    m.add_class::<solve::SolveResultPy>()?;
+    m.add_class::<extract::LeanExtractionPy>()?;
 
     m.add_function(wrap_pyfunction!(analyze::parse, m)?)?;
     m.add_function(wrap_pyfunction!(analyze::analyze, m)?)?;
     m.add_function(wrap_pyfunction!(verify::verify, m)?)?;
+    m.add_function(wrap_pyfunction!(solve::solve, m)?)?;
+    m.add_function(wrap_pyfunction!(extract::extract_lean, m)?)?;
 
     m.add("VoltaError", py.get_type::<VoltaError>())?;
     m.add("DataRaceError", py.get_type::<DataRaceError>())?;

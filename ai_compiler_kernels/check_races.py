@@ -1,4 +1,10 @@
-"""Check the kernels under `ai_compiler_kernels/` for data races with Volta.
+"""Check legacy fixture configurations and native AMD workloads for data races.
+
+Current upstream AI-compiler extraction lives in `external/extraction/ai_compiler.py`;
+run its prepared launch files with `external/races.py --framework ai_compiler`.
+This module retains shared fail-closed classification/build helpers and the native
+workload/mutation entry point. Legacy PTX selections require their original files;
+missing source is an error, never an empty successful run.
 
 Builds the release `volta` CLI, then runs `volta analyze` on each kernel:
 

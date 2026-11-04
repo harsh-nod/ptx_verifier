@@ -95,6 +95,28 @@ same-instruction memory conflict on gfx950/gfx1250. `analyze` and `verify` raise
 and prefix metadata, without returning outputs. It defaults to false and never
 enables early acceptance. See the [scope and trust contract](../../docs/early-memory-conflicts.md).
 
+## File-based solving and Lean extraction
+
+`solve(path, config=None, spec=..., dims=...)` returns a `SolveResult` with a
+canonical mathematical verdict. `extract_lean(path, config=None, spec=...,
+dims=..., tolerance=None)` returns a Lean module of proof obligations only
+after every available graph check passes on a completed execution. These
+propositions still need proofs; they never make an equivalence verdict ACCEPT.
+
+When `Config` explicitly supplies `backend="amdgpu"` and its target, these
+functions use the same native backend and full launch configuration as
+`analyze` and `verify`. Returned `workgroup_id` and `assumptions` describe the
+single selected group. Certified prefixes can reject in `solve`, but cannot
+produce outputs or Lean statements.
+
+When the backend keyword is omitted, file-based functions infer the interpreter
+from `.ptx`, `.s` or `.py`. The `.s` path is the upstream experimental gfx950
+interpreter: it has no memory-event checks and models 32-bit output words as
+F32. It refuses native-only launch settings. That path and NKI return
+`race_verified=None`; any mathematical ACCEPT supplies no race-freedom proof.
+Explicit `backend="ptx"` selects PTX regardless of the filename. Legacy
+`parse`, `analyze` and `verify` continue to default to PTX.
+
 ## Modules and tests
 
 - `config.rs`: Python launch, array and parameter classes.

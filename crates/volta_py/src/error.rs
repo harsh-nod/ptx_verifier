@@ -2,12 +2,15 @@
 //! source (no file for a `FileCache`), so this renders its own plain-text "line N, col M" +
 //! source line + caret snippet instead of `volta_common::report`'s ANSI formatter.
 
-use pyo3::PyErr;
 use pyo3::create_exception;
 use pyo3::exceptions::PyException;
+use pyo3::prelude::*;
 
 use volta_common::Span;
 use volta_graph_check::{Deadlock, Property, PropertySummary};
+use volta_pipeline::{
+    CertifiedMemoryConflict, CertifiedScalarReadiness, CertifiedTensorBounds, FrontendError,
+};
 use volta_ptx_analysis::frontend::parse::ParseError;
 
 create_exception!(
@@ -137,8 +140,85 @@ pub fn graph_failure_to_py(failed: &[PropertySummary], deadlock: Option<&Deadloc
     }
 }
 
+/// A frontend's failure to run a kernel; a located parse error shows its source line.
+pub fn frontend_error_to_py(source: &str, err: &FrontendError) -> PyErr {
+    match err {
+        FrontendError::Parse {
+            title,
+            message,
+            span,
+        } => VoltaError::new_err(format_located(source, title, message.as_deref(), *span)),
+        other => VoltaError::new_err(other.to_string()),
+    }
+}
+
 /// Catch-all for `Display`-only errors (spec instantiation, unfolding, equivalence
 /// checks): ordinary failures, not graph check failures.
 pub fn other_error_to_py(err: impl std::fmt::Display) -> PyErr {
     VoltaError::new_err(err.to_string())
+}
+
+/// Keep the typed prefix exceptions identical for legacy and file-based APIs.
+pub(crate) fn certified_prefix_to_py(
+    py: Python<'_>,
+    instructions: u64,
+    readiness: Option<&CertifiedScalarReadiness>,
+    memory: Option<&CertifiedMemoryConflict>,
+    bounds: Option<&CertifiedTensorBounds>,
+) -> PyResult<Option<PyErr>> {
+    if let Some(finding) = readiness {
+        let hazard = finding.hazard();
+        let exception = EarlyReadinessError::new_err(format!(
+            "certified scalar readiness prefix rejection: {hazard:?}; first finding only; complete outputs and equivalence unavailable"
+        ));
+        let value = exception.value(py);
+        value.setattr("issue_event", hazard.issue.0)?;
+        value.setattr("use_event", hazard.use_event.0)?;
+        value.setattr("wave", hazard.wave)?;
+        value.setattr("register_index", hazard.register.index)?;
+        value.setattr("register_file", format!("{:?}", hazard.register.file))?;
+        value.setattr("instructions", instructions)?;
+        value.setattr("prefix_amd_records", finding.certificate().amd_records)?;
+        value.setattr("prefix_graph_events", finding.certificate().graph_events)?;
+        return Ok(Some(exception));
+    }
+    if let Some(finding) = memory {
+        let conflict = finding.conflict();
+        let certificate = finding.certificate();
+        let exception = EarlyMemoryConflictError::new_err(format!(
+            "certified memory-conflict prefix rejection: {conflict:?}; first finding only; complete outputs and equivalence unavailable"
+        ));
+        let value = exception.value(py);
+        value.setattr("earlier_event", conflict.earlier.0)?;
+        value.setattr("later_event", conflict.later.0)?;
+        value.setattr("address", conflict.location.addr)?;
+        value.setattr("space", format!("{:?}", conflict.location.space))?;
+        value.setattr("kind", format!("{:?}", conflict.kind))?;
+        value.setattr("instruction_event", certificate.instruction.0)?;
+        value.setattr("issue_event", certificate.issue.0)?;
+        value.setattr("wave", certificate.wave)?;
+        value.setattr("earlier_thread", certificate.earlier_thread.0)?;
+        value.setattr("later_thread", certificate.later_thread.0)?;
+        value.setattr("instructions", instructions)?;
+        value.setattr("prefix_amd_records", certificate.amd_records)?;
+        value.setattr("prefix_graph_events", certificate.graph_events)?;
+        return Ok(Some(exception));
+    }
+    if let Some(finding) = bounds {
+        let violation = finding.violation();
+        let exception = TensorBoundsError::new_err(format!(
+            "certified tensor LDS bounds rejection: {violation:?}; transfer not issued; complete outputs and equivalence unavailable"
+        ));
+        let value = exception.value(py);
+        value.setattr("event", violation.event.0)?;
+        value.setattr("wave", violation.wave)?;
+        value.setattr("address", violation.address)?;
+        value.setattr("bytes", violation.bytes)?;
+        value.setattr("configured_lds_bytes", violation.configured_lds_bytes)?;
+        value.setattr("access", format!("{:?}", violation.access))?;
+        value.setattr("prefix_amd_records", finding.certificate().amd_records)?;
+        value.setattr("prefix_graph_events", finding.certificate().graph_events)?;
+        return Ok(Some(exception));
+    }
+    Ok(None)
 }

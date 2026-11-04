@@ -9,9 +9,11 @@ mod ir;
 mod lower;
 
 pub use analysis::{AnalysisError, AnalysisResult, analyze};
-pub use eval::{ArrayDef, ArrayKind, EvalError, Terminal, WaveId, WorkgroupLaunch};
+pub use eval::{ArrayDef, ArrayKind, EvalError, OutputType, Terminal, WaveId, WorkgroupLaunch};
 pub use ir::{
-    BinOp, CmpOp, GlobalAddress, InstrId, LoweredInstr, LoweredKernel, Sgpr, Src0, UnaryOp, Vgpr,
-    Vop3Src,
+    Agpr, BinOp, BranchCondition, BufferAddress, BufferImmOffset, CmpOp, GlobalAddress, InstrId,
+    LaneMask, LaneReg, LaneRegs, LdsAccesses, LoweredInstr, LoweredKernel, MfmaSrcC, ScalarCmpOp,
+    ScalarDst64, ScalarOp32, ScalarOp64, ScalarSrc, ScalarSrc64, Sgpr, Src0, TernaryOp, UnaryOp,
+    Vgpr, Vop3Src,
 };
 pub use lower::{LowerError, lower_kernel};

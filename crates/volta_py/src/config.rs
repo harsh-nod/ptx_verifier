@@ -96,7 +96,12 @@ impl ArrayDefPy {
 /// PTX currently requires zero.
 #[pyclass(name = "Config", from_py_object)]
 #[derive(Clone)]
-pub struct ConfigPy(pub(crate) AnalysisConfig, pub(crate) Backend);
+pub struct ConfigPy(
+    pub(crate) AnalysisConfig,
+    pub(crate) Backend,
+    // File-based solve/extract infer the ISA only when backend was omitted.
+    pub(crate) bool,
+);
 
 #[pymethods]
 impl ConfigPy {
@@ -105,13 +110,13 @@ impl ConfigPy {
         clippy::too_many_arguments,
         reason = "Preserve the public Python constructor's optional keyword launch fields."
     )]
-    #[pyo3(signature = (block, grid=(1, 1, 1), dynamic_shared_bytes=0, max_instructions=2_000_000_000, *, backend="ptx", target=None, workgroup_id=(0, 0, 0), early_readiness=false, early_memory_conflicts=false))]
+    #[pyo3(signature = (block, grid=(1, 1, 1), dynamic_shared_bytes=0, max_instructions=2_000_000_000, *, backend=None, target=None, workgroup_id=(0, 0, 0), early_readiness=false, early_memory_conflicts=false))]
     fn new(
         block: (u32, u32, u32),
         grid: (u32, u32, u32),
         dynamic_shared_bytes: u64,
         max_instructions: u64,
-        backend: &str,
+        backend: Option<&str>,
         target: Option<&str>,
         workgroup_id: (u32, u32, u32),
         early_readiness: bool,
@@ -124,7 +129,9 @@ impl ConfigPy {
         config.early_memory_conflicts = early_memory_conflicts;
         config.dynamic_shared_bytes = dynamic_shared_bytes;
         config.max_instructions = max_instructions;
-        let backend = Backend::select(backend, target).map_err(PyValueError::new_err)?;
+        let explicit_backend = backend.is_some();
+        let backend =
+            Backend::select(backend.unwrap_or("ptx"), target).map_err(PyValueError::new_err)?;
         if early_readiness && backend != Backend::AmdgpuGfx1250 {
             return Err(PyValueError::new_err(
                 "early_readiness currently supports only native gfx1250 scalar-load readiness",
@@ -135,7 +142,7 @@ impl ConfigPy {
                 "early_memory_conflicts supports only native gfx950/gfx1250 memory conflicts",
             ));
         }
-        Ok(ConfigPy(config, backend))
+        Ok(ConfigPy(config, backend, explicit_backend))
     }
 
     #[getter]

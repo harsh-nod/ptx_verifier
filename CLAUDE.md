@@ -2,8 +2,9 @@
 
 Read [README.md](README.md) for setup and examples, and
 [docs/architecture.md](docs/architecture.md) for the data flow, crate boundaries
-and extension workflow. Each crate README describes its own modules and public
-entry points; Rustdoc is the reference for individual types and functions.
+and extension workflow. The CLI also exposes upstream `solve` and `extract lean`
+workflows through its command modules. Each crate README describes its own
+modules and public entry points; Rustdoc is the reference for individual types and functions.
 
 ## Code conventions
 
@@ -29,10 +30,26 @@ Use focused tests while editing, then run the appropriate workspace checks:
 cargo test --release --workspace
 just test-python
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets
+cargo clippy --workspace --all-targets -- -D warnings
 ```
 
 Preserve actual compiler fixtures, meaningful positive controls, exact output
 indices and typed negative witnesses. Native source provenance and independent
 numerical oracles live beside their fixtures. Keep generated graphs, logs and
 hardware run artifacts outside tracked source.
+
+## Frontend and proof boundaries
+
+Explicit native AMD selection uses `volta_amdgpu_analysis` and its target-selected
+graph/certificate contracts. Extension-inferred `.s` solve/extract uses upstream
+`volta_amd_analysis`; that experimental gfx950 interpreter and Trainium NKI do
+not record a race graph. Keep their output-only mathematical results separate
+from native graph verification. `extract lean` emits obligations that still
+require proofs; rejected or incomplete native executions cannot export them
+as a successful extraction.
+
+`volta_cli/src/cli.rs` defines command arguments, and `src/commands/` contains
+handlers. `volta_pipeline` composes frontend outputs, graph evidence and canonical
+or Lean solvers. Producers do not depend on either checking branch. Preserve
+source/target validation, exact output coordinates and the private independently
+validated prefix routes when adapting these interfaces.

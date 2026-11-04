@@ -61,12 +61,13 @@ fn native_operand(operand: &upstream::Operand) -> Operand {
             class: match file {
                 upstream::RegFile::Scalar => RegisterClass::Scalar,
                 upstream::RegFile::Vector => RegisterClass::Vector,
+                upstream::RegFile::Accumulator => panic!("copy fixture contains an AGPR"),
             },
             index: (*first).try_into().unwrap(),
             count: (last - first + 1).try_into().unwrap(),
             special: None,
         }),
-        upstream::Operand::Imm(value) => Operand::Integer((*value).try_into().unwrap()),
+        upstream::Operand::Imm(value) => Operand::Integer(*value),
         upstream::Operand::Wait { counter, value } => Operand::WaitCounter {
             name: match counter {
                 upstream::Counter::Vm => "vmcnt",
@@ -77,6 +78,12 @@ fn native_operand(operand: &upstream::Operand) -> Operand {
         },
         upstream::Operand::InlineFloat(_)
         | upstream::Operand::Vcc
+        | upstream::Operand::Exec
+        | upstream::Operand::Label(_)
+        | upstream::Operand::Offen
+        | upstream::Operand::Offset0(_)
+        | upstream::Operand::Offset1(_)
+        | upstream::Operand::BitOp3(_)
         | upstream::Operand::Offset(_) => {
             panic!("copy fixture contains an operand outside its shared grammar: {operand:?}")
         }
@@ -129,7 +136,7 @@ fn experimental_copy_outputs_and_empty_amd_graph_do_not_supply_a_safety_proof() 
             name: "out".into(),
             base: 0x20000,
             len: 64,
-            kind: UpstreamKind::Output,
+            kind: UpstreamKind::Output(volta_amd_analysis::OutputType::F32),
         },
     ];
     let kernarg: Vec<_> = arrays
@@ -213,7 +220,11 @@ fn upstream_amd_lowering_retains_shift_inputs_and_wait_classes() {
     assert_eq!(lowered.instructions.len(), parsed.instructions.len());
     assert!(matches!(
         lowered.instructions[InstrId(1)],
-        LoweredInstr::Shl32 { shift: 34, .. }
+        LoweredInstr::BinOp {
+            op: volta_amd_analysis::BinOp::LShlRev32,
+            src0: volta_amd_analysis::Src0::Const(34),
+            ..
+        }
     ));
     let waits = lowered
         .instructions

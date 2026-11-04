@@ -13,10 +13,7 @@ use volta_ptx_analysis::frontend::parse as ptx_parse;
 use volta_ptx_analysis::{AnalysisConfig, Stats};
 
 use crate::config::ConfigPy;
-use crate::error::{
-    EarlyMemoryConflictError, EarlyReadinessError, TensorBoundsError, VoltaError,
-    graph_failure_to_py, parse_error_to_py,
-};
+use crate::error::{VoltaError, graph_failure_to_py, parse_error_to_py};
 
 pub(crate) fn parse_module(source: &str, backend: Backend) -> PyResult<KernelModule> {
     match backend {
@@ -135,59 +132,14 @@ pub(crate) fn check_kernel(
     config: AnalysisConfig,
 ) -> PyResult<CheckedKernel> {
     let verified = verify_source_kernel(module, kernel, config).map_err(VoltaError::new_err)?;
-    if let Some(finding) = &verified.early_readiness {
-        let hazard = finding.hazard();
-        let exception = EarlyReadinessError::new_err(format!(
-            "certified scalar readiness prefix rejection: {hazard:?}; first finding only; complete outputs and equivalence unavailable"
-        ));
-        let value = exception.value(py);
-        value.setattr("issue_event", hazard.issue.0)?;
-        value.setattr("use_event", hazard.use_event.0)?;
-        value.setattr("wave", hazard.wave)?;
-        value.setattr("register_index", hazard.register.index)?;
-        value.setattr("register_file", format!("{:?}", hazard.register.file))?;
-        value.setattr("instructions", verified.analysis.stats.instructions)?;
-        value.setattr("prefix_amd_records", finding.certificate().amd_records)?;
-        value.setattr("prefix_graph_events", finding.certificate().graph_events)?;
-        return Err(exception);
-    }
-    if let Some(finding) = &verified.early_memory_conflict {
-        let conflict = finding.conflict();
-        let certificate = finding.certificate();
-        let exception = EarlyMemoryConflictError::new_err(format!(
-            "certified memory-conflict prefix rejection: {conflict:?}; first finding only; complete outputs and equivalence unavailable"
-        ));
-        let value = exception.value(py);
-        value.setattr("earlier_event", conflict.earlier.0)?;
-        value.setattr("later_event", conflict.later.0)?;
-        value.setattr("address", conflict.location.addr)?;
-        value.setattr("space", format!("{:?}", conflict.location.space))?;
-        value.setattr("kind", format!("{:?}", conflict.kind))?;
-        value.setattr("instruction_event", certificate.instruction.0)?;
-        value.setattr("issue_event", certificate.issue.0)?;
-        value.setattr("wave", certificate.wave)?;
-        value.setattr("earlier_thread", certificate.earlier_thread.0)?;
-        value.setattr("later_thread", certificate.later_thread.0)?;
-        value.setattr("instructions", verified.analysis.stats.instructions)?;
-        value.setattr("prefix_amd_records", certificate.amd_records)?;
-        value.setattr("prefix_graph_events", certificate.graph_events)?;
-        return Err(exception);
-    }
-    if let Some(finding) = &verified.tensor_bounds {
-        let violation = finding.violation();
-        let exception = TensorBoundsError::new_err(format!(
-            "certified tensor LDS bounds rejection: {violation:?}; transfer not issued; complete outputs and equivalence unavailable"
-        ));
-        let value = exception.value(py);
-        value.setattr("event", violation.event.0)?;
-        value.setattr("wave", violation.wave)?;
-        value.setattr("address", violation.address)?;
-        value.setattr("bytes", violation.bytes)?;
-        value.setattr("configured_lds_bytes", violation.configured_lds_bytes)?;
-        value.setattr("access", format!("{:?}", violation.access))?;
-        value.setattr("prefix_amd_records", finding.certificate().amd_records)?;
-        value.setattr("prefix_graph_events", finding.certificate().graph_events)?;
-        return Err(exception);
+    if let Some(error) = crate::error::certified_prefix_to_py(
+        py,
+        verified.analysis.stats.instructions,
+        verified.early_readiness.as_ref(),
+        verified.early_memory_conflict.as_ref(),
+        verified.tensor_bounds.as_ref(),
+    )? {
+        return Err(error);
     }
     let unresolved = match verified.graph.conclusion() {
         GraphConclusion::Rejected { failed, deadlock } => {

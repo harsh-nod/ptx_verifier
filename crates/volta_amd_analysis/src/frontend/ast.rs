@@ -10,6 +10,8 @@ pub struct Kernel {
     pub target: String,
     /// The kernel body in order.
     pub instructions: Vec<Instruction>,
+    /// Each label of the body and the index of the instruction it precedes.
+    pub labels: BTreeMap<String, usize>,
     /// The numeric `.amdhsa_*` settings of the kernel descriptor, keyed without the prefix.
     pub descriptor: BTreeMap<String, u64>,
 }
@@ -24,6 +26,7 @@ pub struct Instruction {
 pub enum RegFile {
     Scalar,
     Vector,
+    Accumulator,
 }
 
 /// An `s_waitcnt` counter supported by this frontend.
@@ -41,14 +44,28 @@ pub enum Operand {
         first: u32,
         last: u32,
     },
-    /// An unsigned integer literal.
-    Imm(u64),
+    /// An integer literal; the negative inline constants -1 to -16 are written signed.
+    Imm(i64),
     /// One of the inline float constants ±0.5, ±1.0, ±2.0 and ±4.0, as its f32 bits.
     InlineFloat(u32),
     /// The vector condition code, one bit per lane.
     Vcc,
+    /// The mask of the wave's active lanes.
+    Exec,
+    /// A branch target.
+    Label(String),
+    /// A buffer instruction's `offen` flag: its address VGPR is a byte offset.
+    Offen,
+    /// The `offset0:n` and `offset1:n` of a two-address LDS instruction, in units of its size.
+    Offset0(u64),
+    Offset1(u64),
+    /// The truth table of `v_bitop3_b32`.
+    BitOp3(u8),
     /// `vmcnt(n)` or `lgkmcnt(n)`.
-    Wait { counter: Counter, value: u64 },
+    Wait {
+        counter: Counter,
+        value: u64,
+    },
     /// A memory instruction's `offset:n` byte offset, which may be negative.
     Offset(i64),
 }

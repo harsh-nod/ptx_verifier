@@ -3,6 +3,7 @@
     python3 external/races.py                               # every framework
     python3 external/races.py --framework thunderkittens    # one of `FRAMEWORKS`
     python3 external/races.py --framework hipkittens        # native gfx950 assembly
+    python3 external/races.py --framework ai_compiler       # upstream PTX Gym extraction
     python3 external/races.py --framework tritonbench -k add_example --timeout 300
 
 Each launch file `<framework>/**/<stem>.<case>.launch.json` is analyzed, in name
@@ -31,8 +32,8 @@ sys.path.insert(0, str(EXTERNAL_ROOT.parent / "ai_compiler_kernels"))
 import check_races  # noqa: E402
 from check_races import BOLD, GREEN, OUTCOME_CODES, OUTCOME_WIDTH, RED, Outcome, Style  # noqa: E402
 
-# Native AMD and PTX extraction adapters share the workload runner.
-FRAMEWORKS = ("tritonbench", "thunderkittens", "hipkittens", "gluon", "tilelang")
+# Native AMD and PTX extraction adapters share strict result and output checks.
+FRAMEWORKS = ("tritonbench", "thunderkittens", "hipkittens", "gluon", "tilelang", "ai_compiler")
 FAILURES = {Outcome.RACE_CONDITION, Outcome.CHECK_FAILED, Outcome.DEADLOCK, Outcome.ERROR}
 INCONCLUSIVE = {Outcome.UNKNOWN, Outcome.UNSUPPORTED}
 

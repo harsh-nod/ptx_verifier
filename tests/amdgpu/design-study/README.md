@@ -178,6 +178,16 @@ gates; an unsuccessful result remains reportable.
 
 ## Publishing and checking the numbers
 
+Rust expectation sources retain their original content hashes. Validation uses
+an exactly matching regular file in the checkout; if that test has since changed,
+it reads the exact source from the manifest's `baseline_source_revision` Git
+commit and checks its original SHA-256 before inspecting its function/assertion.
+A shallow or source-only distribution must fetch that baseline commit or use a
+full-history study checkout. Assembly, specification, launch and mutation inputs
+still require their exact current files. This maintenance lookup changes no
+recorded cases, measurements, published results or historical source hashes;
+replaying the original measurement driver uses its recorded source revision.
+
 Run all study host controls with
 `python3 -m unittest discover -s tests/amdgpu/design-study -p 'test_*.py' -v`.
 The [results directory](results/README.md) includes every numerical observation,

@@ -36,7 +36,8 @@ or deadlock gives `REJECT`. Sampling, unresolved obligations and incomplete
 execution give `UNKNOWN` unless another result establishes rejection.
 
 `SourceKernelVerification` also exposes privately constructed certified-prefix
-findings: opt-in scalar readiness and supported tensor LDS bounds. The pipeline
+findings: opt-in scalar readiness, same-instruction write/write conflicts and
+supported tensor LDS bounds. The pipeline
 validates each property against the exact aborted prefix before constructing its
 wrapper. These findings establish rejection only; the ordinary `GraphReport`
 stays incomplete, and no output or equivalence proof is supplied. See
@@ -47,6 +48,28 @@ Graph properties depend on the target. Consumers must use
 `GraphReport::applicable_properties()` or `summaries()` rather than treating
 the PTX property list as applicable to native AMD graphs. Expression and VC
 replay have no event graph and can establish equivalence only.
+
+## File-based solving and Lean extraction
+
+`Frontend` supplies the extension-inferred PTX, experimental AMD gfx950 and
+Trainium NKI interpreters. `analyze_source(Backend, source, kernel, launch)`
+selects PTX or the native AMD backend explicitly. Its `KernelRun` retains the
+native graph, provenance, statistics and privately constructed certified prefix
+findings. `KernelRun::decide` counts a certified finding as rejection;
+`extract_lean` refuses every rejected or incomplete checked execution.
+
+`Spec` validates a mathematical specification and its complete output footprint
+before sampling. `Solver::Canonical` checks those outputs; `extract_lean`
+states all output propositions for a Lean prover. Generated propositions are
+not completed equivalence proofs.
+
+The extension-inferred experimental AMD and NKI interpreters return
+`GraphEvidence::NotRecorded`. Their mathematical verdicts and Lean statements
+supply no race-freedom evidence. The experimental AMD adapter models only
+workgroup zero of a one-group gfx950 grid, 32-bit input/output words and its
+default budget. Native-only launch options are refused. Use explicit native
+selection for target-specific graph verification, selected workgroups, by-value
+ABI bytes, LDS layouts and supported certified findings.
 
 ## Integration tests
 

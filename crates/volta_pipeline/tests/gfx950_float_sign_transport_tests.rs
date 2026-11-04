@@ -6,7 +6,8 @@ use volta_equivalence::{EquivOutcome, check_output_equivalence};
 use volta_expr::{ExprNode, Real, SymbolicOutputs};
 use volta_graph_check::GraphConclusion;
 
-const FLOAT_OPS: &str = include_str!("../../volta_amd_analysis/tests/fixtures/float_ops.s");
+const FLOAT_OPS: &str =
+    include_str!("../../../tests/gfx950/fixtures/upstream-float-sign/float_ops.s");
 
 fn array(name: &str, base: u64, len: u64, kind: ArrayKind) -> ArrayDef {
     ArrayDef {
