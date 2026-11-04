@@ -40,10 +40,16 @@ hardware run artifacts outside tracked source.
 
 ## Frontend and proof boundaries
 
+PTX aligned named barriers match the instruction and exact enclosing-loop
+iteration context within each warp. Ambiguous or irreducible contexts are
+unsupported; unaligned barriers retain thread-count semantics.
+
 Explicit native AMD selection uses `volta_amdgpu_analysis` and its target-selected
 graph/certificate contracts. Extension-inferred `.s` solve/extract uses upstream
 `volta_amd_analysis`; that experimental gfx950 interpreter and Trainium NKI do
-not record a race graph. Keep their output-only mathematical results separate
+not record a race graph. The experimental AMD interpreter tracks ordinary LDS
+completion and refuses barriers reached with pending LDS operations; this does
+not establish race freedom. Keep its output-only mathematical results separate
 from native graph verification. `extract lean` emits obligations that still
 require proofs; rejected or incomplete native executions cannot export them
 as a successful extraction.

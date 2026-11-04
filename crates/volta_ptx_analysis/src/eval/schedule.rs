@@ -374,8 +374,8 @@ enum LaneArrivals {
     Partial,
 }
 
-/// Aligned arrivals in one warp must agree on both their instruction and its visit ordinal.
-/// Static PCs alone would join predicate-selected visits from different loop iterations.
+/// This evaluator matches aligned arrivals warp-locally by PC and exact loop context.
+/// Different warps may arrive from their own producer/consumer instructions.
 fn warps_converge(arrivals: &[ArrivedThread]) -> bool {
     let mut warps: HashMap<u32, Vec<&ArrivedThread>> = HashMap::new();
     for arrival in arrivals {
