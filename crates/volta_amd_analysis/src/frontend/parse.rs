@@ -36,6 +36,15 @@ fn operand(text: &str) -> Option<Operand> {
     if let Some(value) = signed_integer(text) {
         return Some(Operand::Imm(value));
     }
+    if let Some(selectors) = text.strip_prefix("op_sel_hi:[") {
+        let (a, b) = selectors.strip_suffix(']')?.split_once(',')?;
+        let bit = |text: &str| match text.trim() {
+            "0" => Some(false),
+            "1" => Some(true),
+            _ => None,
+        };
+        return Some(Operand::OpSelHi([bit(a)?, bit(b)?]));
+    }
     match text {
         "vcc" => return Some(Operand::Vcc),
         "exec" => return Some(Operand::Exec),
@@ -73,6 +82,15 @@ fn operand(text: &str) -> Option<Operand> {
         };
         let value = integer(rest.strip_suffix(')')?)?;
         return Some(Operand::Wait { counter, value });
+    }
+    if let Some(register) = text.strip_prefix('-') {
+        if !register.starts_with(['s', 'v', 'a']) {
+            return None;
+        }
+        let Operand::Reg { file, first, last } = operand(register)? else {
+            return None;
+        };
+        return (first == last).then_some(Operand::NegatedReg { file, index: first });
     }
     let file = match text.chars().next()? {
         's' => RegFile::Scalar,
@@ -169,8 +187,17 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
             return Err(format!("empty operand in {line:?}"));
         }
         // Accept comma-separated operands and space-separated wait counters.
+        // Commas and spaces inside a bracketed selector belong to that operand.
+        let mut depth = 0usize;
         let operands = rest
-            .split([',', ' ', '\t'])
+            .split(|c: char| {
+                match c {
+                    '[' => depth += 1,
+                    ']' => depth = depth.saturating_sub(1),
+                    _ => {}
+                }
+                depth == 0 && (c == ',' || c.is_whitespace())
+            })
             .filter(|piece| !piece.is_empty())
             .map(|piece| operand(piece).ok_or_else(|| unsupported_operand(piece, line)))
             .collect::<Result<_, _>>()?;
@@ -493,6 +520,35 @@ mod tests {
              test:\n{body}\n.Lfunc_end0:\n\
              .amdhsa_kernel test\n{descriptor}\n.end_amdhsa_kernel\n"
         )
+    }
+
+    #[test]
+    fn retains_packed_selectors_and_rejects_malformed_negation() {
+        for selectors in ["[1,0]", "[1, 0]"] {
+            let source = kernel_source(
+                &format!("v_pk_add_f32 v[2:3], v[4:5], 1.0 op_sel_hi:{selectors}"),
+                "",
+            );
+            let parsed = parse_kernel(&source, "test").unwrap();
+            assert_eq!(
+                parsed.instructions[0].operands.last(),
+                Some(&Operand::OpSelHi([true, false]))
+            );
+        }
+        for operand in [
+            "--v1".to_owned(),
+            format!("{}v1", "-".repeat(65536)),
+            "-v[1:2]".to_owned(),
+            "op_sel_hi:[1,2]".to_owned(),
+        ] {
+            assert!(
+                parse_kernel(
+                    &kernel_source(&format!("v_mov_b32_e32 v0, {operand}"), ""),
+                    "test"
+                )
+                .is_err()
+            );
+        }
     }
 
     #[test]
