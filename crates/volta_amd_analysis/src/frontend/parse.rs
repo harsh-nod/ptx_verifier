@@ -11,6 +11,18 @@ fn word(line: &str) -> (&str, &str) {
         .map_or((line, ""), |(head, tail)| (head, tail.trim()))
 }
 
+/// A leading bare or quoted label, and the statement following its colon.
+fn label_definition(line: &str) -> Option<(&str, &str)> {
+    let (name, rest) = if let Some(quoted) = line.strip_prefix('"') {
+        quoted.split_once('"')?
+    } else {
+        let end = line.find(|c: char| c == ':' || c.is_whitespace())?;
+        line.split_at(end)
+    };
+    let rest = rest.trim_start().strip_prefix(':')?.trim_start();
+    (!name.is_empty()).then_some((name, rest))
+}
+
 /// Parse an unsigned decimal or hexadecimal integer.
 fn integer(text: &str) -> Option<u64> {
     match text.strip_prefix("0x") {
@@ -52,6 +64,9 @@ fn operand(text: &str) -> Option<Operand> {
         _ => {}
     }
     if text.starts_with(".L") {
+        if text.contains(['[', ']']) || text.chars().any(char::is_whitespace) {
+            return None;
+        }
         return Some(Operand::Label(text.into()));
     }
     if let Some(offset) = text.strip_prefix("offset0:") {
@@ -145,17 +160,31 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
         .ok_or("expected one quoted string after .amdgcn_target")?
         .to_string();
 
-    // The instruction body ends at a section switch or function-end label.
-    let mut entries = lines
-        .iter()
-        .enumerate()
-        .filter(|(_, line)| line.strip_suffix(':') == Some(name));
-    let (entry, _) = entries
-        .next()
-        .ok_or_else(|| format!("kernel {name:?} not found"))?;
-    if entries.next().is_some() {
-        return Err(format!("multiple entry labels for kernel {name:?}"));
+    // Count definitions even in forms the selected-body parser cannot consume, so an
+    // inline or differently spaced duplicate cannot hide behind a canonical entry.
+    let mut entry = None;
+    for (index, line) in lines.iter().enumerate() {
+        let mut statement = *line;
+        let mut standalone = true;
+        while let Some((label, rest)) = label_definition(statement) {
+            if label == name {
+                if entry.is_some() {
+                    return Err(format!("multiple entry labels for kernel {name:?}"));
+                }
+                entry = Some((index, standalone && rest.is_empty()));
+            }
+            standalone = false;
+            statement = rest;
+        }
     }
+    let (entry, standalone) = entry.ok_or_else(|| format!("kernel {name:?} not found"))?;
+    if !standalone {
+        return Err(format!(
+            "unsupported inline entry label for kernel {name:?}"
+        ));
+    }
+
+    // The instruction body ends at a section switch or function-end label.
     let mut instructions = Vec::new();
     let mut labels = BTreeMap::new();
     for line in &lines[entry + 1..] {
@@ -178,6 +207,14 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
         if opcode.starts_with('.') || line.ends_with(':') {
             return Err(format!("unsupported statement {line:?}"));
         }
+        let brackets = rest.bytes().try_fold(0usize, |depth, byte| match byte {
+            b'[' => Some(depth + 1),
+            b']' => depth.checked_sub(1),
+            _ => Some(depth),
+        });
+        if brackets != Some(0) {
+            return Err(format!("unbalanced operand brackets in {line:?}"));
+        }
         let without_trailing_comma = rest.strip_suffix(',').unwrap_or(rest);
         if !rest.is_empty()
             && without_trailing_comma
@@ -193,7 +230,7 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
             .split(|c: char| {
                 match c {
                     '[' => depth += 1,
-                    ']' => depth = depth.saturating_sub(1),
+                    ']' => depth -= 1,
                     _ => {}
                 }
                 depth == 0 && (c == ',' || c.is_whitespace())
@@ -601,5 +638,103 @@ mod tests {
                 "duplicate descriptor setting \".amdhsa_kernarg_size\""
             );
         }
+    }
+    #[test]
+    fn rejects_spaced_quoted_and_inline_duplicate_entry_labels() {
+        for definition in [
+            "copy :",
+            "\"copy\":",
+            "\"copy\" :",
+            "copy: s_endpgm",
+            "copy : s_endpgm",
+            "\"copy\": s_endpgm",
+            "\"copy\" : s_endpgm",
+            "copy_extra: copy:",
+            "copy_extra: \"copy\": s_endpgm",
+        ] {
+            let source = format!("{COPY}\n.text\n{definition}\n.section .rodata\n");
+            assert_eq!(
+                parse_kernel(&source, "copy").unwrap_err(),
+                "multiple entry labels for kernel \"copy\"",
+                "{definition}"
+            );
+        }
+    }
+
+    #[test]
+    fn parses_standalone_spaced_and_quoted_selected_entries_without_changing_the_body() {
+        let original = parse_kernel(COPY, "copy").unwrap();
+        for definition in [
+            "copy :",
+            "copy\t:",
+            "\"copy\":",
+            "\"copy\" \t: ; selected entry",
+        ] {
+            let source = COPY.replacen("\ncopy:\n", &format!("\n{definition}\n"), 1);
+            assert_ne!(source, COPY);
+            let parsed = parse_kernel(&source, "copy").unwrap();
+            assert_eq!(parsed.instructions, original.instructions, "{definition}");
+            assert_eq!(parsed.labels, original.labels, "{definition}");
+            assert_eq!(parsed.descriptor, original.descriptor, "{definition}");
+            assert_eq!(parsed.target, original.target, "{definition}");
+        }
+    }
+
+    #[test]
+    fn rejects_lone_selected_entries_that_would_drop_inline_statements() {
+        for definition in [
+            "copy: s_endpgm",
+            "copy : s_endpgm",
+            "\"copy\": s_endpgm",
+            "\"copy\" : s_endpgm",
+            "copy: .Lbody:",
+            "other_label: copy:",
+        ] {
+            let source = COPY.replacen("\ncopy:\n", &format!("\n{definition}\n"), 1);
+            assert_ne!(source, COPY);
+            assert_eq!(
+                parse_kernel(&source, "copy").unwrap_err(),
+                "unsupported inline entry label for kernel \"copy\"",
+                "{definition}"
+            );
+        }
+    }
+
+    #[test]
+    fn unrelated_spaced_quoted_and_inline_labels_do_not_match_a_name_prefix() {
+        for definition in [
+            "copy_extra :",
+            "\"copy_extra\":",
+            "\"copy_extra\" : s_endpgm",
+            "copy2: s_endpgm",
+            "copy_extra: copy2: s_endpgm",
+        ] {
+            let source = format!("{COPY}\n.text\n{definition}\n.section .rodata\n");
+            assert_eq!(
+                parse_kernel(&source, "copy").unwrap().instructions,
+                parse_kernel(COPY, "copy").unwrap().instructions,
+                "{definition}"
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_unbalanced_operand_groups_before_resolving_labels() {
+        for body in [
+            "s_branch .Lbad[ name\n.Lbad[ name:\ns_endpgm",
+            "s_branch .Lbad] name\n.Lbad] name:\ns_endpgm",
+            "v_pk_add_f32 v[2:3], v[4:5], 1.0 op_sel_hi:[1,0",
+            "v_pk_add_f32 v[2:3], v[4:5], 1.0 op_sel_hi:[1,0]]",
+            "s_branch .Lbad[ name]\n.Lbad[ name]:\ns_endpgm",
+        ] {
+            assert!(
+                parse_kernel(&kernel_source(body, ""), "test").is_err(),
+                "{body}"
+            );
+        }
+        let source = kernel_source("s_branch .Lgood\n.Lgood:\ns_endpgm", "");
+        let kernel = parse_kernel(&source, "test").unwrap();
+        assert_eq!(kernel.labels[".Lgood"], 1);
+        assert_eq!(kernel.instructions.len(), 2);
     }
 }

@@ -58,13 +58,13 @@ fn negation_survives_mixed_word_and_symbolic_float_selection() {
     registers.write_vcc(0, condition).unwrap();
     registers.write_vgpr(0, Vgpr(1), input).unwrap();
     let bits = arena.int(i64::from(2.0f32.to_bits()));
-    registers.write_sgpr(Sgpr(8), bits).unwrap();
+    registers.write_vgpr(0, Vgpr(2), bits).unwrap();
     let result = evaluate_cndmask_e64(
         &mut arena,
         &registers,
         0,
         CndMaskSrc {
-            value: Vop3Src::Sgpr(Sgpr(8)),
+            value: Vop3Src::Vgpr(Vgpr(2)),
             negate: true,
         },
         CndMaskSrc {

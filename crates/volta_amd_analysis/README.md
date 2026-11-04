@@ -11,7 +11,9 @@ explicit waits and launch metadata. The lowering API and IR types are exported
 from the crate root. Instructions use an `IdVec<InstrId, LoweredInstr>` so
 execution positions cannot be mixed with register indices.
 
-Parsing rejects malformed target quoting, duplicate selected kernel definitions,
+Parsing recognizes bare, quoted and spaced entry labels, rejects duplicate selected
+definitions (including inline forms), and requires the selected entry to occupy
+its own line. It rejects malformed target quoting,
 repeated descriptor settings and missing operands. An optional ordinary trailing
 comma and either wait-counter separator are accepted. Lowering validates target
 feature suffixes, retaining valid XNACK/SRAM-ECC selections and rejecting unknown,
@@ -55,12 +57,16 @@ under a symbolic condition is rejected, since the words could encode floats or i
 `v_cmp_lt_f32_e64` can store symbolic comparison bits in an SGPR pair for
 `v_cndmask_b32_e64`. Each scalar word retains its own mask bits; a scalar write
 or load replaces them. Reading such a mask as an ordinary integer or address
-is rejected. The e64 select also supports a single-register floating-point NEG
-modifier: concrete words keep their bits with the sign bit flipped, while
-symbolic reals are negated. Other instruction forms do not inherit this modifier.
+is rejected. The select's data sources are VGPRs or supported inline constants;
+the mask already occupies gfx950's one scalar-bus source, so scalar data sources
+are rejected. The e64 select also supports a single-VGPR floating-point NEG
+modifier: concrete words keep their bits with the sign bit flipped, while symbolic
+reals are negated. Other instruction forms do not inherit this modifier.
 `v_pk_add_f32` supports aligned VGPR source/destination pairs and a broadcast
 inline constant with default `op_sel:[0,0]` and explicit `op_sel_hi:[1,0]`;
-other selector and modifier profiles are rejected.
+other selector and modifier profiles are rejected. VOP3 lowering also validates
+the supported inline-float payloads supplied through the public AST. Operand
+groups must have balanced brackets; labels cannot absorb bracketed whitespace.
 
 `ArrayDef` marks each global-memory array `Input` or `Output(OutputType)`. Output
 stores decode `F32` constants into mathematical reals and preserve existing real
