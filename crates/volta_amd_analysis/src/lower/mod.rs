@@ -314,10 +314,8 @@ fn lower_instruction(
         ("v_cmp_ge_u32_e64", operands) => lower_cmp_e64(ir::CmpOp::GeU32, operands),
         ("v_cndmask_b32_e64", [dst, src0, src1, mask]) => Ok(CndMask32E64 {
             dst: vgpr(dst).ok_or("expected one destination VGPR")?,
-            src0: cndmask_src(src0)
-                .ok_or("expected a VGPR, an SGPR or an inline constant first source")?,
-            src1: cndmask_src(src1)
-                .ok_or("expected a VGPR, an SGPR or an inline constant second source")?,
+            src0: cndmask_src(src0).ok_or("expected a VGPR or an inline constant first source")?,
+            src1: cndmask_src(src1).ok_or("expected a VGPR or an inline constant second source")?,
             mask: lane_mask(mask).ok_or("expected vcc or an aligned SGPR pair as the mask")?,
         }),
         ("v_pk_add_f32", [dst, src, rhs, Operand::OpSelHi([true, false])]) => {
@@ -658,10 +656,13 @@ fn scalar_sources(src0: &Operand, src1: &Operand) -> Result<(ScalarSrc, ScalarSr
 /// Whether a 32-bit operand is one of CDNA4's inline integer or float constants (§6.2).
 fn is_inline(bits: u32) -> bool {
     let integer = bits as i32;
-    (-16..=64).contains(&integer)
-        || [0.5f32, -0.5, 1.0, -1.0, 2.0, -2.0, 4.0, -4.0]
-            .iter()
-            .any(|value| value.to_bits() == bits)
+    (-16..=64).contains(&integer) || is_inline_float(bits)
+}
+
+fn is_inline_float(bits: u32) -> bool {
+    [0.5f32, -0.5, 1.0, -1.0, 2.0, -2.0, 4.0, -4.0]
+        .iter()
+        .any(|value| value.to_bits() == bits)
 }
 
 /// Supported 64-bit sources are register pairs, lane masks and inline integer constants.
@@ -997,6 +998,10 @@ fn cndmask_src(operand: &Operand) -> Option<ir::CndMaskSrc> {
         ),
         _ => (vop3_src(operand)?, false),
     };
+    // The mask already consumes gfx950's one scalar-bus source (CDNA4 §6.2).
+    if matches!(value, Vop3Src::Sgpr(_)) {
+        return None;
+    }
     Some(ir::CndMaskSrc { value, negate })
 }
 
@@ -1005,7 +1010,7 @@ fn cndmask_src(operand: &Operand) -> Option<ir::CndMaskSrc> {
 fn vop3_src(operand: &Operand) -> Option<Vop3Src> {
     match operand {
         Operand::Imm(value) if (-16..=64).contains(value) => Some(Vop3Src::Inline(*value as u32)),
-        Operand::InlineFloat(bits) => Some(Vop3Src::Inline(*bits)),
+        Operand::InlineFloat(bits) if is_inline_float(*bits) => Some(Vop3Src::Inline(*bits)),
         _ => vgpr(operand)
             .map(Vop3Src::Vgpr)
             .or_else(|| sgpr(operand).map(Vop3Src::Sgpr)),
