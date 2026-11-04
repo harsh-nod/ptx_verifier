@@ -37,8 +37,14 @@ Use focused tests while editing, then run the appropriate workspace checks:
 cargo test --release --workspace
 just test-python
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy --workspace --all-targets --all-features
+cargo clippy --workspace --exclude volta_ptx_analysis --all-targets --all-features --no-deps -- -D warnings
+cargo clippy -p volta_ptx_analysis --lib --all-features --no-deps -- -D warnings
 ```
+
+Workspace Clippy covers every target. Strict checks cover all targets outside
+the PTX crate and its production library with all features. PTX test, example
+and benchmark targets retain upstream's warning policy.
 
 Preserve actual compiler fixtures, meaningful positive controls, exact output
 indices and typed negative witnesses. Native source provenance and independent
