@@ -34,17 +34,21 @@ remain an encoding refusal; materializing a mask in a register is required.
 ## Complete-kernel check
 
 The [native pipeline test](../crates/volta_pipeline/tests/gfx950_float_sign_transport_tests.rs)
-uses the unchanged public [assembly](../crates/volta_amd_analysis/tests/fixtures/float_ops.s)
+uses the unchanged public [assembly](../tests/gfx950/fixtures/upstream-float-sign/float_ops.s)
 and independently transcribes all 21 assignments from the
-[OpenCL source](../crates/volta_amd_analysis/tests/fixtures/float_ops.cl).
+[OpenCL source](../tests/gfx950/fixtures/upstream-float-sign/float_ops.cl).
 Both fixtures entered upstream at
 [`abd90436`](https://github.com/francois141/ptx_verifier/commit/abd90436ac8a8e33dde8546fcc3d46f31f08f529)
-and are retained byte-for-byte:
+and are retained byte-for-byte in a [native-owned fixture directory](../tests/gfx950/fixtures/upstream-float-sign/README.md):
 
 | Input | SHA-256 |
 | --- | --- |
 | `float_ops.s` | `db9d32e5480e499d8741a0ab370b8e2008f9a42190f177660e41258eeb012a62` |
 | `float_ops.cl` | `d4f37620712703c6b3510b26d35e3558ef519f47cb572044832809520794bb8f` |
+
+Upstream later changed its experimental backend's live `float_ops` fixtures.
+Those files remain separate; this native regression uses the pinned originals
+above, including all three sign-bit assignments.
 
 The launch retains all 64 work-items, both 64-element input arrays and the
 complete 2048-element output allocation. Each work-item writes columns 0–20 of

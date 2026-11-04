@@ -18,7 +18,7 @@ pub(crate) struct LaunchArgs {
         value_name = "FILE",
         conflicts_with_all = ["block", "grid", "workgroup_id", "early_readiness", "early_memory_conflicts", "arrays", "params", "globals", "dyn_shared", "shared_allocations"]
     )]
-    config: Option<PathBuf>,
+    pub(crate) config: Option<PathBuf>,
 
     /// Block dimensions, e.g. "128" or "32,4,1"
     #[arg(short, long, default_value = "1")]
@@ -35,12 +35,12 @@ pub(crate) struct LaunchArgs {
     /// Stop at the first independently certified gfx1250 scalar-readiness finding.
     /// Default runs retain complete traces. This option never enables early acceptance.
     #[arg(long)]
-    early_readiness: bool,
+    pub(crate) early_readiness: bool,
 
     /// Stop at the first independently certified same-instruction gfx950/gfx1250
     /// memory conflict. Default retains complete traces; never accepts early.
     #[arg(long)]
-    early_memory_conflicts: bool,
+    pub(crate) early_memory_conflicts: bool,
 
     /// Global array: "name:base:elem_width:len:kind" where kind is
     /// in|out|inout|index (e.g. "in:0x10000:4:128:in"). Repeatable.

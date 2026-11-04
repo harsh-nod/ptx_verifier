@@ -62,7 +62,7 @@ impl std::error::Error for LeanExtractionError {}
 
 impl KernelRun {
     /// Extract a Lean module after every available graph check passes. Interpreters that
-    /// record no graph (AMD and NKI) can extract, but establish no race-freedom claim.
+    /// record no graph (experimental AMD and NKI) can extract, but establish no race-freedom claim.
     /// The resulting propositions remain proof obligations, not equivalence proofs.
     pub fn extract_lean(
         &self,

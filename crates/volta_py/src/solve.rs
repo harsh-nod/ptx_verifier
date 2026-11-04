@@ -17,8 +17,8 @@ use crate::error::{VoltaError, frontend_error_to_py, other_error_to_py, spec_par
 
 #[pyclass(name = "SolveResult")]
 pub struct SolveResultPy {
-    /// The interpreter the file's extension chose: `"NVIDIA PTX"`, `"AMD gfx950"` or
-    /// `"AWS Trainium NKI"`.
+    /// The explicit backend (for example `"native AMD gfx1250"`), or the
+    /// extension-selected PTX, experimental AMD gfx950 or Trainium interpreter.
     #[pyo3(get)]
     pub isa: String,
     /// `[(array_name, [(index, pretty_printed_expr), ...]), ...]`; empty when the run wrote none.

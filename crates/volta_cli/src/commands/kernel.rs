@@ -237,11 +237,11 @@ fn cmd_run(
     };
     let exec_secs = start.elapsed().as_secs_f64();
     println!("  time: {:.3}s", exec_secs);
-    if let Some(native) = &run.native {
-        if print_native_certified_rejection("kernel", native) {
-            log.record(&format!("{command}: certified rejected-prefix finding"));
-            return ExitCode::FAILURE;
-        }
+    if let Some(native) = &run.native
+        && print_native_certified_rejection("kernel", native)
+    {
+        log.record(&format!("{command}: certified rejected-prefix finding"));
+        return ExitCode::FAILURE;
     }
     print_outputs(&run.outputs, args.print_outputs);
     match &run.graph {

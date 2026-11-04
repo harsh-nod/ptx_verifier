@@ -603,7 +603,7 @@
     },
     {
       "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
-      "sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
+      "sha256": "79d574e1a99a53515a9c7a4ca8292b9470804d48fac582d030eb566f8b03e46c"
     },
     {
       "path": "crates/volta_pipeline/tests/accepted_tests.rs",
@@ -4573,7 +4573,9 @@
       "manifest": "tests/gfx1250/portable-graph/feature-mappings.json",
       "mapping_kind": "native_assertion",
       "tests": [
-        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_copies_require_an_explicit_unambiguous_default_scheduling_premise",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_counter_and_captured_source_contract_cannot_be_forged",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::only_async_completion_orders_the_complete_memory_to_memory_transfer",
         "crates/volta_graph_check/tests/gfx1250_tests.rs::tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
         "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::same_actor_and_cross_wave_reads_require_actual_copy_completion"
       ]
@@ -4584,7 +4586,9 @@
       "manifest": "tests/gfx1250/portable-graph/feature-mappings.json",
       "mapping_kind": "native_assertion",
       "tests": [
-        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_copies_require_an_explicit_unambiguous_default_scheduling_premise",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_counter_and_captured_source_contract_cannot_be_forged",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::only_async_completion_orders_the_complete_memory_to_memory_transfer",
         "crates/volta_graph_check/tests/gfx1250_tests.rs::tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
         "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::same_actor_and_cross_wave_reads_require_actual_copy_completion"
       ]
@@ -4605,7 +4609,9 @@
       "manifest": "tests/gfx1250/portable-graph/feature-mappings.json",
       "mapping_kind": "native_assertion",
       "tests": [
-        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_copies_require_an_explicit_unambiguous_default_scheduling_premise",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_counter_and_captured_source_contract_cannot_be_forged",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::only_async_completion_orders_the_complete_memory_to_memory_transfer",
         "crates/volta_graph_check/tests/gfx1250_tests.rs::tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
         "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::same_actor_and_cross_wave_reads_require_actual_copy_completion"
       ]
@@ -4616,7 +4622,9 @@
       "manifest": "tests/gfx1250/portable-graph/feature-mappings.json",
       "mapping_kind": "native_assertion",
       "tests": [
-        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_copies_require_an_explicit_unambiguous_default_scheduling_premise",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_counter_and_captured_source_contract_cannot_be_forged",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::only_async_completion_orders_the_complete_memory_to_memory_transfer",
         "crates/volta_graph_check/tests/gfx1250_tests.rs::tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
         "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::completed_global_source_read_precedes_later_cross_wave_overwrite"
       ]
@@ -4645,7 +4653,9 @@
       "manifest": "tests/gfx1250/portable-graph/feature-mappings.json",
       "mapping_kind": "native_assertion",
       "tests": [
-        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_copies_require_an_explicit_unambiguous_default_scheduling_premise",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_counter_and_captured_source_contract_cannot_be_forged",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::only_async_completion_orders_the_complete_memory_to_memory_transfer",
         "crates/volta_graph_check/tests/gfx1250_tests.rs::tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
         "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::same_actor_and_cross_wave_reads_require_actual_copy_completion"
       ]
@@ -4656,7 +4666,9 @@
       "manifest": "tests/gfx1250/portable-graph/feature-mappings.json",
       "mapping_kind": "native_assertion",
       "tests": [
-        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_data_and_lds_completion_require_their_own_waits_before_buffer_reuse",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_copies_require_an_explicit_unambiguous_default_scheduling_premise",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::async_counter_and_captured_source_contract_cannot_be_forged",
+        "crates/volta_graph_check/tests/gfx1250_tests.rs::only_async_completion_orders_the_complete_memory_to_memory_transfer",
         "crates/volta_graph_check/tests/gfx1250_tests.rs::tensor_buffer_borrow_and_completion_are_separate_from_other_wait_classes",
         "crates/volta_pipeline/tests/gfx1250_async_memory_tests.rs::destination_reuse_and_source_reuse_wait_for_their_actual_memory_borrows"
       ]
