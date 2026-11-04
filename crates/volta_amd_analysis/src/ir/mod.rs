@@ -622,12 +622,11 @@ pub enum LoweredInstr {
         src1: CndMaskSrc,
         mask: LaneMask,
     },
-    /// Two f32 additions with a broadcast inline constant. The supported selector
-    /// profile is default op_sel:[0,0], op_sel_hi:[1,0], without other modifiers.
+    /// Add two f32 components; lowering resolves each source's word selectors.
     PackedAddF32 {
         dst: [Vgpr; 2],
-        src: [Vgpr; 2],
-        rhs: u32,
+        src0: [Vop3Src; 2],
+        src1: [Vop3Src; 2],
     },
     /// `dst = src0 * src1 + src2` over unsigned 64-bit words, with the u32 sources and the
     /// carry out of 64 bits in each lane's bit of `carry`.

@@ -318,17 +318,7 @@ fn lower_instruction(
             src1: cndmask_src(src1).ok_or("expected a VGPR or an inline constant second source")?,
             mask: lane_mask(mask).ok_or("expected vcc or an aligned SGPR pair as the mask")?,
         }),
-        ("v_pk_add_f32", [dst, src, rhs, Operand::OpSelHi([true, false])]) => {
-            let Some(Vop3Src::Inline(rhs)) = vop3_src(rhs) else {
-                return Err("expected a broadcast inline constant second source");
-            };
-            Ok(PackedAddF32 {
-                dst: vgprs(dst).ok_or("expected an even-aligned destination VGPR pair")?,
-                src: vgprs(src).ok_or("expected an even-aligned source VGPR pair")?,
-                rhs,
-            })
-        }
-        ("v_pk_add_f32", _) => Err("expected VGPR pairs, an inline constant and op_sel_hi:[1,0]"),
+        ("v_pk_add_f32", operands) => lower_packed_add(operands),
         ("v_mad_u64_u32", [dst, carry, src0, src1, src2]) => Ok(MadU64U32 {
             dst: vgprs(dst).ok_or("expected an even-aligned VGPR destination pair")?,
             carry: sgprs(carry).ok_or("expected an aligned SGPR carry pair")?,
@@ -600,6 +590,28 @@ fn lower_cmp_e64(op: ir::CmpOp, operands: &[Operand]) -> Result<LoweredInstr, &'
             .ok_or("expected a VGPR, an SGPR or an inline constant first source")?,
         src1: vop3_src(src1)
             .ok_or("expected a VGPR, an SGPR or an inline constant second source")?,
+    })
+}
+
+/// Packed f32 sources occupy two aligned dwords (CDNA4 §6.7). The low result uses
+/// each source's first word; op_sel_hi selects the word for the high result.
+fn lower_packed_add(operands: &[Operand]) -> Result<LoweredInstr, &'static str> {
+    let [dst, src0, src1, Operand::OpSelHi(high)] = operands else {
+        return Err("expected a destination pair, two sources and explicit op_sel_hi");
+    };
+    let source = |operand: &Operand, high: bool| {
+        if let Some(regs) = vgprs::<2>(operand) {
+            return Ok([regs[0], regs[usize::from(high)]].map(Vop3Src::Vgpr));
+        }
+        match vop3_src(operand) {
+            Some(src @ Vop3Src::Inline(_)) if !high => Ok([src; 2]),
+            _ => Err("expected an even-aligned VGPR pair or a low-word inline constant"),
+        }
+    };
+    Ok(LoweredInstr::PackedAddF32 {
+        dst: vgprs(dst).ok_or("expected an even-aligned VGPR destination pair")?,
+        src0: source(src0, high[0])?,
+        src1: source(src1, high[1])?,
     })
 }
 
