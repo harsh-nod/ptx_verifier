@@ -77,8 +77,9 @@ ABI bytes, LDS layouts and supported certified findings.
 and output rendering for PTX suites. Successful runs require `Verified` and
 compare every rendered output against the adjacent `.out` file. Race and
 deadlock controls assert typed witnesses. `false_positive_tests.rs` contains
-regressions for aligned-barrier loop visits, including valid uniform and
-unaligned controls.
+regressions for predicated and branch-around aligned barriers, nested and
+reactivated loops, exited lanes, unsupported irreducible contexts and unaligned
+controls.
 
 Native integration suites exercise the same public dispatch with genuine
 assembly, exact output footprints, mathematical references, and CPU-only

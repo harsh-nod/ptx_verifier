@@ -2,7 +2,7 @@
 //! until they block or exit; then complete groups fire, else deadlock. It runs
 //! one candidate schedule and checks no data races itself.
 
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 use std::fmt;
 
 use id_collections::IdVec;
@@ -11,6 +11,7 @@ use crate::frontend::ast::ScalarType;
 
 use crate::config::{AnalysisConfig, ParamValue};
 use crate::eval::async_bulk::{BulkStore, complete_bulk_groups};
+use crate::eval::barrier_flow::{BarrierContext, BarrierFlow, BarrierVisit};
 use crate::eval::cluster_launch_control::ObservedDecline;
 use crate::eval::cp_async::PendingCopy;
 use crate::eval::error::{EvalError, EvalResult};
@@ -75,14 +76,14 @@ impl fmt::Display for BarrierArrivals {
     }
 }
 
-/// A thread's arrival at a named barrier, including the visit to its instruction. Predicate-
-/// skipped visits count too, so aligned arrivals from different loop iterations cannot merge.
+/// A thread's arrival at a named barrier, with its exact enclosing-loop iteration identity.
+/// Both predication and branches around the barrier preserve that identity.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(in crate::eval) struct ArrivedThread {
     pub(in crate::eval) thread: ThreadId,
     pub(in crate::eval) pc: InstrId,
     pub(in crate::eval) alignment: BarrierAlignment,
-    pub(in crate::eval) visit: u64,
+    pub(in crate::eval) visit: Option<BarrierVisit>,
 }
 
 /// One named barrier's pending `bar.arrive` arrivals since it last fired, with
@@ -149,7 +150,7 @@ pub(in crate::eval) enum Status {
         id: u32,
         arrivals: BarrierArrivals,
         alignment: BarrierAlignment,
-        visit: u64,
+        visit: Option<BarrierVisit>,
     },
     /// Blocked at a warp-cooperative instruction at the current pc.
     /// `mask` is the participating-lane mask within the thread's warp.
@@ -171,8 +172,7 @@ pub(in crate::eval) struct ThreadState {
     pub pc: InstrId,
     pub regs: RegFile,
     pub status: Status,
-    /// Visits to aligned named-barrier PCs, counted before evaluating their predicates.
-    barrier_visits: HashMap<InstrId, u64>,
+    barrier_context: BarrierContext,
     /// `cp.async` copies issued since the last `commit_group`.
     uncommitted: Vec<PendingCopy>,
     /// Committed async-copy groups, oldest first; `wait_group`/`wait_all`
@@ -222,6 +222,7 @@ pub struct Interpreter<'p> {
     pub(in crate::eval) program: &'p LoweredProgram,
     pub(in crate::eval) arena: ExprArena,
     config: AnalysisConfig,
+    barrier_flow: BarrierFlow,
     pub(in crate::eval) n_threads: u32,
     /// Shared `Undefined` node returned for reads of never-written
     /// registers (see `read_reg`).
@@ -265,6 +266,7 @@ impl<'p> Interpreter<'p> {
             .map_err(|message| EvalError::Config { message })?;
         let n_threads = config.num_threads();
 
+        let barrier_flow = BarrierFlow::new(program)?;
         let mut arena = ExprArena::new();
         let undefined = arena.undefined();
 
@@ -435,7 +437,7 @@ impl<'p> Interpreter<'p> {
                     pc: program.entry_pc,
                     regs: RegFile::new(&counts),
                     status: Status::Ready,
-                    barrier_visits: HashMap::new(),
+                    barrier_context: BarrierContext::default(),
                     uncommitted: Vec::new(),
                     groups: VecDeque::new(),
                     bulk_uncommitted: Vec::new(),
@@ -451,6 +453,7 @@ impl<'p> Interpreter<'p> {
             program,
             arena,
             config,
+            barrier_flow,
             n_threads,
             undefined,
             params,
@@ -673,6 +676,8 @@ impl<'p> Interpreter<'p> {
             });
         }
 
+        self.barrier_flow
+            .advance(&mut self.threads[t].barrier_context, pc)?;
         let barrier_visit = match &instr {
             LoweredInstr::BarSync {
                 alignment: BarrierAlignment::Aligned,
@@ -681,12 +686,8 @@ impl<'p> Interpreter<'p> {
             | LoweredInstr::BarArrive {
                 alignment: BarrierAlignment::Aligned,
                 ..
-            } => {
-                let visit = self.threads[t].barrier_visits.entry(pc).or_default();
-                *visit += 1;
-                *visit
-            }
-            _ => 0,
+            } => Some(self.barrier_flow.visit(&self.threads[t].barrier_context)),
+            _ => None,
         };
 
         // Predicate guard: must be concrete (structured-CTA).
