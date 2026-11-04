@@ -211,10 +211,10 @@ fn validate_request(arrays: &[String], claim: &Claim, namespace: &str) -> Result
         return Err(LeanError::NoArrays);
     }
 
-    if let Claim::Within(tolerance) = claim {
-        if *tolerance < 0 {
-            return Err(LeanError::NegativeTolerance);
-        }
+    if let Claim::Within(tolerance) = claim
+        && *tolerance < 0
+    {
+        return Err(LeanError::NegativeTolerance);
     }
 
     if namespace.split('.').any(|part| !is_plain_identifier(part)) {

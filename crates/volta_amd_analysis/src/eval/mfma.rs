@@ -55,8 +55,8 @@ pub(super) fn execute_mfma_16x16x4_f32(
     // Compute D as a logical 16x16 matrix.
     let mut d = [[c[0][0]; N]; N];
 
-    for i in 0..N {
-        for j in 0..N {
+    for (i, row) in d.iter_mut().enumerate() {
+        for (j, value) in row.iter_mut().enumerate() {
             let (lane, reg) = accumulator_location(i, j);
             let mut sum = c[reg][lane];
 
@@ -64,17 +64,17 @@ pub(super) fn execute_mfma_16x16x4_f32(
                 sum = arena.fma(a[operand_lane(i, k)], b[operand_lane(j, k)], sum);
             }
 
-            d[i][j] = sum;
+            *value = sum;
         }
     }
 
     // Write results back using the MFMA accumulator layout.
     let dst_regs = dst.regs();
 
-    for i in 0..N {
-        for j in 0..N {
+    for (i, row) in d.iter().enumerate() {
+        for (j, &value) in row.iter().enumerate() {
             let (lane, reg) = accumulator_location(i, j);
-            registers.write_lane_reg(lane, dst_regs[reg], d[i][j])?;
+            registers.write_lane_reg(lane, dst_regs[reg], value)?;
         }
     }
 

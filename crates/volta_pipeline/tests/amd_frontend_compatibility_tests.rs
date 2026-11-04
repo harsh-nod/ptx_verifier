@@ -67,7 +67,7 @@ fn native_operand(operand: &upstream::Operand) -> Operand {
             count: (last - first + 1).try_into().unwrap(),
             special: None,
         }),
-        upstream::Operand::Imm(value) => Operand::Integer((*value).try_into().unwrap()),
+        upstream::Operand::Imm(value) => Operand::Integer(*value),
         upstream::Operand::Wait { counter, value } => Operand::WaitCounter {
             name: match counter {
                 upstream::Counter::Vm => "vmcnt",
