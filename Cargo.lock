@@ -501,6 +501,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ryu"
+version = "1.0.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9774ba4a74de5f7b1c1451ed6cd5285a32eddb5cccb8cc655a4e50009e06477f"
+
+[[package]]
 name = "serde"
 version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -541,6 +547,19 @@ dependencies = [
  "serde",
  "serde_core",
  "zmij",
+]
+
+[[package]]
+name = "serde_yaml"
+version = "0.9.34+deprecated"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a8b1a1a2ebf674015cc02edccce75287f1a0130d394307b36743c2f5d504b47"
+dependencies = [
+ "indexmap",
+ "itoa",
+ "ryu",
+ "serde",
+ "unsafe-libyaml",
 ]
 
 [[package]]
@@ -649,6 +668,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4ac048d71ede7ee76d585517add45da530660ef4390e49b098733c6e897f254"
 
 [[package]]
+name = "unsafe-libyaml"
+version = "0.2.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
+
+[[package]]
 name = "utf8parse"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -666,6 +691,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "volta_amdgpu_analysis"
+version = "0.1.0"
+dependencies = [
+ "id_collections",
+ "log",
+ "rug",
+ "serde_yaml",
+ "volta_common",
+ "volta_equivalence",
+ "volta_expr",
+ "volta_graph",
+ "volta_graph_check",
+ "volta_spec",
+]
+
+[[package]]
 name = "volta_cli"
 version = "0.1.0"
 dependencies = [
@@ -673,6 +714,8 @@ dependencies = [
  "clap",
  "env_logger",
  "log",
+ "serde_json",
+ "volta_amdgpu_analysis",
  "volta_common",
  "volta_equivalence",
  "volta_expr",
@@ -721,6 +764,7 @@ name = "volta_graph"
 version = "0.1.0"
 dependencies = [
  "id_collections",
+ "volta_common",
  "volta_expr",
 ]
 
@@ -741,6 +785,7 @@ dependencies = [
  "rug",
  "volta_amd_analysis",
  "volta_common",
+ "volta_amdgpu_analysis",
  "volta_equivalence",
  "volta_expr",
  "volta_graph",
@@ -769,6 +814,7 @@ name = "volta_py"
 version = "0.1.0"
 dependencies = [
  "pyo3",
+ "volta_amdgpu_analysis",
  "volta_common",
  "volta_equivalence",
  "volta_expr",

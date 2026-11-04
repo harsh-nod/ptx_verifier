@@ -46,8 +46,8 @@ pub struct AnalysisResult {
     pub terminal: Terminal,
     /// Written output values; absent if execution aborted.
     pub symbolic_outputs: Option<SymbolicOutputs>,
-    /// The execution's event graph. It records no events yet and ends as the execution did,
-    /// so a completed run's graph passes every graph check vacuously.
+    /// Launch/target provenance and terminal state, without access events.
+    /// This graph does not provide a native AMD safety proof.
     pub graph: EventGraph,
 }
 
@@ -94,7 +94,14 @@ fn provenance(kernel: &LoweredKernel, launch: &WorkgroupLaunch) -> Provenance {
         block_dim: launch.workgroup_size,
         // Workgroup 0 runs alone, and no supported instruction reads the grid size.
         grid_dim: (1, 1, 1),
-        targets: vec![kernel.target.clone()],
+        workgroup_id: (0, 0, 0),
+        targets: vec![
+            kernel
+                .target
+                .strip_prefix("amdgcn-amd-amdhsa--")
+                .unwrap_or(&kernel.target)
+                .to_owned(),
+        ],
         assumptions: Vec::new(),
         instructions: Vec::new(),
     }

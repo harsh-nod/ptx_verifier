@@ -1,0 +1,81 @@
+{
+  "kernel": "_ZL17global_wrapper_1dI21shared_vec_load_storeIfEN7kittens5ducks8rt_shape8rt_shapeILi16ELi16ELi4EEENS3_8st_shape8st_16x16EfLi4ELi1ETkNS3_2gl3allENS2_2glIfLi1ELi1ELi1ELi64EJEEEJEEvT5_SC_",
+  "block": [
+    64,
+    1,
+    1
+  ],
+  "grid": [
+    1,
+    1,
+    1
+  ],
+  "workgroup_id": [
+    0,
+    0,
+    0
+  ],
+  "dynamic_shared_bytes": 80000,
+  "arrays": [
+    {
+      "name": "x",
+      "base": 65536,
+      "dtype": "f32",
+      "shape": [
+        64
+      ],
+      "kind": "in"
+    },
+    {
+      "name": "out",
+      "base": 131072,
+      "dtype": "f32",
+      "shape": [
+        64
+      ],
+      "kind": "out"
+    }
+  ],
+  "params": [
+    {
+      "bytes": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "bytes": [
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

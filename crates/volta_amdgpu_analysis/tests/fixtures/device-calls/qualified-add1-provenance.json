@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "compiler": {
+    "public_revision": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+    "version": "AMD LLVM 22.0.0git",
+    "tools": {
+      "llc": {
+        "sha256": "88b786477a6f2db121523da927bc176f84f209c2bca2ba2c9e870e2202f0f5f6"
+      },
+      "llvm-mc": {
+        "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771"
+      },
+      "llvm-readobj": {
+        "sha256": "3c07a9974453d4827db911b3849468afb3d662ec969360fd2e96f3b6df047e05"
+      },
+      "clang": {
+        "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28"
+      }
+    }
+  },
+  "files": {
+    "llvm_sha256": "48bf803d7b29599439177eac9c41a8ecf360c102f6b9e1240dc2e832276a08b8",
+    "assembly_sha256": "a9ce160c60761c9f04eedba1ad9e868a9d9d7383fde47737e7891815fcbea9d8",
+    "object_sha256": "b707a0cc8229e0dfe16c87e79004c7d2a509087ed1473d34a6275bf4c55d3a28",
+    "launch_sha256": "2a96f8fb9cacc6b39cc29d0f9d30d27027000cfa08ec0fa5b2b9c2af0b24103f",
+    "specification_sha256": "e7067b914790a5411eead2b424a48aef8a5e6150e53cdaa44e705ff7c52ab293"
+  },
+  "commands": [
+    [
+      "llc",
+      "-march=amdgcn",
+      "-mcpu=gfx950",
+      "-O=2",
+      "-filetype=asm",
+      "qualified-add1.ll",
+      "-o",
+      "qualified-add1.s"
+    ],
+    [
+      "llvm-mc",
+      "-triple=amdgcn-amd-amdhsa",
+      "-mcpu=gfx950",
+      "-filetype=obj",
+      "qualified-add1.s",
+      "-o",
+      "qualified-add1.o"
+    ]
+  ],
+  "validation": {
+    "llvm_codegen_exit_code": 0,
+    "llvm_mc_exit_code": 0,
+    "repeated_codegen_assembly_and_object_byte_identical": true
+  },
+  "attributes_on_both_functions": [
+    "amdgpu-no-dispatch-ptr",
+    "amdgpu-no-queue-ptr",
+    "amdgpu-no-dispatch-id",
+    "amdgpu-no-implicitarg-ptr"
+  ],
+  "public_references": [
+    {
+      "url": "https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/docs/AMDGPUUsage.rst#L1829-L1880",
+      "local_source_sha256": "568f332d1de011a3b57423d9530626b5327108fa6cecf453a5d5f3c994ea7401"
+    },
+    {
+      "url": "https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/lib/Target/AMDGPU/SIISelLowering.cpp#L3814-L3843",
+      "local_source_sha256": "2f6a55fa1c5d028496a5e2664b8d392778a524fb1ecc256cf8250fd74fb0c607"
+    }
+  ],
+  "launch_contract": {
+    "target": "gfx950",
+    "kernel": "qualified_leaf_add1_copy64",
+    "grid": [
+      1,
+      1,
+      1
+    ],
+    "block": [
+      64,
+      1,
+      1
+    ],
+    "selected_workgroup": [
+      0,
+      0,
+      0
+    ],
+    "input_elements": 64,
+    "output_elements": 64,
+    "element_type": "f32",
+    "kernarg_bytes": 16,
+    "pointer_offsets": {
+      "out": 0,
+      "x": 8
+    },
+    "dimensions": {
+      "N": 64
+    }
+  },
+  "source_scope": "New standalone LLVM source; complete generated assembly is unedited. Existing compiler refusal fixtures and HipKittens sources are unchanged. No device execution or physical floating-point claim."
+}

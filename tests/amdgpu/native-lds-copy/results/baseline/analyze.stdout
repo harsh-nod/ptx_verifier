@@ -1,0 +1,16 @@
+  time: 0.001s  instructions: 25  block syncs: 0  warp syncs: 0
+  no outputs: execution stopped: wave 0 lane Some(0), pc 24: opaque shared aperture cannot be used as ordinary bits
+instruction profile:
+  scalar ALU               15  ( 60.0%)
+  vector ALU                6  ( 24.0%)
+  scalar memory             2  (  8.0%)
+  vector memory             1  (  4.0%)
+  wait                      1  (  4.0%)
+kernel: graph verification
+  selected workgroup: (0, 0, 0); other workgroups and inter-workgroup conflicts are outside this result
+  AMD trace completeness (native AMD graph contract)      PASS
+  AMD wait and register readiness (target-selected counters and register dependencies) PASS
+  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS
+  AMD memory-conflict freedom (AMD completed-effect happens-before) PASS
+GRAPH VERIFICATION: UNKNOWN (no equivalence check requested)
+  the trace generator aborted, so the graph is only a prefix: wave 0 lane Some(0), pc 24: opaque shared aperture cannot be used as ordinary bits

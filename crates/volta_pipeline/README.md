@@ -1,112 +1,103 @@
 # volta_pipeline
 
-The integration point. This is the only crate that composes the analysis stage
-with its two branches and combines their results into a verdict.
+Composes kernel analysis, graph checking and mathematical equivalence checking.
+The CLI and Python bindings use this crate to select a backend and combine its
+results. Analysis produces artifacts; graph and equivalence checks consume
+those artifacts independently.
 
+```text
+source + launch configuration
+   └─ selected PTX or AMD analyzer
+        ├─ event graph ──────────────► target-selected graph checks
+        └─ symbolic outputs ────────► equivalence against a kernel or spec
+                                         │
+                         graph evidence + equivalence
+                                         └─ decide: ACCEPT / REJECT / UNKNOWN
 ```
-analysis (volta_ptx_analysis::analyze) ──► AnalysisResult { symbolic outputs, event graph, provenance }
-   ├─ equivalence branch: symbolic outputs only  ──► EquivalenceVerdict    (equivalence.rs)
-   └─ graph branch: event graph only, ten checks ──► GraphReport           (kernel.rs)
-                                    aggregation (decide) ──► ACCEPT / REJECT / UNKNOWN   (aggregate.rs)
-```
 
-The analysis stage runs neither branch. The branches share only the stage's
-artifacts and never call each other or the stage.
-`tests/architecture_tests.rs` enforces this layering.
+The analysis crates depend on neither checker. The equivalence and graph
+branches never call each other. `tests/architecture_tests.rs` checks these
+dependency boundaries.
 
-## API
+## Public interfaces
 
-- **`verify_kernel(module, kernel, config) -> KernelVerification`**
-  (`kernel.rs`): runs the analysis, then `volta_graph_check::check_graph` on its
-  graph. Returns the analysis result with the graph report.
-- **`check_equivalence(...) -> EquivalenceVerdict`** (`equivalence.rs`): runs
-  `volta_equivalence` over the two sides' symbolic outputs. A claimed
-  difference counts as a refutation only once the numeric oracle separates it
-  (`confirm_differences`); otherwise it is `Unproven`.
-- **`decide(&equivalence, &[KernelEvidence]) -> Decision`** (`aggregate.rs`):
-  - **ACCEPT** requires a complete (unsampled) equivalence proof and every
-    kernel's graph conclusion `Verified`;
-  - **REJECT** on any refutation, failed graph check, or deadlock;
-  - **UNKNOWN** otherwise (sampled check, unresolved obligations, aborted run,
-    unproven difference).
+| Interface | Responsibility |
+| --- | --- |
+| `Backend::select` | Resolve `ptx` or `amdgpu` and an optional native target. AMD defaults to gfx950; gfx942 and gfx1250 require explicit selection. |
+| `KernelModule` | Hold the parsed PTX or AMD module. Native source and selected target must agree. |
+| `verify_source_kernel` | Analyze a selected entry and run the applicable graph checks, returning common outputs, statistics, provenance and a `GraphReport`. |
+| `verify_kernel` | PTX-specific analysis and graph-check entry point. |
+| `check_equivalence` | Compare symbolic outputs. A symbolic difference needs independent numeric confirmation to count as a refutation. |
+| `decide` | Combine equivalence with each kernel's graph evidence and modeling assumptions. |
 
-  The `Decision` carries the verdict, its evidence, and the union of the
-  modeling assumptions the analyses ran under.
+`ACCEPT` requires a complete, unsampled equivalence proof and a `Verified`
+graph conclusion for every kernel. A confirmed difference, failed graph check
+or deadlock gives `REJECT`. Sampling, unresolved obligations and incomplete
+execution give `UNKNOWN` unless another result establishes rejection.
 
-## Tests
+`SourceKernelVerification` also exposes privately constructed certified-prefix
+findings: opt-in scalar readiness, same-instruction write/write conflicts and
+supported tensor LDS bounds. The pipeline
+validates each property against the exact aborted prefix before constructing its
+wrapper. These findings establish rejection only; the ordinary `GraphReport`
+stays incomplete, and no output or equivalence proof is supplied. See
+[early readiness](../../docs/early-readiness.md) and
+[tensor bounds](../../docs/tensor-bounds.md).
 
-Every PTX-driven test in the workspace lives here, end to end: each runs real
-kernels from `tests/ptx/` through `verify_kernel` and asserts on the outcome.
+Graph properties depend on the target. Consumers must use
+`GraphReport::applicable_properties()` or `summaries()` rather than treating
+the PTX property list as applicable to native AMD graphs. Expression and VC
+replay have no event graph and can establish equivalence only.
 
-- `aggregation_tests.rs`: real kernels through both branches and `decide`.
-- `architecture_tests.rs`: the stage/branch dependency boundaries.
-- `amd_equivalence_tests.rs`: compiled AMD matmul, MFMA matmul, CK GEMM, and softmax
-  against their formulas, including negative tests. It reuses
-  the AMD assembly fixtures and the equivalence crate's specifications, accounting
-  for CK's column-major B. These tests check functional equivalence under Volta's
-  arithmetic model; they do not check AMD races. `just amd` runs them.
-- the suites below, over `tests/common/`.
+## File-based solving and Lean extraction
 
-### How a test runs
+`Frontend` supplies the extension-inferred PTX, experimental AMD gfx950 and
+Trainium NKI interpreters. `analyze_source(Backend, source, kernel, launch)`
+selects PTX or the native AMD backend explicitly. Its `KernelRun` retains the
+native graph, provenance, statistics and privately constructed certified prefix
+findings. `KernelRun::decide` counts a certified finding as rejection;
+`extract_lean` refuses every rejected or incomplete checked execution.
 
-`tests/common/` is shared by every PTX-driven suite:
+`Spec` validates a mathematical specification and its complete output footprint
+before sampling. `Solver::Canonical` checks those outputs; `extract_lean`
+states all output propositions for a Lean prover. Generated propositions are
+not completed equivalence proofs.
 
-- `parse` / `parse_named` returns a `Ptx`: module, source text, file name.
-- `verify`, `analyze_only`, `check` and `run_kernel` run the pipeline with an
-  `AnalysisConfig`.
-- For kernels expected to complete, the graph conclusion must be `Verified`
-  (not merely "not rejected"). The rendered symbolic outputs must then match
-  the kernel's `.out` file byte for byte. `VOLTA_BLESS=1` rewrites the `.out`
-  files.
-- Race and deadlock tests assert on the failed check's **typed witness** (the
-  byte, the two threads, the access modes, the async op), not on message text.
-- With `VOLTA_VIZ_DIR` set, every run is recorded into that `volta_viz` store,
-  keyed `<suite>/<test>[~<n>]` (`just viz`).
+The extension-inferred experimental AMD and NKI interpreters return
+`GraphEvidence::NotRecorded`. Their mathematical verdicts and Lean statements
+supply no race-freedom evidence. The experimental AMD adapter models only
+workgroup zero of a one-group gfx950 grid, 32-bit input/output words and its
+default budget. Native-only launch options are refused. Use explicit native
+selection for target-specific graph verification, selected workgroups, by-value
+ABI bytes, LDS layouts and supported certified findings.
 
-### Suites
+## Integration tests
 
-| suite                              | what it checks |
-|------------------------------------|----------------|
-| `accepted_tests.rs`                | race-free kernels conclude `Verified` and match their `.out` |
-| `mbarrier_epoch_tests.rs`          | Algorithm 1 over mbarrier phases |
-| `mbarrier_ordering_tests.rs`       | Algorithm 2: unprotected `expect_tx` announcements |
-| `memory_conflict_tests.rs`         | Algorithm 3: unordered conflicting accesses |
-| `proxy_order_tests.rs`             | Algorithm 4: missing proxy / tensor-map fences |
-| `tensor_order_tests.rs`            | Algorithm 5: unordered Tensor Memory accesses |
-| `resource_lifetime_tests.rs`       | Algorithm 7: TMEM use after free, leaked allocation |
-| `allocation_order_tests.rs`        | unordered `tcgen05.alloc` pairs |
-| `allocation_permit_tests.rs`       | allocation after `relinquish_alloc_permit` |
-| `mbarrier_release_order_tests.rs`  | waits observing phases out of order |
-| `rejected_tests.rs`                | execution errors (`EvalError`, lowering errors) and deadlocks |
-| `graph_tests.rs`                   | the recorded event graph itself, no checker |
-| `negative_equivalence_tests.rs`    | kernel pairs differing in one detail must not be proved equivalent |
-| `false_positive_tests.rs`          | kernels Volta wrongly verifies (`ptx/false_positive/`); each fails until fixed |
-| `soundness_tests.rs`               | soundness regressions (`ptx/soundness/`) |
+`tests/common/` supplies parsing, launch configuration, execution, graph checks
+and output rendering for PTX suites. Successful runs require `Verified` and
+compare every rendered output against the adjacent `.out` file. Race and
+deadlock controls assert typed witnesses. `false_positive_tests.rs` contains
+regressions for aligned-barrier loop visits, including valid uniform and
+unaligned controls.
 
-The unknown-directive regression requires a located `InvalidDirective` naming
-the offending directive and verifies controls with that statement removed or
-replaced by a known `.pragma`. The return regression rejects `ret 123;` and
-`ret.uni 123;` specifically for expecting zero operands, while verifying their
-operand-free forms.
-The exit regressions verify plain `exit;` and require an unexpected-modifier
-error for `exit.not_a_modifier;` and a zero-operand arity error for `exit 123;`.
-The corresponding `brkpt` regressions check the same errors and verify plain `brkpt;`.
-The `trap` regressions require those validation errors before execution and check
-that plain `trap;` still produces `TrapReached` at runtime.
-The `mbarrier` count regressions require an `init` count of 0 or `2^20` and an
-`arrive` count of 0 to be rejected before any graph verdict, and the trailing
-operand regression a lowering error for an `mbarrier.arrive` with four operands.
+Native integration suites exercise the same public dispatch with genuine
+assembly, exact output footprints, mathematical references, and CPU-only
+missing-wait, publication, register-lifetime and barrier controls. The target
+corpora describe the supported forms and reproduction commands:
 
-### Kernel layout (`tests/ptx/`)
-
-`success/`, `failing/`, `execution_error/`, `negative_equivalence/`,
-`false_positive/`, `soundness/`: each `.ptx` sits next to its expected `.out`
-where one applies.
+- [gfx942](../../tests/gfx942/README.md)
+- [gfx950](../../tests/gfx950/README.md)
+- [gfx1250](../../tests/gfx1250/README.md)
 
 ```sh
-cargo test -p volta_pipeline                    # all suites
-VOLTA_BLESS=1 cargo test -p volta_pipeline      # regenerate .out files
+cargo test -p volta_pipeline
 ```
 
-The `logging` feature narrates the stages (`[analysis]`, `[graph]`,
-`[equivalence]`).
+Set `VOLTA_BLESS=1` only when intentionally updating PTX `.out` expectations.
+Set `VOLTA_VIZ_DIR` to an absolute directory to record runs for
+[`volta_viz`](../volta_viz/README.md). The `logging` feature adds stage logs.
+
+The `record_viewer_runs` example records source/launch pairs. The
+`measure_native_export` example analyzes a native source/launch pair, requires
+a completed graph-verified run, and measures viewer export sizes. These
+examples do not run code on a GPU or compare a mathematical specification.

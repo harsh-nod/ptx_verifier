@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "trust": "caller_attested",
+  "revision": "4b0e766a265390900f4450cab54398f1cb5cbf86",
+  "source_clean": true,
+  "binary_sha256": "66a32105a849a9eaa6ff0d19f33856f724807bfba5557b65c7737807f1078b1f",
+  "rust_workspace_fingerprint": {
+    "algorithm": "sha256-git-tree-v1",
+    "sha256": "da1a5ef8af6f5da5abc4b9a34e09b809500b18294cf515190a95266ca526ff7e",
+    "file_count": 1243
+  },
+  "profile": "release",
+  "features": [],
+  "default_features": true,
+  "command": [
+    "cargo",
+    "build",
+    "--release",
+    "--offline",
+    "-p",
+    "volta_cli"
+  ],
+  "build_log_sha256": "b97b34900a6122ae0f8c35ec25afb5bd868910bd74cb01d07fc60101bc8ef2b6",
+  "raw_record_sha256": "b2a2a27751be25894ac0e75fb5276c0bbd5ee243d5aaeab09bf8f783a117c95b",
+  "limit": "Caller-attested source/build association; hashes are not a cryptographic proof of compilation."
+}

@@ -1,0 +1,35 @@
+{
+  "compiler_argv": [
+    "/opt/rocm/llvm/bin/clang++",
+    "-x",
+    "hip",
+    "--offload-device-only",
+    "--offload-arch=gfx950",
+    "-O2",
+    "-std=c++17",
+    "-S",
+    "/tmp/ptx-verifier-execution-scan/native-mamba2-scan.hip",
+    "-o",
+    "/tmp/ptx-verifier-execution-scan/native-mamba2-scan.s"
+  ],
+  "compiler_exit": 0,
+  "compiler_diagnostic": "",
+  "assembler_argv": [
+    "/opt/rocm/llvm/bin/llvm-mc",
+    "--triple=amdgcn-amd-amdhsa",
+    "--mcpu=gfx950",
+    "-filetype=obj",
+    "/tmp/ptx-verifier-execution-scan/native-mamba2-scan.s",
+    "-o",
+    "/tmp/ptx-verifier-execution-scan/native-mamba2-scan.o"
+  ],
+  "assembler_exit": 0,
+  "assembler_diagnostic": "",
+  "object_sha256": "f289a7344cd37565b527db03a161ec4e6c43b2fc5f09ace85fd2b65b6c3d0810",
+  "host": "mi350-2",
+  "source_sha256": "57688795a4f995ad36bfcca827477ccab2847db54eb5baa098457ca441b9f466",
+  "assembly_sha256": "e73a3aad07ed349160d945487fc6e63e08db2f9c2b864902cfea7a44453408af",
+  "schema": 1,
+  "source": "native-mamba2-scan.hip",
+  "assembly": "native-mamba2-scan.s"
+}

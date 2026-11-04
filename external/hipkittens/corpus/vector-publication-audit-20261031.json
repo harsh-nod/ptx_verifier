@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "result": "pass",
+  "checks": 14121,
+  "errors": [],
+  "auditor_sha256": "719c778d47cb909c14d314eb745c0b006dcd918effaa50036c787ee4fdf25cf2",
+  "projection_sha256": "3be6f6a19065e50afc43e9a376a260486378d6f630bd67dc2522f7ba38126acd",
+  "publisher_sha256": "1193c67f20994055c56f4ce96dc5d4bff213d913a5428ba4e8db9c99a2eb8efb",
+  "independent_raw_audit_sha256": "bd8d5a15f5d41fa4205232d5406eb9f02583de37cb8c4641cd794048496817d5",
+  "case_count": 336,
+  "scope": "Independent stdlib recomputation of the public projection against retained original reports, launches and transcripts; no publisher imports, verifier, GPU or latency execution."
+}

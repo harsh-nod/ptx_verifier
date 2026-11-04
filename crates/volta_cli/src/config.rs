@@ -3,6 +3,7 @@
 use std::path::PathBuf;
 
 use clap::Args;
+use volta_common::config::SharedAllocation;
 use volta_ptx_analysis::{AnalysisConfig, ArrayDef, ArrayKind, LaunchFile, ParamValue};
 
 /// Launch configuration shared by `analyze`, `compare` and `verify` (flattened into each, so
@@ -15,7 +16,7 @@ pub(crate) struct LaunchArgs {
     #[arg(
         long,
         value_name = "FILE",
-        conflicts_with_all = ["block", "grid", "arrays", "params", "globals", "dyn_shared"]
+        conflicts_with_all = ["block", "grid", "workgroup_id", "early_readiness", "early_memory_conflicts", "arrays", "params", "globals", "dyn_shared", "shared_allocations"]
     )]
     config: Option<PathBuf>,
 
@@ -26,6 +27,20 @@ pub(crate) struct LaunchArgs {
     /// Grid dimensions, e.g. "64,64"
     #[arg(short, long, default_value = "1")]
     grid: String,
+
+    /// Native AMD workgroup to analyze, exactly "X,Y,Z"; other groups are outside the result.
+    #[arg(long, default_value = "0,0,0")]
+    workgroup_id: String,
+
+    /// Stop at the first independently certified gfx1250 scalar-readiness finding.
+    /// Default runs retain complete traces. This option never enables early acceptance.
+    #[arg(long)]
+    early_readiness: bool,
+
+    /// Stop at the first independently certified same-instruction gfx950/gfx1250
+    /// memory conflict. Default retains complete traces; never accepts early.
+    #[arg(long)]
+    early_memory_conflicts: bool,
 
     /// Global array: "name:base:elem_width:len:kind" where kind is
     /// in|out|inout|index (e.g. "in:0x10000:4:128:in"). Repeatable.
@@ -44,27 +59,32 @@ pub(crate) struct LaunchArgs {
     /// Dynamic (extern) shared memory size in bytes
     #[arg(long, default_value_t = 0)]
     dyn_shared: u64,
+
+    /// Native LDS source-allocation premise: "name:offset:size" in bytes.
+    /// Repeat for disjoint named regions. PTX rejects this option.
+    #[arg(long = "shared-allocation")]
+    shared_allocations: Vec<String>,
 }
 
 /// Parse "x[,y[,z]]" dimensions.
 pub(crate) fn parse_dims(s: &str) -> Result<(u32, u32, u32), String> {
-    let mut parts = s.split(',').map(|p| p.trim().parse::<u32>());
-    let x = parts
-        .next()
-        .transpose()
-        .map_err(|e| e.to_string())?
-        .unwrap_or(1);
-    let y = parts
-        .next()
-        .transpose()
-        .map_err(|e| e.to_string())?
-        .unwrap_or(1);
-    let z = parts
-        .next()
-        .transpose()
-        .map_err(|e| e.to_string())?
-        .unwrap_or(1);
-    Ok((x, y, z))
+    let mut dims = [1; 3];
+    for (axis, part) in s.split(',').enumerate() {
+        let dim = dims
+            .get_mut(axis)
+            .ok_or("expected one to three comma-separated dimensions")?;
+        *dim = part.trim().parse::<u32>().map_err(|e| e.to_string())?;
+    }
+    Ok((dims[0], dims[1], dims[2]))
+}
+
+fn parse_workgroup_id(value: &str) -> Result<(u32, u32, u32), String> {
+    let fields: Vec<_> = value.split(',').collect();
+    let [x, y, z] = fields.as_slice() else {
+        return Err("expected exactly three coordinates X,Y,Z".into());
+    };
+    let parse = |field: &str| field.trim().parse::<u32>().map_err(|e| e.to_string());
+    Ok((parse(x)?, parse(y)?, parse(z)?))
 }
 
 pub(crate) fn parse_u64_value(s: &str) -> Result<u64, String> {
@@ -159,7 +179,27 @@ fn build_config(input: &LaunchArgs) -> Result<AnalysisConfig, String> {
     let block_dim = parse_dims(&input.block).map_err(|e| format!("invalid --block: {}", e))?;
     let mut config = AnalysisConfig::new(block_dim);
     config.grid_dim = parse_dims(&input.grid).map_err(|e| format!("invalid --grid: {}", e))?;
+    config.workgroup_id = parse_workgroup_id(&input.workgroup_id)
+        .map_err(|e| format!("invalid --workgroup-id: {e}"))?;
+    config.early_readiness = input.early_readiness;
+    config.early_memory_conflicts = input.early_memory_conflicts;
     config.dynamic_shared_bytes = input.dyn_shared;
+    for value in &input.shared_allocations {
+        let fields: Vec<_> = value.split(':').collect();
+        let [name, offset, size] = fields.as_slice() else {
+            return Err(format!(
+                "invalid --shared-allocation: expected name:offset:size, got {value:?}"
+            ));
+        };
+        config.shared_allocations.push(SharedAllocation {
+            name: (*name).into(),
+            offset: parse_u64_value(offset)
+                .map_err(|e| format!("invalid --shared-allocation offset: {e}"))?,
+            size: parse_u64_value(size)
+                .map_err(|e| format!("invalid --shared-allocation size: {e}"))?,
+        });
+    }
+    volta_common::config::validate_shared_allocations(&config.shared_allocations)?;
     for a in &input.arrays {
         config
             .arrays
@@ -180,4 +220,32 @@ fn build_config(input: &LaunchArgs) -> Result<AnalysisConfig, String> {
         config.global_values.push((name.to_string(), v));
     }
     Ok(config)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn launch_dimensions_accept_one_to_three_components() {
+        for (input, expected) in [
+            ("64", (64, 1, 1)),
+            ("8,4", (8, 4, 1)),
+            (" 8 , 4 , 2 ", (8, 4, 2)),
+        ] {
+            assert_eq!(parse_dims(input), Ok(expected));
+        }
+        for input in [
+            "",
+            "1,",
+            "1,,3",
+            "-1",
+            "4294967296",
+            "1,2,3,4",
+            "1,2,3,",
+            "1,2,3,x",
+        ] {
+            assert!(parse_dims(input).is_err(), "{input:?}");
+        }
+    }
 }

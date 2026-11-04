@@ -1,0 +1,18 @@
+{
+  "scope": "New synthetic gfx942 control: same explicitly reviewed scalar inline operands and common memory profile as the earlier hand control, separately assembled for gfx942. No original-kernel port/coverage claim.",
+  "argv": [
+    "/opt/rocm/llvm/bin/llvm-mc",
+    "--triple=amdgcn-amd-amdhsa",
+    "--mcpu=gfx942",
+    "-filetype=obj",
+    "/tmp/ptx-scalar64-inline-gfx942-control-20261031/gfx942.s",
+    "-o",
+    "/tmp/ptx-scalar64-inline-gfx942-control-20261031/gfx942.o"
+  ],
+  "exit_code": 0,
+  "assembly_sha256": "8165d59d2c796f6f679657f6da07c3a51ee3a718e0dbce69e304b11e6059dfa3",
+  "tool_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "object_sha256": "dfe154b2bf1248dda8982dccb5586aeaf1bb2e67a80deb0547baee22b0b007e7"
+}

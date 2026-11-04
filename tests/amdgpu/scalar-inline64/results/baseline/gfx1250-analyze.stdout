@@ -1,0 +1,19 @@
+  time: 0.000s  instructions: 13  block syncs: 0  warp syncs: 0
+  output 'out': 2 element(s) written
+    out[0] = 1065353216
+    out[1] = 0
+instruction profile:
+  vector ALU                5  ( 38.5%)
+  wait                      3  ( 23.1%)
+  vector memory             2  ( 15.4%)
+  control                   1  (  7.7%)
+  scalar ALU                1  (  7.7%)
+  scalar memory             1  (  7.7%)
+Wrote output expressions to /tmp/ptx-scalar64-inline-v3-baseline-results-20261031/gfx1250.vexpr
+kernel: graph verification
+  selected workgroup: (0, 0, 0); other workgroups and inter-workgroup conflicts are outside this result
+  AMD trace completeness (native AMD graph contract)      PASS
+  AMD wait and register readiness (target-selected counters and register dependencies) PASS
+  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS
+  AMD memory-conflict freedom (AMD completed-effect happens-before) PASS
+GRAPH VERIFICATION: VERIFIED (no equivalence check requested)

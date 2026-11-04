@@ -3,14 +3,31 @@
 use std::path::Path;
 use std::process::ExitCode;
 
+use crate::source::load_module;
 use volta_common::file_cache::FileCache;
 use volta_common::report::{Report, locate_path, report_error};
+use volta_pipeline::{Backend, KernelModule};
 use volta_ptx_analysis::frontend::ascii::{AsAscii, AsciiChar};
 use volta_ptx_analysis::frontend::ast::{Module, TopLevelItem};
 use volta_ptx_analysis::frontend::parse;
 
 /// Parse a PTX file and report any errors
-pub(crate) fn cmd_parse(file: &Path) -> ExitCode {
+pub(crate) fn cmd_parse(file: &Path, backend: Backend) -> ExitCode {
+    if backend != Backend::Ptx {
+        return match load_module(file, backend) {
+            Ok((KernelModule::Amdgpu(module), _)) => {
+                println!(
+                    "Parsed successfully: {} ({})",
+                    file.display(),
+                    module.target.as_deref().unwrap_or("gfx950")
+                );
+                println!("  Entries (kernels): {}", module.kernels.len());
+                ExitCode::SUCCESS
+            }
+            Ok(_) => unreachable!(),
+            Err(code) => code,
+        };
+    }
     let mut files = FileCache::new();
 
     let contents = match files.read(file) {

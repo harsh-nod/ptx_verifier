@@ -1,4 +1,4 @@
-//! A deterministic text dump of an [`EventGraph`] (`volta-graph 1`): everything is printed in
+//! A deterministic diagnostic dump of an [`EventGraph`] (v2 with native AMD events, otherwise v1): printed in
 //! id order, so two equal graphs dump byte-identically and diffs show trace changes.
 
 use std::fmt::{self, Write};
@@ -17,10 +17,14 @@ impl EventGraph {
     /// Write the dump to `out`.
     pub fn write_dump(&self, out: &mut impl Write) -> fmt::Result {
         let p = &self.provenance;
-        writeln!(out, "volta-graph 1")?;
         writeln!(
             out,
-            "kernel {:?} block {},{},{} grid {},{},{} targets {}",
+            "volta-graph {}",
+            if self.amd_events.is_empty() { 1 } else { 2 }
+        )?;
+        writeln!(
+            out,
+            "kernel {:?} block {},{},{} grid {},{},{} workgroup {},{},{} targets {}",
             p.kernel,
             p.block_dim.0,
             p.block_dim.1,
@@ -28,10 +32,20 @@ impl EventGraph {
             p.grid_dim.0,
             p.grid_dim.1,
             p.grid_dim.2,
+            p.workgroup_id.0,
+            p.workgroup_id.1,
+            p.workgroup_id.2,
             p.targets.join(",")
         )?;
         for a in &p.assumptions {
             writeln!(out, "assume {:?}", a)?;
+        }
+        for region in &self.shared_allocation_layout {
+            writeln!(
+                out,
+                "shared-allocation {:?} offset={:#x} size={}",
+                region.name, region.offset, region.size
+            )?;
         }
         for (o, obj) in self.objects.iter() {
             write!(out, "object o{} ", o.0)?;
@@ -192,6 +206,10 @@ impl EventGraph {
                 None => write!(out, " - ")?,
             }
             match ev.kind {
+                EventKind::Amd(index) => match self.amd_event(index) {
+                    Some(a) => writeln!(out, "amd wave={} {:?}", a.wave, a.kind)?,
+                    None => writeln!(out, "amd invalid-record={index}")?,
+                },
                 EventKind::Access(acc) => {
                     let a = &self.accesses[acc];
                     write!(
@@ -288,6 +306,17 @@ impl EventGraph {
                 EventKind::Exit => writeln!(out, "exit")?,
             }
         }
+        for a in &self.amd_memory_effects {
+            write!(
+                out,
+                "amd-memory issue=e{} effect=e{}",
+                a.issue.0, a.effect.0
+            )?;
+            if a.scope != crate::AmdMemoryScope::Unspecified {
+                write!(out, " scope={:?}", a.scope)?;
+            }
+            writeln!(out)?;
+        }
         match &self.terminal {
             Terminal::Completed => writeln!(out, "terminal completed")?,
             Terminal::Stuck { blocked } => {
@@ -295,6 +324,23 @@ impl EventGraph {
                 for b in blocked {
                     write!(out, "  blocked t{} pc{} ", b.thread.0, b.pc.0)?;
                     match &b.on {
+                        BlockedOn::AmdNamedBarrier {
+                            object,
+                            phase,
+                            expected,
+                            arrived,
+                        } => writeln!(
+                            out,
+                            "amd-named-barrier {} incarnation {} phase {phase} arrived={arrived} expected={expected}",
+                            object.id, object.incarnation
+                        )?,
+                        BlockedOn::AmdBarrier {
+                            generation,
+                            missing_waves,
+                        } => writeln!(
+                            out,
+                            "amd-barrier #{generation} missing-waves={missing_waves:?}"
+                        )?,
                         BlockedOn::Barrier { generation } => {
                             writeln!(out, "barrier g{}", generation.0)?
                         }

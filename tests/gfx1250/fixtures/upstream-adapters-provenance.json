@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "target": "gfx1250",
+  "claim": "Genuine default-O2 compilation, assembly, and linking only. Hardware evidence is separate.",
+  "baseline_reference_files": [
+    "crates/volta_pipeline/tests/ptx/success/mma_bf16.ptx",
+    "crates/volta_pipeline/tests/ptx/success/mma_bf16.out",
+    "crates/volta_pipeline/tests/ptx/success/mul_hi_u64_concrete.ptx",
+    "crates/volta_pipeline/tests/ptx/success/mul_hi_u64_concrete.out"
+  ],
+  "tools": [
+    {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.0/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.0/lib/llvm/bin/clang++.cfg\n"
+    },
+    {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n"
+    }
+  ],
+  "commands": [
+    [
+      "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "-x",
+      "hip",
+      "--offload-device-only",
+      "--offload-arch=gfx1250",
+      "--rocm-path=/opt/rocm-7.2.0",
+      "-O2",
+      "-std=c++17",
+      "-S",
+      "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/fixtures/native-upstream-adapters.hip",
+      "-o",
+      "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/fixtures/native-upstream-adapters.s"
+    ],
+    [
+      "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "--triple=amdgcn-amd-amdhsa",
+      "--mcpu=gfx1250",
+      "-filetype=obj",
+      "/home/harsh/ptx-verifier-gfx1250-full-execution/tests/gfx1250/fixtures/native-upstream-adapters.s",
+      "-o",
+      "/tmp/ptx-gfx1250-upstream-adapters.o"
+    ],
+    [
+      "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "-shared",
+      "/tmp/ptx-gfx1250-upstream-adapters.o",
+      "-o",
+      "/tmp/ptx-gfx1250-upstream-adapters.hsaco"
+    ]
+  ],
+  "source": "native-upstream-adapters.hip",
+  "source_sha256": "aca7e96f95e6de1215777eb68ef9480e3f2ef72e1face1ad6b59e39f96bef1ec",
+  "assembly": "native-upstream-adapters.s",
+  "assembly_sha256": "e8d9c41ad3539dbaf12698014265e5b6c1783efd9cecbea2f9b0fb42fa4fd46f",
+  "object_sha256": "4b583114ede28614c41aa3f75199c2edf2831096f622734603ed045724f1cdf2",
+  "code_object_sha256": "2ce1c9cc186c52f636d531eab21cadaa0c902182b74b9e4c60818744d771d771",
+  "geometry": {
+    "bf16_m16n8k16_fragment_adapter": {
+      "block": [
+        32,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "logical_mnk": [
+        16,
+        8,
+        16
+      ],
+      "native_mnk": [
+        16,
+        16,
+        32
+      ],
+      "native_outputs": 256,
+      "original_outputs": 4,
+      "original_output_coordinates": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          8,
+          1
+        ]
+      ],
+      "types": {
+        "a": "bf16",
+        "b": "bf16",
+        "native_full": "f32",
+        "original_four": "f32"
+      }
+    },
+    "high64_division_projection": {
+      "block": [
+        1,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "params": [
+        "u64:10",
+        "u64:12297829382473034411",
+        "ptr:out"
+      ],
+      "output_type": "u32",
+      "outputs": 1,
+      "expected": [
+        3
+      ]
+    }
+  }
+}

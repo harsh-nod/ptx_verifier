@@ -1,287 +1,335 @@
-<p align="center">
-  <img src="volta-logo.png" alt="Volta architecture: NVIDIA PTX, AMD Assembly, and AWS Trainium NKI frontends feed a shared Race Detector &amp; Extractor, which branches to independent Fast Canonical Solver and Powerful Lean Solver backends." width="60%">
-</p>
-
-<h1 align="center">Prove race freedom. Extract Lean expressions.</h1>
+<h1 align="center">GPU Kernel Verifier</h1>
 
 <p align="center">
-  <strong>Multi-ISA · Multi-Solver · Assembly to Lean</strong><br>
-  Analyze accelerator kernels automatically. Choose the Fast Canonical Solver or the Powerful Lean Solver.
+  <img src="gpu-kernel-verifier.png" alt="GPU Kernel Verifier: NVIDIA PTX and AMD assembly" width="560">
 </p>
 
-<p align="center">
-  <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-2024-f97316?style=flat-square" alt="Rust edition 2024"></a>
-  <a href="#sigmoid-to-lean"><img src="https://img.shields.io/badge/Lean-4-2563eb?style=flat-square" alt="Lean 4"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-65a30d?style=flat-square" alt="MIT license"></a>
-</p>
+GPU Kernel Verifier analyzes GPU assembly for data races and deadlocks, and
+compares a kernel's outputs with another kernel or a mathematical specification.
+It supports NVIDIA PTX and selected native AMD instructions for gfx942, gfx950
+and gfx1250. This experimental fork of [Volta](https://github.com/willtunnels/volta)
+keeps the `volta` command and Python module names.
 
-<p align="center">
-  <a href="#quick-start">Python quick start</a> ·
-  <a href="#sigmoid-to-lean">Sigmoid to Lean</a> ·
-  <a href="#frontends">Frontends</a>
-</p>
+The engine symbolically executes a concrete launch configuration. It produces
+output expressions and an event graph, then checks mathematical equivalence and
+target-specific synchronization independently. Floating arithmetic uses a
+mathematical-real model. Addresses, control flow and synchronization parameters
+must resolve from concrete configuration and thread indices.
 
----
+> This is a best-effort bug-finding tool, not a sound formal verifier. Results
+> depend on supported instructions and the reported modeling assumptions. A
+> successful result does not guarantee hardware correctness. Analysis covers
+> one selected native workgroup (zero by default), not the whole grid or
+> physical floating-point rounding. PTX currently analyzes only block zero.
 
-> [!WARNING]
-> **Under active development.** We are actively building Volta, and not everything is ready yet. Features, instruction support, and solver workflows may change.
+## Build and run
 
-## Quick start
+Use a Rust toolchain that supports edition 2024 and a C build toolchain for the
+rational-arithmetic dependency. CPU analysis does not require a GPU or ROCm.
 
-With Rust and [uv](https://docs.astral.sh/uv/) installed, run from the repository root. No accelerator is needed.
-
-Each example checks `out[i] = a[i] + b[i]` for one kernel and asserts its expected verdict and race-check status.
-
-### NVIDIA PTX
-
-This [PTX example](examples/quickstart/verify_add_ptx.py) checks 128 elements with 128 threads.
-
-```bash
-uv run --package volta python examples/quickstart/verify_add_ptx.py
+```sh
+cargo build --release -p volta_cli
+target/release/volta --help
 ```
 
-```python
-import volta
+This example checks the checked-in native copy kernel and all 65 output elements:
 
-spec = "dim N; array a[N]; array b[N]; array out[N]; out[i] = a[i] + b[i];"
-size = 128
-config = volta.Config(block=(size, 1, 1))
-
-for name, base, kind in (
-    ("a", 0x10000, volta.ArrayKind.Input),
-    ("b", 0x20000, volta.ArrayKind.Input),
-    ("out", 0x30000, volta.ArrayKind.Output),
-):
-    config.add_array(volta.ArrayDef(name, base, 4, size, kind))
-    config.add_param(volta.Param.array_ptr(name))
-
-result = volta.solve("examples/quickstart/add.ptx", config, spec=spec, dims={"N": size})
-
-assert result.verdict == "ACCEPT", result.evidence
-assert result.race_verified is True
-
-print(f"{result.isa}: {result.verdict}; race checks: {result.race_verified}")
+```sh
+target/release/volta verify \
+  tests/gfx1250/fixtures/native-copy-add.s tests/gfx1250/specs/copy.spec \
+  --backend amdgpu --target gfx1250 --kernel copy --block 65 --dim N=65 \
+  --array x:0x10000:4:65:in --array out:0x30000:4:65:out \
+  --param ptr:x --param ptr:out --param int:65
 ```
 
-Expected output:
+Replace `verify SOURCE SPEC` with `analyze SOURCE` and omit `--dim N=65` to
+check synchronization without requesting mathematical equivalence. Use
+`parse SOURCE` to check syntax. PTX is the default backend; native AMD source
+requires `--backend amdgpu`, with an explicit matching `--target` recommended.
 
-```text
-NVIDIA PTX: ACCEPT; race checks: True
-```
+| Operation | What it checks |
+| --- | --- |
+| `parse` | Source syntax and target-specific frontend validation |
+| `analyze` | One candidate execution and its graph properties |
+| `verify` | Graph properties and complete outputs against a specification |
+| `compare` | Graph properties and output equivalence between two kernels |
+| `solve` | Canonical output checking through an extension-selected or explicitly selected frontend |
+| `extract lean` | Export mathematical proof obligations after the applicable graph gates |
+| `viz` | Interactive inspection of recorded event graphs |
 
-### AMD gfx950
+Ordinary `analyze` reports `VERIFIED`, `REJECTED` or `UNKNOWN`. `verify` and kernel-to-kernel
+`compare` report `ACCEPT`, `REJECT` or `UNKNOWN`. Exit codes are 0, 1 and 2,
+respectively. Sampling that omits outputs, incomplete execution and unsupported
+semantics cannot produce full acceptance. Expression or VC replay checks
+equivalence only; those artifacts do not contain a safety graph.
 
-This [AMD example](examples/quickstart/verify_add_amd.py) checks 64 elements with one wave of 64 work-items.
+Opt-in [early readiness rejection](docs/early-readiness.md) can stop native
+gfx1250 execution at its first certified scalar-read hazard. Native source
+commands then print `VERDICT: REJECT` and exit 1, with an incomplete prefix and
+no output or equivalence result. With this option disabled, execution uses its
+normal instruction, bounds and budget checks.
 
-```bash
-uv run --package volta python examples/quickstart/verify_add_amd.py
-```
+Opt-in [early memory-conflict rejection](docs/early-memory-conflicts.md) handles
+overlapping ordinary writes by distinct active lanes of one gfx950/gfx1250
+memory instruction. Independent prefix replay must reproduce the exact conflict
+before stopping. It reports a rejection without complete outputs or equivalence;
+default execution retains its full diagnostic path.
 
-```python
-import volta
+Supported gfx1250 tensor transfers also receive a separate
+[LDS bounds check](docs/tensor-bounds.md). A certified out-of-bounds attempt
+prints `VERDICT: REJECT` and exits 1 without issuing the transfer or producing
+outputs; its ordinary incomplete graph remains `UNKNOWN`.
 
-spec = "dim N; array a[N]; array b[N]; array out[N]; out[i] = a[i] + b[i];"
-size = 64
-config = volta.Config(block=(size, 1, 1))
+The [usage guide](docs/usage.md) explains launch files, specifications, kernel
+comparison, artifacts, logging and Python setup.
 
-for name, base, kind in (
-    ("a", 0x10000, volta.ArrayKind.Input),
-    ("b", 0x20000, volta.ArrayKind.Input),
-    ("out", 0x30000, volta.ArrayKind.Output),
-):
-    config.add_array(volta.ArrayDef(name, base, 4, size, kind))
-    config.add_param(volta.Param.array_ptr(name))
+Upstream's `solve SOURCE --spec SPEC` and `extract lean SOURCE --spec SPEC`
+workflows are also available. Without `--backend`, they select a frontend from
+`.ptx`, `.s` or `.py`. Extension-selected `.s` uses the upstream experimental
+gfx950 output interpreter; it and Trainium NKI currently record no race graph.
+Their mathematical results do not establish native graph safety.
 
-result = volta.solve(
-    "crates/volta_amd_analysis/tests/fixtures/add.s",
-    config,
-    spec=spec,
-    dims={"N": size},
-)
-assert result.verdict == "ACCEPT", result.evidence
-assert result.race_verified is None
+For target-selected native checking, use `--backend amdgpu --target gfx942`,
+`gfx950` or `gfx1250` with these commands. That explicit route uses the same
+native execution, complete-output and certified rejection gates as `verify`.
+`--target` alone is rejected. Lean extraction writes proof obligations; a
+successful export does not prove them, and rejected or incomplete native
+executions cannot produce a successful extraction.
 
-print(f"{result.isa}: {result.verdict}; race checks: {result.race_verified}")
-```
+The [quickstart examples](examples/quickstart) show the extension-selected
+Python APIs; [Lean examples](examples/lean) demonstrate extraction. A Python
+configuration with an explicit backend selects that backend rather than
+inferring it from the filename.
 
-Expected output:
+## Supported targets and scope
 
-```text
-AMD gfx950: ACCEPT; race checks: None
-```
-
-### AWS Trainium NKI
-
-This [Trainium example](examples/quickstart/verify_add_nki.py) checks a 16×16 tensor. The kernel declares its tensor shapes, so no launch configuration is needed.
-
-```bash
-uv run --package volta python examples/quickstart/verify_add_nki.py
-```
-
-```python
-import volta
-
-spec = "dim N; array a[N]; array b[N]; array out[N]; out[i] = a[i] + b[i];"
-
-# Trainium reads the 16 x 16 tensor shapes from the kernel, so no config is needed.
-result = volta.solve(
-    "crates/volta_trainium_analysis/tests/fixtures/add.py",
-    spec=spec,
-    dims={"N": 256},
-)
-
-assert result.verdict == "ACCEPT", result.evidence
-assert result.race_verified is None
-
-print(f"{result.isa}: {result.verdict}; race checks: {result.race_verified}")
-```
-
-Expected output:
-
-```text
-AWS Trainium NKI: ACCEPT; race checks: None
-```
-
-`volta.solve` selects the frontend by file extension and uses the Fast Canonical Solver by default. `result.outputs` contains the extracted expressions, `result.verdict` is `ACCEPT`, `REJECT`, or `UNKNOWN`, and `result.evidence` explains the decision. Race checks currently run only for PTX; `None` means the AMD and Trainium frontends do not check race freedom.
-
-## Sigmoid to Lean
-
-Use `volta.extract_lean(...)` to turn a kernel and its expected formula into Lean propositions. This [script](examples/lean/extract_sigmoid.py) reads the eight-element [Trainium sigmoid kernel](crates/volta_trainium_analysis/tests/fixtures/sigmoid.py). Each proposition asks you to prove that the kernel's output is within **epsilon** of `1 / (1 + exp(-a[i]))`. The kernel declares its tensor shapes, so no launch configuration is needed.
-
-```python
-from pathlib import Path
-
-import volta
-
-epsilon = "1/1000"  # Maximum absolute error per output: 0.001.
-
-result = volta.extract_lean(
-    "crates/volta_trainium_analysis/tests/fixtures/sigmoid.py",
-    spec="dim N; array a[N]; array out[N]; out[i] = 1 / (1 + exp(-a[i]));",
-    dims={"N": 8},
-    tolerance=epsilon,
-)
-
-output = Path("target/lean/sigmoid_nki.lean")
-
-output.parent.mkdir(parents=True, exist_ok=True)
-output.write_text(result.lean, encoding="utf-8")
-
-print(f"Wrote {output}")
-```
-
-Change `epsilon` to choose the allowed error: `"1/1000"` permits an absolute difference of at most `0.001` for each output; `"1/1000000"` tightens that bound to `0.000001`. Pass it as a nonnegative rational string through `tolerance=epsilon`. The generated claim is `|kernel_output - expected_output| ≤ epsilon`, under Volta's real-number model. Omit `tolerance` (or use `None`) to request exact equality.
-
-```bash
-uv run python examples/lean/extract_sigmoid.py
-```
-
-The equivalent CLI command is:
-
-```bash
-mkdir -p target/lean
-cargo run --release -p volta_cli -- extract lean \
-  crates/volta_trainium_analysis/tests/fixtures/sigmoid.py \
-  --spec examples/lean/sigmoid.spec --dim N=8 \
-  --tolerance 1/1000 \
-  --output target/lean/sigmoid_nki.lean
-```
-
-Extraction raises `volta.DataRaceError` for detected races and `volta.DeadlockError` for deadlocks. Other failed or incomplete PTX graph checks raise `volta.VoltaError`. The CLI exits with an error and leaves the Lean output file untouched on these failures. AMD and Trainium extraction returns `race_verified=None` because those frontends do not check races.
-
-This writes `target/lean/sigmoid_nki.lean`: a complete module containing eight propositions. Open it below.
-
-<details>
-<summary><strong>Open generated sigmoid_nki.lean</strong></summary>
-
-```lean
-import Mathlib
-
-/-!
-Generated by Volta: each definition states that one output element of the candidate
-is within 0.001 of the same element of the baseline. Each input element `a[i]` is the real `a_i`.
-Prove `theorem <name> : VoltaChallenge.<name>` in another module without editing this file.
--/
-
-noncomputable section
-
-namespace VoltaChallenge
-
-/-- `out[0]` -/
-def out_0 : Prop :=
-  ∀ (a_0 : ℝ),
-    |((1 : ℝ) + Real.exp (-a_0))⁻¹ - ((1 : ℝ) / ((1 : ℝ) + Real.exp (-a_0)))| ≤ (0.001 : ℝ)
-
-/-- `out[1]` -/
-def out_1 : Prop :=
-  ∀ (a_1 : ℝ),
-    |((1 : ℝ) + Real.exp (-a_1))⁻¹ - ((1 : ℝ) / ((1 : ℝ) + Real.exp (-a_1)))| ≤ (0.001 : ℝ)
-
-/-- `out[2]` -/
-def out_2 : Prop :=
-  ∀ (a_2 : ℝ),
-    |((1 : ℝ) + Real.exp (-a_2))⁻¹ - ((1 : ℝ) / ((1 : ℝ) + Real.exp (-a_2)))| ≤ (0.001 : ℝ)
-
-/-- `out[3]` -/
-def out_3 : Prop :=
-  ∀ (a_3 : ℝ),
-    |((1 : ℝ) + Real.exp (-a_3))⁻¹ - ((1 : ℝ) / ((1 : ℝ) + Real.exp (-a_3)))| ≤ (0.001 : ℝ)
-
-/-- `out[4]` -/
-def out_4 : Prop :=
-  ∀ (a_4 : ℝ),
-    |((1 : ℝ) + Real.exp (-a_4))⁻¹ - ((1 : ℝ) / ((1 : ℝ) + Real.exp (-a_4)))| ≤ (0.001 : ℝ)
-
-/-- `out[5]` -/
-def out_5 : Prop :=
-  ∀ (a_5 : ℝ),
-    |((1 : ℝ) + Real.exp (-a_5))⁻¹ - ((1 : ℝ) / ((1 : ℝ) + Real.exp (-a_5)))| ≤ (0.001 : ℝ)
-
-/-- `out[6]` -/
-def out_6 : Prop :=
-  ∀ (a_6 : ℝ),
-    |((1 : ℝ) + Real.exp (-a_6))⁻¹ - ((1 : ℝ) / ((1 : ℝ) + Real.exp (-a_6)))| ≤ (0.001 : ℝ)
-
-/-- `out[7]` -/
-def out_7 : Prop :=
-  ∀ (a_7 : ℝ),
-    |((1 : ℝ) + Real.exp (-a_7))⁻¹ - ((1 : ℝ) / ((1 : ℝ) + Real.exp (-a_7)))| ≤ (0.001 : ℝ)
-
-end VoltaChallenge
-
-end
-```
-
-</details>
-
-## Frontends
-
-Give Volta a kernel file. It automatically chooses how to read it from the file extension:
-
-| Your file | Volta reads it as | What you provide |
+| Backend / target | Execution model | Reference |
 | --- | --- | --- |
-| `kernel.ptx` | [NVIDIA PTX](crates/volta_ptx_analysis) | Thread layout, arrays, and kernel arguments |
-| `kernel.s` | [AMD gfx950 assembly](crates/volta_amd_analysis) | Workgroup size, arrays, and kernel arguments |
-| `kernel.py` | [AWS Trainium NKI](crates/volta_trainium_analysis) | Tensor shapes in the kernel itself |
+| `ptx` | NVIDIA warp32; selected PTX instructions and synchronization objects | [PTX analyzer](crates/volta_ptx_analysis/README.md) |
+| `amdgpu` / `gfx942` | Wave64; selected CDNA3 scalar/vector, memory and MFMA forms | [gfx942 fixtures and scope](tests/gfx942/README.md) |
+| `amdgpu` / `gfx950` | Wave64; selected CDNA4 instructions and MFMA forms | [gfx950 fixtures and scope](tests/gfx950/README.md) |
+| `amdgpu` / `gfx1250` | Wave32; selected WMMA, waits, named/split barriers and tensor transfers | [gfx1250 model](tests/gfx1250/CONTRACT.md) |
 
-The calls stay the same for every target: use `volta.solve(...)` to check the expected formula, or `volta.extract_lean(...)` to generate Lean proof obligations. On the CLI, use `volta solve` or `volta extract lean` followed by the file path.
+Omitting an AMD target selects gfx950. The source's declared target must match;
+changing a target string does not port a kernel. Each target has its own register,
+completion, publication and matrix rules. The [AMD analyzer guide](crates/volta_amdgpu_analysis/README.md)
+describes the supported instruction and ABI profiles.
 
-For PTX and AMD, the **launch configuration** tells Volta how the kernel runs: how many threads it has, where its arrays are, and which arguments it receives. The **specification** describes what it should compute. For example, `block=(128, 1, 1)` launches 128 threads in a block, while `dims={"N": 128}` gives the mathematical spec a value for `N`. Trainium gets its tensor shapes from the kernel, so it needs no launch configuration.
+Launch configuration defines array extents, argument values, geometry and shared
+memory. These are analysis premises and must match the actual kernel. The grid
+may affect the computation even though only one selected native workgroup is
+analyzed. Set `workgroup_id` in launch JSON or `--workgroup-id X,Y,Z`; it defaults
+to zero and must lie inside the grid. Optional
+native LDS allocation ranges preserve subobject bounds when assembly no longer
+contains source-level object boundaries.
 
-| What you want to set | Python | CLI |
-| --- | --- | --- |
-| Threads per block / workgroup | `config = volta.Config(block=(128, 1, 1))` | `--block 128` |
-| An input array's address, element size, and length | `config.add_array(volta.ArrayDef("a", 0x10000, 4, 128, volta.ArrayKind.Input))` | `--array a:0x10000:4:128:in` |
-| An array pointer argument | `config.add_param(volta.Param.array_ptr("a"))` | `--param ptr:a` |
-| A specific kernel in the file | `kernel="name"` | `--kernel name` |
-| The expected formula | `spec="dim N; ..."` | `--spec formula.spec` or inline spec text |
-| A dimension used by the formula | `dims={"N": 128}` | `--dim N=128` |
-| Maximum absolute error for Lean extraction | `tolerance="1/1000"` | `--tolerance 1/1000` |
-| Where to save the Lean module | `Path("challenge.lean").write_text(result.lean)` | `--output challenge.lean` |
+CPU analysis identifies one modeled missing async-completion dependency in an
+unchanged public HipKittens test, instantiated for BF16 and F16. A separate
+wait-repair control passes all graph checks with identical expressions for all
+256 outputs. The [complete functional comparison](tests/amdgpu/native-async-copy/README.md)
+includes the original module, full launch contracts, repair diff and replay script.
 
-Pass `config` to `solve` or `extract_lean` after the kernel path, as in the quickstart. Add one array declaration per array, and add kernel arguments in their declaration order. On the CLI, repeat `--array`, `--param`, and `--dim` as needed. You can also put the launch settings, kernel name, spec path, and dimensions into a [JSON configuration](examples/lean/sigmoid_amd.json) and pass `--config FILE` instead of individual launch flags. Lean extraction requires a specification.
+An unchanged HipKittens gfx950 F32 global-to-LDS copy now passes all four graph
+checks and proves all 64 identity outputs. The prior version stopped at PC24
+without outputs. The full module, two 256-byte allocations and 80,000-byte LDS
+launch are preserved. This adds one original coverage result, with zero new
+bugs and no performance claim. See the [source, ABI and before/after replay
+package](tests/amdgpu/native-lds-copy/README.md).
 
-## Citation · BibTeX
+The [scalar-inline controls](tests/amdgpu/scalar-inline64/README.md) check complete
+64-bit constant encodings on all three AMD targets. Their baseline and corrected
+output records show why passing graph checks alone does not establish numerical
+correctness.
+
+## Measured time to a safety finding
+
+### Native AMD input materialization
+
+Native AMD now creates symbolic input elements when an executed memory access
+touches them, following the existing PTX approach. Allocation bounds, instructions
+and selected-workgroup outputs remain unchanged. Against this fork's frozen
+eager-input baseline, with certified conflict rejection enabled in both versions,
+seeded gfx1250 hazards have these CPU first-diagnostic medians:
+
+| Configuration | Eager inputs | On-demand inputs | Speedup |
+| --- | ---: | ---: | ---: |
+| Matvec, K=4096 | 52.44 ms | 24.90 ms | 2.11× |
+| Convolution, K=576 | 89.17 ms | 33.28 ms | 2.68× |
+| Attention, complete query inputs | 59.46 ms | 26.97 ms | 2.20× |
+| Full-input GEMM, M/N/K=4096 (nonprimary) | 9.551 s | 193.53 ms | 49.35× |
+
+Both versions find the same **14/14 seeded hazards**. All three primary cases
+pass the predeclared improvement gate; GEMM is a separate nonprimary result.
+GEMM hazard peak RSS falls from 3.01 GiB to 20.8 MiB (maximum of five runs).
+The 28-configuration study includes five portable families on gfx950/gfx1250
+and four complex source kernels. Baseline qualification fixes 27 timing cases;
+the safe full-input GEMM times out at 60 seconds in both versions and has no ratio.
+
+These are five paired fresh-process observations per arm and case, giving
+descriptive medians rather than confidence intervals or a universal speedup.
+**14/27 medians are slower**, including safe matvec (+7.0%) and a portable
+gfx950 elementwise hazard (+19.1%, +2.86 ms). All 27 meet the fixed
+`baseline*1.10 + 2ms` time allowance and separate peak-RSS allowance. All 13
+complete safe output structures match; all 11 previously proved full
+specifications remain proved.
+Convolution and full-query attention equations each time out in both versions
+and remain unproved.
+Results cover one selected workgroup, not a full-grid proof or GPU execution
+speed. See the [complete results and audits](tests/amdgpu/native-lazy-input/results/README.md)
+and [allocation contracts and protocol](tests/amdgpu/native-lazy-input/protocol.md).
+
+### Ordinary write conflicts
+
+Opt-in certified memory-conflict rejection detects **20/20 core seeded hazardous
+configurations**, compared with **13/20** for this fork's frozen full-trace
+baseline. The 40-configuration development study preserves complete compiler
+modules and frozen selected-workgroup launch/output contracts, with explicit
+seeded store mutations for hazardous cases. Three predeclared inserted-store primaries
+have these parent-observed first-diagnostic medians on CPU:
+
+| Measured configuration | Full trace | Certified prefix | Speedup |
+| --- | ---: | ---: | ---: |
+| F16 matvec, 32 rows, K=4096 | 1.091 s | 49.18 ms | 22.2× |
+| F16 convolution, K=576 | 8.526 s | 83.86 ms | 101.7× |
+| F16 attention, 128 query rows, 1024 keys | 11.095 s | 48.68 ms | 227.9× |
+
+The [historical attention launch](tests/gfx1250/full/launch/flash_attention_original.json)
+allocates 128 query rows; its full 16-CTA grid would need 1024. The
+[historical GEMM launch](tests/gfx1250/full/launch/gemm_f16_full.json) allocates
+256 A rows out of 4096. Those two cases do not establish timings with complete
+host input allocations. All measurements cover one selected workgroup. Their
+modules, datasets and published results remain unchanged.
+
+Each comparison uses 31 paired fresh-process repeats and a separate first run;
+all three descriptive 95% bootstrap ratio intervals are below 1. The fourth
+primary, GEMM, times out at baseline and has **no speedup ratio**. Nine of ten
+portable late-store cases have slower medians; five are 8.3%–13.4% slower with
+ratio intervals above 1. All 15 baseline complete safe proofs are retained, and all 15 meet their
+analysis/export time and memory limits; full mathematical proofs are separate
+untimed controls. Three other safe configurations remain unproved.
+Six reserved mutation/configuration cases retain all three safe proofs and the
+same two of three hazard detections, with the transpose case inconclusive.
+These are seeded configurations and CPU verifier timings. See the
+[full results, every comparison and audit receipts](tests/amdgpu/memory-conflicts-study/results/README.md)
+and [protocol](tests/amdgpu/memory-conflicts-study/protocol.md).
+
+A [26-configuration attribution experiment](tests/amdgpu/sealed-prefix-attribution/README.md)
+found final validation below its 15% cost gate in all five predeclared target
+cases. The planned execution API change was rejected; all 130 observations and
+the negative result are published.
+
+### Historical scalar-read readiness study
+
+Opt-in certified readiness rejection detects an unsafe gfx1250 scalar read
+before executing the remaining symbolic trace. Against this fork's full-trace
+baseline, the three predeclared missing-wait cases measured:
+
+| Configuration | Baseline median | Early median | Speedup |
+| --- | ---: | ---: | ---: |
+| Copy | 7.580 ms | 7.085 ms | 1.07× |
+| Original F16 ReLU, N=1024 | 16.153 ms | 12.835 ms | 1.26× |
+| Original F16 RMSNorm, N=4096 | 51.901 ms | 16.065 ms | 3.23× |
+
+These are parent-observed first-diagnostic times from 255 paired fresh processes
+per configuration on CPU-only x86_64 WSL2. All three paired 95% bootstrap
+ratio intervals are below 1. Five of six additional compiler-kernel families
+also improved; elementwise was inconclusive. This measures verifier latency,
+not GPU execution speed or a comparison against upstream Volta.
+
+Both versions detected the same 29 of 30 seeded hazardous configurations across
+the 77-configuration suite; one tensor-bounds case remained `UNKNOWN`. All 47
+safe configurations retained their complete specification proofs, with no false
+positives or unsafe acceptances. Confirmation and both heldout runs met the
+predeclared per-case safe-time and memory limits. The initial 31-repeat run
+failed one GEMM p95 limit and is retained separately; one confirmatory safe-case
+p95 uncertainty interval crosses its allowance. See the
+[complete results, limitations and reproducible data](tests/amdgpu/design-study/results/README.md)
+and [measurement protocol](tests/amdgpu/design-study/README.md).
+
+A separate [functional comparison](docs/tensor-bounds.md#functional-comparison)
+tests two seeded tensor LDS overruns in one compiler kernel. The newer checker
+certifies both; the earlier version reports both as `UNKNOWN`. Both versions
+retain the valid kernel's complete 128-element specification proof. This adds
+coverage without revising the frozen study or asserting a new timing gain.
+
+## How the code is organized
+
+The [architecture guide](docs/architecture.md) follows a kernel through parsing,
+lowering, execution, graph checking and equivalence checking. The main boundaries
+are:
+
+| Location | Responsibility |
+| --- | --- |
+| `crates/volta_ptx_analysis`, `crates/volta_amdgpu_analysis` | Parse and execute the selected backend; produce expressions, events and provenance |
+| `crates/volta_expr`, `crates/volta_spec` | Shared symbolic expressions and the mathematical specification language |
+| `crates/volta_graph`, `crates/volta_graph_check` | Typed event graph and target-selected safety checks |
+| `crates/volta_equivalence` | Compare complete output index sets and their expressions |
+| `crates/volta_pipeline` | Combine the independent safety and equivalence results |
+| `crates/volta_cli`, `crates/volta_py`, `crates/volta_viz` | Command-line, Python and browser interfaces |
+| `tests/`, `ai_compiler_kernels/`, `external/` | Compiler fixtures, workload configurations, independent oracles and extraction tools |
+
+Each crate has a README explaining its public entry points and internal modules.
+Start with `volta_pipeline/src/backend.rs` for backend dispatch and
+`volta_pipeline/src/aggregate.rs` for verdict rules.
+
+The [HipKittens corpus](external/hipkittens/corpus/README.md) explains source
+enumeration, native compilation, launch extraction and complete mathematical
+and graph checks. The latest [vector coverage comparison](external/hipkittens/corpus/README.md#dwordx2-and-packed-half-coverage-comparison)
+retains all 336 original cases: 112 pass safety and full-output equivalence,
+224 retain write/write rejections, and none remains unsupported. These are
+selected-workgroup results for two families, without a latency claim.
+
+The [AMD technical report](docs/paper/amd-volta.pdf) compares gfx942, gfx950 and
+gfx1250, explains which parts of Volta's approach are reused, and describes the
+native execution and safety models required by each target. It includes
+validation and limits. Its [LaTeX source](docs/paper/amd-volta.tex) builds with
+`make -C docs/paper` using PDFLaTeX.
+
+## Development and testing
+
+`just` provides common commands; Python development uses `uv` and maturin.
+
+```sh
+cargo test --release --workspace
+just test-python                 # rebuild the Python extension and run its tests
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+```
+
+`just test` runs both Rust and Python tests. Focused examples and fixture-specific
+commands are documented beside the relevant tests. Large workload proofs need
+separate capacity planning; see the [full workload runners](tests/gfx1250/full/cpu/README.md).
+To extend an instruction, follow the [development guide](docs/architecture.md#extending-an-instruction).
+The [upstream sync workflow](docs/upstream-sync.md) runs on a six-hour schedule
+and prepares tested upstream merges as draft PRs for review.
+
+Generate library documentation with:
+
+```sh
+cargo doc --workspace --no-deps --exclude volta_cli
+```
+
+The CLI and Python crate share the `volta` output name. Build CLI internals into
+a separate Rustdoc directory with
+`cargo doc -p volta_cli --no-deps --target-dir target/cli-rustdoc`.
+
+## Inspect an execution
+
+```sh
+just viz
+```
+
+This records pipeline test runs and builds `target/volta-viz/volta-graphs.html`.
+The [viewer guide](crates/volta_viz/README.md) also explains focused recording and
+exporting an existing store with `volta viz RUN_STORE -o page.html`. The viewer
+shows target geometry, source instructions, events and typed findings. Its
+bounded display never limits the graph used by the checks.
+
+<p align="center">
+  <img src="volta-viz.png" alt="Event-graph viewer showing reads racing an asynchronous copy">
+</p>
+
+## Citation
 
 ```bibtex
 @misc{costa2026aicompilercompilingtriton,
@@ -308,3 +356,7 @@ Pass `config` to `solve` or `extract_lean` after the kernel path, as in the quic
   doi       = {10.1145/3839470}
 }
 ```
+
+## License
+
+MIT — see [LICENSE](LICENSE).

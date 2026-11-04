@@ -1,0 +1,10 @@
+id	kernel	original	replacement
+barrier_init_missing	named_identity	s_barrier_init m0	s_barrier_init
+barrier_join_missing	named_identity	s_barrier_join m0	s_barrier_join
+barrier_signal_missing	named_identity	s_barrier_signal m0	s_barrier_signal
+barrier_wait_missing	named_identity	s_barrier_wait 1	s_barrier_wait
+barrier_init_extra	named_identity	s_barrier_init m0	s_barrier_init m0, 0
+barrier_join_extra	named_identity	s_barrier_join m0	s_barrier_join m0, 0
+barrier_signal_extra	named_identity	s_barrier_signal m0	s_barrier_signal m0, 0
+barrier_wait_extra	named_identity	s_barrier_wait 1	s_barrier_wait 1, 0
+barrier_leave_extra	named_identity	s_barrier_leave	s_barrier_leave 0

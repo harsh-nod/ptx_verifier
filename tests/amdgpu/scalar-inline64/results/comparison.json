@@ -1,0 +1,266 @@
+{
+  "schema": 1,
+  "scope": "One verifier scalar immediate semantic defect exercised by three complete handwritten target controls; no original-kernel, bug-finding gain, hardware or performance claim.",
+  "fixture_revision": "f1a252aae8cc105a2f0d6aa0e696cac6688ba059",
+  "fixture_sha256": {
+    "gfx942.s": "8165d59d2c796f6f679657f6da07c3a51ee3a718e0dbce69e304b11e6059dfa3",
+    "gfx950.s": "76ab5b310b27f51497221e3c2f07f958d0b91ced7375e8d2cb46301c15b029e4",
+    "gfx1250.s": "faa0cdbdf23552ab450cbb76d537776745fbd368b6d2879b52694f22440cb016",
+    "one.spec": "b0697b64b3180e70ad7455c2316b44cdffb23e6674a98dc6cf6bc3a35cdec7f8",
+    "gfx942.launch.json": "77af3f5d44cdaa68575d2f365cd32e19d645189c71296c5a47414f1810e4b5d6",
+    "gfx950.launch.json": "77af3f5d44cdaa68575d2f365cd32e19d645189c71296c5a47414f1810e4b5d6",
+    "gfx1250.launch.json": "77af3f5d44cdaa68575d2f365cd32e19d645189c71296c5a47414f1810e4b5d6"
+  },
+  "replayer_sha256": "a17492bfeba1452cf721521575273ad3663b3f2aa770b0a6d6025564ac39f725",
+  "builds": {
+    "baseline": {
+      "record_sha256": "c85a55b61a353a8de481baec3ad50eec818e05dc6b8a75e761316dcf9325caaf",
+      "source_revision": "4b0e766a265390900f4450cab54398f1cb5cbf86",
+      "binary_sha256": "66a32105a849a9eaa6ff0d19f33856f724807bfba5557b65c7737807f1078b1f",
+      "rust_workspace_fingerprint": {
+        "algorithm": "sha256-git-tree-v1",
+        "sha256": "da1a5ef8af6f5da5abc4b9a34e09b809500b18294cf515190a95266ca526ff7e",
+        "file_count": 1243
+      }
+    },
+    "candidate": {
+      "record_sha256": "760f50169745ccca599c24aa4c833a988ee81647dfddf79a4f06579c531739a9",
+      "source_revision": "f1a252aae8cc105a2f0d6aa0e696cac6688ba059",
+      "binary_sha256": "d99d05cd6eab8efc5d56dd6807a1697f3bb343374ea0bfa70a31910473be8302",
+      "rust_workspace_fingerprint": {
+        "algorithm": "sha256-git-tree-v1",
+        "sha256": "3d30a880586047ceec4744840babf7e51706e3860f6a82be4fa95cb7098eb94c",
+        "file_count": 1254
+      }
+    }
+  },
+  "raw_report_sha256": {
+    "baseline_prior_v3": "5978ef74439b59b36df0a7543854ac3158752073cb86b5ea0cd3d91de4cd6026",
+    "baseline_separate_gfx942": "138da334cf45c50703ca1f6517c854edf4713cf5707340dfe675279d595f333e",
+    "candidate": "b1212129a7714fd8b1a680b39c51bbb4bf0e5f24cc0e321156add5dcd6b72793"
+  },
+  "prior_two_target_audit_sha256": "0a021deb738d991e0631599f28b49335c79e69f6ed334f3ea3fca0e613d72721",
+  "baseline_gfx942_capture_replayer_sha256": "de9430a2c2505f7822904f70b30789d59832c434113ed0e3a22697d2f57eba0c",
+  "summary": {
+    "underlying_verifier_defect_patterns": 1,
+    "target_controls": 3,
+    "baseline_processes": 6,
+    "candidate_processes": 6,
+    "complete_u32_outputs_per_target": 2,
+    "graph_properties_pass_per_target_both_versions": 4,
+    "baseline_numeric_refuted_coordinates_per_target": 2,
+    "candidate_equivalent_coordinates_per_target": 2,
+    "hardware_runs": 0
+  },
+  "cases": [
+    {
+      "target": "gfx942",
+      "output_coordinates": [
+        0,
+        1
+      ],
+      "required_u32_words": [
+        0,
+        1072693248
+      ],
+      "baseline": {
+        "capture_origin": "separate_gfx942",
+        "processes": {
+          "verify": {
+            "returncode": 1,
+            "timed_out": false,
+            "stdout_sha256": "f5e21a4ab0e84ccf39e2bcc7b42281fd44a0c24f10a8c8a7ad14c9946d1aeb47",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "analyze": {
+            "returncode": 0,
+            "timed_out": false,
+            "stdout_sha256": "8b07e92bab1cf2759da7de1cd2a9b863c4b2797329d5f55e3e7b9c316532ed95",
+            "stderr_sha256": "96ea6fddaaf5ab611ff8a13e6cf6dddd2e7f90cfcf6b473228f94858c2151284"
+          }
+        },
+        "graph_sha256": "8ed52712e9608c72e4b92cba35162a413365bd0ab48f79e35488128565ed32b2",
+        "expression_sha256": "89a28aefb60472c25f4f4ce22401132d6ab3b5ebf205ff8ea58cc93b9be58da5",
+        "actual_u32_words": [
+          1065353216,
+          0
+        ],
+        "graph_properties_pass": 4,
+        "mismatched_coordinates": [
+          0,
+          1
+        ],
+        "equivalence": "numeric_refuted"
+      },
+      "candidate": {
+        "capture_origin": "frozen_f1a",
+        "processes": {
+          "verify": {
+            "returncode": 0,
+            "timed_out": false,
+            "stdout_sha256": "937148a55866f7c80dbc0bec7b6e74071be0ba349b1999224f3bd31d3b3c233f",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "analyze": {
+            "returncode": 0,
+            "timed_out": false,
+            "stdout_sha256": "d56eb6694e3624d5305716f6409f89ce572cfe58d96bbcc47af21daf8c11e438",
+            "stderr_sha256": "96ea6fddaaf5ab611ff8a13e6cf6dddd2e7f90cfcf6b473228f94858c2151284"
+          }
+        },
+        "graph_sha256": "8ed52712e9608c72e4b92cba35162a413365bd0ab48f79e35488128565ed32b2",
+        "expression_sha256": "48196b36d9c4db5dd0f14d2d8885d8a72cfd0263ccf70bf61765c033c6a8b879",
+        "actual_u32_words": [
+          0,
+          1072693248
+        ],
+        "graph_properties_pass": 4,
+        "mismatched_coordinates": [],
+        "equivalence": "equivalent"
+      }
+    },
+    {
+      "target": "gfx950",
+      "output_coordinates": [
+        0,
+        1
+      ],
+      "required_u32_words": [
+        0,
+        1072693248
+      ],
+      "baseline": {
+        "capture_origin": "prior_v3",
+        "processes": {
+          "verify": {
+            "returncode": 1,
+            "timed_out": false,
+            "stdout_sha256": "f5e21a4ab0e84ccf39e2bcc7b42281fd44a0c24f10a8c8a7ad14c9946d1aeb47",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "analyze": {
+            "returncode": 0,
+            "timed_out": false,
+            "stdout_sha256": "332a9966a6fe9a6524e9fe5e44d497f61701c8e37658d599c504a35828522c17",
+            "stderr_sha256": "500641fbf5835892764f4f47705452c7a8d38ac92f5669592f60dbc09a876ad9"
+          }
+        },
+        "graph_sha256": "253d636af54fb48c53b984d7e6efece2bd3c59f96ddb5a5210e63294baf55601",
+        "expression_sha256": "89a28aefb60472c25f4f4ce22401132d6ab3b5ebf205ff8ea58cc93b9be58da5",
+        "actual_u32_words": [
+          1065353216,
+          0
+        ],
+        "graph_properties_pass": 4,
+        "mismatched_coordinates": [
+          0,
+          1
+        ],
+        "equivalence": "numeric_refuted"
+      },
+      "candidate": {
+        "capture_origin": "frozen_f1a",
+        "processes": {
+          "verify": {
+            "returncode": 0,
+            "timed_out": false,
+            "stdout_sha256": "937148a55866f7c80dbc0bec7b6e74071be0ba349b1999224f3bd31d3b3c233f",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "analyze": {
+            "returncode": 0,
+            "timed_out": false,
+            "stdout_sha256": "99a921de9b74c6b028a73b28bffd1fb90674635ed2f1593f4a24c222b52294ef",
+            "stderr_sha256": "4c05541943cba81909bf142b20c1d567475547c23a150772f2563a924ee5066b"
+          }
+        },
+        "graph_sha256": "253d636af54fb48c53b984d7e6efece2bd3c59f96ddb5a5210e63294baf55601",
+        "expression_sha256": "48196b36d9c4db5dd0f14d2d8885d8a72cfd0263ccf70bf61765c033c6a8b879",
+        "actual_u32_words": [
+          0,
+          1072693248
+        ],
+        "graph_properties_pass": 4,
+        "mismatched_coordinates": [],
+        "equivalence": "equivalent"
+      }
+    },
+    {
+      "target": "gfx1250",
+      "output_coordinates": [
+        0,
+        1
+      ],
+      "required_u32_words": [
+        0,
+        1072693248
+      ],
+      "baseline": {
+        "capture_origin": "prior_v3",
+        "processes": {
+          "verify": {
+            "returncode": 1,
+            "timed_out": false,
+            "stdout_sha256": "50b915d85473313c50df87c0c6e057e79479093b3c94534e0d5744d5ed18b6b4",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "analyze": {
+            "returncode": 0,
+            "timed_out": false,
+            "stdout_sha256": "a5ff23eaac23d07d66135a42b36791b556d62792b8a7914877add2ca7711e569",
+            "stderr_sha256": "7fa6976763d1a18589f3b33d870764cb4ac938bf672bf1ed1eec9ab757070064"
+          }
+        },
+        "graph_sha256": "51ad4421f5bd44450d2061e5a8cc386a1b716fd4480f39cc8f09cd1755c97689",
+        "expression_sha256": "89a28aefb60472c25f4f4ce22401132d6ab3b5ebf205ff8ea58cc93b9be58da5",
+        "actual_u32_words": [
+          1065353216,
+          0
+        ],
+        "graph_properties_pass": 4,
+        "mismatched_coordinates": [
+          0,
+          1
+        ],
+        "equivalence": "numeric_refuted"
+      },
+      "candidate": {
+        "capture_origin": "frozen_f1a",
+        "processes": {
+          "verify": {
+            "returncode": 0,
+            "timed_out": false,
+            "stdout_sha256": "9ade952997a82bf8198edf61f8f66011884d90be9dfd8eb9488bb26e013c3b5b",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "analyze": {
+            "returncode": 0,
+            "timed_out": false,
+            "stdout_sha256": "969c8f0bc6f13747c3218cfb4d46352ce35082ddc0421c7b27d602b265583b3c",
+            "stderr_sha256": "bf63b83650c3dc7463092117e2e0dd4ede037ff592be24e93677c40addc3f946"
+          }
+        },
+        "graph_sha256": "51ad4421f5bd44450d2061e5a8cc386a1b716fd4480f39cc8f09cd1755c97689",
+        "expression_sha256": "48196b36d9c4db5dd0f14d2d8885d8a72cfd0263ccf70bf61765c033c6a8b879",
+        "actual_u32_words": [
+          0,
+          1072693248
+        ],
+        "graph_properties_pass": 4,
+        "mismatched_coordinates": [],
+        "equivalence": "equivalent"
+      }
+    }
+  ],
+  "limits": [
+    "Handwritten one-lane selected-workgroup controls with complete two-u32 output allocations; no original-application coverage claim.",
+    "Graph safety does not imply numerical correctness: every baseline graph passes while both integer words refute the specification.",
+    "The three target controls exercise one defect pattern, not three independent verifier bugs or application bug detections.",
+    "Build provenance is caller-attested; bit hashes bind the supplied source/build records and executables, not a cryptographic compilation proof.",
+    "The gfx950/gfx1250 v3 transcripts/report and audit are retained byte-for-byte; their historical artifact destination paths are not replay inputs.",
+    "The gfx942 baseline used the archived capture replayer; the current replayer independently rechecks its retained artifacts.",
+    "These runs contain no hardware, time-to-finding, speed, RSS or ISA-wide support claim."
+  ],
+  "published_replayer_sha256": "a1bff4f8f3a1ee0614854c6ccdd63f021b93530e06f3f3e3c9d164f5388bd25b",
+  "replayer_identity_note": "replayer_sha256 identifies original collection; published_replayer_sha256 identifies the hardened validator. Original captured reports and process artifacts are unchanged."
+}

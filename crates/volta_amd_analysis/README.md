@@ -1,11 +1,22 @@
 # volta_amd_analysis
 
-Experimental AMD kernel analysis for Volta.
+Experimental gfx950 parsing, typed lowering and symbolic execution for
+Volta. The CLI and Python native backend is
+[`volta_amdgpu_analysis`](../volta_amdgpu_analysis/README.md).
 
-`frontend::parse::parse_kernel(source, name)` parses Clang assembly;
-`lower_kernel(&kernel)` validates the supported gfx950 instruction forms and
-produces an AMD `LoweredKernel`. The lowering API and IR types are exported
-from the crate root.
+`frontend::parse::parse_kernel(source, name)` parses a selected Clang assembly
+entry and its descriptor. `lower_kernel(&kernel)` validates the supported gfx950
+instruction forms and returns a `LoweredKernel` with physical register identities,
+explicit waits and launch metadata. The lowering API and IR types are exported
+from the crate root. Instructions use an `IdVec<InstrId, LoweredInstr>` so
+execution positions cannot be mixed with register indices.
+
+Parsing rejects malformed target quoting, duplicate selected kernel definitions,
+repeated descriptor settings and missing operands. An optional ordinary trailing
+comma and either wait-counter separator are accepted. Lowering validates target
+feature suffixes, retaining valid XNACK/SRAM-ECC selections and rejecting unknown,
+duplicate or conflicting features. Descriptor settings are retained; lowering
+alone does not validate a complete launch or register-allocation contract.
 
 The IR represents AMD instructions for symbolic execution. It preserves
 physical register identities, explicit waits, and launch metadata. The evaluator
@@ -36,27 +47,34 @@ expressions; `U32` outputs require concrete 32-bit words. Invalid values abort a
 the store. Outputs cannot be loaded. On completion, `AnalysisResult.symbolic_outputs`
 holds the interpreted values that execution wrote; an aborted run has none.
 
+The returned graph carries launch/target provenance and a terminal state without
+access events. It supplies no native AMD safety proof. The CLI/Python native
+backend records and checks events through `volta_amdgpu_analysis`.
+
 Supported operand forms follow the [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
 (§6.2, §12.6, §12.7, §12.11, §12.12); scalar addressing and completion follow §8.2–8.3. Operand checks
 also follow LLVM 21.1.8's
 [operand validation](https://github.com/llvm/llvm-project/blob/llvmorg-21.1.8/llvm/lib/Target/AMDGPU/AsmParser/AMDGPUAsmParser.cpp)
 and [counter widths](https://github.com/llvm/llvm-project/blob/llvmorg-21.1.8/llvm/lib/Target/AMDGPU/Utils/AMDGPUBaseInfo.cpp).
-
-The `.amdgcn_target` directive requires exactly one quoted string. Unquoted,
-unbalanced and extra-quoted arguments are rejected.
+Launch-register placement follows the
+[AMDHSA initial execution state](https://releases.llvm.org/21.1.0/docs/AMDGPUUsage.html#initial-kernel-execution-state).
 
 ## Tests
 
-Kernel tests in `tests/kernels.rs` parse, lower, and execute compiled assembly
-fixtures, then compare their symbolic outputs with the corresponding `.out` files.
+Unit tests cover parser refusals, typed lowering, target features, local branch
+labels and instruction operand bounds. Kernel tests in `tests/kernels.rs` parse,
+lower and execute compiled assembly fixtures, then compare their symbolic outputs
+with the corresponding `.out` files.
 The `scalar_ops` fixture checks signed arithmetic, 64-bit comparisons and uniform loop branches.
 Rejection fixtures instead require a specific lowering or execution error.
 Specification comparisons live in `volta_pipeline/tests/amd_equivalence_tests.rs`.
-Run both suites from the repository root:
+Run the crate tests from the repository root:
 
 ```sh
-just amd
+cargo test -p volta_amd_analysis
 ```
+
+`just amd` runs only the compiled kernel tests.
 
 `tests/lean_tests.rs` states the sigmoid fixture's outputs against
 `tests/fixtures/sigmoid.spec` (`1 / (1 + exp(-a[i]))`) as a Lean challenge and writes it to
@@ -71,10 +89,9 @@ using the same `ds_bpermute` [shuffle builtin](https://github.com/ROCm/composabl
 
 ### Regenerating the copy fixture
 
-`tests/fixtures/copy.cl` is `out[i] = in[i]`, one element per workitem, and
-`copy.s` is the assembly Homebrew clang 21.1.8 produced for it for gfx950
-(MI355X). Apple's clang lacks the AMDGPU target; use LLVM's clang (Homebrew
-`llvm@21` on macOS). Regenerate it from `tests/fixtures/` with:
+`tests/fixtures/copy.cl` copies one element per work-item. `copy.s` was produced
+with Homebrew LLVM clang 21.1.8 for gfx950; Apple's clang lacks the AMDGPU target.
+From `tests/fixtures/`, run:
 
 ```sh
 clang -x cl -cl-std=CL1.2 --target=amdgcn-amd-amdhsa -mcpu=gfx950 -nogpulib \

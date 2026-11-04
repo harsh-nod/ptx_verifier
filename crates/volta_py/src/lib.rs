@@ -1,6 +1,6 @@
-//! Python bindings for the Volta analysis engine (v0: `parse`, `analyze` and `verify` over
-//! PTX source, and `solve` / `extract_lean` over a kernel file of any ISA - see `crates/volta_cli` for the
-//! full command set this will grow towards, notably `compare`).
+//! Python bindings for PTX and native AMD parsing, analysis and specification
+//! verification, with file-based `solve` and `extract_lean` for PTX, AMD and NKI.
+//! Kernel comparison and expression/VC replay are exposed through `volta_cli`.
 
 use pyo3::prelude::*;
 
@@ -12,7 +12,10 @@ mod solve;
 mod verify;
 
 use config::{ArrayDefPy, ArrayKindPy, ConfigPy, ParamPy};
-use error::{DataRaceError, DeadlockError, VoltaError};
+use error::{
+    DataRaceError, DeadlockError, EarlyMemoryConflictError, EarlyReadinessError, TensorBoundsError,
+    VoltaError,
+};
 
 #[pymodule]
 fn volta(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -34,6 +37,12 @@ fn volta(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     m.add("VoltaError", py.get_type::<VoltaError>())?;
     m.add("DataRaceError", py.get_type::<DataRaceError>())?;
+    m.add(
+        "EarlyMemoryConflictError",
+        py.get_type::<EarlyMemoryConflictError>(),
+    )?;
+    m.add("EarlyReadinessError", py.get_type::<EarlyReadinessError>())?;
+    m.add("TensorBoundsError", py.get_type::<TensorBoundsError>())?;
     m.add("DeadlockError", py.get_type::<DeadlockError>())?;
 
     Ok(())

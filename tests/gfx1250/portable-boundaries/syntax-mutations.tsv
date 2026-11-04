@@ -1,0 +1,11 @@
+id	kernel	original	replacement
+end_extra	control_end	s_endpgm	s_endpgm 0, 1
+end_modifier	control_end	s_endpgm	s_endpgm offset:4
+trap_extra	control_trap	s_trap 7	s_trap 7, 8
+trap_register	control_trap	s_trap 7	s_trap s0
+trap_modifier	control_trap	s_trap 7	s_trap 7 offset:4
+wait_missing	control_wait	s_wait_loadcnt 0	s_wait_loadcnt
+wait_extra	control_wait	s_wait_loadcnt 0	s_wait_loadcnt 0, 1
+vector_extra	control_vector	flat_load_b128 v[0:3], v4, s[0:1] scope:SCOPE_SYS	flat_load_b128 v[0:3], v4, s[0:1], 0 scope:SCOPE_SYS
+vector_tuple	control_vector	flat_load_b128 v[0:3], v4, s[0:1] scope:SCOPE_SYS	flat_load_b128 v[0:2], v4, s[0:1] scope:SCOPE_SYS
+vector_missing	control_vector	flat_load_b128 v[0:3], v4, s[0:1] scope:SCOPE_SYS	flat_load_b128 v[0:3], v4

@@ -9,7 +9,7 @@ use pyo3::prelude::*;
 
 use volta_equivalence::EquivCheckOptions;
 use volta_graph_check::GraphConclusion;
-use volta_pipeline::{GraphEvidence, Isa, KernelRun, Solver, Spec};
+use volta_pipeline::{GraphEvidence, Isa, KernelRun, Solver, Spec, analyze_source};
 use volta_ptx_analysis::AnalysisConfig;
 
 use crate::config::ConfigPy;
@@ -34,6 +34,11 @@ pub struct SolveResultPy {
     /// What the verdict rests on (ACCEPT), its witnesses (REJECT) or what is missing (UNKNOWN).
     #[pyo3(get)]
     pub evidence: Vec<String>,
+    /// Actual selected group when the backend records graph provenance.
+    #[pyo3(get)]
+    pub workgroup_id: Option<(u32, u32, u32)>,
+    #[pyo3(get)]
+    pub assumptions: Vec<String>,
 }
 
 /// Run the kernel in `path` (its ISA chosen by extension) under `config` (none for NKI) and,
@@ -74,13 +79,18 @@ pub fn solve(
                 (name.clone(), elems)
             })
             .collect(),
-        Err(why) if spec.is_none() => return Err(VoltaError::new_err(why.clone())),
+        Err(why) if spec.is_none() && run.certified_rejection().is_none() => {
+            return Err(VoltaError::new_err(why.clone()));
+        }
         Err(_) => Vec::new(),
     };
     let race_verified = race_verified(&run);
 
     let (verdict, evidence) = match &spec {
-        None => (None, Vec::new()),
+        None => match run.certified_rejection() {
+            Some(finding) => (Some("REJECT".into()), vec![finding]),
+            None => (None, Vec::new()),
+        },
         Some(spec) => {
             let solution = run.solve(spec, &solver).map_err(other_error_to_py)?;
             let decision = run.decide(&solution);
@@ -88,8 +98,11 @@ pub fn solve(
         }
     };
 
+    let (workgroup_id, assumptions) = provenance(&run);
     Ok(SolveResultPy {
-        isa: isa.name().to_string(),
+        isa: interpreter_name(isa, config),
+        workgroup_id,
+        assumptions,
         outputs,
         race_verified,
         verdict,
@@ -116,10 +129,11 @@ pub(crate) fn load_kernel(
     let source = std::fs::read_to_string(path)
         .map_err(|e| VoltaError::new_err(format!("read {}: {e}", path.display())))?;
     let launch = config.map_or_else(|| AnalysisConfig::new((1, 1, 1)), |c| c.0.clone());
-    let run = isa
-        .frontend()
-        .analyze(&source, kernel, launch)
-        .map_err(|e| frontend_error_to_py(&source, &e))?;
+    let run = match config.filter(|config| config.2) {
+        Some(config) => analyze_source(config.1, &source, kernel, launch),
+        None => isa.frontend().analyze(&source, kernel, launch),
+    }
+    .map_err(|e| frontend_error_to_py(&source, &e))?;
     Ok((isa, run))
 }
 
@@ -129,5 +143,30 @@ pub(crate) fn race_verified(run: &KernelRun) -> Option<bool> {
             Some(report.conclusion() == GraphConclusion::Verified)
         }
         GraphEvidence::NotRecorded => None,
+    }
+}
+
+pub(crate) fn interpreter_name(isa: Isa, config: Option<&ConfigPy>) -> String {
+    match config.filter(|config| config.2) {
+        Some(config) => match config.1.target() {
+            Some(target) => format!("native AMD {target}"),
+            None => Isa::Ptx.name().to_string(),
+        },
+        None => isa.name().to_string(),
+    }
+}
+
+pub(crate) fn provenance(run: &KernelRun) -> (Option<(u32, u32, u32)>, Vec<String>) {
+    match &run.graph {
+        GraphEvidence::Checked { graph, .. } => (
+            Some(graph.provenance().workgroup_id),
+            graph
+                .provenance()
+                .assumptions
+                .iter()
+                .map(|a| a.describe().to_owned())
+                .collect(),
+        ),
+        GraphEvidence::NotRecorded => (None, Vec::new()),
     }
 }

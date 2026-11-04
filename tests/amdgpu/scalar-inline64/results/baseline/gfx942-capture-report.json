@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "fixture_revision": "f1a252aae8cc105a2f0d6aa0e696cac6688ba059",
+  "fixture_sha256": {
+    "gfx942.s": "8165d59d2c796f6f679657f6da07c3a51ee3a718e0dbce69e304b11e6059dfa3",
+    "gfx950.s": "76ab5b310b27f51497221e3c2f07f958d0b91ced7375e8d2cb46301c15b029e4",
+    "gfx1250.s": "faa0cdbdf23552ab450cbb76d537776745fbd368b6d2879b52694f22440cb016",
+    "one.spec": "b0697b64b3180e70ad7455c2316b44cdffb23e6674a98dc6cf6bc3a35cdec7f8",
+    "gfx942.launch.json": "77af3f5d44cdaa68575d2f365cd32e19d645189c71296c5a47414f1810e4b5d6",
+    "gfx950.launch.json": "77af3f5d44cdaa68575d2f365cd32e19d645189c71296c5a47414f1810e4b5d6",
+    "gfx1250.launch.json": "77af3f5d44cdaa68575d2f365cd32e19d645189c71296c5a47414f1810e4b5d6"
+  },
+  "binary_sha256": "66a32105a849a9eaa6ff0d19f33856f724807bfba5557b65c7737807f1078b1f",
+  "replayer_sha256": "de9430a2c2505f7822904f70b30789d59832c434113ed0e3a22697d2f57eba0c",
+  "role": "baseline",
+  "cases": [
+    {
+      "target": "gfx942",
+      "processes": {
+        "verify": {
+          "command": [
+            "{binary}",
+            "verify",
+            "{repo}/crates/volta_amdgpu_analysis/tests/fixtures/scalar-inline64/gfx942.s",
+            "{repo}/crates/volta_amdgpu_analysis/tests/fixtures/scalar-inline64/one.spec",
+            "--config",
+            "{repo}/crates/volta_amdgpu_analysis/tests/fixtures/scalar-inline64/gfx942.launch.json",
+            "--backend",
+            "amdgpu",
+            "--target",
+            "gfx942",
+            "--no-log-file",
+            "--dim",
+            "N=2",
+            "--sample",
+            "0",
+            "--verify-numeric"
+          ],
+          "returncode": 1,
+          "timed_out": false,
+          "stdout_sha256": "f5e21a4ab0e84ccf39e2bcc7b42281fd44a0c24f10a8c8a7ad14c9946d1aeb47",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "analyze": {
+          "command": [
+            "{binary}",
+            "analyze",
+            "{repo}/crates/volta_amdgpu_analysis/tests/fixtures/scalar-inline64/gfx942.s",
+            "--config",
+            "{repo}/crates/volta_amdgpu_analysis/tests/fixtures/scalar-inline64/gfx942.launch.json",
+            "--backend",
+            "amdgpu",
+            "--target",
+            "gfx942",
+            "--no-log-file",
+            "--print-outputs",
+            "2",
+            "--dump-graph",
+            "gfx942.graph",
+            "--emit-exprs",
+            "gfx942.vexpr"
+          ],
+          "returncode": 0,
+          "timed_out": false,
+          "stdout_sha256": "8b07e92bab1cf2759da7de1cd2a9b863c4b2797329d5f55e3e7b9c316532ed95",
+          "stderr_sha256": "96ea6fddaaf5ab611ff8a13e6cf6dddd2e7f90cfcf6b473228f94858c2151284"
+        }
+      },
+      "graph_sha256": "8ed52712e9608c72e4b92cba35162a413365bd0ab48f79e35488128565ed32b2",
+      "expression_sha256": "89a28aefb60472c25f4f4ce22401132d6ab3b5ebf205ff8ea58cc93b9be58da5",
+      "output_coordinates": [
+        0,
+        1
+      ],
+      "actual_u32_words": [
+        1065353216,
+        0
+      ],
+      "required_u32_words": [
+        0,
+        1072693248
+      ],
+      "graph_properties_pass": 4,
+      "mismatched_coordinates": [
+        0,
+        1
+      ],
+      "equivalence": "numeric_refuted"
+    }
+  ],
+  "inputs_unchanged": true,
+  "checks_passed": true
+}

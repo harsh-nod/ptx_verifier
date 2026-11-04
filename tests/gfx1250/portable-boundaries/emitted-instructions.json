@@ -1,0 +1,2821 @@
+{
+  "native-controls.s": {
+    "sha256": "ea0f99b25ee1282cf885624693f00b574c36feb16b1bf681af1461eeafde6c10",
+    "instructions": [
+      {
+        "line": 10,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 100,
+        "text": "s_wait_loadcnt 0",
+        "components": [
+          "s_wait_loadcnt 0"
+        ]
+      },
+      {
+        "line": 102,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 192,
+        "text": "s_trap 7",
+        "components": [
+          "s_trap 7"
+        ]
+      },
+      {
+        "line": 194,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 283,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 284,
+        "text": "v_mov_b32_e32 v4, 0",
+        "components": [
+          "v_mov_b32_e32 v4, 0"
+        ]
+      },
+      {
+        "line": 285,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 286,
+        "text": "flat_load_b128 v[0:3], v4, s[0:1] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b128 v[0:3], v4, s[0:1] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 287,
+        "text": "s_wait_loadcnt_dscnt 0x0",
+        "components": [
+          "s_wait_loadcnt_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 288,
+        "text": "flat_store_b128 v4, v[0:3], s[2:3] scope:SCOPE_SYS",
+        "components": [
+          "flat_store_b128 v4, v[0:3], s[2:3] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 289,
+        "text": "s_wait_storecnt 0x0",
+        "components": [
+          "s_wait_storecnt 0x0"
+        ]
+      },
+      {
+        "line": 290,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      }
+    ]
+  },
+  "native-equivalence.s": {
+    "sha256": "d4f0f73675d1895acc0d120c2a852e23e465b1c70652f8062fb182203e748b85",
+    "instructions": [
+      {
+        "line": 10,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 11,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 12,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 13,
+        "text": "s_load_b32 s0, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s0, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 14,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 15,
+        "text": "v_mov_b32_e32 v1, s0",
+        "components": [
+          "v_mov_b32_e32 v1, s0"
+        ]
+      },
+      {
+        "line": 18,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 19,
+        "text": "v_mul_f32_e32 v1, 0.5, v1",
+        "components": [
+          "v_mul_f32_e32 v1, 0.5, v1"
+        ]
+      },
+      {
+        "line": 20,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 21,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 110,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 111,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 112,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 113,
+        "text": "s_load_b32 s0, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s0, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 114,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 115,
+        "text": "v_mov_b32_e32 v1, s0",
+        "components": [
+          "v_mov_b32_e32 v1, s0"
+        ]
+      },
+      {
+        "line": 118,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 119,
+        "text": "v_mul_f32_e32 v1, 0x3f000002, v1",
+        "components": [
+          "v_mul_f32_e32 v1, 0x3f000002, v1"
+        ]
+      },
+      {
+        "line": 120,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 121,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 210,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 211,
+        "text": "v_mov_b32_e32 v3, 0",
+        "components": [
+          "v_mov_b32_e32 v3, 0"
+        ]
+      },
+      {
+        "line": 212,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 213,
+        "text": "s_load_b32 s4, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s4, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 214,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 215,
+        "text": "v_mov_b32_e32 v4, s4",
+        "components": [
+          "v_mov_b32_e32 v4, s4"
+        ]
+      },
+      {
+        "line": 218,
+        "text": "global_load_b96 v[0:2], v3, s[0:1] offset:4",
+        "components": [
+          "global_load_b96 v[0:2], v3, s[0:1] offset:4"
+        ]
+      },
+      {
+        "line": 219,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 220,
+        "text": "v_add_f32_e32 v0, v4, v0",
+        "components": [
+          "v_add_f32_e32 v0, v4, v0"
+        ]
+      },
+      {
+        "line": 221,
+        "text": "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 222,
+        "text": "v_add_f32_e32 v0, v0, v1",
+        "components": [
+          "v_add_f32_e32 v0, v0, v1"
+        ]
+      },
+      {
+        "line": 223,
+        "text": "v_add_f32_e32 v0, v0, v2",
+        "components": [
+          "v_add_f32_e32 v0, v0, v2"
+        ]
+      },
+      {
+        "line": 224,
+        "text": "global_store_b32 v3, v0, s[2:3]",
+        "components": [
+          "global_store_b32 v3, v0, s[2:3]"
+        ]
+      },
+      {
+        "line": 225,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 314,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 315,
+        "text": "v_mov_b32_e32 v2, 0",
+        "components": [
+          "v_mov_b32_e32 v2, 0"
+        ]
+      },
+      {
+        "line": 316,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 317,
+        "text": "s_load_b32 s4, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s4, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 318,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 319,
+        "text": "v_mov_b32_e32 v3, s4",
+        "components": [
+          "v_mov_b32_e32 v3, s4"
+        ]
+      },
+      {
+        "line": 322,
+        "text": "global_load_b64 v[0:1], v2, s[0:1] offset:4",
+        "components": [
+          "global_load_b64 v[0:1], v2, s[0:1] offset:4"
+        ]
+      },
+      {
+        "line": 323,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 324,
+        "text": "v_add_f32_e32 v0, v3, v0",
+        "components": [
+          "v_add_f32_e32 v0, v3, v0"
+        ]
+      },
+      {
+        "line": 325,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 326,
+        "text": "v_add_f32_e32 v0, v0, v1",
+        "components": [
+          "v_add_f32_e32 v0, v0, v1"
+        ]
+      },
+      {
+        "line": 327,
+        "text": "global_store_b32 v2, v0, s[2:3]",
+        "components": [
+          "global_store_b32 v2, v0, s[2:3]"
+        ]
+      },
+      {
+        "line": 328,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 417,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 418,
+        "text": "v_mov_b32_e32 v3, 0",
+        "components": [
+          "v_mov_b32_e32 v3, 0"
+        ]
+      },
+      {
+        "line": 419,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 420,
+        "text": "s_load_b32 s4, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s4, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 421,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 422,
+        "text": "v_mov_b32_e32 v4, s4",
+        "components": [
+          "v_mov_b32_e32 v4, s4"
+        ]
+      },
+      {
+        "line": 425,
+        "text": "global_load_b96 v[0:2], v3, s[0:1] offset:4",
+        "components": [
+          "global_load_b96 v[0:2], v3, s[0:1] offset:4"
+        ]
+      },
+      {
+        "line": 426,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 427,
+        "text": "v_mov_b32_e32 v5, v2",
+        "components": [
+          "v_mov_b32_e32 v5, v2"
+        ]
+      },
+      {
+        "line": 428,
+        "text": "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 429,
+        "text": "v_pk_add_f32 v[0:1], v[4:5], v[0:1]",
+        "components": [
+          "v_pk_add_f32 v[0:1], v[4:5], v[0:1]"
+        ]
+      },
+      {
+        "line": 430,
+        "text": "v_add_f32_e32 v0, v0, v1",
+        "components": [
+          "v_add_f32_e32 v0, v0, v1"
+        ]
+      },
+      {
+        "line": 431,
+        "text": "global_store_b32 v3, v0, s[2:3]",
+        "components": [
+          "global_store_b32 v3, v0, s[2:3]"
+        ]
+      },
+      {
+        "line": 432,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 521,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 522,
+        "text": "v_mov_b32_e32 v3, 0",
+        "components": [
+          "v_mov_b32_e32 v3, 0"
+        ]
+      },
+      {
+        "line": 523,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 524,
+        "text": "s_load_b32 s4, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s4, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 525,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 526,
+        "text": "v_mov_b32_e32 v4, s4",
+        "components": [
+          "v_mov_b32_e32 v4, s4"
+        ]
+      },
+      {
+        "line": 529,
+        "text": "global_load_b96 v[0:2], v3, s[0:1] offset:4",
+        "components": [
+          "global_load_b96 v[0:2], v3, s[0:1] offset:4"
+        ]
+      },
+      {
+        "line": 530,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 531,
+        "text": "v_add_f32_e32 v5, v2, v2",
+        "components": [
+          "v_add_f32_e32 v5, v2, v2"
+        ]
+      },
+      {
+        "line": 532,
+        "text": "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 533,
+        "text": "v_pk_add_f32 v[0:1], v[4:5], v[0:1]",
+        "components": [
+          "v_pk_add_f32 v[0:1], v[4:5], v[0:1]"
+        ]
+      },
+      {
+        "line": 534,
+        "text": "v_add_f32_e32 v0, v0, v1",
+        "components": [
+          "v_add_f32_e32 v0, v0, v1"
+        ]
+      },
+      {
+        "line": 535,
+        "text": "global_store_b32 v3, v0, s[2:3]",
+        "components": [
+          "global_store_b32 v3, v0, s[2:3]"
+        ]
+      },
+      {
+        "line": 536,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 625,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 626,
+        "text": "v_mov_b32_e32 v2, 0",
+        "components": [
+          "v_mov_b32_e32 v2, 0"
+        ]
+      },
+      {
+        "line": 627,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 628,
+        "text": "s_load_b32 s4, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s4, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 629,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 630,
+        "text": "v_mov_b32_e32 v3, s4",
+        "components": [
+          "v_mov_b32_e32 v3, s4"
+        ]
+      },
+      {
+        "line": 633,
+        "text": "global_load_b32 v0, v2, s[0:1] offset:4",
+        "components": [
+          "global_load_b32 v0, v2, s[0:1] offset:4"
+        ]
+      },
+      {
+        "line": 634,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 637,
+        "text": "v_rcp_f32_e32 v1, v0",
+        "components": [
+          "v_rcp_f32_e32 v1, v0"
+        ]
+      },
+      {
+        "line": 638,
+        "text": "v_nop",
+        "components": [
+          "v_nop"
+        ]
+      },
+      {
+        "line": 639,
+        "text": "s_delay_alu instid0(TRANS32_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(TRANS32_DEP_1)"
+        ]
+      },
+      {
+        "line": 640,
+        "text": "v_dual_sub_f32 v0, v3, v0 :: v_dual_mul_f32 v1, v3, v1",
+        "components": [
+          "v_dual_sub_f32 v0, v3, v0",
+          "v_dual_mul_f32 v1, v3, v1"
+        ]
+      },
+      {
+        "line": 641,
+        "text": "global_store_b64 v2, v[0:1], s[2:3]",
+        "components": [
+          "global_store_b64 v2, v[0:1], s[2:3]"
+        ]
+      },
+      {
+        "line": 642,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 731,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 732,
+        "text": "v_mov_b32_e32 v2, 0",
+        "components": [
+          "v_mov_b32_e32 v2, 0"
+        ]
+      },
+      {
+        "line": 733,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 734,
+        "text": "s_load_b32 s4, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s4, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 735,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 736,
+        "text": "v_mov_b32_e32 v0, s4",
+        "components": [
+          "v_mov_b32_e32 v0, s4"
+        ]
+      },
+      {
+        "line": 739,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 740,
+        "text": "v_rcp_f32_e32 v1, v0",
+        "components": [
+          "v_rcp_f32_e32 v1, v0"
+        ]
+      },
+      {
+        "line": 741,
+        "text": "global_load_b32 v3, v2, s[0:1] offset:4",
+        "components": [
+          "global_load_b32 v3, v2, s[0:1] offset:4"
+        ]
+      },
+      {
+        "line": 742,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 745,
+        "text": "v_nop",
+        "components": [
+          "v_nop"
+        ]
+      },
+      {
+        "line": 746,
+        "text": "v_dual_sub_f32 v0, v3, v0 :: v_dual_mul_f32 v1, v1, v3",
+        "components": [
+          "v_dual_sub_f32 v0, v3, v0",
+          "v_dual_mul_f32 v1, v1, v3"
+        ]
+      },
+      {
+        "line": 747,
+        "text": "global_store_b64 v2, v[0:1], s[2:3]",
+        "components": [
+          "global_store_b64 v2, v[0:1], s[2:3]"
+        ]
+      },
+      {
+        "line": 748,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 837,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 838,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 839,
+        "text": "global_load_b32 v1, v0, s[0:1] scale_offset",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] scale_offset"
+        ]
+      },
+      {
+        "line": 840,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 841,
+        "text": "global_store_b32 v0, v1, s[2:3] scale_offset",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3] scale_offset"
+        ]
+      },
+      {
+        "line": 842,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 931,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 932,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 933,
+        "text": "global_load_b32 v1, v0, s[0:1] offset:4 scale_offset",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] offset:4 scale_offset"
+        ]
+      },
+      {
+        "line": 934,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 935,
+        "text": "global_store_b32 v0, v1, s[2:3] scale_offset",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3] scale_offset"
+        ]
+      },
+      {
+        "line": 936,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1025,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1026,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 1027,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1028,
+        "text": "global_load_u16 v1, v0, s[0:1]",
+        "components": [
+          "global_load_u16 v1, v0, s[0:1]"
+        ]
+      },
+      {
+        "line": 1029,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 1030,
+        "text": "v_cvt_f32_f16_e32 v2, v1",
+        "components": [
+          "v_cvt_f32_f16_e32 v2, v1"
+        ]
+      },
+      {
+        "line": 1033,
+        "text": "global_load_b32 v1, v0, s[0:1] offset:2",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] offset:2"
+        ]
+      },
+      {
+        "line": 1034,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 1035,
+        "text": "v_fma_mix_f32 v1, v2, v1, v1 op_sel:[0,0,1] op_sel_hi:[0,1,1]",
+        "components": [
+          "v_fma_mix_f32 v1, v2, v1, v1 op_sel:[0,0,1] op_sel_hi:[0,1,1]"
+        ]
+      },
+      {
+        "line": 1036,
+        "text": "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 1037,
+        "text": "v_max_num_f32_e32 v1, 0, v1",
+        "components": [
+          "v_max_num_f32_e32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 1038,
+        "text": "v_cvt_f16_f32_e32 v1, v1",
+        "components": [
+          "v_cvt_f16_f32_e32 v1, v1"
+        ]
+      },
+      {
+        "line": 1039,
+        "text": "global_store_b16 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b16 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 1040,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1129,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1130,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 1131,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1132,
+        "text": "global_load_u16 v1, v0, s[0:1]",
+        "components": [
+          "global_load_u16 v1, v0, s[0:1]"
+        ]
+      },
+      {
+        "line": 1133,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 1134,
+        "text": "v_cvt_f32_f16_e32 v2, v1",
+        "components": [
+          "v_cvt_f32_f16_e32 v2, v1"
+        ]
+      },
+      {
+        "line": 1137,
+        "text": "global_load_b32 v1, v0, s[0:1] offset:2",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] offset:2"
+        ]
+      },
+      {
+        "line": 1138,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 1139,
+        "text": "v_fma_mixlo_f16 v1, v2, v1, v1 op_sel:[0,0,1] op_sel_hi:[0,1,1]",
+        "components": [
+          "v_fma_mixlo_f16 v1, v2, v1, v1 op_sel:[0,0,1] op_sel_hi:[0,1,1]"
+        ]
+      },
+      {
+        "line": 1140,
+        "text": "global_store_b16 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b16 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 1141,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1230,
+        "text": "s_load_b64 s[0:1], s[0:1], 0x0",
+        "components": [
+          "s_load_b64 s[0:1], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1231,
+        "text": "v_dual_mov_b32 v1, -1 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, -1",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 1233,
+        "text": "v_add_nc_u32 v1, 0, v1",
+        "components": [
+          "v_add_nc_u32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 1235,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1236,
+        "text": "global_store_b32 v0, v1, s[0:1]",
+        "components": [
+          "global_store_b32 v0, v1, s[0:1]"
+        ]
+      },
+      {
+        "line": 1237,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1326,
+        "text": "s_load_b64 s[0:1], s[0:1], 0x0",
+        "components": [
+          "s_load_b64 s[0:1], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1327,
+        "text": "v_dual_mov_b32 v1, -2 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, -2",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 1329,
+        "text": "v_add_nc_u32 v1, 0, v1",
+        "components": [
+          "v_add_nc_u32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 1331,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1332,
+        "text": "global_store_b32 v0, v1, s[0:1]",
+        "components": [
+          "global_store_b32 v0, v1, s[0:1]"
+        ]
+      },
+      {
+        "line": 1333,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1422,
+        "text": "s_load_b64 s[0:1], s[0:1], 0x0",
+        "components": [
+          "s_load_b64 s[0:1], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1423,
+        "text": "v_dual_mov_b32 v1, -1 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, -1",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 1425,
+        "text": "v_add_nc_u32 v1, 0, v1",
+        "components": [
+          "v_add_nc_u32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 1427,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1428,
+        "text": "global_store_b32 v0, v1, s[0:1]",
+        "components": [
+          "global_store_b32 v0, v1, s[0:1]"
+        ]
+      },
+      {
+        "line": 1429,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1518,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1519,
+        "text": "v_mov_b32_e32 v2, 0",
+        "components": [
+          "v_mov_b32_e32 v2, 0"
+        ]
+      },
+      {
+        "line": 1520,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1521,
+        "text": "s_load_b32 s4, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s4, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1522,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1523,
+        "text": "v_mov_b32_e32 v3, s4",
+        "components": [
+          "v_mov_b32_e32 v3, s4"
+        ]
+      },
+      {
+        "line": 1526,
+        "text": "global_load_b64 v[0:1], v2, s[0:1] offset:4",
+        "components": [
+          "global_load_b64 v[0:1], v2, s[0:1] offset:4"
+        ]
+      },
+      {
+        "line": 1527,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 1528,
+        "text": "v_fmac_f32_e32 v1, v3, v0",
+        "components": [
+          "v_fmac_f32_e32 v1, v3, v0"
+        ]
+      },
+      {
+        "line": 1529,
+        "text": "global_store_b32 v2, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v2, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 1530,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1619,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1620,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1621,
+        "text": "s_clause 0x1",
+        "components": [
+          "s_clause 0x1"
+        ]
+      },
+      {
+        "line": 1622,
+        "text": "s_load_b64 s[4:5], s[0:1], 0x0",
+        "components": [
+          "s_load_b64 s[4:5], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1623,
+        "text": "s_load_b32 s6, s[0:1], 0xc",
+        "components": [
+          "s_load_b32 s6, s[0:1], 0xc"
+        ]
+      },
+      {
+        "line": 1624,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1625,
+        "text": "v_dual_mov_b32 v0, 0 :: v_dual_mov_b32 v1, s4",
+        "components": [
+          "v_dual_mov_b32 v0, 0",
+          "v_dual_mov_b32 v1, s4"
+        ]
+      },
+      {
+        "line": 1626,
+        "text": "v_dual_mov_b32 v2, s5 :: v_dual_mov_b32 v3, s6",
+        "components": [
+          "v_dual_mov_b32 v2, s5",
+          "v_dual_mov_b32 v3, s6"
+        ]
+      },
+      {
+        "line": 1628,
+        "text": "v_mul_f32 v1, v1, v2",
+        "components": [
+          "v_mul_f32 v1, v1, v2"
+        ]
+      },
+      {
+        "line": 1631,
+        "text": "v_add_f32 v1, v1, v3",
+        "components": [
+          "v_add_f32 v1, v1, v3"
+        ]
+      },
+      {
+        "line": 1633,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 1634,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1723,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1724,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 1725,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1726,
+        "text": "s_load_b96 s[4:6], s[0:1], 0x0",
+        "components": [
+          "s_load_b96 s[4:6], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1727,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1728,
+        "text": "v_dual_mov_b32 v3, s6 :: v_dual_mov_b32 v1, s4",
+        "components": [
+          "v_dual_mov_b32 v3, s6",
+          "v_dual_mov_b32 v1, s4"
+        ]
+      },
+      {
+        "line": 1729,
+        "text": "v_mov_b32_e32 v2, s5",
+        "components": [
+          "v_mov_b32_e32 v2, s5"
+        ]
+      },
+      {
+        "line": 1731,
+        "text": "v_mul_f32 v1, v1, v2",
+        "components": [
+          "v_mul_f32 v1, v1, v2"
+        ]
+      },
+      {
+        "line": 1734,
+        "text": "v_add_f32 v1, v1, v3",
+        "components": [
+          "v_add_f32 v1, v1, v3"
+        ]
+      },
+      {
+        "line": 1736,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 1737,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1826,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1827,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 1828,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1829,
+        "text": "s_load_b32 s4, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s4, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1830,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1831,
+        "text": "v_mov_b32_e32 v2, s4",
+        "components": [
+          "v_mov_b32_e32 v2, s4"
+        ]
+      },
+      {
+        "line": 1834,
+        "text": "global_load_b32 v1, v0, s[0:1] offset:4",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] offset:4"
+        ]
+      },
+      {
+        "line": 1835,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 1836,
+        "text": "v_dual_max_num_f32 v2, v2, v2 :: v_dual_max_num_f32 v1, v1, v1",
+        "components": [
+          "v_dual_max_num_f32 v2, v2, v2",
+          "v_dual_max_num_f32 v1, v1, v1"
+        ]
+      },
+      {
+        "line": 1837,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 1838,
+        "text": "v_max_num_f32_e32 v1, v2, v1",
+        "components": [
+          "v_max_num_f32_e32 v1, v2, v1"
+        ]
+      },
+      {
+        "line": 1839,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 1840,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1929,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1930,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 1931,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1932,
+        "text": "s_load_b32 s4, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s4, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1933,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1934,
+        "text": "v_mov_b32_e32 v2, s4",
+        "components": [
+          "v_mov_b32_e32 v2, s4"
+        ]
+      },
+      {
+        "line": 1937,
+        "text": "global_load_b32 v1, v0, s[0:1] offset:4",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] offset:4"
+        ]
+      },
+      {
+        "line": 1938,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 1939,
+        "text": "v_dual_max_num_f32 v2, v2, v2 :: v_dual_max_num_f32 v1, v1, v1",
+        "components": [
+          "v_dual_max_num_f32 v2, v2, v2",
+          "v_dual_max_num_f32 v1, v1, v1"
+        ]
+      },
+      {
+        "line": 1940,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 1941,
+        "text": "v_min_num_f32_e32 v1, v2, v1",
+        "components": [
+          "v_min_num_f32_e32 v1, v2, v1"
+        ]
+      },
+      {
+        "line": 1942,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 1943,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 2032,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 2033,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 2034,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 2035,
+        "text": "s_load_b32 s4, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s4, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 2036,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 2037,
+        "text": "v_mov_b32_e32 v1, s4",
+        "components": [
+          "v_mov_b32_e32 v1, s4"
+        ]
+      },
+      {
+        "line": 2040,
+        "text": "global_load_b32 v2, v0, s[0:1] offset:4",
+        "components": [
+          "global_load_b32 v2, v0, s[0:1] offset:4"
+        ]
+      },
+      {
+        "line": 2041,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 2044,
+        "text": "v_dual_mul_f32 v1, 0x3fb8aa3b, v1 :: v_dual_mul_f32 v2, 0x3fb8aa3b, v2",
+        "components": [
+          "v_dual_mul_f32 v1, 0x3fb8aa3b, v1",
+          "v_dual_mul_f32 v2, 0x3fb8aa3b, v2"
+        ]
+      },
+      {
+        "line": 2045,
+        "text": "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 2046,
+        "text": "v_exp_f32_e32 v1, v1",
+        "components": [
+          "v_exp_f32_e32 v1, v1"
+        ]
+      },
+      {
+        "line": 2047,
+        "text": "v_exp_f32_e32 v2, v2",
+        "components": [
+          "v_exp_f32_e32 v2, v2"
+        ]
+      },
+      {
+        "line": 2048,
+        "text": "v_nop",
+        "components": [
+          "v_nop"
+        ]
+      },
+      {
+        "line": 2049,
+        "text": "s_delay_alu instid0(TRANS32_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(TRANS32_DEP_1)"
+        ]
+      },
+      {
+        "line": 2050,
+        "text": "v_mul_f32_e32 v1, v1, v2",
+        "components": [
+          "v_mul_f32_e32 v1, v1, v2"
+        ]
+      },
+      {
+        "line": 2051,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 2052,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 2141,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 2142,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 2143,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 2144,
+        "text": "s_load_b32 s4, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s4, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 2145,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 2146,
+        "text": "v_mov_b32_e32 v2, s4",
+        "components": [
+          "v_mov_b32_e32 v2, s4"
+        ]
+      },
+      {
+        "line": 2149,
+        "text": "global_load_b32 v1, v0, s[0:1] offset:4",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] offset:4"
+        ]
+      },
+      {
+        "line": 2150,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 2151,
+        "text": "v_add_f32_e32 v1, v2, v1",
+        "components": [
+          "v_add_f32_e32 v1, v2, v1"
+        ]
+      },
+      {
+        "line": 2152,
+        "text": "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 2153,
+        "text": "v_mul_f32_e32 v1, 0x3fb8aa3b, v1",
+        "components": [
+          "v_mul_f32_e32 v1, 0x3fb8aa3b, v1"
+        ]
+      },
+      {
+        "line": 2154,
+        "text": "v_exp_f32_e32 v1, v1",
+        "components": [
+          "v_exp_f32_e32 v1, v1"
+        ]
+      },
+      {
+        "line": 2155,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 2156,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 2245,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 2246,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 2247,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 2248,
+        "text": "s_load_b32 s4, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s4, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 2249,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 2250,
+        "text": "v_mov_b32_e32 v2, s4",
+        "components": [
+          "v_mov_b32_e32 v2, s4"
+        ]
+      },
+      {
+        "line": 2253,
+        "text": "global_load_b32 v1, v0, s[0:1] offset:4",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] offset:4"
+        ]
+      },
+      {
+        "line": 2254,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 2255,
+        "text": "v_mul_f32_e32 v1, v2, v1",
+        "components": [
+          "v_mul_f32_e32 v1, v2, v1"
+        ]
+      },
+      {
+        "line": 2256,
+        "text": "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 2257,
+        "text": "v_mul_f32_e32 v1, 0x3fb8aa3b, v1",
+        "components": [
+          "v_mul_f32_e32 v1, 0x3fb8aa3b, v1"
+        ]
+      },
+      {
+        "line": 2258,
+        "text": "v_exp_f32_e32 v1, v1",
+        "components": [
+          "v_exp_f32_e32 v1, v1"
+        ]
+      },
+      {
+        "line": 2259,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 2260,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 2349,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 2350,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 2351,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 2352,
+        "text": "s_load_b32 s0, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s0, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 2353,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 2354,
+        "text": "s_xor_b32 s0, s0, 0x80000000",
+        "components": [
+          "s_xor_b32 s0, s0, 0x80000000"
+        ]
+      },
+      {
+        "line": 2355,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 2356,
+        "text": "v_mov_b32_e32 v1, s0",
+        "components": [
+          "v_mov_b32_e32 v1, s0"
+        ]
+      },
+      {
+        "line": 2358,
+        "text": "v_add_nc_u32 v1, 0, v1",
+        "components": [
+          "v_add_nc_u32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 2360,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 2361,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 2450,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 2451,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 2452,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 2453,
+        "text": "s_load_b32 s0, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s0, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 2454,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 2455,
+        "text": "s_sub_co_i32 s0, 0, s0",
+        "components": [
+          "s_sub_co_i32 s0, 0, s0"
+        ]
+      },
+      {
+        "line": 2456,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 2457,
+        "text": "v_mov_b32_e32 v1, s0",
+        "components": [
+          "v_mov_b32_e32 v1, s0"
+        ]
+      },
+      {
+        "line": 2459,
+        "text": "v_add_nc_u32 v1, 0, v1",
+        "components": [
+          "v_add_nc_u32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 2461,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 2462,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      }
+    ]
+  },
+  "native-model.s": {
+    "sha256": "7e8614225e42b25cbe881881ceb706a565881b82d198738e13b1184349ddc97a",
+    "instructions": [
+      {
+        "line": 10,
+        "text": "s_load_b64 s[0:1], s[0:1], 0x0",
+        "components": [
+          "s_load_b64 s[0:1], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 12,
+        "text": "v_mov_b32 v1, 0x7fc00000",
+        "components": [
+          "v_mov_b32 v1, 0x7fc00000"
+        ]
+      },
+      {
+        "line": 14,
+        "text": "v_dual_mov_b32 v0, 0 :: v_dual_add_f32 v1, v1, v1",
+        "components": [
+          "v_dual_mov_b32 v0, 0",
+          "v_dual_add_f32 v1, v1, v1"
+        ]
+      },
+      {
+        "line": 15,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 16,
+        "text": "global_store_b32 v0, v1, s[0:1]",
+        "components": [
+          "global_store_b32 v0, v1, s[0:1]"
+        ]
+      },
+      {
+        "line": 17,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 106,
+        "text": "s_load_b64 s[0:1], s[0:1], 0x0",
+        "components": [
+          "s_load_b64 s[0:1], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 108,
+        "text": "v_mov_b32 v2, 0",
+        "components": [
+          "v_mov_b32 v2, 0"
+        ]
+      },
+      {
+        "line": 110,
+        "text": "v_rcp_f32_e32 v0, v2",
+        "components": [
+          "v_rcp_f32_e32 v0, v2"
+        ]
+      },
+      {
+        "line": 111,
+        "text": "v_nop",
+        "components": [
+          "v_nop"
+        ]
+      },
+      {
+        "line": 112,
+        "text": "s_delay_alu instid0(TRANS32_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(TRANS32_DEP_1)"
+        ]
+      },
+      {
+        "line": 113,
+        "text": "v_dual_mov_b32 v1, 0 :: v_dual_mul_f32 v0, v2, v0",
+        "components": [
+          "v_dual_mov_b32 v1, 0",
+          "v_dual_mul_f32 v0, v2, v0"
+        ]
+      },
+      {
+        "line": 114,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 115,
+        "text": "global_store_b32 v1, v0, s[0:1]",
+        "components": [
+          "global_store_b32 v1, v0, s[0:1]"
+        ]
+      },
+      {
+        "line": 116,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 205,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 206,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 207,
+        "text": "s_load_b32 s0, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s0, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 208,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 209,
+        "text": "v_dual_mov_b32 v0, 0 :: v_dual_mov_b32 v2, s0",
+        "components": [
+          "v_dual_mov_b32 v0, 0",
+          "v_dual_mov_b32 v2, s0"
+        ]
+      },
+      {
+        "line": 210,
+        "text": "v_mov_b32_e32 v1, s0",
+        "components": [
+          "v_mov_b32_e32 v1, s0"
+        ]
+      },
+      {
+        "line": 212,
+        "text": "v_cmp_lt_f32_e32 vcc_lo, 0, v2",
+        "components": [
+          "v_cmp_lt_f32_e32 vcc_lo, 0, v2"
+        ]
+      },
+      {
+        "line": 213,
+        "text": "s_cbranch_vccnz .Lmodel_branch_0",
+        "components": [
+          "s_cbranch_vccnz .Lmodel_branch_0"
+        ]
+      },
+      {
+        "line": 214,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 217,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 218,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 307,
+        "text": "s_load_b96 s[0:2], s[0:1], 0x0",
+        "components": [
+          "s_load_b96 s[0:2], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 308,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 309,
+        "text": "v_dual_mov_b32 v0, 0 :: v_dual_mov_b32 v1, s2",
+        "components": [
+          "v_dual_mov_b32 v0, 0",
+          "v_dual_mov_b32 v1, s2"
+        ]
+      },
+      {
+        "line": 311,
+        "text": "v_cmp_lt_f32_e32 vcc_lo, 0, v1",
+        "components": [
+          "v_cmp_lt_f32_e32 vcc_lo, 0, v1"
+        ]
+      },
+      {
+        "line": 312,
+        "text": "s_cbranch_vccnz .Lmodel_branch_1",
+        "components": [
+          "s_cbranch_vccnz .Lmodel_branch_1"
+        ]
+      },
+      {
+        "line": 313,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 317,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 319,
+        "text": "global_store_b32 v0, v1, s[0:1]",
+        "components": [
+          "global_store_b32 v0, v1, s[0:1]"
+        ]
+      },
+      {
+        "line": 320,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 409,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 410,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 411,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 412,
+        "text": "s_load_b32 s0, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s0, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 413,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 414,
+        "text": "s_lshr_b32 s0, s0, 1",
+        "components": [
+          "s_lshr_b32 s0, s0, 1"
+        ]
+      },
+      {
+        "line": 415,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 416,
+        "text": "v_mov_b32_e32 v1, s0",
+        "components": [
+          "v_mov_b32_e32 v1, s0"
+        ]
+      },
+      {
+        "line": 418,
+        "text": "v_add_nc_u32 v1, 0, v1",
+        "components": [
+          "v_add_nc_u32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 420,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 421,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 510,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 511,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 512,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 513,
+        "text": "s_load_b32 s0, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s0, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 514,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 515,
+        "text": "s_and_b32 s0, s0, -2",
+        "components": [
+          "s_and_b32 s0, s0, -2"
+        ]
+      },
+      {
+        "line": 516,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 517,
+        "text": "v_mov_b32_e32 v1, s0",
+        "components": [
+          "v_mov_b32_e32 v1, s0"
+        ]
+      },
+      {
+        "line": 519,
+        "text": "v_add_nc_u32 v1, 0, v1",
+        "components": [
+          "v_add_nc_u32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 521,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 522,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 611,
+        "text": "s_load_b64 s[0:1], s[0:1], 0x0",
+        "components": [
+          "s_load_b64 s[0:1], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 613,
+        "text": "v_mov_b32 v0, 7",
+        "components": [
+          "v_mov_b32 v0, 7"
+        ]
+      },
+      {
+        "line": 615,
+        "text": "v_dual_mov_b32 v0, 0 :: v_dual_lshrrev_b32 v1, 1, v0",
+        "components": [
+          "v_dual_mov_b32 v0, 0",
+          "v_dual_lshrrev_b32 v1, 1, v0"
+        ]
+      },
+      {
+        "line": 617,
+        "text": "v_add_nc_u32 v1, 0, v1",
+        "components": [
+          "v_add_nc_u32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 619,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 620,
+        "text": "global_store_b32 v0, v1, s[0:1]",
+        "components": [
+          "global_store_b32 v0, v1, s[0:1]"
+        ]
+      },
+      {
+        "line": 621,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 710,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 711,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 712,
+        "text": "s_load_b32 s0, s[0:1], 0x0",
+        "components": [
+          "s_load_b32 s0, s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 713,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 714,
+        "text": "v_dual_mov_b32 v0, 0 :: v_dual_mov_b32 v1, s0",
+        "components": [
+          "v_dual_mov_b32 v0, 0",
+          "v_dual_mov_b32 v1, s0"
+        ]
+      },
+      {
+        "line": 715,
+        "text": "global_store_b8 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b8 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 716,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 805,
+        "text": "s_load_b96 s[0:2], s[0:1], 0x0",
+        "components": [
+          "s_load_b96 s[0:2], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 806,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 807,
+        "text": "v_dual_mov_b32 v0, 0 :: v_dual_mov_b32 v1, s2",
+        "components": [
+          "v_dual_mov_b32 v0, 0",
+          "v_dual_mov_b32 v1, s2"
+        ]
+      },
+      {
+        "line": 809,
+        "text": "v_add_nc_u32 v1, 0, v1",
+        "components": [
+          "v_add_nc_u32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 811,
+        "text": "global_store_b8 v0, v1, s[0:1]",
+        "components": [
+          "global_store_b8 v0, v1, s[0:1]"
+        ]
+      },
+      {
+        "line": 812,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 901,
+        "text": "s_load_b64 s[0:1], s[0:1], 0x0",
+        "components": [
+          "s_load_b64 s[0:1], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 902,
+        "text": "v_dual_mov_b32 v1, 1 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, 1",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 904,
+        "text": "v_add_nc_u32 v1, 0, v1",
+        "components": [
+          "v_add_nc_u32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 906,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 907,
+        "text": "global_store_b32 v0, v1, s[0:1]",
+        "components": [
+          "global_store_b32 v0, v1, s[0:1]"
+        ]
+      },
+      {
+        "line": 908,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 997,
+        "text": "s_mov_b32 s2, exec_lo",
+        "components": [
+          "s_mov_b32 s2, exec_lo"
+        ]
+      },
+      {
+        "line": 998,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 999,
+        "text": "s_cbranch_execz .LBB10_2",
+        "components": [
+          "s_cbranch_execz .LBB10_2"
+        ]
+      },
+      {
+        "line": 1001,
+        "text": "s_load_b64 s[0:1], s[0:1], 0x0",
+        "components": [
+          "s_load_b64 s[0:1], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1002,
+        "text": "v_dual_mov_b32 v1, 1 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, 1",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 1004,
+        "text": "v_add_nc_u32 v1, 0, v1",
+        "components": [
+          "v_add_nc_u32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 1006,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1007,
+        "text": "global_store_b32 v0, v1, s[0:1]",
+        "components": [
+          "global_store_b32 v0, v1, s[0:1]"
+        ]
+      },
+      {
+        "line": 1009,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      }
+    ]
+  },
+  "native-signed-byte.s": {
+    "sha256": "287b2da6ceac040fbd93276d5384360bfaa1a554d99cc4439928e124f3582eb5",
+    "instructions": [
+      {
+        "line": 10,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 11,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 12,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 13,
+        "text": "flat_load_i8 v1, v0, s[0:1] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_i8 v1, v0, s[0:1] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 14,
+        "text": "s_wait_loadcnt_dscnt 0x0",
+        "components": [
+          "s_wait_loadcnt_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 15,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 16,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      }
+    ]
+  }
+}

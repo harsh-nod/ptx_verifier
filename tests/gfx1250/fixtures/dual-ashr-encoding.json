@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "target": "gfx1250",
+  "claim": "Actual native encoding observations; rejection by the selected frontend profile is distinguished from assembler rejection.",
+  "tool": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+  "tool_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "primary_reference": {
+    "repository": "llvm/llvm-project",
+    "revision": "f13414fb26b92bdbbfdf4b2b5401117936da84af",
+    "path": "llvm/lib/Target/AMDGPU/VOPDInstructions.td",
+    "section": "VOPDYOnlyPseudosGFX1250 and VOPD3XPseudosExtraGFX13"
+  },
+  "observations": [
+    {
+      "instruction": "v_dual_add_nc_u32 v2, -11, v2 :: v_dual_ashrrev_i32 v1, 31, v0",
+      "mc_accepted": true,
+      "selected_frontend_profile": true,
+      "stderr": ""
+    },
+    {
+      "instruction": "v_dual_add_nc_u32 v0, 1, v0 :: v_dual_ashrrev_i32 v1, 31, v0",
+      "mc_accepted": true,
+      "selected_frontend_profile": true,
+      "stderr": ""
+    },
+    {
+      "instruction": "v_dual_add_nc_u32 v2, -11, v2 :: v_dual_ashrrev_i32 v1, 128, v0",
+      "mc_accepted": false,
+      "selected_frontend_profile": false,
+      "stderr": "<stdin>:1:57: error: invalid operand for instruction\nv_dual_add_nc_u32 v2, -11, v2 :: v_dual_ashrrev_i32 v1, 128, v0\n                                                        ^\n"
+    },
+    {
+      "instruction": "v_dual_add_nc_u32 v2, -11, v2 :: v_dual_ashrrev_i32 v1, 31, s0",
+      "mc_accepted": false,
+      "selected_frontend_profile": false,
+      "stderr": "<stdin>:1:61: error: invalid operand for instruction\nv_dual_add_nc_u32 v2, -11, v2 :: v_dual_ashrrev_i32 v1, 31, s0\n                                                            ^\n"
+    },
+    {
+      "instruction": "v_dual_add_nc_u32 v2, -11, v2 :: v_dual_ashrrev_i32 v1, 31, -v0",
+      "mc_accepted": false,
+      "selected_frontend_profile": false,
+      "stderr": "<stdin>:1:62: error: invalid operand for instruction\nv_dual_add_nc_u32 v2, -11, v2 :: v_dual_ashrrev_i32 v1, 31, -v0\n                                                             ^\n"
+    },
+    {
+      "instruction": "v_dual_add_nc_u32 v2, -11, v2 :: v_dual_ashrrev_i32 v2, 31, v0",
+      "mc_accepted": false,
+      "selected_frontend_profile": false,
+      "stderr": "<stdin>:1:53: error: dst registers must be distinct\nv_dual_add_nc_u32 v2, -11, v2 :: v_dual_ashrrev_i32 v2, 31, v0\n                                                    ^\n"
+    }
+  ]
+}

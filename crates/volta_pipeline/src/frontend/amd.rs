@@ -29,6 +29,11 @@ impl Frontend for AmdFrontend {
             message: Some(message),
             span: None,
         })?;
+        if parsed.target.split(':').next() != Some("amdgcn-amd-amdhsa--gfx950") {
+            return Err(FrontendError::Launch(
+                "the experimental AMD frontend supports only gfx950; select the native amdgpu backend for other targets".into(),
+            ));
+        }
 
         let (workgroup, kernarg, arrays) = workgroup_launch(&launch)?;
         let result = analyze(&parsed, &workgroup, &kernarg, &arrays)
@@ -44,6 +49,7 @@ impl Frontend for AmdFrontend {
             });
 
         Ok(KernelRun {
+            native: None,
             outputs,
             graph: GraphEvidence::NotRecorded,
         })
@@ -66,6 +72,21 @@ fn descriptors(source: &str) -> Vec<String> {
 fn workgroup_launch(
     launch: &AnalysisConfig,
 ) -> Result<(WorkgroupLaunch, Vec<u8>, Vec<ArrayDef>), FrontendError> {
+    if launch.grid_dim != (1, 1, 1)
+        || launch.workgroup_id != (0, 0, 0)
+        || launch.early_readiness
+        || launch.early_memory_conflicts
+        || !launch.shared_allocations.is_empty()
+        || launch.max_instructions != AnalysisConfig::new((1, 1, 1)).max_instructions
+    {
+        return Err(FrontendError::Launch(
+            "the experimental AMD frontend supports only workgroup zero in a one-group grid, \
+             its default instruction budget and no native observer or LDS-layout settings; \
+             select the native amdgpu backend for those launch fields"
+                .into(),
+        ));
+    }
+    launch.validate().map_err(FrontendError::Launch)?;
     if !launch.global_values.is_empty() {
         return Err(FrontendError::Launch(
             "AMD kernels take no module-scope globals".into(),
@@ -158,6 +179,9 @@ fn argument(launch: &AnalysisConfig, param: &ParamValue) -> Result<Vec<u8>, Fron
 
         ParamValue::Struct(_) => Err(FrontendError::Launch(
             "AMD kernels take no struct parameters".into(),
+        )),
+        ParamValue::Bytes(_) => Err(FrontendError::Launch(
+            "exact by-value bytes require the native amdgpu backend".into(),
         )),
     }
 }

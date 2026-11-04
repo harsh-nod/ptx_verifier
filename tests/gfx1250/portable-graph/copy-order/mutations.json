@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "hardware_execution": false,
+  "scope": "MC provenance only; exact typed CPU gates are named separately",
+  "assembly_sha256": "e27b6d9668ad6a7864caa476b27445f46a82d70c639bbcd289ad965d740bc67d",
+  "assembler": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+  "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "mutations": [
+    {
+      "name": "wrong_scalar_counter",
+      "kernel": "copy_scalar_same_wave",
+      "edits": [
+        {
+          "line_before_edit": 20,
+          "original": "s_load_b32 s0, s[4:5], 0x0\n\ts_wait_kmcnt 0x0",
+          "replacement": "s_load_b32 s0, s[4:5], 0x0\n\ts_wait_loadcnt 0"
+        }
+      ],
+      "assembly_sha256": "96bd21799a379f8f1427c904fd83712394a715adb2d946fc53bb083ecb952172",
+      "object_sha256": "671bff7d782dd4d9b4a37bed011b5065be461580f86f1d61e0bc72aef7ff9dc6",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-copy-order-lgsdzmeb/wrong_scalar_counter.s",
+          "-o",
+          "/tmp/gfx1250-copy-order-lgsdzmeb/wrong_scalar_counter.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "cpu_gate": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs::a_load_wait_cannot_complete_the_actual_scalar_input_counter"
+    },
+    {
+      "name": "wrong_shared_return_counter",
+      "kernel": "copy_scalar_same_wave",
+      "edits": [
+        {
+          "line_before_edit": 29,
+          "original": "s_wait_loadcnt_dscnt 0x0",
+          "replacement": "s_wait_storecnt 0"
+        }
+      ],
+      "assembly_sha256": "6d41c3d5cec1ebbfed25bdae5198e96b0c4ddc605f976ce1a67ff63e32c3d5d1",
+      "object_sha256": "cd368a22d75bc2e49d9529c994d225d011fbe6afe35493549eeb906bc7320bd1",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-copy-order-lgsdzmeb/wrong_shared_return_counter.s",
+          "-o",
+          "/tmp/gfx1250-copy-order-lgsdzmeb/wrong_shared_return_counter.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "cpu_gate": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs::store_completion_does_not_make_the_returned_shared_value_ready"
+    },
+    {
+      "name": "missing_crosswave_publication",
+      "kernel": "copy_scalar_cross_wave",
+      "edits": [
+        {
+          "line_before_edit": 141,
+          "original": "s_barrier_signal -1\n\ts_barrier_wait -1",
+          "replacement": "s_nop 0\n\ts_nop 0"
+        },
+        {
+          "line_before_edit": 151,
+          "original": "flat_load_b32 v1, v0, s[0:1] scope:SCOPE_SYS",
+          "replacement": "s_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\ts_nop 0\n\tflat_load_b32 v1, v0, s[0:1] scope:SCOPE_SYS"
+        }
+      ],
+      "assembly_sha256": "fe78e82bb1e2ee040c9282c92bd65bd5adfb4e0423dccd31e2d12c469c8498a1",
+      "object_sha256": "a08bdeb1fbbe3978fc5f90d1e88af2dcac60154f00f0eb6db0648dc08f588e82",
+      "assemble": {
+        "argv": [
+          "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx1250",
+          "-filetype=obj",
+          "/tmp/gfx1250-copy-order-lgsdzmeb/missing_crosswave_publication.s",
+          "-o",
+          "/tmp/gfx1250-copy-order-lgsdzmeb/missing_crosswave_publication.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "cpu_gate": "crates/volta_pipeline/tests/gfx1250_portable_copy_tests.rs::completing_lds_is_distinct_from_publishing_it_to_another_wave"
+    }
+  ]
+}

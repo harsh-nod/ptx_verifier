@@ -1,0 +1,29 @@
+Exec: 0.003s  instructions: 61  block syncs: 0  warp syncs: 0
+kernel: graph verification
+  selected workgroup: (0, 0, 0); other workgroups and inter-workgroup conflicts are outside this result
+  AMD trace completeness (native AMD graph contract)      PASS
+  AMD wait and register readiness (target-selected counters and register dependencies) PASS
+  AMD workgroup barrier generations (target-selected AMD barrier objects and phases) PASS
+  AMD memory-conflict freedom (AMD completed-effect happens-before) FAIL
+      MemoryConflict { kind: WriteRead, location: ByteLocation { space: Shared, addr: 0 }, earlier: EventId(54), later: EventId(324) }
+        e54 t0           line 223: global_load_async_to_lds_b128 v4, v[2:3], off
+        e324 t0           line 238: ds_read_b64 v[0:1], v5 offset:0
+      MemoryConflict { kind: WriteRead, location: ByteLocation { space: Shared, addr: 4 }, earlier: EventId(56), later: EventId(325) }
+        e56 t0           line 223: global_load_async_to_lds_b128 v4, v[2:3], off
+        e325 t0           line 238: ds_read_b64 v[0:1], v5 offset:0
+      MemoryConflict { kind: WriteRead, location: ByteLocation { space: Shared, addr: 32 }, earlier: EventId(70), later: EventId(326) }
+        e70 t2           line 223: global_load_async_to_lds_b128 v4, v[2:3], off
+        e326 t1           line 238: ds_read_b64 v[0:1], v5 offset:0
+      ... (253 more)
+VC check: 0.001s (decision procedure 0.001s)  elements: 256
+EQUIVALENT (matches spec)
+VERDICT: REJECT
+  kernel: AMD memory-conflict freedom failed: MemoryConflict { kind: WriteRead, location: ByteLocation { space: Shared, addr: 0 }, earlier: EventId(54), later: EventId(324) }
+  under the assumptions:
+    - only the selected AMD workgroup is analyzed; other workgroups and inter-workgroup conflicts are outside this result
+    - workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result
+    - arithmetic is modeled over mathematical reals, not bit-exact floating-point
+    - addresses, branch conditions and synchronization parameters are concrete
+    - asynchronous operations compute their data at issue; only completion is asynchronous
+    - native LDS extent is the descriptor's static allocation plus configured dynamic bytes
+    - native AMD execution uses default scheduling; expert scheduling and mode transitions are outside this result

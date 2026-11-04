@@ -1,0 +1,80 @@
+{
+  "scope": "Selected gfx1250 scalar-base FLAT B32 load/store only. scale_offset multiplies the concrete unsigned VGPR index by4; immediate offset stays in bytes. Same opaque Shared aperture, both data counters, replay reads and full allocation bounds retained. Wider legal forms remain outside this selected profile. No hardware claim.",
+  "references": [
+    {
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/Utils/AMDGPUBaseInfo.cpp",
+      "sha256": "42498e6b25c9c968a2a64e1f8388fff119e2f79424c7b23224c6c2b4dc8cf57c"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/AsmParser/AMDGPUAsmParser.cpp",
+      "sha256": "a0cc11347393f1d38f53c0fb2bada9ded1bceb2916a7daf79234f14c41d6a703"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/AMDGPUTargetTransformInfo.cpp",
+      "sha256": "5654be65c7cf1a746f580e4d521a1fb6b2a326155664f5f158cdc81de9ec9bc1"
+    }
+  ],
+  "llvm_mc_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "probes": [
+    {
+      "instruction": "flat_load_b32 v1,v0,s[6:7] scale_offset scope:SCOPE_SYS",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-flat-scale-0.s",
+        "-o",
+        "/tmp/gfx1250-flat-scale-0.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "flat_store_b32 v0,v1,s[6:7] scale_offset scope:SCOPE_SYS",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-flat-scale-1.s",
+        "-o",
+        "/tmp/gfx1250-flat-scale-1.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "flat_load_b32 v1,v0,s[6:7] offset:4 scale_offset scope:SCOPE_SYS",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-flat-scale-2.s",
+        "-o",
+        "/tmp/gfx1250-flat-scale-2.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "flat_load_b64 v[0:1],v2,s[6:7] scale_offset scope:SCOPE_SYS",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-flat-scale-3.s",
+        "-o",
+        "/tmp/gfx1250-flat-scale-3.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

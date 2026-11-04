@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "target": "gfx1250",
+  "scope": "Compiler encoding and CPU mathematical/definedness validation; no physical integer upper-half policy inferred.",
+  "assembler": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+  "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "observations": [
+    {
+      "source": "s_load_u16 s8,s[4:5],0x16",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "s_load_u8 s8,s[4:5],3",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "s_load_u16 s8,s[4:5],0xffffff",
+      "accepted": false,
+      "stderr": "<stdin>:1:22: error: expected a 24-bit signed offset\ns_load_u16 s8,s[4:5],0xffffff\n                     ^\n"
+    },
+    {
+      "source": "s_load_u16 s8,s[4:5],0x1000000",
+      "accepted": false,
+      "stderr": "<stdin>:1:22: error: expected a 24-bit signed offset\ns_load_u16 s8,s[4:5],0x1000000\n                     ^\n"
+    },
+    {
+      "source": "s_load_u8 s8,s[4:5],-1",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "v_cvt_f32_ubyte3_e32 v1,v2",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "v_cvt_f32_ubyte3_e32 v1,0xfa123456",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "v_lshlrev_b16 v2,8,v2",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "v_or_b32_e32 v1,v1,v2",
+      "accepted": true,
+      "stderr": ""
+    }
+  ],
+  "primary": [
+    "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SMInstructions.td"
+  ],
+  "definedness": "PartialBytePair defines only low16 encoded byte identities. All upper bits remain undefined. Whole-word stores and UBYTE2/3 reads fail closed; narrow stores retain exact byte identities. Numeric byte formats are claimed only by an actual numeric decoder.",
+  "smem_profile": "Subword loads retain the conservative DWORD-aligned base requirement; immediate/SGPR byte displacements require natural1/2byte alignment. The native compiler emits U16 kernarg byte offset0x16. Ordinary DWORD SMEM component low-bit behavior remains outside this extension."
+}

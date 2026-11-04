@@ -1,0 +1,1308 @@
+{
+  "auditor_sha256": "87d3ffb75251777c4200e52f92e8638627f1f6a44aa1c816486f60f404a3569d",
+  "binary_sha256": "d01199805733cd2a46d73a4ea84ae11623731f4a28c5ce22128b3696056bbce2",
+  "bindings": {
+    "build_log_sha256": "ee088b4180700031e5026e4826e73897989e2541fad6d3d098171d0843dcce2b",
+    "build_record_sha256": "00748cebc219638f9c0b3086142298dba1a6e69eb77edc64307b8fac2ee12d18",
+    "focused_log_sha256": "2f4f789a7bafbff40d6f5f8f5194db9dae71e362dba728b4108e1f91d5d339b1",
+    "manifest_sha256": "e25d69135dc9b9a4f34c82fca64d560aab905c95246ee291172de76c4333b3cb",
+    "prior_independent_raw_audit_sha256": "79919ec3575c420e07411698302ec6dcd309785edd9f7267765fcbdcfe4899ee",
+    "prior_parse_report_sha256": "df5e57ce8e4bce154c8c0cc0d1a8a60c38f439908351ebe5909999fcc970ade7",
+    "raw_report_sha256": "c0dd1ca8915c51b4afb4b787b718d961160eaca50b5243371003982318cb667b",
+    "repair_report_sha256": "06ce5b1647ba70a062583f5735b8e00133a42497eda73161e34b63a62a57b7a0",
+    "repair_runner_sha256": "5d8fd5de2e4beaf2303bd46ab357f3710cea417049f7e3e8cb50a34a2812103c",
+    "runner_source_sha256": "7cbcdaa1c2e3906f72c06fa6b81c66492d5db87980ad08bd565ecf44391b253b"
+  },
+  "checks": 11207,
+  "errors": [],
+  "kind": "independent-raw-source-and-classification-audit",
+  "limits": [
+    "Build/source association and process endpoints are caller-attested; hashes authenticate recorded bytes, not compilation or hardware execution.",
+    "This auditor ran no Cargo, compiler, verifier or device process.",
+    "Original data allocations remain full512B input plus512B output,256 elements,163840B LDS,grid1/block32 and unchanged32B byvalue GL arguments.",
+    "Both unchanged original dtype instantiations complete and reproduce one underlying source-supported missing-ASYNC-completion safety hypothesis under the selected graph contract; this is not a device-reproduced failure.",
+    "Every original output is symbolically x[index] and its complete256-element VC succeeds with numeric checking enabled; combined verification still rejects unsafe ordering. Equivalence is under the declared model, not a claim that a racy hardware execution returns that value.",
+    "256 reported overlapping effect witnesses are instances of the missing completion obligation, not256 bugs. BF16/F16 are two instantiations of one shared source pattern, not unrelated defects.",
+    "The two whole-module ASYNC0 insertion controls are labeled CPU repairs and excluded from original kernel, finding and proof counts.",
+    "68 whole-module parser observations and429 emitted entry occurrences remain syntax-only counts; no parser gain from the finite scalar comparison prerequisite.",
+    "One functional elapsed observation per process supplies no speed, CPU, RSS or hardware claim."
+  ],
+  "module_observations": [
+    {
+      "assembly_sha256": "b9dfc61f31ae53f46452cb8c411301bc21b9eb64970929594840332cdd3b62a8",
+      "diagnostic": "",
+      "id": "gfx1250-07a5080231865d32",
+      "parsed": true,
+      "returncode": 0,
+      "source": "tests/unit/cdna5/warp/memory/tile/shared_to_register.cu",
+      "target": "gfx1250"
+    },
+    {
+      "assembly_sha256": "5e1b32bbc4f2bab1a984cffa75cb5f2cf4ca1e7d5a78e8d21b90f3ceb318dfb2",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-2604a42b1260115d/kernel.s: 187:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5",
+      "id": "gfx1250-2604a42b1260115d",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna5/gemm/bf16fp32/gfx1250/03_gemm_128x128.cpp",
+      "target": "gfx1250"
+    },
+    {
+      "assembly_sha256": "7972abad86ad17ea3237f8fd8e5e47503533117c52002ae4c6772097414941b1",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-265112f639e3ca73/kernel.s: 294:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5",
+      "id": "gfx1250-265112f639e3ca73",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna5/gemm/bf16fp32/gfx1250/00_gemm_naive.cpp",
+      "target": "gfx1250"
+    },
+    {
+      "assembly_sha256": "68a291f0c640e49426be8e8c6adb2959476c2236f651731d75096d9a46b435de",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-31d085f403ca6344/kernel.s: 265:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5",
+      "id": "gfx1250-31d085f403ca6344",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna5/gemm/bf16fp32/gfx1250/08_gemm_split_bar.cpp",
+      "target": "gfx1250"
+    },
+    {
+      "assembly_sha256": "b55426fb0f0dd7b8fbaceb1013feebe6e393488201b08610696adf3a19fddc11",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-41d2d39e7a20f711/kernel.s: 244:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5",
+      "id": "gfx1250-41d2d39e7a20f711",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna5/gemm/bf16fp32/gfx1250/04_gemm_256x256.cpp",
+      "target": "gfx1250"
+    },
+    {
+      "assembly_sha256": "ab0df1b0766e94340982ff946043ec91c9a4d17e73930ac813ddea8a0820b0d0",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-431e1904c37c8318/kernel.s: 342:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5",
+      "id": "gfx1250-431e1904c37c8318",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna5/gemm/bf16fp32/gfx1250/05_gemm_deepk.cpp",
+      "target": "gfx1250"
+    },
+    {
+      "assembly_sha256": "9f61e9cd70e06fee6f6b053441a90f4d5e5b96c2a5cad331dc021b7a014e8083",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-53467f41cdb55066/kernel.s: 265:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5",
+      "id": "gfx1250-53467f41cdb55066",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna5/gemm/bf16fp32/gfx1250/07_gemm_tdm.cpp",
+      "target": "gfx1250"
+    },
+    {
+      "assembly_sha256": "6a2c368d056e2a23e5df85c83659a8ddfdc601023258f36061392bf2d42e47b8",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-83a6e3ef1ef86f92/kernel.s: 342:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5",
+      "id": "gfx1250-83a6e3ef1ef86f92",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna5/gemm/bf16fp32/gfx1250/06_gemm_segment.cpp",
+      "target": "gfx1250"
+    },
+    {
+      "assembly_sha256": "1acc6cbec27a051e61aa3469d615440fdeff70f18e2428233d18eb4ea2b2234a",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-85c28feb4fccdecf/kernel.s: 69:2: unsupported AMD instruction `buffer_store_b128`",
+      "id": "gfx1250-85c28feb4fccdecf",
+      "parsed": false,
+      "returncode": 1,
+      "source": "tests/unit/cdna5/warp/memory/tile/global_to_register.cu",
+      "target": "gfx1250"
+    },
+    {
+      "assembly_sha256": "802d45cde0cf9260fa54f0835d0735c256661f8b7037d91d0f235b00659ec22e",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-b6afe726b9b27625/kernel.s: 179:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5",
+      "id": "gfx1250-b6afe726b9b27625",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna5/gemm/bf16fp32/gfx1250/02_gemm_async.cpp",
+      "target": "gfx1250"
+    },
+    {
+      "assembly_sha256": "1deade0eee19acd34d7a2075b4d37ab3412e41e5045c7dc648b61e212ed82217",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-eada6d2b03bb4c0c/kernel.s: 412:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5",
+      "id": "gfx1250-eada6d2b03bb4c0c",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna5/gemm/bf16fp32/gfx1250/01_gemm_double_buf.cpp",
+      "target": "gfx1250"
+    },
+    {
+      "assembly_sha256": "62e750a4481632dd74a86ae901c4ec5c1d746d6cb5a08491f085ea151c7991bf",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx942-982c065e3f4343c4/kernel.s: 63:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx942-982c065e3f4343c4",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna3/gemm/fp8fp32/mi300x/8192_256_256_64_32/data_logs/0613_003858_outputs/256_256_64_32.cpp",
+      "target": "gfx942"
+    },
+    {
+      "assembly_sha256": "aa6e3a83ac485ad690935049de09402258dc57698a9405c04af53564846b8c42",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx942-d9645cd24d2c5e82/kernel.s: 21:2: selected signed64 MAD requires unmodified gfx950 VOP3B and an SGPR-pair/VCC mask",
+      "id": "gfx942-d9645cd24d2c5e82",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna3/layernorm/kernel.cpp",
+      "target": "gfx942"
+    },
+    {
+      "assembly_sha256": "0d75bfa6b061e7d6b2f0ac842b1c0ec98d6c740cc2bf16594a5b6ffe21df2232",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-033a472bbf2a5864/kernel.s: 54:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-033a472bbf2a5864",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/bf16fp32/micros/producer_consumer/16x32/micro_05_async.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "6fd597f93bca39b21bcee51635085207c4f29076c2a68f7f9f163c95c0585812",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-0a5c38fb00b50a90/kernel.s: 29:2: `buffer_load_dword` expects 4 operands, got 3",
+      "id": "gfx950-0a5c38fb00b50a90",
+      "parsed": false,
+      "returncode": 1,
+      "source": "tests/unit/cdna4/warp/shared/vec/conversions.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "1108a9b8c0890a42d291186840c2593841500c13d980b33e96768e11417bd0e3",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-0d8d6766cc75790d/kernel.s: 41:2: `buffer_load_dwordx4` expects 4 operands, got 3",
+      "id": "gfx950-0d8d6766cc75790d",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/torch_scaled/scaled_matmul.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "f558f82f1d4136f1b9cbc8ffc2665d01b78a13db63046a86293ca8a36af75932",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-0fba459fd33e2559/kernel.s: 36057:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-0fba459fd33e2559",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/layernorm/mi350x/kernel_4096.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "8ae0f059e78c0cb6a7eb161231150d2d0de9c2358afb261d6e1e8d0051080e84",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-10e49f495442a28c/kernel.s: 73:2: unsupported AMD instruction `s_memtime`",
+      "id": "gfx950-10e49f495442a28c",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/bf16fp32/micros/producer_consumer/32x16/timing/micro_01_syncthreads.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "872ea25e828b871411b1aa75239509d8a476035c13120815146c10f6f8e2b0a5",
+      "diagnostic": "",
+      "id": "gfx950-11ceb07931729d0f",
+      "parsed": true,
+      "returncode": 0,
+      "source": "tests/unit/cdna4/warp/register/vec/maps.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "6ac5f1883c592aca95e2b3165069daca9ebc0a5332d9bcdfda248c1dedc90faa",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-12469dcce712d532/kernel.s: 31:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-12469dcce712d532",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/mxfp8/MXFP8_4wave/4_wave.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "127f8b236333d4ecfa3a091436a765e4d48898fcc099ce2b47053c9bf04a48e8",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-1c453a4507f63c09/kernel.s: 40:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-1c453a4507f63c09",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/fp8fp32/FP8_4wave/4_wave.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "a006cd76b859acede5e240b0d0b21aa7aa82535f59a67e2f00d3a3aff67116b6",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2327aa44e73e618b/kernel.s: 49:2: unsupported AMD instruction `global_store_short_d16_hi`",
+      "id": "gfx950-2327aa44e73e618b",
+      "parsed": false,
+      "returncode": 1,
+      "source": "tests/unit/cdna4/warp/register/tile/mma.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "35bfb0a7292d8da175808ac2085411c0eca4d4ae0405bf3ad915d376c82a5990",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2c0bd58234bb25b3/kernel.s: 5093:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-2c0bd58234bb25b3",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/paper_experiments/phases/ds_read_b128/kernel.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "828b0f93c117896830c2d3ade9e5c03a68544c9e61901676cf93929a55204bd2",
+      "diagnostic": "",
+      "id": "gfx950-2cabaad02b0e9ca6",
+      "parsed": true,
+      "returncode": 0,
+      "source": "kernels/cdna4/attn/gqa_backwards/archive/GQA_bkwd_prep.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "2885fa92054d75b8a079f07794cebeeb680e8365fe42b478f83b9f8eb046c170",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2ebec622eda27a60/kernel.s: 496:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-2ebec622eda27a60",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/mxfp8/MXFP8_8wave/8_wave_TN.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "f31e5048441141235ced1cb5b57c31f8e4b3b94d4da70ca22c9842302d6bc4b1",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2ef6dc9539e0aba7/kernel.s: 1171:2: `buffer_load_dwordx4` expects 4 operands, got 3",
+      "id": "gfx950-2ef6dc9539e0aba7",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/attn/gqa_backwards/attn_bkwd_non_causal.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "78cdfabe36d0199ca20f6006e0a830d6378062a26fff4851be47a1262a9c0e78",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-32d9dd13778d25a9/kernel.s: 56:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-32d9dd13778d25a9",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/bf16fp32/micros/192x256/kernelv2.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "c7d847902761ac77d336713d3c57fe39e245809973f83b45b52b493e025669cb",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-350f9747cb3c89c5/kernel.s: 198:2: unsupported AMD instruction `v_and_b32_sdwa`",
+      "id": "gfx950-350f9747cb3c89c5",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/softmax/kernel.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "6ca23a80dbebb04bb91dbd901ceba9eefb6125dda93589fa0039cefbd7ee104f",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-35843236ac3646e7/kernel.s: 35:2: `buffer_load_dwordx4` expects 4 operands, got 3",
+      "id": "gfx950-35843236ac3646e7",
+      "parsed": false,
+      "returncode": 1,
+      "source": "tests/unit/cdna4/warp/shared/tile/conversions.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "09717c91b428a4fba6dbd3abed45ece63a76f814ed6fdcf52d5ae0232fad8480",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-38dfc931051a1a74/kernel.s: 13375:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-38dfc931051a1a74",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/rotary/mi350x/kernel_1024.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "0e34e339ffb4394e7dcd08363225eaf85e58b64d5f5a6a874cd4044f733fe892",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-3ddef70240205011/kernel.s: 498:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-3ddef70240205011",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/mxfp8/MXFP8_8wave/8_wave_NN.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "3ada2da821675159ad3454a87fca0ba65146c083855e1df9ba3cae0692500323",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-406809041324535e/kernel.s: 1186:2: `buffer_load_dwordx4` expects 4 operands, got 3",
+      "id": "gfx950-406809041324535e",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/attn/gqa_causal_backwards/attn_bkwd_causal.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "30a400ee85aa854e147b9e7f5dfa2595c0b19f82c2c520e93594097fbf44ac13",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-42c779e29097a080/kernel.s: 54:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-42c779e29097a080",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/bf16fp32/micros/producer_consumer/32x16/micro_09_async.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "ae0374df2eb0879f6175a27c7b9f79cf43ef28f46b3457b9160f4862ef520c53",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-4b1d3ce421ccd756/kernel.s: 75:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-4b1d3ce421ccd756",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/bf16fp32/256_256_64_32_with16x32.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "346fe5721b194aab2ea34d43cbbac787f115436a7869dcf4fdd653717d34f780",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-517ee2d35b791bd4/kernel.s: 13375:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-517ee2d35b791bd4",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/rotary/mi350x/kernel_4096.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "18f48faa4ef385677f6b463d7522c7e4fbeec6d107db455dc76b3b2f8097c461",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-55e3958c6d271410/kernel.s: 36057:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-55e3958c6d271410",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/layernorm/mi350x/kernel_16384.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "1e97ccccbc10ae6efd12460b0b90c0a1c5a9b54d5624504b51b8a753c464ba2b",
+      "diagnostic": "",
+      "id": "gfx950-578ddeb68757af1d",
+      "parsed": true,
+      "returncode": 0,
+      "source": "kernels/cdna4/rotary/kernel.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "79eb7af6a1729d2b490b821faeed7fea6b556276f499440fd875b31f774701fa",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-5797e6a1aca8baa5/kernel.s: 54:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-5797e6a1aca8baa5",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/bf16fp32/micros/producer_consumer/16x32/archive/micro_06_async.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "3847d7af3ab0ba0cd20f855cd12efd4d990d4985f4bfcec5a4c15d5bcb24f994",
+      "diagnostic": "",
+      "id": "gfx950-59a9067b72f1185d",
+      "parsed": true,
+      "returncode": 0,
+      "source": "kernels/cdna4/attn/gqa_backwards/attn_bkwd_prep.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "16a73da03a811561158ba47bc285f42279870d60116c9d00b31735a2054f0928",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-5fff0014163b750f/kernel.s: 5096:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-5fff0014163b750f",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/paper_experiments/phases/ds_write_b64/kernel.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "5cd06ff39ac43a8178c89d570361a5329c39b0d2077020438fbc93701ffe9542",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-63a39b0bac4bd064/kernel.s: 30:2: `buffer_load_dword` expects 4 operands, got 3",
+      "id": "gfx950-63a39b0bac4bd064",
+      "parsed": false,
+      "returncode": 1,
+      "source": "tests/unit/cdna4/warp/memory/vec/global_to_shared.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "e6c4e74d2552a982b964e41aed238e3574b081f474d0040ec9f16fcbc43651c9",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-6dcc4d58a3889fa9/kernel.s: 22:2: `buffer_load_dwordx4` expects 4 operands, got 3",
+      "id": "gfx950-6dcc4d58a3889fa9",
+      "parsed": false,
+      "returncode": 1,
+      "source": "tests/unit/cdna4/warp/register/tile/mma_scaled.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "6c9a3c72e08ad4c5a6cdd0edb658fab58d5257346d72c2f3a1371fc65a6ad300",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-6f89c165b6fe1f19/kernel.s: 13375:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-6f89c165b6fe1f19",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/rotary/mi350x/kernel_8192.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "1e377167c11c4a0881a7fcfda3a399d738966da6b198ead4e5f48675e46abbac",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-70bc517a33118682/kernel.s: 845:2: unsupported AMD instruction `global_store_short_d16_hi`",
+      "id": "gfx950-70bc517a33118682",
+      "parsed": false,
+      "returncode": 1,
+      "source": "tests/unit/cdna4/warp/register/vec/conversions.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "e8e4cdb89725d1107221567781c87e468aeaf9eccb8cd6bfaaa3a559630a0f08",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-77d0b083d6cd6304/kernel.s: 498:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-77d0b083d6cd6304",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/mxfp8/MXFP8_8wave/8_wave_NT.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "6e58543d51adf6fb63b69d0e061be205a21e9ff05013e9b0dcf11206b07359f2",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-7ca9f80ceb2d92b9/kernel.s: 36057:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-7ca9f80ceb2d92b9",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/layernorm/mi350x/kernel_2048.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "b658d558c85378df1776a0c480e45c84f59a441f08141a21b190c2c049468e29",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-81169514fd5cdf8a/kernel.s: 13375:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-81169514fd5cdf8a",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/rotary/mi350x/kernel_16384.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "6acb150ec4c70e9191ca902d9cf2367a61c3c8b50d3158c1323a486464372a84",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-876158829553904c/kernel.s: 30:2: `buffer_load_dword` expects 4 operands, got 3",
+      "id": "gfx950-876158829553904c",
+      "parsed": false,
+      "returncode": 1,
+      "source": "tests/unit/cdna4/warp/memory/vec/shared_to_register.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "41b72bb3f54aca7ab312614cd93837cffcd5a6395a98e9721ccbae8c8f448dad",
+      "diagnostic": "",
+      "id": "gfx950-8b2caf1aa1771858",
+      "parsed": true,
+      "returncode": 0,
+      "source": "tests/unit/cdna4/warp/memory/vec/global_to_register.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "f9b2383b068b66f384d4e828b36cf838a5a0e904c4df78c6eb83641940bd333e",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-8d7a9dd09b080fd2/kernel.s: 205:2: unsupported AMD instruction `s_memtime`",
+      "id": "gfx950-8d7a9dd09b080fd2",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/layernorm/kernel.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "630c8fd6553c23ca1c1922a15f4e73a66ce12c983ae5172af573120190944f8c",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-8d7f338dbeba7c4e/kernel.s: 41:2: `buffer_load_dwordx4` expects 4 operands, got 3",
+      "id": "gfx950-8d7f338dbeba7c4e",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/fp8fp32/FP8_8wave/8_wave.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "914211329e02d3973218a4de65a97bcc7e9043f2a256e14e20257c4840c873d2",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-910dd473af8a920f/kernel.s: 5093:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-910dd473af8a920f",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/paper_experiments/phases/ds_read_b96/kernel.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "3154b4e959180919afd5808ee0204cb738432a3e46a25986c3b170def9f6265d",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-925c00a86315b0f9/kernel.s: 36057:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-925c00a86315b0f9",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/layernorm/mi350x/kernel_8192.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "4ec81cc3da8eb7944e686d6bb87cc0c69673c8536ff377076bc41cd890228231",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-999e70a3336af51b/kernel.s: 36057:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-999e70a3336af51b",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/layernorm/mi350x/kernel_1024.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "31ea948faf4fe985b41632f032fd20661024973ea86d359320a9221112c30643",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-9d30fa45086d719a/kernel.s: 54:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-9d30fa45086d719a",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/bf16fp32/micros/producer_consumer/16x32/archive/micro_07_async.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "a5553d06edc9bf02628138689ef47f189b3eeff567d90a14f653b5120ca4ca0e",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-a49c9680fcc79de2/kernel.s: 5093:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-a49c9680fcc79de2",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/paper_experiments/phases/ds_read_b64/kernel.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "cb31dbfe136c936a7a56e4a5fdb6337e9e2c0ba3156c385bc5c89f0b036b09ac",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-b66fc7febcf2f093/kernel.s: 15547:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-b66fc7febcf2f093",
+      "parsed": false,
+      "returncode": 1,
+      "source": "training/llama/csrc/attn_bkwd_prep.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "b32b32294230e2499a261b4bf83568fb8bf83863e87bc2fb3e8cadfca4540371",
+      "diagnostic": "",
+      "id": "gfx950-b7b496cf9c582880",
+      "parsed": true,
+      "returncode": 0,
+      "source": "tests/unit/cdna4/warp/register/vec/reductions.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "1fb4bae8a9f47128fdec3e05d13c4c7bcd65ccee89ce398d5e13c0a5cbc09763",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-b911670d5562c229/kernel.s: 36:2: unsupported AMD instruction `v_permlane16_swap_b32_e64`",
+      "id": "gfx950-b911670d5562c229",
+      "parsed": false,
+      "returncode": 1,
+      "source": "tests/unit/cdna4/warp/register/tile/conversions.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "06d03555c6644d1e7306c114f8282a66d296cb434f858cc8b7bf7c410f6ee206",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-cb935195276a4dc7/kernel.s: 13375:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-cb935195276a4dc7",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/rotary/mi350x/kernel_2048.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "b45fb683a09c3a5672e4e7783de4d5ae6db1e780658f8ceacc3eeafd0c5a5deb",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-ced199d64e51c79d/kernel.s: 54:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-ced199d64e51c79d",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/bf16fp32/micros/producer_consumer/16x32/archive/micro_03_3stage_8c4p_async.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "be35fbd72842a7de4528be0235b18f46257e1cb37ad7a2055a118167bf132b36",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d10b723c179a65d1/kernel.s: 60:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-d10b723c179a65d1",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/bf16fp32/256_256_64_32_with32x16.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "ba4d839317b4180e53436f6bcd4b57809ff7b3cbfc09711e490ec45a7266ae8f",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d144dd3e7cd8528c/kernel.s: 55:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`",
+      "id": "gfx950-d144dd3e7cd8528c",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/gemm/bf16fp32/micros/192x256/kernel.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "e06792e6a855824720cb8684e30856e4a8946aa8592b080f85bde862e4f6bb08",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d31ff00b424fb0e3/kernel.s: 1169:2: `buffer_load_dwordx4` expects 4 operands, got 3",
+      "id": "gfx950-d31ff00b424fb0e3",
+      "parsed": false,
+      "returncode": 1,
+      "source": "kernels/cdna4/attn/gqa_backwards/archive/GQA_bkwd_asm.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "35a261fde9076a0c9aec4d3e169630e611fb9e7bbdcc24e7efcb7c80433d9286",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d4a16132c07b2789/kernel.s: 593:2: `buffer_load_dwordx4` expects 4 operands, got 3",
+      "id": "gfx950-d4a16132c07b2789",
+      "parsed": false,
+      "returncode": 1,
+      "source": "tests/unit/cdna4/warp/register/tile/mma_scaled_art.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "ee9a62d899d4e7a244e0412fc7d431839fa93191696033f8a756e9f16ad2095c",
+      "diagnostic": "",
+      "id": "gfx950-d7f924a6617305c3",
+      "parsed": true,
+      "returncode": 0,
+      "source": "kernels/cdna4/attn/gqa_causal_backwards/attn_bkwd_prep.cpp",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "3d932a7dce1a57e97e77560982481996299e503d0444f7af8d6595ab02da5d55",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-efd96a427f1dcd48/kernel.s: 33:2: `buffer_load_dword` expects 4 operands, got 3",
+      "id": "gfx950-efd96a427f1dcd48",
+      "parsed": false,
+      "returncode": 1,
+      "source": "tests/unit/cdna4/group/memory/vec/global_to_shared.cu",
+      "target": "gfx950"
+    },
+    {
+      "assembly_sha256": "05fb77041e56eccef9dbeb39b024f0bd00c336e2cdad27b07ecd21cdf3a75769",
+      "diagnostic": "error: /tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-ff00456202583fb7/kernel.s: 15547:2: unsupported AMD instruction `s_swappc_b64`",
+      "id": "gfx950-ff00456202583fb7",
+      "parsed": false,
+      "returncode": 1,
+      "source": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+      "target": "gfx950"
+    }
+  ],
+  "original_observations": [
+    {
+      "combined_verdict": "REJECT",
+      "completed": true,
+      "dtype": "bf16",
+      "effects": 644,
+      "events": 760,
+      "exit_code": 1,
+      "first_witness": [
+        "WriteRead",
+        "Shared",
+        0,
+        54,
+        324
+      ],
+      "graph_properties": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "FAIL"
+      ],
+      "independent_pending_async_overlaps": {
+        "WriteRead": 128,
+        "WriteWrite": 128
+      },
+      "instruction_count": 61,
+      "math_equivalent_elements": 256,
+      "output_coordinates": 256,
+      "source_async_line": 49,
+      "source_first_DS_read_line": 64
+    },
+    {
+      "combined_verdict": "REJECT",
+      "completed": true,
+      "dtype": "f16",
+      "effects": 644,
+      "events": 760,
+      "exit_code": 1,
+      "first_witness": [
+        "WriteRead",
+        "Shared",
+        0,
+        54,
+        324
+      ],
+      "graph_properties": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "FAIL"
+      ],
+      "independent_pending_async_overlaps": {
+        "WriteRead": 128,
+        "WriteWrite": 128
+      },
+      "instruction_count": 61,
+      "math_equivalent_elements": 256,
+      "output_coordinates": 256,
+      "source_async_line": 223,
+      "source_first_DS_read_line": 238
+    }
+  ],
+  "passed": true,
+  "process_transcript_bindings": [
+    {
+      "exit_code": 0,
+      "stage": "repair-whole-module-MC",
+      "status": "MC_accepted",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "bf16-original-verify",
+      "status": "typed_memory_rejection",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "603af627020548b68e10c707d54209ca85b82808f2c539f3999b0a829ab46e8a"
+    },
+    {
+      "exit_code": 1,
+      "stage": "bf16-original-analyze",
+      "status": "typed_memory_rejection",
+      "stderr_sha256": "ed5df1f748b6acdbccd6140503dfdb1b1acbfaadf57f442c32ce061fe13c3cf3",
+      "stdout_sha256": "90eba14f8aa33dc0f7e061656c7850dbb9a9ee183094071de8c9d51ab57e61de"
+    },
+    {
+      "exit_code": 0,
+      "stage": "bf16-repair-verify",
+      "status": "repair_accepted",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "598b99097086c3f76afdb5d880516571b3305176a51f189c10c133d7c6c01df2"
+    },
+    {
+      "exit_code": 0,
+      "stage": "bf16-repair-analyze",
+      "status": "repair_accepted",
+      "stderr_sha256": "7e918f5fd3cd3b6e25049a48de6b6ff928486797eb3b24bd281689429dc260ab",
+      "stdout_sha256": "f90ca415b0b63e34596c7cbf83d807676a89f775333f41e8a5a570e8d34b88f9"
+    },
+    {
+      "exit_code": 1,
+      "stage": "f16-original-verify",
+      "status": "typed_memory_rejection",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "da507445aaf4749f13251e37b97a8b3e07a8ec6cb690a86d0a1d8b549d5f7a47"
+    },
+    {
+      "exit_code": 1,
+      "stage": "f16-original-analyze",
+      "status": "typed_memory_rejection",
+      "stderr_sha256": "d57b3ed1da15a0208132e1819e94955c307ee5abd00b7c09a058273f54be1b69",
+      "stdout_sha256": "c490ae810c9c784070098d154fb55ea16f2c9aa08d432012215a9e90d9249741"
+    },
+    {
+      "exit_code": 0,
+      "stage": "f16-repair-verify",
+      "status": "repair_accepted",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "598b99097086c3f76afdb5d880516571b3305176a51f189c10c133d7c6c01df2"
+    },
+    {
+      "exit_code": 0,
+      "stage": "f16-repair-analyze",
+      "status": "repair_accepted",
+      "stderr_sha256": "fc47cc78667b9ee2e930e6b28394cd597af42a61070d024a8b512c6dd76152d9",
+      "stdout_sha256": "58b52122ff51254f580b025cc32a93b765a27b627151c3a3e6e7a56575cb2c72"
+    },
+    {
+      "exit_code": 0,
+      "stage": "parse-gfx1250-07a5080231865d32",
+      "status": "parsed",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "fcb035a76ed5c7a6fac5eda5fc1f2e830ad6845621793355b7e5abf60b952777"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx1250-2604a42b1260115d",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "9a56855d36100e2b35f9ad68fa38129e092dcb80bb1778a2c48763bc21f5ca3a",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx1250-265112f639e3ca73",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "bee8a38d3fde2f9deaa7d8ac76158b1c18d89717972ddb97e9bcafb4eb71ea40",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx1250-31d085f403ca6344",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "bca02b5b39bcd585d2f990e6ecb449c45a2ac0ff007efb801116aa87095ad7f7",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx1250-41d2d39e7a20f711",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "fe20330bf7a8067842a0a35807011f2ede601c02413cefeccc2645317123cfd5",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx1250-431e1904c37c8318",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "e78287fd4818289ba6f77e4192b3ffed5949b8be7f0579f9ebdbcc8a82bd2091",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx1250-53467f41cdb55066",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "ee5d0f56bd98f5380c85abf43149ce58d520c6c1395b60a8a4feb422435a8d0c",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx1250-83a6e3ef1ef86f92",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "1cc4acce0179d54fa183b860e0a1c8dd9de6e00e6e95d871d274214e78a92928",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx1250-85c28feb4fccdecf",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "3650f9597df71f6e756884a1f20d332613972d0206f53a0d585c74934acd1860",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx1250-b6afe726b9b27625",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "3efb70bfab75f8085a5ed8fd1831159d59b4d38467327665bd5cc971eab024f2",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx1250-eada6d2b03bb4c0c",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "fc61d8b8e09ae09989d8b1bf27952edccb59b687791f24f97ade0f57bd9d15f1",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx942-982c065e3f4343c4",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "85fa377028744e2b03aff49325e9edbd6185fa9ffe0db2cdd3e5b9f832b1acb9",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx942-d9645cd24d2c5e82",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "234876fe68841bd0efa3b33468f829c6c05af01b3ce05b7be20adc2e0a656b1a",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-033a472bbf2a5864",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "1c81dc54328f8ef876354ac006d60e041e292a8494399280da21ca4df6c10f43",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-0a5c38fb00b50a90",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "eb6490aa4189ecb199e996a5394196580bc73e5ab4dfef25df0d2ccee9f66ad9",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-0d8d6766cc75790d",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "1f8c79fc8b5139e000ebb4ac055188e235fa222035a3e4259965e783c60528d0",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-0fba459fd33e2559",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "27a2e32209ceeac34b2a24924a80e9c2c4f95771dc894ca330d2a86d873c3ee3",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-10e49f495442a28c",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "93066f0a0ea8ae31f3e5e259d4d510021e0d507d2642d56139ed78f41f7575cb",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 0,
+      "stage": "parse-gfx950-11ceb07931729d0f",
+      "status": "parsed",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "4ed51240f420d63b2deef48daeb0333043e90d24d95c733fa5f797c486a88db7"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-12469dcce712d532",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "1c87202062e8cec3cee420b5fc9c09c30ffd14be927049ed5b8603e9ca968c18",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-1c453a4507f63c09",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "c616e658c9ae205d8af922e40795c2832ee6644a47ad262ec9a0957e98be2e95",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-2327aa44e73e618b",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "0894054583d0bdfbc21723c63a0b4a4ec2018104581e9161e1c60358530cd187",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-2c0bd58234bb25b3",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "552608a3ded450cec8d1b22ca542d379827318b77af749bd81323537b8ec4ae8",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 0,
+      "stage": "parse-gfx950-2cabaad02b0e9ca6",
+      "status": "parsed",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "70d8ee75a005352a4da06caf31905f99316cda249e9f9f4a7d3639687cff96d5"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-2ebec622eda27a60",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "90114d07687670734775575bcaf2bda0957def3f084aac5e785072d9522ba82a",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-2ef6dc9539e0aba7",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "8161fcc6e32e9f9a624af47b3a05a299ab0e4a2b02e15baae87e27efc34e8373",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-32d9dd13778d25a9",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "b68035b084b1f0bab0126e30316c62663bdc1f97fe6e2eb2313766a3953c91c0",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-350f9747cb3c89c5",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "b56b2abab406679b829eabc809074c9d4811c047a09041826ded3cff1fb0e7a3",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-35843236ac3646e7",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "af2725b4b020c2ffc28a736c458d38a17024cbd500e325cf8228159b79f6f1d9",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-38dfc931051a1a74",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "4c4784a630d75d5e19ff9f82d60f11ac33ae775e1d122b698fa30cf67e9a8d74",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-3ddef70240205011",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "25ee6fd54841ee10b03e610866e5932e98bfe3c8d3acc88835b6ffc5de9d6473",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-406809041324535e",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "6535fd059de9caf6aa267c1ec02d4bf3510696e382d6b918a521ee03db65a725",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-42c779e29097a080",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "dc0284f0cc04371b3c97fca2c228fe0ece626cc7af4fa075bd1350bab95c24b5",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-4b1d3ce421ccd756",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "52bd29f6847100ac300b84a0e4838b9b7f70bdb3137069627e801a31dcaa089b",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-517ee2d35b791bd4",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "89fc5fc367727442ad298cdcce7ca465c250be7bfec5609ce95e7043f2e5f303",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-55e3958c6d271410",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "7e58b4626590e1917fe15634e4c87bbede635fc539fae302cba07f20c2af19fe",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 0,
+      "stage": "parse-gfx950-578ddeb68757af1d",
+      "status": "parsed",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "be234930c8c11a6822b167d9bd16e68c186606383a5cc822ac0bd30f94b31a99"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-5797e6a1aca8baa5",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "4f058d6c6dfe642a9033a9249093af2eae2182f56f06710b63014a2a25e2232c",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 0,
+      "stage": "parse-gfx950-59a9067b72f1185d",
+      "status": "parsed",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "4b13fb5a0caa8d89ee57f02610ee9c259e6edbd2ad1c28a7f618ac516877bbf0"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-5fff0014163b750f",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "5549f54310e61c386e6b29f6855a90bc941fd201dc7b73d053f3b360f3263044",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-63a39b0bac4bd064",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "d580453fe2c602a516b9f0d43fdf464c1b2725c55ef6b3cac5a512ae458cb0f7",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-6dcc4d58a3889fa9",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "1efc55914f37062d995e7c81a27710ea619330c1f406e48dc1627aed7a90c25b",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-6f89c165b6fe1f19",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "a5c1837763102f9ef0a4b2e2e3d7df45815a8f0aeef70cb8b0b55b3ab20a3f95",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-70bc517a33118682",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "bbce17ed6c036479ecd5b3e527420c92413516e2aacf6b4d9158d0aa221ddd39",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-77d0b083d6cd6304",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "f23bc722815d920666adb26ef6f9ab5f3b9d24d584f5c561f657d95859120a78",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-7ca9f80ceb2d92b9",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "db7c3166ee8f5b61e2325d0d297949a778390cc296f25b1631f192004faf0cea",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-81169514fd5cdf8a",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "feb1c219451f2e19dd3734435a3d5ee4c7a63eb572103ee1ca2538f2d30da896",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-876158829553904c",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "e88ed604f69adc2d956504a92e2eb50c829d9b1b2bac9ea12ae6629b461ede5d",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 0,
+      "stage": "parse-gfx950-8b2caf1aa1771858",
+      "status": "parsed",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "be2f523ce7e297afd05fb35a12ea62f46c6ad339065fea185b4b2b0150619cb9"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-8d7a9dd09b080fd2",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "5b32b50cdbdaa0e936616a5730b65f6e997d0617d6a58168b677c09c96bb6774",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-8d7f338dbeba7c4e",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "abee5cb26b18d755837d8914e53c52c59c59476f702ea3e64fb06a831e73c3bc",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-910dd473af8a920f",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "1855706e51aa435004855697fd3b79495c78eb3d7edb845942388d64005fe81b",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-925c00a86315b0f9",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "10072a9c151bbee4f136ba334096db4157e57846720538ca2516e3a6a402102a",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-999e70a3336af51b",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "cf13df219861529fe9d5f642e0a4c9589d26e906d6a666c851698cd1c1a7b509",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-9d30fa45086d719a",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "bba472dd6525a665cbd77d5cb696c708e24b42ca116559a4f481c8565943da8a",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-a49c9680fcc79de2",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "163241e0cfcbedceb666ba38b38f30eeb77e798ad85592cb31b4c5eca9059119",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-b66fc7febcf2f093",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "202de5608f4d7df150e4eddd0521568099936e57d63d3d8e3f15ac5e2dfd3c00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 0,
+      "stage": "parse-gfx950-b7b496cf9c582880",
+      "status": "parsed",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "68c4332f4c210ea7a125a4b34f6affaffce8ddd5c68c59b843822fab681a2099"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-b911670d5562c229",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "3a69ebbfb479b758b9c775a8aae357ee5ba5b295bcbd14bb2c2abbc7edc3fb7a",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-cb935195276a4dc7",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "3ace961bcef210196706c1ff760dec8f0f86d4581830cb8ea42ff65ba6b6925d",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-ced199d64e51c79d",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "fed1b4ed9931445177aea9f7fe233cc7b515c51ae92693edc79a62b61c6604bd",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-d10b723c179a65d1",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "fb07fa0deeab6a1061d0d3949e90413ff19aa709acaa4408227dadb19f4437e4",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-d144dd3e7cd8528c",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "9673acc59cae7ac5205b5d7efb2082265030457b496c0c7f44913452f1ae71e6",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-d31ff00b424fb0e3",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "acd3f553465e31911fb7c59537086b53f538ebe601cde6573e828e47d4c3e6be",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-d4a16132c07b2789",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "ac411636057000cda53ff4dcab2e9c613cff7f28a4afbfed2d29805f77551db6",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 0,
+      "stage": "parse-gfx950-d7f924a6617305c3",
+      "status": "parsed",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "45eecab411e2d5f4d5371db70f7eba880a409302f5105e2a04de564e7529c28e"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-efd96a427f1dcd48",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "ea44cf8fccc17ca6b5d7410a7dcb783fc31d4a478a66f9c3cdb32310ebf261a6",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 1,
+      "stage": "parse-gfx950-ff00456202583fb7",
+      "status": "syntax_unsupported",
+      "stderr_sha256": "6085b386e594f2ed0511fcdbc06487401c532f74cc704c01d5344a8c63bcd4d2",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "repair_observations": [
+    {
+      "combined_verdict": "ACCEPT",
+      "completed": true,
+      "dtype": "bf16",
+      "exit_code": 0,
+      "graph_properties": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "inserted_wait_event": 310,
+      "math_equivalent_elements": 256,
+      "output_coordinates": 256,
+      "output_expr_sha256": "49415efc4361635a5ca51eec0e882a8c9da079331f15737ae39dc33e4a29e5ad"
+    },
+    {
+      "combined_verdict": "ACCEPT",
+      "completed": true,
+      "dtype": "f16",
+      "exit_code": 0,
+      "graph_properties": [
+        "PASS",
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "inserted_wait_event": 310,
+      "math_equivalent_elements": 256,
+      "output_coordinates": 256,
+      "output_expr_sha256": "49415efc4361635a5ca51eec0e882a8c9da079331f15737ae39dc33e4a29e5ad"
+    }
+  ],
+  "schema_version": 1,
+  "source_revision": "bd591464883c21150495fba3baa3328a133e05de",
+  "summary": {
+    "focused_logged_tests": 122,
+    "module_parse_processes": 68,
+    "original_analyze_processes": 2,
+    "original_combined_accepts": 0,
+    "original_completed_typed_rejections": 2,
+    "original_math_identity_elements_each": 256,
+    "original_verify_processes": 2,
+    "parsed_entry_occurrences": 429,
+    "parsed_modules": 8,
+    "parser_changes_from_f301": [],
+    "processes": 77,
+    "refused_modules": 60,
+    "repair_MC_processes": 1,
+    "repair_controls_accepted": 2,
+    "repair_controls_excluded_from_original_counts": true,
+    "repair_processes": 4,
+    "underlying_source_bug_hypotheses": 1
+  },
+  "workspace_fingerprint": {
+    "algorithm": "sha256-git-tree-v1",
+    "file_count": 1232,
+    "sha256": "1bc1aa9296382d1f627b2466e2e28384efeeee9051cff9dc87f25764e29a2b98"
+  }
+}

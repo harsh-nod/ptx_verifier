@@ -1,0 +1,939 @@
+{
+  "kernel": "convolution_f8_original",
+  "block": [
+    128,
+    1,
+    1
+  ],
+  "grid": [
+    1,
+    1,
+    1
+  ],
+  "dynamic_shared_bytes": 0,
+  "arrays": [
+    {
+      "name": "x",
+      "base": 65536,
+      "elem_width": 1,
+      "len": 200704,
+      "kind": "in"
+    },
+    {
+      "name": "weight",
+      "base": 327680,
+      "elem_width": 1,
+      "len": 73728,
+      "kind": "in"
+    },
+    {
+      "name": "out000",
+      "base": 458752,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out001",
+      "base": 464584,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out002",
+      "base": 470416,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out003",
+      "base": 476248,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out004",
+      "base": 482080,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out005",
+      "base": 487912,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out006",
+      "base": 493744,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out007",
+      "base": 499576,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out008",
+      "base": 505408,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out009",
+      "base": 511240,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out010",
+      "base": 517072,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out011",
+      "base": 522904,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out012",
+      "base": 528736,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out013",
+      "base": 534568,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out014",
+      "base": 540400,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out015",
+      "base": 546232,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out016",
+      "base": 552064,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out017",
+      "base": 557896,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out018",
+      "base": 563728,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out019",
+      "base": 569560,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out020",
+      "base": 575392,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out021",
+      "base": 581224,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out022",
+      "base": 587056,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out023",
+      "base": 592888,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out024",
+      "base": 598720,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out025",
+      "base": 604552,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out026",
+      "base": 610384,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out027",
+      "base": 616216,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out028",
+      "base": 622048,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out029",
+      "base": 627880,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out030",
+      "base": 633712,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out031",
+      "base": 639544,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out032",
+      "base": 645376,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out033",
+      "base": 651208,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out034",
+      "base": 657040,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out035",
+      "base": 662872,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out036",
+      "base": 668704,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out037",
+      "base": 674536,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out038",
+      "base": 680368,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out039",
+      "base": 686200,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out040",
+      "base": 692032,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out041",
+      "base": 697864,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out042",
+      "base": 703696,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out043",
+      "base": 709528,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out044",
+      "base": 715360,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out045",
+      "base": 721192,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out046",
+      "base": 727024,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out047",
+      "base": 732856,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out048",
+      "base": 738688,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out049",
+      "base": 744520,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out050",
+      "base": 750352,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out051",
+      "base": 756184,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out052",
+      "base": 762016,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out053",
+      "base": 767848,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out054",
+      "base": 773680,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out055",
+      "base": 779512,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out056",
+      "base": 785344,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out057",
+      "base": 791176,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out058",
+      "base": 797008,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out059",
+      "base": 802840,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out060",
+      "base": 808672,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out061",
+      "base": 814504,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out062",
+      "base": 820336,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out063",
+      "base": 826168,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out064",
+      "base": 832000,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out065",
+      "base": 837832,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out066",
+      "base": 843664,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out067",
+      "base": 849496,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out068",
+      "base": 855328,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out069",
+      "base": 861160,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out070",
+      "base": 866992,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out071",
+      "base": 872824,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out072",
+      "base": 878656,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out073",
+      "base": 884488,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out074",
+      "base": 890320,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out075",
+      "base": 896152,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out076",
+      "base": 901984,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out077",
+      "base": 907816,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out078",
+      "base": 913648,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out079",
+      "base": 919480,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out080",
+      "base": 925312,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out081",
+      "base": 931144,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out082",
+      "base": 936976,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out083",
+      "base": 942808,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out084",
+      "base": 948640,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out085",
+      "base": 954472,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out086",
+      "base": 960304,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out087",
+      "base": 966136,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out088",
+      "base": 971968,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out089",
+      "base": 977800,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out090",
+      "base": 983632,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out091",
+      "base": 989464,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out092",
+      "base": 995296,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out093",
+      "base": 1001128,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out094",
+      "base": 1006960,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out095",
+      "base": 1012792,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out096",
+      "base": 1018624,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out097",
+      "base": 1024456,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out098",
+      "base": 1030288,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out099",
+      "base": 1036120,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out100",
+      "base": 1041952,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out101",
+      "base": 1047784,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out102",
+      "base": 1053616,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out103",
+      "base": 1059448,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out104",
+      "base": 1065280,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out105",
+      "base": 1071112,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out106",
+      "base": 1076944,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out107",
+      "base": 1082776,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out108",
+      "base": 1088608,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out109",
+      "base": 1094440,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out110",
+      "base": 1100272,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out111",
+      "base": 1106104,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out112",
+      "base": 1111936,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out113",
+      "base": 1117768,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out114",
+      "base": 1123600,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out115",
+      "base": 1129432,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out116",
+      "base": 1135264,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out117",
+      "base": 1141096,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out118",
+      "base": 1146928,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out119",
+      "base": 1152760,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out120",
+      "base": 1158592,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out121",
+      "base": 1164424,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out122",
+      "base": 1170256,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out123",
+      "base": 1176088,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out124",
+      "base": 1181920,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out125",
+      "base": 1187752,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out126",
+      "base": 1193584,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    },
+    {
+      "name": "out127",
+      "base": 1199416,
+      "elem_width": 2,
+      "len": 64,
+      "kind": "out"
+    }
+  ],
+  "params": [
+    {
+      "ptr": "x"
+    },
+    {
+      "ptr": "weight"
+    },
+    {
+      "ptr": "out000"
+    }
+  ],
+  "max_instructions": 2000000000,
+  "description": "Original C64/H56/W56/O128/R3/S3/K576 NCHW/OIHW convolution and selected CTA0/block128 are retained. All64 original spatial positions per128channels preserve output pitch2916. Native fixedLDS two-slot K32 staging replaces original unused dynamic-budget232448. Same-address output row views do not change external bytes or permit a tile-superset claim."
+}

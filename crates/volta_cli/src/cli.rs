@@ -38,9 +38,18 @@ impl From<LogLevel> for log::LevelFilter {
 
 #[derive(Parser)]
 #[command(name = "volta")]
-#[command(about = "The Volta PTX analysis engine.")]
+#[command(about = "The Volta GPU kernel analysis engine.")]
 #[command(version)]
 pub(crate) struct Cli {
+    /// Instruction-set backend: ptx or amdgpu. Legacy commands default to ptx;
+    /// solve and extract infer the frontend from the extension when omitted.
+    #[arg(long, global = true)]
+    pub(crate) backend: Option<String>,
+
+    /// Native AMDGPU architecture: gfx942, gfx950 (default), or gfx1250.
+    #[arg(long, global = true)]
+    pub(crate) target: Option<String>,
+
     #[command(subcommand)]
     pub(crate) command: Commands,
 
@@ -60,9 +69,9 @@ pub(crate) struct Cli {
 
 #[derive(Subcommand)]
 pub(crate) enum Commands {
-    /// Parse a PTX file and check for syntax errors
+    /// Parse PTX or native AMD assembly and check for syntax errors
     Parse {
-        /// PTX file to parse
+        /// PTX or native AMD assembly file to parse
         file: PathBuf,
     },
 
@@ -80,9 +89,9 @@ pub(crate) enum Commands {
     /// declared output array of the kernel.
     Verify(VerifyArgs),
 
-    /// Run a kernel through the interpreter its extension names (`.ptx` NVIDIA PTX, `.s` AMD
-    /// gfx950 assembly, `.py` Trainium NKI) and, given a spec, check its outputs against it with
-    /// the canonical solver.
+    /// Run a kernel and optionally check its outputs against a spec. Without --backend,
+    /// infer PTX, experimental gfx950 (outputs only), or NKI from the extension.
+    /// Use --backend amdgpu --target gfx* for native AMD graph checks.
     Solve(SolveArgs),
 
     /// Extract proof obligations after checking the kernel's available graph evidence
@@ -100,4 +109,27 @@ pub(crate) enum Commands {
 pub(crate) enum ExtractFormat {
     /// Write Lean 4 proof obligations; fail on detected races, deadlocks or incomplete checks
     Lean(ExtractLeanArgs),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn compare_requires_at_least_one_check_array() {
+        // The list is required, never derived - parity with
+        // `paired_elements`' explicit-list interface.
+        let without = ["volta", "compare", "a.ptx", "b.ptx"];
+        assert!(Cli::try_parse_from(without).is_err());
+        let with = ["volta", "compare", "a.ptx", "b.ptx", "--check-array", "out"];
+        assert!(Cli::try_parse_from(with).is_ok());
+    }
+
+    #[test]
+    fn verify_requires_a_spec_argument() {
+        let without = ["volta", "verify", "a.ptx"];
+        assert!(Cli::try_parse_from(without).is_err());
+        let with = ["volta", "verify", "a.ptx", "C[i] = A[i];", "--dim", "N=4"];
+        assert!(Cli::try_parse_from(with).is_ok());
+    }
 }

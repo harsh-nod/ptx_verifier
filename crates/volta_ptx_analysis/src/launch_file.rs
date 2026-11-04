@@ -52,11 +52,22 @@
 //! and `dims` the values of its dims. Unknown keys are errors, so a typo cannot
 //! silently fall back to a default.
 
+//!
+//! Native AMD aggregates may use `{"bytes": [0, 1, ...]}` with exact ABI size.
+//! Native `shared_allocations` supplies named LDS byte ranges; PTX rejects both forms.
+//!
+//! Native AMD `workgroup_id: [x,y,z]` selects one group, defaulting to `[0,0,0]`.
+//! Exactly three nonnegative coordinates are required, each inside `grid`.
+//! Other groups and inter-workgroup conflicts are outside the result; output
+//! indices stay absolute. PTX currently rejects nonzero selection.
+
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use serde::Deserialize;
 use serde_json::Value;
+
+use volta_common::config::SharedAllocation;
 
 use crate::config::{
     AnalysisConfig, ArrayDef, ArrayKind, FieldValue, IntWidth, ParamValue, StructField,
@@ -97,8 +108,20 @@ impl LaunchFile {
             config.grid_dim = grid.resolve("grid")?;
         }
 
+        let [x, y, z] = raw.workgroup_id;
+        config.workgroup_id = (x, y, z);
+        config.early_readiness = raw.early_readiness;
+        config.early_memory_conflicts = raw.early_memory_conflicts;
         config.dynamic_shared_bytes = raw.dynamic_shared_bytes;
-
+        config.shared_allocations = raw
+            .shared_allocations
+            .into_iter()
+            .map(|region| SharedAllocation {
+                name: region.name,
+                offset: region.offset,
+                size: region.size,
+            })
+            .collect();
         if let Some(max) = raw.max_instructions {
             config.max_instructions = max;
         }
@@ -166,7 +189,16 @@ struct RawLaunch {
     block: RawDims,
     grid: Option<RawDims>,
     #[serde(default)]
+    workgroup_id: [u32; 3],
+    #[serde(default)]
+    early_readiness: bool,
+    #[serde(default)]
+    early_memory_conflicts: bool,
+    #[serde(default)]
     dynamic_shared_bytes: u64,
+    #[serde(default)]
+    shared_allocations: Vec<RawSharedAllocation>,
+    #[serde(default)]
     max_instructions: Option<u64>,
     #[serde(default)]
     arrays: Vec<RawArray>,
@@ -177,6 +209,14 @@ struct RawLaunch {
     spec: Option<PathBuf>,
     #[serde(default)]
     dims: BTreeMap<String, u64>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawSharedAllocation {
+    name: String,
+    offset: u64,
+    size: u64,
 }
 
 #[derive(Deserialize)]
@@ -319,12 +359,26 @@ struct RawParam {
     float: Option<f64>,
     sym: Option<String>,
     ptr: Option<String>,
+    bytes: Option<Vec<u8>>,
     #[serde(rename = "struct")]
     fields: Option<Vec<RawField>>,
 }
 
 impl RawParam {
     fn resolve(self) -> Result<ParamValue, String> {
+        if let Some(bytes) = self.bytes {
+            if self.int.is_some()
+                || self.float.is_some()
+                || self.sym.is_some()
+                || self.ptr.is_some()
+                || self.fields.is_some()
+            {
+                return Err(
+                    "`bytes` cannot be combined with scalar parameter fields or `struct`".into(),
+                );
+            }
+            return Ok(ParamValue::Bytes(bytes));
+        }
         match (self.int, self.float, self.sym, self.ptr, self.fields) {
             (Some(value), None, None, None, None) => Ok(ParamValue::Int(value)),
             (None, Some(value), None, None, None) => Ok(ParamValue::Float(value)),
@@ -563,6 +617,98 @@ mod tests {
     use super::*;
 
     #[test]
+    fn early_readiness_json_is_an_optional_strict_boolean() {
+        assert!(
+            !LaunchFile::from_json(r#"{"block":1}"#)
+                .unwrap()
+                .config
+                .early_readiness
+        );
+        assert!(
+            LaunchFile::from_json(r#"{"block":1,"early_readiness":true}"#)
+                .unwrap()
+                .config
+                .early_readiness
+        );
+        for value in ["1", "0", "null", "[]", "\"true\""] {
+            assert!(
+                LaunchFile::from_json(&format!(r#"{{"block":1,"early_readiness":{value}}}"#))
+                    .is_err()
+            );
+        }
+    }
+
+    #[test]
+    fn early_memory_conflicts_json_is_an_optional_strict_boolean() {
+        assert!(
+            !LaunchFile::from_json(r#"{"block":1}"#)
+                .unwrap()
+                .config
+                .early_memory_conflicts
+        );
+        for enabled in [false, true] {
+            let launch = LaunchFile::from_json(&format!(
+                r#"{{"block":1,"early_memory_conflicts":{enabled}}}"#
+            ))
+            .unwrap();
+            assert_eq!(launch.config.early_memory_conflicts, enabled);
+        }
+        for value in ["1", "0", "null", "[]", "\"true\""] {
+            assert!(
+                LaunchFile::from_json(&format!(
+                    r#"{{"block":1,"early_memory_conflicts":{value}}}"#
+                ))
+                .is_err()
+            );
+        }
+        let launch = LaunchFile::from_json(
+            r#"{"block":1,"early_readiness":true,"early_memory_conflicts":true}"#,
+        )
+        .unwrap();
+        assert!(launch.config.early_readiness && launch.config.early_memory_conflicts);
+    }
+
+    #[test]
+    fn selected_workgroup_json_is_an_exact_three_coordinate_launch_field() {
+        assert_eq!(
+            LaunchFile::from_json(r#"{"block":1}"#)
+                .unwrap()
+                .config
+                .workgroup_id,
+            (0, 0, 0)
+        );
+        let selected =
+            LaunchFile::from_json(r#"{"block":1,"grid":[2,3,4],"workgroup_id":[1,2,3]}"#).unwrap();
+        assert_eq!(selected.config.workgroup_id, (1, 2, 3));
+        for selection in [
+            "1",
+            "[]",
+            "[1]",
+            "[1,2]",
+            "[1,2,3,0]",
+            "[-1,0,0]",
+            "[4294967296,0,0]",
+            "[2,0,0]",
+        ] {
+            let source = format!(r#"{{"block":1,"grid":[2,3,4],"workgroup_id":{selection}}}"#);
+            assert!(LaunchFile::from_json(&source).is_err(), "{selection}");
+        }
+    }
+
+    #[test]
+    fn rejects_zero_and_overflowing_launch_dimensions() {
+        for source in [
+            r#"{"block": 0}"#,
+            r#"{"block": [1, 0, 1]}"#,
+            r#"{"block": [65536, 65536, 1]}"#,
+            r#"{"block": [4294967295, 2, 1]}"#,
+            r#"{"block": 1, "grid": [1, 1, 0]}"#,
+        ] {
+            assert!(LaunchFile::from_json(source).is_err(), "{source}");
+        }
+    }
+
+    #[test]
     fn reads_the_documented_example() {
         let launch = LaunchFile::from_json(
             r#"{
@@ -784,5 +930,54 @@ mod tests {
         ]}"#;
 
         assert!(LaunchFile::from_json(overlapping).is_err());
+    }
+
+    #[test]
+    fn reads_native_shared_subobjects_without_discarding_other_launch_fields() {
+        let launch = LaunchFile::from_json(
+            r#"{"block": [32, 2], "grid": [16, 1, 1], "dynamic_shared_bytes": 512,
+                "max_instructions": 1234,
+                "shared_allocations": [
+                    {"name": "producer", "offset": 0, "size": 128},
+                    {"name": "consumer", "offset": 128, "size": 256}
+                ]}"#,
+        )
+        .unwrap();
+        assert_eq!(launch.config.block_dim, (32, 2, 1));
+        assert_eq!(launch.config.grid_dim, (16, 1, 1));
+        assert_eq!(launch.config.dynamic_shared_bytes, 512);
+        assert_eq!(launch.config.max_instructions, 1234);
+        assert_eq!(
+            launch.config.shared_allocations,
+            [
+                SharedAllocation {
+                    name: "producer".into(),
+                    offset: 0,
+                    size: 128,
+                },
+                SharedAllocation {
+                    name: "consumer".into(),
+                    offset: 128,
+                    size: 256,
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn rejects_malformed_or_conflicting_native_shared_subobjects() {
+        for regions in [
+            r#"[{"name":"tile","offset":0,"size":0}]"#,
+            r#"[{"name":" ","offset":0,"size":4}]"#,
+            r#"[{"name":"tile","offset":18446744073709551615,"size":4}]"#,
+            r#"[{"name":"tile","offset":0,"size":8},{"name":"other","offset":4,"size":8}]"#,
+            r#"[{"name":"tile","offset":0,"size":4},{"name":"tile","offset":4,"size":4}]"#,
+            r#"[{"name":"tile","offset":-1,"size":4}]"#,
+            r#"[{"name":"tile","offset":0,"sizes":4}]"#,
+            r#"[{"name":"tile","size":4}]"#,
+        ] {
+            let text = format!(r#"{{"block":32,"shared_allocations":{regions}}}"#);
+            assert!(LaunchFile::from_json(&text).is_err(), "{regions}");
+        }
     }
 }

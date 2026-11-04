@@ -1,0 +1,1232 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "source": "native-tensor-roundtrip.hip",
+  "source_sha256": "845a99a7f59f8db92d0bed7b0feccd3ce30f8183814fa6c5927d14482d65e4b5",
+  "assembly_sha256": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
+  "oracle_sha256": "f7dfd0dee10a696e093fc0c48aacacd5d2e76902ce882d9c39cfaf9f9751fdca",
+  "scope": "Independent public descriptor recipe + explicit full128F32 outputfootprint; no runtimehardwareclaim",
+  "profile": {
+    "dtype": "f32",
+    "tensor_dimensions_innermost_first": [
+      64,
+      1
+    ],
+    "tile_dimensions_innermost_first": [
+      64,
+      1
+    ],
+    "outer_stride_elements": 64,
+    "LDS_bytes": 256,
+    "padding": false,
+    "iteration": false,
+    "atomic_barrier": false,
+    "multicast": false
+  },
+  "transfers": [
+    {
+      "stage": 0,
+      "direction": "global_to_lds",
+      "D0": [
+        1,
+        0,
+        65536,
+        2147483648
+      ],
+      "D1": [
+        131072,
+        4194304,
+        65536,
+        4194304,
+        1,
+        64,
+        0,
+        0
+      ],
+      "D2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "D3": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "complete_element_addresses": [
+        {
+          "global": 65536,
+          "lds": 0
+        },
+        {
+          "global": 65540,
+          "lds": 4
+        },
+        {
+          "global": 65544,
+          "lds": 8
+        },
+        {
+          "global": 65548,
+          "lds": 12
+        },
+        {
+          "global": 65552,
+          "lds": 16
+        },
+        {
+          "global": 65556,
+          "lds": 20
+        },
+        {
+          "global": 65560,
+          "lds": 24
+        },
+        {
+          "global": 65564,
+          "lds": 28
+        },
+        {
+          "global": 65568,
+          "lds": 32
+        },
+        {
+          "global": 65572,
+          "lds": 36
+        },
+        {
+          "global": 65576,
+          "lds": 40
+        },
+        {
+          "global": 65580,
+          "lds": 44
+        },
+        {
+          "global": 65584,
+          "lds": 48
+        },
+        {
+          "global": 65588,
+          "lds": 52
+        },
+        {
+          "global": 65592,
+          "lds": 56
+        },
+        {
+          "global": 65596,
+          "lds": 60
+        },
+        {
+          "global": 65600,
+          "lds": 64
+        },
+        {
+          "global": 65604,
+          "lds": 68
+        },
+        {
+          "global": 65608,
+          "lds": 72
+        },
+        {
+          "global": 65612,
+          "lds": 76
+        },
+        {
+          "global": 65616,
+          "lds": 80
+        },
+        {
+          "global": 65620,
+          "lds": 84
+        },
+        {
+          "global": 65624,
+          "lds": 88
+        },
+        {
+          "global": 65628,
+          "lds": 92
+        },
+        {
+          "global": 65632,
+          "lds": 96
+        },
+        {
+          "global": 65636,
+          "lds": 100
+        },
+        {
+          "global": 65640,
+          "lds": 104
+        },
+        {
+          "global": 65644,
+          "lds": 108
+        },
+        {
+          "global": 65648,
+          "lds": 112
+        },
+        {
+          "global": 65652,
+          "lds": 116
+        },
+        {
+          "global": 65656,
+          "lds": 120
+        },
+        {
+          "global": 65660,
+          "lds": 124
+        },
+        {
+          "global": 65664,
+          "lds": 128
+        },
+        {
+          "global": 65668,
+          "lds": 132
+        },
+        {
+          "global": 65672,
+          "lds": 136
+        },
+        {
+          "global": 65676,
+          "lds": 140
+        },
+        {
+          "global": 65680,
+          "lds": 144
+        },
+        {
+          "global": 65684,
+          "lds": 148
+        },
+        {
+          "global": 65688,
+          "lds": 152
+        },
+        {
+          "global": 65692,
+          "lds": 156
+        },
+        {
+          "global": 65696,
+          "lds": 160
+        },
+        {
+          "global": 65700,
+          "lds": 164
+        },
+        {
+          "global": 65704,
+          "lds": 168
+        },
+        {
+          "global": 65708,
+          "lds": 172
+        },
+        {
+          "global": 65712,
+          "lds": 176
+        },
+        {
+          "global": 65716,
+          "lds": 180
+        },
+        {
+          "global": 65720,
+          "lds": 184
+        },
+        {
+          "global": 65724,
+          "lds": 188
+        },
+        {
+          "global": 65728,
+          "lds": 192
+        },
+        {
+          "global": 65732,
+          "lds": 196
+        },
+        {
+          "global": 65736,
+          "lds": 200
+        },
+        {
+          "global": 65740,
+          "lds": 204
+        },
+        {
+          "global": 65744,
+          "lds": 208
+        },
+        {
+          "global": 65748,
+          "lds": 212
+        },
+        {
+          "global": 65752,
+          "lds": 216
+        },
+        {
+          "global": 65756,
+          "lds": 220
+        },
+        {
+          "global": 65760,
+          "lds": 224
+        },
+        {
+          "global": 65764,
+          "lds": 228
+        },
+        {
+          "global": 65768,
+          "lds": 232
+        },
+        {
+          "global": 65772,
+          "lds": 236
+        },
+        {
+          "global": 65776,
+          "lds": 240
+        },
+        {
+          "global": 65780,
+          "lds": 244
+        },
+        {
+          "global": 65784,
+          "lds": 248
+        },
+        {
+          "global": 65788,
+          "lds": 252
+        }
+      ],
+      "global_byte_range": [
+        65536,
+        65792
+      ],
+      "lds_byte_range": [
+        0,
+        256
+      ],
+      "counter": "Tensor",
+      "completion": "s_wait_tensorcnt0 issuingwave then fullworkgroup splitbarrier publication",
+      "source_borrow_until_completion": false
+    },
+    {
+      "stage": 0,
+      "direction": "lds_to_global",
+      "D0": [
+        1,
+        0,
+        131072,
+        2147483648
+      ],
+      "D1": [
+        131072,
+        4194304,
+        65536,
+        4194304,
+        1,
+        64,
+        0,
+        0
+      ],
+      "D2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "D3": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "complete_element_addresses": [
+        {
+          "global": 131072,
+          "lds": 0
+        },
+        {
+          "global": 131076,
+          "lds": 4
+        },
+        {
+          "global": 131080,
+          "lds": 8
+        },
+        {
+          "global": 131084,
+          "lds": 12
+        },
+        {
+          "global": 131088,
+          "lds": 16
+        },
+        {
+          "global": 131092,
+          "lds": 20
+        },
+        {
+          "global": 131096,
+          "lds": 24
+        },
+        {
+          "global": 131100,
+          "lds": 28
+        },
+        {
+          "global": 131104,
+          "lds": 32
+        },
+        {
+          "global": 131108,
+          "lds": 36
+        },
+        {
+          "global": 131112,
+          "lds": 40
+        },
+        {
+          "global": 131116,
+          "lds": 44
+        },
+        {
+          "global": 131120,
+          "lds": 48
+        },
+        {
+          "global": 131124,
+          "lds": 52
+        },
+        {
+          "global": 131128,
+          "lds": 56
+        },
+        {
+          "global": 131132,
+          "lds": 60
+        },
+        {
+          "global": 131136,
+          "lds": 64
+        },
+        {
+          "global": 131140,
+          "lds": 68
+        },
+        {
+          "global": 131144,
+          "lds": 72
+        },
+        {
+          "global": 131148,
+          "lds": 76
+        },
+        {
+          "global": 131152,
+          "lds": 80
+        },
+        {
+          "global": 131156,
+          "lds": 84
+        },
+        {
+          "global": 131160,
+          "lds": 88
+        },
+        {
+          "global": 131164,
+          "lds": 92
+        },
+        {
+          "global": 131168,
+          "lds": 96
+        },
+        {
+          "global": 131172,
+          "lds": 100
+        },
+        {
+          "global": 131176,
+          "lds": 104
+        },
+        {
+          "global": 131180,
+          "lds": 108
+        },
+        {
+          "global": 131184,
+          "lds": 112
+        },
+        {
+          "global": 131188,
+          "lds": 116
+        },
+        {
+          "global": 131192,
+          "lds": 120
+        },
+        {
+          "global": 131196,
+          "lds": 124
+        },
+        {
+          "global": 131200,
+          "lds": 128
+        },
+        {
+          "global": 131204,
+          "lds": 132
+        },
+        {
+          "global": 131208,
+          "lds": 136
+        },
+        {
+          "global": 131212,
+          "lds": 140
+        },
+        {
+          "global": 131216,
+          "lds": 144
+        },
+        {
+          "global": 131220,
+          "lds": 148
+        },
+        {
+          "global": 131224,
+          "lds": 152
+        },
+        {
+          "global": 131228,
+          "lds": 156
+        },
+        {
+          "global": 131232,
+          "lds": 160
+        },
+        {
+          "global": 131236,
+          "lds": 164
+        },
+        {
+          "global": 131240,
+          "lds": 168
+        },
+        {
+          "global": 131244,
+          "lds": 172
+        },
+        {
+          "global": 131248,
+          "lds": 176
+        },
+        {
+          "global": 131252,
+          "lds": 180
+        },
+        {
+          "global": 131256,
+          "lds": 184
+        },
+        {
+          "global": 131260,
+          "lds": 188
+        },
+        {
+          "global": 131264,
+          "lds": 192
+        },
+        {
+          "global": 131268,
+          "lds": 196
+        },
+        {
+          "global": 131272,
+          "lds": 200
+        },
+        {
+          "global": 131276,
+          "lds": 204
+        },
+        {
+          "global": 131280,
+          "lds": 208
+        },
+        {
+          "global": 131284,
+          "lds": 212
+        },
+        {
+          "global": 131288,
+          "lds": 216
+        },
+        {
+          "global": 131292,
+          "lds": 220
+        },
+        {
+          "global": 131296,
+          "lds": 224
+        },
+        {
+          "global": 131300,
+          "lds": 228
+        },
+        {
+          "global": 131304,
+          "lds": 232
+        },
+        {
+          "global": 131308,
+          "lds": 236
+        },
+        {
+          "global": 131312,
+          "lds": 240
+        },
+        {
+          "global": 131316,
+          "lds": 244
+        },
+        {
+          "global": 131320,
+          "lds": 248
+        },
+        {
+          "global": 131324,
+          "lds": 252
+        }
+      ],
+      "global_byte_range": [
+        131072,
+        131328
+      ],
+      "lds_byte_range": [
+        0,
+        256
+      ],
+      "counter": "Tensor",
+      "completion": "s_wait_tensorcnt0 issuingwave then fullworkgroup splitbarrier publication",
+      "source_borrow_until_completion": true
+    },
+    {
+      "stage": 1,
+      "direction": "global_to_lds",
+      "D0": [
+        1,
+        0,
+        65792,
+        2147483648
+      ],
+      "D1": [
+        131072,
+        4194304,
+        65536,
+        4194304,
+        1,
+        64,
+        0,
+        0
+      ],
+      "D2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "D3": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "complete_element_addresses": [
+        {
+          "global": 65792,
+          "lds": 0
+        },
+        {
+          "global": 65796,
+          "lds": 4
+        },
+        {
+          "global": 65800,
+          "lds": 8
+        },
+        {
+          "global": 65804,
+          "lds": 12
+        },
+        {
+          "global": 65808,
+          "lds": 16
+        },
+        {
+          "global": 65812,
+          "lds": 20
+        },
+        {
+          "global": 65816,
+          "lds": 24
+        },
+        {
+          "global": 65820,
+          "lds": 28
+        },
+        {
+          "global": 65824,
+          "lds": 32
+        },
+        {
+          "global": 65828,
+          "lds": 36
+        },
+        {
+          "global": 65832,
+          "lds": 40
+        },
+        {
+          "global": 65836,
+          "lds": 44
+        },
+        {
+          "global": 65840,
+          "lds": 48
+        },
+        {
+          "global": 65844,
+          "lds": 52
+        },
+        {
+          "global": 65848,
+          "lds": 56
+        },
+        {
+          "global": 65852,
+          "lds": 60
+        },
+        {
+          "global": 65856,
+          "lds": 64
+        },
+        {
+          "global": 65860,
+          "lds": 68
+        },
+        {
+          "global": 65864,
+          "lds": 72
+        },
+        {
+          "global": 65868,
+          "lds": 76
+        },
+        {
+          "global": 65872,
+          "lds": 80
+        },
+        {
+          "global": 65876,
+          "lds": 84
+        },
+        {
+          "global": 65880,
+          "lds": 88
+        },
+        {
+          "global": 65884,
+          "lds": 92
+        },
+        {
+          "global": 65888,
+          "lds": 96
+        },
+        {
+          "global": 65892,
+          "lds": 100
+        },
+        {
+          "global": 65896,
+          "lds": 104
+        },
+        {
+          "global": 65900,
+          "lds": 108
+        },
+        {
+          "global": 65904,
+          "lds": 112
+        },
+        {
+          "global": 65908,
+          "lds": 116
+        },
+        {
+          "global": 65912,
+          "lds": 120
+        },
+        {
+          "global": 65916,
+          "lds": 124
+        },
+        {
+          "global": 65920,
+          "lds": 128
+        },
+        {
+          "global": 65924,
+          "lds": 132
+        },
+        {
+          "global": 65928,
+          "lds": 136
+        },
+        {
+          "global": 65932,
+          "lds": 140
+        },
+        {
+          "global": 65936,
+          "lds": 144
+        },
+        {
+          "global": 65940,
+          "lds": 148
+        },
+        {
+          "global": 65944,
+          "lds": 152
+        },
+        {
+          "global": 65948,
+          "lds": 156
+        },
+        {
+          "global": 65952,
+          "lds": 160
+        },
+        {
+          "global": 65956,
+          "lds": 164
+        },
+        {
+          "global": 65960,
+          "lds": 168
+        },
+        {
+          "global": 65964,
+          "lds": 172
+        },
+        {
+          "global": 65968,
+          "lds": 176
+        },
+        {
+          "global": 65972,
+          "lds": 180
+        },
+        {
+          "global": 65976,
+          "lds": 184
+        },
+        {
+          "global": 65980,
+          "lds": 188
+        },
+        {
+          "global": 65984,
+          "lds": 192
+        },
+        {
+          "global": 65988,
+          "lds": 196
+        },
+        {
+          "global": 65992,
+          "lds": 200
+        },
+        {
+          "global": 65996,
+          "lds": 204
+        },
+        {
+          "global": 66000,
+          "lds": 208
+        },
+        {
+          "global": 66004,
+          "lds": 212
+        },
+        {
+          "global": 66008,
+          "lds": 216
+        },
+        {
+          "global": 66012,
+          "lds": 220
+        },
+        {
+          "global": 66016,
+          "lds": 224
+        },
+        {
+          "global": 66020,
+          "lds": 228
+        },
+        {
+          "global": 66024,
+          "lds": 232
+        },
+        {
+          "global": 66028,
+          "lds": 236
+        },
+        {
+          "global": 66032,
+          "lds": 240
+        },
+        {
+          "global": 66036,
+          "lds": 244
+        },
+        {
+          "global": 66040,
+          "lds": 248
+        },
+        {
+          "global": 66044,
+          "lds": 252
+        }
+      ],
+      "global_byte_range": [
+        65792,
+        66048
+      ],
+      "lds_byte_range": [
+        0,
+        256
+      ],
+      "counter": "Tensor",
+      "completion": "s_wait_tensorcnt0 issuingwave then fullworkgroup splitbarrier publication",
+      "source_borrow_until_completion": false
+    },
+    {
+      "stage": 1,
+      "direction": "lds_to_global",
+      "D0": [
+        1,
+        0,
+        131328,
+        2147483648
+      ],
+      "D1": [
+        131072,
+        4194304,
+        65536,
+        4194304,
+        1,
+        64,
+        0,
+        0
+      ],
+      "D2": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "D3": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "complete_element_addresses": [
+        {
+          "global": 131328,
+          "lds": 0
+        },
+        {
+          "global": 131332,
+          "lds": 4
+        },
+        {
+          "global": 131336,
+          "lds": 8
+        },
+        {
+          "global": 131340,
+          "lds": 12
+        },
+        {
+          "global": 131344,
+          "lds": 16
+        },
+        {
+          "global": 131348,
+          "lds": 20
+        },
+        {
+          "global": 131352,
+          "lds": 24
+        },
+        {
+          "global": 131356,
+          "lds": 28
+        },
+        {
+          "global": 131360,
+          "lds": 32
+        },
+        {
+          "global": 131364,
+          "lds": 36
+        },
+        {
+          "global": 131368,
+          "lds": 40
+        },
+        {
+          "global": 131372,
+          "lds": 44
+        },
+        {
+          "global": 131376,
+          "lds": 48
+        },
+        {
+          "global": 131380,
+          "lds": 52
+        },
+        {
+          "global": 131384,
+          "lds": 56
+        },
+        {
+          "global": 131388,
+          "lds": 60
+        },
+        {
+          "global": 131392,
+          "lds": 64
+        },
+        {
+          "global": 131396,
+          "lds": 68
+        },
+        {
+          "global": 131400,
+          "lds": 72
+        },
+        {
+          "global": 131404,
+          "lds": 76
+        },
+        {
+          "global": 131408,
+          "lds": 80
+        },
+        {
+          "global": 131412,
+          "lds": 84
+        },
+        {
+          "global": 131416,
+          "lds": 88
+        },
+        {
+          "global": 131420,
+          "lds": 92
+        },
+        {
+          "global": 131424,
+          "lds": 96
+        },
+        {
+          "global": 131428,
+          "lds": 100
+        },
+        {
+          "global": 131432,
+          "lds": 104
+        },
+        {
+          "global": 131436,
+          "lds": 108
+        },
+        {
+          "global": 131440,
+          "lds": 112
+        },
+        {
+          "global": 131444,
+          "lds": 116
+        },
+        {
+          "global": 131448,
+          "lds": 120
+        },
+        {
+          "global": 131452,
+          "lds": 124
+        },
+        {
+          "global": 131456,
+          "lds": 128
+        },
+        {
+          "global": 131460,
+          "lds": 132
+        },
+        {
+          "global": 131464,
+          "lds": 136
+        },
+        {
+          "global": 131468,
+          "lds": 140
+        },
+        {
+          "global": 131472,
+          "lds": 144
+        },
+        {
+          "global": 131476,
+          "lds": 148
+        },
+        {
+          "global": 131480,
+          "lds": 152
+        },
+        {
+          "global": 131484,
+          "lds": 156
+        },
+        {
+          "global": 131488,
+          "lds": 160
+        },
+        {
+          "global": 131492,
+          "lds": 164
+        },
+        {
+          "global": 131496,
+          "lds": 168
+        },
+        {
+          "global": 131500,
+          "lds": 172
+        },
+        {
+          "global": 131504,
+          "lds": 176
+        },
+        {
+          "global": 131508,
+          "lds": 180
+        },
+        {
+          "global": 131512,
+          "lds": 184
+        },
+        {
+          "global": 131516,
+          "lds": 188
+        },
+        {
+          "global": 131520,
+          "lds": 192
+        },
+        {
+          "global": 131524,
+          "lds": 196
+        },
+        {
+          "global": 131528,
+          "lds": 200
+        },
+        {
+          "global": 131532,
+          "lds": 204
+        },
+        {
+          "global": 131536,
+          "lds": 208
+        },
+        {
+          "global": 131540,
+          "lds": 212
+        },
+        {
+          "global": 131544,
+          "lds": 216
+        },
+        {
+          "global": 131548,
+          "lds": 220
+        },
+        {
+          "global": 131552,
+          "lds": 224
+        },
+        {
+          "global": 131556,
+          "lds": 228
+        },
+        {
+          "global": 131560,
+          "lds": 232
+        },
+        {
+          "global": 131564,
+          "lds": 236
+        },
+        {
+          "global": 131568,
+          "lds": 240
+        },
+        {
+          "global": 131572,
+          "lds": 244
+        },
+        {
+          "global": 131576,
+          "lds": 248
+        },
+        {
+          "global": 131580,
+          "lds": 252
+        }
+      ],
+      "global_byte_range": [
+        131328,
+        131584
+      ],
+      "lds_byte_range": [
+        0,
+        256
+      ],
+      "counter": "Tensor",
+      "completion": "s_wait_tensorcnt0 issuingwave then fullworkgroup splitbarrier publication",
+      "source_borrow_until_completion": true
+    }
+  ]
+}

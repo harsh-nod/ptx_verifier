@@ -30,6 +30,7 @@
   const FAILING = ["race-condition", "check-failed", "deadlock"];
 
   const CATEGORIES = {
+    instruction: { shape: "bar", color: "--c-misc", name: "Wave instruction" },
     read: { shape: "circle", color: "--c-read", name: "Read" },
     write: { shape: "circle", color: "--c-write", name: "Write" },
     sync: { shape: "tri-down", color: "--c-sync", name: "Arrive / contribute" },
@@ -47,6 +48,8 @@
   const OPEN_SHAPES = new Set(["tri-down-open", "square-open", "ring", "cross"]);
 
   const EDGES = {
+    "amd-issue": { color: "--e-async", dash: [5, 3], name: "AMD memory issue" },
+    "amd-barrier": { color: "--e-contribute", dash: [], name: "AMD barrier generation" },
     contribute: { color: "--e-contribute", dash: [], name: "Contribute" },
     release: { color: "--e-release", dash: [], name: "Release" },
     "contribute-execution-only": { color: "--e-contribute", dash: [4, 4], name: "Contribute (execution only)" },
@@ -254,6 +257,8 @@
     tab: "checks",
     mini: null,
   };
+
+  const originalEventId = (e) => state.doc && state.doc.eventIds ? state.doc.eventIds[e] : e;
 
   let colors = {};
   let fonts = { sans: "sans-serif", mono: "monospace" };
@@ -710,11 +715,22 @@
           m.terminal ? h("span", { class: "pill terminal " + m.terminal, text: "trace " + m.terminal }) : null,
         ),
         fact("kernel", m.kernel, true),
+        launch ? fact("target", (launch.targets || []).join(", "), true) : fact("declared target", doc.source_target, true),
+        launch ? fact("geometry", (launch.wave_kind || ((doc.source_language || launch.source_language) === "amdgpu" || launch.wave_size === 64 ? "wave" : "warp")) + launch.wave_size) : fact("declared geometry", doc.source_wave_size ? (doc.source_wave_kind || "wave") + doc.source_wave_size : null),
         launch ? fact("block", launch.block.join("×")) : null,
+        launch && launch.workgroup_id ? fact("selected group", launch.workgroup_id.join(",")) : null,
         launch && launch.grid.some((d) => d !== 1) ? fact("grid", launch.grid.join("×")) : null,
         m.events != null ? fact("events", fmt(m.events)) : null,
-        fact("ptx", m.ptx || "built by the test", !!m.ptx),
+        fact("source", m.ptx || "built by the test", !!m.ptx),
       ),
+      doc.display ? h("div", {
+        class: "display-note",
+        role: "note",
+        text: "Display selection: " + fmt(doc.display.includedEvents) + " of " + fmt(doc.display.totalEvents)
+          + " events; " + fmt(doc.display.omittedEvents) + " omitted. Checks use the complete graph. "
+          + "Original event IDs are preserved. " + doc.display.selection
+          + (doc.display.omittedFindings ? ". " + fmt(doc.display.omittedFindings) + " findings omitted from this display." : "."),
+      }) : null,
     );
   }
 
@@ -798,11 +814,14 @@
       onkeydown: (e) => {
         if (e.key !== "Enter") return;
         const n = parseInt(e.target.value.trim().replace(/^e/i, ""), 10);
-        if (Number.isInteger(n) && n >= 0 && n < doc.events.length) {
-          select(n, { center: true });
+        const shown = doc.eventIds ? doc.eventIds.indexOf(n) : n;
+        if (Number.isInteger(n) && shown >= 0 && shown < doc.events.length) {
+          select(shown, { center: true });
           e.target.classList.remove("invalid");
+          e.target.title = "";
         } else {
           e.target.classList.add("invalid");
+          e.target.title = doc.display ? "This event is omitted from the display selection." : "No such event.";
         }
       },
       oninput: (e) => e.target.classList.remove("invalid"),
@@ -1083,7 +1102,7 @@
     else if (status === "unknown") setBadge("badge-checks", "?", "warn", name);
     else if (status === "race-free") setBadge("badge-checks", "✓", "ok", name);
     else setBadge("badge-checks", "");
-    setBadge("badge-event", state.selected >= 0 ? "e" + state.selected : "", "mono");
+    setBadge("badge-event", state.selected >= 0 ? "e" + originalEventId(state.selected) : "", "mono");
   }
 
   const section = (title, ...body) => h("section", { class: "panel-section" }, h("h2", null, title), body);
@@ -1100,7 +1119,7 @@
         onclick: () => select(e, { center: true }),
       },
       ev ? catDot(ev.cat) : null,
-      "e" + e,
+      "e" + originalEventId(e),
     );
   }
 
@@ -1238,6 +1257,7 @@
         h("span", { class: "check-name" }, c.name, h("span", { class: "algorithm", text: c.algorithm })),
       ),
       c.evidence ? evidenceView(c.evidence) : null,
+      c.totalFindings > c.findings.length ? h("p", { class: "hint", text: "Showing " + fmt(c.findings.length) + " of " + fmt(c.totalFindings) + " findings from the complete graph." }) : null,
       c.findings.length ? findingList(c.findings, severity, c.name) : null,
       events.length > 1 && state.g
         ? h(
@@ -1299,6 +1319,8 @@
             { class: "kv" },
             h("dt", { text: "block" }),
             h("dd", { text: l.block.join(" × ") }),
+            l.workgroup_id ? h("dt", { text: "selected group" }) : null,
+            l.workgroup_id ? h("dd", { text: l.workgroup_id.join(", ") }) : null,
             h("dt", { text: "grid" }),
             h("dd", { text: l.grid.join(" × ") }),
             h("dt", { text: "targets" }),
@@ -1308,6 +1330,9 @@
       );
       if (l.assumptions.length) {
         parts.push(section(titled("Assumptions", l.assumptions.length), h("ul", { class: "assumptions" }, l.assumptions.map((a) => h("li", { text: a })))));
+      }
+      if (l.shared_allocations && l.shared_allocations.length) {
+        parts.push(section("Configured LDS allocation premise", h("ul", {}, l.shared_allocations.map((r) => h("li", { text: `${r.name}: bytes [${r.offset}, ${r.offset + r.size})` })))));
       }
     }
     fill(byId("tab-checks"), ...parts);
@@ -1347,18 +1372,22 @@
   // word before it a directive and after it a modifier.
   const PTX_TOKENS =
     /(\/\/.*$|\/\*.*?\*\/)|("(?:[^"\\]|\\.)*")|(@!?%?[A-Za-z_$][\w$]*)|(%[A-Za-z_$][\w$.]*)|(\.[A-Za-z_][\w:]*)|(0[xX][0-9a-fA-F]+|0[fFdD][0-9a-fA-F]{8,16}|\d+(?:\.\d+)?)|([A-Za-z_$][\w$]*)/g;
+  const AMD_TOKENS =
+    /(\/\/.*$|;.*$|#.*$|\/\*.*?\*\/)|("(?:[^"\\]|\\.)*")|(@!?%?[A-Za-z_$][\w$]*)|\b((?:(?:acc|[avs])\d+|(?:acc|[avs])\[[^\]]+\]|exec(?:_lo|_hi)?|vcc(?:_lo|_hi)?|scc|m0|null))(?!\w)|(\.[A-Za-z_][\w:]*)|(0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?)|([A-Za-z_$][\w$]*)/g;
   function highlight(line) {
     const out = [];
     let last = 0;
     let opSeen = false;
     let declaration = false;
-    const label = /^(\s*)([A-Za-z_$][\w$]*):/.exec(line);
+    const amd = state.doc && (state.doc.source_language || state.doc.launch && state.doc.launch.source_language) === "amdgpu";
+    const tokens = amd ? AMD_TOKENS : PTX_TOKENS;
+    const label = /^(\s*)([.A-Za-z_$][\w$\.]*):/.exec(line);
     if (label) {
       out.push(label[1], h("span", { class: "syn-label", text: label[2] + ":" }));
       last = label[0].length;
     }
-    PTX_TOKENS.lastIndex = last;
-    for (let m; (m = PTX_TOKENS.exec(line)); ) {
+    tokens.lastIndex = last;
+    for (let m; (m = tokens.exec(line)); ) {
       if (m.index > last) {
         const gap = line.slice(last, m.index);
         out.push(gap);
@@ -1461,7 +1490,7 @@
           "div",
           { class: "event-title" },
           swatch(ev.cat, 18),
-          h("span", { class: "event-id", text: "e" + e }),
+          h("span", { class: "event-id", text: "e" + originalEventId(e) }),
           h("span", { class: "cat-name", text: spec.name }),
         ),
         h("div", { class: "event-label", text: ev.label }),
@@ -1647,7 +1676,7 @@
           h("p", {
             text:
               "Each run is one candidate execution of a kernel, recorded by a test. Open one to see its event graph lane by lane, " +
-              "the verdict of the graph checks with their findings resolved to events, and the PTX source behind every event.",
+              "the verdict of the graph checks with their findings resolved to events, and the kernel source behind every event.",
           }),
         ),
         h(
@@ -1731,7 +1760,7 @@
           h("h3", { text: "Reading a graph" }),
           h("p", {
             text:
-              "Columns are lanes: one per thread, one per thread's async operations and one per synchronization object, grouped by warp. " +
+              "Columns are lanes: one per thread, one per thread's async operations and one per synchronization object, grouped by warp or wave. " +
               "Rows are steps: an event sits below its lane predecessor and below the source of every typed edge into it.",
           }),
           grammar(),
@@ -1761,7 +1790,7 @@
                 "configuration), so this run recorded no event graph.",
           }),
           h("pre", { class: "error-text", text: doc.error }),
-          doc.source ? h("button", { class: "btn primary", type: "button", onclick: () => setTab("source") }, "Show the PTX source") : null,
+          doc.source ? h("button", { class: "btn primary", type: "button", onclick: () => setTab("source") }, "Show the kernel source") : null,
         ),
       ),
     );
@@ -2281,7 +2310,10 @@
 
   function groupOf(laneIx) {
     const lane = state.doc.lanes[laneIx];
-    return lane.kind === "object" ? "sync objects" : "warp " + Math.floor(lane.thread / 32);
+    const waveSize = state.doc && state.doc.launch && state.doc.launch.wave_size || 32;
+    const native = (state.doc.source_language || state.doc.launch && state.doc.launch.source_language) === "amdgpu";
+    const waveKind = state.doc.launch && state.doc.launch.wave_kind || (native || waveSize === 64 ? "wave" : "warp");
+    return lane.kind === "object" ? "sync objects" : waveKind + " " + Math.floor(lane.thread / waveSize);
   }
 
   function startsGroup(c) {
@@ -2356,6 +2388,13 @@
     ctx.fillStyle = colors["--muted"];
     ctx.fillText("STEP", GUTTER_W - 9, HEADER_H - 12);
     ctx.textAlign = "left";
+
+    // A valid filter can leave no visible lanes (and an offscreen view can
+    // leave no visible columns). There is then no group band to label.
+    if (c0 > c1) {
+      ctx.restore();
+      return;
+    }
 
     ctx.beginPath();
     ctx.rect(GUTTER_W, 0, W - GUTTER_W, HEADER_H);
@@ -2552,7 +2591,7 @@
           "div",
           { class: "tip-title" },
           swatch(ev.cat, 12),
-          h("strong", { text: "e" + e }),
+          h("strong", { text: "e" + originalEventId(e) }),
           h("span", { class: "tip-cat", text: (CATEGORIES[ev.cat] || CATEGORIES.exit).name }),
         ),
         h("div", { class: "tip-label", text: ev.label }),

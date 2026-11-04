@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "scope": "New synthetic full ABI controls; no original-kernel claim. Prior legal MC-only controls and failed configuration runs retained unchanged.",
+  "compiler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "public_review_sha256": "4f76398b2b96fbb30485626cee018d06002c3e866e9f4409684478e1f1076bc0",
+  "rows": [
+    {
+      "target": "gfx950",
+      "original_sha256": "ac49b27c4de43ad9086e4c11af41f8ea580ad23635240ea5a9cf1c25238df009",
+      "source_sha256": "76ab5b310b27f51497221e3c2f07f958d0b91ced7375e8d2cb46301c15b029e4",
+      "only_change": "Append explicit one-global-buffer argument metadata and matching target wave size; original full module bytes retained as prefix.",
+      "argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/gfx950-complete-one.s",
+        "-o",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/gfx950-complete-one.o"
+      ],
+      "exit_code": 0,
+      "object_sha256": "e7d0b82bcdc76d57ab0f647b431e213fee6cc10c9e148a4e208459e8693b2a53",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "gfx1250",
+      "original_sha256": "039d7efd1b252baa3a63f7552236998c49b4823bc55c89edb2c45ebeeec13936",
+      "source_sha256": "faa0cdbdf23552ab450cbb76d537776745fbd368b6d2879b52694f22440cb016",
+      "only_change": "Append explicit one-global-buffer argument metadata and matching target wave size; original full module bytes retained as prefix.",
+      "argv": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/gfx1250-complete-one.s",
+        "-o",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/gfx1250-complete-one.o"
+      ],
+      "exit_code": 0,
+      "object_sha256": "3ffa6ee5b811d027f1a78fbcb54f156113ff439aaffa888bd976e74443074dbd",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

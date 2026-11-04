@@ -23,6 +23,7 @@ pub enum TokenKind {
     Minus,
     Star,
     Slash,
+    Percent,
     DotDot,
     Eof,
 }
@@ -44,6 +45,7 @@ impl fmt::Display for TokenKind {
             TokenKind::Minus => write!(f, "'-'"),
             TokenKind::Star => write!(f, "'*'"),
             TokenKind::Slash => write!(f, "'/'"),
+            TokenKind::Percent => write!(f, "'%'"),
             TokenKind::DotDot => write!(f, "'..'"),
             TokenKind::Eof => write!(f, "end of file"),
         }
@@ -211,6 +213,10 @@ impl<'a> Lexer<'a> {
                 b'/' => {
                     self.pos += 1;
                     TokenKind::Slash
+                }
+                b'%' => {
+                    self.pos += 1;
+                    TokenKind::Percent
                 }
                 b'.' if self.peek_byte_at(1) == Some(b'.') => {
                     self.pos += 2;

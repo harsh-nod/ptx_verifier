@@ -73,6 +73,14 @@ external:
 kittens:
     python3 external/races.py --framework thunderkittens
 
+# Compile pinned HipKittens CDNA4 sources to native gfx950 assembly (requires ROCm)
+extract-hipkittens *args:
+    uv run external/extraction/hipkittens.py {{args}}
+
+# Check the HipKittens native kernels for data races
+hipkittens *args:
+    python3 external/races.py --framework hipkittens {{args}}
+
 # Check the TritonBench kernels for data races
 tritonbench:
     python3 external/races.py --framework tritonbench

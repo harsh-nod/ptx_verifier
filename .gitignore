@@ -12,8 +12,25 @@
 
 # External kernels: PTX and metadata from `just setup`, CSVs from `just external`; only launch files are tracked
 /external/**/*.ptx
+/external/**/*.s
 /external/**/*.json
 !/external/**/*.launch.json
+!/external/hipkittens/corpus/inventory.json
+!/external/hipkittens/corpus/baseline.json
+!/external/hipkittens/corpus/vec-add1-baseline.json
+!/external/hipkittens/corpus/buffer-comparison.json
+!/external/hipkittens/corpus/frontier.json
+!/external/hipkittens/corpus/frontier-audit-20261031.json
+!/external/hipkittens/corpus/vector-comparison-20261031.json
+!/external/hipkittens/corpus/vector-independent-audit-20261031.json
+!/external/hipkittens/corpus/vector-publication-audit-20261031.json
+!/external/hipkittens/corpus/vector-documentation-audit-20261031.json
 /external/output/
+
+# Local architecture validation artifacts
+/tests/gfx942/evidence/
+/tests/gfx950/evidence/
+/tests/gfx1250/evidence/
+/tests/gfx1250/full/encoding-probes/*-hardware.json
 # The Gluon tutorials, downloaded by `external/extraction/gluon.py`
 /external/sources/gluon/

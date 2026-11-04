@@ -1,0 +1,1 @@
+error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-07a5080231865d32/kernel.s: 49:2: unsupported AMD instruction `global_load_async_to_lds_b128`

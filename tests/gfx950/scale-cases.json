@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "scope": "Analysis-scale configuration for the existing compiler_wave64_reduction_has_each_input_exactly_once test; not an extra original workload or a positive verification claim.",
+  "cases": [
+    {
+      "kernel": "reduce",
+      "assembly": "../../crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-exchange-reduce-relu.s",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "arrays": [
+        {
+          "name": "x",
+          "base_address": 65536,
+          "element_size": 4,
+          "length": 128,
+          "kind": "in"
+        },
+        {
+          "name": "out",
+          "base_address": 131072,
+          "element_size": 4,
+          "length": 2,
+          "kind": "out"
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ]
+    }
+  ]
+}

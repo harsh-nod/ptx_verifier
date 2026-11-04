@@ -1,0 +1,621 @@
+{
+  "schema_version": 1,
+  "assembler": "/opt/rocm/llvm/bin/llvm-mc",
+  "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n",
+  "scope": "Encoding availability only; especially identical FP8 opcode spellings do not establish matching CDNA3FNUZ/CDNA4OCP numerical semantics.",
+  "cases": [
+    {
+      "instruction": "v_lshl_add_u64 v[6:7], s[4:5], 0, v[2:3]",
+      "assembly": ".text\nk:\nv_lshl_add_u64 v[6:7], s[4:5], 0, v[2:3]\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-0.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-0.gfx942.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-0.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-0.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_pk_fma_f32 v[8:9], v[6:7], v[6:7], v[6:7]",
+      "assembly": ".text\nk:\nv_pk_fma_f32 v[8:9], v[6:7], v[6:7], v[6:7]\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-1.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-1.gfx942.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-1.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-1.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_pk_mul_f32 v[8:9], v[6:7], v[6:7]",
+      "assembly": ".text\nk:\nv_pk_mul_f32 v[8:9], v[6:7], v[6:7]\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-2.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-2.gfx942.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-2.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-2.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_bitop3_b32 v5, v8, v9, v10 bitop3:232",
+      "assembly": ".text\nk:\nv_bitop3_b32 v5, v8, v9, v10 bitop3:232\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-3.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-3.gfx942.o"
+          ],
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-3.s:3:1: error: instruction not supported on this GPU\nv_bitop3_b32 v5, v8, v9, v10 bitop3:232\n^\n"
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-3.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-3.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_mov_b64_e32 v[2:3], v[4:5]",
+      "assembly": ".text\nk:\nv_mov_b64_e32 v[2:3], v[4:5]\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-4.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-4.gfx942.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-4.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-4.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_mov_b64 v[2:3], v[4:5]",
+      "assembly": ".text\nk:\nv_mov_b64 v[2:3], v[4:5]\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-5.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-5.gfx942.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-5.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-5.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_add_u16 v2, v3, v4",
+      "assembly": ".text\nk:\nv_add_u16 v2, v3, v4\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-6.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-6.gfx942.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-6.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-6.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_mul_lo_u16 v2, v3, v4",
+      "assembly": ".text\nk:\nv_mul_lo_u16 v2, v3, v4\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-7.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-7.gfx942.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-7.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-7.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_add_f32_e32 v2, 3.0, v4",
+      "assembly": ".text\nk:\nv_add_f32_e32 v2, 3.0, v4\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-8.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-8.gfx942.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-8.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-8.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_add_f32_e32 v2, v4, 3.0",
+      "assembly": ".text\nk:\nv_add_f32_e32 v2, v4, 3.0\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-9.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-9.gfx942.o"
+          ],
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-9.s:3:23: error: invalid operand for instruction\nv_add_f32_e32 v2, v4, 3.0\n                      ^\n"
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-9.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-9.gfx950.o"
+          ],
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-9.s:3:23: error: invalid operand for instruction\nv_add_f32_e32 v2, v4, 3.0\n                      ^\n"
+        }
+      }
+    },
+    {
+      "instruction": "v_max_f32 v2, v4, 3.0",
+      "assembly": ".text\nk:\nv_max_f32 v2, v4, 3.0\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-10.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-10.gfx942.o"
+          ],
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-10.s:3:19: error: literal operands are not supported\nv_max_f32 v2, v4, 3.0\n                  ^\n"
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-10.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-10.gfx950.o"
+          ],
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-10.s:3:19: error: literal operands are not supported\nv_max_f32 v2, v4, 3.0\n                  ^\n"
+        }
+      }
+    },
+    {
+      "instruction": "v_fma_f32 v2, v4, 3.0, v4",
+      "assembly": ".text\nk:\nv_fma_f32 v2, v4, 3.0, v4\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-11.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-11.gfx942.o"
+          ],
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-11.s:3:19: error: literal operands are not supported\nv_fma_f32 v2, v4, 3.0, v4\n                  ^\n"
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-11.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-11.gfx950.o"
+          ],
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-11.s:3:19: error: literal operands are not supported\nv_fma_f32 v2, v4, 3.0, v4\n                  ^\n"
+        }
+      }
+    },
+    {
+      "instruction": "v_cvt_f32_fp8 v2, v3",
+      "assembly": ".text\nk:\nv_cvt_f32_fp8 v2, v3\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-12.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-12.gfx942.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-12.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-12.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_cvt_pk_f32_fp8 v[2:3], v4",
+      "assembly": ".text\nk:\nv_cvt_pk_f32_fp8 v[2:3], v4\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-13.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-13.gfx942.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-13.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-13.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_mfma_f32_16x16x16_f16 a[0:3], v[0:1], v[2:3], 0",
+      "assembly": ".text\nk:\nv_mfma_f32_16x16x16_f16 a[0:3], v[0:1], v[2:3], 0\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-14.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-14.gfx942.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-14.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-14.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_mfma_f32_16x16x32_f16 a[0:3], v[0:3], v[4:7], 0",
+      "assembly": ".text\nk:\nv_mfma_f32_16x16x32_f16 a[0:3], v[0:3], v[4:7], 0\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-15.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-15.gfx942.o"
+          ],
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-15.s:3:1: error: instruction not supported on this GPU\nv_mfma_f32_16x16x32_f16 a[0:3], v[0:3], v[4:7], 0\n^\n"
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-15.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-15.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "v_mfma_f32_32x32x16_f16 a[0:15], v[0:3], v[4:7], 0",
+      "assembly": ".text\nk:\nv_mfma_f32_32x32x16_f16 a[0:15], v[0:3], v[4:7], 0\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-16.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-16.gfx942.o"
+          ],
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-16.s:3:1: error: instruction not supported on this GPU\nv_mfma_f32_32x32x16_f16 a[0:15], v[0:3], v[4:7], 0\n^\n"
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-16.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-16.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "instruction": "s_waitcnt vmcnt(0) lgkmcnt(0)",
+      "assembly": ".text\nk:\ns_waitcnt vmcnt(0) lgkmcnt(0)\ns_endpgm\n",
+      "targets": {
+        "gfx942": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx942",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-17.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-17.gfx942.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "gfx950": {
+          "argv": [
+            "/opt/rocm/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx950",
+            "-filetype=obj",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-17.s",
+            "-o",
+            "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/probe-17.gfx950.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    }
+  ]
+}

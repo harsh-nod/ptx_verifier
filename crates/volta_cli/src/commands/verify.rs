@@ -5,21 +5,23 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::Instant;
 
+use crate::output::print_certified_rejection;
 use clap::Args;
 use volta_common::run_log;
 use volta_equivalence::EquivCheckOptions;
 use volta_equivalence::equiv::DEFAULT_RECYCLE_TERMS;
+use volta_pipeline::Backend;
 use volta_pipeline::{EquivalenceVerdict, check_against_spec, decide};
 use volta_ptx_analysis::{LaunchFile, write_op_counts};
 
 use crate::config::{LaunchArgs, launch_config_without_spec};
 use crate::output::{print_decision, print_graph_report, print_spec_check};
-use crate::ptx::{load_module, run_kernel};
+use crate::source::{load_module, run_kernel};
 use crate::spec::{SpecSource, dim_values, load_spec};
 
 #[derive(Args)]
 pub(crate) struct VerifyArgs {
-    /// PTX file to verify
+    /// PTX or native AMD assembly file to verify
     file: PathBuf,
 
     /// Kernel entry name (defaults to the first kernel in the module)
@@ -61,8 +63,12 @@ pub(crate) struct VerifyArgs {
     profile: bool,
 }
 
-pub(crate) fn cmd_verify(args: VerifyArgs, log: &mut run_log::RunLog) -> ExitCode {
-    let (module, source) = match load_module(&args.file) {
+pub(crate) fn cmd_verify(
+    args: VerifyArgs,
+    log: &mut run_log::RunLog,
+    backend: Backend,
+) -> ExitCode {
+    let (module, source) = match load_module(&args.file, backend) {
         Ok(m) => m,
         Err(code) => return code,
     };
@@ -120,6 +126,10 @@ pub(crate) fn cmd_verify(args: VerifyArgs, log: &mut run_log::RunLog) -> ExitCod
         "Exec: {:.3}s  instructions: {}  block syncs: {}  warp syncs: {}",
         exec_secs, run.stats.instructions, run.stats.block_syncs, run.stats.warp_syncs
     );
+    if print_certified_rejection(&side, run.stats.instructions) {
+        log.record("verify: certified rejected-prefix finding");
+        return ExitCode::FAILURE;
+    }
     print_graph_report(side.label, &side.graph, &side.report, &source);
     let mut kernel_exprs = match run.outputs {
         Ok(exprs) => exprs,

@@ -1,0 +1,287 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Actual public compiler, MC and linker source provenance only. No hardware observations or runtime acceptance. Refusal and harmful mutations are CPU-only.",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+      "sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)"
+    },
+    "llc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+      "sha256": "88b786477a6f2db121523da927bc176f84f209c2bca2ba2c9e870e2202f0f5f6",
+      "version": "AMD LLVM version 22.0.0git"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)"
+    }
+  },
+  "modules": [
+    {
+      "source": "tests/gfx1250/fixtures/native-lifetime-boundaries.hip",
+      "source_sha256": "773d9b38d9cd46d865f14b82653f8b7d318cd805e8ac2c26da7d10ec6b09b8c3",
+      "assembly": "tests/gfx1250/fixtures/native-lifetime-boundaries.s",
+      "assembly_sha256": "d819c2fac7c42fb2b6c5712c3b4869b9271204e7c2f5231da3110c6e4a117e0b",
+      "object_sha256": "79a3eac1a21c105776066c91307ca0d8fb3db38f21aa6508bf549518e43c2745",
+      "code_object_sha256": "7c377785c810fa64ed3e3743431d431d8e1a2e8adf17b1b0123c55cc204229c7",
+      "commands": [
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+            "-x",
+            "hip",
+            "--offload-device-only",
+            "--offload-arch=gfx1250",
+            "--rocm-path=/opt/rocm-7.2.0",
+            "-O2",
+            "-std=c++17",
+            "-S",
+            "tests/gfx1250/fixtures/native-lifetime-boundaries.hip",
+            "-o",
+            "tests/gfx1250/fixtures/native-lifetime-boundaries.s"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx1250",
+            "-filetype=obj",
+            "tests/gfx1250/fixtures/native-lifetime-boundaries.s",
+            "-o",
+            "/tmp/ptx-mechanism-final-vmcz3d47/native-lifetime-boundaries.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+            "-shared",
+            "/tmp/ptx-mechanism-final-vmcz3d47/native-lifetime-boundaries.o",
+            "-o",
+            "/tmp/ptx-mechanism-final-vmcz3d47/native-lifetime-boundaries.hsaco"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "source": "tests/gfx1250/fixtures/native-named-count-boundaries.ll",
+      "source_sha256": "2828992a5ea87147c3d7baeac4b4f150285325ec82bd3bb08d138011e2cae687",
+      "assembly": "tests/gfx1250/fixtures/native-named-count-boundaries.s",
+      "assembly_sha256": "fd5552bd00a10386c41fd96c1660547c437a27e7e174e32ef9b00306ed5fa68e",
+      "object_sha256": "f49701262b9965e36f12ed3f34c4ef8e32647c8e4c368ae7a72b3d63f01e63e4",
+      "code_object_sha256": "8bcd95322f5f11a5718c705e0c093a8e5f0881d388cf48ca52d6a5a7efd744dc",
+      "commands": [
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+            "-march=amdgcn",
+            "-mcpu=gfx1250",
+            "-O2",
+            "tests/gfx1250/fixtures/native-named-count-boundaries.ll",
+            "-o",
+            "tests/gfx1250/fixtures/native-named-count-boundaries.s"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx1250",
+            "-filetype=obj",
+            "tests/gfx1250/fixtures/native-named-count-boundaries.s",
+            "-o",
+            "/tmp/ptx-mechanism-final-vmcz3d47/native-named-count-boundaries.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+            "-shared",
+            "/tmp/ptx-mechanism-final-vmcz3d47/native-named-count-boundaries.o",
+            "-o",
+            "/tmp/ptx-mechanism-final-vmcz3d47/native-named-count-boundaries.hsaco"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "source": "tests/gfx1250/fixtures/native-matrix-ordering.hip",
+      "source_sha256": "165a7e2db4c591fa416d4e0365201d112fcefb4bbfc69b16fc6d83b6f2a45133",
+      "assembly": "tests/gfx1250/fixtures/native-matrix-ordering.s",
+      "assembly_sha256": "18ac6bcafd8b9365190ee0e0be247c8409619cb65ca94491bacf470af7a3e449",
+      "object_sha256": "d4e38526dd386b7539a555b3bc6e4f685507b8fa9e98937c91ca6a2503aa3d55",
+      "code_object_sha256": "939f0a53dcc2bd22b2c5ec7554c6c015a7fe3f273a6b4d3f2d60aa2993430a02",
+      "commands": [
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/clang++",
+            "-x",
+            "hip",
+            "--offload-device-only",
+            "--offload-arch=gfx1250",
+            "--rocm-path=/opt/rocm-7.2.0",
+            "-O2",
+            "-std=c++17",
+            "-S",
+            "tests/gfx1250/fixtures/native-matrix-ordering.hip",
+            "-o",
+            "tests/gfx1250/fixtures/native-matrix-ordering.s"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+            "--triple=amdgcn-amd-amdhsa",
+            "--mcpu=gfx1250",
+            "-filetype=obj",
+            "tests/gfx1250/fixtures/native-matrix-ordering.s",
+            "-o",
+            "/tmp/ptx-mechanism-final-vmcz3d47/native-matrix-ordering.o"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+            "-shared",
+            "/tmp/ptx-mechanism-final-vmcz3d47/native-matrix-ordering.o",
+            "-o",
+            "/tmp/ptx-mechanism-final-vmcz3d47/native-matrix-ordering.hsaco"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    }
+  ],
+  "cpu_only_mutation_legality": [
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-mechanism-final-vmcz3d47/missing_tensor_wait.s",
+        "-o",
+        "/tmp/ptx-mechanism-final-vmcz3d47/missing_tensor_wait.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "name": "missing_tensor_wait",
+      "assembly_sha256": "b10b7f0c3cc2b6bac8aff97330f4942847e629f83a500a038d3b8113133657eb"
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-mechanism-final-vmcz3d47/wrong_store_ds_wait.s",
+        "-o",
+        "/tmp/ptx-mechanism-final-vmcz3d47/wrong_store_ds_wait.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "name": "wrong_store_ds_wait",
+      "assembly_sha256": "23ff2ee9d50160d6962dac2b1434d2648b1bca0bdc3f30f91c8f8ec505052fa1"
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-mechanism-final-vmcz3d47/early_wmma_destination_reuse.s",
+        "-o",
+        "/tmp/ptx-mechanism-final-vmcz3d47/early_wmma_destination_reuse.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "name": "early_wmma_destination_reuse",
+      "assembly_sha256": "43e99123960cd84eebcaa856ea2238af3e2e839a885b091ee907a5a97b7b3a10"
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-mechanism-final-vmcz3d47/matrix_input_cross_wave_missing_publication.s",
+        "-o",
+        "/tmp/ptx-mechanism-final-vmcz3d47/matrix_input_cross_wave_missing_publication.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "name": "matrix_input_cross_wave_missing_publication",
+      "assembly_sha256": "448c90bbb121ee8a96a7fd82932d59b140cb9a81cac6fed8bb12a7cbf4931450"
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-mechanism-final-vmcz3d47/matrix_input_cross_wave_wrong_completion.s",
+        "-o",
+        "/tmp/ptx-mechanism-final-vmcz3d47/matrix_input_cross_wave_wrong_completion.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "name": "matrix_input_cross_wave_wrong_completion",
+      "assembly_sha256": "783eb84e675c3002d40e1fef3286cb4b0dbbd7ee79a01612215b5b0a805c6920"
+    },
+    {
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/ptx-mechanism-final-vmcz3d47/matrix_completion_keeps_metadata_separate_missing_publication.s",
+        "-o",
+        "/tmp/ptx-mechanism-final-vmcz3d47/matrix_completion_keeps_metadata_separate_missing_publication.o"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "name": "matrix_completion_keeps_metadata_separate_missing_publication",
+      "assembly_sha256": "02a4455f338a9d1e7996d6e30c584944eb27c8c6b9e3e227dd65723ace594dac"
+    }
+  ]
+}

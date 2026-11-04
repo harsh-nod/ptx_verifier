@@ -11,12 +11,12 @@ use volta_equivalence::equiv::DEFAULT_RECYCLE_TERMS;
 use volta_equivalence::vc_dump::{VcDump, read_vc_dump, write_vc_dump};
 use volta_equivalence::{EquivCheckOptions, EquivOutcome};
 use volta_expr::SymbolicOutputs;
-use volta_pipeline::{EquivalenceVerdict, check_equivalence, decide};
+use volta_pipeline::{Backend, EquivalenceVerdict, check_equivalence, decide};
 use volta_ptx_analysis::{AnalysisConfig, write_op_counts};
 
 use crate::config::{LaunchArgs, launch_config_without_spec, parse_dims};
-use crate::output::{print_decision, print_graph_report};
-use crate::ptx::{KernelSide, load_module, run_kernel};
+use crate::output::{print_certified_rejection, print_decision, print_graph_report};
+use crate::source::{KernelSide, load_module, run_kernel};
 
 #[derive(Args)]
 pub(crate) struct CompareArgs {
@@ -126,7 +126,46 @@ fn validate_check_arrays(arrays: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-pub(crate) fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog) -> ExitCode {
+pub(crate) fn cmd_compare(
+    args: CompareArgs,
+    log: &mut run_log::RunLog,
+    backend: Backend,
+) -> ExitCode {
+    if args.exprs || args.from_dump.is_some() {
+        // Replay historically ignores launch configuration. Inspect only the
+        // new opt-in so disabled/unrelated launch fields retain that behavior.
+        let enabled = if let Some(path) = &args.launch.config {
+            let json = std::fs::read_to_string(path)
+                .ok()
+                .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok());
+            match json
+                .as_ref()
+                .and_then(|value| value.get("early_memory_conflicts"))
+            {
+                None | Some(serde_json::Value::Bool(false)) => false,
+                Some(serde_json::Value::Bool(true)) => true,
+                Some(_) => {
+                    eprintln!("error: early_memory_conflicts must be a boolean");
+                    return ExitCode::FAILURE;
+                }
+            }
+        } else {
+            args.launch.early_memory_conflicts
+        };
+        if enabled {
+            eprintln!(
+                "error: early_memory_conflicts requires native source execution, not expression replay"
+            );
+            return ExitCode::FAILURE;
+        }
+    }
+    if args.launch.early_readiness && (args.exprs || args.from_dump.is_some()) {
+        eprintln!(
+            "error: --early-readiness requires native source execution, not expression replay"
+        );
+        return ExitCode::FAILURE;
+    }
+
     if let Err(e) = validate_check_arrays(&args.check_arrays) {
         eprintln!("error: {}", e);
         return ExitCode::FAILURE;
@@ -177,11 +216,11 @@ pub(crate) fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog) -> ExitC
                 return ExitCode::FAILURE;
             };
 
-            let (module1, source1) = match load_module(file1) {
+            let (module1, source1) = match load_module(file1, backend) {
                 Ok(m) => m,
                 Err(code) => return code,
             };
-            let (module2, source2) = match load_module(file2) {
+            let (module2, source2) = match load_module(file2, backend) {
                 Ok(m) => m,
                 Err(code) => return code,
             };
@@ -211,26 +250,39 @@ pub(crate) fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog) -> ExitC
             }
 
             let start = Instant::now();
-            let analyzed = run_kernel(
+            let (run1, side1) = match run_kernel(
                 "reference kernel",
                 &module1,
                 args.kernel1.as_deref(),
                 config1,
-            )
-            .and_then(|r| {
-                run_kernel(
-                    "optimized kernel",
-                    &module2,
-                    args.kernel2.as_deref(),
-                    config2,
-                )
-                .map(|o| (r, o))
-            });
-            let ((run1, side1), (run2, side2)) = match analyzed {
-                Ok(both) => both,
+            ) {
+                Ok(result) => result,
                 Err(e) => {
-                    eprintln!("error: {}", e);
-                    log.record(&format!("compare: FAILED: {}", e));
+                    eprintln!("error: {e}");
+                    log.record(&format!("compare: FAILED: {e}"));
+                    return ExitCode::FAILURE;
+                }
+            };
+            if side1.has_certified_rejection() {
+                println!(
+                    "Exec: {:.3}s  instructions: {}",
+                    start.elapsed().as_secs_f64(),
+                    run1.stats.instructions
+                );
+                print_certified_rejection(&side1, run1.stats.instructions);
+                log.record("compare: certified rejected-prefix finding");
+                return ExitCode::FAILURE;
+            }
+            let (run2, side2) = match run_kernel(
+                "optimized kernel",
+                &module2,
+                args.kernel2.as_deref(),
+                config2,
+            ) {
+                Ok(result) => result,
+                Err(e) => {
+                    eprintln!("error: {e}");
+                    log.record(&format!("compare: FAILED: {e}"));
                     return ExitCode::FAILURE;
                 }
             };
@@ -248,6 +300,10 @@ pub(crate) fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog) -> ExitC
                 run2.stats.block_syncs,
                 run2.stats.warp_syncs
             );
+            if print_certified_rejection(&side2, run2.stats.instructions) {
+                log.record("compare: certified rejected-prefix finding");
+                return ExitCode::FAILURE;
+            }
             print_graph_report(side1.label, &side1.graph, &side1.report, &source1);
             print_graph_report(side2.label, &side2.graph, &side2.report, &source2);
             let (reference, optimized) = match (run1.outputs, run2.outputs) {
@@ -389,5 +445,24 @@ pub(crate) fn cmd_compare(args: CompareArgs, log: &mut run_log::RunLog) -> ExitC
                 ExitCode::FAILURE
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unique_check_arrays_validate() {
+        // Membership is deliberately not checked here: the declared-config
+        // check owns it before execution, `paired_elements` after.
+        assert!(validate_check_arrays(&["out".to_string(), "aux".to_string()]).is_ok());
+    }
+
+    #[test]
+    fn duplicate_check_arrays_are_rejected() {
+        let arrays = vec!["out".to_string(), "aux".to_string(), "out".to_string()];
+        let err = validate_check_arrays(&arrays).unwrap_err();
+        assert!(err.contains("'out'"), "{}", err);
     }
 }

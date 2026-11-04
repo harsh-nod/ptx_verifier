@@ -22,6 +22,9 @@ impl GraphBuilder {
         let threads = provenance.threads();
         GraphBuilder {
             graph: EventGraph {
+                amd_events: Vec::new(),
+                amd_memory_effects: Vec::new(),
+                shared_allocation_layout: Vec::new(),
                 provenance,
                 events: IdVec::new(),
                 accesses: IdVec::new(),
@@ -47,6 +50,54 @@ impl GraphBuilder {
 
     pub fn graph_so_far(&self) -> &EventGraph {
         &self.graph
+    }
+
+    /// Record an assumption discovered during execution, once, alongside launch assumptions.
+    pub fn assume(&mut self, assumption: crate::Assumption) {
+        if !self.graph.provenance.assumptions.contains(&assumption) {
+            self.graph.provenance.assumptions.push(assumption);
+        }
+    }
+
+    /// Preserve explicitly configured LDS object boundaries as provenance.
+    /// This records a caller premise; it does not infer source declarations.
+    pub fn set_shared_allocation_layout(&mut self, layout: Vec<crate::SharedAllocation>) {
+        if !layout.is_empty() {
+            self.assume(crate::Assumption::ConfiguredSharedAllocationLayout);
+        }
+        self.graph.shared_allocation_layout = layout;
+    }
+
+    /// Record a scalar-issued wave event in the program order of the wave's first lane.
+    pub fn amd_event(&mut self, wave: u32, pc: ProgramPoint, kind: crate::AmdEventKind) -> EventId {
+        let index = self.graph.amd_events.len() as u32;
+        let thread = crate::AmdArchitecture::from_targets(&self.graph.provenance.targets)
+            .map(|architecture| crate::amd_wave_thread_for(architecture, wave))
+            .unwrap_or_else(|| crate::amd_wave_thread(wave));
+        let event = self.push(ExecContext::Thread(thread), EventKind::Amd(index), Some(pc));
+        self.graph
+            .amd_events
+            .push(crate::AmdEvent { event, wave, kind });
+        event
+    }
+
+    pub fn amd_memory_effect(&mut self, issue: EventId, effect: EventId) {
+        self.amd_memory_effect_scoped(issue, effect, crate::AmdMemoryScope::Unspecified);
+    }
+
+    /// Associate an AMD effect with its native visibility scope. The scope is
+    /// provenance only; the checker separately requires completion and HB.
+    pub fn amd_memory_effect_scoped(
+        &mut self,
+        issue: EventId,
+        effect: EventId,
+        scope: crate::AmdMemoryScope,
+    ) {
+        self.graph.amd_memory_effects.push(crate::AmdMemoryEffect {
+            issue,
+            effect,
+            scope,
+        });
     }
 
     fn push(&mut self, ctx: ExecContext, kind: EventKind, pc: Option<ProgramPoint>) -> EventId {

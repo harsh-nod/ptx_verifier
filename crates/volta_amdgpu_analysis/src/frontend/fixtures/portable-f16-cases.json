@@ -1,0 +1,558 @@
+{
+  "schema": 1,
+  "assumptions": [
+    "mathematical real-number arithmetic",
+    "fixed shapes",
+    "selected workgroup zero",
+    "finite symbolic inputs; no bit-exact IEEE claim"
+  ],
+  "cases": [
+    {
+      "kernel": "relu_f16",
+      "family": "ReLUKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/relu.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 1024
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "out",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "notes": [],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "relu/relu_f16",
+        "hardware": [],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
+    },
+    {
+      "kernel": "silu_f16",
+      "family": "SiLUKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/silu.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 512
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "length": 512,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "out",
+          "length": 512,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "notes": [],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "silu/silu_f16",
+        "hardware": [],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
+    },
+    {
+      "kernel": "sigmoid_f16",
+      "family": "SigmoidKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/sigmoid.spec",
+      "block": [
+        256,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 1024
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "out",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "notes": [],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "sigmoid/sigmoid_f16",
+        "hardware": [],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
+    },
+    {
+      "kernel": "swiglu_f16",
+      "family": "SwiGLUKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/swiglu.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "N": 1024
+      },
+      "arrays": [
+        {
+          "name": "gate",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "value",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "out",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:gate",
+        "ptr:value",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "notes": [],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "swiglu/swiglu_f16",
+        "hardware": [],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
+    },
+    {
+      "kernel": "rope_f16",
+      "family": "RoPEKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/rope.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "H": 2,
+        "D": 64
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "length": 128,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "cosine",
+          "length": 128,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "sine",
+          "length": 128,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 786432
+        },
+        {
+          "name": "out",
+          "length": 128,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:cosine",
+        "ptr:sine",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "notes": [],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "rope/rope_f16",
+        "hardware": [],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
+    },
+    {
+      "kernel": "reduction_f16",
+      "family": "ReductionSumKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/reduction.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "R": 1,
+        "N": 4096,
+        "TILE": 256
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "length": 4096,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "out",
+          "length": 1,
+          "element_size": 4,
+          "kind": "inout",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "notes": [
+        "The first symbolic boundary is v_readfirstlane Table11 software dependencies. Later native global_atomic_add_f32 is also outside the symbolic envelope. Physical numerical validation is recorded separately and is not a positive symbolic proof.",
+        "Only workgroup zero is scoped; this is not whole-grid atomic verification.",
+        "The original PTX reduction is also unsupported. This boundary case is intentionally included by the native harness; an UNSUPPORTED result is not a positive proof and the all-case replay returns nonzero for it."
+      ],
+      "expected_native_outcome": "UNSUPPORTED",
+      "expected_native_detail": "lane/accumulator register moves need Table 11 software dependency checks",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "reduction_sum/reduction_f16",
+        "hardware": [],
+        "scope": "Known Unsupported boundary and no symbolic outputs; numerical hardware PASS is not a symbolic proof."
+      }
+    },
+    {
+      "kernel": "softmax_f16",
+      "family": "SoftmaxKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/softmax.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "R": 16,
+        "C": 256
+      },
+      "arrays": [
+        {
+          "name": "out",
+          "length": 4096,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        },
+        {
+          "name": "x",
+          "length": 4096,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        }
+      ],
+      "params": [
+        "ptr:out",
+        "ptr:x",
+        "int:256",
+        "int:256",
+        "int:16",
+        "int:256"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "notes": [
+        "Full original16x256 row footprint. Historical4x256 receipts are supplemental reduced cases; a separate final4096-output replay validates this configuration. The original PTX Softmax workload remains an observed baseline limitation."
+      ],
+      "full_baseline_shape": true,
+      "reduced_case": false,
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "softmax/softmax_f16",
+        "hardware": [],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
+    },
+    {
+      "kernel": "rmsnorm_f16",
+      "family": "RMSNormKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/rmsnorm.spec",
+      "block": [
+        512,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "R": 1,
+        "N": 4096
+      },
+      "arrays": [
+        {
+          "name": "x",
+          "length": 4096,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "weight",
+          "length": 4096,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "out",
+          "length": 4096,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:x",
+        "ptr:weight",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "notes": [],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "rmsnorm/rmsnorm_f16",
+        "hardware": [],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
+    },
+    {
+      "kernel": "matvec_f16",
+      "family": "MatrixVectorMultiplicationKernel",
+      "assembly": "portable-f16.s",
+      "source": "portable-f16.hip",
+      "spec": "specs/matvec.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "M": 32,
+        "K": 4096
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "length": 131072,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "x",
+          "length": 4096,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "out",
+          "length": 32,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:x",
+        "ptr:out"
+      ],
+      "dtype": "f16 input/output with f32 arithmetic",
+      "notes": [
+        "Preserves all32 output rows and the fullK4096 reduction with an ordinary wave-ALU/LDS implementation. Native MFMA pipeline mechanics are exercised separately; this kernel does not use MFMA or claim equal PTX instruction scheduling."
+      ],
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "matvec/matvec_f16",
+        "hardware": [],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
+    }
+  ]
+}

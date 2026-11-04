@@ -32,6 +32,8 @@ pub struct Event {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EventKind {
+    /// A native AMD wave event; indexes [`crate::EventGraph::amd_events`].
+    Amd(u32),
     /// A memory effect: synchronous in a `Thread` context, an async op's in an `Async` one.
     Access(AccessId),
     /// The thread contributes to a generation; how is the generation's [`Contribution`].
@@ -137,8 +139,8 @@ pub enum AccessMode {
     Write,
 }
 
-/// The memory-model kind of an effect. The analysis rejects atomics and reductions, so it only
-/// records `Ordinary`; checkers must not apply non-atomic rules to the others.
+/// The memory-model kind of an effect. Selected native AMD RMW profiles record
+/// `Atomic`; consumers must validate that profile before applying its rules.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum OrderingKind {
     Ordinary,
@@ -303,7 +305,7 @@ pub enum CollectiveSide {
 /// Whether a collective orders its members' memory effects with each other.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MemberOrdering {
-    /// `bar.warp.sync`, which "guarantee[s] memory ordering among threads participating in
+    /// `bar.warp.sync`, which "guarantee\[s\] memory ordering among threads participating in
     /// barrier" (PTX ISA 9.7.15.2): each member's contribution joins.
     Synchronizing,
     /// Every other collective (`shfl.sync`, `ldmatrix`, `tcgen05.alloc`, ...): the members
@@ -512,6 +514,17 @@ pub struct BlockedThread {
 /// A blocked thread's wait condition, with the state that disables it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BlockedOn {
+    /// An AMD scalar S_BARRIER rendezvous (wave-level generation, no PTX sync object).
+    AmdBarrier {
+        generation: u32,
+        missing_waves: Vec<u32>,
+    },
+    AmdNamedBarrier {
+        object: crate::AmdNamedBarrier,
+        phase: u32,
+        expected: u16,
+        arrived: u16,
+    },
     /// Waiting in a named barrier generation.
     Barrier { generation: GenerationId },
     /// Waiting at a collective instance's entry for the missing live lanes.
@@ -539,6 +552,28 @@ pub struct MbarrierState {
 /// A modeling assumption the producer executed under, recorded so verdicts can cite it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Assumption {
+    /// Recognize the compiler's exact rounded f32 log2(e) multiply/exp2 idiom as exp.
+    CompilerExp2Idiom,
+    /// Base2 operations use the exact reciprocal of rounded f32 log2(e) as ln(2),
+    /// matching the existing PTX mathematical abstraction.
+    CompilerBase2Conversion,
+    /// The analyzed AMD execution has XNACK replay disabled, including generic
+    /// gfx950 code that can also be loaded on a replay-enabled system.
+    XnackReplayDisabled,
+    /// Exactly one AMD workgroup is analyzed; no statement about other workgroups.
+    SingleWorkgroupAnalyzed,
+    /// Every wave of the analyzed AMD workgroup resides on the same CU:
+    /// threadgroup splitting is disabled.
+    SingleCuWorkgroup,
+    /// Workgroup clustering and cluster-dependent ABI fields are disabled.
+    UnclusteredWorkgroup,
+    /// Number of shader named barrier objects allocated by the native kernel
+    /// descriptor (four times NAMED_BAR_CNT), not the number used by a trace.
+    AllocatedNamedBarriers(u8),
+    /// Native LDS object boundaries are supplied explicitly by configuration.
+    ConfiguredSharedAllocationLayout,
+    /// Symbolic arithmetic uses mathematical reals, not bit-exact floating-point.
+    MathematicalRealArithmetic,
     /// Addresses, branch conditions and synchronization parameters are concrete: the
     /// kernel is a structured CTA under the launch configuration.
     StructuredCta,
@@ -554,11 +589,62 @@ pub enum Assumption {
     /// Asynchronous operations compute their data at issue; only their completion is
     /// asynchronous.
     EagerAsyncData,
+    /// Static descriptor LDS plus configured dynamic LDS for native execution.
+    /// A caller/frontend premise, not an inferred hardware allocation.
+    ConfiguredLdsBytes(u64),
+    /// Native AMD execution uses default scheduling; expert-mode transitions
+    /// and its separate register dependency counters are outside this profile.
+    AmdDefaultScheduling,
 }
 
 impl Assumption {
     pub fn describe(self) -> &'static str {
         match self {
+            Assumption::AmdDefaultScheduling => {
+                "native AMD execution uses default scheduling; expert scheduling and mode transitions are outside this result"
+            }
+            Assumption::ConfiguredLdsBytes(_) => {
+                "native LDS extent is the descriptor's static allocation plus configured dynamic bytes"
+            }
+            Assumption::ConfiguredSharedAllocationLayout => {
+                "LDS object bounds use the explicitly configured named allocation layout; these source boundaries are caller-supplied premises"
+            }
+            Assumption::CompilerExp2Idiom => {
+                "the compiler's exact rounded f32 log2(e) multiply/exp2 idiom is modeled as mathematical exp"
+            }
+            Assumption::CompilerBase2Conversion => {
+                "general base2 exp/log use the exact reciprocal of rounded f32 log2(e) for ln(2), matching the PTX mathematical abstraction"
+            }
+            Assumption::XnackReplayDisabled => {
+                "the analyzed AMD execution has XNACK memory replay disabled; replay-enabled executions are outside this result"
+            }
+            Assumption::SingleWorkgroupAnalyzed => {
+                "only the selected AMD workgroup is analyzed; other workgroups and inter-workgroup conflicts are outside this result"
+            }
+            Assumption::SingleCuWorkgroup => {
+                "all waves of the analyzed AMD workgroup share one CU; threadgroup splitting is disabled"
+            }
+            Assumption::UnclusteredWorkgroup => {
+                "workgroup clustering is disabled; cluster-dependent execution and memory protocols are outside this result"
+            }
+            Assumption::AllocatedNamedBarriers(4) => {
+                "the native kernel descriptor allocates four shader named barrier objects"
+            }
+            Assumption::AllocatedNamedBarriers(8) => {
+                "the native kernel descriptor allocates eight shader named barrier objects"
+            }
+            Assumption::AllocatedNamedBarriers(12) => {
+                "the native kernel descriptor allocates twelve shader named barrier objects"
+            }
+            Assumption::AllocatedNamedBarriers(16) => {
+                "the native kernel descriptor allocates sixteen shader named barrier objects"
+            }
+            Assumption::AllocatedNamedBarriers(_) => {
+                "the recorded native named barrier allocation is outside the supported descriptor profile"
+            }
+            Assumption::MathematicalRealArithmetic => {
+                "arithmetic is modeled over mathematical reals, not bit-exact floating-point"
+            }
             Assumption::StructuredCta => {
                 "addresses, branch conditions and synchronization parameters are concrete"
             }
@@ -586,6 +672,8 @@ pub struct Provenance {
     pub kernel: String,
     pub block_dim: (u32, u32, u32),
     pub grid_dim: (u32, u32, u32),
+    /// The analyzed block/workgroup coordinate; native AMD verifies only this group.
+    pub workgroup_id: (u32, u32, u32),
     pub targets: Vec<String>,
     pub assumptions: Vec<Assumption>,
     /// Per [`ProgramPoint`]: the instruction kind and its source byte span.

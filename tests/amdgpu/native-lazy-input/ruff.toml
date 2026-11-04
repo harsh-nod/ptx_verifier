@@ -1,0 +1,4 @@
+# This test file is a byte-frozen input to the published study. Retain its hash;
+# collection and publication code continue to use the normal lint rules.
+[lint.per-file-ignores]
+"test_compare_vexpr_structure_20261031.py" = ["E701", "E702"]

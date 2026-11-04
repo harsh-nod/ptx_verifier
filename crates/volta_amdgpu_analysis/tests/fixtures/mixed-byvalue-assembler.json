@@ -1,0 +1,40 @@
+{
+  "host": "mi350",
+  "assembler": "/opt/rocm/llvm/bin/llvm-mc",
+  "target": "amdgcn-amd-amdhsa",
+  "mcpu": "gfx950",
+  "base_source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-mixed-byvalue.s",
+  "mutation_source": "crates/volta_pipeline/tests/gfx950_byvalue_tests.rs",
+  "cases": [
+    {
+      "name": "positive",
+      "source_sha256": "72a7cea82b970a8e181f000d9de99cab9b9479a75d87e15e48b082d5f01c9014",
+      "returncode": 0,
+      "object_sha256": "ff7fa5deb70957cb119b007b8fb5e8efb0e5707b3e804e15f06d16964e602aec"
+    },
+    {
+      "name": "undefined_selection",
+      "source_sha256": "2dd449b70d6515670342de2b44e08415abd2fa2403c5466fd5246d28fde10cfe",
+      "returncode": 0,
+      "object_sha256": "66b9533f649befe89055fce6178fc0719fecf56965fe8fa9bf9ae820593046f8"
+    },
+    {
+      "name": "undefined_integer_arithmetic",
+      "source_sha256": "a90496f1b4de6cfbeec887b0b17bba1ab5012612a36a6a61f5ede6434e9554b4",
+      "returncode": 0,
+      "object_sha256": "d6a8fac339c6b9e08f8b848ed99260e585c89423832ab0998f772e9b3504cae4"
+    },
+    {
+      "name": "undefined_float_arithmetic",
+      "source_sha256": "d88858a3b41ee2ecc368b8279b9129743b2abe5f6c8cd344fdfe5ea3aa5600fc",
+      "returncode": 0,
+      "object_sha256": "957ba8f1acbfdecd3f4423251f0dda8200b40180ebb454cc673509956880c224"
+    },
+    {
+      "name": "undefined_store",
+      "source_sha256": "e56f9f2dc34d18ef15a5bbe08f356dc804439d864861f2cb49522338e54374ca",
+      "returncode": 0,
+      "object_sha256": "67c5c3e45549e049a681b82e03a8ad0699b0fa58844f63c0f1260eb4f68cffb4"
+    }
+  ]
+}

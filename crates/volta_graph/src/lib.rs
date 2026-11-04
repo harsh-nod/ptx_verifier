@@ -31,6 +31,7 @@
 //! * **Provenance** ([`Provenance`]) records the launch, target and the model assumptions the
 //!   producer executed under.
 
+mod amdgpu;
 mod builder;
 mod dump;
 mod graph;
@@ -38,6 +39,7 @@ mod ids;
 mod model;
 mod validate;
 
+pub use amdgpu::*;
 pub use builder::GraphBuilder;
 pub use graph::EventGraph;
 pub use ids::{
@@ -45,3 +47,4 @@ pub use ids::{
 };
 pub use model::*;
 pub use validate::GraphDefect;
+pub use volta_common::config::{SharedAllocation, validate_shared_allocations};

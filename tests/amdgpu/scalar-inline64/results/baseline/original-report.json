@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "scope": "Handwritten fully MC-accepted two-word CPU semantic controls. No hardware, original-kernel coverage or speedup claim.",
+  "binary_sha256": "66a32105a849a9eaa6ff0d19f33856f724807bfba5557b65c7737807f1078b1f",
+  "build_record_sha256": "b2a2a27751be25894ac0e75fb5276c0bbd5ee243d5aaeab09bf8f783a117c95b",
+  "review_sha256": "6dd29c4767d93189f6af8c15ed6be86b0a6e53faeb1b071d91ef4b257d7f653f",
+  "runs": [
+    {
+      "target": "gfx950",
+      "command": "verify",
+      "argv": [
+        "/tmp/ptx-native-device-calls-integrated-candidate-freeze-20261031/candidate-volta",
+        "verify",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/gfx950-complete-one.s",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/complete-one.spec",
+        "--config",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/gfx950-complete-one.launch.json",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx950",
+        "--no-log-file",
+        "--dim",
+        "N=2",
+        "--sample",
+        "0",
+        "--verify-numeric"
+      ],
+      "exit_code": 1,
+      "stdout_sha256": "f5e21a4ab0e84ccf39e2bcc7b42281fd44a0c24f10a8c8a7ad14c9946d1aeb47",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "gfx950",
+      "command": "analyze",
+      "argv": [
+        "/tmp/ptx-native-device-calls-integrated-candidate-freeze-20261031/candidate-volta",
+        "analyze",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/gfx950-complete-one.s",
+        "--config",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/gfx950-complete-one.launch.json",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx950",
+        "--no-log-file",
+        "--print-outputs",
+        "2",
+        "--dump-graph",
+        "/tmp/ptx-scalar64-inline-v3-baseline-results-20261031/gfx950.graph",
+        "--emit-exprs",
+        "/tmp/ptx-scalar64-inline-v3-baseline-results-20261031/gfx950.vexpr"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "332a9966a6fe9a6524e9fe5e44d497f61701c8e37658d599c504a35828522c17",
+      "stderr_sha256": "500641fbf5835892764f4f47705452c7a8d38ac92f5669592f60dbc09a876ad9"
+    },
+    {
+      "target": "gfx1250",
+      "command": "verify",
+      "argv": [
+        "/tmp/ptx-native-device-calls-integrated-candidate-freeze-20261031/candidate-volta",
+        "verify",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/gfx1250-complete-one.s",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/complete-one.spec",
+        "--config",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/gfx1250-complete-one.launch.json",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx1250",
+        "--no-log-file",
+        "--dim",
+        "N=2",
+        "--sample",
+        "0",
+        "--verify-numeric"
+      ],
+      "exit_code": 1,
+      "stdout_sha256": "50b915d85473313c50df87c0c6e057e79479093b3c94534e0d5744d5ed18b6b4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "target": "gfx1250",
+      "command": "analyze",
+      "argv": [
+        "/tmp/ptx-native-device-calls-integrated-candidate-freeze-20261031/candidate-volta",
+        "analyze",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/gfx1250-complete-one.s",
+        "--config",
+        "/tmp/ptx-scalar64-inline-controls-v3-20261031/gfx1250-complete-one.launch.json",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx1250",
+        "--no-log-file",
+        "--print-outputs",
+        "2",
+        "--dump-graph",
+        "/tmp/ptx-scalar64-inline-v3-baseline-results-20261031/gfx1250.graph",
+        "--emit-exprs",
+        "/tmp/ptx-scalar64-inline-v3-baseline-results-20261031/gfx1250.vexpr"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "a5ff23eaac23d07d66135a42b36791b556d62792b8a7914877add2ca7711e569",
+      "stderr_sha256": "7fa6976763d1a18589f3b33d870764cb4ac938bf672bf1ed1eec9ab757070064"
+    }
+  ]
+}

@@ -4,19 +4,21 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::Instant;
 
+use crate::output::print_certified_rejection;
 use clap::Args;
 use volta_common::run_log;
+use volta_pipeline::Backend;
 use volta_ptx_analysis::write_op_counts;
 
 use crate::config::{LaunchArgs, launch_config_without_spec};
 use crate::output::{
     exit_code, print_graph_conclusion, print_graph_report, print_outputs, write_exprs,
 };
-use crate::ptx::{load_module, run_kernel};
+use crate::source::{load_module, run_kernel};
 
 #[derive(Args)]
 pub(crate) struct AnalyzeArgs {
-    /// PTX file to analyze
+    /// PTX or native AMD assembly file to analyze
     file: PathBuf,
 
     /// Kernel entry name (defaults to the first kernel in the module)
@@ -45,9 +47,13 @@ pub(crate) struct AnalyzeArgs {
     dump_graph: Option<PathBuf>,
 }
 
-pub(crate) fn cmd_analyze(args: AnalyzeArgs, log: &mut run_log::RunLog) -> ExitCode {
+pub(crate) fn cmd_analyze(
+    args: AnalyzeArgs,
+    log: &mut run_log::RunLog,
+    backend: Backend,
+) -> ExitCode {
     let file = &args.file;
-    let (module, source) = match load_module(file) {
+    let (module, source) = match load_module(file, backend) {
         Ok(m) => m,
         Err(code) => return code,
     };
@@ -86,6 +92,10 @@ pub(crate) fn cmd_analyze(args: AnalyzeArgs, log: &mut run_log::RunLog) -> ExitC
         "  time: {:.3}s  instructions: {}  block syncs: {}  warp syncs: {}",
         elapsed, run.stats.instructions, run.stats.block_syncs, run.stats.warp_syncs
     );
+    if print_certified_rejection(&side, run.stats.instructions) {
+        log.record("analyze: certified rejected-prefix finding");
+        return ExitCode::FAILURE;
+    }
     print_outputs(&run.outputs, args.print_outputs);
     if args.profile {
         let _ = write_op_counts(&mut std::io::stdout().lock(), "instruction", &run.op_counts);

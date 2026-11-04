@@ -1,0 +1,411 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Ten exact remaining graph protocol obligations",
+  "artifacts": {
+    "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee",
+    "tests/gfx1250/portable-graph/protocol-lifetimes/native-protocol-lifetimes.hip": "9aeca9f7dc89c4eab50b28073e5819380776ae688374b942e81f35c8d47aa854",
+    "tests/gfx1250/portable-graph/protocol-lifetimes/native-protocol-lifetimes.s": "28e89f58a798ae82d3a6295bc717d6fe098ec457bc56df33d60a5a47a010ea35",
+    "tests/gfx1250/portable-graph/protocol-lifetimes/native-protocol-named.ll": "dcd8da1a19cc63fc1e8628d1d6e7c6676926ce9c36dddd99184523c56c0708e3",
+    "tests/gfx1250/portable-graph/protocol-lifetimes/native-protocol-named.s": "c8e0eef5ea9cbbfb26f1779b81d2b941e16b5d1abdc3ae3b7051911d16bdab51",
+    "tests/gfx1250/portable-graph/protocol-lifetimes/compiler-provenance.json": "0c832c60217f91bbb236fef5a70f2e80e8b4ee1ffb153b471b9a75d1cdbb7e3e",
+    "tests/gfx1250/portable-graph/protocol-lifetimes/check_sources.py": "9b40263b38bb454a938ef501bc86af1d8c814c500706a1939e5c4249a19fd537"
+  },
+  "rows": [
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/exited_reader_unordered_by_bar_warp_sync.ptx",
+      "upstream_sha256": "0de408f0f1eb2a98e82475b41e7d538db1d648be708926e9e3bab17b81f5e174",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_exited_reader_unordered_by_bar_warp_sync",
+          "line": 122,
+          "function_region_sha256": "00ee65908ba3b0807c7b4a663404a0d74c5fa0e1cdbb8ab27c598c5c88dfa220",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "An exited reader cannot lend its read frontier to a later survivor write.",
+      "native_scope": "Completed ordinary4-byte reader, whole-waveEND and survivor write; missing explicit publication gives typed Shared ReadWrite.",
+      "target_contract_residual": "Native END ends a whole wave. PTX individually exited lanes and warp member masks remain a separate mechanism.",
+      "native_evidence": [
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "ended_reader_cannot_publish_its_read_to_a_surviving_wave_write",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        }
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/exited_writer_unordered_by_bar_warp_sync.ptx",
+      "upstream_sha256": "4a14e2d8d1d1aca8332e1be626164397906f4725fdfc2896bc690afb3adf02a4",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_exited_writer_unordered_by_bar_warp_sync",
+          "line": 107,
+          "function_region_sha256": "b8ceabe4fa80763cd2a0beed486598a1b90f11d4911e2f804879709de5074955",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "An exited lane writer of word42 is unordered with survivor read under PTX warp synchronization.",
+      "native_scope": "Explicit publication before END preserves exactly word42; completed END-only writer has typed Shared WriteRead.",
+      "target_contract_residual": "Native whole-waveEND versus PTX per-lane exit; the separate automatic-drop source still keeps implicit-drop publication Unknown.",
+      "native_evidence": [
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_portable_graph_tests.rs",
+          "function": "completed_lds_then_exit_without_arrival_keeps_only_publication_inconclusive",
+          "source_sha256": "a7cdbe0c1fe3af85c6c200c74a561214a896f21a970f1954ea53bbdb9c523b3d"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "ended_writer_marker_requires_explicit_publication_before_exit",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        }
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/execution_error/mbarrier_init_write_races_plain_store_load.ptx",
+      "upstream_sha256": "4d6d240981a477ff0b2aa4cfbb6a39ce8f534e40af04a23e4300da6715e13b47",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/memory_conflict_tests.rs",
+          "function": "test_mbarrier_init_write_races_plain_store_load",
+          "line": 559,
+          "function_region_sha256": "a51e7225142c787c0304e43a037a39ef5bb3feff2e47ab237b9dfe9b1e49d8cc",
+          "source_sha256": "0c737ac5f40bcbbe7124c2f3307ac4d5dcd53053a4e15099b6c8a63e0330a79a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "An8-byte backing-object initialization cannot race another actor plain8-byte store/load and certify its value.",
+      "native_scope": "Actual ordinary8-byte metadata initialization and scratch store/load, complete raw64-bit42 output as[42,0]; unordered pair gives typed Shared WriteWrite.",
+      "target_contract_residual": "Native allocated named resources do not alias an ordinary8-byte memory-backed PTX mbarrier. The portable overlapping metadata memory obligation is checked separately.",
+      "native_evidence": [
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "ordinary_eight_byte_metadata_initialization_cannot_race_scratch_store_load",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        }
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/bar_arrive_register_id_count_mismatch.ptx",
+      "upstream_sha256": "f7f001c17f91d9b005a09c36861e5cb6d4365b8adb8edc517b9663e521f853f9",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_bar_arrive_register_id_count_mismatch",
+          "line": 239,
+          "function_region_sha256": "ae676d3a2730444f997b5e20aec329286ea3e1dcff8a06b2c4836b6c1c6ca8d7",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "Same PTX object sees conflicting64/32 counts across wait/arrive.",
+      "native_scope": "Actual public M0 signal-time update: same incarnation phase0 count2 then phase1 count1 preserves exactly[7,7]; zero/NULL, all127 arrivals, stable expected3/arrived2 deadlock in both actual wave orders, and below-arrived typed-invalid controls are separate.",
+      "target_contract_residual": "PTX thread counts64/32 map separately to native wave-arrival counts2/1. Exact count2-to-count1 after one arrival is retained as an actual Unsupported/Unknown boundary: pinned public formal and code-sequence rules disagree at equality. Supporting count3 deadlock is not substituted for that instruction.",
+      "native_evidence": [
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
+          "function": "distinct_named_objects_keep_independent_counts_across_phases",
+          "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "native_count_changes_require_a_released_ordered_new_initialization_lifetime",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "actual_signal_updates_change_count_between_phases_without_reinitialization",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "an_actual_count_update_cannot_release_two_arrivals_when_it_requires_three",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "a_decrease_below_existing_arrivals_has_a_typed_protocol_violation",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "equal_to_arrived_boundary_remains_explicitly_inconclusive",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "conflicting_count_updates_need_order_but_equal_updates_are_commutative",
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "equal_explicit_count_updates_still_require_order_against_other_wave_drops",
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
+        }
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_changes_between_phases.ptx",
+      "upstream_sha256": "2de9110a2941b27da9c2e9c5c76a6f319a897bc253314be3d1403c829ad5dd81",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_bar_sync_register_id_count_changes_between_phases",
+          "line": 250,
+          "function_region_sha256": "a8aa8b696e00d07357fc69056a8399e489e1302d3dee5e32328a09c9212dc161",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "PTX allows a new phase count, but the baseline tool rejects its unsupported count change.",
+      "native_scope": "Actual public M0 signal-time update: same incarnation phase0 count2 then phase1 count1 preserves exactly[7,7]; zero/NULL, all127 arrivals, stable expected3/arrived2 deadlock in both actual wave orders, and below-arrived typed-invalid controls are separate.",
+      "target_contract_residual": "Native signal-time counts update within one initialization lifetime and successive phases. PTX first-arrival-pinned tool behavior and thread-count granularity differ; the actual native phase-change positive preserves both word7 outputs.",
+      "native_evidence": [
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
+          "function": "distinct_named_objects_keep_independent_counts_across_phases",
+          "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "native_count_changes_require_a_released_ordered_new_initialization_lifetime",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "actual_signal_updates_change_count_between_phases_without_reinitialization",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "an_actual_count_update_cannot_release_two_arrivals_when_it_requires_three",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "a_decrease_below_existing_arrivals_has_a_typed_protocol_violation",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "equal_to_arrived_boundary_remains_explicitly_inconclusive",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "conflicting_count_updates_need_order_but_equal_updates_are_commutative",
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "equal_explicit_count_updates_still_require_order_against_other_wave_drops",
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
+        }
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/bar_sync_register_id_count_mismatch.ptx",
+      "upstream_sha256": "5d3e556415aa56d7eae93e382cf0a0753111b8ef518ff8c4d13c2a85896f0dbd",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_bar_sync_register_id_count_mismatch",
+          "line": 228,
+          "function_region_sha256": "3e4a1fe0c75671ed0b2df15da792a672ec746b9f8a81094217422ec572787885",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "Conflicting32/64 counts cannot certify Shared word7 transfer.",
+      "native_scope": "Actual public M0 signal-time update: same incarnation phase0 count2 then phase1 count1 preserves exactly[7,7]; zero/NULL, all127 arrivals, stable expected3/arrived2 deadlock in both actual wave orders, and below-arrived typed-invalid controls are separate.",
+      "target_contract_residual": "PTX thread counts64/32 map separately to native wave-arrival counts2/1. Exact count2-to-count1 after one arrival is retained as an actual Unsupported/Unknown boundary: pinned public formal and code-sequence rules disagree at equality. Supporting count3 deadlock is not substituted for that instruction.",
+      "native_evidence": [
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
+          "function": "distinct_named_objects_keep_independent_counts_across_phases",
+          "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "native_count_changes_require_a_released_ordered_new_initialization_lifetime",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "actual_signal_updates_change_count_between_phases_without_reinitialization",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "an_actual_count_update_cannot_release_two_arrivals_when_it_requires_three",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "a_decrease_below_existing_arrivals_has_a_typed_protocol_violation",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_signal_count_tests.rs",
+          "function": "equal_to_arrived_boundary_remains_explicitly_inconclusive",
+          "source_sha256": "16f277399d9c3af97df5cdeb384524ecd3821b4171c97dcab32fb414c45053fc"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "conflicting_count_updates_need_order_but_equal_updates_are_commutative",
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "equal_explicit_count_updates_still_require_order_against_other_wave_drops",
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
+        }
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_init_unordered_with_other_threads_arrive.ptx",
+      "upstream_sha256": "e0f4f0f6866f9a5354efa760fe2246661c982c1a05396a1247f302a622f6ed7a",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/mbarrier_epoch_tests.rs",
+          "function": "test_mbarrier_arrival_unordered_after_the_init",
+          "line": 76,
+          "function_region_sha256": "a3ad2d15778c21c92224eeb310035fc4b01b90533247f926aa88046d8e4045f2",
+          "source_sha256": "8f61f30334cfeb44d410bb1db2a48e5b9ba1d15d4b1f3014e8645686b6c2323a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "Initialization must precede other actor arrival; candidate order alone cannot certify word42.",
+      "native_scope": "Allocated native init and exact index1 marker42 positive; removing only initialization rendezvous retains complete candidate42 but produces typed AmdBarrierViolation.",
+      "target_contract_residual": "The native allocated resource does not inherit PTX mbarrier transaction-byte credits or its backing-memory representation.",
+      "native_evidence": [
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "named_initialization_without_crosswave_execution_order_is_a_typed_violation",
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "named_reinitialization_cannot_erase_an_earlier_phase_violation",
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "allocated_object_initialization_precedes_every_other_wave_use",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        }
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_pre_init_wait_unseparated_from_the_first_arrival.ptx",
+      "upstream_sha256": "9a4a26d24808b85f0912734de5d103122481bbc5c87aa45c4b09fc8006b5bb4e",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/mbarrier_epoch_tests.rs",
+          "function": "test_mbarrier_pre_init_wait_unseparated_from_the_first_arrival",
+          "line": 29,
+          "function_region_sha256": "0eb49c5a3dc1f1672c6841c89f1f92fd932e2d37f8c40d2d9df38daee5e99540",
+          "source_sha256": "8f61f30334cfeb44d410bb1db2a48e5b9ba1d15d4b1f3014e8645686b6c2323a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "Candidate pre-init waits must not accept a protocol whose alternate schedule binds the next phase and deadlocks.",
+      "native_scope": "Actual allocated new-objectWAIT blocks all64 workitems at phase0/expected1/arrived0. Existing first-free ordinary buffer source retains the subsequent consumer release handshake.",
+      "target_contract_residual": "Native allocated namedWAIT has no PTX odd-parity immediately-preceding pre-init generation. An initially free ordinary buffer is modeled as ordinary resource state, not a fabricated completed native generation.",
+      "native_evidence": [
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
+          "function": "producer_starts_with_a_free_buffer_then_observes_the_actual_consumer_release",
+          "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_named_barrier_tests.rs",
+          "function": "unbound_null_wait_preserves_the_honest_hardware_state_limit",
+          "source_sha256": "020c5e945847246fa8bba6f49c849926991053df11bed1eea6564c6dbb047081"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "a_new_named_object_has_no_implicitly_completed_preinitialization_phase",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_named_lifecycle_tests.rs",
+          "function": "initially_free_buffer_does_not_remove_the_later_consumer_handshake",
+          "source_sha256": "5892dfd082201fa53c5c43c3465b78420fc863cbdb46deb9410206fec7e03150"
+        }
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/mbarrier_reinit_of_live_object_races_arrive.ptx",
+      "upstream_sha256": "7adff842ff6a734ca2bbe91914c35434bbc56203b378d8e3d27b4c5087a554a7",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/mbarrier_epoch_tests.rs",
+          "function": "test_mbarrier_arrival_unordered_after_the_init",
+          "line": 76,
+          "function_region_sha256": "a3ad2d15778c21c92224eeb310035fc4b01b90533247f926aa88046d8e4045f2",
+          "source_sha256": "8f61f30334cfeb44d410bb1db2a48e5b9ba1d15d4b1f3014e8645686b6c2323a"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "Unordered reinitialization must not discard another actor arrival or certify word42.",
+      "native_scope": "Actual old lifetime release followed by reinitialization preserves complete[7,7]; removing only the cross-wave lifetime publication creates a typed reinitialization-order violation despite no live candidate joins. Separate live-join reinit remains Unsupported.",
+      "target_contract_residual": "Native allocated object resources differ from memory-backed PTX mbarriers; typed ordering controls retain the reset-vs-other-wave-use hazard without asserting general live-join reinit support.",
+      "native_evidence": [
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "named_initialization_without_crosswave_execution_order_is_a_typed_violation",
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx1250_tests.rs",
+          "function": "named_reinitialization_cannot_erase_an_earlier_phase_violation",
+          "source_sha256": "46f8ebbfaa7c8c711192de03786c9d81be6a6159de26130c5a3dca6c6f6b5207"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "reinitializing_an_object_with_live_joins_stays_explicitly_unsupported",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        },
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "native_count_changes_require_a_released_ordered_new_initialization_lifetime",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        }
+      ]
+    },
+    {
+      "path": "crates/volta_pipeline/tests/ptx/failing/shfl_from_exited_lane_is_undefined.ptx",
+      "upstream_sha256": "5e715658f2ef5742b32f69a6e6a62fbcb8b759773ae92d5f7197b6480e31e68a",
+      "baseline_assertions": [
+        {
+          "path": "crates/volta_pipeline/tests/rejected_tests.rs",
+          "function": "test_shfl_from_exited_lane_is_undefined",
+          "line": 1266,
+          "function_region_sha256": "909887cadc4ab7aa7b3180872adb53f7e7301e783b07ac122a7643826bdbe4d6",
+          "source_sha256": "7857535862697c79ced5944a255f2fc103870f65cf6681d095876ef9d3746197"
+        }
+      ],
+      "baseline_golden": null,
+      "portable_obligation": "A shuffle result sourced from an exited lane must stay undefined and never prove output values.",
+      "native_scope": "Complete original16 output projection out[i]=input[i+8]; actual ds_bpermute uninitialized VGPR20 at wave0/lane16 aborts and supplies no outputs.",
+      "target_contract_residual": "Native END ends waves, not individual lanes. The source intentionally leaves actual lane-source register data uninitialized; it does not substitute inactive but initialized data.",
+      "native_evidence": [
+        {
+          "path": "crates/volta_pipeline/tests/gfx1250_protocol_lifetime_tests.rs",
+          "function": "uninitialized_source_lane_does_not_become_a_defined_shuffle_output",
+          "source_sha256": "c1c8260e3627ba61818ef538f8249a3c173212ed51feffebb3b2e7cf5c69d1ee"
+        }
+      ]
+    }
+  ],
+  "public_execution_semantics": {
+    "url": "https://raw.githubusercontent.com/ROCm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/docs/AMDGPUExecutionSynchronization.md",
+    "sha256": "314e8fc411687dc2d5ebbb99afe0efdd8496eb469af4b401a24e4b40703456a9",
+    "rule": "Barrier modification order starts with initialization; use of an uninitialized object is undefined. Missing cross-wave execution order admits an invalid schedule."
+  }
+}

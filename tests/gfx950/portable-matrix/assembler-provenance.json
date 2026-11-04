@@ -1,0 +1,331 @@
+{
+  "host": "mi350-2",
+  "directory": "/tmp/ptx-verifier-portable-matrix-JKRsgo",
+  "cases": [
+    {
+      "source": "e4m3_concrete_pair.s",
+      "source_sha256": "f5ed55a4c8b2128cafe86dd52c0bf1d30c73d54390e1a8255af7e9c17fb3e40a",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/e4m3_concrete_pair.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/e4m3_concrete_pair.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "5701605860c23e4eaed7b02bbaeffd6f939929006c203b5fb0e86f9d9502e9f3"
+    },
+    {
+      "source": "e4m3_concrete_pair_relu.s",
+      "source_sha256": "0ab9c5d1719f9c8c4aa390da1f9e0fb314eb1bb6e140d6bdb8a34c2ecd06b348",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/e4m3_concrete_pair_relu.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/e4m3_concrete_pair_relu.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "e2028f20bdf7cfe8d442eef93ddf3491481ab75a6470f4c9dac6ce597bee1293"
+    },
+    {
+      "source": "e4m3_selected_low_halves.s",
+      "source_sha256": "54686d6e45b7fb8c22e0eb9298eecf74cbbb101c117ec4099be1948cc04ecd2d",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/e4m3_selected_low_halves.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/e4m3_selected_low_halves.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "23cbb0c8330dbca1af2c737810d8ed833592fc7e334a9a38749ea43dd2cdf43d"
+    },
+    {
+      "source": "e4m3_vector_bytes.s",
+      "source_sha256": "c6a4db7de09d6802b5be6bac2a02231ee3aae618fa4911857d2e9f61a461dc93",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/e4m3_vector_bytes.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/e4m3_vector_bytes.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "6f17a7717bf67e990fa1b34f064bcf4d85b4db31e0177a851dc73e888a0782c1"
+    },
+    {
+      "source": "e4m3_zero_extended_byte.s",
+      "source_sha256": "644ede9a366b54bfe777bd7ebc96c2312c67c62f606e1f3c7ef35d9a252d6842",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/e4m3_zero_extended_byte.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/e4m3_zero_extended_byte.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "28075dece9b65153b9bc945fa16969ecca48460dbef14d002a1157c80db68f4d"
+    },
+    {
+      "source": "ldmatrix_four_fragment_pairs.s",
+      "source_sha256": "06dd86dbd2eeb82f14f4259a4c6e1c3e1805c935de014c0e30c044a90fde6229",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/ldmatrix_four_fragment_pairs.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/ldmatrix_four_fragment_pairs.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "b2e2332e0033bfd95769bceb6a360b4ab7dc7cec11f45cb572f44085b514bb91"
+    },
+    {
+      "source": "ldmatrix_transpose_8x8.s",
+      "source_sha256": "a0434ac191ae2f14f6a2712fd3a383310094c4a1702fa8e301a55ce76d1b03c6",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/ldmatrix_transpose_8x8.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/ldmatrix_transpose_8x8.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "8280e8b7216b347995d007133905af4e8a947065091c3b62f0d0faf47cc57700"
+    },
+    {
+      "source": "mma_immediate_accumulator_identity.s",
+      "source_sha256": "f828fc62f3f8877d1f983d4ed29879e01703322bb36c19eb95fb965878902079",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/mma_immediate_accumulator_identity.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/mma_immediate_accumulator_identity.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "3db9678597ca234cbcd3cb6fdd6d79b065adaf83ded66a88cd1e4e3ac402b77c"
+    },
+    {
+      "source": "mma_raw_accumulator_identity.s",
+      "source_sha256": "72b0e958e03c436fb590b38f6bce5709ca99d6c37b71f2e0c0f63b98dbba81ab",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/mma_raw_accumulator_identity.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/mma_raw_accumulator_identity.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "07cb9940b240d0392a4756321370e3926beb3afd246cd46bc24d3b085168b036"
+    },
+    {
+      "source": "stmatrix_lane_word_placement.s",
+      "source_sha256": "46cc2b36740f7f6e47e36738e6faa33b194066ce429d76a7f649a25b579b7567",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/stmatrix_lane_word_placement.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/stmatrix_lane_word_placement.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "237750a9a29def6d8fdff94a7075016d5e4fd0f450c880c10ec1784a8b34683e"
+    },
+    {
+      "source": "tcgen_mixed_fp8_numeric408.s",
+      "source_sha256": "408a873c0fd9a8ad73a2d6e4e0c9bd169a120d816d36f9d9c0c16f5761b13289",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/tcgen_mixed_fp8_numeric408.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/tcgen_mixed_fp8_numeric408.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "013b3ebf91be3217a3c85400800c3eab42c309c53bcb1aae66e1602d0a978ed4"
+    },
+    {
+      "source": "tcgen_mixed_fp8_wrong_b_format.s",
+      "source_sha256": "4496d4230969581b136e56f5a9c17c261d176f6e52b9b8e460317e2feb5ca682",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/tcgen_mixed_fp8_wrong_b_format.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/tcgen_mixed_fp8_wrong_b_format.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "54c7ce9c69f3390c70fe5ff5b0969a955a689ac55c04989575a747e10c01f5e1"
+    },
+    {
+      "source": "tcgen_no_swizzle_128x8.s",
+      "source_sha256": "201efd2ef257add9e662e12459cc29df991a7c46b7cdb2fbced3406d5fe0a317",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/tcgen_no_swizzle_128x8.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/tcgen_no_swizzle_128x8.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "e54c9e049ba03b11ef52c1b5b46afe603053073247a222218044e0f96ae39dfd"
+    },
+    {
+      "source": "tcgen_numeric136.s",
+      "source_sha256": "5357f8ca74a89eebdccd1a0758c68a49410a555fae73d17c5a70a22005ba58c3",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/tcgen_numeric136.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/tcgen_numeric136.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "d0bc3116fc9f3d8a522627eac05a0ec5868cb1a3c859de302432ee79622ec6ed"
+    },
+    {
+      "source": "tcgen_raw_operands_accumulator17.s",
+      "source_sha256": "2bafd87f08be34f2ba0b8bb456d5220140ac4f49e5a58ce0ee35fe08452cefa7",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/tcgen_raw_operands_accumulator17.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/tcgen_raw_operands_accumulator17.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "fb4ab83cdde0782c938d9188bdedb3ca57b9b62caab67891749c48347fc0dc38"
+    },
+    {
+      "source": "tcgen_shape128x256_lds_bounds.s",
+      "source_sha256": "8ad9703459759bf9b24904dad2fe3823ac26052767434edbac9a3e2fa3169825",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/tcgen_shape128x256_lds_bounds.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/tcgen_shape128x256_lds_bounds.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "7d70d9d7b2a530c402575abd5621fdbf8f1582f023fcb2298c5ef795110d656c"
+    },
+    {
+      "source": "wmma_fragment_contiguous.s",
+      "source_sha256": "4802c3bca21e577497b5a64928697a3c0f9b359917da61759c1a7e122fdd5bc1",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/wmma_fragment_contiguous.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/wmma_fragment_contiguous.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "2f066d363b988ec2f2c8de7d83593c9f76f7d2e4fd92eb97b63386c082bc697c"
+    },
+    {
+      "source": "wmma_fragment_stride48.s",
+      "source_sha256": "f9df8e860782edcffa03c6059fbae16c79168afde807473b119e30e06f9fb325",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/wmma_fragment_stride48.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/wmma_fragment_stride48.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "841140332a23598789249bc983093f7df432cfd1a50db2132044de1972f909d0"
+    },
+    {
+      "source": "wmma_fragment_stride64.s",
+      "source_sha256": "105de139eb17745bb91f8b6730af3a91bdb1dd5ddc5723a9816064ef694e66e5",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/wmma_fragment_stride64.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/wmma_fragment_stride64.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "46701ab8e2015e7f9e0de7d5f75efc24c9d320426913fbe8c36a0283a71817bb"
+    },
+    {
+      "source": "wmma_store_tile_ones.s",
+      "source_sha256": "8487ea3b2c3a0803c157cea9f54e9f06695acbc032751dbdd854717129f0d457",
+      "command": [
+        "/opt/rocm/llvm/bin/llvm-mc",
+        "-triple=amdgcn-amd-amdhsa",
+        "-mcpu=gfx950",
+        "-filetype=obj",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/wmma_store_tile_ones.s",
+        "-o",
+        "/tmp/ptx-verifier-portable-matrix-JKRsgo/wmma_store_tile_ones.o"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "object_sha256": "9015cc0ffb9437e313734a51fb8616061e8b9dabbc114ff439a477ef3d160138"
+    }
+  ],
+  "schema": 1,
+  "assembler_binary": "/opt/rocm/llvm/bin/llvm-mc",
+  "assembler_sha256": "e95688e5b40bb13fe0d74ba6a45d180ced24aac768c101c94760b8f7dfa52f70",
+  "compiler_source_commit": "9b0f9aa3067a907226b0ebb8bee1fe51d1f0fca5",
+  "note": "Exact checked-in assembly with256byte kernel entry alignment. Native instructions unchanged. Assembler evidence does not itself claim physical hardware execution."
+}
