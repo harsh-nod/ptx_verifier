@@ -7,8 +7,8 @@ use volta_amd_analysis::OutputType::{F32, U32};
 use volta_amd_analysis::frontend::ast::{Kernel, Operand};
 use volta_amd_analysis::frontend::parse::parse_kernel;
 use volta_amd_analysis::{
-    AnalysisError, AnalysisResult, ArrayKind, EvalError, LowerError, Terminal, WorkgroupLaunch,
-    analyze,
+    AnalysisError, AnalysisResult, ArrayKind, EvalError, InstrId, LdsLaneAccess, LdsRace,
+    LowerError, Terminal, WaveId, WorkgroupLaunch, analyze,
 };
 
 #[test]
@@ -109,6 +109,20 @@ fn the_float_ops_kernel_writes_its_expected_outputs() {
             array("a", 0x10000, ArrayKind::Input),
             array("b", 0x20000, ArrayKind::Input),
             array_of("out", 0x30000, 64 * FLOAT_OPS_ROW, ArrayKind::Output(F32)),
+        ],
+    );
+}
+
+// Test that each f32 comparison keeps its symbolic predicate per lane in an SGPR mask,
+// so a select on that mask reads as `(a op b) ? b : a`.
+#[test]
+fn the_compare_ops_kernel_writes_its_expected_outputs() {
+    common::check_run(
+        "compare_ops",
+        &[
+            array("a", 0x10000, ArrayKind::Input),
+            array("b", 0x20000, ArrayKind::Input),
+            array_of("out", 0x30000, 64 * 12, ArrayKind::Output(F32)),
         ],
     );
 }
@@ -775,4 +789,30 @@ mod lds_completion {
         let body = "ds_bpermute_b32 v4, v2, v1\nds_write_b32 v2, v1\ns_waitcnt lgkmcnt(1)\nglobal_store_dword v2, v4, s[6:7]";
         assert_outputs(run(&single_wave(body), "k", 64), 64, 0);
     }
+}
+
+// Test that lanes 0 and 32 writing word 0 in one ds_write_b32 (instruction 7) is rejected.
+#[test]
+fn two_lds_writes_in_the_same_wave_are_rejected() {
+    let arrays = [
+        array("input", 0x10000, ArrayKind::Input),
+        array("output", 0x20000, ArrayKind::Output(F32)),
+    ];
+    let ds_write_lane = |lane| LdsLaneAccess {
+        wave: WaveId(0),
+        lane,
+        pc: InstrId(7),
+    };
+    let expected = Terminal::Aborted {
+        wave: WaveId(0),
+        pc: InstrId(7),
+        error: EvalError::LdsRace(LdsRace {
+            address: 0,
+            earlier: ds_write_lane(0),
+            later: ds_write_lane(32),
+        }),
+    };
+    common::check_rejected_kernel("lds_race", "write_write_race", &arrays, |result| {
+        result.as_ref().is_ok_and(|run| run.terminal == expected)
+    });
 }
