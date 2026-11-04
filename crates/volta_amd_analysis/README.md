@@ -62,9 +62,12 @@ the mask already occupies gfx950's one scalar-bus source, so scalar data sources
 are rejected. The e64 select also supports a single-VGPR floating-point NEG
 modifier: concrete words keep their bits with the sign bit flipped, while symbolic
 reals are negated. Other instruction forms do not inherit this modifier.
-`v_pk_add_f32` supports aligned VGPR source/destination pairs and a broadcast
-inline constant with default `op_sel:[0,0]` and explicit `op_sel_hi:[1,0]`;
-other selector and modifier profiles are rejected. VOP3 lowering also validates
+`v_pk_add_f32` supports aligned VGPR source/destination pairs and inline constants
+in either source. The low result uses each source's first word; explicit
+`op_sel_hi` selects each high-result word independently. The supported inline
+profile uses its low-word selector and broadcasts to both results. Other modifiers
+are rejected. Both results are read and validated before either destination is
+written, including when a source aliases the destination. VOP3 lowering validates
 the supported inline-float payloads supplied through the public AST. Operand
 groups must have balanced brackets; labels cannot absorb bracketed whitespace.
 

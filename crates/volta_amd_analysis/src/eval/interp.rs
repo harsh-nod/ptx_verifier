@@ -27,49 +27,128 @@ mod packed_tests {
     use crate::frontend::parse::parse_kernel;
     use crate::lower::lower_kernel;
 
-    #[test]
-    fn packed_add_broadcasts_to_asymmetric_halves_with_and_without_aliasing() {
-        for destination in ["v[2:3]", "v[4:5]"] {
-            let source = format!(
-                ".amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n\
-                 test:\n\
-                 v_mov_b32_e32 v2, 2.0\n\
-                 v_mov_b32_e32 v3, 0x40a00000\n\
-                 v_pk_add_f32 {destination}, v[2:3], 1.0 op_sel_hi:[1,0]\n\
-                 s_endpgm\n.Lfunc_end0:\n\
-                 .amdhsa_kernel test\n\
-                 .amdhsa_user_sgpr_count 0\n\
-                 .amdhsa_user_sgpr_kernarg_segment_ptr 0\n\
-                 .amdhsa_system_sgpr_workgroup_id_x 0\n\
-                 .amdhsa_system_sgpr_workgroup_id_y 0\n\
-                 .amdhsa_system_sgpr_workgroup_id_z 0\n\
-                 .amdhsa_system_vgpr_workitem_id 0\n\
-                 .amdhsa_group_segment_fixed_size 0\n\
-                 .end_amdhsa_kernel\n"
-            );
-            let kernel = lower_kernel(&parse_kernel(&source, "test").unwrap()).unwrap();
-            let launch = WorkgroupLaunch {
-                kernarg_address: 0,
-                workgroup_size: (64, 1, 1),
-            };
-            let mut interp = Interpreter::new(&kernel, &launch, &[], &[]).unwrap();
-            assert_eq!(interp.run(&kernel), Terminal::Completed);
-            let first = if destination == "v[2:3]" { 2 } else { 4 };
-            let expected = [3.0, 6.0];
-            for lane in 0..64 {
-                for (i, expected) in expected.iter().enumerate() {
-                    let actual = interp.waves[WaveId(0)]
-                        .registers
-                        .read_f32(&mut interp.arena, lane, Vgpr(first + i as u8))
-                        .unwrap();
-                    assert_eq!(
-                        interp.arena.as_f64(actual),
-                        Some(*expected),
-                        "{destination}, lane{lane}, half{i}"
-                    );
-                }
+    fn packed_kernel(instruction: &str) -> LoweredKernel {
+        let source = format!(
+            ".amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n\
+             test:\n\
+             v_mov_b32_e32 v2, 2.0\n\
+             v_mov_b32_e32 v3, 0x40a00000\n\
+             v_mov_b32_e32 v4, 0x41000000\n\
+             v_mov_b32_e32 v5, 0x41500000\n\
+             {instruction}\n\
+             s_endpgm\n.Lfunc_end0:\n\
+             .amdhsa_kernel test\n\
+             .amdhsa_user_sgpr_count 0\n\
+             .amdhsa_user_sgpr_kernarg_segment_ptr 0\n\
+             .amdhsa_system_sgpr_workgroup_id_x 0\n\
+             .amdhsa_system_sgpr_workgroup_id_y 0\n\
+             .amdhsa_system_sgpr_workgroup_id_z 0\n\
+             .amdhsa_system_vgpr_workitem_id 0\n\
+             .amdhsa_group_segment_fixed_size 0\n\
+             .end_amdhsa_kernel\n"
+        );
+        lower_kernel(&parse_kernel(&source, "test").unwrap()).unwrap()
+    }
+
+    fn launch() -> WorkgroupLaunch {
+        WorkgroupLaunch {
+            kernarg_address: 0,
+            workgroup_size: (64, 1, 1),
+        }
+    }
+
+    fn check_packed(instruction: &str, first: u8, expected: [f64; 2]) {
+        let kernel = packed_kernel(instruction);
+        let mut interp = Interpreter::new(&kernel, &launch(), &[], &[]).unwrap();
+        assert_eq!(interp.run(&kernel), Terminal::Completed);
+        for lane in 0..64 {
+            for (i, expected) in expected.iter().enumerate() {
+                let actual = interp.waves[WaveId(0)]
+                    .registers
+                    .read_f32(&mut interp.arena, lane, Vgpr(first + i as u8))
+                    .unwrap();
+                assert_eq!(
+                    interp.arena.as_f64(actual),
+                    Some(*expected),
+                    "{instruction}, lane{lane}, half{i}"
+                );
             }
         }
+    }
+
+    #[test]
+    fn packed_add_broadcasts_to_asymmetric_halves_with_and_without_aliasing() {
+        for first in [2, 4] {
+            check_packed(
+                &format!(
+                    "v_pk_add_f32 v[{first}:{}], v[2:3], 1.0 op_sel_hi:[1,0]",
+                    first + 1
+                ),
+                first,
+                [3.0, 6.0],
+            );
+        }
+    }
+
+    #[test]
+    fn packed_add_resolves_each_high_selector_before_writing_an_aliased_source() {
+        for (selectors, expected) in [
+            ("0,0", [10.0, 10.0]),
+            ("0,1", [10.0, 15.0]),
+            ("1,0", [10.0, 13.0]),
+            ("1,1", [10.0, 18.0]),
+        ] {
+            for first in [2, 4, 6] {
+                check_packed(
+                    &format!(
+                        "v_pk_add_f32 v[{first}:{}], v[2:3], v[4:5] op_sel_hi:[{selectors}]",
+                        first + 1
+                    ),
+                    first,
+                    expected,
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn packed_add_broadcasts_an_inline_first_source_with_independent_selectors() {
+        for (selectors, expected) in [("0,0", [3.0, 3.0]), ("0,1", [3.0, 6.0])] {
+            check_packed(
+                &format!("v_pk_add_f32 v[2:3], 1.0, v[2:3] op_sel_hi:[{selectors}]"),
+                2,
+                expected,
+            );
+        }
+    }
+
+    #[test]
+    fn packed_add_preserves_the_low_destination_when_the_high_half_is_pending() {
+        let kernel = packed_kernel("v_pk_add_f32 v[6:7], v[2:3], v[4:5] op_sel_hi:[1,1]");
+        let mut interp = Interpreter::new(&kernel, &launch(), &[], &[]).unwrap();
+        let original = interp.arena.int(0x3f80_0000);
+        let registers = &mut interp.waves[WaveId(0)].registers;
+        registers.write_vgpr(0, Vgpr(6), original).unwrap();
+        registers
+            .start_vector_load(0, &[Vgpr(7)], &[original], LoadCounter::Vm)
+            .unwrap();
+        assert!(matches!(
+            interp.run(&kernel),
+            Terminal::Aborted {
+                error: EvalError::PendingVgpr {
+                    lane: 0,
+                    reg: Vgpr(7)
+                },
+                ..
+            }
+        ));
+        assert_eq!(
+            interp.waves[WaveId(0)]
+                .registers
+                .read_vgpr(0, Vgpr(6))
+                .unwrap(),
+            original
+        );
     }
 }
 
@@ -388,13 +467,14 @@ impl<'a> Interpreter<'a> {
                     evaluate_cndmask_e64(&mut self.arena, registers, lane, *src0, *src1, *mask)?;
                 registers.write_vgpr(lane, *dst, result)
             }
-            LoweredInstr::PackedAddF32 { dst, src, rhs } => {
-                let rhs = registers.read_f32_src(&mut self.arena, lane, Vop3Src::Inline(*rhs))?;
-                let a = registers.read_f32(&mut self.arena, lane, src[0])?;
-                let b = registers.read_f32(&mut self.arena, lane, src[1])?;
-                let a = self.arena.add(a, rhs);
-                let b = self.arena.add(b, rhs);
-                registers.write_vgpr_pair(lane, *dst, [a, b])
+            LoweredInstr::PackedAddF32 { dst, src0, src1 } => {
+                let a = registers.read_f32_src(&mut self.arena, lane, src0[0])?;
+                let b = registers.read_f32_src(&mut self.arena, lane, src1[0])?;
+                let low = self.arena.add(a, b);
+                let a = registers.read_f32_src(&mut self.arena, lane, src0[1])?;
+                let b = registers.read_f32_src(&mut self.arena, lane, src1[1])?;
+                let high = self.arena.add(a, b);
+                registers.write_vgpr_pair(lane, *dst, [low, high])
             }
             LoweredInstr::AccvgprWrite32 { dst, src } => {
                 let value = registers.read_vgpr(lane, *src)?;
