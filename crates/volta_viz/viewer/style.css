@@ -2519,3 +2519,5 @@ button.src-line:hover .ln {
     min-height: 50vh;
   }
 }
+
+.display-note { color: var(--text-2); font-size: 12px; line-height: 1.5; padding-top: 9px; max-width: 100ch; }

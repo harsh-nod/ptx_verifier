@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "scope": "Independent read-only review of current root/corpus README claims against frozen memory-study evidence and new complete 336-case vector projection. No measurement, verifier or compiler execution.",
+  "result": "pass",
+  "checks": 4705,
+  "errors": [],
+  "reviewer_script_sha256": "370e06bba19cc1f6bb232a3b67600c7b77da280e803d0a254d30a16f8a9c5bdd",
+  "documents_sha256": {
+    "README.md": "3637594f1800942f80b4c5589cbed9c5bd0a1144449d0372047e7dee583645ef",
+    "external/hipkittens/corpus/README.md": "5972349539b0a96355270d120a9c6fe0fd8780557fd304d56460899516ec3ffa"
+  },
+  "data_sha256": {
+    "external/hipkittens/corpus/vector-comparison-20261031.json": "3be6f6a19065e50afc43e9a376a260486378d6f630bd67dc2522f7ba38126acd",
+    "external/hipkittens/corpus/vector-independent-audit-20261031.json": "bd8d5a15f5d41fa4205232d5406eb9f02583de37cb8c4641cd794048496817d5",
+    "external/hipkittens/corpus/vector-publication-audit-20261031.json": "d22f5b9c16035c1a37e8dc01db1ff319f4cb0414414511bc62aca51dc1986904",
+    "external/hipkittens/corpus/buffer-comparison.json": "08e75baf2be61eb29ef7d6f089ca3a102818bedc00166d8843ee0ed0f100f841"
+  },
+  "frozen_memory_artifacts_sha256": {
+    "tests/amdgpu/memory-conflicts-study/results/README.md": "70ca68ca4df3c7eb7af4a67bd4e9a0bc25fa35eaa56aa1d25034652dd27c7f92",
+    "tests/amdgpu/memory-conflicts-study/results/baseline-20261031.json": "9c44a6ea1b3647bc4441b1de084ab9c91e65d4c3d43f586d7886a82e636bddae",
+    "tests/amdgpu/memory-conflicts-study/results/comparison-20261031.json": "59edc7e412bf2872bd029d3ae86146d5924d5ad1e3a2d45bb4717f77ca6d0576",
+    "tests/amdgpu/memory-conflicts-study/results/documentation-audit-20261031.json": "f68d126bf55f8287142a39e3d126e348ebed5eb36fd76ec497fb4f700a2ef7b3",
+    "tests/amdgpu/memory-conflicts-study/results/independent-audit-20261031.json": "2126d2ebc620b9b6ba24dc8983b0c8e2207a0572e870d0c4cf45fe3b920a9a35",
+    "tests/amdgpu/memory-conflicts-study/results/publication-audit-20261031.json": "21832894e3e59e7fefbefb108eb845ff9334b2b932cf93b6239474461077e819",
+    "tests/amdgpu/memory-conflicts-study/cases.json": "f61df7312961ad8540b34de6f41647df9b165e2ae068dc9a2a25672d90f83886",
+    "tests/amdgpu/memory-conflicts-study/protocol.md": "50f5eca9b551c6d2d32244499c546bae302b2807d0559d6500ceb8893186d9f2",
+    "tests/amdgpu/memory-conflicts-study/heldout-protocol.md": "316d0a72d5b0f287cbb6d5df0b1af7ee7c0b6962e39a980663f250cd88d2b7a3"
+  },
+  "validated_vector_claims": {
+    "configurations": 336,
+    "families": {
+      "copy": 252,
+      "vec-add1": 84
+    },
+    "candidate_combined_accepts": 112,
+    "retained_write_write_rejections": 224,
+    "candidate_unsupported": 0,
+    "new_combined_accepts": 24,
+    "retained_combined_accepts": 88,
+    "complete_mathematical_proofs": 336,
+    "complete_coordinates": 21120,
+    "candidate_negative_controls": [
+      {
+        "family": "copy",
+        "case": "bf16-rt16x16x4-s1-naive",
+        "elements": 16
+      },
+      {
+        "family": "copy",
+        "case": "f16-rt16x16x4-s1-naive",
+        "elements": 16
+      },
+      {
+        "family": "copy",
+        "case": "f32-rt16x16x4-s1-naive",
+        "elements": 16
+      },
+      {
+        "family": "vec-add1",
+        "case": "f32-rt16x16x4-s1-naive",
+        "elements": 16
+      }
+    ]
+  },
+  "validated_wording": {
+    "historical_readiness_label": true,
+    "safe_analysis_export_timing_separate_from_full_mathematical_controls": true,
+    "explicit_seeded_mutations": true,
+    "selected_workgroup_two_family_scope": true,
+    "no_latency_or_GPU_gain_claim": true,
+    "equal_value_WW_not_waived_or_counted_as_numerical_application_bugs": true
+  },
+  "limits": [
+    "This pass independently recomputes projected per-case counts, proof/graph gates, full coordinate totals, negative controls and documentation bindings. Detailed raw-transcript/build attribution remains bound to the two separately retained raw/publication audits.",
+    "Binary-to-source associations are caller-attested; neither this audit nor full abstract equations establish ISA completeness, hardware floating-point equivalence or whole-grid correctness.",
+    "Frozen memory-study samples/receipts were checked unchanged; no new timing or bug-detection result is inferred from vector coverage."
+  ]
+}

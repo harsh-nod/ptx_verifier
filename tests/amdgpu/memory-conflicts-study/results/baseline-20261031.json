@@ -1,0 +1,729 @@
+{
+  "schema_version": 1,
+  "phase": "baseline_functional_qualification",
+  "scope": "One source-bound functional qualification. No candidate, GPU run or latency claim. All initial outcomes and 60-second limits retained; heldouts unexecuted.",
+  "collector_revision": "42849fdce9932c398858721493e5f99a191e0386",
+  "collector_sha256": "a5810665361baf8ca4b8447fca3f73a85a3e106cb36c77a7126e52c9ea292ad2",
+  "manifest_sha256": "f61df7312961ad8540b34de6f41647df9b165e2ae068dc9a2a25672d90f83886",
+  "baseline_revision": "0e634bc43536e5e4ac5cb13e8046d8e1edd57250",
+  "baseline_binary_sha256": "48f45f3b5a36a636c88bd95d0e3499d01569e8e01ec2ec742f6405142b9d4c00",
+  "build_identity": {
+    "schema_version": 1,
+    "trust": "caller_attested",
+    "revision": "0e634bc43536e5e4ac5cb13e8046d8e1edd57250",
+    "source_clean": true,
+    "binary_sha256": "48f45f3b5a36a636c88bd95d0e3499d01569e8e01ec2ec742f6405142b9d4c00",
+    "rust_workspace_fingerprint": {
+      "algorithm": "sha256-git-tree-v1",
+      "sha256": "c0d2189873b2f01c311f935d5958c091bddcd4a1e172fdfca7cd18b6d9a36f57",
+      "file_count": 1202
+    },
+    "profile": "release",
+    "features": [],
+    "default_features": true,
+    "command": [
+      "cargo",
+      "build",
+      "--release",
+      "-p",
+      "volta_cli"
+    ],
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+    "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+    "build_record_sha256": "0cd7db1313b9a930ea616eb223d079132e6c1c7386002a8395705604674f957f"
+  },
+  "raw_report_sha256": "f139a98f1990d73b599bbd2ae4cd6d5ee81fc813a46d5dc956b6b4a840ef94b8",
+  "transcript_inventory_sha256": "1205f147a61d4749c74f5237c0c3cba3899650fd36ef370a2eb99721acc6dd6e",
+  "process_records": 100,
+  "mc_accepted": 40,
+  "development_configurations": 40,
+  "heldouts_executed": 0,
+  "safe": {
+    "configured": 18,
+    "complete_graph_and_output_footprint": 17,
+    "complete_graph_footprint_and_specification": 15,
+    "specification_timeouts": 3,
+    "analysis_timeouts": 1
+  },
+  "hazards": {
+    "configured": 22,
+    "ordinary_typed_rejections": 13,
+    "core_seed_configurations": 20,
+    "core_seed_detections": 13,
+    "synthetic_tail_configurations": 2,
+    "synthetic_tail_detections": 0,
+    "inconclusive": 3,
+    "unsupported": 5,
+    "analysis_timeouts": 1
+  },
+  "mathematical_controls": [
+    {
+      "id": "memory-gfx950-relu-wrong-spec",
+      "status": "mathematical_refutation"
+    },
+    {
+      "id": "memory-gfx1250-relu-wrong-spec",
+      "status": "mathematical_refutation"
+    }
+  ],
+  "timing_eligible": [
+    "memory-gfx950-elementwise-safe",
+    "memory-gfx950-elementwise-address-alias",
+    "memory-gfx950-reduction-safe",
+    "memory-gfx950-reduction-address-alias",
+    "memory-gfx950-normalization-safe",
+    "memory-gfx950-normalization-address-alias",
+    "memory-gfx950-gemm-safe",
+    "memory-gfx950-gemm-address-alias",
+    "memory-gfx950-attention-safe",
+    "memory-gfx950-attention-address-alias",
+    "memory-gfx950-transpose-safe",
+    "memory-gfx1250-elementwise-safe",
+    "memory-gfx1250-elementwise-address-alias",
+    "memory-gfx1250-reduction-safe",
+    "memory-gfx1250-reduction-address-alias",
+    "memory-gfx1250-normalization-safe",
+    "memory-gfx1250-normalization-address-alias",
+    "memory-gfx1250-gemm-safe",
+    "memory-gfx1250-gemm-address-alias",
+    "memory-gfx1250-attention-safe",
+    "memory-gfx1250-attention-address-alias",
+    "memory-gfx1250-transpose-safe",
+    "memory-wide-gfx1250-relu_f16-safe",
+    "memory-wide-gfx1250-rmsnorm_f16-safe",
+    "memory-wide-gfx1250-matvec_f16-safe",
+    "memory-wide-gfx1250-matvec_f16-inserted-collision",
+    "memory-wide-gfx1250-convolution_f16_original-inserted-collision",
+    "memory-wide-gfx1250-flash_attention_original-inserted-collision"
+  ],
+  "primaries": [
+    {
+      "id": "memory-wide-gfx1250-matvec_f16-inserted-collision",
+      "status": "ordinary_rejection",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-wide-gfx1250-convolution_f16_original-inserted-collision",
+      "status": "ordinary_rejection",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-wide-gfx1250-flash_attention_original-inserted-collision",
+      "status": "ordinary_rejection",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-wide-gfx1250-gemm_f16_full-inserted-collision",
+      "status": "timeout",
+      "timing_eligible": false
+    }
+  ],
+  "results": [
+    {
+      "id": "memory-gfx950-elementwise-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx950-elementwise-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx950-reduction-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx950-reduction-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx950-normalization-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx950-normalization-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx950-gemm-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx950-gemm-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx950-attention-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx950-attention-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx950-transpose-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx950-transpose-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "inconclusive",
+      "specification_status": null,
+      "timing_eligible": false
+    },
+    {
+      "id": "memory-gfx1250-elementwise-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx1250-elementwise-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx1250-reduction-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx1250-reduction-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx1250-normalization-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx1250-normalization-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx1250-gemm-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx1250-gemm-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx1250-attention-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx1250-attention-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx1250-transpose-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-gfx1250-transpose-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "inconclusive",
+      "specification_status": null,
+      "timing_eligible": false
+    },
+    {
+      "id": "memory-wide-gfx1250-relu_f16-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-wide-gfx1250-rmsnorm_f16-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-wide-gfx1250-matvec_f16-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "spec_verified",
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-wide-gfx1250-matvec_f16-inserted-collision",
+      "category": "inserted_store",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-wide-gfx1250-matvec_f16-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "inconclusive",
+      "specification_status": null,
+      "timing_eligible": false
+    },
+    {
+      "id": "memory-wide-gfx1250-convolution_f16_original-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "timeout",
+      "timing_eligible": false
+    },
+    {
+      "id": "memory-wide-gfx1250-convolution_f16_original-inserted-collision",
+      "category": "inserted_store",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-wide-gfx1250-convolution_f16_original-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "unsupported",
+      "specification_status": null,
+      "timing_eligible": false
+    },
+    {
+      "id": "memory-wide-gfx1250-flash_attention_original-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "graph_verified",
+      "specification_status": "timeout",
+      "timing_eligible": false
+    },
+    {
+      "id": "memory-wide-gfx1250-flash_attention_original-inserted-collision",
+      "category": "inserted_store",
+      "expectation": "hazard",
+      "analysis_status": "ordinary_rejection",
+      "specification_status": null,
+      "timing_eligible": true
+    },
+    {
+      "id": "memory-wide-gfx1250-flash_attention_original-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "unsupported",
+      "specification_status": null,
+      "timing_eligible": false
+    },
+    {
+      "id": "memory-wide-gfx1250-gemm_f16_full-safe",
+      "category": "original",
+      "expectation": "safe",
+      "analysis_status": "timeout",
+      "specification_status": "timeout",
+      "timing_eligible": false
+    },
+    {
+      "id": "memory-wide-gfx1250-gemm_f16_full-inserted-collision",
+      "category": "inserted_store",
+      "expectation": "hazard",
+      "analysis_status": "timeout",
+      "specification_status": null,
+      "timing_eligible": false
+    },
+    {
+      "id": "memory-wide-gfx1250-gemm_f16_full-address-alias",
+      "category": "address_replacement",
+      "expectation": "hazard",
+      "analysis_status": "unsupported",
+      "specification_status": null,
+      "timing_eligible": false
+    },
+    {
+      "id": "memory-gfx950-elementwise-unsupported-tail",
+      "category": "synthetic_unsupported_tail",
+      "expectation": "hazard",
+      "analysis_status": "unsupported",
+      "specification_status": null,
+      "timing_eligible": false
+    },
+    {
+      "id": "memory-gfx950-transpose-unsupported-tail",
+      "category": "synthetic_unsupported_tail",
+      "expectation": "hazard",
+      "analysis_status": "unsupported",
+      "specification_status": null,
+      "timing_eligible": false
+    }
+  ],
+  "retained_safe_export_inventory": [
+    {
+      "case": "memory-gfx950-elementwise-safe",
+      "sha256": "356497ebe6a470f863812babab57f49b88ea60d394c73f6e148be8b386b5d303",
+      "bytes": 4381,
+      "coordinates_sha256": "0139b4c5c9b4273920d195a10f3b836d619683a7c793762ed84a160f9c1f6e3e",
+      "output_counts": {
+        "out": 64
+      }
+    },
+    {
+      "case": "memory-gfx950-reduction-safe",
+      "sha256": "cb0fac4bcfc3f538a8dca013435331a1085dcfd3d86ed8b32a8b3e135067f649",
+      "bytes": 2335,
+      "coordinates_sha256": "9b09932c164538f0944a0f1ee735916e474cf8f46e4d631f0d1022991c3e1789",
+      "output_counts": {
+        "out": 2
+      }
+    },
+    {
+      "case": "memory-gfx950-normalization-safe",
+      "sha256": "e65f53399248264d93b52f8b65d7b3eb170633653751802dd8af17dbef428d9a",
+      "bytes": 66179,
+      "coordinates_sha256": "0139b4c5c9b4273920d195a10f3b836d619683a7c793762ed84a160f9c1f6e3e",
+      "output_counts": {
+        "out": 64
+      }
+    },
+    {
+      "case": "memory-gfx950-gemm-safe",
+      "sha256": "9e1febc190a07b3a0cb0e69f5573d33c4790065acf845a2fae7a07bb2d7df0d7",
+      "bytes": 17149,
+      "coordinates_sha256": "a3dc7b295f386bc40cfc75b080c0799e73a087399c47020a71ca1b7dfa87e325",
+      "output_counts": {
+        "out": 32
+      }
+    },
+    {
+      "case": "memory-gfx950-attention-safe",
+      "sha256": "652b933284d076e1620b4feec77f491a5d195c6f8a70ff5db9ffe6551cff851d",
+      "bytes": 28111,
+      "coordinates_sha256": "0c51f7edd45bb194f330ca90970740172011a18ccb26f16f44661a341629b2de",
+      "output_counts": {
+        "out": 8,
+        "lse": 2
+      }
+    },
+    {
+      "case": "memory-gfx950-transpose-safe",
+      "sha256": "b8132e944e07974693b2023dd3fce039ed1072f6b19f27f8d271f0ebe1c625b4",
+      "bytes": 2213,
+      "coordinates_sha256": "0139b4c5c9b4273920d195a10f3b836d619683a7c793762ed84a160f9c1f6e3e",
+      "output_counts": {
+        "out": 64
+      }
+    },
+    {
+      "case": "memory-gfx1250-elementwise-safe",
+      "sha256": "356497ebe6a470f863812babab57f49b88ea60d394c73f6e148be8b386b5d303",
+      "bytes": 4381,
+      "coordinates_sha256": "0139b4c5c9b4273920d195a10f3b836d619683a7c793762ed84a160f9c1f6e3e",
+      "output_counts": {
+        "out": 64
+      }
+    },
+    {
+      "case": "memory-gfx1250-reduction-safe",
+      "sha256": "cb0fac4bcfc3f538a8dca013435331a1085dcfd3d86ed8b32a8b3e135067f649",
+      "bytes": 2335,
+      "coordinates_sha256": "9b09932c164538f0944a0f1ee735916e474cf8f46e4d631f0d1022991c3e1789",
+      "output_counts": {
+        "out": 2
+      }
+    },
+    {
+      "case": "memory-gfx1250-normalization-safe",
+      "sha256": "e65f53399248264d93b52f8b65d7b3eb170633653751802dd8af17dbef428d9a",
+      "bytes": 66179,
+      "coordinates_sha256": "0139b4c5c9b4273920d195a10f3b836d619683a7c793762ed84a160f9c1f6e3e",
+      "output_counts": {
+        "out": 64
+      }
+    },
+    {
+      "case": "memory-gfx1250-gemm-safe",
+      "sha256": "9e1febc190a07b3a0cb0e69f5573d33c4790065acf845a2fae7a07bb2d7df0d7",
+      "bytes": 17149,
+      "coordinates_sha256": "a3dc7b295f386bc40cfc75b080c0799e73a087399c47020a71ca1b7dfa87e325",
+      "output_counts": {
+        "out": 32
+      }
+    },
+    {
+      "case": "memory-gfx1250-attention-safe",
+      "sha256": "7989b3a467c93ab96405b57c2d349e317f708eaaff74fb01f1704d6ed2aa66cc",
+      "bytes": 28111,
+      "coordinates_sha256": "0c51f7edd45bb194f330ca90970740172011a18ccb26f16f44661a341629b2de",
+      "output_counts": {
+        "out": 8,
+        "lse": 2
+      }
+    },
+    {
+      "case": "memory-gfx1250-transpose-safe",
+      "sha256": "b8132e944e07974693b2023dd3fce039ed1072f6b19f27f8d271f0ebe1c625b4",
+      "bytes": 2213,
+      "coordinates_sha256": "0139b4c5c9b4273920d195a10f3b836d619683a7c793762ed84a160f9c1f6e3e",
+      "output_counts": {
+        "out": 64
+      }
+    },
+    {
+      "case": "memory-wide-gfx1250-relu_f16-safe",
+      "sha256": "84a2725bcdc5315af63a4697f5fbcdd24aa3ba067c994af519b51c122cb5a513",
+      "bytes": 82613,
+      "coordinates_sha256": "6621cd3a7146aaaf59ab20109fa25eba34e5353c7d3bd819a6bec94d6bf5fb8c",
+      "output_counts": {
+        "output": 1024
+      }
+    },
+    {
+      "case": "memory-wide-gfx1250-rmsnorm_f16-safe",
+      "sha256": "f12a48472ae30836f2fb6b4afa90370a74d6d7487fc7e118f04d69b8a9e57f0c",
+      "bytes": 840163,
+      "coordinates_sha256": "69290b1bc728819180eb4800753b6a91223e3f2e38abc88866bf6193472b09ca",
+      "output_counts": {
+        "output": 4096
+      }
+    },
+    {
+      "case": "memory-wide-gfx1250-matvec_f16-safe",
+      "sha256": "68f8ece8b27626e19c0449e678876021e952acb48d0d6c141e6d0d242162c8fc",
+      "bytes": 8200251,
+      "coordinates_sha256": "8af386169c35f89d4e8ae6a37715e09126dc298045b85c0e954d5de54c593113",
+      "output_counts": {
+        "y": 32
+      }
+    },
+    {
+      "case": "memory-wide-gfx1250-convolution_f16_original-safe",
+      "sha256": "70863efc91bd5a63ba77cd4262dd11b73fe0f25704573f9f285995ed5aba6136",
+      "bytes": 353320965,
+      "coordinates_sha256": "fec18d39477074c2f84205856947f889f83a732d88163d6112edde2b9ffb373a",
+      "output_counts": {
+        "out000": 128,
+        "out001": 128,
+        "out002": 128,
+        "out003": 128,
+        "out004": 128,
+        "out005": 128,
+        "out006": 128,
+        "out007": 128,
+        "out008": 128,
+        "out009": 128,
+        "out010": 128,
+        "out011": 128,
+        "out012": 128,
+        "out013": 128,
+        "out014": 128,
+        "out015": 128,
+        "out016": 128,
+        "out017": 128,
+        "out018": 128,
+        "out019": 128,
+        "out020": 128,
+        "out021": 128,
+        "out022": 128,
+        "out023": 128,
+        "out024": 128,
+        "out025": 128,
+        "out026": 128,
+        "out027": 128,
+        "out028": 128,
+        "out029": 128,
+        "out030": 128,
+        "out031": 128,
+        "out032": 128,
+        "out033": 128,
+        "out034": 128,
+        "out035": 128,
+        "out036": 128,
+        "out037": 128,
+        "out038": 128,
+        "out039": 128,
+        "out040": 128,
+        "out041": 128,
+        "out042": 128,
+        "out043": 128,
+        "out044": 128,
+        "out045": 128,
+        "out046": 128,
+        "out047": 128,
+        "out048": 128,
+        "out049": 128,
+        "out050": 128,
+        "out051": 128,
+        "out052": 128,
+        "out053": 128,
+        "out054": 128,
+        "out055": 128,
+        "out056": 128,
+        "out057": 128,
+        "out058": 128,
+        "out059": 128,
+        "out060": 128,
+        "out061": 128,
+        "out062": 128,
+        "out063": 128,
+        "out064": 128,
+        "out065": 128,
+        "out066": 128,
+        "out067": 128,
+        "out068": 128,
+        "out069": 128,
+        "out070": 128,
+        "out071": 128,
+        "out072": 128,
+        "out073": 128,
+        "out074": 128,
+        "out075": 128,
+        "out076": 128,
+        "out077": 128,
+        "out078": 128,
+        "out079": 128,
+        "out080": 128,
+        "out081": 128,
+        "out082": 128,
+        "out083": 128,
+        "out084": 128,
+        "out085": 128,
+        "out086": 128,
+        "out087": 128,
+        "out088": 128,
+        "out089": 128,
+        "out090": 128,
+        "out091": 128,
+        "out092": 128,
+        "out093": 128,
+        "out094": 128,
+        "out095": 128,
+        "out096": 128,
+        "out097": 128,
+        "out098": 128,
+        "out099": 128,
+        "out100": 128,
+        "out101": 128,
+        "out102": 128,
+        "out103": 128,
+        "out104": 128,
+        "out105": 128,
+        "out106": 128,
+        "out107": 128,
+        "out108": 128,
+        "out109": 128,
+        "out110": 128,
+        "out111": 128,
+        "out112": 128,
+        "out113": 128,
+        "out114": 128,
+        "out115": 128,
+        "out116": 128,
+        "out117": 128,
+        "out118": 128,
+        "out119": 128,
+        "out120": 128,
+        "out121": 128,
+        "out122": 128,
+        "out123": 128,
+        "out124": 128,
+        "out125": 128,
+        "out126": 128,
+        "out127": 128
+      }
+    },
+    {
+      "case": "memory-wide-gfx1250-flash_attention_original-safe",
+      "sha256": "fa1f31af761fbb0a871157019faebacdaa1ad205a25b72ff7646329025fb1393",
+      "bytes": 769134497,
+      "coordinates_sha256": "9c576f8f2671f304723c50720d28bc3640dd4f4af1e1a2d86f3a666f759f010d",
+      "output_counts": {
+        "out": 8192,
+        "lse": 128
+      }
+    }
+  ],
+  "retained_safe_export_inventory_sha256": "24d707ab9989897b734abe5466b34cfac3edbce2ede0cc9d2175e12112e1df06"
+}

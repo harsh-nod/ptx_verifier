@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "scope": "Independent stdlib-only comparison of the public projection with completed baseline, development and explicitly authorized heldout reports; no publisher or study helper imports, collection, verifier execution or builds.",
+  "result_sha256": "59edc7e412bf2872bd029d3ae86146d5924d5ad1e3a2d45bb4717f77ca6d0576",
+  "raw_reports_sha256": {
+    "baseline": "f139a98f1990d73b599bbd2ae4cd6d5ee81fc813a46d5dc956b6b4a840ef94b8",
+    "development_preflight": "9f5e49d9421a9369b6d24a04c3dbbb33f53e17b5ef22c40aa3e7d3c63b3d2c15",
+    "development_paired": "e2d567e159769ed939923b552990740b7206c49ef0268fee1f97fcde43483f76",
+    "heldout_qualification": "10f68afa1408f0068bbba2f37501937c69cc6bbdf6217785c7c44f313cbe590c",
+    "heldout_paired": "a5b33d8dc674425bdeb2b17b23797d11f9506872240088a659e6bfd57a7c6dcb"
+  },
+  "raw_independent_audit_sha256": "2126d2ebc620b9b6ba24dc8983b0c8e2207a0572e870d0c4cf45fe3b920a9a35",
+  "auditor_script_sha256": "bdf218043680906a867cc1a9ac8a9ac4425fc1b190f813374d7b6a3baa6677db",
+  "checks": 273964,
+  "checks_by_section": {
+    "identity": 878,
+    "privacy": 163791,
+    "protocol": 10,
+    "coordinates": 5290,
+    "population": 112,
+    "functional": 5644,
+    "sample": 79651,
+    "raw_digest": 6963,
+    "witness": 972,
+    "arithmetic": 10269,
+    "projection": 384
+  },
+  "errors": 0,
+  "findings": [],
+  "population": {
+    "development_configurations": 40,
+    "heldout_configurations": 6,
+    "development_timed_processes": 1792,
+    "heldout_timed_processes": 320,
+    "all_timed_processes": 2112,
+    "projected_process_records_checked": 2281,
+    "functional_witness_records_checked": 67,
+    "first_process_separate": true,
+    "repeated_processes_per_role": 31
+  },
+  "limits": [
+    "Checks preserve and independently recompute projected JSON observations and declared identity chains; caller-attested builds and frontend/graph semantics are not independently proved.",
+    "Numeric WriteWrite representatives are decoded from hash-bound functional stdout; per-repeat numeric witness tuples are not published, only complete sample metrics/digests.",
+    "Parent-observed diagnostic wall time is not an internal checker timestamp or CPU phase attribution.",
+    "Maximum RSS includes the first process and 31 repeats; timing medians/p95/bootstrap use repeats only.",
+    "Runtime context is intentionally absent from this projection and must be stated in accompanying documentation."
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "host": "mi350-2",
+  "tool": "/opt/rocm/llvm/bin/llvm-mc",
+  "target": "gfx950",
+  "recipe": [
+    "--triple=amdgcn-amd-amdhsa",
+    "--mcpu=gfx950",
+    "-filetype=obj",
+    "-o",
+    "-"
+  ],
+  "entries": [
+    {
+      "kernel": "mamba2_chunk_scan_full",
+      "source_sha256": "54633d999a6170423140c5f2f1a2bfdca8af0e3ceb09ec6e48c53be689fa716a",
+      "object_sha256": "2245c0b13d8b418252bee24b8fbfe3e10c2f03f676f327379796bbad803577cf",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "kernel": "matvec_f16",
+      "source_sha256": "d8c858b26f4eec76c33d3f565d0b7657f02858e886f630bbd26e6c7fb6ce937b",
+      "object_sha256": "0d0b12841184cdcd2dea199fe258787065ec2b3746b934350612803f33e43641",
+      "exit_code": 0,
+      "stderr": ""
+    }
+  ]
+}

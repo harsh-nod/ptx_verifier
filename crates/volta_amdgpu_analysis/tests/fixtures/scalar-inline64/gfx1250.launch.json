@@ -1,0 +1,29 @@
+{
+  "kernel": "k",
+  "block": [
+    1,
+    1,
+    1
+  ],
+  "grid": [
+    1,
+    1,
+    1
+  ],
+  "arrays": [
+    {
+      "name": "out",
+      "base": 65536,
+      "dtype": "u32",
+      "shape": [
+        2
+      ],
+      "kind": "out"
+    }
+  ],
+  "params": [
+    {
+      "ptr": "out"
+    }
+  ]
+}

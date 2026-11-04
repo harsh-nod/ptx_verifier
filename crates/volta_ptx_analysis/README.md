@@ -15,9 +15,17 @@ pipeline sends the outputs to `volta_equivalence` and the graph to
 
 ```rust
 let result = volta_ptx_analysis::analyze(&module, Some("kernel"), config)?;
-let graph = result.graph();                 // always present (partial on abort)
+let graph = &result.graph;                  // always present (partial on abort)
 let outputs = result.symbolic_outputs()?;   // only if the run completed
 ```
+
+Launch configuration is shared through `volta_common`. PTX structured parameters
+provide typed fields for by-value aggregates, including host tensor maps;
+uncovered bytes remain undefined. Native AMD byte payloads and
+`shared_allocations` are rejected because PTX declares its own parameter and
+shared objects.
+See the [parameter guide](../../docs/launch-parameters.md) for aggregate field
+offsets, host tensor maps and the available public interfaces.
 
 ## Frontend (`frontend/`)
 
@@ -27,7 +35,7 @@ the crate.
 
 ```
 PTX text ──lex.rs──► tokens ──parse.rs──► ast::Module ──instr_parse.rs──► ParsedInstruction
-                                          (directives,                    (~105 typed variants,
+                                          (directives,                    (typed variants,
                                            functions, generic              validated modifiers
                                            instructions)                   and operands)
 ```
@@ -112,7 +120,8 @@ constants fold eagerly.
   run ends **stuck** (deadlock). Exited threads count as arrived (Sync').
 - **Concreteness**: addresses, branch conditions and sync parameters must be
   concrete, i.e. depend only on thread ids and concrete parameters. Otherwise the
-  run fails with `NotConcrete`. Only CTA 0 runs; it stands for the grid.
+  run fails with `NotConcrete`. Only CTA 0 runs; this does not analyze races
+  between CTAs in the configured grid.
 - **Families**: `arithm.rs` (ALU, `cvt`, width canonicalization), `warp.rs`
   (`shfl`, `ldmatrix`, `mma.sync`, `wmma`, warp-scoped `tcgen05`),
   `cp_async.rs`, `async_bulk.rs` (TMA, `cp.async.bulk`), `mbarrier.rs`,
@@ -166,7 +175,17 @@ analyze --config`) into the kernel it names and a validated
 `AnalysisConfig`. Arrays take a `dtype` and a `shape` and are laid
 out on 64 KiB boundaries unless given a `base`; params are `{"int": N}`,
 `{"float": X}`, `{"sym": name}` or `{"ptr": array}` with an optional `name`
-label; unknown keys are errors. The module docs give the full format.
+label; unknown keys are errors. Native by-value parameters also accept
+`{"bytes": [...]}` with the exact metadata-sized payload, including padding.
+
+The shared launch-file parser accepts optional native AMD `shared_allocations`:
+`[{"name": "tile", "offset": 0, "size": 256}]`, with offsets/sizes in bytes.
+These are the same caller-supplied LDS object-bound premises as the CLI's
+`--shared-allocation` and Python's `Config.add_shared_allocation`. Empty/duplicate
+names, empty/overlapping/overflowing ranges and unknown keys are rejected. Native
+execution also checks aggregate LDS capacity and each access against the supplied
+object bounds. PTX analysis rejects this native-only premise. The module docs
+give the full format.
 
 ## Module layout
 

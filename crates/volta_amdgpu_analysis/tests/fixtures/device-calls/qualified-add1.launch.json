@@ -1,0 +1,47 @@
+{
+  "kernel": "qualified_leaf_add1_copy64",
+  "block": [
+    64,
+    1,
+    1
+  ],
+  "grid": [
+    1,
+    1,
+    1
+  ],
+  "workgroup_id": [
+    0,
+    0,
+    0
+  ],
+  "dynamic_shared_bytes": 0,
+  "arrays": [
+    {
+      "name": "x",
+      "base": 65536,
+      "dtype": "f32",
+      "shape": [
+        64
+      ],
+      "kind": "in"
+    },
+    {
+      "name": "out",
+      "base": 131072,
+      "dtype": "f32",
+      "shape": [
+        64
+      ],
+      "kind": "out"
+    }
+  ],
+  "params": [
+    {
+      "ptr": "out"
+    },
+    {
+      "ptr": "x"
+    }
+  ]
+}

@@ -11,22 +11,24 @@ use volta_common::report::{Report, report_error};
 use volta_common::run_log;
 use volta_equivalence::EquivCheckOptions;
 use volta_equivalence::equiv::DEFAULT_RECYCLE_TERMS;
-use volta_pipeline::{FrontendError, GraphEvidence, Isa, Solution, Solver};
+use volta_pipeline::{
+    Backend, FrontendError, GraphEvidence, Isa, Solution, Solver, analyze_source,
+};
 use volta_ptx_analysis::LaunchFile;
 
 use crate::config::{LaunchArgs, launch_config};
 use crate::output::{
-    exit_code, print_decision, print_graph_conclusion, print_graph_report, print_outputs,
-    print_spec_check, write_exprs,
+    exit_code, print_decision, print_graph_conclusion, print_graph_report,
+    print_native_certified_rejection, print_outputs, print_spec_check, write_exprs,
 };
 use crate::spec::{SpecSource, dim_values, load_spec};
 
 #[derive(Args)]
 struct KernelArgs {
-    /// Kernel file: `.ptx`, `.s` (AMD gfx950 assembly) or `.py` (Trainium NKI)
+    /// Kernel source; without --backend, infer `.ptx`, experimental gfx950 `.s` or NKI `.py`
     file: PathBuf,
 
-    /// Kernel name (defaults to the file's first PTX entry, or its only AMD or NKI kernel)
+    /// Kernel name (first entry for PTX/native AMD; only kernel for experimental AMD/NKI)
     #[arg(short, long)]
     kernel: Option<String>,
 
@@ -34,8 +36,7 @@ struct KernelArgs {
     launch: LaunchArgs,
 
     /// Spec to check the outputs against: a .spec path, or inline spec source if no such file
-    /// exists (or the launch file's "spec"). Without one, the kernel is only run (and, for PTX,
-    /// race checked).
+    /// exists (or the launch file's "spec"). Without one, the kernel is run and its available graph evidence checked.
     #[arg(long)]
     spec: Option<String>,
 
@@ -97,17 +98,25 @@ enum KernelAction {
     },
 }
 
-pub(crate) fn cmd_solve(args: SolveArgs, log: &mut run_log::RunLog) -> ExitCode {
+pub(crate) fn cmd_solve(
+    args: SolveArgs,
+    log: &mut run_log::RunLog,
+    backend: Option<Backend>,
+) -> ExitCode {
     let options = EquivCheckOptions {
         sample: args.sample,
         verify_numeric: args.verify_numeric,
         recycle_terms: args.recycle_terms,
         iterations: args.iterations,
     };
-    cmd_run(args.input, KernelAction::Solve(options), log)
+    cmd_run(args.input, KernelAction::Solve(options), log, backend)
 }
 
-pub(crate) fn cmd_extract_lean(args: ExtractLeanArgs, log: &mut run_log::RunLog) -> ExitCode {
+pub(crate) fn cmd_extract_lean(
+    args: ExtractLeanArgs,
+    log: &mut run_log::RunLog,
+    backend: Option<Backend>,
+) -> ExitCode {
     cmd_run(
         args.input,
         KernelAction::ExtractLean {
@@ -115,16 +124,29 @@ pub(crate) fn cmd_extract_lean(args: ExtractLeanArgs, log: &mut run_log::RunLog)
             output: args.output,
         },
         log,
+        backend,
     )
 }
 
-fn cmd_run(args: KernelArgs, action: KernelAction, log: &mut run_log::RunLog) -> ExitCode {
+fn cmd_run(
+    args: KernelArgs,
+    action: KernelAction,
+    log: &mut run_log::RunLog,
+    backend: Option<Backend>,
+) -> ExitCode {
     let command = match &action {
         KernelAction::Solve(_) => "solve",
         KernelAction::ExtractLean { .. } => "extract lean",
     };
     let file = &args.file;
-    let Some(isa) = Isa::of_path(file) else {
+    let inferred = backend.map(|backend| {
+        if backend == Backend::Ptx {
+            Isa::Ptx
+        } else {
+            Isa::Amd
+        }
+    });
+    let Some(isa) = inferred.or_else(|| Isa::of_path(file)) else {
         eprintln!(
             "error: {} is not a kernel file Volta reads (.ptx, .s or .py)",
             file.display()
@@ -177,9 +199,18 @@ fn cmd_run(args: KernelArgs, action: KernelAction, log: &mut run_log::RunLog) ->
         }
     };
 
-    println!("{}: {} kernel", file.display(), isa.name());
+    let frontend_name = match backend {
+        Some(backend) => format!("{} {}", backend.name(), backend.target().unwrap_or("")),
+        None if isa == Isa::Amd => "experimental AMD gfx950 (math outputs only)".into(),
+        None => isa.name().into(),
+    };
+    println!("{}: {} kernel", file.display(), frontend_name.trim());
     let start = Instant::now();
-    let mut run = match isa.frontend().analyze(&source, kernel, config) {
+    let analyzed = match backend {
+        Some(backend) => analyze_source(backend, &source, kernel, config),
+        None => isa.frontend().analyze(&source, kernel, config),
+    };
+    let mut run = match analyzed {
         Ok(run) => run,
         Err(FrontendError::Parse {
             title,
@@ -206,6 +237,12 @@ fn cmd_run(args: KernelArgs, action: KernelAction, log: &mut run_log::RunLog) ->
     };
     let exec_secs = start.elapsed().as_secs_f64();
     println!("  time: {:.3}s", exec_secs);
+    if let Some(native) = &run.native
+        && print_native_certified_rejection("kernel", native)
+    {
+        log.record(&format!("{command}: certified rejected-prefix finding"));
+        return ExitCode::FAILURE;
+    }
     print_outputs(&run.outputs, args.print_outputs);
     match &run.graph {
         GraphEvidence::Checked { graph, report } => {

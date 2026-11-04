@@ -1,0 +1,23 @@
+{
+  "host": "mi350",
+  "assembler": "/opt/rocm/llvm/bin/llvm-mc",
+  "target": "amdgcn-amd-amdhsa",
+  "mcpu": "gfx950",
+  "note": "Exact instruction sequences exercised by native_local_ids_remain_numeric_when_stored_directly_or_masked; standalone text omits analyzer handfixture descriptor/metadata.",
+  "cases": [
+    {
+      "name": "direct",
+      "assembly": ".text\ncopy:\n\ns_load_dwordx4 s[4:7], s[0:1], 0\ns_waitcnt lgkmcnt(0)\nv_lshlrev_b32 v2, 2, v0\nv_mov_b32 v3, 0\nv_lshl_add_u64 v[6:7], s[4:5], 0, v[2:3]\nv_mov_b32 v5, v0\ns_waitcnt vmcnt(0)\nv_lshl_add_u64 v[6:7], s[6:7], 0, v[2:3]\nglobal_store_dword v[6:7], v5, off\ns_endpgm\n",
+      "source_sha256": "e1857f031eed15bacaae3bb0aab7b30a854507ecd0ddca9910e2714c6be93490",
+      "returncode": 0,
+      "object_sha256": "3e80caa64841c6272fcbedad74b7839253bd6b55f2fdc3d81f144dd89a6318c1"
+    },
+    {
+      "name": "masked",
+      "assembly": ".text\ncopy:\n\ns_load_dwordx4 s[4:7], s[0:1], 0\ns_waitcnt lgkmcnt(0)\nv_lshlrev_b32 v2, 2, v0\nv_mov_b32 v3, 0\nv_lshl_add_u64 v[6:7], s[4:5], 0, v[2:3]\nv_cmp_gt_u32 vcc, 65, v0\ns_and_saveexec_b64 s[8:9], vcc\nv_and_b32 v5, 0x3fffffff, v0\ns_waitcnt vmcnt(0)\nv_lshl_add_u64 v[6:7], s[6:7], 0, v[2:3]\nglobal_store_dword v[6:7], v5, off\ns_endpgm\n",
+      "source_sha256": "2639529b40718ff823ac8464cd88fa5bdaf6db48602f5ae2ff80865fe3ff4311",
+      "returncode": 0,
+      "object_sha256": "453e10b3e050135fd324e1a250ec196bb97d0353a8e4bc93f4799d36087e4821"
+    }
+  ]
+}

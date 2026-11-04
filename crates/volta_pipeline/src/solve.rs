@@ -91,34 +91,19 @@ impl Spec {
 
     /// The first array `kernel` does not write exactly the spec's indices of: each spec
     /// output defines every flat index of its shape.
-    fn index_set_mismatch(&self, kernel: &SymbolicOutputs) -> Option<EquivalenceVerdict> {
-        self.arrays.iter().find_map(|name| {
-            let expected = self
-                .outputs
-                .iter()
-                .filter(|s| &s.array == name)
-                .map(|s| s.shape.size())
-                .max()
-                .unwrap_or(0);
-            let written: Vec<u64> = kernel
-                .outputs
-                .iter()
-                .find(|(n, _)| n == name)
-                .map_or_else(Vec::new, |(_, elems)| {
-                    elems.iter().map(|&(index, _)| index).collect()
-                });
-            let unwritten: Vec<u64> = (0..expected)
-                .filter(|index| written.binary_search(index).is_err())
-                .collect();
-            let unexpected: Vec<u64> = written.iter().copied().filter(|&i| i >= expected).collect();
-            (!unwritten.is_empty() || !unexpected.is_empty()).then(|| {
+    fn index_set_mismatch(
+        &self,
+        kernel: &SymbolicOutputs,
+    ) -> Result<Option<EquivalenceVerdict>, SpecError> {
+        Ok(
+            volta_spec::output_index_mismatch(kernel, &self.outputs)?.map(|mismatch| {
                 EquivalenceVerdict::IndexSetMismatch {
-                    array: name.clone(),
-                    unwritten,
-                    unexpected,
+                    array: mismatch.array,
+                    unwritten: mismatch.unwritten,
+                    unexpected: mismatch.unexpected,
                 }
-            })
-        })
+            }),
+        )
     }
 }
 
@@ -131,7 +116,7 @@ pub fn check_against_spec(
     options: &EquivCheckOptions,
 ) -> Result<(EquivalenceVerdict, Option<EquivCheckReport>), SpecError> {
     // Before sampling truncates either side, so a sampled prefix cannot hide an unwritten element.
-    if let Some(mismatch) = spec.index_set_mismatch(kernel) {
+    if let Some(mismatch) = spec.index_set_mismatch(kernel)? {
         return Ok((mismatch, None));
     }
     let untruncated: u64 = kernel
@@ -168,7 +153,7 @@ pub fn state_against_spec(
     claim: &Claim,
     namespace: &str,
 ) -> Result<LeanSolution, SpecError> {
-    if let Some(mismatch) = spec.index_set_mismatch(kernel) {
+    if let Some(mismatch) = spec.index_set_mismatch(kernel)? {
         return Ok(LeanSolution::Stopped(mismatch));
     }
     let baseline = volta_spec::unfold(&spec.outputs, &spec.env, 0)?;

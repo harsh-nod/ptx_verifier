@@ -3,8 +3,8 @@
 The expression language every other part of Volta speaks. The interpreter
 builds expressions, `volta_spec` unfolds specs into them, and the equivalence
 checker consumes them. It depends on no other Volta crate, which is how
-`volta_ptx_analysis` (the producer) and `volta_equivalence` (the consumer) stay
-independent of each other.
+the PTX/AMD analysis producers and `volta_equivalence` stay independent of
+each other.
 
 ## Expressions (`symbolic.rs`)
 
@@ -23,6 +23,10 @@ does that.
 - **Exact constants**: a float constant is a `Real`, an arbitrary-precision
   rational (`rug`) or `±inf`. NaN is rejected at every f64 entry point. Floats
   are modeled as reals, not IEEE values.
+- **Exact integer display**: integer-valued `Real` constants print all digits,
+  including values above 2^53. Noninteger constants use a round-tripping f64
+  representation where possible, otherwise `p/q`; display does not change the
+  exact `.vexpr` or VC-dump formats.
 - **Eager, exact constant folding**: every constructor folds what it can,
   exactly over ℚ. Undefined forms (`inf - inf`, `0 * inf`, `x / 0`) stay
   unfolded, so the canonicalizer reports them instead of hiding them.

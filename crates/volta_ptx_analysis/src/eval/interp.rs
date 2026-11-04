@@ -2,7 +2,7 @@
 //! until they block or exit; then complete groups fire, else deadlock. It runs
 //! one candidate schedule and checks no data races itself.
 
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::fmt;
 
 use id_collections::IdVec;
@@ -75,13 +75,14 @@ impl fmt::Display for BarrierArrivals {
     }
 }
 
-/// A thread's arrival at a named barrier: the barrier instruction it arrived at and whether
-/// that instruction is `.aligned`.
+/// A thread's arrival at a named barrier, including the visit to its instruction. Predicate-
+/// skipped visits count too, so aligned arrivals from different loop iterations cannot merge.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(in crate::eval) struct ArrivedThread {
     pub(in crate::eval) thread: ThreadId,
     pub(in crate::eval) pc: InstrId,
     pub(in crate::eval) alignment: BarrierAlignment,
+    pub(in crate::eval) visit: u64,
 }
 
 /// One named barrier's pending `bar.arrive` arrivals since it last fired, with
@@ -148,6 +149,7 @@ pub(in crate::eval) enum Status {
         id: u32,
         arrivals: BarrierArrivals,
         alignment: BarrierAlignment,
+        visit: u64,
     },
     /// Blocked at a warp-cooperative instruction at the current pc.
     /// `mask` is the participating-lane mask within the thread's warp.
@@ -169,6 +171,8 @@ pub(in crate::eval) struct ThreadState {
     pub pc: InstrId,
     pub regs: RegFile,
     pub status: Status,
+    /// Visits to aligned named-barrier PCs, counted before evaluating their predicates.
+    barrier_visits: HashMap<InstrId, u64>,
     /// `cp.async` copies issued since the last `commit_group`.
     uncommitted: Vec<PendingCopy>,
     /// Committed async-copy groups, oldest first; `wait_group`/`wait_all`
@@ -256,16 +260,10 @@ impl<'p> Interpreter<'p> {
         config: AnalysisConfig,
         provenance: Provenance,
     ) -> EvalResult<Self> {
-        let n_threads = config.num_threads();
-        if n_threads == 0 {
-            return Err(EvalError::Config {
-                message: "block has zero threads".to_string(),
-            });
-        }
-
         config
             .validate()
             .map_err(|message| EvalError::Config { message })?;
+        let n_threads = config.num_threads();
 
         let mut arena = ExprArena::new();
         let undefined = arena.undefined();
@@ -285,6 +283,11 @@ impl<'p> Interpreter<'p> {
         for (index, value) in config.params.iter().enumerate() {
             let slot = program.symbols.param_slot(ParamId(index as u32));
             let v = match value {
+                ParamValue::Bytes(_) => {
+                    return Err(EvalError::Config {
+                        message: "byte payload parameters require the native AMD backend".into(),
+                    });
+                }
                 ParamValue::Struct(fields) if slot.layout == ParamLayout::Aggregate => {
                     let _ = params.push(ParamBinding::Bytes(struct_bytes(
                         index, fields, slot, &config,
@@ -432,6 +435,7 @@ impl<'p> Interpreter<'p> {
                     pc: program.entry_pc,
                     regs: RegFile::new(&counts),
                     status: Status::Ready,
+                    barrier_visits: HashMap::new(),
                     uncommitted: Vec::new(),
                     groups: VecDeque::new(),
                     bulk_uncommitted: Vec::new(),
@@ -668,6 +672,22 @@ impl<'p> Interpreter<'p> {
                 limit: self.config.max_instructions,
             });
         }
+
+        let barrier_visit = match &instr {
+            LoweredInstr::BarSync {
+                alignment: BarrierAlignment::Aligned,
+                ..
+            }
+            | LoweredInstr::BarArrive {
+                alignment: BarrierAlignment::Aligned,
+                ..
+            } => {
+                let visit = self.threads[t].barrier_visits.entry(pc).or_default();
+                *visit += 1;
+                *visit
+            }
+            _ => 0,
+        };
 
         // Predicate guard: must be concrete (structured-CTA).
         if let Some(pred) = self.program.predicate(pc) {
@@ -1556,6 +1576,7 @@ impl<'p> Interpreter<'p> {
                     id,
                     arrivals,
                     alignment: *alignment,
+                    visit: barrier_visit,
                 };
                 return Ok(()); // pc advances when the barrier fires
             }
@@ -1574,6 +1595,7 @@ impl<'p> Interpreter<'p> {
                     thread: t,
                     pc,
                     alignment: *alignment,
+                    visit: barrier_visit,
                 });
             }
 

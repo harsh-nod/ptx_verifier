@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "scope": "Full unchanged original64F32launch, both256B allocations,LDS80000,grid1/block64,fullidentityspecN64/no sampling; incomplete/Unsupported is never successful execution or safety finding. CPUonly.",
+  "binary_sha256": "de6760c38e7f8f9ea41e8f81958cad31e17f5a68c22825cc138d65f1c15a508b",
+  "build_record_sha256": "22252de61fb7b7c915434e0726474a88cff7ad01ba20be65a7b60e73331cd4e8",
+  "contract_sha256": "b861213a8e66785e05f4b36d722ca2d3990ae453e5a7784cb01aef4da5b24be6",
+  "assembly_sha256": "5cd06ff39ac43a8178c89d570361a5329c39b0d2077020438fbc93701ffe9542",
+  "launch_sha256": "3e1054f80948e9cafe11a8ca008c097939b8b5a44955ba585104ddfaab67150b",
+  "spec_sha256": "dfaaf87789dfec7bcaadc0e1a4dd9863575540ed223799561770c53ea60b438b",
+  "runs": [
+    {
+      "argv": [
+        "/tmp/ptx-native-scalar-address-candidate-freeze-20261031/candidate-volta",
+        "verify",
+        "/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-63a39b0bac4bd064/kernel.s",
+        "/tmp/ptx-native-buffer-lds-original-contract-20261031/identity.spec",
+        "--config",
+        "/tmp/ptx-native-buffer-lds-original-contract-20261031/f32.launch.json",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx950",
+        "--no-log-file",
+        "--dim",
+        "N=64",
+        "--sample",
+        "0",
+        "--verify-numeric"
+      ],
+      "exit_code": 2,
+      "stdout_sha256": "acbe02f94cafa272b447a83f0f708cd848b206e54b3a30f4a93d3cb69508c2e2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "/tmp/ptx-native-scalar-address-candidate-freeze-20261031/candidate-volta",
+        "analyze",
+        "/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-63a39b0bac4bd064/kernel.s",
+        "--config",
+        "/tmp/ptx-native-buffer-lds-original-contract-20261031/f32.launch.json",
+        "--backend",
+        "amdgpu",
+        "--target",
+        "gfx950",
+        "--no-log-file",
+        "--print-outputs",
+        "64",
+        "--dump-graph",
+        "/tmp/ptx-native-scalar-address-original-results-20261031/original.graph",
+        "--emit-exprs",
+        "/tmp/ptx-native-scalar-address-original-results-20261031/original.vexpr"
+      ],
+      "exit_code": 2,
+      "stdout_sha256": "138621a67cd3c3a22db656a8e1bd9288f4bef913ed3632c1a60a00c64fcad20c",
+      "stderr_sha256": "c46cb213c93a22a1a363455733ed501df2c39150e6707dec5bb52dcd8428f5a7"
+    }
+  ],
+  "artifacts": {
+    "original.graph": "8f5ac0316d5d7acbf06df765f93b52f299ea25e4cca62b1a84d82bb9a2dc7714"
+  }
+}

@@ -49,6 +49,18 @@ impl EventGraph {
     /// Check every representation invariant; `Err` lists all violations found.
     pub fn validate(&self) -> Result<(), Vec<GraphDefect>> {
         let mut d = Defects(Vec::new());
+        let p = &self.provenance;
+        for (axis, coordinate, groups) in [
+            ("x", p.workgroup_id.0, p.grid_dim.0),
+            ("y", p.workgroup_id.1, p.grid_dim.1),
+            ("z", p.workgroup_id.2, p.grid_dim.2),
+        ] {
+            if coordinate >= groups {
+                d.global(format!(
+                    "workgroup_id.{axis} {coordinate} is outside grid dimension {groups}"
+                ));
+            }
+        }
         self.validate_contexts(&mut d);
         let access_events = self.validate_accesses(&mut d);
         self.validate_program_order(&mut d);
@@ -56,7 +68,84 @@ impl EventGraph {
         self.validate_generations(&mut d);
         self.validate_objects(&mut d);
         self.validate_terminal(&mut d);
+        self.validate_amd(&mut d);
         if d.0.is_empty() { Ok(()) } else { Err(d.0) }
+    }
+
+    fn validate_amd(&self, d: &mut Defects) {
+        if let Err(reason) = crate::validate_shared_allocations(&self.shared_allocation_layout) {
+            d.global(reason);
+        }
+        if !self.shared_allocation_layout.is_empty()
+            && crate::AmdArchitecture::from_targets(&self.provenance.targets).is_none()
+        {
+            d.global(
+                "configured shared allocation layout requires a recognized native AMD target"
+                    .into(),
+            );
+        }
+        let architecture = crate::AmdArchitecture::from_targets(&self.provenance.targets);
+        let wave_size = architecture.map_or(64, crate::AmdArchitecture::wave_size);
+        for (index, record) in self.amd_events.iter().enumerate() {
+            match self.events.get(record.event) {
+                Some(event)
+                    if event.kind == EventKind::Amd(index as u32)
+                        && event.ctx
+                            == ExecContext::Thread(crate::ThreadIx(
+                                record.wave.saturating_mul(wave_size),
+                            )) => {}
+                _ => d.at(record.event, "AMD record has no matching wave event".into()),
+            }
+            if record.wave.saturating_mul(wave_size) >= self.threads() {
+                d.at(record.event, "AMD wave is outside the workgroup".into());
+            }
+        }
+        for (id, event) in self.events.iter() {
+            if let EventKind::Amd(index) = event.kind
+                && self
+                    .amd_events
+                    .get(index as usize)
+                    .is_none_or(|r| r.event != id)
+            {
+                d.at(id, "AMD event has no matching record".into());
+            }
+        }
+        let mut linked = std::collections::HashSet::new();
+        for association in &self.amd_memory_effects {
+            let valid_issue = self
+                .events
+                .get(association.issue)
+                .and_then(|e| {
+                    if let EventKind::Amd(index) = e.kind {
+                        self.amd_event(index)
+                    } else {
+                        None
+                    }
+                })
+                .is_some_and(|r| matches!(r.kind, crate::AmdEventKind::MemoryIssue { .. }));
+            if !valid_issue || association.issue >= association.effect {
+                d.at(
+                    association.effect,
+                    "AMD memory effect has invalid or nonpreceding issue".into(),
+                );
+            }
+            if !self
+                .events
+                .get(association.effect)
+                .is_some_and(|e| matches!(e.kind, EventKind::Access(_)))
+            {
+                d.at(
+                    association.effect,
+                    "AMD memory association does not name an access".into(),
+                );
+            }
+            if !linked.insert(association.effect) {
+                d.at(
+                    association.effect,
+                    "AMD memory effect is associated more than once".into(),
+                );
+            }
+        }
     }
 
     fn validate_contexts(&self, d: &mut Defects) {

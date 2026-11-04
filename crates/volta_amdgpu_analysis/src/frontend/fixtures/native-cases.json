@@ -1,0 +1,282 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "kernel": "pipelined_mfma_f32",
+      "assembly": "clang22-pipelined-mfma-f32.s",
+      "source": "clang22-pipelined-mfma-f32.hip",
+      "spec": "specs/pipelined_mfma_f32.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "M": 32,
+        "N": 16,
+        "K": 8
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "length": 256,
+          "element_size": 4,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "b",
+          "length": 128,
+          "element_size": 4,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "out",
+          "length": 512,
+          "element_size": 4,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "expected_output_footprint": {
+        "array": "out",
+        "elements": 512,
+        "bytes": 2048
+      },
+      "reduced_case": true,
+      "preserved_patterns": [
+        "two wave64s",
+        "cross-wave LDS producers",
+        "two alternating LDS buffers",
+        "two MFMA tiles",
+        "repeated workgroup barriers"
+      ],
+      "notes": [
+        "Reduced matrix mechanism coverage; does not close full-shape baseline workload parity."
+      ],
+      "expected_native_outcome": "RACE-FREE*",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "pipelined_mfma_f32/pipelined_mfma_f32",
+        "hardware": [],
+        "scope": "Supplemental reduced mechanism control; does not replace full baseline launch."
+      }
+    },
+    {
+      "kernel": "pipelined_mfma_f16",
+      "assembly": "clang22-pipelined-mfma-f16.s",
+      "source": "clang22-pipelined-mfma-f16.hip",
+      "spec": "specs/pipelined_mfma_f32.spec",
+      "block": [
+        128,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "M": 32,
+        "N": 16,
+        "K": 32
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "length": 1024,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "b",
+          "length": 512,
+          "element_size": 2,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "out",
+          "length": 512,
+          "element_size": 2,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "expected_output_footprint": {
+        "array": "out",
+        "elements": 512,
+        "bytes": 1024
+      },
+      "reduced_case": true,
+      "preserved_patterns": [
+        "two wave64s",
+        "cross-wave LDS producers",
+        "two alternating LDS buffers",
+        "two MFMA tiles",
+        "repeated workgroup barriers"
+      ],
+      "notes": [
+        "Reduced matrix mechanism coverage; does not close full-shape baseline workload parity."
+      ],
+      "expected_native_outcome": "RACE-FREE*",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "pipelined_mfma_f16/pipelined_mfma_f16",
+        "hardware": [],
+        "scope": "Supplemental reduced mechanism control; does not replace full baseline launch."
+      }
+    },
+    {
+      "kernel": "mfma_f32",
+      "assembly": "clang22-mfma-f32.s",
+      "source": "clang22-mfma-f32.hip",
+      "spec": "specs/mfma_f32.spec",
+      "block": [
+        64,
+        1,
+        1
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "K": 4,
+        "M": 16,
+        "N": 16,
+        "G": 4,
+        "C": 4
+      },
+      "arrays": [
+        {
+          "name": "a",
+          "length": 64,
+          "element_size": 4,
+          "kind": "in",
+          "base_address": 65536
+        },
+        {
+          "name": "b",
+          "length": 64,
+          "element_size": 4,
+          "kind": "in",
+          "base_address": 524288
+        },
+        {
+          "name": "out",
+          "length": 256,
+          "element_size": 4,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:a",
+        "ptr:b",
+        "ptr:out"
+      ],
+      "expected_output_footprint": {
+        "array": "out",
+        "elements": 256,
+        "bytes": 1024
+      },
+      "reduced_case": true,
+      "expected_native_outcome": "RACE-FREE*",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "mfma_f32/mfma_f32",
+        "hardware": [],
+        "scope": "Supplemental reduced mechanism control; does not replace full baseline launch."
+      }
+    },
+    {
+      "kernel": "ids_3d",
+      "assembly": "clang22-ids-3d.s",
+      "source": "clang22-ids-3d.hip",
+      "spec": "specs/ids_3d.spec",
+      "block": [
+        4,
+        3,
+        2
+      ],
+      "grid": [
+        1,
+        1,
+        1
+      ],
+      "workgroup": [
+        0,
+        0,
+        0
+      ],
+      "dimensions": {
+        "X": 4,
+        "Y": 3,
+        "Z": 2,
+        "GX": 0,
+        "GY": 0,
+        "GZ": 0
+      },
+      "arrays": [
+        {
+          "name": "out",
+          "length": 24,
+          "element_size": 4,
+          "kind": "out",
+          "base_address": 1048576
+        }
+      ],
+      "params": [
+        "ptr:out"
+      ],
+      "expected_output_footprint": {
+        "array": "out",
+        "elements": 24,
+        "bytes": 96
+      },
+      "reduced_case": false,
+      "expected_native_outcome": "RACE-FREE",
+      "validation_evidence": {
+        "compiler_assembler": "crates/volta_amdgpu_analysis/src/frontend/fixtures/compiler-provenance.json",
+        "result_key": "ids_3d/ids_3d",
+        "hardware": [],
+        "scope": "Exact declared selected-workgroup configuration; see complete output/spec and native algorithm mapping."
+      }
+    }
+  ]
+}

@@ -10,12 +10,14 @@ use std::fmt;
 use volta_expr::SymbolicOutputs;
 
 pub mod ast;
+pub mod footprint;
 pub mod instantiate;
 pub mod lex;
 pub mod parse;
 pub mod spec;
 
 pub use ast::{ArrayDecl, DimDecl, OutputDecl, Padding, ParamDecl, ParsedSpec};
+pub use footprint::{OutputIndexMismatch, output_index_mismatch};
 pub use instantiate::{InstantiateErrorKind, instantiate};
 pub use parse::{ParseError, ParseErrorKind, parse_spec};
 pub use spec::{

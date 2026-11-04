@@ -1,4 +1,4 @@
-//! Check a PTX kernel against a math spec (`volta verify`): instantiate the
+//! Check a PTX or native AMD kernel against a math spec (`volta verify`): instantiate the
 //! spec under caller-supplied `dim` values, unfold it into `SymbolicOutputs`
 //! standing in for a second kernel, then run the usual equivalence pipeline.
 
@@ -30,9 +30,16 @@ pub struct VerifyResultPy {
     /// The kernel's own execution statistics (the spec has none to report).
     #[pyo3(get)]
     pub stats: StatsPy,
-    /// Whether the kernel's graph verification is complete (see `AnalyzeResult`).
+    /// Whether this execution's graph verification is complete (see `AnalyzeResult`);
+    /// native AMD checks cover only `workgroup_id`.
     #[pyo3(get)]
     pub race_verified: bool,
+    /// Native AMD graph checks cover only this selected workgroup.
+    #[pyo3(get)]
+    pub workgroup_id: (u32, u32, u32),
+    /// Modeling assumptions of the execution compared with the specification.
+    #[pyo3(get)]
+    pub assumptions: Vec<String>,
 }
 
 /// Check `kernel` against `spec` (grammar in `volta_spec`) given every `dim`.
@@ -51,7 +58,7 @@ pub fn verify(
     sample: u64,
     verify_numeric: bool,
 ) -> PyResult<VerifyResultPy> {
-    let module = parse_module(source)?;
+    let module = parse_module(source, config.1)?;
 
     let parsed_spec = volta_spec::parse_spec(spec).map_err(|e| spec_parse_error_to_py(spec, &e))?;
 
@@ -87,6 +94,19 @@ pub fn verify(
 
     let mut kernel_output = check_kernel(py, &module, kernel, config.0.clone())?;
     let race_verified = kernel_output.unresolved.is_empty();
+
+    if let Some(mismatch) = volta_spec::output_index_mismatch(&kernel_output.exprs, &specs)
+        .map_err(other_error_to_py)?
+    {
+        return Err(VoltaError::new_err(mismatch.to_string()));
+    }
+    let untruncated: u64 = kernel_output
+        .exprs
+        .outputs
+        .iter()
+        .filter(|(name, _)| check_arrays.contains(name))
+        .map(|(_, elems)| elems.len() as u64)
+        .sum();
 
     // `sample` also caps generation: truncate the kernel's elements to the
     // ascending prefix `unfold` builds, so both sides pair (as in `cmd_verify`).
@@ -124,10 +144,12 @@ pub fn verify(
     };
 
     Ok(VerifyResultPy {
+        workgroup_id: kernel_output.workgroup_id,
+        assumptions: kernel_output.assumptions,
         equivalent,
         mismatches,
         elements_checked: report.elements_checked,
-        elements_total: report.elements_total,
+        elements_total: untruncated,
         stats: StatsPy {
             instructions: kernel_output.stats.instructions,
             block_syncs: kernel_output.stats.block_syncs,

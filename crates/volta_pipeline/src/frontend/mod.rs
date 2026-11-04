@@ -2,6 +2,7 @@
 //! source under a launch into a `KernelRun`, and every frontend inherits `solve`: the run's
 //! outputs checked against a spec by the caller's `Solver`.
 
+use std::collections::BTreeMap;
 use std::fmt;
 use std::path::Path;
 
@@ -9,9 +10,13 @@ use volta_common::Span;
 use volta_expr::SymbolicOutputs;
 use volta_graph::EventGraph;
 use volta_graph_check::GraphReport;
-use volta_ptx_analysis::AnalysisConfig;
+use volta_ptx_analysis::{AnalysisConfig, Stats};
 
 use crate::aggregate::{Decision, KernelEvidence, decide};
+use crate::backend::{
+    Backend, CertifiedMemoryConflict, CertifiedScalarReadiness, CertifiedTensorBounds,
+    KernelModule, verify_source_kernel,
+};
 use crate::solve::{Solution, Solver, Spec, solve};
 
 // =========================================================================
@@ -119,6 +124,57 @@ pub struct KernelRun {
     /// The written output elements, or why the run has none.
     pub outputs: Result<SymbolicOutputs, String>,
     pub graph: GraphEvidence,
+    /// Native statistics and independently validated prefix findings. A finding
+    /// supplies rejection evidence only, never a completed graph or outputs.
+    pub native: Option<NativeRunMetadata>,
+}
+
+pub struct NativeRunMetadata {
+    pub stats: Stats,
+    pub op_counts: BTreeMap<&'static str, u64>,
+    pub early_readiness: Option<CertifiedScalarReadiness>,
+    pub early_memory_conflict: Option<CertifiedMemoryConflict>,
+    pub tensor_bounds: Option<CertifiedTensorBounds>,
+}
+
+/// Analyze an explicitly selected PTX or native AMD backend. Unlike extension
+/// inference, native AMD selection retains its target checks, graph provenance,
+/// complete launch configuration and private certified-prefix wrappers.
+pub fn analyze_source(
+    backend: Backend,
+    source: &str,
+    kernel: Option<&str>,
+    launch: AnalysisConfig,
+) -> Result<KernelRun, FrontendError> {
+    if backend == Backend::Ptx {
+        return PtxFrontend.analyze(source, kernel, launch);
+    }
+    let module =
+        volta_amdgpu_analysis::frontend::parse(source).map_err(|error| FrontendError::Parse {
+            title: "native AMD assembly parse error".into(),
+            message: Some(error.to_string()),
+            span: None,
+        })?;
+    backend
+        .validate_amd_target(module.target.as_deref())
+        .map_err(FrontendError::Launch)?;
+    let verified = verify_source_kernel(&KernelModule::Amdgpu(module), kernel, launch)
+        .map_err(FrontendError::Analysis)?;
+    let parts = verified.analysis;
+    Ok(KernelRun {
+        outputs: parts.outputs,
+        graph: GraphEvidence::Checked {
+            graph: Box::new(parts.graph),
+            report: Box::new(verified.graph),
+        },
+        native: Some(NativeRunMetadata {
+            stats: parts.stats,
+            op_counts: parts.op_counts,
+            early_readiness: verified.early_readiness,
+            early_memory_conflict: verified.early_memory_conflict,
+            tensor_bounds: verified.tensor_bounds,
+        }),
+    })
 }
 
 pub enum GraphEvidence {
@@ -132,6 +188,30 @@ pub enum GraphEvidence {
 }
 
 impl KernelRun {
+    /// Independently validated rejection evidence for an incomplete prefix.
+    /// The ordinary graph report remains incomplete and cannot supply acceptance.
+    pub fn certified_rejection(&self) -> Option<String> {
+        let native = self.native.as_ref()?;
+        if let Some(finding) = &native.early_readiness {
+            return Some(format!(
+                "certified scalar readiness prefix rejection: {:?}",
+                finding.hazard()
+            ));
+        }
+        if let Some(finding) = &native.early_memory_conflict {
+            return Some(format!(
+                "certified memory-conflict prefix rejection: {:?}",
+                finding.conflict()
+            ));
+        }
+        native.tensor_bounds.as_ref().map(|finding| {
+            format!(
+                "certified tensor LDS bounds rejection: {:?}",
+                finding.violation()
+            )
+        })
+    }
+
     /// The run's outputs against `spec` by `solver`. The outputs are left as the run wrote them.
     pub fn solve(
         &mut self,
@@ -155,7 +235,12 @@ impl KernelRun {
             }],
             GraphEvidence::NotRecorded => Vec::new(),
         };
-        decide(&solution.verdict(), &kernels)
+        let mut decision = decide(&solution.verdict(), &kernels);
+        if let Some(finding) = self.certified_rejection() {
+            decision.verdict = crate::Verdict::Reject;
+            decision.evidence.insert(0, finding);
+        }
+        decision
     }
 }
 

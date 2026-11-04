@@ -1,0 +1,1026 @@
+{
+  "schema": 1,
+  "scope": "Exact UTF-8 bytes of all68 parse process JSON/stdout/stderr records. Whole modules are identified by assembly hashes in report.json.",
+  "records": [
+    {
+      "name": "gfx1250-07a5080231865d32.json",
+      "sha256": "908b3bc1b2d6b11a59eb9724e518c098efaa030cddc9badd52ed787701445f36",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx1250\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-07a5080231865d32/kernel.s\"\n  ],\n  \"returncode\": 0,\n  \"timed_out\": false,\n  \"elapsed_ns\": 5119269,\n  \"stdout_sha256\": \"fcb035a76ed5c7a6fac5eda5fc1f2e830ad6845621793355b7e5abf60b952777\",\n  \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"\n}\n"
+    },
+    {
+      "name": "gfx1250-07a5080231865d32.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx1250-07a5080231865d32.stdout",
+      "sha256": "fcb035a76ed5c7a6fac5eda5fc1f2e830ad6845621793355b7e5abf60b952777",
+      "text": "Parsed successfully: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-07a5080231865d32/kernel.s (gfx1250)\n  Entries (kernels): 2\n"
+    },
+    {
+      "name": "gfx1250-2604a42b1260115d.json",
+      "sha256": "a2e7897ea183bf4b507accacd6254a78f67bd6ef927321be264a88ff7c0488cd",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx1250\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-2604a42b1260115d/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 5607388,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"9a56855d36100e2b35f9ad68fa38129e092dcb80bb1778a2c48763bc21f5ca3a\"\n}\n"
+    },
+    {
+      "name": "gfx1250-2604a42b1260115d.stderr",
+      "sha256": "9a56855d36100e2b35f9ad68fa38129e092dcb80bb1778a2c48763bc21f5ca3a",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-2604a42b1260115d/kernel.s: 187:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5\n"
+    },
+    {
+      "name": "gfx1250-2604a42b1260115d.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx1250-265112f639e3ca73.json",
+      "sha256": "03506d23020b0267a5754172965cd3b625f26c428c867a5ebcee800336d9a546",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx1250\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-265112f639e3ca73/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 4835713,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"bee8a38d3fde2f9deaa7d8ac76158b1c18d89717972ddb97e9bcafb4eb71ea40\"\n}\n"
+    },
+    {
+      "name": "gfx1250-265112f639e3ca73.stderr",
+      "sha256": "bee8a38d3fde2f9deaa7d8ac76158b1c18d89717972ddb97e9bcafb4eb71ea40",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-265112f639e3ca73/kernel.s: 294:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5\n"
+    },
+    {
+      "name": "gfx1250-265112f639e3ca73.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx1250-31d085f403ca6344.json",
+      "sha256": "884ba01f686442306de9d0c59548c27fb70a0d48e344a037c8357b22bdfe469c",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx1250\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-31d085f403ca6344/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 6929045,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"bca02b5b39bcd585d2f990e6ecb449c45a2ac0ff007efb801116aa87095ad7f7\"\n}\n"
+    },
+    {
+      "name": "gfx1250-31d085f403ca6344.stderr",
+      "sha256": "bca02b5b39bcd585d2f990e6ecb449c45a2ac0ff007efb801116aa87095ad7f7",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-31d085f403ca6344/kernel.s: 265:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5\n"
+    },
+    {
+      "name": "gfx1250-31d085f403ca6344.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx1250-41d2d39e7a20f711.json",
+      "sha256": "3fabd6fe4c6e58b62262cc7437b991dd112d85db5d0698d80aa430cf8ee84d9e",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx1250\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-41d2d39e7a20f711/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 5709761,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"fe20330bf7a8067842a0a35807011f2ede601c02413cefeccc2645317123cfd5\"\n}\n"
+    },
+    {
+      "name": "gfx1250-41d2d39e7a20f711.stderr",
+      "sha256": "fe20330bf7a8067842a0a35807011f2ede601c02413cefeccc2645317123cfd5",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-41d2d39e7a20f711/kernel.s: 244:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5\n"
+    },
+    {
+      "name": "gfx1250-41d2d39e7a20f711.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx1250-431e1904c37c8318.json",
+      "sha256": "c5a88477456d6de60bbcd840ab0df3b8a266a40047fa8108b76dba795bab1c09",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx1250\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-431e1904c37c8318/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 6213670,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"e78287fd4818289ba6f77e4192b3ffed5949b8be7f0579f9ebdbcc8a82bd2091\"\n}\n"
+    },
+    {
+      "name": "gfx1250-431e1904c37c8318.stderr",
+      "sha256": "e78287fd4818289ba6f77e4192b3ffed5949b8be7f0579f9ebdbcc8a82bd2091",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-431e1904c37c8318/kernel.s: 342:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5\n"
+    },
+    {
+      "name": "gfx1250-431e1904c37c8318.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx1250-53467f41cdb55066.json",
+      "sha256": "7dde29201ccc73e187122485c31ed42892593ff351f17295d7b5ac9b9782ce68",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx1250\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-53467f41cdb55066/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 6185548,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"ee5d0f56bd98f5380c85abf43149ce58d520c6c1395b60a8a4feb422435a8d0c\"\n}\n"
+    },
+    {
+      "name": "gfx1250-53467f41cdb55066.stderr",
+      "sha256": "ee5d0f56bd98f5380c85abf43149ce58d520c6c1395b60a8a4feb422435a8d0c",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-53467f41cdb55066/kernel.s: 265:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5\n"
+    },
+    {
+      "name": "gfx1250-53467f41cdb55066.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx1250-83a6e3ef1ef86f92.json",
+      "sha256": "bf49ef544df1c5e3089007835e38b7ad75e5ecef114ee1e487908e3dafe30fd9",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx1250\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-83a6e3ef1ef86f92/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 6820797,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"1cc4acce0179d54fa183b860e0a1c8dd9de6e00e6e95d871d274214e78a92928\"\n}\n"
+    },
+    {
+      "name": "gfx1250-83a6e3ef1ef86f92.stderr",
+      "sha256": "1cc4acce0179d54fa183b860e0a1c8dd9de6e00e6e95d871d274214e78a92928",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-83a6e3ef1ef86f92/kernel.s: 342:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5\n"
+    },
+    {
+      "name": "gfx1250-83a6e3ef1ef86f92.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx1250-85c28feb4fccdecf.json",
+      "sha256": "8edca08a8b4bc6ddd5bb5d88e6f8f2b58addc64903c8bb6ef62e17bb2a08c946",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx1250\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-85c28feb4fccdecf/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 75473127,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"3650f9597df71f6e756884a1f20d332613972d0206f53a0d585c74934acd1860\"\n}\n"
+    },
+    {
+      "name": "gfx1250-85c28feb4fccdecf.stderr",
+      "sha256": "3650f9597df71f6e756884a1f20d332613972d0206f53a0d585c74934acd1860",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-85c28feb4fccdecf/kernel.s: 69:2: unsupported AMD instruction `buffer_store_b128`\n"
+    },
+    {
+      "name": "gfx1250-85c28feb4fccdecf.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx1250-b6afe726b9b27625.json",
+      "sha256": "dd784f8ec372109702379605396272f3a8d3e6281f5ceea8976b49da21341de1",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx1250\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-b6afe726b9b27625/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 6634930,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"3efb70bfab75f8085a5ed8fd1831159d59b4d38467327665bd5cc971eab024f2\"\n}\n"
+    },
+    {
+      "name": "gfx1250-b6afe726b9b27625.stderr",
+      "sha256": "3efb70bfab75f8085a5ed8fd1831159d59b4d38467327665bd5cc971eab024f2",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-b6afe726b9b27625/kernel.s: 179:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5\n"
+    },
+    {
+      "name": "gfx1250-b6afe726b9b27625.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx1250-eada6d2b03bb4c0c.json",
+      "sha256": "9a7fd0ce03ededf7d3d7a0f1a97e7690aab71e567bf361caeadb064870c750df",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx1250\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-eada6d2b03bb4c0c/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 6569647,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"fc61d8b8e09ae09989d8b1bf27952edccb59b687791f24f97ade0f57bd9d15f1\"\n}\n"
+    },
+    {
+      "name": "gfx1250-eada6d2b03bb4c0c.stderr",
+      "sha256": "fc61d8b8e09ae09989d8b1bf27952edccb59b687791f24f97ade0f57bd9d15f1",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-eada6d2b03bb4c0c/kernel.s: 412:2: `v_wmma_f32_16x16x32_bf16` expects 4 operands, got 5\n"
+    },
+    {
+      "name": "gfx1250-eada6d2b03bb4c0c.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx942-982c065e3f4343c4.json",
+      "sha256": "bc81930c22727d0c0bc96689c2655b3a5cf5c61886acc6e8ed8e9e6900ed2eb3",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx942\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx942-982c065e3f4343c4/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 8417909,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"85fa377028744e2b03aff49325e9edbd6185fa9ffe0db2cdd3e5b9f832b1acb9\"\n}\n"
+    },
+    {
+      "name": "gfx942-982c065e3f4343c4.stderr",
+      "sha256": "85fa377028744e2b03aff49325e9edbd6185fa9ffe0db2cdd3e5b9f832b1acb9",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx942-982c065e3f4343c4/kernel.s: 63:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx942-982c065e3f4343c4.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx942-d9645cd24d2c5e82.json",
+      "sha256": "683ec35cdea37207742e61a200cb79d738efb6daeca9f03b71c0c1277cdc62eb",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx942\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx942-d9645cd24d2c5e82/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 10912457,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"234876fe68841bd0efa3b33468f829c6c05af01b3ce05b7be20adc2e0a656b1a\"\n}\n"
+    },
+    {
+      "name": "gfx942-d9645cd24d2c5e82.stderr",
+      "sha256": "234876fe68841bd0efa3b33468f829c6c05af01b3ce05b7be20adc2e0a656b1a",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx942-d9645cd24d2c5e82/kernel.s: 21:2: selected signed64 MAD requires unmodified gfx950 VOP3B and an SGPR-pair/VCC mask\n"
+    },
+    {
+      "name": "gfx942-d9645cd24d2c5e82.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-033a472bbf2a5864.json",
+      "sha256": "ffa1173b0ac6e0c1224aedf9b55ab83ed7840214ada1a05a5becb85066ff94ad",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-033a472bbf2a5864/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 16358751,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"1c81dc54328f8ef876354ac006d60e041e292a8494399280da21ca4df6c10f43\"\n}\n"
+    },
+    {
+      "name": "gfx950-033a472bbf2a5864.stderr",
+      "sha256": "1c81dc54328f8ef876354ac006d60e041e292a8494399280da21ca4df6c10f43",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-033a472bbf2a5864/kernel.s: 54:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-033a472bbf2a5864.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-0a5c38fb00b50a90.json",
+      "sha256": "473a97c0904f3bd665599c20ffdb807026970eb5af6c692ec6ef52200e251aed",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-0a5c38fb00b50a90/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 6643315,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"eb6490aa4189ecb199e996a5394196580bc73e5ab4dfef25df0d2ccee9f66ad9\"\n}\n"
+    },
+    {
+      "name": "gfx950-0a5c38fb00b50a90.stderr",
+      "sha256": "eb6490aa4189ecb199e996a5394196580bc73e5ab4dfef25df0d2ccee9f66ad9",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-0a5c38fb00b50a90/kernel.s: 29:2: `buffer_load_dword` expects 4 operands, got 3\n"
+    },
+    {
+      "name": "gfx950-0a5c38fb00b50a90.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-0d8d6766cc75790d.json",
+      "sha256": "d8dc364e70fdc6530054580ba4ee66d9e6858586f1cb6b2b15b733d705d8e552",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-0d8d6766cc75790d/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 7940957,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"1f8c79fc8b5139e000ebb4ac055188e235fa222035a3e4259965e783c60528d0\"\n}\n"
+    },
+    {
+      "name": "gfx950-0d8d6766cc75790d.stderr",
+      "sha256": "1f8c79fc8b5139e000ebb4ac055188e235fa222035a3e4259965e783c60528d0",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-0d8d6766cc75790d/kernel.s: 41:2: `buffer_load_dwordx4` expects 4 operands, got 3\n"
+    },
+    {
+      "name": "gfx950-0d8d6766cc75790d.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-0fba459fd33e2559.json",
+      "sha256": "6a501760bac95eaeee34d03a0448105c16972a1772f9d84fa3eacc7b78e888dd",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-0fba459fd33e2559/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 63351126,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"27a2e32209ceeac34b2a24924a80e9c2c4f95771dc894ca330d2a86d873c3ee3\"\n}\n"
+    },
+    {
+      "name": "gfx950-0fba459fd33e2559.stderr",
+      "sha256": "27a2e32209ceeac34b2a24924a80e9c2c4f95771dc894ca330d2a86d873c3ee3",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-0fba459fd33e2559/kernel.s: 36057:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-0fba459fd33e2559.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-10e49f495442a28c.json",
+      "sha256": "e7c869b8fb513a16926b3c8424d873d913d90487bad12d83e37d1d51a89bf4d5",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-10e49f495442a28c/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 4909437,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"93066f0a0ea8ae31f3e5e259d4d510021e0d507d2642d56139ed78f41f7575cb\"\n}\n"
+    },
+    {
+      "name": "gfx950-10e49f495442a28c.stderr",
+      "sha256": "93066f0a0ea8ae31f3e5e259d4d510021e0d507d2642d56139ed78f41f7575cb",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-10e49f495442a28c/kernel.s: 73:2: unsupported AMD instruction `s_memtime`\n"
+    },
+    {
+      "name": "gfx950-10e49f495442a28c.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-11ceb07931729d0f.json",
+      "sha256": "8b3f66fe31655a18adee2216549c44a3f643480d65626d0174e816b0ddbfe603",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-11ceb07931729d0f/kernel.s\"\n  ],\n  \"returncode\": 0,\n  \"timed_out\": false,\n  \"elapsed_ns\": 37710906,\n  \"stdout_sha256\": \"4ed51240f420d63b2deef48daeb0333043e90d24d95c733fa5f797c486a88db7\",\n  \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"\n}\n"
+    },
+    {
+      "name": "gfx950-11ceb07931729d0f.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-11ceb07931729d0f.stdout",
+      "sha256": "4ed51240f420d63b2deef48daeb0333043e90d24d95c733fa5f797c486a88db7",
+      "text": "Parsed successfully: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-11ceb07931729d0f/kernel.s (gfx950)\n  Entries (kernels): 84\n"
+    },
+    {
+      "name": "gfx950-12469dcce712d532.json",
+      "sha256": "5fd175cc86d89370f326e18c8229edb2143cd929adb6b96cea52586b90c800cf",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-12469dcce712d532/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 9127486,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"1c87202062e8cec3cee420b5fc9c09c30ffd14be927049ed5b8603e9ca968c18\"\n}\n"
+    },
+    {
+      "name": "gfx950-12469dcce712d532.stderr",
+      "sha256": "1c87202062e8cec3cee420b5fc9c09c30ffd14be927049ed5b8603e9ca968c18",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-12469dcce712d532/kernel.s: 31:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-12469dcce712d532.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-1c453a4507f63c09.json",
+      "sha256": "03b4ed63b416dc70372820d3f61825cb1a7a955bc8568f5cc97747fd851f04aa",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-1c453a4507f63c09/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 14749706,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"c616e658c9ae205d8af922e40795c2832ee6644a47ad262ec9a0957e98be2e95\"\n}\n"
+    },
+    {
+      "name": "gfx950-1c453a4507f63c09.stderr",
+      "sha256": "c616e658c9ae205d8af922e40795c2832ee6644a47ad262ec9a0957e98be2e95",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-1c453a4507f63c09/kernel.s: 40:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-1c453a4507f63c09.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-2327aa44e73e618b.json",
+      "sha256": "aedf23b3a2a989b1a2ef70b10601a455ca005a51afbecfe3198951a4fdb0a8f2",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2327aa44e73e618b/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 403530145,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"0894054583d0bdfbc21723c63a0b4a4ec2018104581e9161e1c60358530cd187\"\n}\n"
+    },
+    {
+      "name": "gfx950-2327aa44e73e618b.stderr",
+      "sha256": "0894054583d0bdfbc21723c63a0b4a4ec2018104581e9161e1c60358530cd187",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2327aa44e73e618b/kernel.s: 49:2: unsupported AMD instruction `global_store_short_d16_hi`\n"
+    },
+    {
+      "name": "gfx950-2327aa44e73e618b.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-2c0bd58234bb25b3.json",
+      "sha256": "09d951e05d2275bfd20c7a9f5e3646559c9651ceda0d93d46097dcb16a10bf0e",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2c0bd58234bb25b3/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 11968768,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"552608a3ded450cec8d1b22ca542d379827318b77af749bd81323537b8ec4ae8\"\n}\n"
+    },
+    {
+      "name": "gfx950-2c0bd58234bb25b3.stderr",
+      "sha256": "552608a3ded450cec8d1b22ca542d379827318b77af749bd81323537b8ec4ae8",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2c0bd58234bb25b3/kernel.s: 5093:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-2c0bd58234bb25b3.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-2cabaad02b0e9ca6.json",
+      "sha256": "1e61709cd3262307c64c71e60237040ccbc3a28d60719921731237d4bf74b281",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2cabaad02b0e9ca6/kernel.s\"\n  ],\n  \"returncode\": 0,\n  \"timed_out\": false,\n  \"elapsed_ns\": 6693224,\n  \"stdout_sha256\": \"70d8ee75a005352a4da06caf31905f99316cda249e9f9f4a7d3639687cff96d5\",\n  \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"\n}\n"
+    },
+    {
+      "name": "gfx950-2cabaad02b0e9ca6.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-2cabaad02b0e9ca6.stdout",
+      "sha256": "70d8ee75a005352a4da06caf31905f99316cda249e9f9f4a7d3639687cff96d5",
+      "text": "Parsed successfully: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2cabaad02b0e9ca6/kernel.s (gfx950)\n  Entries (kernels): 2\n"
+    },
+    {
+      "name": "gfx950-2ebec622eda27a60.json",
+      "sha256": "038bb21d96b6aeb906dded12c7796cdce5f763559f1c30d7750bb56009fd3633",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2ebec622eda27a60/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 7210593,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"90114d07687670734775575bcaf2bda0957def3f084aac5e785072d9522ba82a\"\n}\n"
+    },
+    {
+      "name": "gfx950-2ebec622eda27a60.stderr",
+      "sha256": "90114d07687670734775575bcaf2bda0957def3f084aac5e785072d9522ba82a",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2ebec622eda27a60/kernel.s: 496:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-2ebec622eda27a60.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-2ef6dc9539e0aba7.json",
+      "sha256": "88cc8ad8804c90a752e2eb2f2fe5346c81a549f00d63fa98d68f9da130c78c32",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2ef6dc9539e0aba7/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 12858546,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"8161fcc6e32e9f9a624af47b3a05a299ab0e4a2b02e15baae87e27efc34e8373\"\n}\n"
+    },
+    {
+      "name": "gfx950-2ef6dc9539e0aba7.stderr",
+      "sha256": "8161fcc6e32e9f9a624af47b3a05a299ab0e4a2b02e15baae87e27efc34e8373",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-2ef6dc9539e0aba7/kernel.s: 1171:2: `buffer_load_dwordx4` expects 4 operands, got 3\n"
+    },
+    {
+      "name": "gfx950-2ef6dc9539e0aba7.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-32d9dd13778d25a9.json",
+      "sha256": "cfe3deec55f6f3ebbfc52264dd1c495448d47df0ee620d2f9491e5dc9cd23a37",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-32d9dd13778d25a9/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 14170454,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"b68035b084b1f0bab0126e30316c62663bdc1f97fe6e2eb2313766a3953c91c0\"\n}\n"
+    },
+    {
+      "name": "gfx950-32d9dd13778d25a9.stderr",
+      "sha256": "b68035b084b1f0bab0126e30316c62663bdc1f97fe6e2eb2313766a3953c91c0",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-32d9dd13778d25a9/kernel.s: 56:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-32d9dd13778d25a9.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-350f9747cb3c89c5.json",
+      "sha256": "93d2d6036fc2c1cfeca80f312dd223ed245d34f9fcb60fa231803d50936dd95c",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-350f9747cb3c89c5/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 9402454,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"b56b2abab406679b829eabc809074c9d4811c047a09041826ded3cff1fb0e7a3\"\n}\n"
+    },
+    {
+      "name": "gfx950-350f9747cb3c89c5.stderr",
+      "sha256": "b56b2abab406679b829eabc809074c9d4811c047a09041826ded3cff1fb0e7a3",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-350f9747cb3c89c5/kernel.s: 198:2: unsupported AMD instruction `v_and_b32_sdwa`\n"
+    },
+    {
+      "name": "gfx950-350f9747cb3c89c5.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-35843236ac3646e7.json",
+      "sha256": "9884a89b08b932a6ba28b167315367c628f1e822dec8076b1bae5e04886ed127",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-35843236ac3646e7/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 315124213,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"af2725b4b020c2ffc28a736c458d38a17024cbd500e325cf8228159b79f6f1d9\"\n}\n"
+    },
+    {
+      "name": "gfx950-35843236ac3646e7.stderr",
+      "sha256": "af2725b4b020c2ffc28a736c458d38a17024cbd500e325cf8228159b79f6f1d9",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-35843236ac3646e7/kernel.s: 35:2: `buffer_load_dwordx4` expects 4 operands, got 3\n"
+    },
+    {
+      "name": "gfx950-35843236ac3646e7.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-38dfc931051a1a74.json",
+      "sha256": "9c37af15b8d52709bdb17a658f5d5aae96efb5b031b8b35d3b6d8a99009c0adc",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-38dfc931051a1a74/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 24438424,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"4c4784a630d75d5e19ff9f82d60f11ac33ae775e1d122b698fa30cf67e9a8d74\"\n}\n"
+    },
+    {
+      "name": "gfx950-38dfc931051a1a74.stderr",
+      "sha256": "4c4784a630d75d5e19ff9f82d60f11ac33ae775e1d122b698fa30cf67e9a8d74",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-38dfc931051a1a74/kernel.s: 13375:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-38dfc931051a1a74.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-3ddef70240205011.json",
+      "sha256": "dfb2372c3cc5b7d27d249446422d4d1d3a896bc6730360c56940aa8a1c0cbab5",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-3ddef70240205011/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 7979246,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"25ee6fd54841ee10b03e610866e5932e98bfe3c8d3acc88835b6ffc5de9d6473\"\n}\n"
+    },
+    {
+      "name": "gfx950-3ddef70240205011.stderr",
+      "sha256": "25ee6fd54841ee10b03e610866e5932e98bfe3c8d3acc88835b6ffc5de9d6473",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-3ddef70240205011/kernel.s: 498:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-3ddef70240205011.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-406809041324535e.json",
+      "sha256": "5a538d7ae8238fb19459c7312a0f444ccbb9b195d44b79bd56048c73c1afc591",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-406809041324535e/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 14619417,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"6535fd059de9caf6aa267c1ec02d4bf3510696e382d6b918a521ee03db65a725\"\n}\n"
+    },
+    {
+      "name": "gfx950-406809041324535e.stderr",
+      "sha256": "6535fd059de9caf6aa267c1ec02d4bf3510696e382d6b918a521ee03db65a725",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-406809041324535e/kernel.s: 1186:2: `buffer_load_dwordx4` expects 4 operands, got 3\n"
+    },
+    {
+      "name": "gfx950-406809041324535e.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-42c779e29097a080.json",
+      "sha256": "b7e7d83915ee5f8b1660a03bcb1e27563d45e0f26bc8946ed9194b84bdc4e57c",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-42c779e29097a080/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 21202249,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"dc0284f0cc04371b3c97fca2c228fe0ece626cc7af4fa075bd1350bab95c24b5\"\n}\n"
+    },
+    {
+      "name": "gfx950-42c779e29097a080.stderr",
+      "sha256": "dc0284f0cc04371b3c97fca2c228fe0ece626cc7af4fa075bd1350bab95c24b5",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-42c779e29097a080/kernel.s: 54:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-42c779e29097a080.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-4b1d3ce421ccd756.json",
+      "sha256": "191f7443e765fcea272fa8636559669c6377ea7dc704d4dbcb259ad6d0bf002a",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-4b1d3ce421ccd756/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 6707867,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"52bd29f6847100ac300b84a0e4838b9b7f70bdb3137069627e801a31dcaa089b\"\n}\n"
+    },
+    {
+      "name": "gfx950-4b1d3ce421ccd756.stderr",
+      "sha256": "52bd29f6847100ac300b84a0e4838b9b7f70bdb3137069627e801a31dcaa089b",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-4b1d3ce421ccd756/kernel.s: 75:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-4b1d3ce421ccd756.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-517ee2d35b791bd4.json",
+      "sha256": "e0ac57d310a3ca9e0ef6c1ef44ff01871b723e989556adbb448f5364011a9f65",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-517ee2d35b791bd4/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 22561622,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"89fc5fc367727442ad298cdcce7ca465c250be7bfec5609ce95e7043f2e5f303\"\n}\n"
+    },
+    {
+      "name": "gfx950-517ee2d35b791bd4.stderr",
+      "sha256": "89fc5fc367727442ad298cdcce7ca465c250be7bfec5609ce95e7043f2e5f303",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-517ee2d35b791bd4/kernel.s: 13375:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-517ee2d35b791bd4.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-55e3958c6d271410.json",
+      "sha256": "2eb6c49c06fdc11a9c44d9d0b38591e6f71ace1e0b80914388b6c17995944387",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-55e3958c6d271410/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 49027750,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"7e58b4626590e1917fe15634e4c87bbede635fc539fae302cba07f20c2af19fe\"\n}\n"
+    },
+    {
+      "name": "gfx950-55e3958c6d271410.stderr",
+      "sha256": "7e58b4626590e1917fe15634e4c87bbede635fc539fae302cba07f20c2af19fe",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-55e3958c6d271410/kernel.s: 36057:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-55e3958c6d271410.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-578ddeb68757af1d.json",
+      "sha256": "5b011f53f110b1ff01970e1e1b7336bfd15709c8420c78be8f245e0a0ed8345d",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-578ddeb68757af1d/kernel.s\"\n  ],\n  \"returncode\": 0,\n  \"timed_out\": false,\n  \"elapsed_ns\": 6207304,\n  \"stdout_sha256\": \"be234930c8c11a6822b167d9bd16e68c186606383a5cc822ac0bd30f94b31a99\",\n  \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"\n}\n"
+    },
+    {
+      "name": "gfx950-578ddeb68757af1d.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-578ddeb68757af1d.stdout",
+      "sha256": "be234930c8c11a6822b167d9bd16e68c186606383a5cc822ac0bd30f94b31a99",
+      "text": "Parsed successfully: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-578ddeb68757af1d/kernel.s (gfx950)\n  Entries (kernels): 1\n"
+    },
+    {
+      "name": "gfx950-5797e6a1aca8baa5.json",
+      "sha256": "5c6ff02a596f7796b43f37a701d2cb1a8b0aac0eb814f78d6644f62dae528aef",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-5797e6a1aca8baa5/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 49790419,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"4f058d6c6dfe642a9033a9249093af2eae2182f56f06710b63014a2a25e2232c\"\n}\n"
+    },
+    {
+      "name": "gfx950-5797e6a1aca8baa5.stderr",
+      "sha256": "4f058d6c6dfe642a9033a9249093af2eae2182f56f06710b63014a2a25e2232c",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-5797e6a1aca8baa5/kernel.s: 54:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-5797e6a1aca8baa5.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-59a9067b72f1185d.json",
+      "sha256": "0ce6076fc6033cbbf5adb7f1fe6b17fe00bf75f78e3197ec6f99d1b24fb02d98",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-59a9067b72f1185d/kernel.s\"\n  ],\n  \"returncode\": 0,\n  \"timed_out\": false,\n  \"elapsed_ns\": 7144646,\n  \"stdout_sha256\": \"4b13fb5a0caa8d89ee57f02610ee9c259e6edbd2ad1c28a7f618ac516877bbf0\",\n  \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"\n}\n"
+    },
+    {
+      "name": "gfx950-59a9067b72f1185d.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-59a9067b72f1185d.stdout",
+      "sha256": "4b13fb5a0caa8d89ee57f02610ee9c259e6edbd2ad1c28a7f618ac516877bbf0",
+      "text": "Parsed successfully: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-59a9067b72f1185d/kernel.s (gfx950)\n  Entries (kernels): 2\n"
+    },
+    {
+      "name": "gfx950-5fff0014163b750f.json",
+      "sha256": "a446eff9e8377d3a3b5e370dea0764652b135d2d2140821188aeb82ea7554fbc",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-5fff0014163b750f/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 12073502,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"5549f54310e61c386e6b29f6855a90bc941fd201dc7b73d053f3b360f3263044\"\n}\n"
+    },
+    {
+      "name": "gfx950-5fff0014163b750f.stderr",
+      "sha256": "5549f54310e61c386e6b29f6855a90bc941fd201dc7b73d053f3b360f3263044",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-5fff0014163b750f/kernel.s: 5096:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-5fff0014163b750f.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-63a39b0bac4bd064.json",
+      "sha256": "4d1501b21f4f4177215900ff52e0869c0e292d17ea2785de3c56c0c31f7e9616",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-63a39b0bac4bd064/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 4283771,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"d580453fe2c602a516b9f0d43fdf464c1b2725c55ef6b3cac5a512ae458cb0f7\"\n}\n"
+    },
+    {
+      "name": "gfx950-63a39b0bac4bd064.stderr",
+      "sha256": "d580453fe2c602a516b9f0d43fdf464c1b2725c55ef6b3cac5a512ae458cb0f7",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-63a39b0bac4bd064/kernel.s: 30:2: `buffer_load_dword` expects 4 operands, got 3\n"
+    },
+    {
+      "name": "gfx950-63a39b0bac4bd064.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-6dcc4d58a3889fa9.json",
+      "sha256": "da335bd9ce7a42d63511d57b241058488c2083016e9a10a1d6229880d5fb1324",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-6dcc4d58a3889fa9/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 5625592,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"1efc55914f37062d995e7c81a27710ea619330c1f406e48dc1627aed7a90c25b\"\n}\n"
+    },
+    {
+      "name": "gfx950-6dcc4d58a3889fa9.stderr",
+      "sha256": "1efc55914f37062d995e7c81a27710ea619330c1f406e48dc1627aed7a90c25b",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-6dcc4d58a3889fa9/kernel.s: 22:2: `buffer_load_dwordx4` expects 4 operands, got 3\n"
+    },
+    {
+      "name": "gfx950-6dcc4d58a3889fa9.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-6f89c165b6fe1f19.json",
+      "sha256": "87bb407a673bb98e7d5b3061b89ac29bc6b42c14f9b01467f461b02f9a8cab1c",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-6f89c165b6fe1f19/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 21985529,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"a5c1837763102f9ef0a4b2e2e3d7df45815a8f0aeef70cb8b0b55b3ab20a3f95\"\n}\n"
+    },
+    {
+      "name": "gfx950-6f89c165b6fe1f19.stderr",
+      "sha256": "a5c1837763102f9ef0a4b2e2e3d7df45815a8f0aeef70cb8b0b55b3ab20a3f95",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-6f89c165b6fe1f19/kernel.s: 13375:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-6f89c165b6fe1f19.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-70bc517a33118682.json",
+      "sha256": "e5634e090b990de7c78a307ed9454cd05c7f6fd98764f56859ec557242996fce",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-70bc517a33118682/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 191624087,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"bbce17ed6c036479ecd5b3e527420c92413516e2aacf6b4d9158d0aa221ddd39\"\n}\n"
+    },
+    {
+      "name": "gfx950-70bc517a33118682.stderr",
+      "sha256": "bbce17ed6c036479ecd5b3e527420c92413516e2aacf6b4d9158d0aa221ddd39",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-70bc517a33118682/kernel.s: 845:2: unsupported AMD instruction `global_store_short_d16_hi`\n"
+    },
+    {
+      "name": "gfx950-70bc517a33118682.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-77d0b083d6cd6304.json",
+      "sha256": "56d9fe49927bdaf591952b935def43fcca9d4d08bc7c5ab5517be7cac4bb8907",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-77d0b083d6cd6304/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 8557383,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"f23bc722815d920666adb26ef6f9ab5f3b9d24d584f5c561f657d95859120a78\"\n}\n"
+    },
+    {
+      "name": "gfx950-77d0b083d6cd6304.stderr",
+      "sha256": "f23bc722815d920666adb26ef6f9ab5f3b9d24d584f5c561f657d95859120a78",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-77d0b083d6cd6304/kernel.s: 498:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-77d0b083d6cd6304.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-7ca9f80ceb2d92b9.json",
+      "sha256": "332b995c5e083a841f39cf242f9f3eba95623004d33df8f4f4ecf76781742a67",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-7ca9f80ceb2d92b9/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 47147550,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"db7c3166ee8f5b61e2325d0d297949a778390cc296f25b1631f192004faf0cea\"\n}\n"
+    },
+    {
+      "name": "gfx950-7ca9f80ceb2d92b9.stderr",
+      "sha256": "db7c3166ee8f5b61e2325d0d297949a778390cc296f25b1631f192004faf0cea",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-7ca9f80ceb2d92b9/kernel.s: 36057:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-7ca9f80ceb2d92b9.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-81169514fd5cdf8a.json",
+      "sha256": "cc0276e09301555255e03060961f0f2edb3070a9bd4948361ab844269da4b793",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-81169514fd5cdf8a/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 22129260,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"feb1c219451f2e19dd3734435a3d5ee4c7a63eb572103ee1ca2538f2d30da896\"\n}\n"
+    },
+    {
+      "name": "gfx950-81169514fd5cdf8a.stderr",
+      "sha256": "feb1c219451f2e19dd3734435a3d5ee4c7a63eb572103ee1ca2538f2d30da896",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-81169514fd5cdf8a/kernel.s: 13375:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-81169514fd5cdf8a.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-876158829553904c.json",
+      "sha256": "605701d30825ddc93ef3e8724b491096e9f6a0f26cf7a9d832dd4ec114747396",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-876158829553904c/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 22139677,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"e88ed604f69adc2d956504a92e2eb50c829d9b1b2bac9ea12ae6629b461ede5d\"\n}\n"
+    },
+    {
+      "name": "gfx950-876158829553904c.stderr",
+      "sha256": "e88ed604f69adc2d956504a92e2eb50c829d9b1b2bac9ea12ae6629b461ede5d",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-876158829553904c/kernel.s: 30:2: `buffer_load_dword` expects 4 operands, got 3\n"
+    },
+    {
+      "name": "gfx950-876158829553904c.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-8b2caf1aa1771858.json",
+      "sha256": "ba41b33ce9965fbc40c617c20f331d49b2c6f6492d9f6c98d818ba0dccad743c",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-8b2caf1aa1771858/kernel.s\"\n  ],\n  \"returncode\": 0,\n  \"timed_out\": false,\n  \"elapsed_ns\": 114099464,\n  \"stdout_sha256\": \"be2f523ce7e297afd05fb35a12ea62f46c6ad339065fea185b4b2b0150619cb9\",\n  \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"\n}\n"
+    },
+    {
+      "name": "gfx950-8b2caf1aa1771858.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-8b2caf1aa1771858.stdout",
+      "sha256": "be2f523ce7e297afd05fb35a12ea62f46c6ad339065fea185b4b2b0150619cb9",
+      "text": "Parsed successfully: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-8b2caf1aa1771858/kernel.s (gfx950)\n  Entries (kernels): 252\n"
+    },
+    {
+      "name": "gfx950-8d7a9dd09b080fd2.json",
+      "sha256": "20dd56bec94f2d1d3d39e8a3657ecaf656eaecfc5c90d178d60489f62b7b943e",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-8d7a9dd09b080fd2/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 11451768,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"5b32b50cdbdaa0e936616a5730b65f6e997d0617d6a58168b677c09c96bb6774\"\n}\n"
+    },
+    {
+      "name": "gfx950-8d7a9dd09b080fd2.stderr",
+      "sha256": "5b32b50cdbdaa0e936616a5730b65f6e997d0617d6a58168b677c09c96bb6774",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-8d7a9dd09b080fd2/kernel.s: 205:2: unsupported AMD instruction `s_memtime`\n"
+    },
+    {
+      "name": "gfx950-8d7a9dd09b080fd2.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-8d7f338dbeba7c4e.json",
+      "sha256": "53fff5622083eca08d541548fbe99b06c01d93798cb22596fc9b3d8255b1eb3f",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-8d7f338dbeba7c4e/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 6699796,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"abee5cb26b18d755837d8914e53c52c59c59476f702ea3e64fb06a831e73c3bc\"\n}\n"
+    },
+    {
+      "name": "gfx950-8d7f338dbeba7c4e.stderr",
+      "sha256": "abee5cb26b18d755837d8914e53c52c59c59476f702ea3e64fb06a831e73c3bc",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-8d7f338dbeba7c4e/kernel.s: 41:2: `buffer_load_dwordx4` expects 4 operands, got 3\n"
+    },
+    {
+      "name": "gfx950-8d7f338dbeba7c4e.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-910dd473af8a920f.json",
+      "sha256": "0405c682c5072a5fedeee8c20a26f4508e1871ce68343a3772da23b262f5c594",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-910dd473af8a920f/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 12342794,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"1855706e51aa435004855697fd3b79495c78eb3d7edb845942388d64005fe81b\"\n}\n"
+    },
+    {
+      "name": "gfx950-910dd473af8a920f.stderr",
+      "sha256": "1855706e51aa435004855697fd3b79495c78eb3d7edb845942388d64005fe81b",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-910dd473af8a920f/kernel.s: 5093:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-910dd473af8a920f.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-925c00a86315b0f9.json",
+      "sha256": "ee2e19ef41cc37dc30124ac33316c61ff78135420421feaaf6743c065e599e3a",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-925c00a86315b0f9/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 53563901,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"10072a9c151bbee4f136ba334096db4157e57846720538ca2516e3a6a402102a\"\n}\n"
+    },
+    {
+      "name": "gfx950-925c00a86315b0f9.stderr",
+      "sha256": "10072a9c151bbee4f136ba334096db4157e57846720538ca2516e3a6a402102a",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-925c00a86315b0f9/kernel.s: 36057:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-925c00a86315b0f9.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-999e70a3336af51b.json",
+      "sha256": "8b7494fb16d622cc85e61364e16a57714041796dfaa17d10e509c84f74a4263d",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-999e70a3336af51b/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 50220024,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"cf13df219861529fe9d5f642e0a4c9589d26e906d6a666c851698cd1c1a7b509\"\n}\n"
+    },
+    {
+      "name": "gfx950-999e70a3336af51b.stderr",
+      "sha256": "cf13df219861529fe9d5f642e0a4c9589d26e906d6a666c851698cd1c1a7b509",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-999e70a3336af51b/kernel.s: 36057:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-999e70a3336af51b.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-9d30fa45086d719a.json",
+      "sha256": "7ee070e24a41453946d2dd12bf41fe06130f1be60207002362e5cf1c63433efb",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-9d30fa45086d719a/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 49950557,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"bba472dd6525a665cbd77d5cb696c708e24b42ca116559a4f481c8565943da8a\"\n}\n"
+    },
+    {
+      "name": "gfx950-9d30fa45086d719a.stderr",
+      "sha256": "bba472dd6525a665cbd77d5cb696c708e24b42ca116559a4f481c8565943da8a",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-9d30fa45086d719a/kernel.s: 54:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-9d30fa45086d719a.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-a49c9680fcc79de2.json",
+      "sha256": "a6e5b4ebf8c289073bd5dd63d1f707c38aeae1c31f57e20e37be7d15a2cbaae4",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-a49c9680fcc79de2/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 13871187,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"163241e0cfcbedceb666ba38b38f30eeb77e798ad85592cb31b4c5eca9059119\"\n}\n"
+    },
+    {
+      "name": "gfx950-a49c9680fcc79de2.stderr",
+      "sha256": "163241e0cfcbedceb666ba38b38f30eeb77e798ad85592cb31b4c5eca9059119",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-a49c9680fcc79de2/kernel.s: 5093:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-a49c9680fcc79de2.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-b66fc7febcf2f093.json",
+      "sha256": "0a2f62d9dd1532177592691198f0b1b0e73b33aa9b590f8c38624e777d5fe7ca",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-b66fc7febcf2f093/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 32617134,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"202de5608f4d7df150e4eddd0521568099936e57d63d3d8e3f15ac5e2dfd3c00\"\n}\n"
+    },
+    {
+      "name": "gfx950-b66fc7febcf2f093.stderr",
+      "sha256": "202de5608f4d7df150e4eddd0521568099936e57d63d3d8e3f15ac5e2dfd3c00",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-b66fc7febcf2f093/kernel.s: 15547:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-b66fc7febcf2f093.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-b7b496cf9c582880.json",
+      "sha256": "ccab9acf0482b19692bec99e6eba7c8b08359766581be7e1e93352a9d9cbb477",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-b7b496cf9c582880/kernel.s\"\n  ],\n  \"returncode\": 0,\n  \"timed_out\": false,\n  \"elapsed_ns\": 50310547,\n  \"stdout_sha256\": \"68c4332f4c210ea7a125a4b34f6affaffce8ddd5c68c59b843822fab681a2099\",\n  \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"\n}\n"
+    },
+    {
+      "name": "gfx950-b7b496cf9c582880.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-b7b496cf9c582880.stdout",
+      "sha256": "68c4332f4c210ea7a125a4b34f6affaffce8ddd5c68c59b843822fab681a2099",
+      "text": "Parsed successfully: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-b7b496cf9c582880/kernel.s (gfx950)\n  Entries (kernels): 84\n"
+    },
+    {
+      "name": "gfx950-b911670d5562c229.json",
+      "sha256": "1f564789b14490d330c6e4fca11fb860f5130612eefd19eb168229adb2523c25",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-b911670d5562c229/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 989976537,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"3a69ebbfb479b758b9c775a8aae357ee5ba5b295bcbd14bb2c2abbc7edc3fb7a\"\n}\n"
+    },
+    {
+      "name": "gfx950-b911670d5562c229.stderr",
+      "sha256": "3a69ebbfb479b758b9c775a8aae357ee5ba5b295bcbd14bb2c2abbc7edc3fb7a",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-b911670d5562c229/kernel.s: 36:2: unsupported AMD instruction `v_permlane16_swap_b32_e64`\n"
+    },
+    {
+      "name": "gfx950-b911670d5562c229.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-cb935195276a4dc7.json",
+      "sha256": "93dda8fa38981db759adf7d5730db52ed2d160810db4c378f4a5df2c3e36730b",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-cb935195276a4dc7/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 24126501,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"3ace961bcef210196706c1ff760dec8f0f86d4581830cb8ea42ff65ba6b6925d\"\n}\n"
+    },
+    {
+      "name": "gfx950-cb935195276a4dc7.stderr",
+      "sha256": "3ace961bcef210196706c1ff760dec8f0f86d4581830cb8ea42ff65ba6b6925d",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-cb935195276a4dc7/kernel.s: 13375:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-cb935195276a4dc7.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-ced199d64e51c79d.json",
+      "sha256": "5a77b192ad754888c9156e36bef48c4c3ecd894a891811385850eb8a8dcd8a60",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-ced199d64e51c79d/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 5397557,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"fed1b4ed9931445177aea9f7fe233cc7b515c51ae92693edc79a62b61c6604bd\"\n}\n"
+    },
+    {
+      "name": "gfx950-ced199d64e51c79d.stderr",
+      "sha256": "fed1b4ed9931445177aea9f7fe233cc7b515c51ae92693edc79a62b61c6604bd",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-ced199d64e51c79d/kernel.s: 54:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-ced199d64e51c79d.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-d10b723c179a65d1.json",
+      "sha256": "4a82537b76c0aa5e7c9e5c2f76973e12dce67e5be0464deae6ee5095a07a0611",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d10b723c179a65d1/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 5821365,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"fb07fa0deeab6a1061d0d3949e90413ff19aa709acaa4408227dadb19f4437e4\"\n}\n"
+    },
+    {
+      "name": "gfx950-d10b723c179a65d1.stderr",
+      "sha256": "fb07fa0deeab6a1061d0d3949e90413ff19aa709acaa4408227dadb19f4437e4",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d10b723c179a65d1/kernel.s: 60:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-d10b723c179a65d1.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-d144dd3e7cd8528c.json",
+      "sha256": "b7c84cfae4132ef69ce8e46ba14e7e481e23b5ea656909edace11c175b52d17d",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d144dd3e7cd8528c/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 14276611,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"9673acc59cae7ac5205b5d7efb2082265030457b496c0c7f44913452f1ae71e6\"\n}\n"
+    },
+    {
+      "name": "gfx950-d144dd3e7cd8528c.stderr",
+      "sha256": "9673acc59cae7ac5205b5d7efb2082265030457b496c0c7f44913452f1ae71e6",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d144dd3e7cd8528c/kernel.s: 55:2: unsupported AMD instruction `v_rcp_iflag_f32_e32`\n"
+    },
+    {
+      "name": "gfx950-d144dd3e7cd8528c.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-d31ff00b424fb0e3.json",
+      "sha256": "954d5dcbf7c49813677a306d5a1402660c62188a7f481ef964731f3079fa1ad8",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d31ff00b424fb0e3/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 14226149,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"acd3f553465e31911fb7c59537086b53f538ebe601cde6573e828e47d4c3e6be\"\n}\n"
+    },
+    {
+      "name": "gfx950-d31ff00b424fb0e3.stderr",
+      "sha256": "acd3f553465e31911fb7c59537086b53f538ebe601cde6573e828e47d4c3e6be",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d31ff00b424fb0e3/kernel.s: 1169:2: `buffer_load_dwordx4` expects 4 operands, got 3\n"
+    },
+    {
+      "name": "gfx950-d31ff00b424fb0e3.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-d4a16132c07b2789.json",
+      "sha256": "e28c21ced9c7d4845a1553c32522ec1492e8c59fd9b7416fc0f856ab1a512572",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d4a16132c07b2789/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 12036205,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"ac411636057000cda53ff4dcab2e9c613cff7f28a4afbfed2d29805f77551db6\"\n}\n"
+    },
+    {
+      "name": "gfx950-d4a16132c07b2789.stderr",
+      "sha256": "ac411636057000cda53ff4dcab2e9c613cff7f28a4afbfed2d29805f77551db6",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d4a16132c07b2789/kernel.s: 593:2: `buffer_load_dwordx4` expects 4 operands, got 3\n"
+    },
+    {
+      "name": "gfx950-d4a16132c07b2789.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-d7f924a6617305c3.json",
+      "sha256": "a1cbad3f05dec865c02afb9e70dcfcbd8f79c17e93a1102742cde4a36408c7b1",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d7f924a6617305c3/kernel.s\"\n  ],\n  \"returncode\": 0,\n  \"timed_out\": false,\n  \"elapsed_ns\": 6835400,\n  \"stdout_sha256\": \"45eecab411e2d5f4d5371db70f7eba880a409302f5105e2a04de564e7529c28e\",\n  \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"\n}\n"
+    },
+    {
+      "name": "gfx950-d7f924a6617305c3.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-d7f924a6617305c3.stdout",
+      "sha256": "45eecab411e2d5f4d5371db70f7eba880a409302f5105e2a04de564e7529c28e",
+      "text": "Parsed successfully: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-d7f924a6617305c3/kernel.s (gfx950)\n  Entries (kernels): 2\n"
+    },
+    {
+      "name": "gfx950-efd96a427f1dcd48.json",
+      "sha256": "199cfcf27e430d37029a7acfde0bcf5c9dec95bbad72f21b810187b2470aa919",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-efd96a427f1dcd48/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 5388607,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"ea44cf8fccc17ca6b5d7410a7dcb783fc31d4a478a66f9c3cdb32310ebf261a6\"\n}\n"
+    },
+    {
+      "name": "gfx950-efd96a427f1dcd48.stderr",
+      "sha256": "ea44cf8fccc17ca6b5d7410a7dcb783fc31d4a478a66f9c3cdb32310ebf261a6",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx950-efd96a427f1dcd48/kernel.s: 33:2: `buffer_load_dword` expects 4 operands, got 3\n"
+    },
+    {
+      "name": "gfx950-efd96a427f1dcd48.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "gfx950-ff00456202583fb7.json",
+      "sha256": "a8525bd8100e9f312e03b18ed8780065c6b2a0889654128e01f195851d2be3e7",
+      "text": "{\n  \"command\": [\n    \"/tmp/ptx-native-async-compare64-candidate-freeze-20261031/candidate-volta\",\n    \"--no-log-file\",\n    \"--backend\",\n    \"amdgpu\",\n    \"--target\",\n    \"gfx950\",\n    \"parse\",\n    \"/tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-ff00456202583fb7/kernel.s\"\n  ],\n  \"returncode\": 1,\n  \"timed_out\": false,\n  \"elapsed_ns\": 33588315,\n  \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"stderr_sha256\": \"6085b386e594f2ed0511fcdbc06487401c532f74cc704c01d5344a8c63bcd4d2\"\n}\n"
+    },
+    {
+      "name": "gfx950-ff00456202583fb7.stderr",
+      "sha256": "6085b386e594f2ed0511fcdbc06487401c532f74cc704c01d5344a8c63bcd4d2",
+      "text": "error: /tmp/ptx-hipkittens-campaign-20261031/recipe-followup/gfx950-ff00456202583fb7/kernel.s: 15547:2: unsupported AMD instruction `s_swappc_b64`\n"
+    },
+    {
+      "name": "gfx950-ff00456202583fb7.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    }
+  ]
+}

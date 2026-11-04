@@ -15,8 +15,8 @@ mod lower;
 
 pub use analysis::{AnalysisError, AnalysisParts, AnalysisResult, analyze, write_op_counts};
 pub use config::{
-    AnalysisConfig, ArrayDef, ArrayKind, FieldValue, IntWidth, ParamValue, StructField,
-    TensorMapMode, TensorMapValue,
+    AnalysisConfig, ArrayDef, ArrayKind, FieldValue, IntWidth, ParamValue, SharedAllocation,
+    StructField, TensorMapMode, TensorMapValue,
 };
 pub use eval::{ClcMisuse, EvalError, OutputsUnavailable, Stats, ThreadId, TmaMisuse};
 pub use ir::tensor_map::{

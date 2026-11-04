@@ -1,0 +1,19 @@
+{
+  "baseline_commit": "e8f819919e5d4628b68aa735deacaaa48d46cf23",
+  "rust": {
+    "command": "cargo test --release --workspace --no-fail-fast -j 4 -- --test-threads 4",
+    "passed": 1059,
+    "failed": 1,
+    "ignored": 0,
+    "failures": [
+      "volta_pipeline::false_positive_tests::test_aligned_bar_sync_reached_on_different_iterations"
+    ]
+  },
+  "python": {
+    "command": "uv run --reinstall-package volta pytest crates/volta_py",
+    "passed": 15,
+    "failed": 0,
+    "ignored": 0
+  },
+  "integrated_status": "not-yet-validated"
+}

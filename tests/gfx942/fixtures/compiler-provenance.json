@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "target": "gfx942",
+  "host": "sharkmi300x-1",
+  "scope": "Genuine native compiler outputs, not edited or retargeted assembly; compilation/assembly alone make no semantic verification claim.",
+  "tools": {
+    "clang++": {
+      "path": "/opt/rocm/llvm/bin/clang++",
+      "realpath": "/opt/rocm-7.2.4/lib/llvm/bin/clang-22",
+      "sha256": "beaae27cf876812ec1d32f8731317ba837175536a847590f5e51c409c2831b48",
+      "version": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.4 26084 f58b06dce1f9c15707c5f808fd002e18c2accf7e)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /opt/rocm-7.2.4/lib/llvm/bin\nConfiguration file: /opt/rocm-7.2.4/lib/llvm/bin/clang++.cfg\n"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm/llvm/bin/llvm-mc",
+      "realpath": "/opt/rocm-7.2.4/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm/llvm/bin/ld.lld",
+      "realpath": "/opt/rocm-7.2.4/lib/llvm/bin/lld",
+      "sha256": "3a4db0f90a45844be78a068b47f886b7ba6000a75a88876d9999cb0bb46fb5f3",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm f58b06dce1f9c15707c5f808fd002e18c2accf7e) (compatible with GNU linkers)\n"
+    }
+  },
+  "fixtures": [
+    {
+      "source": "native-copy-add.hip",
+      "assembly": "native-copy-add.s",
+      "source_sha256": "8afb33c6f2fe8a9d2c2c4bacc5b1173c9cb9c2b0922fdd0e1afafd3471d18d52",
+      "assembly_sha256": "8a5ad0e582a6a4b0d61c8a91242459c0cccf59cddd79cf9b3d56534a3e41ac57",
+      "object_sha256": "c3be927586612c2d017841259c9d29f6b3ff0b6adf3bca5df3b350dcbadc4d9f",
+      "code_object_sha256": "c745219f2877937c2e07b3ad82d52ddd2f418a44b6e86bc4f2c65f28bc652935",
+      "compile": {
+        "argv": [
+          "/opt/rocm/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx942",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-copy-add.hip",
+          "-o",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-copy-add.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx942",
+          "-filetype=obj",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-copy-add.s",
+          "-o",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-copy-add.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm/llvm/bin/ld.lld",
+          "-shared",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-copy-add.o",
+          "-o",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-copy-add.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-lds-ids.hip",
+      "assembly": "native-lds-ids.s",
+      "source_sha256": "c66f7382f477c03888bbb0bd3d2d3982e9c724c2fd47dbb72d0f7d6c2eca196e",
+      "assembly_sha256": "9608b0cde97271c00bfcc9be0c18358eec31f655187351769066ee41b3fbe865",
+      "object_sha256": "85b1465963f8942037997866b5877f3514095d95db831a099c4b1907d9656a4a",
+      "code_object_sha256": "caf229a5a9cf9c8963adac3d9152f53680ccef9b963dbccf22413e4e4911c6bf",
+      "compile": {
+        "argv": [
+          "/opt/rocm/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx942",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-lds-ids.hip",
+          "-o",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-lds-ids.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx942",
+          "-filetype=obj",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-lds-ids.s",
+          "-o",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-lds-ids.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm/llvm/bin/ld.lld",
+          "-shared",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-lds-ids.o",
+          "-o",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-lds-ids.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-mfma.hip",
+      "assembly": "native-mfma.s",
+      "source_sha256": "e790e67ac1748b850b3ac6f8ec4edb5486823cef5514a0543825b73298efe2e1",
+      "assembly_sha256": "1c52b31917fe837e8ecea8701f24e56692241e75797b727d3ea5fba73d65416a",
+      "object_sha256": "4bf0a0dd30eb8c929ac0807b94a9e8497a1e7e0a8100f8e6e62af6cb536184ff",
+      "code_object_sha256": "335ebdec262b83d47209516f90fbecb15acdc07eaa8b74ab0bc77aae7f8adb7c",
+      "compile": {
+        "argv": [
+          "/opt/rocm/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx942",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-mfma.hip",
+          "-o",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-mfma.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx942",
+          "-filetype=obj",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-mfma.s",
+          "-o",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-mfma.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm/llvm/bin/ld.lld",
+          "-shared",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-mfma.o",
+          "-o",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-mfma.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "source": "native-pipeline-f16.hip",
+      "assembly": "native-pipeline-f16.s",
+      "source_sha256": "d623f770252e62094051b775f9b01cffb31816f356553b7b556302edbc78f562",
+      "assembly_sha256": "50a234e1b7aa8e0b9cdef9bd54005a288b58253eb4e810e4910cb90db7e86015",
+      "object_sha256": "5ea3ff84ac05ed7590365971f6c672eb64b7898123103cc1c76809821d2fc4e3",
+      "code_object_sha256": "0078c969489d585d9ae7c3a2f666c3fd7dc0d7ca8ba2060807e860288ccdc0dc",
+      "compile": {
+        "argv": [
+          "/opt/rocm/llvm/bin/clang++",
+          "-x",
+          "hip",
+          "--offload-device-only",
+          "--offload-arch=gfx942",
+          "-O2",
+          "-std=c++17",
+          "-S",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-pipeline-f16.hip",
+          "-o",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-pipeline-f16.s"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "assemble": {
+        "argv": [
+          "/opt/rocm/llvm/bin/llvm-mc",
+          "--triple=amdgcn-amd-amdhsa",
+          "--mcpu=gfx942",
+          "-filetype=obj",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-pipeline-f16.s",
+          "-o",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-pipeline-f16.o"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "link": {
+        "argv": [
+          "/opt/rocm/llvm/bin/ld.lld",
+          "-shared",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-pipeline-f16.o",
+          "-o",
+          "/tmp/ptx-verifier-gfx942-fixtures-7UznZT/native-pipeline-f16.hsaco"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ]
+}

@@ -475,4 +475,94 @@ mod chain_perf_tests {
             ops
         );
     }
+
+    #[test]
+    fn additive_chains_with_interleaved_existing_terms_stay_within_linear_budget() {
+        let mut arena = ExprArena::new();
+        let zero = arena.int(0);
+        let terms: Vec<_> = (0..2048)
+            .map(|i| {
+                let a = arena.param_symbol(format!("a{i}"));
+                let b = arena.param_symbol(format!("b{i}"));
+                arena.mul(a, b)
+            })
+            .collect();
+        let mut left = zero;
+        let mut right = zero;
+        for &term in &terms {
+            left = arena.add(left, term);
+            right = arena.add(term, right);
+        }
+        let mut session = Session::with_budget(100_000);
+        // Reusing terms interned in a different order defeats a traversal-order
+        // shortcut; both association directions must remain efficient.
+        for &term in terms.iter().step_by(2) {
+            session.canonicalize(Side::Reference, &arena, term).unwrap();
+        }
+        assert!(
+            session
+                .check_equivalent(&arena, left, &arena, right)
+                .unwrap()
+        );
+        assert!(session.ops_used() < 100_000);
+
+        let changed = arena.add(right, terms[1701]);
+        assert!(
+            !Session::new()
+                .check_equivalent(&arena, left, &arena, changed)
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn additive_spines_preserve_shared_nodes_rationals_cancellation_and_errors() {
+        let mut arena = ExprArena::new();
+        let a = arena.param_symbol("a");
+        let b = arena.param_symbol("b");
+        let one = arena.int(1);
+        let two = arena.int(2);
+        let zero = arena.int(0);
+        let ab = arena.add(a, b);
+        let shared_twice = arena.add(ab, ab);
+        let doubled = arena.mul(two, ab);
+        assert!(
+            Session::new()
+                .check_equivalent(&arena, shared_twice, &arena, doubled)
+                .unwrap()
+        );
+
+        let reciprocal_a = arena.div(one, a);
+        let reciprocal_b = arena.div(one, b);
+        let rational_sum = arena.add(reciprocal_a, reciprocal_b);
+        let rational_spine = arena.add(rational_sum, reciprocal_a);
+        let twice_a = arena.mul(two, reciprocal_a);
+        let expected = arena.add(twice_a, reciprocal_b);
+        assert!(
+            Session::new()
+                .check_equivalent(&arena, rational_spine, &arena, expected)
+                .unwrap()
+        );
+
+        let negative_ab = arena.neg(ab);
+        let cancel = arena.add(shared_twice, negative_ab);
+        assert!(
+            Session::new()
+                .check_equivalent(&arena, cancel, &arena, ab)
+                .unwrap()
+        );
+        let undefined = arena.undefined();
+        let bad_leaf = arena.add(negative_ab, undefined);
+        let bad = arena.add(ab, bad_leaf);
+        assert_eq!(
+            Session::new().canonicalize(Side::Reference, &arena, bad),
+            Err(CanonError::Undefined)
+        );
+        let division_by_zero = arena.div(one, zero);
+        let bad_leaf = arena.add(negative_ab, division_by_zero);
+        let bad = arena.add(ab, bad_leaf);
+        assert_eq!(
+            Session::new().canonicalize(Side::Reference, &arena, bad),
+            Err(CanonError::DivisionByZero)
+        );
+    }
 }

@@ -2,13 +2,37 @@
 
 The event-graph viewer. It records kernel runs into a directory (a **run
 store**) and turns that store into **one self-contained HTML page** showing
-each run's event graph as a space-time diagram. The diagram has a lane per
+each run's displayed event graph as a space-time diagram. The diagram has a lane per
 thread, per issuing thread's async ops and per sync object; the typed edges;
-the graph checks' findings; and the PTX source behind every event.
+the graph checks' findings; and the PTX or native AMD source behind every event.
 
 ```sh
-just viz   # VOLTA_VIZ_DIR=<dir> cargo test -p volta_pipeline, then volta viz <dir> -o target/volta-viz/volta-graphs.html
+just viz   # record pipeline test runs and build the viewer
 ```
+
+For a smaller store, use the [gfx1250 corpus guide](../../tests/gfx1250/README.md).
+Set `VOLTA_VIZ_DIR` to an absolute path: Cargo runs each test from its crate
+folder, so a relative store path may differ from the subsequent CLI invocation.
+
+For graphs above 50,000 events, `write_run` exports a display selection. Graph
+construction, all checks and the run's status still use the complete graph.
+The document preserves the complete source, target and launch metadata, and
+reports total/included/omitted event and finding counts in `display`.
+`meta.events` remains the full graph count; `events` contains displayed rows.
+`eventIds[row]` gives each row's original graph EventId. Edges, async operation
+links and finding event lists index the displayed rows; the UI displays original
+IDs and accepts them in event navigation. Records without these additive fields
+retain the original identity mapping.
+
+Selection prioritizes terminal notes and up to 128 findings per property,
+retaining each selected finding's complete witness endpoints. Findings whose
+endpoints cannot fit are omitted whole and counted. Remaining space covers
+first/last events per executed source instruction and lane, nearby witness
+context, and evenly spaced events. Async issue/completion endpoints stay
+together so filtering cannot invent a pending operation. The page discloses the
+selection and omitted counts. Diagram layers describe the retained display,
+not cycle timing or all paths in the full graph. `write_complete_run` keeps every
+event for archival consumers; such documents can exceed browser string limits.
 
 ## High-level logic
 
@@ -27,7 +51,8 @@ one HTML page: viewer/{page.html, style.css, app.js} inlined
 - `store.rs`: the store layout. The page's index is built from the
   `.meta.json` summaries alone, so no document is parsed up front.
 - `export.rs`: one run to its JSON document, and its **status**: race-free,
-  race-condition (a memory-conflict, proxy-order or tensor-order failure),
+  race-condition (a native AMD memory/readiness failure, or a PTX memory-conflict,
+  proxy-order or tensor-order failure),
   check-failed, deadlock, unsupported, unknown, error or unchecked.
 - `json.rs`: a minimal JSON value and compact writer (the crate's only wire
   format; no serde).
@@ -59,7 +84,7 @@ one HTML page: viewer/{page.html, style.css, app.js} inlined
 4. **Findings**: every check's witnesses and unresolved obligations, and a
    stuck trace's blocked threads, resolved to event ids so the page can ring
    them.
-5. **Source**: the PTX text and a pc -> line map from the graph's
+5. **Source**: the PTX or native AMD text and a pc -> line map from the graph's
    `Provenance`.
 
 ### In the browser (`viewer/app.js`)
@@ -76,3 +101,54 @@ kind, and keyboard navigation (`?` lists the keys).
 `volta_graph` (the graph), `volta_graph_check` (findings, pipeline edges) and
 `volta_expr` (rendering stored values). `tests/viewer_tests.rs` covers export
 and page assembly.
+
+## Native AMD records
+
+Named signal-time count updates show their updated expected arrivals on the
+single signal row and retain ordinary arrival-to-release edges.
+
+The run store accepts PTX, gfx942/gfx950 wave64 and gfx1250 wave32 graphs.
+Native runs show AMD wave/lane labels, target-width EXEC and register masks,
+counter charges and wait thresholds, MFMA or WMMA operands, delay states,
+LDS/tensor footprints and barrier generations. Typed AMD findings
+link the issuing and consuming events back to their source lines. AMD barrier deadlocks
+name missing waves directly.
+
+Gfx1250 named-barrier rows retain physical ID, initialization incarnation and
+phase, including INIT counts and WAIT's encoded versus last-joined selector.
+Candidate signal/drop-to-release edges remain separate from checked findings.
+Named deadlocks display expected and observed arrival counts; they do not invent
+a PTX synchronization object or treat END as a named drop.
+
+The wire format remains `volta-viz 1`: `launch.wave_size` and
+`launch.source_language` and `launch.wave_kind` are additive fields. Legacy
+stores without geometry/language metadata use the warp32 fallback; stored AMD
+wave64 width still identifies wave grouping. Source-only unsupported outcomes
+retain declared target/geometry separately, without inventing a launch. Source
+filenames still occupy the legacy `ptx` metadata key, including `.s`
+files, so stored-run readers remain compatible. Candidate barrier/issue edges are
+visualized as recorded associations; check findings establish their validity.
+
+Run `cargo test -p volta_viz --test amdgpu_viewer_tests` for AMD source mapping,
+wait/readiness witnesses, aborted/unsupported status, and deadlock export coverage.
+
+
+## Browser tests
+
+The [mixed-target Chromium harness](tests/browser/README.md) covers PTX,
+gfx942, gfx950 and gfx1250. Rendering a run is separate from mathematical
+proof and hardware validation.
+
+The full-size matrix Chromium harness requires the registered matrix workload
+records and typed shared-memory mutation controls. It checks complete source hashes
+against the registration, wave32 geometry, disclosed omissions, original IDs
+outside the display row range, omitted-ID rejection and finding/source links.
+The shared harness also accepts legacy identity-mapped records in the same page.
+
+```sh
+PLAYWRIGHT_MODULE=/path/to/playwright node tests/gfx1250/full-parity/browser.cjs mixed/index.html browser-evidence
+PLAYWRIGHT_MODULE=/path/to/playwright node tests/gfx1250/full-parity/matrix_browser.cjs mixed/index.html matrix-browser-evidence tests/gfx1250/full/cases.json
+```
+
+Both commands write browser reports and screenshots. They require actual
+recorded native graphs; no sampled computation substitutes for a full-size run.

@@ -15,6 +15,36 @@ use volta_ptx_analysis::{
 
 use common::*;
 
+#[test]
+fn invalid_launch_geometry_is_rejected_before_thread_allocation() {
+    let module =
+        parse(".version 8.6\n.target sm_100a\n.address_size 64\n.visible .entry k() { ret; }");
+    let mut configs: Vec<_> = [
+        (0, 1, 1),
+        (1, 0, 1),
+        (1, 1, 0),
+        (65_536, 65_536, 1),
+        (65_536, 1, 65_536),
+        (u32::MAX, 2, 1),
+    ]
+    .into_iter()
+    .map(AnalysisConfig::new)
+    .collect();
+    for grid in [(0, 1, 1), (1, 0, 1), (1, 1, 0)] {
+        let mut config = AnalysisConfig::new((1, 1, 1));
+        config.grid_dim = grid;
+        configs.push(config);
+    }
+    for config in configs {
+        match verify(&module, None, config) {
+            Err(AnalysisError::Eval(EvalError::Config { .. })) => {}
+            Err(other) => panic!("expected invalid launch configuration, got {other}"),
+            Ok(_) => panic!("invalid launch geometry reached execution"),
+        }
+    }
+    run_kernel(&module, None, AnalysisConfig::new((2, 3, 4))).unwrap();
+}
+
 /// Run a one-`tcgen05.mma` kernel from `tests/ptx/failing/tcgen05_mma_encoding_*`
 /// (thread 0 issues it, D in a fresh 512-column allocation). The variants
 /// differ only in the `idesc`, the descriptors, `.ws`, and D's offset.

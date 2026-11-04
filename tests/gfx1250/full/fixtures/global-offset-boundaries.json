@@ -1,0 +1,269 @@
+{
+  "schema": 1,
+  "claim": "Assembler boundary observations only; no hardware or complete execution claim. Gfx1250 GLOBAL uses signed24, CDNA gfx950 uses signed13; scale_offset does not widen the immediate.",
+  "tool": {
+    "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+    "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+    "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+  },
+  "primary_reference": {
+    "llvm_commit": "f13414fb26b92bdbbfdf4b2b5401117936da84af",
+    "encoding": "llvm/lib/Target/AMDGPU/FLATInstructions.td: VFLAT_Real, bits<24> offset -> Inst{95-72}",
+    "feature": "FeatureFlatOffsetBits24",
+    "parser": "AMDGPUAsmParser::validateFlatOffset uses getNumFlatOffsetBits and isIntN"
+  },
+  "observations": [
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:-8388609",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n",
+      "stderr": "<stdin>:1:33: error: expected a 24-bit signed offset\nglobal_store_b16 v0, v1, s[2:3] offset:-8388609\n                                ^\n"
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:-8388608",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:-8388608 ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x80,0x00,0x00,0x00,0x00,0x80]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:-4097",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:-4097 ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x80,0x00,0x00,0xff,0xef,0xff]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:-4096",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:-4096 ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x80,0x00,0x00,0x00,0xf0,0xff]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:4095",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:4095 ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x80,0x00,0x00,0xff,0x0f,0x00]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:4096",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:4096 ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x80,0x00,0x00,0x00,0x10,0x00]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:8192",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:8192 ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x80,0x00,0x00,0x00,0x20,0x00]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:8388607",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:8388607 ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x80,0x00,0x00,0xff,0xff,0x7f]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:8388608",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n",
+      "stderr": "<stdin>:1:33: error: expected a 24-bit signed offset\nglobal_store_b16 v0, v1, s[2:3] offset:8388608\n                                ^\n"
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:-8388609 scale_offset",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n",
+      "stderr": "<stdin>:1:33: error: expected a 24-bit signed offset\nglobal_store_b16 v0, v1, s[2:3] offset:-8388609 scale_offset\n                                ^\n"
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:-8388608 scale_offset",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:-8388608 scale_offset ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x81,0x00,0x00,0x00,0x00,0x80]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:-4097 scale_offset",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:-4097 scale_offset ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x81,0x00,0x00,0xff,0xef,0xff]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:-4096 scale_offset",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:-4096 scale_offset ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x81,0x00,0x00,0x00,0xf0,0xff]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:4095 scale_offset",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:4095 scale_offset ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x81,0x00,0x00,0xff,0x0f,0x00]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:4096 scale_offset",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:4096 scale_offset ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x81,0x00,0x00,0x00,0x10,0x00]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:8192 scale_offset",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:8192 scale_offset ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x81,0x00,0x00,0x00,0x20,0x00]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:8388607 scale_offset",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n\tglobal_store_b16 v0, v1, s[2:3] offset:8388607 scale_offset ; encoding: [0x02,0x40,0x06,0xee,0x00,0x00,0x81,0x00,0x00,0xff,0xff,0x7f]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx1250",
+      "asm": "global_store_b16 v0, v1, s[2:3] offset:8388608 scale_offset",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx1250\"\n",
+      "stderr": "<stdin>:1:33: error: expected a 24-bit signed offset\nglobal_store_b16 v0, v1, s[2:3] offset:8388608 scale_offset\n                                ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:-8388609",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:35: error: expected a 13-bit signed offset\nglobal_store_short v0, v1, s[2:3] offset:-8388609\n                                  ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:-8388608",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:35: error: expected a 13-bit signed offset\nglobal_store_short v0, v1, s[2:3] offset:-8388608\n                                  ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:-4097",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:35: error: expected a 13-bit signed offset\nglobal_store_short v0, v1, s[2:3] offset:-4097\n                                  ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:-4096",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n\tglobal_store_short v0, v1, s[2:3] offset:-4096 ; encoding: [0x00,0x90,0x68,0xdc,0x00,0x01,0x02,0x00]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:4095",
+      "accepted": true,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n\tglobal_store_short v0, v1, s[2:3] offset:4095 ; encoding: [0xff,0x8f,0x68,0xdc,0x00,0x01,0x02,0x00]\n",
+      "stderr": ""
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:4096",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:35: error: expected a 13-bit signed offset\nglobal_store_short v0, v1, s[2:3] offset:4096\n                                  ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:8192",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:35: error: expected a 13-bit signed offset\nglobal_store_short v0, v1, s[2:3] offset:8192\n                                  ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:8388607",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:35: error: expected a 13-bit signed offset\nglobal_store_short v0, v1, s[2:3] offset:8388607\n                                  ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:8388608",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:35: error: expected a 13-bit signed offset\nglobal_store_short v0, v1, s[2:3] offset:8388608\n                                  ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:-8388609 scale_offset",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:51: error: invalid operand for instruction\nglobal_store_short v0, v1, s[2:3] offset:-8388609 scale_offset\n                                                  ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:-8388608 scale_offset",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:51: error: invalid operand for instruction\nglobal_store_short v0, v1, s[2:3] offset:-8388608 scale_offset\n                                                  ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:-4097 scale_offset",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:48: error: invalid operand for instruction\nglobal_store_short v0, v1, s[2:3] offset:-4097 scale_offset\n                                               ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:-4096 scale_offset",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:48: error: invalid operand for instruction\nglobal_store_short v0, v1, s[2:3] offset:-4096 scale_offset\n                                               ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:4095 scale_offset",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:47: error: invalid operand for instruction\nglobal_store_short v0, v1, s[2:3] offset:4095 scale_offset\n                                              ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:4096 scale_offset",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:47: error: invalid operand for instruction\nglobal_store_short v0, v1, s[2:3] offset:4096 scale_offset\n                                              ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:8192 scale_offset",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:47: error: invalid operand for instruction\nglobal_store_short v0, v1, s[2:3] offset:8192 scale_offset\n                                              ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:8388607 scale_offset",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:50: error: invalid operand for instruction\nglobal_store_short v0, v1, s[2:3] offset:8388607 scale_offset\n                                                 ^\n"
+    },
+    {
+      "target": "gfx950",
+      "asm": "global_store_short v0, v1, s[2:3] offset:8388608 scale_offset",
+      "accepted": false,
+      "stdout": "\t.amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n",
+      "stderr": "<stdin>:1:50: error: invalid operand for instruction\nglobal_store_short v0, v1, s[2:3] offset:8388608 scale_offset\n                                                 ^\n"
+    }
+  ]
+}

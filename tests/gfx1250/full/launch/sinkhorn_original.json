@@ -1,0 +1,95 @@
+{
+  "kernel": "sinkhorn_original",
+  "block": [
+    256,
+    1,
+    1
+  ],
+  "grid": [
+    1,
+    1,
+    1
+  ],
+  "dynamic_shared_bytes": 0,
+  "arrays": [
+    {
+      "name": "x",
+      "base": 65536,
+      "elem_width": 2,
+      "len": 2048,
+      "kind": "in"
+    },
+    {
+      "name": "y",
+      "base": 131072,
+      "elem_width": 2,
+      "len": 65536,
+      "kind": "in"
+    },
+    {
+      "name": "f_hat",
+      "base": 262144,
+      "elem_width": 4,
+      "len": 32,
+      "kind": "in"
+    },
+    {
+      "name": "g_hat",
+      "base": 327680,
+      "elem_width": 4,
+      "len": 1024,
+      "kind": "in"
+    },
+    {
+      "name": "log_b",
+      "base": 393216,
+      "elem_width": 4,
+      "len": 1024,
+      "kind": "in"
+    },
+    {
+      "name": "f_out",
+      "base": 458752,
+      "elem_width": 4,
+      "len": 32,
+      "kind": "out"
+    }
+  ],
+  "params": [
+    {
+      "ptr": "x"
+    },
+    {
+      "ptr": "y"
+    },
+    {
+      "ptr": "f_hat"
+    },
+    {
+      "ptr": "g_hat"
+    },
+    {
+      "int": 0
+    },
+    {
+      "ptr": "log_b"
+    },
+    {
+      "ptr": "f_out"
+    },
+    {
+      "int": 0
+    },
+    {
+      "int": 0
+    },
+    {
+      "int": 0
+    },
+    {
+      "int": 0
+    }
+  ],
+  "max_instructions": 2000000000,
+  "description": "Original selectedCTA0 complete mathematical problem, input/output storage dtypes, masks/scales/null arguments, block/grid and source pitches are preserved. Native wave32 WMMA uses fixedLDS staging. The original232448-byte dynamic budget is not a physical native allocation. Full output coordinates are mandatory; smaller shapes, dropped outputs or decoded-F32 substitutes cannot close this case."
+}

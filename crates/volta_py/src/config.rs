@@ -2,9 +2,11 @@
 //! types 1:1 instead of the CLI's flat string mini-DSL
 //! (`"in:0x10000:4:128:in"`).
 
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use volta_pipeline::Backend;
 
-use volta_ptx_analysis::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue};
+use volta_ptx_analysis::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue, SharedAllocation};
 
 #[pyclass(name = "ArrayKind", eq, eq_int, from_py_object)]
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -55,6 +57,12 @@ impl ParamPy {
         ParamPy(ParamValue::ArrayPtr(name))
     }
 
+    /// Exact native by-value ABI payload. PTX rejects this form.
+    #[staticmethod]
+    fn bytes(value: Vec<u8>) -> Self {
+        ParamPy(ParamValue::Bytes(value))
+    }
+
     fn __repr__(&self) -> String {
         format!("{:?}", self.0)
     }
@@ -83,31 +91,115 @@ impl ArrayDefPy {
 }
 
 /// Full launch/memory configuration for analyzing one kernel; mirrors
-/// `AnalysisConfig` field-for-field.
+/// `AnalysisConfig` field-for-field. `workgroup_id` selects one native AMD group,
+/// defaulting to zero; other groups and their conflicts are outside its results.
+/// PTX currently requires zero.
 #[pyclass(name = "Config", from_py_object)]
 #[derive(Clone)]
-pub struct ConfigPy(pub(crate) AnalysisConfig);
+pub struct ConfigPy(
+    pub(crate) AnalysisConfig,
+    pub(crate) Backend,
+    // File-based solve/extract infer the ISA only when backend was omitted.
+    pub(crate) bool,
+);
 
 #[pymethods]
 impl ConfigPy {
     #[new]
-    #[pyo3(signature = (block, grid=(1, 1, 1), dynamic_shared_bytes=0, max_instructions=2_000_000_000))]
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "Preserve the public Python constructor's optional keyword launch fields."
+    )]
+    #[pyo3(signature = (block, grid=(1, 1, 1), dynamic_shared_bytes=0, max_instructions=2_000_000_000, *, backend=None, target=None, workgroup_id=(0, 0, 0), early_readiness=false, early_memory_conflicts=false))]
     fn new(
         block: (u32, u32, u32),
         grid: (u32, u32, u32),
         dynamic_shared_bytes: u64,
         max_instructions: u64,
-    ) -> Self {
+        backend: Option<&str>,
+        target: Option<&str>,
+        workgroup_id: (u32, u32, u32),
+        early_readiness: bool,
+        early_memory_conflicts: bool,
+    ) -> PyResult<Self> {
         let mut config = AnalysisConfig::new(block);
         config.grid_dim = grid;
+        config.workgroup_id = workgroup_id;
+        config.early_readiness = early_readiness;
+        config.early_memory_conflicts = early_memory_conflicts;
         config.dynamic_shared_bytes = dynamic_shared_bytes;
         config.max_instructions = max_instructions;
-        ConfigPy(config)
+        let explicit_backend = backend.is_some();
+        let backend =
+            Backend::select(backend.unwrap_or("ptx"), target).map_err(PyValueError::new_err)?;
+        if early_readiness && backend != Backend::AmdgpuGfx1250 {
+            return Err(PyValueError::new_err(
+                "early_readiness currently supports only native gfx1250 scalar-load readiness",
+            ));
+        }
+        if early_memory_conflicts && !matches!(backend, Backend::Amdgpu | Backend::AmdgpuGfx1250) {
+            return Err(PyValueError::new_err(
+                "early_memory_conflicts supports only native gfx950/gfx1250 memory conflicts",
+            ));
+        }
+        Ok(ConfigPy(config, backend, explicit_backend))
+    }
+
+    #[getter]
+    fn backend(&self) -> &'static str {
+        self.1.name()
+    }
+
+    #[getter]
+    fn target(&self) -> Option<&'static str> {
+        self.1.target()
+    }
+
+    /// The single native AMD workgroup selected for this analysis.
+    #[getter]
+    fn workgroup_id(&self) -> (u32, u32, u32) {
+        self.0.workgroup_id
+    }
+
+    /// Whether to stop at the first independently certified scalar readiness finding.
+    /// False preserves full traces; true never enables early acceptance.
+    #[getter]
+    fn early_readiness(&self) -> bool {
+        self.0.early_readiness
+    }
+
+    /// Whether to stop at the first independently certified same-instruction
+    /// memory conflict. False preserves full traces; true never accepts early.
+    #[getter]
+    fn early_memory_conflicts(&self) -> bool {
+        self.0.early_memory_conflicts
     }
 
     /// Declare a global-memory array visible to the kernel.
     fn add_array(&mut self, array: ArrayDefPy) {
         self.0.arrays.push(array.0);
+    }
+
+    /// Add an explicit native LDS source-allocation premise, in bytes.
+    /// Empty layouts retain aggregate bounds; PTX rejects nonempty layouts.
+    fn add_shared_allocation(&mut self, name: String, offset: u64, size: u64) -> PyResult<()> {
+        let mut layout = self.0.shared_allocations.clone();
+        layout.push(SharedAllocation { name, offset, size });
+        // Validate transactionally so a rejected region cannot poison the config.
+        let mut candidate = self.0.clone();
+        candidate.shared_allocations = layout;
+        candidate.validate().map_err(PyValueError::new_err)?;
+        self.0.shared_allocations = candidate.shared_allocations;
+        Ok(())
+    }
+
+    #[getter]
+    fn shared_allocations(&self) -> Vec<(String, u64, u64)> {
+        self.0
+            .shared_allocations
+            .iter()
+            .map(|r| (r.name.clone(), r.offset, r.size))
+            .collect()
     }
 
     /// Bind the next kernel parameter (in declaration order).

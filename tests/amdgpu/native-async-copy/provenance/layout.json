@@ -1,0 +1,33 @@
+{
+  "command": [
+    "/opt/rocm/llvm/bin/clang++",
+    "-x",
+    "hip",
+    "--cuda-device-only",
+    "-std=c++20",
+    "-I/opt/rocm/include/hip",
+    "-I.",
+    "-I../common/testing_commons",
+    "-I../../../include",
+    "-Wall",
+    "-Wextra",
+    "-DTEST_INTENSITY=2",
+    "-DTEST_ALL",
+    "-O3",
+    "-DKITTENS_CDNA5",
+    "--offload-arch=gfx1250",
+    "-w",
+    "-Wno-pass-failed",
+    "-I/home/harsh/ptx_verifier/external/sources/HipKittens/include",
+    "-I/home/harsh/ptx_verifier/external/sources/HipKittens/prototype",
+    "-I/home/harsh/.cache/uv/archive-v0/4yr9D-ngF4orNTgXCiG5v/pybind11/include",
+    "-I/usr/include/python3.12",
+    "-fsyntax-only",
+    "/tmp/ptx-native-async-original-contract-20261031/layout.cpp"
+  ],
+  "returncode": 0,
+  "compiler_sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+  "source_sha256": "89d0fc36ce2ee6127ec2646d1c95235076c916bd70247e986e3512d8e2d8bb46",
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

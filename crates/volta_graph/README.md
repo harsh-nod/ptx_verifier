@@ -1,7 +1,7 @@
 # volta_graph
 
 The typed event graph of **one candidate execution** of a kernel. The analysis
-(`volta_ptx_analysis`) records it while it interprets the kernel; the graph checks
+(`volta_ptx_analysis` or `volta_amdgpu_analysis`) records it while it interprets the kernel; the graph checks
 (`volta_graph_check`) and the viewer (`volta_viz`) read it. Neither side
 depends on the other: this crate (plus `volta_expr`, for stored values) is
 their whole contract.
@@ -18,7 +18,7 @@ src/
 ├── graph.rs     EventGraph: the finished, immutable graph and its accessors
 ├── builder.rs   GraphBuilder: append-only construction in trace order
 ├── validate.rs  EventGraph::validate: representation invariants
-└── dump.rs      EventGraph::dump: the deterministic `volta-graph 1` text form
+└── dump.rs      EventGraph::dump: deterministic PTX v1 / native AMD v2 diagnostic text
 ```
 
 ## The data structure
@@ -28,6 +28,9 @@ each other:
 
 ```rust
 pub struct EventGraph {
+    amd_events:    Vec<AmdEvent>,                    // native wave instruction/semantic records
+    amd_memory_effects: Vec<AmdMemoryEffect>,        // issues associated with byte effects
+    shared_allocation_layout: Vec<SharedAllocation>, // explicit caller-supplied LDS bounds
     provenance:    Provenance,                       // launch, targets, assumptions, pc -> source span
     events:        IdVec<EventId, Event>,            // every event, in trace order
     accesses:      IdVec<AccessId, MemAccess>,       // memory effects (pointed to by Access events)
@@ -55,10 +58,10 @@ after `e4` in the schedule the interpreter ran. Each `Event` has:
 - `kind: EventKind`, what happened: `Access`, `Contribute`, `WaitStart`,
   `Resume`, `GenerationComplete`, `AsyncIssue`, `AsyncComplete`,
   `GroupCommit`, `Fence`, `ObjectInit`/`ObjectInval`,
-  `TmemAlloc`/`TmemDealloc`/`TmemRelinquish`, `Exit`.
+  `TmemAlloc`/`TmemDealloc`/`TmemRelinquish`, `Amd(index)`, `Exit`.
 - `pc: Option<ProgramPoint>`, the lowered instruction it belongs to (`None`
   for generation completions). `Provenance::instructions[pc]` maps it back to
-  the PTX source span.
+  the PTX or native AMD source span.
 
 ### Memory effects
 
@@ -68,7 +71,7 @@ An `Access(AccessId)` event points to a `MemAccess`:
 |--------------|---------------------------------------------------------------------------|
 | `space`      | `Global`, `Shared` or `Tensor` (local memory is thread-private and never recorded) |
 | `mode`       | `Read` / `Write`                                                          |
-| `ordering`   | `Ordinary` (the analysis rejects atomics, so it records nothing else)     |
+| `ordering`   | `Ordinary`, or `Atomic` for the selected native no-return F32 add profile |
 | `proxy`      | `Generic`, `Async` (TMA, `cp.async.bulk`, `tcgen05`) or `TensorMap`       |
 | `footprint`  | `Bytes { addr, width }` or a Tensor Memory `lane x column` rectangle      |
 | `role`       | which operand: `Plain`, `Source`, `Destination`, `MmaA`, `MmaB`, `Accumulator`, ... |
@@ -275,7 +278,64 @@ returns `Ok`; it returns every `GraphDefect` it found.
 
 ## Text dump (`dump.rs`)
 
-`EventGraph::dump()` / `write_dump()` print the `volta-graph 1` format shown
-above: header and assumptions, then objects, generations (with contributions
-and releases), async ops, events, and the terminal state, each in id order.
+`EventGraph::dump()` / `write_dump()` print the PTX version 1 format shown
+above, or version 2 with native AMD records and associations. Both include the
+header, assumptions, objects, generations, async ops, events and terminal state
+in deterministic order. These dumps are diagnostics, not replay inputs.
 Equal graphs dump to identical bytes, so diffs of dumps show trace changes.
+
+## Native AMD records
+
+The gfx942/gfx950/gfx1250 producers use the same `EventGraph` and `GraphBuilder`.
+Their additive `AmdEventKind` records retain target-selected EXEC masks, individual register/lane slices,
+memory counter charges, waits, matrix operand roles, independent S_NOP states, and
+workgroup barrier generations. `EventKind::Amd(index)` indexes `amd_events()`;
+`amd_memory_effects()` associates existing byte-footprint memory events with their
+issuing wave instruction. Those effects are pending in the AMD interpretation even
+though their data is calculated eagerly. Their event positions do not certify completion.
+
+Record one `Instruction` before each issued instruction and its semantic event,
+one `MemoryIssue` per wave instruction, and an association for every memory effect
+(including kernarg/dispatch reads). EXEC=0 vector instructions produce an instruction
+record but no memory issue. Cross-lane DS permutations have target-selected counter charges and pending
+registers with no fabricated LDS footprint. Legacy MFMA uses `MatrixIssue`;
+gfx1250 WMMA uses `WmmaIssue`. Register ranges use one entry per 32-bit register;
+u64 lane masks use 64 physical bits on gfx942/gfx950 and only 32 on gfx1250.
+
+`AmdMemoryScope::Gfx1250System` preserves explicit `SCOPE_SYS` on ordinary
+gfx1250 GLOBAL and resolved-global FLAT effects. It is distinct from legacy
+CDNA workgroup scope. Visibility requires both endpoints; the scope does not
+create completion, synchronization or coverage beyond the selected workgroup.
+
+The selected gfx1250 `GlobalAtomicAddF32NoReturn` profile records device-scoped
+F32 RMWs with one active lane, no destination register, and Store/X charges.
+Its read then write use paired aligned 4-byte Global effects with `Atomic`
+ordering and the same attributed lane/address. It retains every source, including
+implicit EXEC, through translation completion. This tag grants no publication
+edge for other addresses or other instructions.
+
+The gfx1250 `FlatGlobalLoad/Store` and `FlatLdsLoad/Store` classes retain genuine
+FLAT provenance and a producer-resolved segment. They conservatively charge Load
+or Store, plus Ds and X; instruction sources include implicit EXEC. The LDS
+classes remain outside the GLOBAL replay group: group switches and later GLOBAL
+destination aliases cannot retire their source leases. Explicit waits retain
+their own counter meanings, and both data tokens must complete for readiness
+and publication.
+A producer must resolve the aperture before selecting a class; an unknown
+pointer segment does not become global merely because its address is concrete.
+
+Gfx1250 shader named barriers use `AmdNamedBarrier { id, incarnation }` plus an
+explicit phase on joins, signals, waits, releases and leaves. Every successful
+reinitialization advances the incarnation. INIT records its expected arrival
+count, WAIT retains both the encoded selector and resolved last-joined object,
+and the descriptor's allocated capacity is an explicit provenance premise.
+`NamedBarrierSignalWithCount` records a single arrival and its explicit
+7-bit M0 expected-count update. M0 is scalar register 124 in instruction
+dependency roles. Named deadlocks retain
+object, incarnation, phase and actual expected/arrived counts in `BlockedOn`.
+These records describe candidate associations; they do not certify publication.
+
+Text dumps without native AMD events retain `volta-graph 1`; graphs with AMD events use
+`volta-graph 2` and include their sidecar associations. The text dump is a diagnostic
+format, not an executable replay input. AMD rendezvous deadlocks use
+`BlockedOn::AmdBarrier` without inventing a PTX synchronization object.

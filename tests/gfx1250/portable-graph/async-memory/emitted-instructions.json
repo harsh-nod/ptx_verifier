@@ -1,0 +1,3250 @@
+{
+  "native-async-memory.s": {
+    "sha256": "d29023ac7e0256323fe026ac102838b9e93921d82efd120a2ed7b2d618116fe4",
+    "instructions": [
+      {
+        "line": 10,
+        "text": "s_mov_b32 s2, exec_lo",
+        "components": [
+          "s_mov_b32 s2, exec_lo"
+        ]
+      },
+      {
+        "line": 11,
+        "text": "v_cmpx_ne_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_ne_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 12,
+        "text": "s_xor_b32 s2, exec_lo, s2",
+        "components": [
+          "s_xor_b32 s2, exec_lo, s2"
+        ]
+      },
+      {
+        "line": 13,
+        "text": "s_cbranch_execnz .LBB0_3",
+        "components": [
+          "s_cbranch_execnz .LBB0_3"
+        ]
+      },
+      {
+        "line": 15,
+        "text": "s_and_not1_saveexec_b32 s2, s2",
+        "components": [
+          "s_and_not1_saveexec_b32 s2, s2"
+        ]
+      },
+      {
+        "line": 16,
+        "text": "s_cbranch_execnz .LBB0_4",
+        "components": [
+          "s_cbranch_execnz .LBB0_4"
+        ]
+      },
+      {
+        "line": 18,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 20,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 21,
+        "text": "s_and_not1_saveexec_b32 s2, s2",
+        "components": [
+          "s_and_not1_saveexec_b32 s2, s2"
+        ]
+      },
+      {
+        "line": 22,
+        "text": "s_cbranch_execz .LBB0_2",
+        "components": [
+          "s_cbranch_execz .LBB0_2"
+        ]
+      },
+      {
+        "line": 24,
+        "text": "s_load_b128 s[8:11], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[8:11], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 25,
+        "text": "s_mov_b64 s[20:21], src_shared_base",
+        "components": [
+          "s_mov_b64 s[20:21], src_shared_base"
+        ]
+      },
+      {
+        "line": 26,
+        "text": "s_mov_b32 s12, 1",
+        "components": [
+          "s_mov_b32 s12, 1"
+        ]
+      },
+      {
+        "line": 27,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 28,
+        "text": "s_mov_b32 s1, 0x10000",
+        "components": [
+          "s_mov_b32 s1, 0x10000"
+        ]
+      },
+      {
+        "line": 29,
+        "text": "s_mov_b32 s20, 0",
+        "components": [
+          "s_mov_b32 s20, 0"
+        ]
+      },
+      {
+        "line": 30,
+        "text": "s_mov_b32 s0, 0x20000",
+        "components": [
+          "s_mov_b32 s0, 0x20000"
+        ]
+      },
+      {
+        "line": 31,
+        "text": "s_mov_b32 s2, s1",
+        "components": [
+          "s_mov_b32 s2, s1"
+        ]
+      },
+      {
+        "line": 32,
+        "text": "s_mov_b32 s3, s1",
+        "components": [
+          "s_mov_b32 s3, s1"
+        ]
+      },
+      {
+        "line": 33,
+        "text": "s_mov_b32 s4, s12",
+        "components": [
+          "s_mov_b32 s4, s12"
+        ]
+      },
+      {
+        "line": 34,
+        "text": "s_mov_b32 s5, s12",
+        "components": [
+          "s_mov_b32 s5, s12"
+        ]
+      },
+      {
+        "line": 35,
+        "text": "s_mov_b32 s13, s20",
+        "components": [
+          "s_mov_b32 s13, s20"
+        ]
+      },
+      {
+        "line": 36,
+        "text": "s_mov_b32 s6, s20",
+        "components": [
+          "s_mov_b32 s6, s20"
+        ]
+      },
+      {
+        "line": 37,
+        "text": "s_mov_b32 s7, s20",
+        "components": [
+          "s_mov_b32 s7, s20"
+        ]
+      },
+      {
+        "line": 38,
+        "text": "s_mov_b32 s16, s20",
+        "components": [
+          "s_mov_b32 s16, s20"
+        ]
+      },
+      {
+        "line": 39,
+        "text": "s_mov_b32 s17, s20",
+        "components": [
+          "s_mov_b32 s17, s20"
+        ]
+      },
+      {
+        "line": 40,
+        "text": "s_mov_b32 s18, s20",
+        "components": [
+          "s_mov_b32 s18, s20"
+        ]
+      },
+      {
+        "line": 41,
+        "text": "s_mov_b32 s19, s20",
+        "components": [
+          "s_mov_b32 s19, s20"
+        ]
+      },
+      {
+        "line": 42,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 43,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 44,
+        "text": "s_and_b32 s9, s9, 0x1ffffff",
+        "components": [
+          "s_and_b32 s9, s9, 0x1ffffff"
+        ]
+      },
+      {
+        "line": 45,
+        "text": "s_mov_b32 s14, s8",
+        "components": [
+          "s_mov_b32 s14, s8"
+        ]
+      },
+      {
+        "line": 46,
+        "text": "s_or_b32 s15, s9, 0x80000000",
+        "components": [
+          "s_or_b32 s15, s9, 0x80000000"
+        ]
+      },
+      {
+        "line": 47,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 48,
+        "text": "tensor_load_to_lds s[12:15], s[0:7], s[16:19], s[16:19]",
+        "components": [
+          "tensor_load_to_lds s[12:15], s[0:7], s[16:19], s[16:19]"
+        ]
+      },
+      {
+        "line": 49,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 50,
+        "text": "flat_load_b32 v1, v0, s[20:21] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v1, v0, s[20:21] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 51,
+        "text": "s_wait_loadcnt_dscnt 0x0",
+        "components": [
+          "s_wait_loadcnt_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 52,
+        "text": "global_store_b32 v0, v1, s[10:11]",
+        "components": [
+          "global_store_b32 v0, v1, s[10:11]"
+        ]
+      },
+      {
+        "line": 53,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 142,
+        "text": "s_mov_b32 s2, exec_lo",
+        "components": [
+          "s_mov_b32 s2, exec_lo"
+        ]
+      },
+      {
+        "line": 143,
+        "text": "v_cmpx_ne_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_ne_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 144,
+        "text": "s_xor_b32 s2, exec_lo, s2",
+        "components": [
+          "s_xor_b32 s2, exec_lo, s2"
+        ]
+      },
+      {
+        "line": 145,
+        "text": "s_cbranch_execnz .LBB1_3",
+        "components": [
+          "s_cbranch_execnz .LBB1_3"
+        ]
+      },
+      {
+        "line": 147,
+        "text": "s_and_not1_saveexec_b32 s2, s2",
+        "components": [
+          "s_and_not1_saveexec_b32 s2, s2"
+        ]
+      },
+      {
+        "line": 148,
+        "text": "s_cbranch_execnz .LBB1_4",
+        "components": [
+          "s_cbranch_execnz .LBB1_4"
+        ]
+      },
+      {
+        "line": 150,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 152,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 153,
+        "text": "s_and_not1_saveexec_b32 s2, s2",
+        "components": [
+          "s_and_not1_saveexec_b32 s2, s2"
+        ]
+      },
+      {
+        "line": 154,
+        "text": "s_cbranch_execz .LBB1_2",
+        "components": [
+          "s_cbranch_execz .LBB1_2"
+        ]
+      },
+      {
+        "line": 156,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 157,
+        "text": "s_mov_b64 s[20:21], src_shared_base",
+        "components": [
+          "s_mov_b64 s[20:21], src_shared_base"
+        ]
+      },
+      {
+        "line": 158,
+        "text": "s_mov_b32 s12, 1",
+        "components": [
+          "s_mov_b32 s12, 1"
+        ]
+      },
+      {
+        "line": 159,
+        "text": "s_mov_b32 s5, 0x40000",
+        "components": [
+          "s_mov_b32 s5, 0x40000"
+        ]
+      },
+      {
+        "line": 160,
+        "text": "s_mov_b32 s20, 0",
+        "components": [
+          "s_mov_b32 s20, 0"
+        ]
+      },
+      {
+        "line": 161,
+        "text": "s_mov_b32 s9, 4",
+        "components": [
+          "s_mov_b32 s9, 4"
+        ]
+      },
+      {
+        "line": 162,
+        "text": "s_mov_b32 s6, 0x10000",
+        "components": [
+          "s_mov_b32 s6, 0x10000"
+        ]
+      },
+      {
+        "line": 163,
+        "text": "s_mov_b32 s4, 0x20000",
+        "components": [
+          "s_mov_b32 s4, 0x20000"
+        ]
+      },
+      {
+        "line": 164,
+        "text": "s_mov_b32 s7, s5",
+        "components": [
+          "s_mov_b32 s7, s5"
+        ]
+      },
+      {
+        "line": 165,
+        "text": "s_mov_b32 s8, s12",
+        "components": [
+          "s_mov_b32 s8, s12"
+        ]
+      },
+      {
+        "line": 166,
+        "text": "s_mov_b32 s13, s20",
+        "components": [
+          "s_mov_b32 s13, s20"
+        ]
+      },
+      {
+        "line": 167,
+        "text": "s_mov_b32 s10, s20",
+        "components": [
+          "s_mov_b32 s10, s20"
+        ]
+      },
+      {
+        "line": 168,
+        "text": "s_mov_b32 s11, s20",
+        "components": [
+          "s_mov_b32 s11, s20"
+        ]
+      },
+      {
+        "line": 169,
+        "text": "s_mov_b32 s16, s20",
+        "components": [
+          "s_mov_b32 s16, s20"
+        ]
+      },
+      {
+        "line": 170,
+        "text": "s_mov_b32 s17, s20",
+        "components": [
+          "s_mov_b32 s17, s20"
+        ]
+      },
+      {
+        "line": 171,
+        "text": "s_mov_b32 s18, s20",
+        "components": [
+          "s_mov_b32 s18, s20"
+        ]
+      },
+      {
+        "line": 172,
+        "text": "s_mov_b32 s19, s20",
+        "components": [
+          "s_mov_b32 s19, s20"
+        ]
+      },
+      {
+        "line": 173,
+        "text": "v_mov_b32_e32 v4, 0",
+        "components": [
+          "v_mov_b32_e32 v4, 0"
+        ]
+      },
+      {
+        "line": 174,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 175,
+        "text": "s_and_b32 s1, s1, 0x1ffffff",
+        "components": [
+          "s_and_b32 s1, s1, 0x1ffffff"
+        ]
+      },
+      {
+        "line": 176,
+        "text": "s_mov_b32 s14, s0",
+        "components": [
+          "s_mov_b32 s14, s0"
+        ]
+      },
+      {
+        "line": 177,
+        "text": "s_or_b32 s15, s1, 0x80000000",
+        "components": [
+          "s_or_b32 s15, s1, 0x80000000"
+        ]
+      },
+      {
+        "line": 178,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 179,
+        "text": "tensor_load_to_lds s[12:15], s[4:11], s[16:19], s[16:19]",
+        "components": [
+          "tensor_load_to_lds s[12:15], s[4:11], s[16:19], s[16:19]"
+        ]
+      },
+      {
+        "line": 180,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 181,
+        "text": "flat_load_b32 v0, v4, s[20:21] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v0, v4, s[20:21] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 182,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 183,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 184,
+        "text": "s_mov_b32 s20, s9",
+        "components": [
+          "s_mov_b32 s20, s9"
+        ]
+      },
+      {
+        "line": 185,
+        "text": "flat_load_b32 v1, v4, s[20:21] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v1, v4, s[20:21] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 186,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 187,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 188,
+        "text": "s_mov_b32 s20, 8",
+        "components": [
+          "s_mov_b32 s20, 8"
+        ]
+      },
+      {
+        "line": 189,
+        "text": "flat_load_b32 v2, v4, s[20:21] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v2, v4, s[20:21] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 190,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 191,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 192,
+        "text": "s_mov_b32 s20, 12",
+        "components": [
+          "s_mov_b32 s20, 12"
+        ]
+      },
+      {
+        "line": 193,
+        "text": "flat_load_b32 v3, v4, s[20:21] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v3, v4, s[20:21] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 194,
+        "text": "s_wait_loadcnt_dscnt 0x0",
+        "components": [
+          "s_wait_loadcnt_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 195,
+        "text": "global_store_b128 v4, v[0:3], s[2:3]",
+        "components": [
+          "global_store_b128 v4, v[0:3], s[2:3]"
+        ]
+      },
+      {
+        "line": 196,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 285,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 286,
+        "text": "s_mov_b32 s5, 0",
+        "components": [
+          "s_mov_b32 s5, 0"
+        ]
+      },
+      {
+        "line": 287,
+        "text": "s_mov_b32 s8, exec_lo",
+        "components": [
+          "s_mov_b32 s8, exec_lo"
+        ]
+      },
+      {
+        "line": 288,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 289,
+        "text": "s_cbranch_execz .LBB2_2",
+        "components": [
+          "s_cbranch_execz .LBB2_2"
+        ]
+      },
+      {
+        "line": 291,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 292,
+        "text": "s_and_b32 s1, s1, 0x1ffffff",
+        "components": [
+          "s_and_b32 s1, s1, 0x1ffffff"
+        ]
+      },
+      {
+        "line": 293,
+        "text": "s_mov_b32 s4, 1",
+        "components": [
+          "s_mov_b32 s4, 1"
+        ]
+      },
+      {
+        "line": 294,
+        "text": "s_mov_b32 s13, 0x10000",
+        "components": [
+          "s_mov_b32 s13, 0x10000"
+        ]
+      },
+      {
+        "line": 295,
+        "text": "s_or_b32 s7, s1, 0x80000000",
+        "components": [
+          "s_or_b32 s7, s1, 0x80000000"
+        ]
+      },
+      {
+        "line": 296,
+        "text": "s_mov_b32 s6, s0",
+        "components": [
+          "s_mov_b32 s6, s0"
+        ]
+      },
+      {
+        "line": 297,
+        "text": "s_mov_b32 s12, 0x20000",
+        "components": [
+          "s_mov_b32 s12, 0x20000"
+        ]
+      },
+      {
+        "line": 298,
+        "text": "s_mov_b32 s14, s13",
+        "components": [
+          "s_mov_b32 s14, s13"
+        ]
+      },
+      {
+        "line": 299,
+        "text": "s_mov_b32 s15, s13",
+        "components": [
+          "s_mov_b32 s15, s13"
+        ]
+      },
+      {
+        "line": 300,
+        "text": "s_mov_b32 s16, s4",
+        "components": [
+          "s_mov_b32 s16, s4"
+        ]
+      },
+      {
+        "line": 301,
+        "text": "s_mov_b32 s17, s4",
+        "components": [
+          "s_mov_b32 s17, s4"
+        ]
+      },
+      {
+        "line": 302,
+        "text": "s_mov_b32 s18, s5",
+        "components": [
+          "s_mov_b32 s18, s5"
+        ]
+      },
+      {
+        "line": 303,
+        "text": "s_mov_b32 s19, s5",
+        "components": [
+          "s_mov_b32 s19, s5"
+        ]
+      },
+      {
+        "line": 304,
+        "text": "s_mov_b32 s20, s5",
+        "components": [
+          "s_mov_b32 s20, s5"
+        ]
+      },
+      {
+        "line": 305,
+        "text": "s_mov_b32 s21, s5",
+        "components": [
+          "s_mov_b32 s21, s5"
+        ]
+      },
+      {
+        "line": 306,
+        "text": "s_mov_b32 s22, s5",
+        "components": [
+          "s_mov_b32 s22, s5"
+        ]
+      },
+      {
+        "line": 307,
+        "text": "s_mov_b32 s23, s5",
+        "components": [
+          "s_mov_b32 s23, s5"
+        ]
+      },
+      {
+        "line": 308,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 309,
+        "text": "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]",
+        "components": [
+          "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]"
+        ]
+      },
+      {
+        "line": 311,
+        "text": "s_or_b32 exec_lo, exec_lo, s8",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s8"
+        ]
+      },
+      {
+        "line": 312,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 313,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 314,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 315,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 316,
+        "text": "s_mov_b32 s0, exec_lo",
+        "components": [
+          "s_mov_b32 s0, exec_lo"
+        ]
+      },
+      {
+        "line": 317,
+        "text": "v_cmpx_eq_u32_e32 32, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 32, v0"
+        ]
+      },
+      {
+        "line": 318,
+        "text": "s_cbranch_execz .LBB2_4",
+        "components": [
+          "s_cbranch_execz .LBB2_4"
+        ]
+      },
+      {
+        "line": 320,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 321,
+        "text": "s_mov_b64 s[0:1], src_shared_base",
+        "components": [
+          "s_mov_b64 s[0:1], src_shared_base"
+        ]
+      },
+      {
+        "line": 322,
+        "text": "s_mov_b32 s0, 0",
+        "components": [
+          "s_mov_b32 s0, 0"
+        ]
+      },
+      {
+        "line": 323,
+        "text": "flat_load_b32 v1, v0, s[0:1] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v1, v0, s[0:1] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 324,
+        "text": "s_wait_loadcnt_dscnt 0x0",
+        "components": [
+          "s_wait_loadcnt_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 325,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 327,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 416,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 417,
+        "text": "s_mov_b32 s5, 0",
+        "components": [
+          "s_mov_b32 s5, 0"
+        ]
+      },
+      {
+        "line": 418,
+        "text": "s_mov_b32 s8, exec_lo",
+        "components": [
+          "s_mov_b32 s8, exec_lo"
+        ]
+      },
+      {
+        "line": 419,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 420,
+        "text": "s_cbranch_execz .LBB3_2",
+        "components": [
+          "s_cbranch_execz .LBB3_2"
+        ]
+      },
+      {
+        "line": 422,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 423,
+        "text": "s_and_b32 s1, s1, 0x1ffffff",
+        "components": [
+          "s_and_b32 s1, s1, 0x1ffffff"
+        ]
+      },
+      {
+        "line": 424,
+        "text": "s_mov_b32 s4, 1",
+        "components": [
+          "s_mov_b32 s4, 1"
+        ]
+      },
+      {
+        "line": 425,
+        "text": "s_mov_b32 s13, 0x40000",
+        "components": [
+          "s_mov_b32 s13, 0x40000"
+        ]
+      },
+      {
+        "line": 426,
+        "text": "s_or_b32 s7, s1, 0x80000000",
+        "components": [
+          "s_or_b32 s7, s1, 0x80000000"
+        ]
+      },
+      {
+        "line": 427,
+        "text": "s_mov_b32 s6, s0",
+        "components": [
+          "s_mov_b32 s6, s0"
+        ]
+      },
+      {
+        "line": 428,
+        "text": "s_mov_b32 s17, 4",
+        "components": [
+          "s_mov_b32 s17, 4"
+        ]
+      },
+      {
+        "line": 429,
+        "text": "s_mov_b32 s14, 0x10000",
+        "components": [
+          "s_mov_b32 s14, 0x10000"
+        ]
+      },
+      {
+        "line": 430,
+        "text": "s_mov_b32 s12, 0x20000",
+        "components": [
+          "s_mov_b32 s12, 0x20000"
+        ]
+      },
+      {
+        "line": 431,
+        "text": "s_mov_b32 s15, s13",
+        "components": [
+          "s_mov_b32 s15, s13"
+        ]
+      },
+      {
+        "line": 432,
+        "text": "s_mov_b32 s16, s4",
+        "components": [
+          "s_mov_b32 s16, s4"
+        ]
+      },
+      {
+        "line": 433,
+        "text": "s_mov_b32 s18, s5",
+        "components": [
+          "s_mov_b32 s18, s5"
+        ]
+      },
+      {
+        "line": 434,
+        "text": "s_mov_b32 s19, s5",
+        "components": [
+          "s_mov_b32 s19, s5"
+        ]
+      },
+      {
+        "line": 435,
+        "text": "s_mov_b32 s20, s5",
+        "components": [
+          "s_mov_b32 s20, s5"
+        ]
+      },
+      {
+        "line": 436,
+        "text": "s_mov_b32 s21, s5",
+        "components": [
+          "s_mov_b32 s21, s5"
+        ]
+      },
+      {
+        "line": 437,
+        "text": "s_mov_b32 s22, s5",
+        "components": [
+          "s_mov_b32 s22, s5"
+        ]
+      },
+      {
+        "line": 438,
+        "text": "s_mov_b32 s23, s5",
+        "components": [
+          "s_mov_b32 s23, s5"
+        ]
+      },
+      {
+        "line": 439,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 440,
+        "text": "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]",
+        "components": [
+          "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]"
+        ]
+      },
+      {
+        "line": 442,
+        "text": "s_or_b32 exec_lo, exec_lo, s8",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s8"
+        ]
+      },
+      {
+        "line": 443,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 444,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 445,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 446,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 447,
+        "text": "s_mov_b32 s0, exec_lo",
+        "components": [
+          "s_mov_b32 s0, exec_lo"
+        ]
+      },
+      {
+        "line": 448,
+        "text": "v_cmpx_eq_u32_e32 32, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 32, v0"
+        ]
+      },
+      {
+        "line": 449,
+        "text": "s_cbranch_execz .LBB3_4",
+        "components": [
+          "s_cbranch_execz .LBB3_4"
+        ]
+      },
+      {
+        "line": 451,
+        "text": "v_mov_b32_e32 v4, 0",
+        "components": [
+          "v_mov_b32_e32 v4, 0"
+        ]
+      },
+      {
+        "line": 452,
+        "text": "s_mov_b64 s[0:1], src_shared_base",
+        "components": [
+          "s_mov_b64 s[0:1], src_shared_base"
+        ]
+      },
+      {
+        "line": 453,
+        "text": "s_mov_b32 s0, 0",
+        "components": [
+          "s_mov_b32 s0, 0"
+        ]
+      },
+      {
+        "line": 454,
+        "text": "flat_load_b32 v0, v4, s[0:1] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v0, v4, s[0:1] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 455,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 456,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 457,
+        "text": "s_mov_b32 s0, 4",
+        "components": [
+          "s_mov_b32 s0, 4"
+        ]
+      },
+      {
+        "line": 458,
+        "text": "flat_load_b32 v1, v4, s[0:1] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v1, v4, s[0:1] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 459,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 460,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 461,
+        "text": "s_mov_b32 s0, 8",
+        "components": [
+          "s_mov_b32 s0, 8"
+        ]
+      },
+      {
+        "line": 462,
+        "text": "flat_load_b32 v2, v4, s[0:1] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v2, v4, s[0:1] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 463,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 464,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 465,
+        "text": "s_mov_b32 s0, 12",
+        "components": [
+          "s_mov_b32 s0, 12"
+        ]
+      },
+      {
+        "line": 466,
+        "text": "flat_load_b32 v3, v4, s[0:1] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v3, v4, s[0:1] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 467,
+        "text": "s_wait_loadcnt_dscnt 0x0",
+        "components": [
+          "s_wait_loadcnt_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 468,
+        "text": "global_store_b128 v4, v[0:3], s[2:3]",
+        "components": [
+          "global_store_b128 v4, v[0:3], s[2:3]"
+        ]
+      },
+      {
+        "line": 470,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 559,
+        "text": "s_mov_b32 s2, exec_lo",
+        "components": [
+          "s_mov_b32 s2, exec_lo"
+        ]
+      },
+      {
+        "line": 560,
+        "text": "v_cmpx_ne_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_ne_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 561,
+        "text": "s_xor_b32 s2, exec_lo, s2",
+        "components": [
+          "s_xor_b32 s2, exec_lo, s2"
+        ]
+      },
+      {
+        "line": 562,
+        "text": "s_cbranch_execnz .LBB4_3",
+        "components": [
+          "s_cbranch_execnz .LBB4_3"
+        ]
+      },
+      {
+        "line": 564,
+        "text": "s_and_not1_saveexec_b32 s2, s2",
+        "components": [
+          "s_and_not1_saveexec_b32 s2, s2"
+        ]
+      },
+      {
+        "line": 565,
+        "text": "s_cbranch_execnz .LBB4_4",
+        "components": [
+          "s_cbranch_execnz .LBB4_4"
+        ]
+      },
+      {
+        "line": 567,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 569,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 570,
+        "text": "s_and_not1_saveexec_b32 s2, s2",
+        "components": [
+          "s_and_not1_saveexec_b32 s2, s2"
+        ]
+      },
+      {
+        "line": 571,
+        "text": "s_cbranch_execz .LBB4_2",
+        "components": [
+          "s_cbranch_execz .LBB4_2"
+        ]
+      },
+      {
+        "line": 573,
+        "text": "s_load_b128 s[8:11], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[8:11], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 574,
+        "text": "s_mov_b64 s[20:21], src_shared_base",
+        "components": [
+          "s_mov_b64 s[20:21], src_shared_base"
+        ]
+      },
+      {
+        "line": 575,
+        "text": "s_mov_b32 s12, 1",
+        "components": [
+          "s_mov_b32 s12, 1"
+        ]
+      },
+      {
+        "line": 576,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 577,
+        "text": "s_mov_b32 s1, 0x10000",
+        "components": [
+          "s_mov_b32 s1, 0x10000"
+        ]
+      },
+      {
+        "line": 578,
+        "text": "s_mov_b32 s20, 0",
+        "components": [
+          "s_mov_b32 s20, 0"
+        ]
+      },
+      {
+        "line": 579,
+        "text": "s_mov_b32 s0, 0x20000",
+        "components": [
+          "s_mov_b32 s0, 0x20000"
+        ]
+      },
+      {
+        "line": 580,
+        "text": "s_mov_b32 s2, s1",
+        "components": [
+          "s_mov_b32 s2, s1"
+        ]
+      },
+      {
+        "line": 581,
+        "text": "s_mov_b32 s3, s1",
+        "components": [
+          "s_mov_b32 s3, s1"
+        ]
+      },
+      {
+        "line": 582,
+        "text": "s_mov_b32 s4, s12",
+        "components": [
+          "s_mov_b32 s4, s12"
+        ]
+      },
+      {
+        "line": 583,
+        "text": "s_mov_b32 s5, s12",
+        "components": [
+          "s_mov_b32 s5, s12"
+        ]
+      },
+      {
+        "line": 584,
+        "text": "s_mov_b32 s13, s20",
+        "components": [
+          "s_mov_b32 s13, s20"
+        ]
+      },
+      {
+        "line": 585,
+        "text": "s_mov_b32 s6, s20",
+        "components": [
+          "s_mov_b32 s6, s20"
+        ]
+      },
+      {
+        "line": 586,
+        "text": "s_mov_b32 s7, s20",
+        "components": [
+          "s_mov_b32 s7, s20"
+        ]
+      },
+      {
+        "line": 587,
+        "text": "s_mov_b32 s16, s20",
+        "components": [
+          "s_mov_b32 s16, s20"
+        ]
+      },
+      {
+        "line": 588,
+        "text": "s_mov_b32 s17, s20",
+        "components": [
+          "s_mov_b32 s17, s20"
+        ]
+      },
+      {
+        "line": 589,
+        "text": "s_mov_b32 s18, s20",
+        "components": [
+          "s_mov_b32 s18, s20"
+        ]
+      },
+      {
+        "line": 590,
+        "text": "s_mov_b32 s19, s20",
+        "components": [
+          "s_mov_b32 s19, s20"
+        ]
+      },
+      {
+        "line": 591,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 592,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 593,
+        "text": "s_and_b32 s15, s9, 0x1ffffff",
+        "components": [
+          "s_and_b32 s15, s9, 0x1ffffff"
+        ]
+      },
+      {
+        "line": 594,
+        "text": "s_mov_b32 s14, s8",
+        "components": [
+          "s_mov_b32 s14, s8"
+        ]
+      },
+      {
+        "line": 595,
+        "text": "s_bitset1_b32 s15, 31",
+        "components": [
+          "s_bitset1_b32 s15, 31"
+        ]
+      },
+      {
+        "line": 596,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 597,
+        "text": "tensor_load_to_lds s[12:15], s[0:7], s[16:19], s[16:19]",
+        "components": [
+          "tensor_load_to_lds s[12:15], s[0:7], s[16:19], s[16:19]"
+        ]
+      },
+      {
+        "line": 598,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 599,
+        "text": "s_load_b32 s0, s[8:9], 0x4",
+        "components": [
+          "s_load_b32 s0, s[8:9], 0x4"
+        ]
+      },
+      {
+        "line": 600,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 601,
+        "text": "v_mov_b32_e32 v1, s0",
+        "components": [
+          "v_mov_b32_e32 v1, s0"
+        ]
+      },
+      {
+        "line": 603,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 605,
+        "text": "flat_store_b32 v0, v1, s[20:21] scope:SCOPE_SYS",
+        "components": [
+          "flat_store_b32 v0, v1, s[20:21] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 606,
+        "text": "s_wait_storecnt 0x0",
+        "components": [
+          "s_wait_storecnt 0x0"
+        ]
+      },
+      {
+        "line": 607,
+        "text": "flat_load_b32 v1, v0, s[20:21] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v1, v0, s[20:21] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 608,
+        "text": "s_wait_loadcnt_dscnt 0x0",
+        "components": [
+          "s_wait_loadcnt_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 610,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 612,
+        "text": "global_store_b32 v0, v1, s[10:11]",
+        "components": [
+          "global_store_b32 v0, v1, s[10:11]"
+        ]
+      },
+      {
+        "line": 613,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 702,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 703,
+        "text": "s_mov_b32 s5, 0",
+        "components": [
+          "s_mov_b32 s5, 0"
+        ]
+      },
+      {
+        "line": 704,
+        "text": "s_mov_b32 s8, exec_lo",
+        "components": [
+          "s_mov_b32 s8, exec_lo"
+        ]
+      },
+      {
+        "line": 705,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 706,
+        "text": "s_cbranch_execz .LBB5_2",
+        "components": [
+          "s_cbranch_execz .LBB5_2"
+        ]
+      },
+      {
+        "line": 708,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 709,
+        "text": "s_and_b32 s6, s1, 0x1ffffff",
+        "components": [
+          "s_and_b32 s6, s1, 0x1ffffff"
+        ]
+      },
+      {
+        "line": 710,
+        "text": "s_mov_b32 s4, 1",
+        "components": [
+          "s_mov_b32 s4, 1"
+        ]
+      },
+      {
+        "line": 711,
+        "text": "s_mov_b32 s13, 0x10000",
+        "components": [
+          "s_mov_b32 s13, 0x10000"
+        ]
+      },
+      {
+        "line": 712,
+        "text": "s_or_b32 s7, s6, 0x80000000",
+        "components": [
+          "s_or_b32 s7, s6, 0x80000000"
+        ]
+      },
+      {
+        "line": 713,
+        "text": "s_mov_b32 s6, s0",
+        "components": [
+          "s_mov_b32 s6, s0"
+        ]
+      },
+      {
+        "line": 714,
+        "text": "s_mov_b32 s12, 0x20000",
+        "components": [
+          "s_mov_b32 s12, 0x20000"
+        ]
+      },
+      {
+        "line": 715,
+        "text": "s_mov_b32 s14, s13",
+        "components": [
+          "s_mov_b32 s14, s13"
+        ]
+      },
+      {
+        "line": 716,
+        "text": "s_mov_b32 s15, s13",
+        "components": [
+          "s_mov_b32 s15, s13"
+        ]
+      },
+      {
+        "line": 717,
+        "text": "s_mov_b32 s16, s4",
+        "components": [
+          "s_mov_b32 s16, s4"
+        ]
+      },
+      {
+        "line": 718,
+        "text": "s_mov_b32 s17, s4",
+        "components": [
+          "s_mov_b32 s17, s4"
+        ]
+      },
+      {
+        "line": 719,
+        "text": "s_mov_b32 s18, s5",
+        "components": [
+          "s_mov_b32 s18, s5"
+        ]
+      },
+      {
+        "line": 720,
+        "text": "s_mov_b32 s19, s5",
+        "components": [
+          "s_mov_b32 s19, s5"
+        ]
+      },
+      {
+        "line": 721,
+        "text": "s_mov_b32 s20, s5",
+        "components": [
+          "s_mov_b32 s20, s5"
+        ]
+      },
+      {
+        "line": 722,
+        "text": "s_mov_b32 s21, s5",
+        "components": [
+          "s_mov_b32 s21, s5"
+        ]
+      },
+      {
+        "line": 723,
+        "text": "s_mov_b32 s22, s5",
+        "components": [
+          "s_mov_b32 s22, s5"
+        ]
+      },
+      {
+        "line": 724,
+        "text": "s_mov_b32 s23, s5",
+        "components": [
+          "s_mov_b32 s23, s5"
+        ]
+      },
+      {
+        "line": 725,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 726,
+        "text": "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]",
+        "components": [
+          "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]"
+        ]
+      },
+      {
+        "line": 728,
+        "text": "s_or_b32 exec_lo, exec_lo, s8",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s8"
+        ]
+      },
+      {
+        "line": 729,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 730,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 731,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 732,
+        "text": "s_mov_b32 s4, exec_lo",
+        "components": [
+          "s_mov_b32 s4, exec_lo"
+        ]
+      },
+      {
+        "line": 733,
+        "text": "v_cmpx_eq_u32_e32 32, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 32, v0"
+        ]
+      },
+      {
+        "line": 734,
+        "text": "s_cbranch_execz .LBB5_4",
+        "components": [
+          "s_cbranch_execz .LBB5_4"
+        ]
+      },
+      {
+        "line": 736,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 737,
+        "text": "s_load_b32 s0, s[0:1], 0x4",
+        "components": [
+          "s_load_b32 s0, s[0:1], 0x4"
+        ]
+      },
+      {
+        "line": 738,
+        "text": "s_mov_b64 s[4:5], src_shared_base",
+        "components": [
+          "s_mov_b64 s[4:5], src_shared_base"
+        ]
+      },
+      {
+        "line": 739,
+        "text": "s_mov_b32 s4, 0",
+        "components": [
+          "s_mov_b32 s4, 0"
+        ]
+      },
+      {
+        "line": 740,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 741,
+        "text": "v_dual_mov_b32 v0, 0 :: v_dual_mov_b32 v1, s0",
+        "components": [
+          "v_dual_mov_b32 v0, 0",
+          "v_dual_mov_b32 v1, s0"
+        ]
+      },
+      {
+        "line": 743,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 745,
+        "text": "flat_store_b32 v0, v1, s[4:5] scope:SCOPE_SYS",
+        "components": [
+          "flat_store_b32 v0, v1, s[4:5] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 746,
+        "text": "s_wait_storecnt 0x0",
+        "components": [
+          "s_wait_storecnt 0x0"
+        ]
+      },
+      {
+        "line": 747,
+        "text": "flat_load_b32 v1, v0, s[4:5] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v1, v0, s[4:5] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 748,
+        "text": "s_wait_loadcnt_dscnt 0x0",
+        "components": [
+          "s_wait_loadcnt_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 750,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 752,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 754,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 843,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 844,
+        "text": "s_mov_b32 s4, exec_lo",
+        "components": [
+          "s_mov_b32 s4, exec_lo"
+        ]
+      },
+      {
+        "line": 845,
+        "text": "v_cmpx_gt_u32_e32 4, v0",
+        "components": [
+          "v_cmpx_gt_u32_e32 4, v0"
+        ]
+      },
+      {
+        "line": 846,
+        "text": "s_cbranch_execz .LBB6_2",
+        "components": [
+          "s_cbranch_execz .LBB6_2"
+        ]
+      },
+      {
+        "line": 848,
+        "text": "s_mov_b64 s[6:7], src_shared_base",
+        "components": [
+          "s_mov_b64 s[6:7], src_shared_base"
+        ]
+      },
+      {
+        "line": 849,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 850,
+        "text": "v_dual_mov_b32 v3, s7 :: v_dual_lshlrev_b32 v2, 2, v0",
+        "components": [
+          "v_dual_mov_b32 v3, s7",
+          "v_dual_lshlrev_b32 v2, 2, v0"
+        ]
+      },
+      {
+        "line": 851,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 852,
+        "text": "global_load_b32 v1, v0, s[0:1] scale_offset",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] scale_offset"
+        ]
+      },
+      {
+        "line": 853,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 855,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 857,
+        "text": "flat_store_b32 v[2:3], v1 scope:SCOPE_SYS",
+        "components": [
+          "flat_store_b32 v[2:3], v1 scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 858,
+        "text": "s_wait_storecnt 0x0",
+        "components": [
+          "s_wait_storecnt 0x0"
+        ]
+      },
+      {
+        "line": 860,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 861,
+        "text": "s_or_b32 exec_lo, exec_lo, s4",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s4"
+        ]
+      },
+      {
+        "line": 862,
+        "text": "s_mov_b32 s5, 0",
+        "components": [
+          "s_mov_b32 s5, 0"
+        ]
+      },
+      {
+        "line": 863,
+        "text": "s_mov_b32 s8, exec_lo",
+        "components": [
+          "s_mov_b32 s8, exec_lo"
+        ]
+      },
+      {
+        "line": 864,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 865,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 866,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 867,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 868,
+        "text": "s_cbranch_execz .LBB6_4",
+        "components": [
+          "s_cbranch_execz .LBB6_4"
+        ]
+      },
+      {
+        "line": 870,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 871,
+        "text": "s_and_b32 s6, s3, 0x1ffffff",
+        "components": [
+          "s_and_b32 s6, s3, 0x1ffffff"
+        ]
+      },
+      {
+        "line": 872,
+        "text": "s_mov_b32 s4, 1",
+        "components": [
+          "s_mov_b32 s4, 1"
+        ]
+      },
+      {
+        "line": 873,
+        "text": "s_mov_b32 s13, 0x40000",
+        "components": [
+          "s_mov_b32 s13, 0x40000"
+        ]
+      },
+      {
+        "line": 874,
+        "text": "s_or_b32 s7, s6, 0x80000000",
+        "components": [
+          "s_or_b32 s7, s6, 0x80000000"
+        ]
+      },
+      {
+        "line": 875,
+        "text": "s_mov_b32 s6, s2",
+        "components": [
+          "s_mov_b32 s6, s2"
+        ]
+      },
+      {
+        "line": 876,
+        "text": "s_mov_b32 s17, 4",
+        "components": [
+          "s_mov_b32 s17, 4"
+        ]
+      },
+      {
+        "line": 877,
+        "text": "s_mov_b32 s14, 0x10000",
+        "components": [
+          "s_mov_b32 s14, 0x10000"
+        ]
+      },
+      {
+        "line": 878,
+        "text": "s_mov_b32 s12, 0x20000",
+        "components": [
+          "s_mov_b32 s12, 0x20000"
+        ]
+      },
+      {
+        "line": 879,
+        "text": "s_mov_b32 s15, s13",
+        "components": [
+          "s_mov_b32 s15, s13"
+        ]
+      },
+      {
+        "line": 880,
+        "text": "s_mov_b32 s16, s4",
+        "components": [
+          "s_mov_b32 s16, s4"
+        ]
+      },
+      {
+        "line": 881,
+        "text": "s_mov_b32 s18, s5",
+        "components": [
+          "s_mov_b32 s18, s5"
+        ]
+      },
+      {
+        "line": 882,
+        "text": "s_mov_b32 s19, s5",
+        "components": [
+          "s_mov_b32 s19, s5"
+        ]
+      },
+      {
+        "line": 883,
+        "text": "s_mov_b32 s20, s5",
+        "components": [
+          "s_mov_b32 s20, s5"
+        ]
+      },
+      {
+        "line": 884,
+        "text": "s_mov_b32 s21, s5",
+        "components": [
+          "s_mov_b32 s21, s5"
+        ]
+      },
+      {
+        "line": 885,
+        "text": "s_mov_b32 s22, s5",
+        "components": [
+          "s_mov_b32 s22, s5"
+        ]
+      },
+      {
+        "line": 886,
+        "text": "s_mov_b32 s23, s5",
+        "components": [
+          "s_mov_b32 s23, s5"
+        ]
+      },
+      {
+        "line": 887,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 888,
+        "text": "tensor_store_from_lds s[4:7], s[12:19], s[20:23], s[20:23]",
+        "components": [
+          "tensor_store_from_lds s[4:7], s[12:19], s[20:23], s[20:23]"
+        ]
+      },
+      {
+        "line": 890,
+        "text": "s_or_b32 exec_lo, exec_lo, s8",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s8"
+        ]
+      },
+      {
+        "line": 891,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 892,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 893,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 894,
+        "text": "s_mov_b32 s4, exec_lo",
+        "components": [
+          "s_mov_b32 s4, exec_lo"
+        ]
+      },
+      {
+        "line": 895,
+        "text": "v_cmpx_eq_u32_e32 32, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 32, v0"
+        ]
+      },
+      {
+        "line": 896,
+        "text": "s_cbranch_execz .LBB6_6",
+        "components": [
+          "s_cbranch_execz .LBB6_6"
+        ]
+      },
+      {
+        "line": 898,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 899,
+        "text": "s_mov_b64 s[4:5], src_shared_base",
+        "components": [
+          "s_mov_b64 s[4:5], src_shared_base"
+        ]
+      },
+      {
+        "line": 900,
+        "text": "s_mov_b32 s4, 0",
+        "components": [
+          "s_mov_b32 s4, 0"
+        ]
+      },
+      {
+        "line": 901,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 902,
+        "text": "global_load_b32 v1, v0, s[0:1] offset:16",
+        "components": [
+          "global_load_b32 v1, v0, s[0:1] offset:16"
+        ]
+      },
+      {
+        "line": 903,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 905,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 907,
+        "text": "flat_store_b32 v0, v1, s[4:5] scope:SCOPE_SYS",
+        "components": [
+          "flat_store_b32 v0, v1, s[4:5] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 908,
+        "text": "s_wait_storecnt 0x0",
+        "components": [
+          "s_wait_storecnt 0x0"
+        ]
+      },
+      {
+        "line": 909,
+        "text": "flat_load_b32 v1, v0, s[4:5] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v1, v0, s[4:5] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 910,
+        "text": "s_wait_loadcnt_dscnt 0x0",
+        "components": [
+          "s_wait_loadcnt_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 912,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 914,
+        "text": "global_store_b32 v0, v1, s[2:3] offset:16",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3] offset:16"
+        ]
+      },
+      {
+        "line": 916,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1005,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1006,
+        "text": "s_mov_b32 s5, 0",
+        "components": [
+          "s_mov_b32 s5, 0"
+        ]
+      },
+      {
+        "line": 1007,
+        "text": "s_mov_b32 s8, exec_lo",
+        "components": [
+          "s_mov_b32 s8, exec_lo"
+        ]
+      },
+      {
+        "line": 1008,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 1009,
+        "text": "s_cbranch_execz .LBB7_2",
+        "components": [
+          "s_cbranch_execz .LBB7_2"
+        ]
+      },
+      {
+        "line": 1011,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1012,
+        "text": "s_and_b32 s6, s1, 0x1ffffff",
+        "components": [
+          "s_and_b32 s6, s1, 0x1ffffff"
+        ]
+      },
+      {
+        "line": 1013,
+        "text": "s_mov_b32 s4, 1",
+        "components": [
+          "s_mov_b32 s4, 1"
+        ]
+      },
+      {
+        "line": 1014,
+        "text": "s_mov_b32 s13, 0x40000",
+        "components": [
+          "s_mov_b32 s13, 0x40000"
+        ]
+      },
+      {
+        "line": 1015,
+        "text": "s_or_b32 s7, s6, 0x80000000",
+        "components": [
+          "s_or_b32 s7, s6, 0x80000000"
+        ]
+      },
+      {
+        "line": 1016,
+        "text": "s_mov_b32 s6, s0",
+        "components": [
+          "s_mov_b32 s6, s0"
+        ]
+      },
+      {
+        "line": 1017,
+        "text": "s_mov_b32 s17, 4",
+        "components": [
+          "s_mov_b32 s17, 4"
+        ]
+      },
+      {
+        "line": 1018,
+        "text": "s_mov_b32 s14, 0x10000",
+        "components": [
+          "s_mov_b32 s14, 0x10000"
+        ]
+      },
+      {
+        "line": 1019,
+        "text": "s_mov_b32 s12, 0x20000",
+        "components": [
+          "s_mov_b32 s12, 0x20000"
+        ]
+      },
+      {
+        "line": 1020,
+        "text": "s_mov_b32 s15, s13",
+        "components": [
+          "s_mov_b32 s15, s13"
+        ]
+      },
+      {
+        "line": 1021,
+        "text": "s_mov_b32 s16, s4",
+        "components": [
+          "s_mov_b32 s16, s4"
+        ]
+      },
+      {
+        "line": 1022,
+        "text": "s_mov_b32 s18, s5",
+        "components": [
+          "s_mov_b32 s18, s5"
+        ]
+      },
+      {
+        "line": 1023,
+        "text": "s_mov_b32 s19, s5",
+        "components": [
+          "s_mov_b32 s19, s5"
+        ]
+      },
+      {
+        "line": 1024,
+        "text": "s_mov_b32 s20, s5",
+        "components": [
+          "s_mov_b32 s20, s5"
+        ]
+      },
+      {
+        "line": 1025,
+        "text": "s_mov_b32 s21, s5",
+        "components": [
+          "s_mov_b32 s21, s5"
+        ]
+      },
+      {
+        "line": 1026,
+        "text": "s_mov_b32 s22, s5",
+        "components": [
+          "s_mov_b32 s22, s5"
+        ]
+      },
+      {
+        "line": 1027,
+        "text": "s_mov_b32 s23, s5",
+        "components": [
+          "s_mov_b32 s23, s5"
+        ]
+      },
+      {
+        "line": 1028,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1) | instskip(SKIP_3) | instid1(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1) | instskip(SKIP_3) | instid1(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 1029,
+        "text": "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]",
+        "components": [
+          "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]"
+        ]
+      },
+      {
+        "line": 1030,
+        "text": "s_add_nc_u64 s[6:7], s[0:1], 16",
+        "components": [
+          "s_add_nc_u64 s[6:7], s[0:1], 16"
+        ]
+      },
+      {
+        "line": 1031,
+        "text": "s_mov_b32 s5, 16",
+        "components": [
+          "s_mov_b32 s5, 16"
+        ]
+      },
+      {
+        "line": 1032,
+        "text": "s_and_b32 s0, s7, 0x1ffffff",
+        "components": [
+          "s_and_b32 s0, s7, 0x1ffffff"
+        ]
+      },
+      {
+        "line": 1033,
+        "text": "s_or_b32 s7, s0, 0x80000000",
+        "components": [
+          "s_or_b32 s7, s0, 0x80000000"
+        ]
+      },
+      {
+        "line": 1034,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 1035,
+        "text": "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]",
+        "components": [
+          "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]"
+        ]
+      },
+      {
+        "line": 1037,
+        "text": "s_or_b32 exec_lo, exec_lo, s8",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s8"
+        ]
+      },
+      {
+        "line": 1038,
+        "text": "v_mov_b32_e32 v1, 0",
+        "components": [
+          "v_mov_b32_e32 v1, 0"
+        ]
+      },
+      {
+        "line": 1039,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1040,
+        "text": "s_mov_b64 s[0:1], src_shared_base",
+        "components": [
+          "s_mov_b64 s[0:1], src_shared_base"
+        ]
+      },
+      {
+        "line": 1041,
+        "text": "s_mov_b32 s0, 16",
+        "components": [
+          "s_mov_b32 s0, 16"
+        ]
+      },
+      {
+        "line": 1042,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 1043,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 1044,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 1045,
+        "text": "flat_load_b32 v1, v1, s[0:1] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v1, v1, s[0:1] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 1046,
+        "text": "s_wait_loadcnt_dscnt 0x0",
+        "components": [
+          "s_wait_loadcnt_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 1047,
+        "text": "global_store_b32 v0, v1, s[2:3] scale_offset",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3] scale_offset"
+        ]
+      },
+      {
+        "line": 1048,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1137,
+        "text": "s_load_b64 s[4:5], s[0:1], 0x0",
+        "components": [
+          "s_load_b64 s[4:5], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1138,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 1139,
+        "text": "s_mov_b32 s1, 0",
+        "components": [
+          "s_mov_b32 s1, 0"
+        ]
+      },
+      {
+        "line": 1140,
+        "text": "s_mov_b32 s6, exec_lo",
+        "components": [
+          "s_mov_b32 s6, exec_lo"
+        ]
+      },
+      {
+        "line": 1141,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 1142,
+        "text": "s_cbranch_execz .LBB8_2",
+        "components": [
+          "s_cbranch_execz .LBB8_2"
+        ]
+      },
+      {
+        "line": 1144,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1145,
+        "text": "s_and_b32 s2, s5, 0x1ffffff",
+        "components": [
+          "s_and_b32 s2, s5, 0x1ffffff"
+        ]
+      },
+      {
+        "line": 1146,
+        "text": "s_mov_b32 s0, 1",
+        "components": [
+          "s_mov_b32 s0, 1"
+        ]
+      },
+      {
+        "line": 1147,
+        "text": "s_mov_b32 s9, 0x200000",
+        "components": [
+          "s_mov_b32 s9, 0x200000"
+        ]
+      },
+      {
+        "line": 1148,
+        "text": "s_or_b32 s3, s2, 0x80000000",
+        "components": [
+          "s_or_b32 s3, s2, 0x80000000"
+        ]
+      },
+      {
+        "line": 1149,
+        "text": "s_mov_b32 s2, s4",
+        "components": [
+          "s_mov_b32 s2, s4"
+        ]
+      },
+      {
+        "line": 1150,
+        "text": "s_mov_b32 s13, 32",
+        "components": [
+          "s_mov_b32 s13, 32"
+        ]
+      },
+      {
+        "line": 1151,
+        "text": "s_mov_b32 s10, 0x10000",
+        "components": [
+          "s_mov_b32 s10, 0x10000"
+        ]
+      },
+      {
+        "line": 1152,
+        "text": "s_mov_b32 s8, 0x20000",
+        "components": [
+          "s_mov_b32 s8, 0x20000"
+        ]
+      },
+      {
+        "line": 1153,
+        "text": "s_mov_b32 s11, s9",
+        "components": [
+          "s_mov_b32 s11, s9"
+        ]
+      },
+      {
+        "line": 1154,
+        "text": "s_mov_b32 s12, s0",
+        "components": [
+          "s_mov_b32 s12, s0"
+        ]
+      },
+      {
+        "line": 1155,
+        "text": "s_mov_b32 s14, s1",
+        "components": [
+          "s_mov_b32 s14, s1"
+        ]
+      },
+      {
+        "line": 1156,
+        "text": "s_mov_b32 s15, s1",
+        "components": [
+          "s_mov_b32 s15, s1"
+        ]
+      },
+      {
+        "line": 1157,
+        "text": "s_mov_b32 s16, s1",
+        "components": [
+          "s_mov_b32 s16, s1"
+        ]
+      },
+      {
+        "line": 1158,
+        "text": "s_mov_b32 s17, s1",
+        "components": [
+          "s_mov_b32 s17, s1"
+        ]
+      },
+      {
+        "line": 1159,
+        "text": "s_mov_b32 s18, s1",
+        "components": [
+          "s_mov_b32 s18, s1"
+        ]
+      },
+      {
+        "line": 1160,
+        "text": "s_mov_b32 s19, s1",
+        "components": [
+          "s_mov_b32 s19, s1"
+        ]
+      },
+      {
+        "line": 1161,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 1162,
+        "text": "tensor_load_to_lds s[0:3], s[8:15], s[16:19], s[16:19]",
+        "components": [
+          "tensor_load_to_lds s[0:3], s[8:15], s[16:19], s[16:19]"
+        ]
+      },
+      {
+        "line": 1164,
+        "text": "s_or_b32 exec_lo, exec_lo, s6",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s6"
+        ]
+      },
+      {
+        "line": 1165,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 1166,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 1167,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 1168,
+        "text": "s_mov_b32 s0, exec_lo",
+        "components": [
+          "s_mov_b32 s0, exec_lo"
+        ]
+      },
+      {
+        "line": 1169,
+        "text": "v_cmpx_lt_u32_e32 31, v0",
+        "components": [
+          "v_cmpx_lt_u32_e32 31, v0"
+        ]
+      },
+      {
+        "line": 1170,
+        "text": "s_cbranch_execz .LBB8_4",
+        "components": [
+          "s_cbranch_execz .LBB8_4"
+        ]
+      },
+      {
+        "line": 1172,
+        "text": "s_mov_b64 s[0:1], src_shared_base",
+        "components": [
+          "s_mov_b64 s[0:1], src_shared_base"
+        ]
+      },
+      {
+        "line": 1173,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1174,
+        "text": "global_load_b32 v2, v0, s[4:5] scale_offset",
+        "components": [
+          "global_load_b32 v2, v0, s[4:5] scale_offset"
+        ]
+      },
+      {
+        "line": 1175,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 1176,
+        "text": "v_lshl_add_u32 v0, v0, 2, 0xffffff80",
+        "components": [
+          "v_lshl_add_u32 v0, v0, 2, 0xffffff80"
+        ]
+      },
+      {
+        "line": 1177,
+        "text": "v_mov_b32_e32 v1, s1",
+        "components": [
+          "v_mov_b32_e32 v1, s1"
+        ]
+      },
+      {
+        "line": 1178,
+        "text": "s_wait_loadcnt 0x0",
+        "components": [
+          "s_wait_loadcnt 0x0"
+        ]
+      },
+      {
+        "line": 1180,
+        "text": "v_add_f32 v2, 0, v2",
+        "components": [
+          "v_add_f32 v2, 0, v2"
+        ]
+      },
+      {
+        "line": 1182,
+        "text": "flat_store_b32 v[0:1], v2 scope:SCOPE_SYS",
+        "components": [
+          "flat_store_b32 v[0:1], v2 scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 1183,
+        "text": "s_wait_storecnt 0x0",
+        "components": [
+          "s_wait_storecnt 0x0"
+        ]
+      },
+      {
+        "line": 1185,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1274,
+        "text": "s_load_b128 s[0:3], s[0:1], 0x0",
+        "components": [
+          "s_load_b128 s[0:3], s[0:1], 0x0"
+        ]
+      },
+      {
+        "line": 1275,
+        "text": "s_mov_b32 s5, 0",
+        "components": [
+          "s_mov_b32 s5, 0"
+        ]
+      },
+      {
+        "line": 1276,
+        "text": "s_mov_b32 s8, exec_lo",
+        "components": [
+          "s_mov_b32 s8, exec_lo"
+        ]
+      },
+      {
+        "line": 1277,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 1278,
+        "text": "s_cbranch_execz .LBB9_2",
+        "components": [
+          "s_cbranch_execz .LBB9_2"
+        ]
+      },
+      {
+        "line": 1280,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1281,
+        "text": "s_and_b32 s6, s1, 0x1ffffff",
+        "components": [
+          "s_and_b32 s6, s1, 0x1ffffff"
+        ]
+      },
+      {
+        "line": 1282,
+        "text": "s_mov_b32 s4, 1",
+        "components": [
+          "s_mov_b32 s4, 1"
+        ]
+      },
+      {
+        "line": 1283,
+        "text": "s_mov_b32 s13, 0x10000",
+        "components": [
+          "s_mov_b32 s13, 0x10000"
+        ]
+      },
+      {
+        "line": 1284,
+        "text": "s_or_b32 s7, s6, 0x80000000",
+        "components": [
+          "s_or_b32 s7, s6, 0x80000000"
+        ]
+      },
+      {
+        "line": 1285,
+        "text": "s_mov_b32 s6, s0",
+        "components": [
+          "s_mov_b32 s6, s0"
+        ]
+      },
+      {
+        "line": 1286,
+        "text": "s_mov_b32 s12, 0x20000",
+        "components": [
+          "s_mov_b32 s12, 0x20000"
+        ]
+      },
+      {
+        "line": 1287,
+        "text": "s_mov_b32 s14, s13",
+        "components": [
+          "s_mov_b32 s14, s13"
+        ]
+      },
+      {
+        "line": 1288,
+        "text": "s_mov_b32 s15, s13",
+        "components": [
+          "s_mov_b32 s15, s13"
+        ]
+      },
+      {
+        "line": 1289,
+        "text": "s_mov_b32 s16, s4",
+        "components": [
+          "s_mov_b32 s16, s4"
+        ]
+      },
+      {
+        "line": 1290,
+        "text": "s_mov_b32 s17, s4",
+        "components": [
+          "s_mov_b32 s17, s4"
+        ]
+      },
+      {
+        "line": 1291,
+        "text": "s_mov_b32 s18, s5",
+        "components": [
+          "s_mov_b32 s18, s5"
+        ]
+      },
+      {
+        "line": 1292,
+        "text": "s_mov_b32 s19, s5",
+        "components": [
+          "s_mov_b32 s19, s5"
+        ]
+      },
+      {
+        "line": 1293,
+        "text": "s_mov_b32 s20, s5",
+        "components": [
+          "s_mov_b32 s20, s5"
+        ]
+      },
+      {
+        "line": 1294,
+        "text": "s_mov_b32 s21, s5",
+        "components": [
+          "s_mov_b32 s21, s5"
+        ]
+      },
+      {
+        "line": 1295,
+        "text": "s_mov_b32 s22, s5",
+        "components": [
+          "s_mov_b32 s22, s5"
+        ]
+      },
+      {
+        "line": 1296,
+        "text": "s_mov_b32 s23, s5",
+        "components": [
+          "s_mov_b32 s23, s5"
+        ]
+      },
+      {
+        "line": 1297,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 1298,
+        "text": "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]",
+        "components": [
+          "tensor_load_to_lds s[4:7], s[12:19], s[20:23], s[20:23]"
+        ]
+      },
+      {
+        "line": 1300,
+        "text": "s_or_b32 exec_lo, exec_lo, s8",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s8"
+        ]
+      },
+      {
+        "line": 1301,
+        "text": "s_wait_tensorcnt 0x0",
+        "components": [
+          "s_wait_tensorcnt 0x0"
+        ]
+      },
+      {
+        "line": 1302,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 1303,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 1304,
+        "text": "s_mov_b32 s4, exec_lo",
+        "components": [
+          "s_mov_b32 s4, exec_lo"
+        ]
+      },
+      {
+        "line": 1305,
+        "text": "v_cmpx_eq_u32_e32 32, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 32, v0"
+        ]
+      },
+      {
+        "line": 1306,
+        "text": "s_cbranch_execz .LBB9_4",
+        "components": [
+          "s_cbranch_execz .LBB9_4"
+        ]
+      },
+      {
+        "line": 1308,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 1309,
+        "text": "s_mov_b64 s[4:5], src_shared_base",
+        "components": [
+          "s_mov_b64 s[4:5], src_shared_base"
+        ]
+      },
+      {
+        "line": 1310,
+        "text": "s_mov_b32 s4, 0",
+        "components": [
+          "s_mov_b32 s4, 0"
+        ]
+      },
+      {
+        "line": 1311,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1312,
+        "text": "flat_load_b32 v1, v0, s[0:1] offset:4 scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v1, v0, s[0:1] offset:4 scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 1313,
+        "text": "s_wait_loadcnt_dscnt 0x0",
+        "components": [
+          "s_wait_loadcnt_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 1314,
+        "text": "flat_store_b32 v0, v1, s[0:1] scope:SCOPE_SYS",
+        "components": [
+          "flat_store_b32 v0, v1, s[0:1] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 1315,
+        "text": "s_wait_storecnt 0x0",
+        "components": [
+          "s_wait_storecnt 0x0"
+        ]
+      },
+      {
+        "line": 1316,
+        "text": "flat_load_b32 v1, v0, s[4:5] scope:SCOPE_SYS",
+        "components": [
+          "flat_load_b32 v1, v0, s[4:5] scope:SCOPE_SYS"
+        ]
+      },
+      {
+        "line": 1317,
+        "text": "s_wait_loadcnt_dscnt 0x0",
+        "components": [
+          "s_wait_loadcnt_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 1318,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 1320,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      }
+    ]
+  }
+}

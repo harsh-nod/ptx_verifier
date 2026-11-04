@@ -40,6 +40,7 @@ impl Frontend for PtxFrontend {
         let parts = verified.analysis.into_parts();
 
         Ok(KernelRun {
+            native: None,
             outputs: parts.outputs.map_err(|why| why.to_string()),
             graph: GraphEvidence::Checked {
                 graph: Box::new(parts.graph),

@@ -40,6 +40,7 @@ impl Frontend for NkiFrontend {
             .map_err(|e| FrontendError::Analysis(format!("lowering failed: {e}")))?;
 
         Ok(KernelRun {
+            native: None,
             outputs: evaluate(&lowered).map_err(|e| e.to_string()),
             graph: GraphEvidence::NotRecorded,
         })
@@ -53,6 +54,11 @@ fn is_empty(launch: &AnalysisConfig) -> bool {
         && launch.params.is_empty()
         && launch.global_values.is_empty()
         && launch.dynamic_shared_bytes == 0
+        && launch.workgroup_id == (0, 0, 0)
+        && !launch.early_readiness
+        && !launch.early_memory_conflicts
+        && launch.shared_allocations.is_empty()
+        && launch.max_instructions == AnalysisConfig::new((1, 1, 1)).max_instructions
 }
 
 /// The functions `source` decorates `@nki.jit` on the line before their `def`.

@@ -4,6 +4,7 @@ use std::fmt::Display;
 use std::path::Path;
 use std::process::ExitCode;
 
+use crate::source::KernelSide;
 use volta_common::run_log;
 use volta_equivalence::{EquivCheckReport, EquivOutcome};
 use volta_expr::SymbolicOutputs;
@@ -37,6 +38,15 @@ pub(crate) fn print_graph_report(
     source: &str,
 ) {
     println!("{}: graph verification", label);
+    if graph
+        .provenance()
+        .assumes(volta_graph::Assumption::SingleWorkgroupAnalyzed)
+    {
+        let (x, y, z) = graph.provenance().workgroup_id;
+        println!(
+            "  selected workgroup: ({x}, {y}, {z}); other workgroups and inter-workgroup conflicts are outside this result"
+        );
+    }
     for s in report.summaries() {
         let check = format!("{} ({})", s.property.name(), s.property.algorithm());
         println!("  {:<55} {}", check, s.verdict.name());
@@ -218,4 +228,80 @@ pub(crate) fn print_spec_check(
             ));
         }
     }
+}
+
+pub(crate) fn print_certified_rejection(side: &KernelSide, instructions: u64) -> bool {
+    print_prefix_certificates(
+        side.label,
+        instructions,
+        side.early_readiness.as_ref(),
+        side.early_memory_conflict.as_ref(),
+        side.tensor_bounds.as_ref(),
+    )
+}
+
+pub(crate) fn print_native_certified_rejection(
+    label: &str,
+    side: &volta_pipeline::NativeRunMetadata,
+) -> bool {
+    print_prefix_certificates(
+        label,
+        side.stats.instructions,
+        side.early_readiness.as_ref(),
+        side.early_memory_conflict.as_ref(),
+        side.tensor_bounds.as_ref(),
+    )
+}
+
+fn print_prefix_certificates(
+    label: &str,
+    instructions: u64,
+    early_readiness: Option<&volta_pipeline::CertifiedScalarReadiness>,
+    early_memory_conflict: Option<&volta_pipeline::CertifiedMemoryConflict>,
+    tensor_bounds: Option<&volta_pipeline::CertifiedTensorBounds>,
+) -> bool {
+    if let Some(finding) = tensor_bounds {
+        println!("TENSOR_BOUNDS: CERTIFIED_REJECTION");
+        println!("  AMD tensor LDS bounds (independently validated attempted access) FAIL");
+        println!("  {}: {:?}", label, finding.violation());
+        println!(
+            "  incomplete aborted prefix; transfer not issued; complete outputs and equivalence unavailable"
+        );
+        println!("VERDICT: REJECT");
+        return true;
+    }
+    if let Some(finding) = early_memory_conflict {
+        let certificate = finding.certificate();
+        println!("EARLY_MEMORY_CONFLICTS: CERTIFIED_REJECTION");
+        println!("  AMD memory-conflict freedom (certified prefix) FAIL");
+        println!("  {}: {:?}", label, finding.conflict());
+        println!(
+            "  instruction={:?} issue={:?} wave={} earlier_thread={:?} later_thread={:?}",
+            certificate.instruction,
+            certificate.issue,
+            certificate.wave,
+            certificate.earlier_thread,
+            certificate.later_thread
+        );
+        println!(
+            "  prefix: instructions={} amd_records={} graph_events={}",
+            instructions, certificate.amd_records, certificate.graph_events
+        );
+        println!(
+            "  first finding only; incomplete trace prefix; complete outputs and equivalence unavailable"
+        );
+        println!("VERDICT: REJECT");
+        return true;
+    }
+    let Some(finding) = early_readiness else {
+        return false;
+    };
+    println!("EARLY_READINESS: CERTIFIED_REJECTION");
+    println!("  AMD wait and register readiness (certified prefix) FAIL");
+    println!("  {}: {:?}", label, finding.hazard());
+    println!(
+        "  first finding only; incomplete trace prefix; complete outputs and equivalence unavailable"
+    );
+    println!("VERDICT: REJECT");
+    true
 }

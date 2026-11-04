@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "target": "gfx1250",
+  "compiler_commit": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+  "scope": "Exact MC encoding controls for required original typed workload forms; no hardware or semantic verdict implied.",
+  "cases": [
+    {
+      "instruction": "v_cvt_f32_fp8_e32 v0, v1 byte_sel:1",
+      "exit_code": 1,
+      "stderr": "<stdin>:2:26: error: invalid operand for instruction\nv_cvt_f32_fp8_e32 v0, v1 byte_sel:1\n                         ^\n"
+    },
+    {
+      "instruction": "v_cvt_f32_fp8_e64 v0, v1 byte_sel:1",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "instruction": "v_cvt_f32_fp8_e64 v0, v1 byte_sel:4",
+      "exit_code": 1,
+      "stderr": "<stdin>:2:26: error: invalid byte_sel value.\nv_cvt_f32_fp8_e64 v0, v1 byte_sel:4\n                         ^\n"
+    },
+    {
+      "instruction": "v_pk_max_num_f16 v0,v1,v2",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "instruction": "v_pk_max_num_f16_e32 v0,v1,v2",
+      "exit_code": 1,
+      "stderr": "<stdin>:2:1: error: e32 variant of this instruction is not supported\nv_pk_max_num_f16_e32 v0,v1,v2\n^\n"
+    },
+    {
+      "instruction": "v_max_num_f16_e32 v0,v1,v2",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "instruction": "v_max3_num_f16 v0,v1,v2,v3",
+      "exit_code": 0,
+      "stderr": ""
+    },
+    {
+      "instruction": "v_max3_num_f16_e32 v0,v1,v2,v3",
+      "exit_code": 1,
+      "stderr": "<stdin>:2:1: error: e32 variant of this instruction is not supported\nv_max3_num_f16_e32 v0,v1,v2,v3\n^\n"
+    }
+  ]
+}

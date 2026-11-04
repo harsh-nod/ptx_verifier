@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "scope": "Functional CPU comparison of one unchanged public HipKittens source case with BF16/F16 entry instantiations; separate wait-repair controls.",
+  "source_repository": "https://github.com/HazyResearch/HipKittens",
+  "source_revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+  "source": "tests/unit/cdna5/warp/memory/tile/shared_to_register.cu",
+  "source_sha256": "b747cc54bbd4fe9a29c8c59dfe2994077355d560783d518e570edee4e350a94f",
+  "original_assembly": "fixtures/original.s",
+  "original_assembly_sha256": "b9dfc61f31ae53f46452cb8c411301bc21b9eb64970929594840332cdd3b62a8",
+  "compiler_public_revision": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+  "launches": {
+    "bf16": "launch/bf16.json",
+    "f16": "launch/f16.json"
+  },
+  "spec": "identity.spec",
+  "baseline_source": "1c33069b53dc29409e95d6c0f9a52cd2cd423b01",
+  "candidate_source": "bd591464883c21150495fba3baa3328a133e05de",
+  "outcomes": {
+    "baseline": {
+      "status": "unsupported_async_instruction",
+      "instantiations": 2,
+      "complete_outputs": 0
+    },
+    "original": {
+      "status": "REJECT",
+      "instantiations": 2,
+      "complete_instructions_per_entry": 61,
+      "outputs_per_entry": 256,
+      "output_equivalence": "all256 proved with numerical confirmation",
+      "safety": "async LDS write/read conflict"
+    },
+    "repair": {
+      "status": "ACCEPT",
+      "instantiations": 2,
+      "complete_instructions_per_entry": 62,
+      "outputs_per_entry": 256,
+      "vexpr_bytes_identical_to_original": true
+    }
+  },
+  "limits": [
+    "Default scheduling; mathematical-real and eager-async-data assumptions.",
+    "One workgroup; these original launches have grid1/block32.",
+    "One underlying missing-completion pattern across two data types.",
+    "CPU-only verifier results; no hardware wrong-result observation.",
+    "Single-run diagnostic times support no speedup or RSS comparison.",
+    "Build/source identities are caller-attested, with raw artifact hashes."
+  ],
+  "paths": "Raw commands retain original absolute producer paths. This manifest and reproduce.py use portable package paths."
+}

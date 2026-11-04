@@ -1,0 +1,81 @@
+{
+  "kernel": "_ZL17global_wrapper_2dI20sharedreg_load_storeI6__halfEN7kittens5ducks8rt_shape8rt_shapeILi16ELi16ELi4EEENS4_8st_shape8st_16x16ES1_Li1ELi1ELi1ENS3_2glIS1_Li1ELi1ELi16ELi16ENS4_9gl_layout9row_majorEEEJNS4_9rt_layout3rowEEEvT6_SG_",
+  "block": [
+    32,
+    1,
+    1
+  ],
+  "grid": [
+    1,
+    1,
+    1
+  ],
+  "workgroup_id": [
+    0,
+    0,
+    0
+  ],
+  "dynamic_shared_bytes": 163840,
+  "arrays": [
+    {
+      "name": "x",
+      "base": 65536,
+      "dtype": "f16",
+      "shape": [
+        256
+      ],
+      "kind": "in"
+    },
+    {
+      "name": "out",
+      "base": 131072,
+      "dtype": "f16",
+      "shape": [
+        256
+      ],
+      "kind": "out"
+    }
+  ],
+  "params": [
+    {
+      "bytes": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "bytes": [
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

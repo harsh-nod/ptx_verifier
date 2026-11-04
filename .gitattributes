@@ -1,2 +1,5 @@
 # Mark vendored dependencies to exclude from language statistics
 vendor/** linguist-vendored
+
+# Preserve unified-diff context prefixes followed by original assembly tabs.
+tests/amdgpu/native-async-copy/results/repair/repair.diff -whitespace

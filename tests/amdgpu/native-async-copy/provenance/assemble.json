@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/opt/rocm/llvm/bin/llvm-mc",
+    "--triple=amdgcn-amd-amdhsa",
+    "--mcpu=gfx1250",
+    "-filetype=obj",
+    "/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-07a5080231865d32/kernel.s",
+    "-o",
+    "/tmp/ptx-hipkittens-campaign-20261031/baseline-all/gfx1250-07a5080231865d32/kernel.o"
+  ],
+  "cwd": null,
+  "status": "succeeded",
+  "returncode": 0,
+  "seconds": 0.01000376599995434
+}

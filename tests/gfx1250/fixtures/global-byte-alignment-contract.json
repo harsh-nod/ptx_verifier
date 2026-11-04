@@ -1,0 +1,117 @@
+{
+  "review": "gfx1250 HSA ordinary GLOBAL B32 byte alignment",
+  "public_revision": "5fd50ec8e07abb94e203933017e8d6e40fb51824",
+  "sources": {
+    "GCNProcessors.td": {
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNProcessors.td",
+      "sha256": "0a8e3621ef72f5df64d7a7bdc77262564c7e4312ca087bd9b804fff0d81afe9b"
+    },
+    "GCNFeatures.td": {
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNFeatures.td",
+      "sha256": "ac55bc844e0b4b5f9321b54b7a717be9f64a56c73e8554463e7a71733cf901b4"
+    },
+    "GCNSubtarget.cpp": {
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNSubtarget.cpp",
+      "sha256": "fdd5271fdf8db57642f45b907d871e61279d01b6fe23adabfa43810176188432"
+    },
+    "GCNSubtarget.h": {
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/GCNSubtarget.h",
+      "sha256": "7399ae53fa98e9f1c0db09c721eeff3903e6b26d10ed7f1da889d45f1365e6a5"
+    },
+    "SIISelLowering.cpp": {
+      "url": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SIISelLowering.cpp",
+      "sha256": "fa590967fa3a5af5954631c9e1a8118d131206cc6d90600a57b6d09b276773e2"
+    }
+  },
+  "feature_chain": [
+    {
+      "file": "GCNProcessors.td",
+      "lines": [
+        292,
+        294
+      ],
+      "fact": "gfx1250 selects FeatureISAVersion12_50"
+    },
+    {
+      "file": "GCNFeatures.td",
+      "lines": [
+        2441,
+        2443
+      ],
+      "fact": "Version12_50 includes Version12_50_Common"
+    },
+    {
+      "file": "GCNFeatures.td",
+      "lines": [
+        2316,
+        2318
+      ],
+      "fact": "Common includes FeatureGFX12"
+    },
+    {
+      "file": "GCNFeatures.td",
+      "lines": [
+        1753,
+        1754
+      ],
+      "fact": "GFX12 has UnalignedBufferAccess, UnalignedScratchAccess, and UnalignedDSAccess"
+    },
+    {
+      "file": "GCNSubtarget.cpp",
+      "lines": [
+        99,
+        104
+      ],
+      "fact": "AMDHSA OS enables unaligned-access-mode by default"
+    },
+    {
+      "file": "GCNSubtarget.h",
+      "lines": [
+        304,
+        310
+      ],
+      "fact": "Buffer and DS enabled predicates require capability AND unaligned access mode"
+    },
+    {
+      "file": "SIISelLowering.cpp",
+      "lines": [
+        2167,
+        2174
+      ],
+      "fact": "Extended GLOBAL accepts access below DWORD alignment when the unaligned-buffer predicate is enabled"
+    }
+  ],
+  "scope_distinctions": {
+    "GLOBAL": "",
+    "SMEM": "GLOBAL byte addressing is independent of SMEM component masking. Scalar loads use the width-specific component masks specified by the public CDNA5 ISA section 8.1.1.",
+    "DS": "Separate capability and opcode-specific width/offset/hardware-bug checks exist in SIISelLowering lines2042-2148; this review proposes no DS model expansion.",
+    "FLAT": "Separate path in SIISelLowering lines2150-2164 conservatively treats unknown aperture as potentially scratch. This review proposes no FLAT model expansion.",
+    "buffer": "Buffer-fat/resource robust-OOB path lines2176-2188 has its own conditions and cannot be inferred from ordinary GLOBAL."
+  },
+  "modeled_profile": {
+    "target": "gfx1250",
+    "environment": "AMDHSA default unaligned-access-mode",
+    "instructions": [
+      "global_load_b32",
+      "global_store_b32"
+    ],
+    "alignment_bytes": 1,
+    "bounds": "Entire four-byte transfer must fit one configured array or module object before any component effect. Initialized-byte definedness and read-only checks remain unchanged.",
+    "unchanged_profiles": [
+      "SMEM width-specific component masking",
+      "DS natural-width checks",
+      "FLAT alignment checks",
+      "GLOBAL B64/B96/B128",
+      "gfx942 and gfx950 alignment checks"
+    ],
+    "data": "Only already modeled raw byte/half/word representations may be transported; underalignment does not decode arbitrary symbolic word subparts."
+  },
+  "hardware_probe_source_commit": "8c9d140",
+  "hardware_probe_source_paths": [
+    "tests/gfx1250/fixtures/native-unaligned-global.hip",
+    "tests/gfx1250/fixtures/native-unaligned-global.s",
+    "tests/gfx1250/fixtures/unaligned-global-provenance.json",
+    "tests/gfx1250/full/hardware/unaligned_global.cpp",
+    "tests/gfx1250/full/hardware/unaligned_global_run.py"
+  ]
+}

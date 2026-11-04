@@ -38,6 +38,31 @@ def test_analyze_copy_kernel_outputs():
     assert elements == [(0, "in[0]"), (1, "in[1]"), (2, "in[2]"), (3, "in[3]")]
 
 
+def test_analyze_outputs_remain_independent_plain_python_snapshots():
+    result = volta.analyze(COPY_KERNEL, copy_config())
+    first = result.outputs
+    assert type(first) is list and type(first[0]) is tuple
+    assert type(first[0][1]) is list and type(first[0][1][0]) is tuple
+    assert type(first[0][1][0][0]) is int and type(first[0][1][0][1]) is str
+    first[0][1][0] = (999, "edited")
+    first.append(("extra", []))
+    second = result.outputs
+    del result
+    assert second == [("out", [(i, f"in[{i}]") for i in range(4)])]
+
+
+def test_analyze_shared_dag_keeps_existing_oversized_display_placeholder():
+    store = "st.global.f32 [%rd5], %f1;"
+    source = COPY_KERNEL.replace(store, "add.f32 %f1, %f1, %f1;\n" * 60 + store)
+    result = volta.analyze(source, copy_config())
+    assert result.race_verified
+    outputs = result.outputs
+    assert [i for i, _ in outputs[0][1]] == list(range(4))
+    for _, text in outputs[0][1]:
+        assert text.startswith("<expression exceeds 50MB when printed")
+        assert len(text) < 512
+
+
 def test_analyze_copy_kernel_stats_and_op_counts():
     result = volta.analyze(COPY_KERNEL, copy_config())
 

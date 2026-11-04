@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "target": "gfx1250",
+  "scope": "Public compiler/MC/link provenance for unchanged genuine LLVM output; no hardware execution or proof acceptance claim.",
+  "hardware_execution": false,
+  "tools": {
+    "llc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+      "sha256": "88b786477a6f2db121523da927bc176f84f209c2bca2ba2c9e870e2202f0f5f6",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n  Default target: x86_64-unknown-linux-gnu\n  Host CPU: znver5\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    "llvm-mc": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n"
+    },
+    "ld.lld": {
+      "path": "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "sha256": "d088c46031665db7985be41360fcf3f8e80e2536fa608b7a3d64223fd13cfebb",
+      "version": "AMD LLD 22.0.0 (/longer_pathname_so_that_rpms_can_support_packaging_the_debug_info_for_all_os_profiles/src/llvm-project/llvm 7b800a19466229b8479a78de19143dc33c3ab9b5) (compatible with GNU linkers)\n"
+    }
+  },
+  "source": "native-signal-counts.ll",
+  "source_sha256": "eb7fdeac74ea352954217e0b3cc76d63a443d2f408b3e97477112ec777c45254",
+  "assembly": "native-signal-counts.s",
+  "assembly_sha256": "905535c24161201668cc06a4743984e13fc1024715428bc341024be0ff956212",
+  "object_sha256": "a2a6ef75a4e8287051156ce35fb94e796aac22c2d70abeb473ceee6476b19f54",
+  "code_object_sha256": "48119f38ab7e9d2d0c344f45f1837c801d07f8de19782cfd4cee289d9c04698d",
+  "compile": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/llc",
+      "-mtriple=amdgcn-amd-amdhsa",
+      "-mcpu=gfx1250",
+      "-O2",
+      "/home/harsh/ptx_verifier-graph-protocol/tests/gfx1250/portable-graph/signal-counts/native-signal-counts.ll",
+      "-o",
+      "/home/harsh/ptx_verifier-graph-protocol/tests/gfx1250/portable-graph/signal-counts/native-signal-counts.s"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "assemble": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+      "--triple=amdgcn-amd-amdhsa",
+      "--mcpu=gfx1250",
+      "-filetype=obj",
+      "/home/harsh/ptx_verifier-graph-protocol/tests/gfx1250/portable-graph/signal-counts/native-signal-counts.s",
+      "-o",
+      "/tmp/native-signal-counts.o"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "link": {
+    "argv": [
+      "/opt/rocm-7.2.0/lib/llvm/bin/ld.lld",
+      "-shared",
+      "/tmp/native-signal-counts.o",
+      "-o",
+      "/tmp/native-signal-counts.hsaco"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+}

@@ -159,6 +159,28 @@ pub fn analyze(
     kernel: Option<&str>,
     config: AnalysisConfig,
 ) -> Result<AnalysisResult, AnalysisError> {
+    if config.early_memory_conflicts {
+        return Err(AnalysisError::Eval(EvalError::Config {
+            message: "early_memory_conflicts is supported only by the native gfx950/gfx1250 verification pipeline".into(),
+        }));
+    }
+    if config.early_readiness {
+        return Err(AnalysisError::Eval(EvalError::Config {
+            message:
+                "early_readiness is supported only by the native gfx1250 verification pipeline"
+                    .into(),
+        }));
+    }
+    if config.workgroup_id != (0, 0, 0) {
+        return Err(AnalysisError::Eval(EvalError::Config {
+            message: "nonzero workgroup_id is supported only by native AMD analysis; PTX analyzes CTA (0,0,0)".into(),
+        }));
+    }
+    if !config.shared_allocations.is_empty() {
+        return Err(AnalysisError::Eval(EvalError::Config {
+            message: "shared_allocations is a native AMD layout premise; PTX declares its own shared objects".into(),
+        }));
+    }
     let func = find_kernel(module, kernel)?;
     let vars = module_vars(module);
     let program = lower_function(func, &vars)?;
@@ -202,6 +224,7 @@ fn provenance(
         kernel: func.name.to_string(),
         block_dim: config.block_dim,
         grid_dim: config.grid_dim,
+        workgroup_id: config.workgroup_id,
         targets: module
             .target
             .archs

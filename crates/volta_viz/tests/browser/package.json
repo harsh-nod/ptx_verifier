@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "description": "Optional real-browser regression checks for a generated mixed Volta run store",
+  "scripts": {"test": "node viewer.spec.cjs"},
+  "devDependencies": {"playwright": "1.58.2"}
+}

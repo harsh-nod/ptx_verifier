@@ -1,6 +1,7 @@
-//! The checks over one graph, in [`Property::ALL`]'s order, each receiving exactly the
+//! Target-selected checks over one graph. PTX uses [`Property::ALL`]'s order, receiving the
 //! certificates of its prerequisites ([`Property::prerequisites`]); the suite adds no reasoning
-//! of its own beyond reading the trace generator's terminal state.
+//! of its own beyond reading the trace generator's terminal state. Native AMD graphs
+//! use the four applicable properties supplied by [`crate::amdgpu`].
 //!
 //! The trace generator, not a check, reports a deadlock (`¬Terminal(S) ∧ Enabled(S) = ∅`) or
 //! an abort on invalid or unsupported behavior (§1.2): a stuck trace is a diagnostic, an
@@ -38,6 +39,10 @@ use crate::tensor_order::{TensorConflict, TensorOrderResult, check_tensor_order}
 /// Every check's result for one graph, and how the trace ended.
 #[derive(Debug, Clone)]
 pub struct GraphReport {
+    /// AMD checks, present only for an explicitly selected supported AMD target.
+    pub amd: Option<crate::amdgpu::AmdReport>,
+    applicable: Vec<Property>,
+    selection_error: Option<String>,
     pub terminal: Terminal,
     pub named_barrier_epoch: EpochResult,
     pub mbarrier_epoch: EpochResult,
@@ -67,7 +72,8 @@ pub enum GraphConclusion {
         failed: Vec<PropertySummary>,
         deadlock: Option<Deadlock>,
     },
-    /// Nothing failed, but these obligations are unresolved or the trace was aborted.
+    /// Obligations are unresolved, or an observer-stopped prefix requires a
+    /// separately validated certificate even when a per-property finding exists.
     Unknown { reasons: Vec<String> },
 }
 
@@ -99,6 +105,24 @@ impl fmt::Display for Finding {
 /// A check's violation type: the events its witness names.
 trait Witness: fmt::Debug {
     fn events(&self) -> Vec<EventId>;
+}
+
+impl Witness for Unresolved {
+    fn events(&self) -> Vec<EventId> {
+        self.events.clone()
+    }
+}
+
+impl Witness for crate::amdgpu::AmdRegisterHazard {
+    fn events(&self) -> Vec<EventId> {
+        vec![self.issue, self.use_event]
+    }
+}
+
+impl Witness for crate::amdgpu::AmdBarrierViolation {
+    fn events(&self) -> Vec<EventId> {
+        vec![self.event]
+    }
 }
 
 impl Witness for EpochViolation {
@@ -231,8 +255,43 @@ fn render_unresolved(u: &Unresolved) -> String {
 }
 
 impl GraphReport {
+    pub fn applicable_properties(&self) -> &[Property] {
+        &self.applicable
+    }
+
     pub fn summary(&self, property: Property) -> PropertySummary {
+        if !self.applicable.contains(&property) {
+            return PropertySummary {
+                property,
+                verdict: Verdict::Unknown,
+                findings: vec![finding(
+                    "check is not applicable to this graph's target".into(),
+                    Vec::new(),
+                )],
+                evidence: None,
+            };
+        }
         match property {
+            Property::AmdTrace => self
+                .amd
+                .as_ref()
+                .map(|a| summarize(property, &a.trace))
+                .unwrap_or_else(|| self.selection_summary(property)),
+            Property::AmdWaitReadiness => self
+                .amd
+                .as_ref()
+                .map(|a| summarize(property, &a.wait_readiness))
+                .unwrap_or_else(|| self.selection_summary(property)),
+            Property::AmdBarrier => self
+                .amd
+                .as_ref()
+                .map(|a| summarize(property, &a.barrier))
+                .unwrap_or_else(|| self.selection_summary(property)),
+            Property::AmdMemoryConflict => self
+                .amd
+                .as_ref()
+                .map(|a| summarize(property, &a.memory_conflict))
+                .unwrap_or_else(|| self.selection_summary(property)),
             Property::NamedBarrierEpoch => summarize(property, &self.named_barrier_epoch),
             Property::MbarrierEpoch => summarize(property, &self.mbarrier_epoch),
             Property::MbarrierOrdering => summarize(property, &self.mbarrier_ordering),
@@ -246,9 +305,23 @@ impl GraphReport {
         }
     }
 
+    fn selection_summary(&self, property: Property) -> PropertySummary {
+        PropertySummary {
+            property,
+            verdict: Verdict::Unknown,
+            findings: vec![finding(
+                self.selection_error
+                    .clone()
+                    .unwrap_or_else(|| "target check set is unavailable".into()),
+                Vec::new(),
+            )],
+            evidence: None,
+        }
+    }
+
     /// Every check's summary, in [`Property::ALL`]'s order.
     pub fn summaries(&self) -> Vec<PropertySummary> {
-        Property::ALL.iter().map(|&p| self.summary(p)).collect()
+        self.applicable.iter().map(|&p| self.summary(p)).collect()
     }
 
     pub fn verdict(&self, property: Property) -> Verdict {
@@ -266,6 +339,23 @@ impl GraphReport {
     }
 
     pub fn conclusion(&self) -> GraphConclusion {
+        // A generic observer stop supplies no certified rejection. Keep its
+        // per-property diagnostics, but only the pipeline's independently
+        // validated prefix wrapper may expose the first finding as a rejection.
+        if matches!(
+            &self.terminal,
+            Terminal::Aborted {
+                cause: volta_graph::AbortCause::Error,
+                reason,
+                ..
+            } if reason == crate::amdgpu::early_readiness::INSTRUCTION_OBSERVER_STOP_REASON
+        ) {
+            return GraphConclusion::Unknown {
+                reasons: vec![
+                    "observer-stopped prefix requires independent certificate validation".into(),
+                ],
+            };
+        }
         let summaries = self.summaries();
         let failed: Vec<PropertySummary> = summaries
             .iter()
@@ -277,6 +367,12 @@ impl GraphReport {
             return GraphConclusion::Rejected { failed, deadlock };
         }
         let mut reasons = Vec::new();
+        if self.applicable.is_empty() {
+            reasons.push("no applicable graph checks were selected".into());
+        }
+        if let Some(error) = &self.selection_error {
+            reasons.push(error.clone());
+        }
         match &self.terminal {
             Terminal::Completed => {}
             Terminal::Stuck { .. } => {
@@ -311,10 +407,13 @@ impl GraphReport {
     /// `Fail` if any check fails, else `Unknown` if any is unknown, else `Pass`. Says nothing
     /// about the trace's end: see `conclusion`.
     pub fn verdict_overall(&self) -> Verdict {
-        let verdicts: Vec<Verdict> = Property::ALL.iter().map(|&p| self.verdict(p)).collect();
+        let verdicts: Vec<Verdict> = self.applicable.iter().map(|&p| self.verdict(p)).collect();
         if verdicts.contains(&Verdict::Fail) {
             Verdict::Fail
-        } else if verdicts.contains(&Verdict::Unknown) {
+        } else if verdicts.is_empty()
+            || self.selection_error.is_some()
+            || verdicts.contains(&Verdict::Unknown)
+        {
             Verdict::Unknown
         } else {
             Verdict::Pass
@@ -369,6 +468,22 @@ impl CheckLog {
 
 /// Run every check on `graph`.
 pub fn check_graph(graph: &EventGraph) -> GraphReport {
+    let targets = &graph.provenance().targets;
+    let amd_target = targets
+        .iter()
+        .any(|t| t.starts_with("gfx") || t.starts_with("amdgcn-"));
+    if amd_target || !graph.amd_events().is_empty() {
+        let supported = volta_graph::AmdArchitecture::from_targets(targets).is_some();
+        return GraphReport {
+            terminal:graph.terminal().clone(),
+            amd:supported.then(||crate::amdgpu::check_amdgpu(graph)),
+            applicable:Property::AMD.to_vec(),
+            selection_error:(!supported).then(||format!("unsupported or conflicting graph targets {targets:?}; AMD checks require a supported native gfx target with recognized, nonconflicting target features")),
+            named_barrier_epoch:not_applicable(),mbarrier_epoch:not_applicable(),mbarrier_ordering:not_applicable(),
+            memory_conflict:not_applicable(),proxy_order:not_applicable(),tensor_order:not_applicable(),resource_lifetime:not_applicable(),
+            allocation_order:not_applicable(),allocation_permit:not_applicable(),mbarrier_release_order:not_applicable(),
+        };
+    }
     let log = CheckLog::start(Property::NamedBarrierEpoch);
     let (named_barrier_epoch, named) = check_named_barrier_epochs(graph);
     log.finish(&named_barrier_epoch);
@@ -424,6 +539,9 @@ pub fn check_graph(graph: &EventGraph) -> GraphReport {
     let mbarrier_release_order = check_mbarrier_release_order(graph);
     log.finish(&mbarrier_release_order);
     GraphReport {
+        amd: None,
+        applicable: Property::ALL.to_vec(),
+        selection_error: None,
         terminal: graph.terminal().clone(),
         named_barrier_epoch,
         mbarrier_epoch,
@@ -436,4 +554,10 @@ pub fn check_graph(graph: &EventGraph) -> GraphReport {
         allocation_permit,
         mbarrier_release_order,
     }
+}
+
+fn not_applicable<E, V>() -> PropertyResult<E, V> {
+    PropertyResult::Unknown(vec![Unresolved::global(
+        "PTX check is not applicable to the native AMD backend",
+    )])
 }

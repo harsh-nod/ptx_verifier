@@ -11,6 +11,7 @@ use crate::{
 
 #[derive(Debug)]
 pub enum LeanExtractionError {
+    CertifiedPrefix(String),
     Rejected {
         failed: Vec<PropertySummary>,
         deadlock: Option<Deadlock>,
@@ -26,6 +27,9 @@ impl fmt::Display for LeanExtractionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Lean extraction failed: ")?;
         match self {
+            Self::CertifiedPrefix(reason) => {
+                write!(f, "{reason}; prefix is incomplete and has no output proof")
+            }
             Self::Rejected { failed, deadlock } => {
                 let reasons = deadlock
                     .iter()
@@ -58,13 +62,16 @@ impl std::error::Error for LeanExtractionError {}
 
 impl KernelRun {
     /// Extract a Lean module after every available graph check passes. Interpreters that
-    /// record no graph (AMD and NKI) can extract, but establish no race-freedom claim.
+    /// record no graph (experimental AMD and NKI) can extract, but establish no race-freedom claim.
     /// The resulting propositions remain proof obligations, not equivalence proofs.
     pub fn extract_lean(
         &self,
         spec: &Spec,
         tolerance: Option<&str>,
     ) -> Result<LeanChallenge, LeanExtractionError> {
+        if let Some(reason) = self.certified_rejection() {
+            return Err(LeanExtractionError::CertifiedPrefix(reason));
+        }
         if let GraphEvidence::Checked { report, .. } = &self.graph {
             match report.conclusion() {
                 GraphConclusion::Rejected { failed, deadlock } => {

@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "result": "pass",
+  "checks": 15431,
+  "errors": [],
+  "audit_script_sha256": "079cfb092af6f35cdf2da84f3aa9a2ebca3b990d609ffc832adcbafdff5ccdc1",
+  "scope": "Independent stdlib-only source, build, full-launch, transcript and functional-delta audit; no verifier, compiler, GPU or timing execution.",
+  "source_revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+  "builds": {
+    "previous": {
+      "schema_version": 1,
+      "trust": "caller_attested",
+      "revision": "0e634bc43536e5e4ac5cb13e8046d8e1edd57250",
+      "source_clean": true,
+      "profile": "release",
+      "features": [],
+      "default_features": true,
+      "command": [
+        "cargo",
+        "build",
+        "--release",
+        "-p",
+        "volta_cli"
+      ],
+      "binary_sha256": "48f45f3b5a36a636c88bd95d0e3499d01569e8e01ec2ec742f6405142b9d4c00",
+      "rust_workspace_fingerprint": {
+        "algorithm": "sha256-git-tree-v1",
+        "sha256": "c0d2189873b2f01c311f935d5958c091bddcd4a1e172fdfca7cd18b6d9a36f57",
+        "file_count": 1202
+      },
+      "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+      "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+      "build_record_sha256": "0cd7db1313b9a930ea616eb223d079132e6c1c7386002a8395705604674f957f"
+    },
+    "candidate": {
+      "schema_version": 1,
+      "trust": "caller_attested",
+      "revision": "90e172f3349c89c1d5ccbd8f1db21c312cb2bc10",
+      "source_clean": true,
+      "profile": "release",
+      "features": [],
+      "default_features": true,
+      "command": [
+        "cargo",
+        "build",
+        "--release",
+        "-p",
+        "volta_cli"
+      ],
+      "binary_sha256": "753194dd0819edad563fb1ca701c15078883dc351238d3bb4a9d92c93fcaa295",
+      "rust_workspace_fingerprint": {
+        "algorithm": "sha256-git-tree-v1",
+        "sha256": "98e59b8770f54b7fd782e71b3a257023d39761236af0cbf0db7000666dfe1370",
+        "file_count": 1211
+      },
+      "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+      "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+      "build_record_sha256": "36f8075de1b652287820c836fb7d34b9f1e076f001c2904f32275e2f26fac076"
+    }
+  },
+  "reports": {
+    "vectors-buffer-candidate": {
+      "outcomes": {
+        "graph_rejected": 168,
+        "unsupported": 16,
+        "verified": 68
+      },
+      "full_equations_by_dtype": {
+        "bf16": 80,
+        "f16": 80,
+        "f32": 76
+      },
+      "full_output_coordinates": 14176,
+      "by_dtype_and_outcome": {
+        "bf16:graph_rejected": 56,
+        "bf16:unsupported": 4,
+        "bf16:verified": 24,
+        "f16:graph_rejected": 56,
+        "f16:unsupported": 4,
+        "f16:verified": 24,
+        "f32:graph_rejected": 56,
+        "f32:unsupported": 8,
+        "f32:verified": 20
+      },
+      "negative_controls": 3,
+      "raw_report_sha256": "5b62419562c9f67227e40d31a7ff298e4bad4ce7e10bd6c028d7ace6144c4563"
+    },
+    "vectors-complete-candidate": {
+      "outcomes": {
+        "graph_rejected": 168,
+        "verified": 84
+      },
+      "full_equations_by_dtype": {
+        "bf16": 84,
+        "f16": 84,
+        "f32": 84
+      },
+      "full_output_coordinates": 15840,
+      "by_dtype_and_outcome": {
+        "bf16:graph_rejected": 56,
+        "bf16:verified": 28,
+        "f16:graph_rejected": 56,
+        "f16:verified": 28,
+        "f32:graph_rejected": 56,
+        "f32:verified": 28
+      },
+      "negative_controls": 3,
+      "raw_report_sha256": "6d993b44c959524e505e90cfbc675e09526cdf482857041e42667c0905fd8003"
+    },
+    "vec-add1-buffer-candidate": {
+      "outcomes": {
+        "graph_rejected": 56,
+        "unsupported": 8,
+        "verified": 20
+      },
+      "full_equations_by_dtype": {
+        "f32": 76
+      },
+      "full_output_coordinates": 4384,
+      "by_dtype_and_outcome": {
+        "f32:graph_rejected": 56,
+        "f32:unsupported": 8,
+        "f32:verified": 20
+      },
+      "negative_controls": 1,
+      "raw_report_sha256": "1675d274ff5cfa4717f32782e57fbedc7788c99cda8d20f194382977ec8f0952"
+    },
+    "vec-add1-complete-candidate": {
+      "outcomes": {
+        "graph_rejected": 56,
+        "verified": 28
+      },
+      "full_equations_by_dtype": {
+        "f32": 84
+      },
+      "full_output_coordinates": 5280,
+      "by_dtype_and_outcome": {
+        "f32:graph_rejected": 56,
+        "f32:verified": 28
+      },
+      "negative_controls": 1,
+      "raw_report_sha256": "0d8d50d0b69aafe3efd13e62e95cde035125e0630e06663419b2f5cc65b174d4"
+    }
+  },
+  "transitions": {
+    "copy": {
+      "transitions": {
+        "graph_rejected -> graph_rejected": 168,
+        "unsupported -> verified": 16,
+        "verified -> verified": 68
+      },
+      "new_verified_by_dtype": {
+        "bf16": 4,
+        "f16": 4,
+        "f32": 8
+      }
+    },
+    "vec-add1": {
+      "transitions": {
+        "graph_rejected -> graph_rejected": 56,
+        "unsupported -> verified": 8,
+        "verified -> verified": 20
+      },
+      "new_verified_by_dtype": {
+        "f32": 8
+      }
+    }
+  },
+  "candidate_combined_outcomes": {
+    "graph_rejected": 224,
+    "verified": 112
+  },
+  "main_cases_per_variant": 336,
+  "audited_process_records": 680,
+  "transcript_identity_chain_sha256": "2b143085290dc651d8b2509b18123a2c384b79a307ce1f965daaca0a105a371c",
+  "original_public_buffer_comparison_sha256": "08e75baf2be61eb29ef7d6f089ca3a102818bedc00166d8843ee0ed0f100f841",
+  "limits": [
+    "Build source-to-binary association remains caller-attested; executable hashes and committed Rust-tree fingerprints are independently checked.",
+    "Mathematics uses the verifier mathematical-real model, not bit-exact floating-point or hardware execution.",
+    "Typed WW retention is checked from all printed numeric pair/byte witnesses and reported remaining counts, not reconstructed from unexported complete graphs.",
+    "Only these two finite original HipKittens families and one selected workgroup per original launch are audited; other modules, inter-workgroup behavior and performance are not claimed."
+  ]
+}

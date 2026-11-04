@@ -91,3 +91,35 @@ pub(crate) fn load_spec(source: SpecSource, dims: &HashMap<String, u64>) -> Resu
         ExitCode::FAILURE
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_dim_splits_name_and_value() {
+        assert_eq!(parse_dim("K=4096").unwrap(), ("K".to_string(), 4096));
+        assert_eq!(parse_dim("K=0x10").unwrap(), ("K".to_string(), 16));
+        assert!(parse_dim("K").is_err());
+    }
+
+    #[test]
+    fn load_spec_source_falls_back_to_inline_text_when_no_such_file() {
+        let mut files = FileCache::new();
+        let (src, path) = load_spec_source(&mut files, "C[i] = A[i];").unwrap();
+        assert_eq!(src, "C[i] = A[i];");
+        assert!(path.is_none());
+    }
+
+    #[test]
+    fn load_spec_source_reads_an_existing_file() {
+        let dir = std::env::temp_dir();
+        let path = dir.join(format!("volta_cli_test_{}.spec", std::process::id()));
+        std::fs::write(&path, "dim N;\narray A[N];\nC[i] = A[i];").unwrap();
+        let mut files = FileCache::new();
+        let (src, resolved) = load_spec_source(&mut files, path.to_str().unwrap()).unwrap();
+        assert!(src.contains("dim N;"));
+        assert_eq!(resolved, Some(path.clone()));
+        let _ = std::fs::remove_file(&path);
+    }
+}

@@ -1,0 +1,5632 @@
+{
+  "native-signal-counts.s": {
+    "sha256": "905535c24161201668cc06a4743984e13fc1024715428bc341024be0ff956212",
+    "instructions": [
+      {
+        "line": 9,
+        "text": "v_and_b32_e32 v0, 0x3ff, v0",
+        "components": [
+          "v_and_b32_e32 v0, 0x3ff, v0"
+        ]
+      },
+      {
+        "line": 10,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 11,
+        "text": "v_cmp_gt_u32_e32 vcc_lo, 32, v0",
+        "components": [
+          "v_cmp_gt_u32_e32 vcc_lo, 32, v0"
+        ]
+      },
+      {
+        "line": 12,
+        "text": "s_and_saveexec_b32 s0, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s0, vcc_lo"
+        ]
+      },
+      {
+        "line": 13,
+        "text": "s_cbranch_execz .LBB0_2",
+        "components": [
+          "s_cbranch_execz .LBB0_2"
+        ]
+      },
+      {
+        "line": 15,
+        "text": "s_mov_b32 m0, 0x20001",
+        "components": [
+          "s_mov_b32 m0, 0x20001"
+        ]
+      },
+      {
+        "line": 16,
+        "text": "s_barrier_init m0",
+        "components": [
+          "s_barrier_init m0"
+        ]
+      },
+      {
+        "line": 18,
+        "text": "s_or_b32 exec_lo, exec_lo, s0",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s0"
+        ]
+      },
+      {
+        "line": 19,
+        "text": "v_cmp_eq_u32_e64 s0, 0, v0",
+        "components": [
+          "v_cmp_eq_u32_e64 s0, 0, v0"
+        ]
+      },
+      {
+        "line": 20,
+        "text": "s_mov_b32 m0, 1",
+        "components": [
+          "s_mov_b32 m0, 1"
+        ]
+      },
+      {
+        "line": 21,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 22,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 23,
+        "text": "s_barrier_join m0",
+        "components": [
+          "s_barrier_join m0"
+        ]
+      },
+      {
+        "line": 24,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 25,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 26,
+        "text": "s_and_saveexec_b32 s1, s0",
+        "components": [
+          "s_and_saveexec_b32 s1, s0"
+        ]
+      },
+      {
+        "line": 27,
+        "text": "s_cbranch_execz .LBB0_4",
+        "components": [
+          "s_cbranch_execz .LBB0_4"
+        ]
+      },
+      {
+        "line": 29,
+        "text": "v_dual_mov_b32 v2, 0x40e00000 :: v_dual_mov_b32 v1, 0",
+        "components": [
+          "v_dual_mov_b32 v2, 0x40e00000",
+          "v_dual_mov_b32 v1, 0"
+        ]
+      },
+      {
+        "line": 31,
+        "text": "v_add_f32 v2, 0, v2",
+        "components": [
+          "v_add_f32 v2, 0, v2"
+        ]
+      },
+      {
+        "line": 33,
+        "text": "ds_store_b32 v1, v2",
+        "components": [
+          "ds_store_b32 v1, v2"
+        ]
+      },
+      {
+        "line": 35,
+        "text": "s_or_b32 exec_lo, exec_lo, s1",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s1"
+        ]
+      },
+      {
+        "line": 36,
+        "text": "s_load_b64 s[2:3], s[4:5], 0x0",
+        "components": [
+          "s_load_b64 s[2:3], s[4:5], 0x0"
+        ]
+      },
+      {
+        "line": 38,
+        "text": "s_wait_dscnt 0",
+        "components": [
+          "s_wait_dscnt 0"
+        ]
+      },
+      {
+        "line": 40,
+        "text": "s_mov_b32 m0, 0x20001",
+        "components": [
+          "s_mov_b32 m0, 0x20001"
+        ]
+      },
+      {
+        "line": 41,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 42,
+        "text": "s_mov_b32 s4, exec_lo",
+        "components": [
+          "s_mov_b32 s4, exec_lo"
+        ]
+      },
+      {
+        "line": 43,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 44,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 45,
+        "text": "v_cmpx_eq_u32_e32 32, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 32, v0"
+        ]
+      },
+      {
+        "line": 46,
+        "text": "s_cbranch_execz .LBB0_6",
+        "components": [
+          "s_cbranch_execz .LBB0_6"
+        ]
+      },
+      {
+        "line": 48,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 49,
+        "text": "ds_load_b32 v1, v0",
+        "components": [
+          "ds_load_b32 v1, v0"
+        ]
+      },
+      {
+        "line": 50,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 51,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 52,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 54,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 55,
+        "text": "s_or_b32 exec_lo, exec_lo, s4",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s4"
+        ]
+      },
+      {
+        "line": 56,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 57,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 58,
+        "text": "s_and_saveexec_b32 s1, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s1, vcc_lo"
+        ]
+      },
+      {
+        "line": 59,
+        "text": "s_cbranch_execz .LBB0_9",
+        "components": [
+          "s_cbranch_execz .LBB0_9"
+        ]
+      },
+      {
+        "line": 61,
+        "text": "s_mov_b32 m0, 0x10001",
+        "components": [
+          "s_mov_b32 m0, 0x10001"
+        ]
+      },
+      {
+        "line": 62,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 63,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 64,
+        "text": "s_and_b32 exec_lo, exec_lo, s0",
+        "components": [
+          "s_and_b32 exec_lo, exec_lo, s0"
+        ]
+      },
+      {
+        "line": 65,
+        "text": "s_cbranch_execz .LBB0_9",
+        "components": [
+          "s_cbranch_execz .LBB0_9"
+        ]
+      },
+      {
+        "line": 67,
+        "text": "v_dual_mov_b32 v1, 0x40e00000 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, 0x40e00000",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 69,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 71,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 72,
+        "text": "global_store_b32 v0, v1, s[2:3] offset:4",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3] offset:4"
+        ]
+      },
+      {
+        "line": 74,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 162,
+        "text": "v_and_b32_e32 v0, 0x3ff, v0",
+        "components": [
+          "v_and_b32_e32 v0, 0x3ff, v0"
+        ]
+      },
+      {
+        "line": 163,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 164,
+        "text": "v_cmp_lt_u32_e64 s0, 31, v0",
+        "components": [
+          "v_cmp_lt_u32_e64 s0, 31, v0"
+        ]
+      },
+      {
+        "line": 165,
+        "text": "v_cmp_gt_u32_e32 vcc_lo, 32, v0",
+        "components": [
+          "v_cmp_gt_u32_e32 vcc_lo, 32, v0"
+        ]
+      },
+      {
+        "line": 166,
+        "text": "s_and_saveexec_b32 s1, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s1, vcc_lo"
+        ]
+      },
+      {
+        "line": 167,
+        "text": "s_cbranch_execz .LBB1_2",
+        "components": [
+          "s_cbranch_execz .LBB1_2"
+        ]
+      },
+      {
+        "line": 169,
+        "text": "s_mov_b32 m0, 0x20001",
+        "components": [
+          "s_mov_b32 m0, 0x20001"
+        ]
+      },
+      {
+        "line": 170,
+        "text": "s_barrier_init m0",
+        "components": [
+          "s_barrier_init m0"
+        ]
+      },
+      {
+        "line": 172,
+        "text": "s_or_b32 exec_lo, exec_lo, s1",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s1"
+        ]
+      },
+      {
+        "line": 173,
+        "text": "s_mov_b32 m0, 1",
+        "components": [
+          "s_mov_b32 m0, 1"
+        ]
+      },
+      {
+        "line": 174,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 175,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 176,
+        "text": "s_barrier_join m0",
+        "components": [
+          "s_barrier_join m0"
+        ]
+      },
+      {
+        "line": 177,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 178,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 179,
+        "text": "s_and_saveexec_b32 s1, s0",
+        "components": [
+          "s_and_saveexec_b32 s1, s0"
+        ]
+      },
+      {
+        "line": 180,
+        "text": "s_cbranch_execz .LBB1_4",
+        "components": [
+          "s_cbranch_execz .LBB1_4"
+        ]
+      },
+      {
+        "line": 183,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 184,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 185,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 186,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 187,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 188,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 189,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 190,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 191,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 192,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 193,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 194,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 195,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 196,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 197,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 198,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 199,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 200,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 201,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 202,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 203,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 204,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 205,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 206,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 207,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 208,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 209,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 210,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 211,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 212,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 213,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 214,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 215,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 216,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 217,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 218,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 219,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 220,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 221,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 222,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 223,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 224,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 225,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 226,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 227,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 228,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 229,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 230,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 231,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 232,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 233,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 234,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 235,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 236,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 237,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 238,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 239,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 240,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 241,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 242,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 243,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 244,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 245,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 246,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 247,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 248,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 249,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 250,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 251,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 252,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 253,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 254,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 255,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 256,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 257,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 258,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 259,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 260,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 261,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 262,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 263,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 264,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 265,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 266,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 267,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 268,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 269,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 270,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 271,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 272,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 273,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 274,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 275,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 276,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 277,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 278,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 279,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 280,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 281,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 282,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 283,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 284,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 285,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 286,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 287,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 288,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 289,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 290,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 291,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 292,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 293,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 294,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 295,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 296,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 297,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 298,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 299,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 300,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 301,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 302,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 303,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 304,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 305,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 306,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 307,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 308,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 309,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 310,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 313,
+        "text": "s_or_b32 exec_lo, exec_lo, s1",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s1"
+        ]
+      },
+      {
+        "line": 314,
+        "text": "v_cmp_eq_u32_e64 s0, 0, v0",
+        "components": [
+          "v_cmp_eq_u32_e64 s0, 0, v0"
+        ]
+      },
+      {
+        "line": 315,
+        "text": "s_and_saveexec_b32 s1, s0",
+        "components": [
+          "s_and_saveexec_b32 s1, s0"
+        ]
+      },
+      {
+        "line": 316,
+        "text": "s_cbranch_execz .LBB1_6",
+        "components": [
+          "s_cbranch_execz .LBB1_6"
+        ]
+      },
+      {
+        "line": 318,
+        "text": "v_dual_mov_b32 v2, 0x40e00000 :: v_dual_mov_b32 v1, 0",
+        "components": [
+          "v_dual_mov_b32 v2, 0x40e00000",
+          "v_dual_mov_b32 v1, 0"
+        ]
+      },
+      {
+        "line": 320,
+        "text": "v_add_f32 v2, 0, v2",
+        "components": [
+          "v_add_f32 v2, 0, v2"
+        ]
+      },
+      {
+        "line": 322,
+        "text": "ds_store_b32 v1, v2",
+        "components": [
+          "ds_store_b32 v1, v2"
+        ]
+      },
+      {
+        "line": 324,
+        "text": "s_or_b32 exec_lo, exec_lo, s1",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s1"
+        ]
+      },
+      {
+        "line": 325,
+        "text": "s_load_b64 s[2:3], s[4:5], 0x0",
+        "components": [
+          "s_load_b64 s[2:3], s[4:5], 0x0"
+        ]
+      },
+      {
+        "line": 327,
+        "text": "s_wait_dscnt 0",
+        "components": [
+          "s_wait_dscnt 0"
+        ]
+      },
+      {
+        "line": 329,
+        "text": "s_mov_b32 m0, 0x30001",
+        "components": [
+          "s_mov_b32 m0, 0x30001"
+        ]
+      },
+      {
+        "line": 330,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 331,
+        "text": "s_mov_b32 s4, exec_lo",
+        "components": [
+          "s_mov_b32 s4, exec_lo"
+        ]
+      },
+      {
+        "line": 332,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 333,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 334,
+        "text": "v_cmpx_eq_u32_e32 32, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 32, v0"
+        ]
+      },
+      {
+        "line": 335,
+        "text": "s_cbranch_execz .LBB1_8",
+        "components": [
+          "s_cbranch_execz .LBB1_8"
+        ]
+      },
+      {
+        "line": 337,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 338,
+        "text": "ds_load_b32 v1, v0",
+        "components": [
+          "ds_load_b32 v1, v0"
+        ]
+      },
+      {
+        "line": 339,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 340,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 341,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 343,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 344,
+        "text": "s_or_b32 exec_lo, exec_lo, s4",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s4"
+        ]
+      },
+      {
+        "line": 345,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 346,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 347,
+        "text": "s_and_saveexec_b32 s1, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s1, vcc_lo"
+        ]
+      },
+      {
+        "line": 348,
+        "text": "s_cbranch_execz .LBB1_11",
+        "components": [
+          "s_cbranch_execz .LBB1_11"
+        ]
+      },
+      {
+        "line": 350,
+        "text": "s_mov_b32 m0, 0x10001",
+        "components": [
+          "s_mov_b32 m0, 0x10001"
+        ]
+      },
+      {
+        "line": 351,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 352,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 353,
+        "text": "s_and_b32 exec_lo, exec_lo, s0",
+        "components": [
+          "s_and_b32 exec_lo, exec_lo, s0"
+        ]
+      },
+      {
+        "line": 354,
+        "text": "s_cbranch_execz .LBB1_11",
+        "components": [
+          "s_cbranch_execz .LBB1_11"
+        ]
+      },
+      {
+        "line": 356,
+        "text": "v_dual_mov_b32 v1, 0x40e00000 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, 0x40e00000",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 358,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 360,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 361,
+        "text": "global_store_b32 v0, v1, s[2:3] offset:4",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3] offset:4"
+        ]
+      },
+      {
+        "line": 363,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 451,
+        "text": "v_and_b32_e32 v0, 0x3ff, v0",
+        "components": [
+          "v_and_b32_e32 v0, 0x3ff, v0"
+        ]
+      },
+      {
+        "line": 452,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 453,
+        "text": "v_cmp_gt_u32_e32 vcc_lo, 32, v0",
+        "components": [
+          "v_cmp_gt_u32_e32 vcc_lo, 32, v0"
+        ]
+      },
+      {
+        "line": 454,
+        "text": "s_and_saveexec_b32 s0, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s0, vcc_lo"
+        ]
+      },
+      {
+        "line": 455,
+        "text": "s_cbranch_execz .LBB2_2",
+        "components": [
+          "s_cbranch_execz .LBB2_2"
+        ]
+      },
+      {
+        "line": 457,
+        "text": "s_mov_b32 m0, 0x20001",
+        "components": [
+          "s_mov_b32 m0, 0x20001"
+        ]
+      },
+      {
+        "line": 458,
+        "text": "s_barrier_init m0",
+        "components": [
+          "s_barrier_init m0"
+        ]
+      },
+      {
+        "line": 460,
+        "text": "s_or_b32 exec_lo, exec_lo, s0",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s0"
+        ]
+      },
+      {
+        "line": 461,
+        "text": "s_mov_b32 m0, 1",
+        "components": [
+          "s_mov_b32 m0, 1"
+        ]
+      },
+      {
+        "line": 462,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 463,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 464,
+        "text": "s_barrier_join m0",
+        "components": [
+          "s_barrier_join m0"
+        ]
+      },
+      {
+        "line": 465,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 466,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 467,
+        "text": "s_and_saveexec_b32 s0, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s0, vcc_lo"
+        ]
+      },
+      {
+        "line": 468,
+        "text": "s_cbranch_execz .LBB2_4",
+        "components": [
+          "s_cbranch_execz .LBB2_4"
+        ]
+      },
+      {
+        "line": 471,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 472,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 473,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 474,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 475,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 476,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 477,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 478,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 479,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 480,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 481,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 482,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 483,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 484,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 485,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 486,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 487,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 488,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 489,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 490,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 491,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 492,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 493,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 494,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 495,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 496,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 497,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 498,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 499,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 500,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 501,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 502,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 503,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 504,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 505,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 506,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 507,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 508,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 509,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 510,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 511,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 512,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 513,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 514,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 515,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 516,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 517,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 518,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 519,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 520,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 521,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 522,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 523,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 524,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 525,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 526,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 527,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 528,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 529,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 530,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 531,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 532,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 533,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 534,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 535,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 536,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 537,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 538,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 539,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 540,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 541,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 542,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 543,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 544,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 545,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 546,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 547,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 548,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 549,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 550,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 551,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 552,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 553,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 554,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 555,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 556,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 557,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 558,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 559,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 560,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 561,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 562,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 563,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 564,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 565,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 566,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 567,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 568,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 569,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 570,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 571,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 572,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 573,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 574,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 575,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 576,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 577,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 578,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 579,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 580,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 581,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 582,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 583,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 584,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 585,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 586,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 587,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 588,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 589,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 590,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 591,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 592,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 593,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 594,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 595,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 596,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 597,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 598,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 601,
+        "text": "s_or_b32 exec_lo, exec_lo, s0",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s0"
+        ]
+      },
+      {
+        "line": 602,
+        "text": "v_cmp_eq_u32_e64 s0, 0, v0",
+        "components": [
+          "v_cmp_eq_u32_e64 s0, 0, v0"
+        ]
+      },
+      {
+        "line": 603,
+        "text": "s_and_saveexec_b32 s1, s0",
+        "components": [
+          "s_and_saveexec_b32 s1, s0"
+        ]
+      },
+      {
+        "line": 604,
+        "text": "s_cbranch_execz .LBB2_6",
+        "components": [
+          "s_cbranch_execz .LBB2_6"
+        ]
+      },
+      {
+        "line": 606,
+        "text": "v_dual_mov_b32 v2, 0x40e00000 :: v_dual_mov_b32 v1, 0",
+        "components": [
+          "v_dual_mov_b32 v2, 0x40e00000",
+          "v_dual_mov_b32 v1, 0"
+        ]
+      },
+      {
+        "line": 608,
+        "text": "v_add_f32 v2, 0, v2",
+        "components": [
+          "v_add_f32 v2, 0, v2"
+        ]
+      },
+      {
+        "line": 610,
+        "text": "ds_store_b32 v1, v2",
+        "components": [
+          "ds_store_b32 v1, v2"
+        ]
+      },
+      {
+        "line": 612,
+        "text": "s_or_b32 exec_lo, exec_lo, s1",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s1"
+        ]
+      },
+      {
+        "line": 613,
+        "text": "s_load_b64 s[2:3], s[4:5], 0x0",
+        "components": [
+          "s_load_b64 s[2:3], s[4:5], 0x0"
+        ]
+      },
+      {
+        "line": 615,
+        "text": "s_wait_dscnt 0",
+        "components": [
+          "s_wait_dscnt 0"
+        ]
+      },
+      {
+        "line": 617,
+        "text": "s_mov_b32 m0, 0x30001",
+        "components": [
+          "s_mov_b32 m0, 0x30001"
+        ]
+      },
+      {
+        "line": 618,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 619,
+        "text": "s_mov_b32 s4, exec_lo",
+        "components": [
+          "s_mov_b32 s4, exec_lo"
+        ]
+      },
+      {
+        "line": 620,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 621,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 622,
+        "text": "v_cmpx_eq_u32_e32 32, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 32, v0"
+        ]
+      },
+      {
+        "line": 623,
+        "text": "s_cbranch_execz .LBB2_8",
+        "components": [
+          "s_cbranch_execz .LBB2_8"
+        ]
+      },
+      {
+        "line": 625,
+        "text": "v_mov_b32_e32 v0, 0",
+        "components": [
+          "v_mov_b32_e32 v0, 0"
+        ]
+      },
+      {
+        "line": 626,
+        "text": "ds_load_b32 v1, v0",
+        "components": [
+          "ds_load_b32 v1, v0"
+        ]
+      },
+      {
+        "line": 627,
+        "text": "s_wait_dscnt 0x0",
+        "components": [
+          "s_wait_dscnt 0x0"
+        ]
+      },
+      {
+        "line": 628,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 629,
+        "text": "global_store_b32 v0, v1, s[2:3]",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3]"
+        ]
+      },
+      {
+        "line": 631,
+        "text": "s_wait_xcnt 0x0",
+        "components": [
+          "s_wait_xcnt 0x0"
+        ]
+      },
+      {
+        "line": 632,
+        "text": "s_or_b32 exec_lo, exec_lo, s4",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s4"
+        ]
+      },
+      {
+        "line": 633,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 634,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 635,
+        "text": "s_and_saveexec_b32 s1, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s1, vcc_lo"
+        ]
+      },
+      {
+        "line": 636,
+        "text": "s_cbranch_execz .LBB2_11",
+        "components": [
+          "s_cbranch_execz .LBB2_11"
+        ]
+      },
+      {
+        "line": 638,
+        "text": "s_mov_b32 m0, 0x10001",
+        "components": [
+          "s_mov_b32 m0, 0x10001"
+        ]
+      },
+      {
+        "line": 639,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 640,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 641,
+        "text": "s_and_b32 exec_lo, exec_lo, s0",
+        "components": [
+          "s_and_b32 exec_lo, exec_lo, s0"
+        ]
+      },
+      {
+        "line": 642,
+        "text": "s_cbranch_execz .LBB2_11",
+        "components": [
+          "s_cbranch_execz .LBB2_11"
+        ]
+      },
+      {
+        "line": 644,
+        "text": "v_dual_mov_b32 v1, 0x40e00000 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, 0x40e00000",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 646,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 648,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 649,
+        "text": "global_store_b32 v0, v1, s[2:3] offset:4",
+        "components": [
+          "global_store_b32 v0, v1, s[2:3] offset:4"
+        ]
+      },
+      {
+        "line": 651,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 739,
+        "text": "v_and_b32_e32 v0, 0x3ff, v0",
+        "components": [
+          "v_and_b32_e32 v0, 0x3ff, v0"
+        ]
+      },
+      {
+        "line": 740,
+        "text": "s_mov_b32 s1, exec_lo",
+        "components": [
+          "s_mov_b32 s1, exec_lo"
+        ]
+      },
+      {
+        "line": 741,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 742,
+        "text": "v_cmp_lt_u32_e32 vcc_lo, 31, v0",
+        "components": [
+          "v_cmp_lt_u32_e32 vcc_lo, 31, v0"
+        ]
+      },
+      {
+        "line": 743,
+        "text": "v_cmpx_gt_u32_e32 32, v0",
+        "components": [
+          "v_cmpx_gt_u32_e32 32, v0"
+        ]
+      },
+      {
+        "line": 744,
+        "text": "s_cbranch_execz .LBB3_2",
+        "components": [
+          "s_cbranch_execz .LBB3_2"
+        ]
+      },
+      {
+        "line": 746,
+        "text": "s_mov_b32 m0, 0x30001",
+        "components": [
+          "s_mov_b32 m0, 0x30001"
+        ]
+      },
+      {
+        "line": 747,
+        "text": "s_barrier_init m0",
+        "components": [
+          "s_barrier_init m0"
+        ]
+      },
+      {
+        "line": 749,
+        "text": "s_or_b32 exec_lo, exec_lo, s1",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s1"
+        ]
+      },
+      {
+        "line": 750,
+        "text": "s_mov_b32 m0, 1",
+        "components": [
+          "s_mov_b32 m0, 1"
+        ]
+      },
+      {
+        "line": 751,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 752,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 753,
+        "text": "s_barrier_join m0",
+        "components": [
+          "s_barrier_join m0"
+        ]
+      },
+      {
+        "line": 754,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 755,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 756,
+        "text": "s_and_saveexec_b32 s0, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s0, vcc_lo"
+        ]
+      },
+      {
+        "line": 757,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 758,
+        "text": "s_xor_b32 s0, exec_lo, s0",
+        "components": [
+          "s_xor_b32 s0, exec_lo, s0"
+        ]
+      },
+      {
+        "line": 759,
+        "text": "s_cbranch_execnz .LBB3_5",
+        "components": [
+          "s_cbranch_execnz .LBB3_5"
+        ]
+      },
+      {
+        "line": 761,
+        "text": "s_and_not1_saveexec_b32 s0, s0",
+        "components": [
+          "s_and_not1_saveexec_b32 s0, s0"
+        ]
+      },
+      {
+        "line": 762,
+        "text": "s_cbranch_execnz .LBB3_6",
+        "components": [
+          "s_cbranch_execnz .LBB3_6"
+        ]
+      },
+      {
+        "line": 764,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 767,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 768,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 769,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 770,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 771,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 772,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 773,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 774,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 775,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 776,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 777,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 778,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 779,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 780,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 781,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 782,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 783,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 784,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 785,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 786,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 787,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 788,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 789,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 790,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 791,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 792,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 793,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 794,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 795,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 796,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 797,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 798,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 799,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 800,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 801,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 802,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 803,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 804,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 805,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 806,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 807,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 808,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 809,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 810,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 811,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 812,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 813,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 814,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 815,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 816,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 817,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 818,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 819,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 820,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 821,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 822,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 823,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 824,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 825,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 826,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 827,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 828,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 829,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 830,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 831,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 832,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 833,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 834,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 835,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 836,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 837,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 838,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 839,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 840,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 841,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 842,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 843,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 844,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 845,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 846,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 847,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 848,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 849,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 850,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 851,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 852,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 853,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 854,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 855,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 856,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 857,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 858,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 859,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 860,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 861,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 862,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 863,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 864,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 865,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 866,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 867,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 868,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 869,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 870,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 871,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 872,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 873,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 874,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 875,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 876,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 877,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 878,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 879,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 880,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 881,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 882,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 883,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 884,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 885,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 886,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 887,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 888,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 889,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 890,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 891,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 892,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 893,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 894,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 896,
+        "text": "s_mov_b32 m0, 0x10001",
+        "components": [
+          "s_mov_b32 m0, 0x10001"
+        ]
+      },
+      {
+        "line": 898,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 899,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 900,
+        "text": "s_and_not1_saveexec_b32 s0, s0",
+        "components": [
+          "s_and_not1_saveexec_b32 s0, s0"
+        ]
+      },
+      {
+        "line": 901,
+        "text": "s_cbranch_execz .LBB3_4",
+        "components": [
+          "s_cbranch_execz .LBB3_4"
+        ]
+      },
+      {
+        "line": 903,
+        "text": "s_mov_b32 s0, exec_lo",
+        "components": [
+          "s_mov_b32 s0, exec_lo"
+        ]
+      },
+      {
+        "line": 904,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 905,
+        "text": "s_cbranch_execz .LBB3_8",
+        "components": [
+          "s_cbranch_execz .LBB3_8"
+        ]
+      },
+      {
+        "line": 907,
+        "text": "v_dual_mov_b32 v1, 0x40e00000 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, 0x40e00000",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 909,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 911,
+        "text": "ds_store_b32 v0, v1",
+        "components": [
+          "ds_store_b32 v0, v1"
+        ]
+      },
+      {
+        "line": 913,
+        "text": "s_or_b32 exec_lo, exec_lo, s0",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s0"
+        ]
+      },
+      {
+        "line": 915,
+        "text": "s_wait_dscnt 0",
+        "components": [
+          "s_wait_dscnt 0"
+        ]
+      },
+      {
+        "line": 917,
+        "text": "s_mov_b32 m0, 0x30001",
+        "components": [
+          "s_mov_b32 m0, 0x30001"
+        ]
+      },
+      {
+        "line": 918,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 919,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 920,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 921,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1009,
+        "text": "v_and_b32_e32 v0, 0x3ff, v0",
+        "components": [
+          "v_and_b32_e32 v0, 0x3ff, v0"
+        ]
+      },
+      {
+        "line": 1010,
+        "text": "s_mov_b32 s1, exec_lo",
+        "components": [
+          "s_mov_b32 s1, exec_lo"
+        ]
+      },
+      {
+        "line": 1011,
+        "text": "s_delay_alu instid0(VALU_DEP_1)",
+        "components": [
+          "s_delay_alu instid0(VALU_DEP_1)"
+        ]
+      },
+      {
+        "line": 1012,
+        "text": "v_cmp_lt_u32_e32 vcc_lo, 31, v0",
+        "components": [
+          "v_cmp_lt_u32_e32 vcc_lo, 31, v0"
+        ]
+      },
+      {
+        "line": 1013,
+        "text": "v_cmpx_gt_u32_e32 32, v0",
+        "components": [
+          "v_cmpx_gt_u32_e32 32, v0"
+        ]
+      },
+      {
+        "line": 1014,
+        "text": "s_cbranch_execz .LBB4_2",
+        "components": [
+          "s_cbranch_execz .LBB4_2"
+        ]
+      },
+      {
+        "line": 1016,
+        "text": "s_mov_b32 m0, 0x20001",
+        "components": [
+          "s_mov_b32 m0, 0x20001"
+        ]
+      },
+      {
+        "line": 1017,
+        "text": "s_barrier_init m0",
+        "components": [
+          "s_barrier_init m0"
+        ]
+      },
+      {
+        "line": 1019,
+        "text": "s_or_b32 exec_lo, exec_lo, s1",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s1"
+        ]
+      },
+      {
+        "line": 1020,
+        "text": "s_mov_b32 m0, 1",
+        "components": [
+          "s_mov_b32 m0, 1"
+        ]
+      },
+      {
+        "line": 1021,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 1022,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 1023,
+        "text": "s_barrier_join m0",
+        "components": [
+          "s_barrier_join m0"
+        ]
+      },
+      {
+        "line": 1024,
+        "text": "s_barrier_signal -1",
+        "components": [
+          "s_barrier_signal -1"
+        ]
+      },
+      {
+        "line": 1025,
+        "text": "s_barrier_wait -1",
+        "components": [
+          "s_barrier_wait -1"
+        ]
+      },
+      {
+        "line": 1026,
+        "text": "s_and_saveexec_b32 s0, vcc_lo",
+        "components": [
+          "s_and_saveexec_b32 s0, vcc_lo"
+        ]
+      },
+      {
+        "line": 1027,
+        "text": "s_delay_alu instid0(SALU_CYCLE_1)",
+        "components": [
+          "s_delay_alu instid0(SALU_CYCLE_1)"
+        ]
+      },
+      {
+        "line": 1028,
+        "text": "s_xor_b32 s0, exec_lo, s0",
+        "components": [
+          "s_xor_b32 s0, exec_lo, s0"
+        ]
+      },
+      {
+        "line": 1029,
+        "text": "s_cbranch_execnz .LBB4_5",
+        "components": [
+          "s_cbranch_execnz .LBB4_5"
+        ]
+      },
+      {
+        "line": 1031,
+        "text": "s_and_not1_saveexec_b32 s0, s0",
+        "components": [
+          "s_and_not1_saveexec_b32 s0, s0"
+        ]
+      },
+      {
+        "line": 1032,
+        "text": "s_cbranch_execnz .LBB4_6",
+        "components": [
+          "s_cbranch_execnz .LBB4_6"
+        ]
+      },
+      {
+        "line": 1034,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1037,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1038,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1039,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1040,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1041,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1042,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1043,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1044,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1045,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1046,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1047,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1048,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1049,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1050,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1051,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1052,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1053,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1054,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1055,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1056,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1057,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1058,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1059,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1060,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1061,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1062,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1063,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1064,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1065,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1066,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1067,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1068,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1069,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1070,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1071,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1072,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1073,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1074,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1075,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1076,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1077,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1078,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1079,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1080,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1081,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1082,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1083,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1084,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1085,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1086,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1087,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1088,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1089,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1090,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1091,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1092,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1093,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1094,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1095,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1096,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1097,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1098,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1099,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1100,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1101,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1102,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1103,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1104,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1105,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1106,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1107,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1108,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1109,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1110,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1111,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1112,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1113,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1114,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1115,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1116,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1117,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1118,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1119,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1120,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1121,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1122,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1123,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1124,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1125,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1126,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1127,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1128,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1129,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1130,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1131,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1132,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1133,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1134,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1135,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1136,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1137,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1138,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1139,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1140,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1141,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1142,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1143,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1144,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1145,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1146,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1147,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1148,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1149,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1150,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1151,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1152,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1153,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1154,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1155,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1156,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1157,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1158,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1159,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1160,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1161,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1162,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1163,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1164,
+        "text": "s_nop 0",
+        "components": [
+          "s_nop 0"
+        ]
+      },
+      {
+        "line": 1166,
+        "text": "s_mov_b32 m0, 0x10001",
+        "components": [
+          "s_mov_b32 m0, 0x10001"
+        ]
+      },
+      {
+        "line": 1168,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 1169,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 1170,
+        "text": "s_and_not1_saveexec_b32 s0, s0",
+        "components": [
+          "s_and_not1_saveexec_b32 s0, s0"
+        ]
+      },
+      {
+        "line": 1171,
+        "text": "s_cbranch_execz .LBB4_4",
+        "components": [
+          "s_cbranch_execz .LBB4_4"
+        ]
+      },
+      {
+        "line": 1173,
+        "text": "s_mov_b32 s0, exec_lo",
+        "components": [
+          "s_mov_b32 s0, exec_lo"
+        ]
+      },
+      {
+        "line": 1174,
+        "text": "v_cmpx_eq_u32_e32 0, v0",
+        "components": [
+          "v_cmpx_eq_u32_e32 0, v0"
+        ]
+      },
+      {
+        "line": 1175,
+        "text": "s_cbranch_execz .LBB4_8",
+        "components": [
+          "s_cbranch_execz .LBB4_8"
+        ]
+      },
+      {
+        "line": 1177,
+        "text": "v_dual_mov_b32 v1, 0x40e00000 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, 0x40e00000",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 1179,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 1181,
+        "text": "ds_store_b32 v0, v1",
+        "components": [
+          "ds_store_b32 v0, v1"
+        ]
+      },
+      {
+        "line": 1183,
+        "text": "s_or_b32 exec_lo, exec_lo, s0",
+        "components": [
+          "s_or_b32 exec_lo, exec_lo, s0"
+        ]
+      },
+      {
+        "line": 1185,
+        "text": "s_wait_dscnt 0",
+        "components": [
+          "s_wait_dscnt 0"
+        ]
+      },
+      {
+        "line": 1187,
+        "text": "s_mov_b32 m0, 0x20001",
+        "components": [
+          "s_mov_b32 m0, 0x20001"
+        ]
+      },
+      {
+        "line": 1188,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 1189,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 1190,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1278,
+        "text": "s_mov_b32 m0, 0x10001",
+        "components": [
+          "s_mov_b32 m0, 0x10001"
+        ]
+      },
+      {
+        "line": 1279,
+        "text": "s_mov_b32 s0, 1",
+        "components": [
+          "s_mov_b32 s0, 1"
+        ]
+      },
+      {
+        "line": 1280,
+        "text": "s_barrier_init m0",
+        "components": [
+          "s_barrier_init m0"
+        ]
+      },
+      {
+        "line": 1281,
+        "text": "s_mov_b32 m0, 1",
+        "components": [
+          "s_mov_b32 m0, 1"
+        ]
+      },
+      {
+        "line": 1282,
+        "text": "s_barrier_join m0",
+        "components": [
+          "s_barrier_join m0"
+        ]
+      },
+      {
+        "line": 1285,
+        "text": "s_add_co_i32 s0, s0, -1",
+        "components": [
+          "s_add_co_i32 s0, s0, -1"
+        ]
+      },
+      {
+        "line": 1286,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 1287,
+        "text": "s_cmp_lg_u32 s0, 0",
+        "components": [
+          "s_cmp_lg_u32 s0, 0"
+        ]
+      },
+      {
+        "line": 1288,
+        "text": "s_cbranch_scc1 .LBB5_1",
+        "components": [
+          "s_cbranch_scc1 .LBB5_1"
+        ]
+      },
+      {
+        "line": 1290,
+        "text": "s_load_b64 s[0:1], s[4:5], 0x0",
+        "components": [
+          "s_load_b64 s[0:1], s[4:5], 0x0"
+        ]
+      },
+      {
+        "line": 1291,
+        "text": "v_dual_mov_b32 v1, 0x40e00000 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, 0x40e00000",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 1292,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 1294,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 1296,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1297,
+        "text": "global_store_b32 v0, v1, s[0:1]",
+        "components": [
+          "global_store_b32 v0, v1, s[0:1]"
+        ]
+      },
+      {
+        "line": 1298,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1386,
+        "text": "s_mov_b32 m0, 0x7f0000",
+        "components": [
+          "s_mov_b32 m0, 0x7f0000"
+        ]
+      },
+      {
+        "line": 1387,
+        "text": "s_mov_b32 s0, 1",
+        "components": [
+          "s_mov_b32 s0, 1"
+        ]
+      },
+      {
+        "line": 1388,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 1389,
+        "text": "s_mov_b32 m0, 0x10001",
+        "components": [
+          "s_mov_b32 m0, 0x10001"
+        ]
+      },
+      {
+        "line": 1390,
+        "text": "s_barrier_init m0",
+        "components": [
+          "s_barrier_init m0"
+        ]
+      },
+      {
+        "line": 1391,
+        "text": "s_mov_b32 m0, 1",
+        "components": [
+          "s_mov_b32 m0, 1"
+        ]
+      },
+      {
+        "line": 1392,
+        "text": "s_barrier_join m0",
+        "components": [
+          "s_barrier_join m0"
+        ]
+      },
+      {
+        "line": 1395,
+        "text": "s_add_co_i32 s0, s0, -1",
+        "components": [
+          "s_add_co_i32 s0, s0, -1"
+        ]
+      },
+      {
+        "line": 1396,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 1397,
+        "text": "s_cmp_lg_u32 s0, 0",
+        "components": [
+          "s_cmp_lg_u32 s0, 0"
+        ]
+      },
+      {
+        "line": 1398,
+        "text": "s_cbranch_scc1 .LBB6_1",
+        "components": [
+          "s_cbranch_scc1 .LBB6_1"
+        ]
+      },
+      {
+        "line": 1400,
+        "text": "s_load_b64 s[0:1], s[4:5], 0x0",
+        "components": [
+          "s_load_b64 s[0:1], s[4:5], 0x0"
+        ]
+      },
+      {
+        "line": 1401,
+        "text": "v_dual_mov_b32 v1, 0x40e00000 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, 0x40e00000",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 1402,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 1404,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 1406,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1407,
+        "text": "global_store_b32 v0, v1, s[0:1]",
+        "components": [
+          "global_store_b32 v0, v1, s[0:1]"
+        ]
+      },
+      {
+        "line": 1408,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      },
+      {
+        "line": 1496,
+        "text": "s_mov_b32 m0, 0x10001",
+        "components": [
+          "s_mov_b32 m0, 0x10001"
+        ]
+      },
+      {
+        "line": 1497,
+        "text": "s_movk_i32 s0, 0x7f",
+        "components": [
+          "s_movk_i32 s0, 0x7f"
+        ]
+      },
+      {
+        "line": 1498,
+        "text": "s_barrier_init m0",
+        "components": [
+          "s_barrier_init m0"
+        ]
+      },
+      {
+        "line": 1499,
+        "text": "s_mov_b32 m0, 1",
+        "components": [
+          "s_mov_b32 m0, 1"
+        ]
+      },
+      {
+        "line": 1500,
+        "text": "s_barrier_join m0",
+        "components": [
+          "s_barrier_join m0"
+        ]
+      },
+      {
+        "line": 1501,
+        "text": "s_mov_b32 m0, 0x7f0001",
+        "components": [
+          "s_mov_b32 m0, 0x7f0001"
+        ]
+      },
+      {
+        "line": 1504,
+        "text": "s_add_co_i32 s0, s0, -1",
+        "components": [
+          "s_add_co_i32 s0, s0, -1"
+        ]
+      },
+      {
+        "line": 1505,
+        "text": "s_barrier_signal m0",
+        "components": [
+          "s_barrier_signal m0"
+        ]
+      },
+      {
+        "line": 1506,
+        "text": "s_cmp_lg_u32 s0, 0",
+        "components": [
+          "s_cmp_lg_u32 s0, 0"
+        ]
+      },
+      {
+        "line": 1507,
+        "text": "s_cbranch_scc1 .LBB7_1",
+        "components": [
+          "s_cbranch_scc1 .LBB7_1"
+        ]
+      },
+      {
+        "line": 1509,
+        "text": "s_load_b64 s[0:1], s[4:5], 0x0",
+        "components": [
+          "s_load_b64 s[0:1], s[4:5], 0x0"
+        ]
+      },
+      {
+        "line": 1510,
+        "text": "v_dual_mov_b32 v1, 0x40e00000 :: v_dual_mov_b32 v0, 0",
+        "components": [
+          "v_dual_mov_b32 v1, 0x40e00000",
+          "v_dual_mov_b32 v0, 0"
+        ]
+      },
+      {
+        "line": 1511,
+        "text": "s_barrier_wait 1",
+        "components": [
+          "s_barrier_wait 1"
+        ]
+      },
+      {
+        "line": 1513,
+        "text": "v_add_f32 v1, 0, v1",
+        "components": [
+          "v_add_f32 v1, 0, v1"
+        ]
+      },
+      {
+        "line": 1515,
+        "text": "s_wait_kmcnt 0x0",
+        "components": [
+          "s_wait_kmcnt 0x0"
+        ]
+      },
+      {
+        "line": 1516,
+        "text": "global_store_b32 v0, v1, s[0:1]",
+        "components": [
+          "global_store_b32 v0, v1, s[0:1]"
+        ]
+      },
+      {
+        "line": 1517,
+        "text": "s_endpgm",
+        "components": [
+          "s_endpgm"
+        ]
+      }
+    ]
+  }
+}

@@ -100,7 +100,12 @@ fn the_frontend_imports_nothing_of_the_analysis_after_it() {
 fn the_branches_never_depend_on_each_other_or_on_the_stage() {
     let graph_branch = dependencies("volta_graph_check");
     let equivalence_branch = dependencies("volta_equivalence");
-    for forbidden in ["volta_equivalence", "volta_ptx_analysis", "volta_pipeline"] {
+    for forbidden in [
+        "volta_equivalence",
+        "volta_ptx_analysis",
+        "volta_amdgpu_analysis",
+        "volta_pipeline",
+    ] {
         assert!(
             !graph_branch.iter().any(|d| d == forbidden),
             "the graph branch depends on {forbidden}"
@@ -110,6 +115,7 @@ fn the_branches_never_depend_on_each_other_or_on_the_stage() {
         "volta_graph",
         "volta_graph_check",
         "volta_ptx_analysis",
+        "volta_amdgpu_analysis",
         "volta_pipeline",
     ] {
         assert!(
@@ -122,10 +128,71 @@ fn the_branches_never_depend_on_each_other_or_on_the_stage() {
         "volta_graph_check",
         "volta_equivalence",
         "volta_ptx_analysis",
+        "volta_amdgpu_analysis",
     ] {
         assert!(
             !graph.iter().any(|d| d == forbidden),
             "the graph model depends on {forbidden}"
         );
+    }
+}
+
+#[test]
+fn amdgpu_preserves_the_existing_analysis_and_frontend_boundaries() {
+    let mut sources = Vec::new();
+    rust_sources(
+        &crates_dir().join("volta_amdgpu_analysis/src"),
+        &mut sources,
+    );
+    let dependencies = dependencies("volta_amdgpu_analysis");
+    for forbidden in [
+        "volta_graph_check",
+        "volta_equivalence",
+        "volta_pipeline",
+        "volta_ptx_analysis",
+    ] {
+        assert!(
+            !dependencies
+                .iter()
+                .any(|dependency| dependency == forbidden),
+            "the AMD analysis depends on {forbidden}"
+        );
+        for source in &sources {
+            let text = std::fs::read_to_string(source).unwrap();
+            assert!(
+                !text
+                    .lines()
+                    .filter(|line| !line.trim_start().starts_with("//"))
+                    .any(|line| line.contains(forbidden)),
+                "{} references {forbidden}",
+                source.display()
+            );
+        }
+    }
+    let mut frontend = Vec::new();
+    rust_sources(
+        &crates_dir().join("volta_amdgpu_analysis/src/frontend"),
+        &mut frontend,
+    );
+    for source in frontend {
+        let text = std::fs::read_to_string(&source).unwrap();
+        for forbidden in [
+            "crate::analysis",
+            "crate::config",
+            "crate::eval",
+            "crate::ir",
+            "crate::lower",
+            "volta_expr",
+            "volta_graph",
+        ] {
+            assert!(
+                !text
+                    .lines()
+                    .filter(|line| !line.trim_start().starts_with("//"))
+                    .any(|line| line.contains(forbidden)),
+                "{} references {forbidden}",
+                source.display()
+            );
+        }
     }
 }

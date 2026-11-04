@@ -1,0 +1,384 @@
+{
+  "schema_version": 1,
+  "scope": "Two seeded configured-LDS bounds violations in one compiler kernel; functional outcomes only.",
+  "source_sha256": {
+    "tests/gfx1250/fixtures/native-tensor-roundtrip.s": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
+    "tests/gfx1250/specs/tensor-roundtrip.spec": "cfaf65668261f61839723af06815b3b3b80379b76d1a556c65196a99e7934e21"
+  },
+  "harness_sha256": "5d5dec5ffd5ecb346ef576ca390c81c11bbc8b1851957774205068bd6f7f8624",
+  "versions": {
+    "baseline": {
+      "revision": "e239cfc851a32114dcfbf9d22616aeadb7c4ee24",
+      "binary_sha256": "6354b2327247d298d68e67d71cffb3dd458b554877c65dc0657a4f6efd2e35ca"
+    },
+    "candidate": {
+      "revision": "99e52c314c901ce7b36d98e4cff23998b2e58b06",
+      "binary_sha256": "5b5436a5ac22ab188fc8112965b926f79e98dc3e3be631927c869866c7de8686"
+    }
+  },
+  "configured_lds_bytes": 256,
+  "invalid_interval_bytes": [
+    256,
+    512
+  ],
+  "safe_specification_elements": 128,
+  "cases": [
+    {
+      "case": "original",
+      "assembly_sha256": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
+      "baseline": {
+        "command": [
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "verify",
+          "{case}.s",
+          "tests/gfx1250/specs/tensor-roundtrip.spec",
+          "--dim",
+          "N=128",
+          "--sample",
+          "0",
+          "--kernel",
+          "tensor_roundtrip",
+          "--block",
+          "64",
+          "--array",
+          "x:65536:4:128:in",
+          "--array",
+          "out:131072:4:128:out",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--no-profile"
+        ],
+        "exit_code": 0,
+        "outcome": "complete_specification_proof"
+      },
+      "candidate": {
+        "command": [
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "verify",
+          "{case}.s",
+          "tests/gfx1250/specs/tensor-roundtrip.spec",
+          "--dim",
+          "N=128",
+          "--sample",
+          "0",
+          "--kernel",
+          "tensor_roundtrip",
+          "--block",
+          "64",
+          "--array",
+          "x:65536:4:128:in",
+          "--array",
+          "out:131072:4:128:out",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--no-profile"
+        ],
+        "exit_code": 0,
+        "outcome": "complete_specification_proof"
+      }
+    },
+    {
+      "case": "load_bounds",
+      "assembly_sha256": "cb90363f4c620b5a3c923d51dc02f99998be6fa56683d82af1d2e0423a0bc86a",
+      "baseline": {
+        "command": [
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "analyze",
+          "{case}.s",
+          "--kernel",
+          "tensor_roundtrip",
+          "--block",
+          "64",
+          "--array",
+          "x:65536:4:128:in",
+          "--array",
+          "out:131072:4:128:out",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--no-profile"
+        ],
+        "exit_code": 2,
+        "outcome": "unknown"
+      },
+      "candidate": {
+        "command": [
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "analyze",
+          "{case}.s",
+          "--kernel",
+          "tensor_roundtrip",
+          "--block",
+          "64",
+          "--array",
+          "x:65536:4:128:in",
+          "--array",
+          "out:131072:4:128:out",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--no-profile"
+        ],
+        "exit_code": 1,
+        "outcome": "certified_tensor_bounds_rejection"
+      }
+    },
+    {
+      "case": "store_bounds",
+      "assembly_sha256": "ebc3f0c82cf30ef5f22bf05c8b04c530d2242374ad707263885425e16130ba80",
+      "baseline": {
+        "command": [
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "analyze",
+          "{case}.s",
+          "--kernel",
+          "tensor_roundtrip",
+          "--block",
+          "64",
+          "--array",
+          "x:65536:4:128:in",
+          "--array",
+          "out:131072:4:128:out",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--no-profile"
+        ],
+        "exit_code": 2,
+        "outcome": "unknown"
+      },
+      "candidate": {
+        "command": [
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "analyze",
+          "{case}.s",
+          "--kernel",
+          "tensor_roundtrip",
+          "--block",
+          "64",
+          "--array",
+          "x:65536:4:128:in",
+          "--array",
+          "out:131072:4:128:out",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--no-profile"
+        ],
+        "exit_code": 1,
+        "outcome": "certified_tensor_bounds_rejection"
+      }
+    },
+    {
+      "case": "unsupported_descriptor",
+      "assembly_sha256": "b33ae753c97bf5b910fd6ea2b8e162221b6cc59c0908329b9bd3873775064a9b",
+      "baseline": {
+        "command": [
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "analyze",
+          "{case}.s",
+          "--kernel",
+          "tensor_roundtrip",
+          "--block",
+          "64",
+          "--array",
+          "x:65536:4:128:in",
+          "--array",
+          "out:131072:4:128:out",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--no-profile"
+        ],
+        "exit_code": 2,
+        "outcome": "unknown"
+      },
+      "candidate": {
+        "command": [
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "analyze",
+          "{case}.s",
+          "--kernel",
+          "tensor_roundtrip",
+          "--block",
+          "64",
+          "--array",
+          "x:65536:4:128:in",
+          "--array",
+          "out:131072:4:128:out",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--no-profile"
+        ],
+        "exit_code": 2,
+        "outcome": "unknown"
+      }
+    },
+    {
+      "case": "pending_descriptor",
+      "assembly_sha256": "c6a34a9af1b47bde40225cce91f05f624274f932be1f7b959f0c5c6ba922149c",
+      "baseline": {
+        "command": [
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "analyze",
+          "{case}.s",
+          "--kernel",
+          "tensor_roundtrip",
+          "--block",
+          "64",
+          "--array",
+          "x:65536:4:128:in",
+          "--array",
+          "out:131072:4:128:out",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--no-profile"
+        ],
+        "exit_code": 2,
+        "outcome": "unknown"
+      },
+      "candidate": {
+        "command": [
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "analyze",
+          "{case}.s",
+          "--kernel",
+          "tensor_roundtrip",
+          "--block",
+          "64",
+          "--array",
+          "x:65536:4:128:in",
+          "--array",
+          "out:131072:4:128:out",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--no-profile"
+        ],
+        "exit_code": 2,
+        "outcome": "unknown"
+      }
+    },
+    {
+      "case": "exec_zero",
+      "assembly_sha256": "0540e1d5ab5e0c0f44a0702bf6dff6eeceedce03d8f9eedb4b4d120c25000eec",
+      "baseline": {
+        "command": [
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "analyze",
+          "{case}.s",
+          "--kernel",
+          "tensor_roundtrip",
+          "--block",
+          "64",
+          "--array",
+          "x:65536:4:128:in",
+          "--array",
+          "out:131072:4:128:out",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--no-profile"
+        ],
+        "exit_code": 2,
+        "outcome": "unknown"
+      },
+      "candidate": {
+        "command": [
+          "--no-log-file",
+          "--backend",
+          "amdgpu",
+          "--target",
+          "gfx1250",
+          "analyze",
+          "{case}.s",
+          "--kernel",
+          "tensor_roundtrip",
+          "--block",
+          "64",
+          "--array",
+          "x:65536:4:128:in",
+          "--array",
+          "out:131072:4:128:out",
+          "--param",
+          "ptr:x",
+          "--param",
+          "ptr:out",
+          "--no-profile"
+        ],
+        "exit_code": 2,
+        "outcome": "unknown"
+      }
+    }
+  ],
+  "seeded_bounds_detected": {
+    "baseline": 0,
+    "candidate": 2,
+    "total": 2
+  },
+  "limitations": [
+    "No latency, GPU speed, upstream comparison or whole-ISA claim.",
+    "Harmful variants run only in the CPU verifier.",
+    "The prior 77-configuration study and its historical 29/30 result are unchanged.",
+    "Binary/source revisions are caller-supplied build provenance, verified by hashes and immutable fixture contracts."
+  ]
+}

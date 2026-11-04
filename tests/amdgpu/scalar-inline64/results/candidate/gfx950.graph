@@ -1,0 +1,36 @@
+volta-graph 2
+kernel "k" block 1,1,1 grid 1,1,1 workgroup 0,0,0 targets gfx950
+assume StructuredCta
+assume SingleWorkgroupAnalyzed
+assume MathematicalRealArithmetic
+assume EagerAsyncData
+assume XnackReplayDisabled
+assume SingleCuWorkgroup
+e0 t0 pc0 amd wave=0 Instruction { exec_mask: 1, reads: [AmdRegister { file: Scalar, index: 0, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 1, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Scalar, index: 4, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 5, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e1 t0 pc0 amd wave=0 MemoryIssue { class: ScalarMemory, counters: [(Lgkm, 2)], destinations: [AmdRegister { file: Scalar, index: 4, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 5, lanes: 18446744073709551615 }], held_sources: [] }
+e2 t0 pc0 read ordinary generic global Plain by t0 [0xffff00000000,+4)
+e3 t0 pc0 read ordinary generic global Plain by t0 [0xffff00000004,+4)
+e4 t0 pc1 amd wave=0 Instruction { exec_mask: 1, reads: [], writes: [], scalar_mask_reads: [] }
+e5 t0 pc1 amd wave=0 Wait { vmcnt: None, lgkmcnt: Some(0), expcnt: None }
+e6 t0 pc2 amd wave=0 Instruction { exec_mask: 1, reads: [], writes: [AmdRegister { file: Scalar, index: 8, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 9, lanes: 18446744073709551615 }], scalar_mask_reads: [] }
+e7 t0 pc3 amd wave=0 Instruction { exec_mask: 1, reads: [], writes: [AmdRegister { file: Vector, index: 0, lanes: 1 }], scalar_mask_reads: [] }
+e8 t0 pc4 amd wave=0 Instruction { exec_mask: 1, reads: [AmdRegister { file: Scalar, index: 8, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Vector, index: 1, lanes: 1 }], scalar_mask_reads: [] }
+e9 t0 pc5 amd wave=0 Instruction { exec_mask: 1, reads: [AmdRegister { file: Scalar, index: 9, lanes: 18446744073709551615 }], writes: [AmdRegister { file: Vector, index: 2, lanes: 1 }], scalar_mask_reads: [] }
+e10 t0 pc6 amd wave=0 Instruction { exec_mask: 1, reads: [AmdRegister { file: Vector, index: 1, lanes: 1 }], writes: [AmdRegister { file: Vector, index: 1, lanes: 1 }], scalar_mask_reads: [] }
+e11 t0 pc7 amd wave=0 Instruction { exec_mask: 1, reads: [AmdRegister { file: Vector, index: 2, lanes: 1 }], writes: [AmdRegister { file: Vector, index: 2, lanes: 1 }], scalar_mask_reads: [] }
+e12 t0 pc8 amd wave=0 Instruction { exec_mask: 1, reads: [AmdRegister { file: Vector, index: 0, lanes: 1 }, AmdRegister { file: Vector, index: 1, lanes: 1 }, AmdRegister { file: Scalar, index: 4, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 5, lanes: 18446744073709551615 }], writes: [], scalar_mask_reads: [] }
+e13 t0 pc8 amd wave=0 MemoryIssue { class: VectorMemory, counters: [(Vm, 1)], destinations: [], held_sources: [] }
+e14 t0 pc8 write ordinary generic global Plain by t0 [0x10000,+4) = n6
+e15 t0 pc9 amd wave=0 Instruction { exec_mask: 1, reads: [AmdRegister { file: Vector, index: 0, lanes: 1 }, AmdRegister { file: Vector, index: 2, lanes: 1 }, AmdRegister { file: Scalar, index: 4, lanes: 18446744073709551615 }, AmdRegister { file: Scalar, index: 5, lanes: 18446744073709551615 }], writes: [], scalar_mask_reads: [] }
+e16 t0 pc9 amd wave=0 MemoryIssue { class: VectorMemory, counters: [(Vm, 1)], destinations: [], held_sources: [] }
+e17 t0 pc9 write ordinary generic global Plain by t0 [0x10004,+4) = n7
+e18 t0 pc10 amd wave=0 Instruction { exec_mask: 1, reads: [], writes: [], scalar_mask_reads: [] }
+e19 t0 pc10 amd wave=0 Wait { vmcnt: Some(0), lgkmcnt: None, expcnt: None }
+e20 t0 pc11 amd wave=0 Instruction { exec_mask: 1, reads: [], writes: [], scalar_mask_reads: [] }
+e21 t0 pc11 amd wave=0 Wait { vmcnt: Some(0), lgkmcnt: Some(0), expcnt: Some(0) }
+e22 t0 pc11 exit
+amd-memory issue=e1 effect=e2
+amd-memory issue=e1 effect=e3
+amd-memory issue=e13 effect=e14
+amd-memory issue=e16 effect=e17
+terminal completed

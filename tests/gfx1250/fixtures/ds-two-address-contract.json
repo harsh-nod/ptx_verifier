@@ -1,0 +1,83 @@
+{
+  "scope": "gfx1250 DS_LOAD_2ADDR_B32 aliases native DS_READ2_B32 address units of four bytes; one Ds issue, destination pair in offset0/offset1 order. Equal offsets remain explicitly unsupported. No hardware claim.",
+  "primary_reference": "https://raw.githubusercontent.com/llvm/llvm-project/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/DSInstructions.td",
+  "primary_sha256": "d11033d168ab64314472b98241c79357827b3f86094908d87357eb9890193e62",
+  "llvm_mc_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "probes": [
+    {
+      "instruction": "ds_load_2addr_b32 v[0:1],v2 offset1:4",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-ds-two-address-0.s",
+        "-o",
+        "/tmp/gfx1250-ds-two-address-0.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "ds_load_2addr_b32 v[0:1],v2 offset0:255 offset1:4",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-ds-two-address-1.s",
+        "-o",
+        "/tmp/gfx1250-ds-two-address-1.o"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "instruction": "ds_load_2addr_b32 v[0:1],v2 offset1:256",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-ds-two-address-2.s",
+        "-o",
+        "/tmp/gfx1250-ds-two-address-2.o"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "/tmp/gfx1250-ds-two-address-2.s:2:29: error: invalid offset1 value.\nds_load_2addr_b32 v[0:1],v2 offset1:256\n                            ^\n"
+    },
+    {
+      "instruction": "ds_load_2addr_b32 v0,v2 offset1:4",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-ds-two-address-3.s",
+        "-o",
+        "/tmp/gfx1250-ds-two-address-3.o"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "/tmp/gfx1250-ds-two-address-3.s:2:19: error: invalid operand for instruction\nds_load_2addr_b32 v0,v2 offset1:4\n                  ^\n"
+    },
+    {
+      "instruction": "ds_load_2addr_b32 v[0:1],v[2:3] offset1:4",
+      "argv": [
+        "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+        "--triple=amdgcn-amd-amdhsa",
+        "--mcpu=gfx1250",
+        "-filetype=obj",
+        "/tmp/gfx1250-ds-two-address-4.s",
+        "-o",
+        "/tmp/gfx1250-ds-two-address-4.o"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "/tmp/gfx1250-ds-two-address-4.s:2:26: error: invalid operand for instruction\nds_load_2addr_b32 v[0:1],v[2:3] offset1:4\n                         ^\n"
+    }
+  ]
+}

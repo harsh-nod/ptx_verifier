@@ -1,0 +1,215 @@
+{
+  "schema": 1,
+  "target": "gfx1250",
+  "hardware": "not performed by this compiler/semantic receipt",
+  "tool": "/opt/rocm-7.2.0/lib/llvm/bin/llvm-mc",
+  "tool_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+  "tool_version": "AMD LLVM version 22.0.0git\n  Optimized build.\n\n  Registered Targets:\n    amdgcn - AMD GCN GPUs\n    r600   - AMD GPUs HD2XXX-HD6XXX\n    x86    - 32-bit X86: Pentium-Pro and above\n    x86-64 - 64-bit X86: EM64T and AMD64\n",
+  "observations": [
+    {
+      "source": "flat_load_b32 v0,v[0:1] offset:-8388609",
+      "accepted": false,
+      "stderr": "<stdin>:1:25: error: expected a 24-bit signed offset\nflat_load_b32 v0,v[0:1] offset:-8388609\n                        ^\n"
+    },
+    {
+      "source": "flat_load_b32 v0,v[0:1] offset:-8388608",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b32 v0,v[0:1] offset:-1",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b32 v0,v[0:1] offset:0",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b32 v0,v[0:1] offset:4095",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b32 v0,v[0:1] offset:4096",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b32 v0,v[0:1] offset:8388607",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b32 v0,v[0:1] offset:8388608",
+      "accepted": false,
+      "stderr": "<stdin>:1:25: error: expected a 24-bit signed offset\nflat_load_b32 v0,v[0:1] offset:8388608\n                        ^\n"
+    },
+    {
+      "source": "flat_load_b32 v0,v1,s[0:1] offset:-8388609",
+      "accepted": false,
+      "stderr": "<stdin>:1:28: error: expected a 24-bit signed offset\nflat_load_b32 v0,v1,s[0:1] offset:-8388609\n                           ^\n"
+    },
+    {
+      "source": "flat_load_b32 v0,v1,s[0:1] offset:-8388608",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b32 v0,v1,s[0:1] offset:-1",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b32 v0,v1,s[0:1] offset:0",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b32 v0,v1,s[0:1] offset:8388607",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b32 v0,v1,s[0:1] offset:8388608",
+      "accepted": false,
+      "stderr": "<stdin>:1:28: error: expected a 24-bit signed offset\nflat_load_b32 v0,v1,s[0:1] offset:8388608\n                           ^\n"
+    },
+    {
+      "source": "s_sub_co_i32 s8,s8,s9",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "s_cvt_f32_i32 s8,s9",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "s_load_u8 s8,s[4:5],0",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "s_get_pc_i64 s[4:5]",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "global_store_b96 v0,v[1:3],s[4:5]",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nglobal_store_b96 v0,v[1:3],s[4:5]\n^\n"
+    },
+    {
+      "source": "s_sub_co_i32 s8,0x12345678,0x12345679",
+      "accepted": false,
+      "stderr": "<stdin>:1:28: error: only one unique literal operand is allowed\ns_sub_co_i32 s8,0x12345678,0x12345679\n                           ^\n"
+    },
+    {
+      "source": "s_cvt_f32_i32 s8,0x100000000",
+      "accepted": false,
+      "stderr": "<stdin>:1:18: error: invalid operand for instruction\ns_cvt_f32_i32 s8,0x100000000\n                 ^\n"
+    },
+    {
+      "source": "flat_load_b32_e64 v0,v1,s[0:1]",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: e64 variant of this instruction is not supported\nflat_load_b32_e64 v0,v1,s[0:1]\n^\n"
+    },
+    {
+      "source": "flat_load_b32 v0,v[2:3],s[0:1]",
+      "accepted": false,
+      "stderr": "<stdin>:1:25: error: invalid operand for instruction\nflat_load_b32 v0,v[2:3],s[0:1]\n                        ^\n"
+    },
+    {
+      "source": "flat_load_b32 v0,v1,s[0:1] scale_offset",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b32 v0,v1,s[0:1] scope:SCOPE_SYS",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "global_store_b96 v0,v[0:2],s[4:5]",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "global_store_b96 v0,v[1:3],s[4:5]",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nglobal_store_b96 v0,v[1:3],s[4:5]\n^\n"
+    },
+    {
+      "source": "global_store_b96 v0,v[2:4],s[4:5]",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "global_store_b96 v0,v[3:5],s[4:5]",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nglobal_store_b96 v0,v[3:5],s[4:5]\n^\n"
+    },
+    {
+      "source": "global_store_b96 v0,v[4:6],s[4:5]",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "global_load_b96 v[0:2],v0,s[4:5]",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "global_load_b96 v[1:3],v0,s[4:5]",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nglobal_load_b96 v[1:3],v0,s[4:5]\n^\n"
+    },
+    {
+      "source": "global_load_b96 v[2:4],v0,s[4:5]",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "global_load_b96 v[3:5],v0,s[4:5]",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nglobal_load_b96 v[3:5],v0,s[4:5]\n^\n"
+    },
+    {
+      "source": "global_load_b96 v[4:6],v0,s[4:5]",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b96 v[0:2],v0,s[4:5]",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b96 v[1:3],v0,s[4:5]",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nflat_load_b96 v[1:3],v0,s[4:5]\n^\n"
+    },
+    {
+      "source": "flat_load_b96 v[2:4],v0,s[4:5]",
+      "accepted": true,
+      "stderr": ""
+    },
+    {
+      "source": "flat_load_b96 v[3:5],v0,s[4:5]",
+      "accepted": false,
+      "stderr": "<stdin>:1:1: error: invalid register class: vgpr tuples must be 64 bit aligned\nflat_load_b96 v[3:5],v0,s[4:5]\n^\n"
+    },
+    {
+      "source": "flat_load_b96 v[4:6],v0,s[4:5]",
+      "accepted": true,
+      "stderr": ""
+    }
+  ],
+  "primary": [
+    "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/FLATInstructions.td",
+    "https://github.com/llvm/llvm-project/blob/5fd50ec8e07abb94e203933017e8d6e40fb51824/llvm/lib/Target/AMDGPU/SOPInstructions.td"
+  ],
+  "scope": "Selected FLAT model accepts only opaque Shared or checked Global addresses; native encoding support for scale_offset is not asserted as evaluator support. The scope flag adds no happens-before edge. Legacy targets retain their previous offset envelopes."
+}

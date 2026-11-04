@@ -1,0 +1,1 @@
+dim C; dim H; dim W; dim O; dim R; dim S; dim OH; dim OW; array x[C,H,W]; array weight[O,C,R,S]; array out[O,OH,OW]; out[o,h,w]=sum(c in 0..C,sum(r in 0..R,sum(s in 0..S,x[c,h+r,w+s]*weight[o,c,r,s])));

@@ -20,6 +20,7 @@ impl SymbolicOutputs {
     pub fn validate(&self) -> Result<(), String> {
         self.arena.validate()?;
         let n_nodes = self.arena.node_count();
+        self.validate_footprints()?;
         for (name, elems) in &self.outputs {
             for &(index, root) in elems {
                 if root.to_index() as usize >= n_nodes {
@@ -31,6 +32,23 @@ impl SymbolicOutputs {
                         n_nodes
                     ));
                 }
+            }
+        }
+        Ok(())
+    }
+
+    /// Check output identities without revisiting the expression DAG.
+    pub fn validate_footprints(&self) -> Result<(), String> {
+        let mut names = std::collections::BTreeSet::new();
+        for (name, elems) in &self.outputs {
+            if !names.insert(name) {
+                return Err(format!("duplicate output array '{}'", name));
+            }
+            if elems.windows(2).any(|pair| pair[0].0 >= pair[1].0) {
+                return Err(format!(
+                    "output '{}' indices must be strictly ascending and unique",
+                    name
+                ));
             }
         }
         Ok(())

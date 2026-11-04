@@ -2,19 +2,34 @@ use std::collections::BTreeMap;
 
 use pyo3::exceptions::PyRuntimeWarning;
 use pyo3::prelude::*;
+use pyo3::types::PyList;
 
 use volta_expr::SymbolicOutputs;
 use volta_graph_check::GraphConclusion;
-use volta_pipeline::verify_kernel;
+use volta_pipeline::{Backend, KernelModule, verify_source_kernel};
 use volta_ptx_analysis::frontend::ascii::{AsAscii, AsciiChar};
 use volta_ptx_analysis::frontend::ast::Module;
 use volta_ptx_analysis::frontend::parse as ptx_parse;
 use volta_ptx_analysis::{AnalysisConfig, Stats};
 
 use crate::config::ConfigPy;
-use crate::error::{VoltaError, analysis_error_to_py, graph_failure_to_py, parse_error_to_py};
+use crate::error::{VoltaError, graph_failure_to_py, parse_error_to_py};
 
-pub(crate) fn parse_module(source: &str) -> PyResult<Module> {
+pub(crate) fn parse_module(source: &str, backend: Backend) -> PyResult<KernelModule> {
+    match backend {
+        Backend::Ptx => parse_ptx_module(source).map(KernelModule::Ptx),
+        Backend::Amdgpu | Backend::AmdgpuGfx942 | Backend::AmdgpuGfx1250 => {
+            let module = volta_amdgpu_analysis::frontend::parse(source)
+                .map_err(|error| VoltaError::new_err(error.to_string()))?;
+            backend
+                .validate_amd_target(module.target.as_deref())
+                .map_err(VoltaError::new_err)?;
+            Ok(KernelModule::Amdgpu(module))
+        }
+    }
+}
+
+fn parse_ptx_module(source: &str) -> PyResult<Module> {
     let ascii_src: &[AsciiChar] = source
         .as_bytes()
         .as_ascii_slice()
@@ -25,10 +40,12 @@ pub(crate) fn parse_module(source: &str) -> PyResult<Module> {
         .map_err(|e| parse_error_to_py(source, &e))
 }
 
-/// Parse PTX source and raise `VoltaError` on a syntax error.
+/// Parse source for the selected PTX or native AMD backend; raise `VoltaError` on a syntax error.
 #[pyfunction]
-pub fn parse(source: &str) -> PyResult<()> {
-    parse_module(source)?;
+#[pyo3(signature = (source, *, backend="ptx", target=None))]
+pub fn parse(source: &str, backend: &str, target: Option<&str>) -> PyResult<()> {
+    let backend = Backend::select(backend, target).map_err(VoltaError::new_err)?;
+    parse_module(source, backend)?;
     Ok(())
 }
 
@@ -49,24 +66,54 @@ pub struct StatsPy {
 pub struct AnalyzeResultPy {
     #[pyo3(get)]
     pub stats: StatsPy,
-    /// `[(array_name, [(index, pretty_printed_expr), ...]), ...]`
-    #[pyo3(get)]
-    pub outputs: Vec<(String, Vec<(u64, String)>)>,
+    // Retain the compact DAG, rather than a second complete copy of every
+    // expanded expression string. The getter still returns ordinary Python
+    // lists/tuples/strings and never exposes arena handles.
+    exprs: SymbolicOutputs,
     #[pyo3(get)]
     pub op_counts: BTreeMap<String, u64>,
     /// Whether graph verification is complete: the trace completed and the graph checks
     /// (barrier epochs, mbarrier ordering, memory conflicts, proxy and tensor ordering, resource
     /// lifetime, allocation order and permit, mbarrier release order) all passed. A failed check
-    /// or a deadlock raises instead.
+    /// or a deadlock raises instead. For AMD this covers only `workgroup_id`,
+    /// including when `grid` is larger.
     #[pyo3(get)]
     pub race_verified: bool,
     /// Why verification is incomplete; empty when `race_verified`.
     #[pyo3(get)]
     pub unresolved: Vec<String>,
+    /// Native AMD checks cover only this workgroup, not other groups or their conflicts.
+    #[pyo3(get)]
+    pub workgroup_id: (u32, u32, u32),
+    /// Modeling assumptions of the execution whose outputs are returned.
+    #[pyo3(get)]
+    pub assumptions: Vec<String>,
+}
+
+#[pymethods]
+impl AnalyzeResultPy {
+    /// `[(array_name, [(index, pretty_printed_expr), ...]), ...]`
+    #[getter]
+    fn outputs<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
+        let outputs = PyList::empty(py);
+        for (name, elements) in &self.exprs.outputs {
+            let values = PyList::empty(py);
+            for (index, expr) in elements {
+                // Convert each string directly into its Python result. A
+                // whole Rust Vec<String> would retain or clone hundreds of
+                // GiB for original-size attention results before conversion.
+                values.append((*index, self.exprs.arena.display_expr(*expr)))?;
+            }
+            outputs.append((name, values))?;
+        }
+        Ok(outputs)
+    }
 }
 
 /// One kernel that ran to completion with no failed graph check.
 pub(crate) struct CheckedKernel {
+    pub workgroup_id: (u32, u32, u32),
+    pub assumptions: Vec<String>,
     pub exprs: SymbolicOutputs,
     pub stats: Stats,
     pub op_counts: BTreeMap<&'static str, u64>,
@@ -80,11 +127,20 @@ pub(crate) struct CheckedKernel {
 /// stands for a race-freedom proof.
 pub(crate) fn check_kernel(
     py: Python<'_>,
-    module: &Module,
+    module: &KernelModule,
     kernel: Option<&str>,
     config: AnalysisConfig,
 ) -> PyResult<CheckedKernel> {
-    let verified = verify_kernel(module, kernel, config).map_err(analysis_error_to_py)?;
+    let verified = verify_source_kernel(module, kernel, config).map_err(VoltaError::new_err)?;
+    if let Some(error) = crate::error::certified_prefix_to_py(
+        py,
+        verified.analysis.stats.instructions,
+        verified.early_readiness.as_ref(),
+        verified.early_memory_conflict.as_ref(),
+        verified.tensor_bounds.as_ref(),
+    )? {
+        return Err(error);
+    }
     let unresolved = match verified.graph.conclusion() {
         GraphConclusion::Rejected { failed, deadlock } => {
             return Err(graph_failure_to_py(&failed, deadlock.as_ref()));
@@ -101,11 +157,20 @@ pub(crate) fn check_kernel(
             reasons
         }
     };
-    let parts = verified.analysis.into_parts();
+    let parts = verified.analysis;
+    let provenance = parts.graph.provenance();
+    let workgroup_id = provenance.workgroup_id;
+    let assumptions = provenance
+        .assumptions
+        .iter()
+        .map(|a| a.describe().to_owned())
+        .collect();
     let exprs = parts
         .outputs
         .map_err(|why| VoltaError::new_err(why.to_string()))?;
     Ok(CheckedKernel {
+        workgroup_id,
+        assumptions,
         exprs,
         stats: parts.stats,
         op_counts: parts.op_counts,
@@ -124,29 +189,18 @@ pub fn analyze(
     config: &ConfigPy,
     kernel: Option<&str>,
 ) -> PyResult<AnalyzeResultPy> {
-    let module = parse_module(source)?;
+    let module = parse_module(source, config.1)?;
     let output = check_kernel(py, &module, kernel, config.0.clone())?;
 
-    let outputs = output
-        .exprs
-        .outputs
-        .iter()
-        .map(|(name, elems)| {
-            let elems = elems
-                .iter()
-                .map(|(index, expr)| (*index, output.exprs.arena.display_expr(*expr)))
-                .collect();
-            (name.clone(), elems)
-        })
-        .collect();
-
     Ok(AnalyzeResultPy {
+        workgroup_id: output.workgroup_id,
+        assumptions: output.assumptions,
         stats: StatsPy {
             instructions: output.stats.instructions,
             block_syncs: output.stats.block_syncs,
             warp_syncs: output.stats.warp_syncs,
         },
-        outputs,
+        exprs: output.exprs,
         op_counts: output
             .op_counts
             .iter()

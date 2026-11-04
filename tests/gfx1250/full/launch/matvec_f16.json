@@ -1,0 +1,49 @@
+{
+  "description": "Original external arrays/widths/indices and original block/grid are unchanged. Native wave32 arithmetic maps the original mathematical computation; only two unused trailing PTX dummy pointers are omitted. Original storage conversions remain in source.",
+  "kernel": "matvec_f16",
+  "block": [
+    128,
+    1,
+    1
+  ],
+  "grid": [
+    1,
+    1,
+    1
+  ],
+  "dynamic_shared_bytes": 0,
+  "arrays": [
+    {
+      "name": "a",
+      "base": 65536,
+      "elem_width": 2,
+      "len": 131072,
+      "kind": "in"
+    },
+    {
+      "name": "x",
+      "base": 327680,
+      "elem_width": 2,
+      "len": 4096,
+      "kind": "in"
+    },
+    {
+      "name": "y",
+      "base": 393216,
+      "elem_width": 2,
+      "len": 32,
+      "kind": "out"
+    }
+  ],
+  "params": [
+    {
+      "ptr": "a"
+    },
+    {
+      "ptr": "x"
+    },
+    {
+      "ptr": "y"
+    }
+  ]
+}

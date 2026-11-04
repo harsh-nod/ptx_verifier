@@ -128,10 +128,16 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
         .to_string();
 
     // The instruction body ends at a section switch or function-end label.
-    let entry = lines
+    let mut entries = lines
         .iter()
-        .position(|line| line.strip_suffix(':') == Some(name))
+        .enumerate()
+        .filter(|(_, line)| line.strip_suffix(':') == Some(name));
+    let (entry, _) = entries
+        .next()
         .ok_or_else(|| format!("kernel {name:?} not found"))?;
+    if entries.next().is_some() {
+        return Err(format!("multiple entry labels for kernel {name:?}"));
+    }
     let mut instructions = Vec::new();
     let mut labels = BTreeMap::new();
     for line in &lines[entry + 1..] {
@@ -154,10 +160,15 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
         if opcode.starts_with('.') || line.ends_with(':') {
             return Err(format!("unsupported statement {line:?}"));
         }
-        // Accept comma-separated operands and space-separated wait counters.
-        if rest.contains(',') && rest.split(',').any(|piece| piece.trim().is_empty()) {
+        let without_trailing_comma = rest.strip_suffix(',').unwrap_or(rest);
+        if !rest.is_empty()
+            && without_trailing_comma
+                .split(',')
+                .any(|part| part.trim().is_empty())
+        {
             return Err(format!("empty operand in {line:?}"));
         }
+        // Accept comma-separated operands and space-separated wait counters.
         let operands = rest
             .split([',', ' ', '\t'])
             .filter(|piece| !piece.is_empty())
@@ -170,10 +181,18 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
     }
 
     // Read launch settings from the kernel's separate descriptor block.
-    let start = lines
+    let mut descriptors = lines
         .iter()
-        .position(|line| word(line) == (".amdhsa_kernel", name))
+        .enumerate()
+        .filter(|(_, line)| word(line) == (".amdhsa_kernel", name));
+    let (start, _) = descriptors
+        .next()
         .ok_or_else(|| format!("missing .amdhsa_kernel {name}"))?;
+    if descriptors.next().is_some() {
+        return Err(format!(
+            "multiple .amdhsa_kernel blocks for kernel {name:?}"
+        ));
+    }
     let mut descriptor = BTreeMap::new();
     for line in &lines[start + 1..] {
         if *line == ".end_amdhsa_kernel" {
@@ -303,70 +322,6 @@ mod tests {
         );
     }
 
-    fn kernel_source(body: &str, descriptor: &str) -> String {
-        format!(
-            ".amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n\
-             test:\n{body}\n.Lfunc_end0:\n\
-             .amdhsa_kernel test\n{descriptor}\n.end_amdhsa_kernel\n"
-        )
-    }
-
-    // Test that commas with a missing operand cause an error,
-    // while extra spaces between valid operands are still accepted.
-    #[test]
-    fn rejects_empty_operands() {
-        for line in [
-            "global_load_dword ,v1, v0, s[0:1]",
-            "global_load_dword v1,, v0, s[0:1]",
-            "global_load_dword v1, , v0, s[0:1]",
-            "global_load_dword v1, v0, s[0:1],",
-            "s_waitcnt vmcnt(0),, lgkmcnt(0)",
-            "s_endpgm ,",
-        ] {
-            assert_eq!(
-                parse_kernel(&kernel_source(line, ""), "test").unwrap_err(),
-                format!("empty operand in {line:?}")
-            );
-        }
-        let body = "global_load_dword v1,  v0, s[0:1]\n\
-                    s_waitcnt vmcnt(0)  lgkmcnt(0)\n\
-                    s_endpgm";
-        let kernel = parse_kernel(&kernel_source(body, ""), "test").unwrap();
-        assert_eq!(
-            kernel.instructions,
-            [
-                instr("global_load_dword", &[vgpr(1, 1), vgpr(0, 0), sgpr(0, 1)]),
-                instr(
-                    "s_waitcnt",
-                    &[
-                        Wait {
-                            counter: Counter::Vm,
-                            value: 0,
-                        },
-                        Wait {
-                            counter: Counter::Lgkm,
-                            value: 0,
-                        },
-                    ],
-                ),
-                instr("s_endpgm", &[]),
-            ]
-        );
-    }
-
-    // Test that specifying the same descriptor setting twice causes an error,
-    // whether the two values agree or differ.
-    #[test]
-    fn rejects_duplicate_descriptor_settings() {
-        for value in [16, 32] {
-            let descriptor = format!(".amdhsa_kernarg_size 16\n.amdhsa_kernarg_size {value}");
-            assert_eq!(
-                parse_kernel(&kernel_source("s_endpgm", &descriptor), "test").unwrap_err(),
-                "duplicate descriptor setting \".amdhsa_kernarg_size\""
-            );
-        }
-    }
-
     #[test]
     fn ignores_comments() {
         let verbose = COPY.replacen("\ncopy:\n", "\ncopy: ; @copy\n; %bb.0:\n", 1);
@@ -374,6 +329,121 @@ mod tests {
         let plain = parse_kernel(COPY, "copy").unwrap();
         let kernel = parse_kernel(&verbose, "copy").unwrap();
         assert_eq!(kernel.instructions, plain.instructions);
+    }
+
+    #[test]
+    fn rejects_repeated_descriptor_settings_instead_of_overwriting_them() {
+        for (setting, value) in [("kernarg_size", 16), ("next_free_vgpr", 2)] {
+            let directive = format!(".amdhsa_{setting} {value}");
+            for repeated in [value, value + 1] {
+                let source = COPY.replacen(
+                    &directive,
+                    &format!("{directive}\n.amdhsa_{setting} {repeated}"),
+                    1,
+                );
+                assert_ne!(source, COPY);
+                assert_eq!(
+                    parse_kernel(&source, "copy").unwrap_err(),
+                    format!("duplicate descriptor setting \".amdhsa_{setting}\"")
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn rejects_multiple_selected_kernel_entry_labels() {
+        let duplicate_entry = format!("{COPY}\n.text\ncopy:\ns_endpgm\n.section .rodata\n");
+        assert_eq!(
+            parse_kernel(&duplicate_entry, "copy").unwrap_err(),
+            "multiple entry labels for kernel \"copy\""
+        );
+    }
+
+    #[test]
+    fn rejects_multiple_selected_kernel_descriptors() {
+        let start = COPY.find(".amdhsa_kernel copy\n").unwrap();
+        let end =
+            COPY[start..].find(".end_amdhsa_kernel").unwrap() + start + ".end_amdhsa_kernel".len();
+        let duplicate_descriptor = format!("{COPY}\n{}\n", &COPY[start..end]);
+        assert_eq!(
+            parse_kernel(&duplicate_descriptor, "copy").unwrap_err(),
+            "multiple .amdhsa_kernel blocks for kernel \"copy\""
+        );
+    }
+
+    #[test]
+    fn unrelated_function_and_descriptor_names_do_not_make_selection_ambiguous() {
+        let source = format!(
+            "{COPY}\n.text\ncopy_extra:\ns_endpgm\n.section .rodata\n.amdhsa_kernel copy_extra\n.amdhsa_kernarg_size 0\n.end_amdhsa_kernel\n"
+        );
+        assert_eq!(parse_kernel(&source, "copy").unwrap().instructions.len(), 7);
+        assert_eq!(
+            parse_kernel(&source, "copy_extra")
+                .unwrap()
+                .instructions
+                .len(),
+            1
+        );
+    }
+
+    #[test]
+    fn rejects_empty_operands_instead_of_dropping_them() {
+        let instruction = "v_lshlrev_b32_e32 v0, 2, v0";
+        for malformed in [
+            "v_lshlrev_b32_e32 , v0, 2, v0",
+            "v_lshlrev_b32_e32 v0,, 2, v0",
+            "v_lshlrev_b32_e32 v0,  , 2, v0",
+            "v_lshlrev_b32_e32 v0, 2, v0,,",
+            "s_endpgm ,",
+        ] {
+            let original = if malformed.starts_with("s_endpgm") {
+                "s_endpgm"
+            } else {
+                instruction
+            };
+            let source = COPY.replacen(original, malformed, 1);
+            assert_ne!(source, COPY);
+            assert_eq!(
+                parse_kernel(&source, "copy").unwrap_err(),
+                format!("empty operand in {malformed:?}")
+            );
+        }
+    }
+
+    #[test]
+    fn preserves_the_native_optional_trailing_comma() {
+        let source = COPY.replacen(
+            "v_lshlrev_b32_e32 v0, 2, v0",
+            "v_lshlrev_b32_e32 v0, 2, v0,",
+            1,
+        );
+        assert_ne!(source, COPY);
+        assert_eq!(
+            parse_kernel(&source, "copy").unwrap().instructions,
+            parse_kernel(COPY, "copy").unwrap().instructions
+        );
+    }
+
+    #[test]
+    fn preserves_both_native_wait_counter_separators() {
+        let expected = vec![
+            Wait {
+                counter: Counter::Vm,
+                value: 0,
+            },
+            Wait {
+                counter: Counter::Lgkm,
+                value: 0,
+            },
+        ];
+        for counters in ["vmcnt(0) lgkmcnt(0)", "vmcnt(0), lgkmcnt(0)"] {
+            let source = COPY.replacen("lgkmcnt(0)", counters, 1);
+            assert_ne!(source, COPY);
+            assert_eq!(
+                parse_kernel(&source, "copy").unwrap().instructions[2].operands,
+                expected
+            );
+        }
     }
 
     #[test]
@@ -415,5 +485,65 @@ mod tests {
             parse_kernel(unterminated, "copy").unwrap_err(),
             "missing .end_amdhsa_kernel"
         );
+    }
+
+    fn kernel_source(body: &str, descriptor: &str) -> String {
+        format!(
+            ".amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n\
+             test:\n{body}\n.Lfunc_end0:\n\
+             .amdhsa_kernel test\n{descriptor}\n.end_amdhsa_kernel\n"
+        )
+    }
+
+    #[test]
+    fn rejects_empty_operands() {
+        for line in [
+            "global_load_dword ,v1, v0, s[0:1]",
+            "global_load_dword v1,, v0, s[0:1]",
+            "global_load_dword v1, , v0, s[0:1]",
+            "global_load_dword v1, v0, s[0:1],,",
+            "s_waitcnt vmcnt(0),, lgkmcnt(0)",
+            "s_endpgm ,",
+        ] {
+            assert_eq!(
+                parse_kernel(&kernel_source(line, ""), "test").unwrap_err(),
+                format!("empty operand in {line:?}")
+            );
+        }
+        let body = "global_load_dword v1,  v0, s[0:1]\n\
+                    s_waitcnt vmcnt(0)  lgkmcnt(0)\n\
+                    s_endpgm";
+        let kernel = parse_kernel(&kernel_source(body, ""), "test").unwrap();
+        assert_eq!(
+            kernel.instructions,
+            [
+                instr("global_load_dword", &[vgpr(1, 1), vgpr(0, 0), sgpr(0, 1)]),
+                instr(
+                    "s_waitcnt",
+                    &[
+                        Wait {
+                            counter: Counter::Vm,
+                            value: 0,
+                        },
+                        Wait {
+                            counter: Counter::Lgkm,
+                            value: 0,
+                        },
+                    ],
+                ),
+                instr("s_endpgm", &[]),
+            ]
+        );
+    }
+
+    #[test]
+    fn rejects_duplicate_descriptor_settings() {
+        for value in [16, 32] {
+            let descriptor = format!(".amdhsa_kernarg_size 16\n.amdhsa_kernarg_size {value}");
+            assert_eq!(
+                parse_kernel(&kernel_source("s_endpgm", &descriptor), "test").unwrap_err(),
+                "duplicate descriptor setting \".amdhsa_kernarg_size\""
+            );
+        }
     }
 }

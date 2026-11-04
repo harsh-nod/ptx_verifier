@@ -6,7 +6,7 @@ use std::io;
 use std::num::NonZeroU32;
 use std::path::Path;
 
-use crate::export::{Run, document, summary};
+use crate::export::{Run, complete_document, document, summary};
 
 const DOCUMENT_EXTENSION: &str = ".json";
 const SUMMARY_EXTENSION: &str = ".meta.json";
@@ -43,14 +43,30 @@ fn slug(name: &str) -> String {
         .collect()
 }
 
-/// Write the run's document, then its summary (an indexed run's document always exists).
+/// Write a browser-sized display document, then the complete run's summary.
+/// Large display selections carry explicit omitted counts and original event IDs.
 pub fn write_run(dir: &Path, run: &Run) -> io::Result<()> {
+    write_document(dir, run, false)
+}
+
+/// Write every event for archival use. Large records can exceed browser limits.
+/// This does not change the underlying graph, checks or summary.
+pub fn write_complete_run(dir: &Path, run: &Run) -> io::Result<()> {
+    write_document(dir, run, true)
+}
+
+fn write_document(dir: &Path, run: &Run, complete: bool) -> io::Result<()> {
     let key = run.id.key();
     let document_path = dir.join(format!("{key}{DOCUMENT_EXTENSION}"));
     if let Some(parent) = document_path.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    write_atomically(&document_path, &document(run).to_string())?;
+    let data = if complete {
+        complete_document(run)
+    } else {
+        document(run)
+    };
+    write_atomically(&document_path, &data.to_string())?;
     write_atomically(
         &dir.join(format!("{key}{SUMMARY_EXTENSION}")),
         &summary(run).to_string(),

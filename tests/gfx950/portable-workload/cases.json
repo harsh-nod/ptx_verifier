@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "scope": "Two actual full workload safety mutations; source-specific PTX proxy residuals do not become AMD mechanisms.",
+  "cases": [
+    {
+      "kernel": "mamba2_chunk_scan_full",
+      "baseline_path": "ai_compiler_kernels/Mamba2ChunkScanForward/NVIDIA_B200_Unknown_1.0740x.ptx",
+      "baseline_sha256": "785ebe3c604e3e1793f98cf3a34a8d30a19a7f61b5f6ba23dbb57b53130074c5",
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/native-mamba2-scan.s",
+      "source_sha256": "e73a3aad07ed349160d945487fc6e63e08db2f9c2b864902cfea7a44453408af",
+      "mutation": {
+        "find": "first s_barrier after exact kernel entry",
+        "replacement": "s_nop 0",
+        "count": 1
+      },
+      "mutant_source_sha256": "54633d999a6170423140c5f2f1a2bfdca8af0e3ceb09ec6e48c53be689fa716a",
+      "baseline_property": {
+        "checker": "PTX ProxyOrderViolation",
+        "kind": "WriteRead",
+        "missing": "ProxyAsync",
+        "space": "Shared",
+        "address": 0
+      },
+      "native_property": "Actual full-workload crosswave Shared LDS producer/consumer conflict; synchronization-only mutation preserves dimensions/dataflow/defined candidate outputs. PTX proxy ordering remains a separate target-specific residual.",
+      "test": "crates/volta_pipeline/tests/gfx950_workload_safety_tests.rs"
+    },
+    {
+      "kernel": "matvec_f16",
+      "baseline_path": "ai_compiler_kernels/MatrixVectorMultiplicationKernel/NVIDIA_B200_Float16_1.0103x.ptx",
+      "baseline_sha256": "36aec2a6b03632a0c29d12b7117c17501a907ba21431b43b70275cd20ab25fdb",
+      "source": "crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s",
+      "source_sha256": "122ca33f751b37c42460f1680194e4431310d4af2ada4f067e6638e2781f43c7",
+      "mutation": {
+        "find": "first s_barrier after exact kernel entry",
+        "replacement": "s_nop 0",
+        "count": 1
+      },
+      "mutant_source_sha256": "d8c858b26f4eec76c33d3f565d0b7657f02858e886f630bbd26e6c7fb6ce937b",
+      "baseline_property": {
+        "checker": "PTX ProxyOrderViolation",
+        "kind": "ReadWrite",
+        "missing": "ProxyAsync",
+        "space": "Shared",
+        "address": 0
+      },
+      "native_property": "Actual full-workload crosswave Shared LDS producer/consumer conflict; synchronization-only mutation preserves dimensions/dataflow/defined candidate outputs. PTX proxy ordering remains a separate target-specific residual.",
+      "test": "crates/volta_pipeline/tests/gfx950_workload_safety_tests.rs"
+    }
+  ]
+}
