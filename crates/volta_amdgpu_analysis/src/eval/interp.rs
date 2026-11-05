@@ -17,6 +17,8 @@ mod async_lds;
 mod buffer_lds;
 #[path = "named_barrier.rs"]
 mod named_barrier;
+#[path = "interp_private.rs"]
+mod private;
 
 const KERNARG_BASE: u64 = 0xffff_0000_0000;
 const DISPATCH_BASE: u64 = 0xffff_1000_0000;
@@ -417,6 +419,21 @@ impl Wave {
             _ => Err(self.fail(Some(lane), format!("non-value operand {operand:?}"))),
         }
     }
+    /// Pure private-call spill transport may copy an unspecified numbered
+    /// register word. No bit of this value becomes defined by the copy.
+    /// Shape/range validation precedes execution; special registers never use
+    /// this path, and ordinary semantic reads keep `reg`'s definedness checks.
+    fn spill_word(&self, register: Register, lane: u8) -> Result<Value, EvalError> {
+        if register.count != 1 {
+            return Err(self.fail(Some(lane), "private spill requires one register word"));
+        }
+        let value = match register.class {
+            RegisterClass::Scalar => self.scalar.get(register.index as usize).copied().flatten(),
+            RegisterClass::Vector => self.vector.get(&(register.index, lane)).copied(),
+            _ => return Err(self.fail(Some(lane), "private spill requires a numbered SGPR/VGPR")),
+        };
+        Ok(value.unwrap_or_else(|| Value::partial_bits(0, 0)))
+    }
     fn bits(&self, operand: &Operand, lane: u8) -> Result<u32, EvalError> {
         self.value(operand, lane)?
             .bits()
@@ -577,6 +594,7 @@ pub(crate) struct Interpreter<'a> {
     xnack_replay_enabled: bool,
     module_globals: BTreeMap<String, GlobalAllocation>,
     named: named_barrier::State,
+    private: private::State,
 }
 #[derive(Debug, Clone, Copy)]
 struct GlobalAllocation {
@@ -854,10 +872,16 @@ impl<'a> Interpreter<'a> {
             xnack_replay_enabled,
             module_globals,
             named: named_barrier::State::default(),
+            private: private::State::new(program, architecture)?,
         };
         result
             .builder
             .set_shared_allocation_layout(result.config.shared_allocations.clone());
+        if let Some(bytes) = result.private.extent {
+            result
+                .builder
+                .assume(Assumption::FixedPrivateAllocation(bytes));
+        }
         if architecture == AmdArchitecture::Gfx1250
             || architecture == AmdArchitecture::Gfx950
                 && program.instructions.iter().any(|instruction| {
@@ -1570,6 +1594,12 @@ impl<'a> Interpreter<'a> {
         }
         let mut reads = Vec::new();
         let mut writes = Vec::new();
+        if wave.exec == 0
+            && matches!(instruction.operation(), Operation::Memory(memory)
+            if matches!(memory.kind, MemoryKind::ScratchLoad | MemoryKind::ScratchStore))
+        {
+            return (reads, writes);
+        }
         match instruction.operation() {
             Operation::Call(_) => {
                 add(&operands[0], u64::MAX, &mut writes);
@@ -1596,6 +1626,26 @@ impl<'a> Interpreter<'a> {
                     lanes: u64::MAX,
                 }),
             );
+        }
+        if self.architecture == AmdArchitecture::Gfx950
+            && matches!(mnemonic, "v_readlane_b32" | "v_writelane_b32")
+        {
+            let lane = match operands[2] {
+                Operand::Integer(lane) => lane as u32,
+                _ => unreachable!("validated literal lane"),
+            };
+            let read = mnemonic == "v_readlane_b32";
+            add(
+                &operands[0],
+                if read { u64::MAX } else { 1u64 << lane },
+                &mut writes,
+            );
+            add(
+                &operands[1],
+                if read { 1u64 << lane } else { u64::MAX },
+                &mut reads,
+            );
+            return (reads, writes);
         }
         if mnemonic == "v_readlane_b32" && self.architecture == AmdArchitecture::Gfx1250 {
             let lane = wave.bits(&operands[2], 0).unwrap_or(0) & (wave.width - 1);
@@ -1863,7 +1913,17 @@ impl<'a> Interpreter<'a> {
             .get(wave.pc)
             .ok_or_else(|| wave.fail(None, "fell off kernel without s_endpgm"))?;
         let instruction = instruction.clone();
+        if self.architecture == AmdArchitecture::Gfx950
+            && matches!(
+                instruction.mnemonic().as_str(),
+                "v_readlane_b32" | "v_writelane_b32"
+            )
+        {
+            private::lane(wave, &instruction)?;
+        }
         let (mut reads, writes) = self.instruction_registers(&instruction, wave);
+        self.private
+            .before_instruction(wave, &instruction, &reads, &writes)?;
         if instruction.opcode() == Opcode::Matrix {
             reads.extend(
                 (126..126 + (wave.width / 32) as u16).map(|index| AmdRegister {
@@ -3665,6 +3725,16 @@ impl<'a> Interpreter<'a> {
             return wave.put_value(dest, 0, Value::Integer(old.wrapping_mul(multiplier)));
         }
         if name == "s_mov_b32" {
+            if self.private.extent.is_some()
+                && let (Operand::Register(destination), Operand::Register(source)) = (dest, &o[1])
+                && destination.class == RegisterClass::Scalar
+                && source.class == RegisterClass::Scalar
+                && destination.count == 1
+                && source.count == 1
+            {
+                let value = wave.spill_word(*source, 0)?;
+                return wave.put(*destination, 0, 0, value);
+            }
             let value = wave.value(&o[1], 0)?;
             return wave.put_value(dest, 0, value);
         }
@@ -4645,6 +4715,11 @@ impl<'a> Interpreter<'a> {
     ) -> Result<(), EvalError> {
         let semantic_name = operation.name();
         let name = semantic_name.as_ref();
+        if self.architecture == AmdArchitecture::Gfx950
+            && matches!(name, "v_readlane_b32" | "v_writelane_b32")
+        {
+            return self.private_lane(wave, instruction);
+        }
         if matches!(
             name,
             "v_readlane_b32" | "v_readfirstlane_b32" | "v_writelane_b32"
@@ -6406,6 +6481,9 @@ impl<'a> Interpreter<'a> {
             }
             _ => return Err(self.unsupported(wave, instruction)),
         };
+        if matches!(&event, AmdEventKind::Wait { vmcnt: Some(0), .. }) {
+            self.private.complete(wave.id);
+        }
         self.builder
             .amd_event(wave.id, ProgramPoint(wave.pc as u32), event);
         Ok(())
@@ -6878,6 +6956,12 @@ impl<'a> Interpreter<'a> {
         }
         if memory.kind == MemoryKind::BufferLoadToLds {
             return self.buffer_load_to_lds(wave, instruction);
+        }
+        if matches!(
+            memory.kind,
+            MemoryKind::ScratchLoad | MemoryKind::ScratchStore
+        ) {
+            return self.scratch(wave, instruction, memory);
         }
         if name == "global_atomic_add_f32" {
             return self.atomic_add_f32_no_return(wave, instruction);

@@ -403,7 +403,7 @@ fn uncalled_helpers_do_not_change_no_call_executable_pcs() {
 }
 
 #[test]
-fn complete_compiler_modules_retain_real_leaf_and_scratch_refusal() {
+fn complete_compiler_modules_retain_unavailable_runtime_abi_refusal() {
     const LEAF: &str = include_str!("fixtures/device-calls/leaf.s");
     const NESTED: &str = include_str!("fixtures/device-calls/nested.s");
     let leaf = frontend::parse(LEAF).unwrap();
@@ -435,19 +435,21 @@ fn complete_compiler_modules_retain_real_leaf_and_scratch_refusal() {
         .iter()
         .find(|function| function.name == "outer")
         .unwrap();
+    assert!(outer.refusal.is_none());
+    let lowered = lower::lower_module_kernel(&nested, "device_call_nested").unwrap();
+    assert!(lowered.instructions.iter().any(|instruction| {
+        matches!(instruction.operation(), ir::Operation::Memory(memory)
+            if memory.kind == ir::MemoryKind::ScratchStore)
+    }));
+    let mut cfg = config(1);
+    cfg.params = vec![volta_amdgpu_analysis::ParamValue::ArrayPtr("out".into())];
+    let stopped = analyze(&nested, Some("device_call_nested"), cfg).unwrap();
     assert!(
-        outer
-            .refusal
-            .as_ref()
-            .unwrap()
-            .0
-            .contains("scratch_store_dword")
-    );
-    assert!(
-        lower::lower_module_kernel(&nested, "device_call_nested")
+        stopped
+            .symbolic_outputs()
             .unwrap_err()
-            .message
-            .contains("called function `outer`")
+            .to_string()
+            .contains("uninitialized")
     );
 }
 

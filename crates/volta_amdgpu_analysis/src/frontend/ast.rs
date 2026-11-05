@@ -148,6 +148,9 @@ pub struct KernelArg {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct KernelDescriptor {
     pub fields: BTreeMap<String, u64>,
+    /// Explicit (descriptor, metadata) private fixed extents before merging.
+    /// Absent if either declaration is missing; never inferred from a default.
+    pub private_segment_fixed_size_sources: Option<(u64, u64)>,
 }
 
 impl KernelDescriptor {

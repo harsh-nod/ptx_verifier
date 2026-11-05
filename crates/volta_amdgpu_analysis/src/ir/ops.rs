@@ -397,6 +397,8 @@ operation_set! { MemoryOpcode {
     GlobalStoreDwordx4 => "global_store_dwordx4",
     GlobalStoreShort => "global_store_short",
     SBufferLoadDword => "s_buffer_load_dword",
+    ScratchLoadDword => "scratch_load_dword",
+    ScratchStoreDword => "scratch_store_dword",
     SBufferLoadDwordx16 => "s_buffer_load_dwordx16",
     SBufferLoadDwordx2 => "s_buffer_load_dwordx2",
     SBufferLoadDwordx4 => "s_buffer_load_dwordx4",

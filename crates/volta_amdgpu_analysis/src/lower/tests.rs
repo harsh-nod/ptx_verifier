@@ -182,6 +182,7 @@ fn rel64_module() -> Module {
             name: "address".into(),
             descriptor: crate::ir::KernelDescriptor {
                 fields: [("wavefront_size32".into(), 1)].into(),
+                ..Default::default()
             },
             instructions: vec![
                 instruction("s_get_pc_i64", vec![Operand::Register(pair)]),

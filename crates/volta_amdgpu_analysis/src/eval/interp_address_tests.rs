@@ -15,6 +15,7 @@ fn program() -> LoweredKernel {
         instructions: Vec::new(),
         descriptor: KernelDescriptor {
             fields: [("wavefront_size32".into(), 1)].into(),
+            ..Default::default()
         },
         args: Vec::new(),
         globals: Vec::new(),

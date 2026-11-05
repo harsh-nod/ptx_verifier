@@ -515,6 +515,7 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "global_store_dwordx2"
         | "global_store_dwordx3"
         | "global_store_dwordx4" => (VectorMemory, 3, 3),
+        "scratch_load_dword" | "scratch_store_dword" => (VectorMemory, 3, 3),
         "flat_load_ubyte" | "flat_load_sbyte" | "flat_load_ushort" | "flat_load_sshort"
         | "flat_load_dword" | "flat_load_dwordx2" | "flat_load_dwordx3" | "flat_load_dwordx4"
         | "flat_store_byte" | "flat_store_short" | "flat_store_dword" | "flat_store_dwordx2"
@@ -1640,6 +1641,34 @@ pub(super) fn validate_registers(
             }
         }
         Opcode::VectorMemory => {
+            if stem.starts_with("scratch_") {
+                let load = stem == "scratch_load_dword";
+                let data = usize::from(!load);
+                let off = usize::from(load);
+                if architecture != crate::target::Architecture::Gfx950
+                    || mnemonic != stem
+                    || !matches!(stem, "scratch_load_dword" | "scratch_store_dword")
+                    || !matches!(&operands[off], Operand::Symbol(value) if value == "off")
+                    || !matches!(operands[data], Operand::Register(r) if r.class == Vector && r.count == 1)
+                    || !matches!(operands[2], Operand::Register(r) if r.class == Scalar && r.count == 1)
+                    || modifiers
+                        .iter()
+                        .any(|modifier| match modifier.name.as_str() {
+                            "offset" => modifier
+                                .value
+                                .as_deref()
+                                .and_then(integer)
+                                .is_none_or(|offset| !(-4096..=4095).contains(&offset)),
+                            "sc0" | "sc1" => modifier.value.is_some(),
+                            _ => true,
+                        })
+                    || modifiers.iter().any(|m| m.name == "sc0")
+                        != modifiers.iter().any(|m| m.name == "sc1")
+                {
+                    return Err("selected gfx950 scratch DWORD requires bare scalar-offset addressing, one VGPR, `off`, one numbered SGPR, signed13 offset and default or `sc0 sc1` cache policy".into());
+                }
+                return Ok(());
+            }
             if stem.starts_with("buffer_")
                 && (operands.len() == 3 || modifiers.iter().any(|m| m.name == "lds"))
             {
@@ -1916,6 +1945,22 @@ pub(super) fn validate_registers(
             }
         }
         Opcode::VectorAlu => {
+            if architecture == crate::target::Architecture::Gfx950
+                && matches!(stem, "v_readlane_b32" | "v_writelane_b32")
+            {
+                let read = stem == "v_readlane_b32";
+                if mnemonic != stem
+                    || !modifiers.is_empty()
+                    || !matches!(operands[0], Operand::Register(r)
+                        if r.count == 1 && r.class == if read { Scalar } else { Vector })
+                    || !matches!(operands[1], Operand::Register(r)
+                        if r.count == 1 && r.class == if read { Vector } else { Scalar })
+                    || !matches!(operands[2], Operand::Integer(0..=63))
+                {
+                    return Err("selected gfx950 lane transport requires bare plain SGPR/VGPR words and literal lane0..63".into());
+                }
+                return Ok(());
+            }
             if architecture == crate::target::Architecture::Gfx1250
                 && matches!(stem, "v_cvt_f32_ubyte0" | "v_cvt_f32_ubyte3")
                 && (!modifiers.is_empty()

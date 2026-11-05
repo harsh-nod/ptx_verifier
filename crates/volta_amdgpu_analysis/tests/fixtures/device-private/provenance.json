@@ -1,0 +1,62 @@
+{
+  "baseline": {
+    "analyze": "both refused called scratch_store_dword before execution",
+    "binary_sha256": "3d063aca4a7d75298df151991828ed08eb905846bc84ff82a3bea84ed9b11a27",
+    "corrected_verify": "both refused called scratch_store_dword before execution",
+    "corrected_verify_report_sha256": "e17d1eb8af00f3fade243bac673bc97cc211d48622a6a0449b6cab16f0f69854",
+    "initial_report_sha256": "ca29b917947d0f655206dc2895434145c887881f8686c10dbcf93dfe726e07fb",
+    "initial_usage_errors_retained": 2,
+    "source": "1d0424b77ffa3b33548a0960721ea7ba72d36527"
+  },
+  "compiler_checks": {
+    "leaf": {
+      "llc_exit": 0,
+      "mc_exit": 0,
+      "readobj_exit": 0
+    },
+    "nested": {
+      "llc_exit": 0,
+      "mc_exit": 0,
+      "readobj_exit": 0
+    }
+  },
+  "fixtures": [
+    {
+      "files": {
+        "generated_object_sha256": "917eb040ed2b8102593ea8d1e6f825497e125f156490555615e8ec3f818323f7",
+        "stack-leaf.launch.json": "b795a13dc97fa3a4f3e8b163d9e064283377f10bb1ce4a4960612036e5798926",
+        "stack-leaf.ll": "debe1c120084ffe0e85447c2952d1490a5e5a97e28319fcbecea42e253217ff5",
+        "stack-leaf.s": "3bab9586b5ee2ea63624dfedeb6644c3179afa90d0105dc3d0aa1ffa2ff35f58",
+        "stack-leaf.spec": "e7067b914790a5411eead2b424a48aef8a5e6150e53cdaa44e705ff7c52ab293"
+      },
+      "fixture": "stack-leaf",
+      "private_segment_fixed_size": 8,
+      "specification": "x+1",
+      "uses_dynamic_stack": true,
+      "whole_outputs": 64
+    },
+    {
+      "files": {
+        "generated_object_sha256": "46dcc35e98d0d7c47a9e3842945dd98c904494066abc7f33a42881766590468a",
+        "stack-nested.launch.json": "b7df0f0b1bd3fbf8b227df0ec48cf961aebf197b5999dc8a37602b283703e772",
+        "stack-nested.ll": "f15c0b41aedfb98e0663c65198531bc81d10e100ceb7ba9a26a3a70c25c1f792",
+        "stack-nested.s": "4f716fef0094db54065697dc45e36a3c241c3474d27c48a65f9ed1e875b398a7",
+        "stack-nested.spec": "c75516add737b36967890a0a11aa910df5cd83086fb52f9051c263f2ed4c36b0"
+      },
+      "fixture": "stack-nested",
+      "private_segment_fixed_size": 24,
+      "specification": "x+4",
+      "uses_dynamic_stack": true,
+      "whole_outputs": 64
+    }
+  ],
+  "public_revision": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+  "raw_codegen_report_sha256": "6840b8cf3fe552efb22edfdc65a14add3234c4788d57630180a469f2d051459c",
+  "schema_version": 1,
+  "scope": "New whole compiler fixtures; unedited assembly; original HipKittens/old fixtures unchanged. No GPU/timing claim.",
+  "tool_sha256": {
+    "llc": "88b786477a6f2db121523da927bc176f84f209c2bca2ba2c9e870e2202f0f5f6",
+    "mc": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+    "readobj": "3c07a9974453d4827db911b3849468afb3d662ec969360fd2e96f3b6df047e05"
+  }
+}

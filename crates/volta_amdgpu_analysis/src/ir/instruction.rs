@@ -445,6 +445,8 @@ pub enum MemoryKind {
     BufferLoadToLds,
     BufferStore,
     Swizzle,
+    ScratchLoad,
+    ScratchStore,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TransferShape {
@@ -502,6 +504,9 @@ pub enum MemoryAddress<'a> {
     CrossLane {
         index: &'a Operand,
     },
+    Scratch {
+        scalar: &'a Operand,
+    },
     Descriptor {
         operands: &'a [Operand],
     },
@@ -521,6 +526,7 @@ impl MemoryInstruction {
                 | MemoryKind::AtomicNoReturn
                 | MemoryKind::AtomicReturning
                 | MemoryKind::BufferStore
+                | MemoryKind::ScratchStore
         )
     }
     pub fn address(&self) -> MemoryAddress<'_> {
@@ -574,6 +580,9 @@ impl MemoryInstruction {
                 descriptor: &o[1],
             },
             MemoryKind::Permute => MemoryAddress::CrossLane { index: &o[1] },
+            MemoryKind::ScratchLoad | MemoryKind::ScratchStore => {
+                MemoryAddress::Scratch { scalar: &o[2] }
+            }
             _ => MemoryAddress::Descriptor { operands: o },
         }
     }
@@ -591,6 +600,7 @@ impl MemoryInstruction {
             | MemoryKind::Permute
             | MemoryKind::Swizzle
             | MemoryKind::AtomicReturning => &self.operands()[..1],
+            MemoryKind::ScratchLoad => &self.operands()[..1],
             _ => &[],
         }
     }
@@ -604,6 +614,7 @@ impl MemoryInstruction {
             | MemoryKind::LdsStore
             | MemoryKind::AtomicNoReturn
             | MemoryKind::Swizzle => &o[1..2],
+            MemoryKind::ScratchStore => &o[1..2],
             MemoryKind::LdsWritePair => &o[1..3],
             MemoryKind::AtomicReturning | MemoryKind::Permute => &o[2..3],
             MemoryKind::BufferStore => &o[..1],
@@ -636,6 +647,10 @@ impl MemoryInstruction {
             MemoryKind::FlatLoad
         } else if name.starts_with("flat_store_") {
             MemoryKind::FlatStore
+        } else if name == "scratch_load_dword" {
+            MemoryKind::ScratchLoad
+        } else if name == "scratch_store_dword" {
+            MemoryKind::ScratchStore
         } else if name.starts_with("buffer_load_") && operands.len() == 3 {
             MemoryKind::BufferLoadToLds
         } else if name.starts_with("buffer_load_") {
