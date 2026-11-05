@@ -1,9 +1,9 @@
 # Whole compiler stack-call fixtures
 
 `stack-leaf.ll` and `stack-nested.ll` are new complete LLVM modules. Their
-noinline leaf performs a volatile private DWORD store/load, then adds1 to one
-F32 input. The nested outer actually calls that leaf and adds3. Each entry
-retains all64 input and output coordinates. Their separate complete
+noinline leaf performs a volatile private DWORD store/load, then adds 1 to one
+F32 input. The nested outer actually calls that leaf and adds 3. Each entry
+retains all 64 input and output coordinates. Their separate complete
 specifications are `x+1` and `x+4` under the existing mathematical-real model.
 No original HipKittens module or earlier call fixture was rewritten.
 
@@ -38,15 +38,16 @@ result. No timing, GPU result or original-kernel coverage claim is supplied.
 
 The kernel explicitly initializes s32. The nested outer preserves an initially
 unspecified s33 by exact transport; initializing it to numerical zero would
-alter the program. Fixed private extents are8 and24 bytes with original compiler
+alter the program. Fixed private extents are 8 and 24 bytes with original compiler
 dynamic-stack flags retained. The active leaf accesses use `sc0 sc1`, with VM0
 between store/load and before consuming the load. The nested outer's folded
 spill/reload under complemented EXEC is inactive for this full-wave launch;
 the leaf's active volatile operations provide the actual scratch exercise.
 
-The launch is grid1/block64/workgroup0 with two disjoint64-element F32 arrays,
-out/input pointers at kernarg0/8 and kernarg size16. The native tests execute
-the entire generated module, check the independent graph, require all64 output
+The launch has grid (1,1,1), block (64,1,1), selected workgroup (0,0,0),
+two disjoint arrays of 64 F32 elements, output/input pointers at kernarg
+offsets 0/8 and kernarg size 16 bytes. The native tests execute
+the entire generated module, check the independent graph, require all 64 output
 roots and compare the complete specification with numerical confirmation. The
 separate handwritten controls exercise opaque private return-word spills,
 corruption, unknown-word observations, partial launches and wait failures.

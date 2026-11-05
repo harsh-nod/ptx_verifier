@@ -150,7 +150,7 @@ stack-pointer adjustments without allocating or resetting a model frame.
 
 Only bare `scratch_load_dword Vdst, off, Saddr` and
 `scratch_store_dword off, Vdata, Saddr` are selected: plain numbered one-word
-registers, signed13 optional byte offset, and either default cache policy or the
+registers, signed 13-bit optional byte offset, and either default cache policy or the
 compiler's exact `sc0 sc1` policy. Every active interval must be aligned,
 nonwrapping and inside the declared extent. Private DWORD cells are separate for
 each physical work item and have no Global/LDS effects. All active inputs and
@@ -171,15 +171,15 @@ never clear it, and neither an LGKM-only wait nor VM1 substitutes for VM0. A
 violation stops analysis as Unsupported with no outputs; the independent checker
 also refuses the graph. This conservative profile is not a new architectural
 bug claim or a theorem about unrestricted scratch forwarding. Loads use normal
-VM destination readiness. See public [CDNA4 ISA sections4.4,9.1.10.2,10.5](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
+VM destination readiness. See public [CDNA4 ISA sections 4.4, 9.1.10.2, 10.5](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
 and the pinned [LLVM scratch definitions](https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/lib/Target/AMDGPU/FLATInstructions.td).
 
 Bare gfx950 `v_readlane_b32`/`v_writelane_b32` additionally select a literal,
-launched lane0..63 and plain SGPR/VGPR words. They copy exactly one word even
+launched lanes 0..63 and plain SGPR/VGPR words. They copy exactly one word even
 under empty EXEC, with dedicated provenance/semantic markers and independent
-Table11 software-delay checks. Register lane selectors and legacy
+Table 11 software-delay checks. Register lane selectors and legacy
 `v_readfirstlane_b32` remain unsupported. Existing gfx1250 lane profiles are
-unchanged. Complete compiler-source examples and all64-output specifications are
+unchanged. Complete compiler-source examples and all 64 output specifications are
 in the [private-call fixtures](tests/fixtures/device-private/README.md).
 
 Global allocations are byte-addressed, bounded and disjoint. Wide transfers
