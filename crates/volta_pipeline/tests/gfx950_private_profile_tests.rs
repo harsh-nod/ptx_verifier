@@ -14,6 +14,17 @@ const SOURCE: &str =
     include_str!("../../volta_amdgpu_analysis/tests/fixtures/device-private/stack-leaf.s");
 
 fn run(source: &str, early: bool) -> SourceKernelVerification {
+    run_with_params(
+        source,
+        early,
+        vec![
+            ParamValue::ArrayPtr("out".into()),
+            ParamValue::ArrayPtr("x".into()),
+        ],
+    )
+}
+
+fn run_with_params(source: &str, early: bool, params: Vec<ParamValue>) -> SourceKernelVerification {
     let mut config = AnalysisConfig::new((64, 1, 1));
     config.early_memory_conflicts = early;
     for (name, base, kind) in [
@@ -28,10 +39,7 @@ fn run(source: &str, early: bool) -> SourceKernelVerification {
             kind,
         });
     }
-    config.params = vec![
-        ParamValue::ArrayPtr("out".into()),
-        ParamValue::ArrayPtr("x".into()),
-    ];
+    config.params = params;
     verify_source_kernel(
         &KernelModule::Amdgpu(frontend::parse(source).unwrap()),
         Some("stack_leaf_copy64"),
@@ -164,7 +172,7 @@ fn mixed_partial_waits_cannot_refute_an_ordinary_only_consumer() {
     for private_first in [false, true] {
         for threshold in [1, 63] {
             for early in [false, true] {
-                let result = run(&mixed_loads(private_first, threshold), early);
+                let result = run_with_params(&mixed_loads(private_first, threshold), early, vec![]);
                 assert!(matches!(result.analysis.graph.terminal(),
                     Terminal::Aborted { cause: AbortCause::Unsupported, reason, .. }
                     if reason.contains("nonzero VM wait")));
@@ -187,7 +195,7 @@ fn mixed_partial_waits_cannot_refute_an_ordinary_only_consumer() {
 fn mixed_vm0_proves_every_ordinary_output_and_refutes_a_wrong_specification() {
     for private_first in [false, true] {
         for early in [false, true] {
-            let result = run(&mixed_loads(private_first, 0), early);
+            let result = run_with_params(&mixed_loads(private_first, 0), early, vec![]);
             assert_eq!(result.analysis.graph.terminal(), &Terminal::Completed);
             assert_eq!(result.graph.conclusion(), GraphConclusion::Verified);
             assert_eq!(
