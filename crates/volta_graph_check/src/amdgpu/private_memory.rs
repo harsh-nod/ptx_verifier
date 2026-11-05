@@ -281,8 +281,21 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                     errors.push(Unresolved::at(record.event, "private DWORD access has invalid membership, width, extent or source association"));
                 }
             }
-            AmdEventKind::Wait { vmcnt: Some(0), .. } => {
-                if let Some(instruction) = instructions.get(&record.wave)
+            AmdEventKind::Wait {
+                vmcnt: Some(value), ..
+            } => {
+                // Private classes use a zero-only admission profile, not a
+                // separate architectural FIFO domain. A partial/no-op wait can
+                // otherwise make ordinary results appear spuriously pending.
+                if *value != 0
+                    && (held.get(&record.wave).is_some_and(|s| !s.is_empty())
+                        || loaded.get(&record.wave).is_some_and(|s| !s.is_empty()))
+                {
+                    errors.push(Unresolved::at(record.event,
+                        "private VM0 profile does not admit a nonzero VM wait while private accesses are pending"));
+                }
+                if *value == 0
+                    && let Some(instruction) = instructions.get(&record.wave)
                     && kind(graph, instruction) == Some("wait")
                     && graph.event(instruction.event).pc == graph.event(record.event).pc
                 {

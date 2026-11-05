@@ -769,3 +769,66 @@ fn new_private_and_lane_records_cannot_change_other_target_contracts() {
         }
     }
 }
+
+#[test]
+fn private_pending_partial_wait_is_unknown_even_when_only_ordinary_result_is_used() {
+    for load in [true, false] {
+        for private_first in [true, false] {
+            for threshold in [0, 1, 63] {
+                let mut t = Trace::new(1, private_premises());
+                if private_first {
+                    t.scratch(load, 1, &[(0, 0)]);
+                }
+                ordinary_load(&mut t, AmdMemoryClass::VectorMemory, v(20, 1));
+                if !private_first {
+                    t.scratch(load, 1, &[(0, 0)]);
+                }
+                t.wait(threshold, "wait");
+                // Observe only ordinary A; private B's destination is untouched.
+                t.ins(0, "scalar ALU", 0, vec![v(20, 1)], vec![]);
+                t.wait(0, "wait");
+                let graph = t.finish();
+                if threshold == 0 {
+                    pass(&graph);
+                } else {
+                    unknown(&graph);
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn ordinary_partial_and_max_wait_behavior_survives_without_pending_private_accesses() {
+    for private_drained in [true, false] {
+        for threshold in [0, 1, 63] {
+            let mut t = Trace::new(
+                1,
+                if private_drained {
+                    private_premises()
+                } else {
+                    vec![]
+                },
+            );
+            if private_drained {
+                t.scratch(true, 1, &[(0, 0)]);
+                t.wait(0, "wait");
+            }
+            ordinary_load(&mut t, AmdMemoryClass::VectorMemory, v(20, 1));
+            ordinary_load(&mut t, AmdMemoryClass::VectorMemory, v(21, 1));
+            t.wait(threshold, "wait");
+            t.ins(0, "scalar ALU", 0, vec![v(20, 1)], vec![]);
+            t.wait(0, "wait");
+            let result = amdgpu::check_amdgpu(&t.finish());
+            assert_eq!(result.trace.verdict(), Verdict::Pass);
+            assert_eq!(
+                result.wait_readiness.verdict(),
+                if threshold == 63 {
+                    Verdict::Fail
+                } else {
+                    Verdict::Pass
+                }
+            );
+        }
+    }
+}
