@@ -14,6 +14,12 @@ For a smaller store, use the [gfx1250 corpus guide](../../tests/gfx1250/README.m
 Set `VOLTA_VIZ_DIR` to an absolute path: Cargo runs each test from its crate
 folder, so a relative store path may differ from the subsequent CLI invocation.
 
+The graph provenance identifies whether a graph thread is one physical work item
+or one complete AMD wave. Native AMD lanes retain `w0:l0` labels; experimental
+wave traces use `w0`, `w1`, and the declared wave size. The additive
+`launch.thread_unit` field keeps browser grouping consistent with those units.
+Older stored documents retain their existing work-item grouping.
+
 For graphs above 50,000 events, `write_run` exports a display selection. Graph
 construction, all checks and the run's status still use the complete graph.
 The document preserves the complete source, target and launch metadata, and

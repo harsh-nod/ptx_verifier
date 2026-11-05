@@ -209,6 +209,7 @@ impl Trace {
             b: GraphBuilder::new(Provenance {
                 kernel: "independent_gfx1250_graph".into(),
                 block_dim: (threads, 1, 1),
+                unit: volta_graph::ThreadUnit::CtaThread,
                 grid_dim,
                 workgroup_id: (0, 0, 0),
                 targets: vec!["gfx1250".into()],

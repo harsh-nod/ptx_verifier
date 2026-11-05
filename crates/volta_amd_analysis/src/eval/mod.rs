@@ -2,11 +2,13 @@
 
 mod arithm;
 mod buffer;
+mod ds;
 mod global;
 mod interp;
 mod launch;
 mod lds;
 mod mfma;
+mod record;
 mod scalar;
 mod wave;
 

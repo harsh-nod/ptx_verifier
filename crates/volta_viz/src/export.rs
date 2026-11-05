@@ -13,7 +13,7 @@ use volta_graph::{
     AbortCause, AccessMode, ArrivalOrdering, AsyncOpId, BarrierArrivals, BlockedOn, BulkWaitScope,
     CollectiveSide, ContributionKind, EventGraph, EventId, EventKind, ExecContext, FenceKind,
     Footprint, GenerationId, GenerationKind, GroupFamily, MemberOrdering, OrderingKind, Parity,
-    Proxy, Space, StoredValue, SyncObjectId, SyncObjectKind, Terminal, ThreadIx,
+    Proxy, Space, StoredValue, SyncObjectId, SyncObjectKind, Terminal, ThreadIx, ThreadUnit,
 };
 use volta_graph_check::allocation_order::AllocationOrderViolation;
 use volta_graph_check::allocation_permit::AllocationPermitViolation;
@@ -174,7 +174,7 @@ pub fn complete_document(run: &Run) -> Json {
 
 fn document_with_limit(run: &Run, limit: Option<usize>) -> Json {
     let amd_source = match &run.outcome {
-        Outcome::Executed { graph, .. } => native_amd_graph(graph),
+        Outcome::Executed { graph, .. } => amd_graph(graph),
         // Before execution there is no graph/launch provenance. Retain only
         // the source's syntax family; do not invent an analyzed target/launch.
         Outcome::NotStarted { .. } => run
@@ -211,16 +211,20 @@ fn document_with_limit(run: &Run, limit: Option<usize>) -> Json {
     Json::Obj(fields)
 }
 
-fn native_amd_graph(graph: &EventGraph) -> bool {
-    volta_graph::AmdArchitecture::from_targets(&graph.provenance().targets).is_some()
+fn amd_graph(graph: &EventGraph) -> bool {
+    matches!(graph.provenance().unit, ThreadUnit::Wave { .. })
+        || volta_graph::AmdArchitecture::from_targets(&graph.provenance().targets).is_some()
         || !graph.amd_events().is_empty()
 }
 
 fn graph_wave_size(graph: &EventGraph) -> u32 {
-    volta_graph::AmdArchitecture::from_targets(&graph.provenance().targets).map_or(
-        if native_amd_graph(graph) { 64 } else { 32 },
-        |architecture| architecture.wave_size(),
-    )
+    if let ThreadUnit::Wave { lanes } = graph.provenance().unit {
+        return lanes;
+    }
+    volta_graph::AmdArchitecture::from_targets(&graph.provenance().targets)
+        .map_or(if amd_graph(graph) { 64 } else { 32 }, |architecture| {
+            architecture.wave_size()
+        })
 }
 
 fn amd_mask(graph: &EventGraph, mask: u64) -> String {
@@ -344,20 +348,19 @@ fn graph_fields(
             let mut launch = vec![
                 ("wave_size", Json::uint(graph_wave_size(graph))),
                 (
-                    "wave_kind",
-                    Json::str(if native_amd_graph(graph) {
-                        "wave"
-                    } else {
-                        "warp"
+                    "thread_unit",
+                    Json::str(match p.unit {
+                        ThreadUnit::CtaThread => "work_item",
+                        ThreadUnit::Wave { .. } => "wave",
                     }),
                 ),
                 (
+                    "wave_kind",
+                    Json::str(if amd_graph(graph) { "wave" } else { "warp" }),
+                ),
+                (
                     "source_language",
-                    Json::str(if native_amd_graph(graph) {
-                        "amdgpu"
-                    } else {
-                        "ptx"
-                    }),
+                    Json::str(if amd_graph(graph) { "amdgpu" } else { "ptx" }),
                 ),
                 ("block", dims(p.block_dim)),
                 ("grid", dims(p.grid_dim)),
@@ -509,22 +512,14 @@ impl Lanes {
             lanes.thread.insert(t, lanes.lanes.len());
             lanes.lanes.push(Lane {
                 kind: LaneKind::Thread,
-                label: if native_amd_graph(graph) {
-                    format!(
-                        "w{}:l{}",
-                        t.0 / graph_wave_size(graph),
-                        t.0 % graph_wave_size(graph)
-                    )
-                } else {
-                    format!("t{}", t.0)
-                },
+                label: thread_name(graph, t),
                 thread: Some(t),
             });
             if issuers.contains(&t) {
                 lanes.asynchronous.insert(t, lanes.lanes.len());
                 lanes.lanes.push(Lane {
                     kind: LaneKind::Async,
-                    label: format!("async t{}", t.0),
+                    label: format!("async {}", thread_name(graph, t)),
                     thread: Some(t),
                 });
             }
@@ -1030,7 +1025,7 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
                 .to_string(),
             ));
             info.push(("operand", format!("{:?}", a.role)));
-            info.push(("attributed to", format!("t{}", a.attributed.0)));
+            info.push(("attributed to", thread_name(graph, a.attributed)));
             if let Some(v) = a.value {
                 info.push(("value", stored_value(arena, graph.value(v))));
             }
@@ -1069,7 +1064,7 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
         EventKind::GenerationComplete(g) => {
             let genr = graph.generation(g);
             info.push(("generation", generation_name(graph, g)));
-            info.push(("kind", generation_kind(genr.kind)));
+            info.push(("kind", generation_kind(graph, genr.kind)));
             info.push(("contributions", genr.contributions.len().to_string()));
             info.push(("releases", genr.releases.len().to_string()));
             info.push((
@@ -1144,7 +1139,7 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
 fn async_info(graph: &EventGraph, op: AsyncOpId, info: &mut Info) {
     let a = graph.async_op(op);
     info.push(("operation", async_name(graph, op)));
-    info.push(("issuer", format!("t{}", a.issuer.0)));
+    info.push(("issuer", thread_name(graph, a.issuer)));
     info.push(("effects", a.effects.len().to_string()));
     if !a.tracking.is_empty() {
         let tracking: Vec<String> = a
@@ -1158,7 +1153,7 @@ fn async_info(graph: &EventGraph, op: AsyncOpId, info: &mut Info) {
 
 fn context_name(graph: &EventGraph, ctx: ExecContext) -> String {
     match ctx {
-        ExecContext::Thread(t) => format!("thread t{}", t.0),
+        ExecContext::Thread(t) => format!("thread {}", thread_name(graph, t)),
         ExecContext::Async(op) => format!("async {}", async_name(graph, op)),
         ExecContext::Generation(g) => format!("generation {}", generation_name(graph, g)),
     }
@@ -1179,8 +1174,26 @@ fn object_name(graph: &EventGraph, object: SyncObjectId) -> String {
         SyncObjectKind::WarpgroupCollective { warpgroup } => {
             format!("warpgroup {warpgroup} collectives")
         }
+        SyncObjectKind::AsyncGroupWait { thread }
+            if matches!(graph.provenance().unit, ThreadUnit::Wave { .. }) =>
+        {
+            format!("LGKM waits {}", thread_name(graph, *thread))
+        }
         SyncObjectKind::AsyncGroupWait { thread } => format!("cp.async groups t{}", thread.0),
         SyncObjectKind::BulkGroupWait { thread } => format!("bulk groups t{}", thread.0),
+    }
+}
+
+/// Physical native work items retain `w:l`; wave-unit traces use one `w` lane.
+fn thread_name(graph: &EventGraph, t: ThreadIx) -> String {
+    match graph.provenance().unit {
+        ThreadUnit::CtaThread if amd_graph(graph) => format!(
+            "w{}:l{}",
+            t.0 / graph_wave_size(graph),
+            t.0 % graph_wave_size(graph)
+        ),
+        ThreadUnit::CtaThread => format!("t{}", t.0),
+        ThreadUnit::Wave { .. } => format!("w{}", t.0),
     }
 }
 
@@ -1192,7 +1205,7 @@ fn generation_name(graph: &EventGraph, g: GenerationId) -> String {
     }
 }
 
-fn generation_kind(kind: GenerationKind) -> String {
+fn generation_kind(graph: &EventGraph, kind: GenerationKind) -> String {
     match kind {
         GenerationKind::Barrier {
             arrivals: BarrierArrivals::FullCta,
@@ -1219,6 +1232,11 @@ fn generation_kind(kind: GenerationKind) -> String {
                 MemberOrdering::ExecutionOnly => ", execution only",
             }
         ),
+        GenerationKind::AsyncGroupWait { keep_pending }
+            if matches!(graph.provenance().unit, ThreadUnit::Wave { .. }) =>
+        {
+            format!("lgkmcnt({keep_pending})")
+        }
         GenerationKind::AsyncGroupWait { keep_pending } => {
             format!("cp.async.wait_group {keep_pending}")
         }
@@ -1374,8 +1392,8 @@ fn terminal(graph: &EventGraph) -> Json {
             thread, pc, reason, ..
         } => {
             let at = match (thread, pc) {
-                (Some(t), Some(pc)) => format!("t{} at pc {}: ", t.0, pc.0),
-                (Some(t), None) => format!("t{}: ", t.0),
+                (Some(t), Some(pc)) => format!("{} at pc {}: ", thread_name(graph, *t), pc.0),
+                (Some(t), None) => format!("{}: ", thread_name(graph, *t)),
                 (None, _) => String::new(),
             };
             let events = thread.map_or(Vec::new(), |t| last_event(graph, t));
@@ -1793,6 +1811,7 @@ mod tests {
     fn large_display_preserves_full_rejection_or_unknown_and_archival_events() {
         for ordering in [OrderingKind::Ordinary, OrderingKind::Atomic] {
             let mut builder = GraphBuilder::new(Provenance {
+                unit: volta_graph::ThreadUnit::CtaThread,
                 kernel: "large_display".into(),
                 block_dim: (2, 1, 1),
                 grid_dim: (1, 1, 1),

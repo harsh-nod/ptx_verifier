@@ -10,6 +10,8 @@ pub struct Kernel {
     pub target: String,
     /// The kernel body in order.
     pub instructions: Vec<Instruction>,
+    /// Each instruction's byte range in the source, without its comment.
+    pub spans: Vec<(usize, usize)>,
     /// Each label of the body and the index of the instruction it precedes.
     pub labels: BTreeMap<String, usize>,
     /// The numeric `.amdhsa_*` settings of the kernel descriptor, keyed without the prefix.
@@ -55,6 +57,10 @@ pub enum Operand {
     Imm(i64),
     /// One of the inline float constants ±0.5, ±1.0, ±2.0 and ±4.0, as its f32 bits.
     InlineFloat(u32),
+    /// A floating-point source with its sign negated.
+    Neg(Box<Operand>),
+    /// The absolute value of a floating-point register source.
+    Abs(Box<Operand>),
     /// The vector condition code, one bit per lane.
     Vcc,
     /// The mask of the wave's active lanes.
@@ -68,6 +74,12 @@ pub enum Operand {
     Offset1(u64),
     /// The truth table of `v_bitop3_b32`.
     BitOp3(u8),
+    /// Source-word selectors for packed instructions.
+    OpSel(Vec<bool>),
+    OpSelHiWide(Vec<bool>),
+    /// Negate selected sources for the low or high result of a packed instruction.
+    NegLo(Vec<bool>),
+    NegHi(Vec<bool>),
     /// `vmcnt(n)` or `lgkmcnt(n)`.
     Wait {
         counter: Counter,

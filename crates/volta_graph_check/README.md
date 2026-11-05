@@ -17,6 +17,17 @@ contract. An unnormalized `amdgcn-...` target is inconclusive rather than fallin
 through to PTX checks. A completed placeholder graph without AMD access events
 and trace premises supplies no native safety proof.
 
+The experimental `volta_amd_analysis` producer instead records a shared graph
+with explicit wave64 units, a valid `amdgcn-amd-amdhsa--gfx950` target (including
+recognized target features), `SharedMemoryOnly`, and no native sideband records.
+This profile uses the generic graph checks for its LDS accesses, waits and
+barriers; it does not establish global-memory safety. Only this wave-unit
+profile exempts LDS effects of distinct DS instructions issued by the same
+wave from memory conflicts. Cross-wave effects and overlapping writers within
+one DS instruction remain checked. Physical-work-item/native AMD graphs retain
+their target-specific rules. Missing or conflicting profile metadata stays
+inconclusive.
+
 `amdgpu::early_memory_conflicts` supplies rejection-only certificates for two
 different active physical lanes' overlapping ordinary writes within one memory
 issue on gfx950 or gfx1250. GLOBAL denotes the memory space: already-supported

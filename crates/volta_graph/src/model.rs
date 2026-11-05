@@ -262,7 +262,8 @@ pub struct MemAccess {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SyncObjectKind {
-    /// One of the CTA's hardware named barriers (`bar.sync`, `bar.arrive`).
+    /// One of the CTA's hardware named barriers (`bar.sync`, `bar.arrive`); an AMD
+    /// workgroup's one `s_barrier` is barrier 0.
     NamedBarrier { id: u8 },
     /// One lifetime (`init` to `inval`) of an mbarrier object at a shared address; a
     /// re-initialization is a new object.
@@ -271,7 +272,8 @@ pub enum SyncObjectKind {
     WarpCollective { warp: u32 },
     /// The warpgroup-cooperative op instances (`wgmma.mma_async`) of one warpgroup.
     WarpgroupCollective { warpgroup: u32 },
-    /// One thread's `cp.async.wait_group` completions.
+    /// One thread's `cp.async.wait_group` completions; an AMD wave's `s_waitcnt lgkmcnt`
+    /// completions of its DS instructions.
     AsyncGroupWait { thread: ThreadIx },
     /// One thread's `cp.async.bulk.wait_group` completions.
     BulkGroupWait { thread: ThreadIx },
@@ -331,7 +333,8 @@ pub enum GenerationKind {
         side: CollectiveSide,
         ordering: MemberOrdering,
     },
-    /// A `cp.async.wait_group n` (or `wait_all`, `n = 0`) completing the groups past `n`.
+    /// A `cp.async.wait_group n` (or `wait_all`, `n = 0`) completing the groups past `n`; an
+    /// AMD `s_waitcnt lgkmcnt(n)` completing the DS instructions past its `n` most recent.
     AsyncGroupWait {
         keep_pending: u32,
     },
@@ -443,6 +446,10 @@ pub enum AsyncOpKind {
     Tcgen05St,
     /// One member's share of a `wgmma.mma_async`; `instance` names the warpgroup op.
     WgmmaMma { instance: u32 },
+    /// An AMD DS instruction's LDS accesses, completed by its wave's `s_waitcnt lgkmcnt`. The
+    /// LDS performs one wave's DS instructions in issue order: each one's effects follow those
+    /// of the wave's earlier ones, and its completion implies theirs.
+    Ds,
 }
 
 impl AsyncOpKind {
@@ -458,6 +465,7 @@ impl AsyncOpKind {
             AsyncOpKind::Tcgen05Ld => "tcgen05.ld",
             AsyncOpKind::Tcgen05St => "tcgen05.st",
             AsyncOpKind::WgmmaMma { .. } => "wgmma.mma_async",
+            AsyncOpKind::Ds => "ds",
         }
     }
 }
@@ -599,6 +607,8 @@ pub enum Assumption {
     /// of backed private bytes per physical work item, consistent with the
     /// selected descriptor and metadata. Not inferred from an access or a frame.
     FixedPrivateAllocation(u32),
+    /// Only shared-memory (LDS) accesses are recorded: global memory is not checked.
+    SharedMemoryOnly,
 }
 
 impl Assumption {
@@ -669,8 +679,22 @@ impl Assumption {
                 "asynchronous operations compute their data at issue; only completion is \
                  asynchronous"
             }
+            Assumption::SharedMemoryOnly => {
+                "only shared-memory (LDS) accesses are recorded; global memory is not checked \
+                 for races"
+            }
         }
     }
+}
+
+/// What one graph thread ([`crate::ThreadIx`]) executes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ThreadUnit {
+    /// One CTA thread, by its linearized index.
+    CtaThread,
+    /// One wave of `lanes` work-items issuing every instruction together: thread `w` is the
+    /// wave of work-items `w * lanes` to `(w + 1) * lanes - 1`.
+    Wave { lanes: u32 },
 }
 
 /// The launch, target and model the graph was produced under.
@@ -678,6 +702,7 @@ impl Assumption {
 pub struct Provenance {
     pub kernel: String,
     pub block_dim: (u32, u32, u32),
+    pub unit: ThreadUnit,
     pub grid_dim: (u32, u32, u32),
     /// The analyzed block/workgroup coordinate; native AMD verifies only this group.
     pub workgroup_id: (u32, u32, u32),
@@ -688,8 +713,13 @@ pub struct Provenance {
 }
 
 impl Provenance {
+    /// The graph's threads: the block's work-items, grouped into waves for `ThreadUnit::Wave`.
     pub fn threads(&self) -> u32 {
-        self.block_dim.0 * self.block_dim.1 * self.block_dim.2
+        let work_items = self.block_dim.0 * self.block_dim.1 * self.block_dim.2;
+        match self.unit {
+            ThreadUnit::CtaThread => work_items,
+            ThreadUnit::Wave { lanes } => work_items.div_ceil(lanes),
+        }
     }
 
     pub fn assumes(&self, assumption: Assumption) -> bool {

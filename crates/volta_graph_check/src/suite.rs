@@ -11,7 +11,9 @@ use std::time::Instant;
 
 use std::fmt;
 
-use volta_graph::{BlockedThread, EventGraph, EventId, Terminal};
+use volta_graph::{
+    AmdArchitecture, Assumption, BlockedThread, EventGraph, EventId, Terminal, ThreadUnit,
+};
 
 use crate::allocation_order::{
     AllocationOrderResult, AllocationOrderViolation, check_allocation_order,
@@ -466,19 +468,38 @@ impl CheckLog {
     }
 }
 
+/// The experimental gfx950 producer records a wave-unit LDS graph. Its contract is
+/// distinct from native AMD sideband traces and explicitly excludes global memory.
+fn experimental_amd_wave_graph(graph: &EventGraph) -> bool {
+    let p = graph.provenance();
+    matches!(p.unit, ThreadUnit::Wave { lanes: 64 })
+        && p.targets.len() == 1
+        && p.targets[0]
+            .strip_prefix("amdgcn-amd-amdhsa--")
+            .and_then(AmdArchitecture::from_target)
+            == Some(AmdArchitecture::Gfx950)
+        && p.assumes(Assumption::SharedMemoryOnly)
+        && graph.amd_events().is_empty()
+        && graph.amd_memory_effects().is_empty()
+}
+
 /// Run every check on `graph`.
 pub fn check_graph(graph: &EventGraph) -> GraphReport {
     let targets = &graph.provenance().targets;
     let amd_target = targets
         .iter()
         .any(|t| t.starts_with("gfx") || t.starts_with("amdgcn-"));
-    if amd_target || !graph.amd_events().is_empty() {
-        let supported = volta_graph::AmdArchitecture::from_targets(targets).is_some();
+    let wave_unit = matches!(graph.provenance().unit, ThreadUnit::Wave { .. });
+    if !experimental_amd_wave_graph(graph)
+        && (amd_target || !graph.amd_events().is_empty() || wave_unit)
+    {
+        let supported = graph.provenance().unit == ThreadUnit::CtaThread
+            && AmdArchitecture::from_targets(targets).is_some();
         return GraphReport {
             terminal:graph.terminal().clone(),
             amd:supported.then(||crate::amdgpu::check_amdgpu(graph)),
             applicable:Property::AMD.to_vec(),
-            selection_error:(!supported).then(||format!("unsupported or conflicting graph targets {targets:?}; AMD checks require a supported native gfx target with recognized, nonconflicting target features")),
+            selection_error:(!supported).then(||format!("unsupported or conflicting graph targets {targets:?}; AMD checks require a supported native physical-work-item profile or an explicit experimental gfx950 wave64 LDS profile, with recognized, nonconflicting target features")),
             named_barrier_epoch:not_applicable(),mbarrier_epoch:not_applicable(),mbarrier_ordering:not_applicable(),
             memory_conflict:not_applicable(),proxy_order:not_applicable(),tensor_order:not_applicable(),resource_lifetime:not_applicable(),
             allocation_order:not_applicable(),allocation_permit:not_applicable(),mbarrier_release_order:not_applicable(),

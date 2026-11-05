@@ -1,7 +1,8 @@
 # volta_graph
 
 The typed event graph of **one candidate execution** of a kernel. The analysis
-(`volta_ptx_analysis` or `volta_amdgpu_analysis`) records it while it interprets the kernel; the graph checks
+(`volta_ptx_analysis`, `volta_amdgpu_analysis` or the experimental
+`volta_amd_analysis`) records it while it interprets the kernel; the graph checks
 (`volta_graph_check`) and the viewer (`volta_viz`) read it. Neither side
 depends on the other: this crate (plus `volta_expr`, for stored values) is
 their whole contract.
@@ -42,6 +43,13 @@ pub struct EventGraph {
     terminal:      Terminal,                         // Completed / Stuck / Aborted
 }
 ```
+
+`Provenance::unit` identifies what one `ThreadIx` means. PTX and native AMD
+use `CtaThread`, one physical work item per graph thread. The experimental AMD
+producer uses `Wave { lanes: 64 }`, one graph thread per wave, and records the
+`SharedMemoryOnly` premise because it checks LDS accesses alone. Partial waves
+round up the graph-thread count. Native AMD sideband records require physical
+work-item units; they cannot be interpreted as wave-unit records.
 
 ### Events
 

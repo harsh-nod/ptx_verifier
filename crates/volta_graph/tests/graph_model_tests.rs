@@ -6,13 +6,14 @@ use volta_graph::{
     AbortCause, AccessMode, ArrivalOrdering, AsyncOpKind, BarrierArrivals, ContributionKind,
     EventKind, ExecContext, Footprint, GenerationEvidence, GenerationKind, GraphBuilder,
     InstructionInfo, MemAccess, OperandRole, OrderingKind, ProgramPoint, Provenance, Proxy, Space,
-    StoredValue, SyncObjectKind, Terminal, ThreadIx,
+    StoredValue, SyncObjectKind, Terminal, ThreadIx, ThreadUnit,
 };
 
 fn provenance(threads: u32, instructions: usize) -> Provenance {
     Provenance {
         kernel: "k".to_string(),
         block_dim: (threads, 1, 1),
+        unit: ThreadUnit::CtaThread,
         grid_dim: (1, 1, 1),
         workgroup_id: (0, 0, 0),
         targets: vec!["Sm100a".to_string()],
@@ -106,6 +107,51 @@ fn native_wave_leaders_follow_target_geometry_including_partial_waves() {
             }
         }
     }
+}
+
+#[test]
+fn wave_unit_threads_count_partial_waves_without_changing_native_geometry() {
+    for block_dim in [(1, 1, 1), (65, 1, 1), (17, 3, 2)] {
+        let items = block_dim.0 * block_dim.1 * block_dim.2;
+        for unit in [
+            ThreadUnit::CtaThread,
+            ThreadUnit::Wave { lanes: 32 },
+            ThreadUnit::Wave { lanes: 64 },
+        ] {
+            let mut p = provenance(1, 1);
+            p.targets = vec!["gfx950".into()];
+            p.block_dim = block_dim;
+            p.unit = unit;
+            let expected = match unit {
+                ThreadUnit::CtaThread => items,
+                ThreadUnit::Wave { lanes } => items.div_ceil(lanes),
+            };
+            assert_eq!(p.threads(), expected);
+            let mut b = GraphBuilder::new(p);
+            for thread in 0..expected {
+                b.exit(ThreadIx(thread), PC);
+            }
+            let graph = b.finish(Terminal::Completed);
+            assert_eq!(graph.threads(), expected);
+            assert_eq!(graph.validate(), Ok(()));
+        }
+    }
+}
+
+#[test]
+fn native_amd_records_require_physical_work_item_thread_units() {
+    let mut p = provenance(64, 1);
+    p.targets = vec!["gfx950".into()];
+    p.unit = ThreadUnit::Wave { lanes: 64 };
+    let mut b = GraphBuilder::new(p);
+    b.amd_event(0, PC, volta_graph::AmdEventKind::Delay { cycles: 1 });
+    b.exit(ThreadIx(0), PC);
+    let graph = b.finish(Terminal::Completed);
+    assert!(
+        graph.validate().unwrap_err().iter().any(|d| {
+            d.message == "native AMD records require physical-work-item graph threads"
+        })
+    );
 }
 
 /// Two threads exchange through shared memory around one full-CTA barrier.

@@ -201,7 +201,7 @@ fn cmd_run(
 
     let frontend_name = match backend {
         Some(backend) => format!("{} {}", backend.name(), backend.target().unwrap_or("")),
-        None if isa == Isa::Amd => "experimental AMD gfx950 (math outputs only)".into(),
+        None if isa == Isa::Amd => "experimental AMD gfx950".into(),
         None => isa.name().into(),
     };
     println!("{}: {} kernel", file.display(), frontend_name.trim());

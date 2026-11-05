@@ -687,6 +687,7 @@ dependencies = [
  "rug",
  "volta_expr",
  "volta_graph",
+ "volta_graph_check",
  "volta_spec",
 ]
 

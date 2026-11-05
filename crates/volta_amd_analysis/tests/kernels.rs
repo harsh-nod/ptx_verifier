@@ -101,6 +101,22 @@ fn the_transpose_kernel_writes_its_expected_outputs() {
 /// Each work-item writes one result per operation to its own row of 32 floats.
 const FLOAT_OPS_ROW: u64 = 32;
 
+// Test packed add, multiply and FMA with selectors, negation and overlapping sources.
+// The expected expressions are derived from the source operations for both components.
+#[test]
+fn the_packed_float_ops_kernel_writes_its_expected_outputs() {
+    common::check_run(
+        "packed_float_ops",
+        &[
+            array_of("a", 0x10000, 128, ArrayKind::Input),
+            array_of("b", 0x20000, 128, ArrayKind::Input),
+            array_of("c", 0x30000, 128, ArrayKind::Input),
+            array_of("out", 0x40000, 64 * 32, ArrayKind::Output(F32)),
+        ],
+    );
+}
+
+// Test float arithmetic, source modifiers and selects against their expected expressions.
 #[test]
 fn the_float_ops_kernel_writes_its_expected_outputs() {
     common::check_run(
@@ -123,6 +139,7 @@ fn the_compare_ops_kernel_writes_its_expected_outputs() {
             array("a", 0x10000, ArrayKind::Input),
             array("b", 0x20000, ArrayKind::Input),
             array_of("out", 0x30000, 64 * 12, ArrayKind::Output(F32)),
+            array_of("out_e32", 0x40000, 64 * 12, ArrayKind::Output(F32)),
         ],
     );
 }
@@ -289,6 +306,114 @@ fn scalar_ops_handles_boundary_arguments() {
             run_scalar_ops(&kernel, signed, words, count).unwrap(),
             expected,
         );
+    }
+}
+
+// Test integer multiplication, bit counts, 64-bit and packed moves, and signed comparisons.
+// Check all 64 lanes against the expected outputs in vector_int_ops.out.
+#[test]
+fn the_vector_int_ops_kernel_writes_its_expected_outputs() {
+    let out = 0x10000_u64;
+    let mut kernarg = out.to_le_bytes().to_vec();
+    // The multiplication factor, then the mask for the masked bit counts.
+    for value in [0x1_0001_u32, 0xaaaa_aaaa] {
+        kernarg.extend(value.to_le_bytes());
+    }
+    // Compare values above, below and equal to 0x7fffffff, including a negative value.
+    for value in [1_u64 << 32, 0x8000_0000, 0x7fff_fffe, u64::MAX, 0x7fff_ffff] {
+        kernarg.extend(value.to_le_bytes());
+    }
+    common::check_run_kernel(
+        "vector_int_ops",
+        "vector_int_ops",
+        64,
+        &kernarg,
+        &[array_of("out", out, 64 * 64, ArrayKind::Output(U32))],
+    );
+}
+
+// Test every 64-bit integer comparison in its e32 and e64 encodings across lanes whose values
+// are below, equal to and above zero, and 64-bit moves from a VGPR pair.
+#[test]
+fn the_compare64_ops_kernel_writes_its_expected_outputs() {
+    common::check_run(
+        "compare64_ops",
+        &[array_of("out", 0x10000, 64 * 32, ArrayKind::Output(U32))],
+    );
+}
+
+// Test the scalar ALU results and the SCC each one leaves, every scalar comparison in both
+// operand orders, bit comparisons, branches on VCC and EXEC, and 64-bit literal sources.
+#[test]
+fn the_scalar_alu_ops_kernel_writes_its_expected_outputs() {
+    let out = 0x10000_u64;
+    let mut kernarg = out.to_le_bytes().to_vec();
+    // Two operands whose signed and unsigned orders differ, then two shift counts and bit indices.
+    for value in [0xf0f0_f00f_u32, 0x1234_5678, 36, 32] {
+        kernarg.extend(value.to_le_bytes());
+    }
+    for value in [0xf0f0_f0f0_0000_ffff_u64, 0x0ff0_0ff0_1234_5678] {
+        kernarg.extend(value.to_le_bytes());
+    }
+    common::check_run_kernel(
+        "scalar_alu_ops",
+        "scalar_alu_ops",
+        64,
+        &kernarg,
+        &[array_of("out", out, 64 * 128, ArrayKind::Output(U32))],
+    );
+}
+
+// Test f64 arithmetic, modifiers, constants, conversions, comparisons, moves and overlapping
+// registers. Check all 64 lanes against the expected outputs in f64_ops.out.
+#[test]
+fn the_f64_ops_kernel_writes_its_expected_outputs() {
+    let arrays = [
+        array("a", 0x10000, ArrayKind::Input),
+        array("b", 0x20000, ArrayKind::Input),
+        array("c", 0x30000, ArrayKind::Input),
+        array_of("out", 0x40000, 64 * 64, ArrayKind::Output(F32)),
+        array_of("int_out", 0x50000, 64 * 8, ArrayKind::Output(U32)),
+    ];
+    let mut kernarg: Vec<u8> = arrays.iter().flat_map(|a| a.base.to_le_bytes()).collect();
+    kernarg.extend(1.5_f64.to_bits().to_le_bytes());
+    common::check_run_kernel("f64_ops", "f64_ops", 64, &kernarg, &arrays);
+}
+
+// Test that a register pair is not an f64 once a half is read as a word or overwritten, or when
+// it holds two symbolic words, and that a constant encoding a NaN is rejected.
+#[test]
+fn invalid_f64_sources_are_rejected() {
+    let arrays = [
+        array("input", 0x10000, ArrayKind::Input),
+        array("output", 0x20000, ArrayKind::Output(F32)),
+    ];
+    type ErrorCheck = fn(&EvalError) -> bool;
+    let cases: [(&str, ErrorCheck); 4] = [
+        ("f64_half_as_word", |error| {
+            matches!(error, EvalError::F64Half { .. })
+        }),
+        ("f64_overwritten_half", |error| {
+            matches!(error, EvalError::F64Half { .. })
+        }),
+        ("f64_from_symbolic_words", |error| {
+            matches!(error, EvalError::InvalidF64Vgpr { .. })
+        }),
+        ("f64_nan_constant", |error| {
+            matches!(error, EvalError::InvalidF64Bits(_))
+        }),
+    ];
+    for (kernel, expected) in cases {
+        common::check_rejected_kernel("unsupported", kernel, &arrays, |result| {
+            matches!(
+                result,
+                Ok(AnalysisResult {
+                    terminal: Terminal::Aborted { error, .. },
+                    symbolic_outputs: None,
+                    ..
+                }) if expected(error)
+            )
+        });
     }
 }
 
@@ -546,7 +671,7 @@ fn intra_wave_divergence_is_rejected() {
 }
 
 mod lds_completion {
-    //! Ordinary LDS issue order, completion and conservative barrier admission.
+    //! Ordinary LDS completion and certified cross-wave barrier conflicts.
 
     use volta_amd_analysis::frontend::parse::parse_kernel;
     use volta_amd_analysis::{
@@ -589,6 +714,10 @@ mod lds_completion {
 
     fn assert_outputs(result: AnalysisResult, workitems: u64, xor: u64) {
         assert_eq!(result.terminal, Terminal::Completed);
+        assert_eq!(
+            volta_graph_check::check_graph(&result.graph).conclusion(),
+            volta_graph_check::GraphConclusion::Verified
+        );
         let outputs = result.symbolic_outputs.unwrap();
         assert_eq!(outputs.outputs.len(), 1);
         assert_eq!(outputs.outputs[0].0, "out");
@@ -603,16 +732,29 @@ mod lds_completion {
         }
     }
 
-    fn assert_barrier_refused(result: AnalysisResult, pc: u32) {
-        assert_eq!(
-            result.terminal,
-            Terminal::Aborted {
-                wave: WaveId(0),
-                pc: InstrId(pc),
-                error: EvalError::PendingLdsAtBarrier,
-            }
+    fn assert_barrier_conflict(result: AnalysisResult, pc: u32) {
+        use volta_graph::Space;
+        use volta_graph_check::domain::ConflictKind;
+        use volta_graph_check::{GraphConclusion, check_graph};
+        assert_eq!(result.terminal, Terminal::Completed);
+        let report = check_graph(&result.graph);
+        assert!(matches!(
+            report.conclusion(),
+            GraphConclusion::Rejected { .. }
+        ));
+        assert!(
+            report.memory_conflict.violations().iter().any(|conflict| {
+                conflict.location.space == Space::Shared
+                    && result.graph.acting_thread(conflict.earlier)
+                        != result.graph.acting_thread(conflict.later)
+                    && matches!(
+                        conflict.kind,
+                        ConflictKind::WriteRead | ConflictKind::ReadWrite
+                    )
+            }),
+            "missing cross-wave LDS conflict at barrier pc {pc}: {:?}",
+            report.memory_conflict
         );
-        assert!(result.symbolic_outputs.is_none());
     }
 
     fn single_wave(body: &str) -> String {
@@ -643,7 +785,7 @@ mod lds_completion {
 
     #[test]
     fn cross_wave_write_then_read_requires_completion_before_the_barrier() {
-        assert_barrier_refused(run(WRITE, "lds_write_before_barrier", 128), 6);
+        assert_barrier_conflict(run(WRITE, "lds_write_before_barrier", 128), 6);
         let safe = WRITE.replacen(
             "ds_write_b32 v2, v1\ns_barrier",
             "ds_write_b32 v2, v1\ns_waitcnt lgkmcnt(0)\ns_barrier",
@@ -655,7 +797,7 @@ mod lds_completion {
 
     #[test]
     fn cross_wave_read_then_overwrite_requires_completion_before_the_barrier() {
-        assert_barrier_refused(run(READ, "lds_read_before_barrier", 128), 10);
+        assert_barrier_conflict(run(READ, "lds_read_before_barrier", 128), 10);
         let safe = READ.replacen(
             "ds_read_b32 v4, v3\ns_barrier",
             "ds_read_b32 v4, v3\ns_waitcnt lgkmcnt(0)\ns_barrier",
@@ -678,7 +820,7 @@ mod lds_completion {
                 1,
             );
             assert_ne!(source, WRITE);
-            assert_barrier_refused(run(&source, "lds_write_before_barrier", 128), 7);
+            assert_barrier_conflict(run(&source, "lds_write_before_barrier", 128), 7);
         }
     }
 
@@ -687,7 +829,9 @@ mod lds_completion {
         let body = "ds_write_b32 v2, v1\ns_waitcnt lgkmcnt(0)\nds_read_b32 v4, v2\nds_write_b32 v2, v1\ns_waitcnt lgkmcnt(1)\nglobal_store_dword v2, v4, s[6:7]";
         assert_outputs(run(&single_wave(body), "k", 64), 64, 0);
         let barrier = body.replace("global_store_dword", "s_barrier\nglobal_store_dword");
-        assert_barrier_refused(run(&single_wave(&barrier), "k", 64), 10);
+        // A single wave's issue-ordered DS operations have no cross-wave conflict;
+        // a pending later write alone does not make its barrier invalid.
+        assert_outputs(run(&single_wave(&barrier), "k", 64), 64, 0);
         let drained = barrier.replace("s_barrier", "s_waitcnt lgkmcnt(0)\ns_barrier");
         assert_outputs(run(&single_wave(&drained), "k", 64), 64, 0);
     }
@@ -813,6 +957,28 @@ fn two_lds_writes_in_the_same_wave_are_rejected() {
         }),
     };
     common::check_rejected_kernel("lds_race", "write_write_race", &arrays, |result| {
+        result.as_ref().is_ok_and(|run| run.terminal == expected)
+    });
+}
+
+// Test that lgkmcnt(1) completes every DS instruction in flight but the last, writes included,
+// and that a partial wait with a scalar load in flight is rejected (issue #19).
+#[test]
+fn a_partial_lgkm_wait_completes_all_but_the_last_instructions() {
+    let arrays = [
+        array("input", 0x10000, ArrayKind::Input),
+        array("output", 0x20000, ArrayKind::Output(F32)),
+    ];
+    let kernarg: Vec<u8> = arrays.iter().flat_map(|a| a.base.to_le_bytes()).collect();
+    common::check_run_kernel("lgkm_wait", "partial_wait", 64, &kernarg, &arrays);
+
+    let expected = Terminal::Aborted {
+        wave: WaveId(0),
+        pc: InstrId(8),
+        error: EvalError::UnsupportedInstruction,
+    };
+    let kernel = "partial_wait_with_scalar_load";
+    common::check_rejected_kernel("lgkm_wait", kernel, &arrays, |result| {
         result.as_ref().is_ok_and(|run| run.terminal == expected)
     });
 }

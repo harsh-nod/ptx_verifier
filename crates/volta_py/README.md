@@ -111,9 +111,11 @@ produce outputs or Lean statements.
 
 When the backend keyword is omitted, file-based functions infer the interpreter
 from `.ptx`, `.s` or `.py`. The `.s` path is the upstream experimental gfx950
-interpreter: it has no memory-event checks and models 32-bit output words as
-F32. It refuses native-only launch settings. That path and NKI return
-`race_verified=None`; any mathematical ACCEPT supplies no race-freedom proof.
+interpreter: its checked graph covers wave-level LDS accesses, waits and
+barriers, with `SharedMemoryOnly` recording that global accesses are outside
+its safety evidence. It models 32-bit output words as F32 and refuses
+native-only launch settings. NKI returns `race_verified=None`, so its
+mathematical ACCEPT supplies no race-freedom proof.
 Explicit `backend="ptx"` selects PTX regardless of the filename. Legacy
 `parse`, `analyze` and `verify` continue to default to PTX.
 

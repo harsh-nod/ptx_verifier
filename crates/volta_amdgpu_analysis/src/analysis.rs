@@ -169,6 +169,7 @@ fn analyze_internal(
     let provenance = Provenance {
         kernel: kernel.name.clone(),
         block_dim: config.block_dim,
+        unit: volta_graph::ThreadUnit::CtaThread,
         grid_dim: config.grid_dim,
         workgroup_id: config.workgroup_id,
         targets: vec![target],

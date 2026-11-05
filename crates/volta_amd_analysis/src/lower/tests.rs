@@ -96,16 +96,9 @@ fn rejects_packed_profiles_and_negation_outside_the_supported_forms() {
             "v_pk_add_f32",
             &[pair.clone(), pair.clone(), rhs.clone(), selectors.clone()]
         )),
-        Ok(LoweredInstr::PackedAddF32 { .. })
+        Ok(LoweredInstr::PackedF32 { .. })
     ));
     for operands in [
-        vec![pair.clone(), pair.clone(), rhs.clone()],
-        vec![
-            pair.clone(),
-            pair.clone(),
-            rhs.clone(),
-            Operand::OpSelHi([true, true]),
-        ],
         vec![
             pair.clone(),
             pair.clone(),
@@ -302,6 +295,8 @@ fn reports_instruction_error_location() {
         name: "test".into(),
         target: "amdgcn-amd-amdhsa--gfx950".into(),
         instructions: vec![instr("s_endpgm", &[]), instr("unknown", &[])],
+        // Byte ranges for the synthetic body "s_endpgm\nunknown".
+        spans: vec![(0, 8), (9, 16)],
         labels: Default::default(),
         descriptor: Default::default(),
     };

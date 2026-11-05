@@ -88,8 +88,10 @@ comparison, artifacts, logging and Python setup.
 Upstream's `solve SOURCE --spec SPEC` and `extract lean SOURCE --spec SPEC`
 workflows are also available. Without `--backend`, they select a frontend from
 `.ptx`, `.s` or `.py`. Extension-selected `.s` uses the upstream experimental
-gfx950 output interpreter; it and Trainium NKI currently record no race graph.
-Their mathematical results do not establish native graph safety.
+gfx950 interpreter. It checks recorded wave-level LDS accesses, waits and
+barriers; its `SharedMemoryOnly` assumption excludes global-memory safety.
+Trainium NKI records no race graph. These scopes remain distinct from native
+target-specific verification.
 
 For target-selected native checking, use `--backend amdgpu --target gfx942`,
 `gfx950` or `gfx1250` with these commands. That explicit route uses the same

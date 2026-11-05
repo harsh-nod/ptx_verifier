@@ -8,7 +8,7 @@ use crate::graph::EventGraph;
 use crate::ids::{AccessId, EventId, GenerationId, SyncObjectId, ThreadIx};
 use crate::model::{
     AccessMode, CollectiveSide, ContributionKind, EventKind, ExecContext, Footprint,
-    GenerationKind, Space, SyncObjectKind, Terminal,
+    GenerationKind, Space, SyncObjectKind, Terminal, ThreadUnit,
 };
 
 /// What tells two generations of one object at one index apart.
@@ -73,6 +73,11 @@ impl EventGraph {
     }
 
     fn validate_amd(&self, d: &mut Defects) {
+        if (!self.amd_events.is_empty() || !self.amd_memory_effects.is_empty())
+            && self.provenance.unit != ThreadUnit::CtaThread
+        {
+            d.global("native AMD records require physical-work-item graph threads".into());
+        }
         if let Err(reason) = crate::validate_shared_allocations(&self.shared_allocation_layout) {
             d.global(reason);
         }

@@ -10,37 +10,96 @@ pub enum EvalError {
     InvalidSgpr(Sgpr),
     InvalidLane(usize),
     UninitializedSgpr(Sgpr),
-    UninitializedVgpr { lane: usize, reg: Vgpr },
-    UninitializedAgpr { lane: usize, reg: Agpr },
-    UninitializedVcc { lane: usize },
+    UninitializedVgpr {
+        lane: usize,
+        reg: Vgpr,
+    },
+    UninitializedAgpr {
+        lane: usize,
+        reg: Agpr,
+    },
+    UninitializedVcc {
+        lane: usize,
+    },
     UninitializedScc,
     SymbolicSgpr(Sgpr),
-    SymbolicVcc { lane: usize },
-    SymbolicWord { lane: usize },
-    AmbiguousSelect { lane: usize },
-    UnsupportedBufferResource { reason: &'static str },
-    PartialBufferAccess { buffer_offset: u64 },
-    LdsAccess { address: u64, size: u32 },
-    UninitializedLds { address: u32 },
+    SymbolicVcc {
+        lane: usize,
+    },
+    SymbolicWord {
+        lane: usize,
+    },
+    AmbiguousSelect {
+        lane: usize,
+    },
+    UnsupportedBufferResource {
+        reason: &'static str,
+    },
+    PartialBufferAccess {
+        buffer_offset: u64,
+    },
+    LdsAccess {
+        address: u64,
+        size: u32,
+    },
+    UninitializedLds {
+        address: u32,
+    },
     LdsRace(LdsRace),
     PendingSgpr(Sgpr),
-    PendingVgpr { lane: usize, reg: Vgpr },
+    PendingVgpr {
+        lane: usize,
+        reg: Vgpr,
+    },
     PendingLdsAtBarrier,
     InvalidAddressRegister(Sgpr),
-    InvalidAddressVgpr { lane: usize, reg: Vgpr },
-    InvalidFloatVgpr { lane: usize, reg: Vgpr },
-    InvalidFloatAgpr { lane: usize, reg: Agpr },
+    InvalidAddressVgpr {
+        lane: usize,
+        reg: Vgpr,
+    },
+    InvalidFloatVgpr {
+        lane: usize,
+        reg: Vgpr,
+    },
+    InvalidFloatAgpr {
+        lane: usize,
+        reg: Agpr,
+    },
     InvalidFloatSgpr(Sgpr),
     InvalidFloatConstant(u32),
+    /// A word instruction read one half of an f64 held across a register pair.
+    F64Half {
+        lane: usize,
+        reg: Vgpr,
+    },
+    /// A VGPR pair read as an f64 holds neither one f64 value nor two concrete words.
+    InvalidF64Vgpr {
+        lane: usize,
+        reg: Vgpr,
+    },
+    /// The bits of an f64 source encode a NaN.
+    InvalidF64Bits(u64),
     AddressOverflow,
-    KernargRead { address: u64 },
-    GlobalRead { address: u64 },
-    GlobalWrite { address: u64 },
-    InvalidFloatOutput { address: u64 },
-    InvalidIntegerOutput { address: u64 },
+    KernargRead {
+        address: u64,
+    },
+    GlobalRead {
+        address: u64,
+    },
+    GlobalWrite {
+        address: u64,
+    },
+    InvalidFloatOutput {
+        address: u64,
+    },
+    InvalidIntegerOutput {
+        address: u64,
+    },
     UnsupportedInstruction,
     MissingEndPgm,
-    Launch { message: String },
+    Launch {
+        message: String,
+    },
 }
 
 // Stringify evaluation error types.
@@ -154,6 +213,15 @@ impl fmt::Display for EvalError {
                     reg.0
                 )
             }
+            Self::F64Half { lane, reg } => {
+                write!(f, "v{} in lane {lane} holds one half of an f64", reg.0)
+            }
+            Self::InvalidF64Vgpr { lane, reg } => write!(
+                f,
+                "VGPR pair at v{} in lane {lane} holds neither an f64 value nor two concrete words",
+                reg.0
+            ),
+            Self::InvalidF64Bits(bits) => write!(f, "f64 source {bits:#x} is a NaN"),
             Self::InvalidFloatConstant(bits) => {
                 write!(f, "f32 constant {bits:#x} must not be a NaN")
             }

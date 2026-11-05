@@ -274,6 +274,7 @@ mod tests {
 
     fn graph() -> (EventGraph, EventId, EventId, EventId) {
         let mut b = GraphBuilder::new(Provenance {
+            unit: volta_graph::ThreadUnit::CtaThread,
             kernel: "projection".into(),
             block_dim: (2, 1, 1),
             grid_dim: (1, 1, 1),

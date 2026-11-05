@@ -28,6 +28,7 @@ fn graph(
     let mut provenance = Provenance {
         kernel: "tensor_fault".into(),
         block_dim: (64, 1, 1),
+        unit: volta_graph::ThreadUnit::CtaThread,
         grid_dim: (1, 1, 1),
         workgroup_id: (0, 0, 0),
         targets: vec!["gfx1250".into()],

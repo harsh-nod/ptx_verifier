@@ -32,7 +32,7 @@ pub struct LeanExtractionPy {
 /// absolute error bound such as "1/1000"; without it, propositions state exact equality.
 /// Raises DataRaceError for detected races, DeadlockError for deadlocks, and VoltaError for
 /// other failed or incomplete graph checks or extraction failures. Extension-inferred
-/// experimental AMD and NKI return race_verified=None. Explicit native AMD selection
+/// AMD returns checked LDS-only graph evidence; NKI returns race_verified=None. Native AMD selection
 /// requires completed target-specific graph checks before returning obligations.
 #[pyfunction]
 #[pyo3(signature = (path, config=None, *, spec, kernel=None, dims=None, tolerance=None))]
