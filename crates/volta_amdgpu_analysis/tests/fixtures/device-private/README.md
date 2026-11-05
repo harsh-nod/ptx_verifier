@@ -7,8 +7,12 @@ retains all64 input and output coordinates. Their separate complete
 specifications are `x+1` and `x+4` under the existing mathematical-real model.
 No original HipKittens module or earlier call fixture was rewritten.
 
-The assembly is unedited AMD LLVM22 output from public ROCm revision
-`7b800a19466229b8479a78de19143dc33c3ab9b5`. Source functions and entry truthfully
+The assembly is unedited output of the local `AMD LLVM version 22.0.0git`
+toolchain, whose binary hashes are recorded. Its build source revision has not
+been verified: the version output and hashes alone do not establish it.
+`7b800a19466229b8479a78de19143dc33c3ab9b5` is the pinned public
+semantics/source reference, not an attested compiler build revision.
+Source functions and entry truthfully
 exclude the four unused dispatch/queue/dispatch-ID/implicitarg inputs with the
 same public attributes as the earlier qualified call fixture. They do not
 declare `memory(none)` on functions accessing the private stack. Work-item X

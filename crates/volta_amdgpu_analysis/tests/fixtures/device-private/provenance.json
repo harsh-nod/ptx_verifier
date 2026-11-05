@@ -50,7 +50,7 @@
       "whole_outputs": 64
     }
   ],
-  "public_revision": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+  "public_semantics_revision": "7b800a19466229b8479a78de19143dc33c3ab9b5",
   "raw_codegen_report_sha256": "6840b8cf3fe552efb22edfdc65a14add3234c4788d57630180a469f2d051459c",
   "schema_version": 1,
   "scope": "New whole compiler fixtures; unedited assembly; original HipKittens/old fixtures unchanged. No GPU/timing claim.",
@@ -58,5 +58,9 @@
     "llc": "88b786477a6f2db121523da927bc176f84f209c2bca2ba2c9e870e2202f0f5f6",
     "mc": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
     "readobj": "3c07a9974453d4827db911b3849468afb3d662ec969360fd2e96f3b6df047e05"
-  }
+  },
+  "tool_source_revision": null,
+  "tool_source_revision_status": "unverified; no build commit established by version output or binary hash",
+  "tool_version": "AMD LLVM version 22.0.0git",
+  "tool_version_stdout_sha256": "02030853c582bf7ab7bd48954195ae6dce5bbe558b14f6a39dd0453beb939f1d"
 }
