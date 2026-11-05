@@ -15,7 +15,6 @@ const SOURCE: &str =
 
 fn run(source: &str, early: bool) -> SourceKernelVerification {
     let mut config = AnalysisConfig::new((64, 1, 1));
-    config.early_readiness = early;
     config.early_memory_conflicts = early;
     for (name, base, kind) in [
         ("x", 0x10000, ArrayKind::Input),
