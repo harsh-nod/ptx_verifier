@@ -306,3 +306,41 @@ fn lane_data_and_exec_delays_use_separate_public_requirements() {
         }
     }
 }
+
+#[test]
+fn salu_exec_restore_does_not_cancel_the_prior_valu_lane_delay() {
+    for (read, padding) in [(true, 0), (false, 0), (true, 2), (false, 3)] {
+        let mut t = Trace::new(1, vec![]);
+        let producer = t.ins(
+            0,
+            "vector ALU",
+            1,
+            vec![],
+            vec![s(106), s(107), s(126), s(127)],
+        );
+        t.ins(0, "scalar ALU", 1, vec![], vec![s(126), s(127)]);
+        if padding > 0 {
+            t.nop(0, padding);
+        }
+        t.lane(read, 0, 0, true);
+        let r = amdgpu::check_amdgpu(&t.finish());
+        assert_eq!(r.trace.verdict(), Verdict::Pass);
+        assert_eq!(
+            r.wait_readiness.verdict(),
+            if padding >= 3 {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            }
+        );
+        if padding < 3 {
+            assert!(
+                r.wait_readiness
+                    .violations()
+                    .iter()
+                    .any(|h| h.issue == producer
+                        && h.kind == amdgpu::AmdRegisterHazardKind::ValuLaneExecBeforeReady)
+            );
+        }
+    }
+}

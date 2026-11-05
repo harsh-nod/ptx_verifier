@@ -904,6 +904,9 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
     let mut trans_writes = vec![Vec::<(EventId, u64, AmdRegister)>::new(); waves];
     let mut shifted_writes = vec![Vec::<(EventId, u64, AmdRegister)>::new(); waves];
     let mut scalar_valu_writes = vec![HashMap::<u16, (EventId, u64)>::new(); waves];
+    // EXEC scheduling is a dependency on a prior VALU instruction, not on the
+    // currently reaching scalar value. A later SALU EXEC restore does not erase it.
+    let mut lane_exec_valu_writes = vec![[None::<(EventId, u64)>; 2]; waves];
     let mut matrix_at = HashMap::new();
     let mut dma_at = HashSet::new();
     let mut m0_salu_writes = vec![None::<(EventId, u64)>; waves];
@@ -1028,7 +1031,8 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                 // operand, but do not waive the explicit EXEC scheduling rule.
                 if matches!(instruction_kind, "readlane" | "writelane") {
                     for index in [126, 127] {
-                        if let Some(&(issue, issued)) = scalar_valu_writes[wave].get(&index)
+                        if let Some(&(issue, issued)) =
+                            lane_exec_valu_writes[wave][usize::from(index - 126)].as_ref()
                             && tick.saturating_sub(issued).saturating_sub(1) < 4
                         {
                             hazards.push(AmdRegisterHazard {
@@ -1256,6 +1260,10 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                     scalar_valu_writes[wave].remove(&register.index);
                     if private_memory::valu(instruction_kind) {
                         scalar_valu_writes[wave].insert(register.index, (record.event, tick));
+                        if matches!(register.index, 126 | 127) {
+                            lane_exec_valu_writes[wave][usize::from(register.index - 126)] =
+                                Some((record.event, tick));
+                        }
                     }
                 }
             }
@@ -1490,6 +1498,11 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                     blocked_at[wave] = None;
                 }
             }
+            // The trace contract already validates membership, roles and bounds.
+            // Their parent MemoryIssue/Instruction supplies counter/timeline state.
+            AmdEventKind::PrivateMemoryAccess { .. }
+            | AmdEventKind::LaneRead { .. }
+            | AmdEventKind::LaneWrite { .. } => {}
             _ => unreachable!("unsupported target events are rejected by the trace contract"),
         }
     }
