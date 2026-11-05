@@ -20,8 +20,10 @@ Shared launch, source, specification and output helpers remain separate.
 
 `solve` and `extract lean` infer PTX, experimental AMD gfx950 or Trainium NKI
 from `.ptx`, `.s` and `.py` when `--backend` is omitted. The extension-selected
-AMD and NKI interpreters record no race graph; a mathematical `ACCEPT` from
-those paths supplies no race-freedom evidence. Explicit `--backend amdgpu
+AMD interpreter checks wave-level LDS accesses, waits and barriers; its
+`SharedMemoryOnly` assumption explicitly excludes global-memory certification.
+NKI records no race graph, so its mathematical `ACCEPT` supplies no race-freedom
+evidence. Explicit `--backend amdgpu
 --target gfx942|gfx950|gfx1250` uses the native checked frontend instead,
 including its complete outputs and independently validated prefix rejections.
 `--backend ptx` selects PTX explicitly; `--target` without AMD selection is

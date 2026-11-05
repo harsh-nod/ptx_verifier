@@ -96,16 +96,9 @@ fn rejects_packed_profiles_and_negation_outside_the_supported_forms() {
             "v_pk_add_f32",
             &[pair.clone(), pair.clone(), rhs.clone(), selectors.clone()]
         )),
-        Ok(LoweredInstr::PackedAddF32 { .. })
+        Ok(LoweredInstr::PackedF32 { .. })
     ));
     for operands in [
-        vec![pair.clone(), pair.clone(), rhs.clone()],
-        vec![
-            pair.clone(),
-            pair.clone(),
-            rhs.clone(),
-            Operand::OpSelHi([true, true]),
-        ],
         vec![
             pair.clone(),
             pair.clone(),

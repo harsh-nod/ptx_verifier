@@ -200,3 +200,105 @@ fn packed_destination_validation_is_atomic_when_the_high_half_is_pending() {
     );
     assert_eq!(registers.read_vgpr(0, Vgpr(2)).unwrap(), original);
 }
+
+#[test]
+fn select_absolute_and_negation_preserve_concrete_word_payloads() {
+    use crate::ir::ModifiedSrc;
+    let mut arena = ExprArena::new();
+    let mut registers = WaveRegisters::default();
+    for bits in [0u32, 0x8000_0000, 0x7fc1_2345, 0xffc1_2345, u32::MAX] {
+        let word = arena.int(i64::from(bits));
+        registers.write_vgpr(0, Vgpr(1), word).unwrap();
+        for (abs, neg) in [(true, false), (true, true), (false, true)] {
+            for selected in [false, true] {
+                let condition = arena.bool_val(selected);
+                registers.write_vcc(0, condition).unwrap();
+                let modified = ModifiedSrc {
+                    src: Vop3Src::Vgpr(Vgpr(1)),
+                    abs,
+                    neg,
+                };
+                let plain = ModifiedSrc {
+                    abs: false,
+                    neg: false,
+                    ..modified
+                };
+                let (a, b) = if selected {
+                    (plain, modified)
+                } else {
+                    (modified, plain)
+                };
+                let actual =
+                    evaluate_cndmask_e64(&mut arena, &registers, 0, a, b, LaneMask::Vcc).unwrap();
+                let expected = (if abs { bits & 0x7fff_ffff } else { bits })
+                    ^ if neg { 0x8000_0000 } else { 0 };
+                assert_eq!(arena.as_int_const(actual), Some(i64::from(expected)));
+            }
+        }
+    }
+}
+
+#[test]
+fn f64_and_word_pair_writes_preserve_the_low_half_when_high_is_pending() {
+    use crate::ir::Src0;
+    let mut arena = ExprArena::new();
+    let mut registers = WaveRegisters::default();
+    let original = arena.int(0x1234);
+    let input = arena.param_symbol("double");
+    registers.write_vgpr(0, Vgpr(4), original).unwrap();
+    registers
+        .start_vector_load(0, &[Vgpr(5)], &[original], LoadCounter::Vm)
+        .unwrap();
+    let pending = Err(EvalError::PendingVgpr {
+        lane: 0,
+        reg: Vgpr(5),
+    });
+    assert_eq!(registers.write_f64(0, [Vgpr(4), Vgpr(5)], input), pending);
+    assert_eq!(registers.read_vgpr(0, Vgpr(4)).unwrap(), original);
+    assert_eq!(
+        registers.move_words(
+            &mut arena,
+            0,
+            [Vgpr(4), Vgpr(5)],
+            [Src0::Const(7), Src0::Const(8)]
+        ),
+        pending
+    );
+    assert_eq!(registers.read_vgpr(0, Vgpr(4)).unwrap(), original);
+}
+
+#[test]
+fn f64_pair_moves_preserve_symbolic_values_and_reject_broken_halves() {
+    use crate::ir::{F64Src, Src0};
+    let mut arena = ExprArena::new();
+    let mut registers = WaveRegisters::default();
+    let input = arena.param_symbol("double");
+    let source = [Vgpr(2), Vgpr(3)];
+    let destination = [Vgpr(4), Vgpr(5)];
+    registers.write_f64(0, source, input).unwrap();
+    registers
+        .move_words(&mut arena, 0, destination, source.map(Src0::Vgpr))
+        .unwrap();
+    assert_eq!(
+        registers
+            .read_f64_src(&mut arena, 0, F64Src::Vgprs(destination))
+            .unwrap(),
+        input
+    );
+    assert!(matches!(
+        registers.read_vgpr(0, destination[0]),
+        Err(EvalError::F64Half { .. })
+    ));
+    let zero = arena.int(0);
+    registers.write_vgpr(0, destination[1], zero).unwrap();
+    assert!(matches!(
+        registers.read_f64_src(&mut arena, 0, F64Src::Vgprs(destination)),
+        Err(EvalError::F64Half { .. })
+    ));
+    assert_eq!(
+        registers
+            .read_f64_src(&mut arena, 0, F64Src::Vgprs(source))
+            .unwrap(),
+        input
+    );
+}

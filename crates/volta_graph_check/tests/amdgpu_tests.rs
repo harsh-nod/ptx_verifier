@@ -59,6 +59,7 @@ impl Trace {
             b: GraphBuilder::new(Provenance {
                 kernel: "amd_test".into(),
                 block_dim: (threads, 1, 1),
+                unit: volta_graph::ThreadUnit::CtaThread,
                 grid_dim: (1, 1, 1),
                 workgroup_id: (0, 0, 0),
                 targets: vec!["gfx950".into()],
@@ -318,6 +319,7 @@ fn terminated_producer_trace(
         b: GraphBuilder::new(Provenance {
             kernel: "terminated_producer".into(),
             block_dim: (threads, 1, 1),
+            unit: volta_graph::ThreadUnit::CtaThread,
             grid_dim: (1, 1, 1),
             workgroup_id: (0, 0, 0),
             targets: vec!["gfx950".into()],
@@ -470,6 +472,7 @@ fn recognized_target_features_select_amd_checks_and_conflicts_remain_unknown() {
         let mut builder = GraphBuilder::new(Provenance {
             kernel: "target_features".into(),
             block_dim: (64, 1, 1),
+            unit: volta_graph::ThreadUnit::CtaThread,
             grid_dim: (1, 1, 1),
             workgroup_id: (0, 0, 0),
             targets: vec![target.into()],

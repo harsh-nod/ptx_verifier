@@ -43,6 +43,7 @@ impl Trace {
             b: GraphBuilder::new(Provenance {
                 kernel: "private_contract".into(),
                 block_dim: (threads, 1, 1),
+                unit: volta_graph::ThreadUnit::CtaThread,
                 grid_dim: (1, 1, 1),
                 workgroup_id: (0, 0, 0),
                 targets: vec!["gfx950".into()],

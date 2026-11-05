@@ -63,9 +63,11 @@ before sampling. `Solver::Canonical` checks those outputs; `extract_lean`
 states all output propositions for a Lean prover. Generated propositions are
 not completed equivalence proofs.
 
-The extension-inferred experimental AMD and NKI interpreters return
-`GraphEvidence::NotRecorded`. Their mathematical verdicts and Lean statements
-supply no race-freedom evidence. The experimental AMD adapter models only
+The experimental AMD interpreter returns checked wave-level LDS access, wait
+and barrier graphs. Its `SharedMemoryOnly` assumption makes the limit explicit:
+global accesses are not recorded or certified by this graph. The NKI interpreter
+returns `GraphEvidence::NotRecorded` and supplies no race-freedom evidence.
+The experimental AMD adapter models only
 workgroup zero of a one-group gfx950 grid, 32-bit input/output words and its
 default budget. Native-only launch options are refused. Use explicit native
 selection for target-specific graph verification, selected workgroups, by-value
@@ -79,7 +81,9 @@ compare every rendered output against the adjacent `.out` file. Race and
 deadlock controls assert typed witnesses. NVIDIA/PTX suites follow upstream;
 AMD integration controls cover the shared configuration and backend boundaries.
 
-Native integration suites exercise the same public dispatch with genuine
+The experimental AMD suites also verify CK FlashAttention against all 4,096
+outputs of its attention formula and check missing-wait/barrier LDS mutations
+through the recorded graph. Native integration suites exercise the same public dispatch with genuine
 assembly, exact output footprints, mathematical references, and CPU-only
 missing-wait, publication, register-lifetime and barrier controls. The target
 corpora describe the supported forms and reproduction commands:

@@ -34,6 +34,7 @@ fn cdna_targets_refuse_every_allocated_named_barrier_event() {
             let mut builder = GraphBuilder::new(Provenance {
                 kernel: "target_event_contract".into(),
                 block_dim: (1, 1, 1),
+                unit: volta_graph::ThreadUnit::CtaThread,
                 grid_dim: (1, 1, 1),
                 workgroup_id: (0, 0, 0),
                 targets: vec![target.into()],

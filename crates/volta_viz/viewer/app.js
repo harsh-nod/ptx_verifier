@@ -2313,7 +2313,7 @@
     const waveSize = state.doc && state.doc.launch && state.doc.launch.wave_size || 32;
     const native = (state.doc.source_language || state.doc.launch && state.doc.launch.source_language) === "amdgpu";
     const waveKind = state.doc.launch && state.doc.launch.wave_kind || (native || waveSize === 64 ? "wave" : "warp");
-    return lane.kind === "object" ? "sync objects" : waveKind + " " + Math.floor(lane.thread / waveSize);
+    return lane.kind === "object" ? "sync objects" : waveKind + " " + (state.doc.launch && state.doc.launch.thread_unit === "wave" ? lane.thread : Math.floor(lane.thread / waveSize));
   }
 
   function startsGroup(c) {

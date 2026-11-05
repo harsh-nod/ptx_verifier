@@ -348,6 +348,7 @@ fn huge_unused_inputs_preserve_full_extent_without_eager_nodes() {
     let provenance = Provenance {
         kernel: "k".into(),
         block_dim: c.block_dim,
+        unit: volta_graph::ThreadUnit::CtaThread,
         grid_dim: c.grid_dim,
         workgroup_id: c.workgroup_id,
         targets: vec!["gfx1250".into()],

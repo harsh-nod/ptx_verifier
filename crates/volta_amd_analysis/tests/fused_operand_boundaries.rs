@@ -90,7 +90,7 @@ fn conditional_select_data_does_not_add_a_second_scalar_bus_source() {
 #[test]
 fn public_float_payloads_cannot_bypass_the_supported_inline_profiles() {
     let forms = |value: Operand| {
-        [
+        vec![
             instr(
                 "v_pk_add_f32",
                 &[
@@ -106,8 +106,21 @@ fn public_float_payloads_cannot_bypass_the_supported_inline_profiles() {
             ),
             instr(
                 "v_cndmask_b32_e64",
-                &[vgpr(0), vgpr(1), value, Operand::Vcc],
+                &[vgpr(0), vgpr(1), value.clone(), Operand::Vcc],
             ),
+            instr("v_add_f64", &[vgpr_pair(2), vgpr_pair(4), value.clone()]),
+            instr("v_add_f64", &[vgpr_pair(2), value.clone(), vgpr_pair(4)]),
+            instr(
+                "v_mul_f64",
+                &[
+                    vgpr_pair(2),
+                    vgpr_pair(4),
+                    Operand::Neg(Box::new(value.clone())),
+                ],
+            ),
+            instr("v_rcp_f64_e32", &[vgpr_pair(2), value.clone()]),
+            instr("v_cvt_f32_f64_e64", &[vgpr(0), value.clone()]),
+            instr("v_cmp_lt_f64_e64", &[Operand::Vcc, vgpr_pair(4), value]),
         ]
     };
     for bits in [

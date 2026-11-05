@@ -172,6 +172,7 @@ mod tests {
         let graph = GraphBuilder::new(Provenance {
             kernel: "malformed_fault".into(),
             block_dim: (1, 1, 1),
+            unit: volta_graph::ThreadUnit::CtaThread,
             grid_dim: (1, 1, 1),
             workgroup_id: (0, 0, 0),
             targets: vec!["gfx1250".into()],

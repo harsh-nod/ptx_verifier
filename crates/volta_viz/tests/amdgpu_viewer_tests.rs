@@ -9,6 +9,7 @@ const SOURCE: &str =
     "ds_bpermute_b32 v2, v0, v1\ns_waitcnt lgkmcnt(0)\nv_mov_b32 v3, v2\ns_endpgm\n";
 fn provenance(threads: u32) -> Provenance {
     Provenance {
+        unit: volta_graph::ThreadUnit::CtaThread,
         kernel: "gfx950_view".into(),
         block_dim: (threads, 1, 1),
         grid_dim: (1, 1, 1),
@@ -697,4 +698,46 @@ fn gfx1250_exec_masks_use_eight_hex_digits_and_native_check_labels() {
     assert!(!text.contains("CDNA counters"));
     assert!(!text.contains("CDNA S_BARRIER"));
     assert!(text.contains("\"status\":\"race-free\""));
+}
+
+#[test]
+fn wave_unit_graphs_keep_whole_wave_labels_and_explicit_browser_geometry() {
+    let mut p = provenance(128);
+    p.unit = ThreadUnit::Wave { lanes: 64 };
+    p.targets = vec!["amdgcn-amd-amdhsa--gfx950".into()];
+    p.assumptions.push(Assumption::SharedMemoryOnly);
+    let mut b = GraphBuilder::new(p);
+    let op = b.async_issue(ThreadIx(0), ProgramPoint(0), AsyncOpKind::Ds);
+    let object = b.sync_object(SyncObjectKind::AsyncGroupWait {
+        thread: ThreadIx(0),
+    });
+    let generation = b.open_generation(
+        object,
+        0,
+        GenerationKind::AsyncGroupWait { keep_pending: 0 },
+    );
+    b.track(op, generation, 0);
+    b.complete_generation(generation, GenerationEvidence::default());
+    b.resume(ThreadIx(0), ProgramPoint(1), generation);
+    b.exit(ThreadIx(0), ProgramPoint(3));
+    b.exit(ThreadIx(1), ProgramPoint(3));
+    let graph = b.finish(Terminal::Completed);
+    assert_eq!(graph.threads(), 2);
+    let text = exported("wave_units", &graph);
+    for expected in [
+        "\"source_language\":\"amdgpu\"",
+        "\"wave_size\":64",
+        "\"thread_unit\":\"wave\"",
+        "\"wave_kind\":\"wave\"",
+        "\"label\":\"w0\"",
+        "\"label\":\"w1\"",
+        "LGKM waits w0",
+        "lgkmcnt(0)",
+    ] {
+        assert!(text.contains(expected), "missing {expected}: {text}");
+    }
+    assert!(!text.contains("\"label\":\"w0:l"));
+    let native = exported("physical_units", &register_graph(true, Terminal::Completed));
+    assert!(native.contains("\"thread_unit\":\"work_item\""));
+    assert!(native.contains("\"label\":\"w0:l63\""));
 }

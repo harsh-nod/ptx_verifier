@@ -45,17 +45,12 @@ fn signed_integer(text: &str) -> Option<i64> {
 /// Parse a register, register range, integer, inline float, wait counter, memory offset,
 /// modifier, or branch target.
 fn operand(text: &str) -> Option<Operand> {
+    // Reject malformed repeated negation before parsing nested source modifiers.
+    if text.starts_with("--") {
+        return None;
+    }
     if let Some(value) = signed_integer(text) {
         return Some(Operand::Imm(value));
-    }
-    if let Some(selectors) = text.strip_prefix("op_sel_hi:[") {
-        let (a, b) = selectors.strip_suffix(']')?.split_once(',')?;
-        let bit = |text: &str| match text.trim() {
-            "0" => Some(false),
-            "1" => Some(true),
-            _ => None,
-        };
-        return Some(Operand::OpSelHi([bit(a)?, bit(b)?]));
     }
     match text {
         "vcc" => return Some(Operand::Vcc),
@@ -80,6 +75,46 @@ fn operand(text: &str) -> Option<Operand> {
             .and_then(|table| u8::try_from(table).ok())
             .map(Operand::BitOp3);
     }
+    for (prefix, make_operand) in [
+        ("op_sel:[", Operand::OpSel as fn(Vec<bool>) -> Operand),
+        ("op_sel_hi:[", Operand::OpSelHiWide),
+        ("neg_lo:[", Operand::NegLo),
+        ("neg_hi:[", Operand::NegHi),
+    ] {
+        if let Some(bits) = text.strip_prefix(prefix).and_then(|s| s.strip_suffix(']')) {
+            let bits = bits
+                .split(',')
+                .map(|s| match s.trim() {
+                    "0" => Some(false),
+                    "1" => Some(true),
+                    _ => None,
+                })
+                .collect::<Option<Vec<_>>>()?;
+            return match bits.len() {
+                2 if prefix == "op_sel_hi:[" => Some(Operand::OpSelHi([bits[0], bits[1]])),
+                2..=3 => Some(make_operand(bits)),
+                _ => None,
+            };
+        }
+    }
+    // A source has at most one NEG and one ABS modifier. Decode its bare register
+    // directly so malformed nested modifiers cannot recurse with input depth.
+    if let Some(source) = text.strip_prefix('-') {
+        if let Some(register) = source.strip_prefix('|').and_then(|s| s.strip_suffix('|')) {
+            return register_operand(register)
+                .map(|reg| Operand::Neg(Box::new(Operand::Abs(Box::new(reg)))));
+        }
+        if let Some(Operand::Reg { file, first, last }) = register_operand(source) {
+            return Some(if first == last {
+                Operand::NegatedReg { file, index: first }
+            } else {
+                Operand::Neg(Box::new(Operand::Reg { file, first, last }))
+            });
+        }
+    }
+    if let Some(register) = text.strip_prefix('|').and_then(|s| s.strip_suffix('|')) {
+        return register_operand(register).map(|reg| Operand::Abs(Box::new(reg)));
+    }
     if text.contains('.') {
         let value = text.parse::<f32>().ok()?;
         return INLINE_FLOATS
@@ -98,15 +133,11 @@ fn operand(text: &str) -> Option<Operand> {
         let value = integer(rest.strip_suffix(')')?)?;
         return Some(Operand::Wait { counter, value });
     }
-    if let Some(register) = text.strip_prefix('-') {
-        if !register.starts_with(['s', 'v', 'a']) {
-            return None;
-        }
-        let Operand::Reg { file, first, last } = operand(register)? else {
-            return None;
-        };
-        return (first == last).then_some(Operand::NegatedReg { file, index: first });
-    }
+    register_operand(text)
+}
+
+/// A bare physical register or register range, without source modifiers.
+fn register_operand(text: &str) -> Option<Operand> {
     let file = match text.chars().next()? {
         's' => RegFile::Scalar,
         'v' => RegFile::Vector,
@@ -186,6 +217,7 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
 
     // The instruction body ends at a section switch or function-end label.
     let mut instructions = Vec::new();
+    let mut spans = Vec::new();
     let mut labels = BTreeMap::new();
     for line in &lines[entry + 1..] {
         let (opcode, rest) = word(line);
@@ -242,6 +274,9 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
             opcode: opcode.into(),
             operands,
         });
+        // Each line is a subslice of `source`, so its address gives its offset.
+        let start = line.as_ptr() as usize - source.as_ptr() as usize;
+        spans.push((start, start + line.len()));
     }
 
     // Read launch settings from the kernel's separate descriptor block.
@@ -264,6 +299,7 @@ pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
                 name: name.into(),
                 target,
                 instructions,
+                spans,
                 labels,
                 descriptor,
             });
@@ -344,6 +380,7 @@ mod tests {
         assert_eq!(kernel.descriptor["system_vgpr_workitem_id"], 0);
     }
 
+    // Test supported operand forms and reject malformed or unsupported modifiers.
     #[test]
     fn parses_operand_forms_and_rejects_others() {
         assert_eq!(operand("0x10"), Some(Imm(16)));
@@ -355,7 +392,68 @@ mod tests {
         };
         assert_eq!(operand("vmcnt(3)"), Some(vm3));
         assert_eq!(operand("-1"), Some(Imm(-1)));
+        // Float modifiers wrap registers; negative float constants keep their encoded bits.
+        assert_eq!(
+            operand("-v7"),
+            Some(Operand::NegatedReg {
+                file: RegFile::Vector,
+                index: 7
+            })
+        );
+        assert_eq!(
+            operand("-s9"),
+            Some(Operand::NegatedReg {
+                file: RegFile::Scalar,
+                index: 9
+            })
+        );
+        assert_eq!(operand("|v7|"), Some(Operand::Abs(Box::new(vgpr(7, 7)))));
+        assert_eq!(operand("|s9|"), Some(Operand::Abs(Box::new(sgpr(9, 9)))));
+        assert_eq!(
+            operand("-|v7|"),
+            Some(Operand::Neg(Box::new(Operand::Abs(Box::new(vgpr(7, 7))))))
+        );
+        assert_eq!(
+            operand("-1.0"),
+            Some(Operand::InlineFloat((-1.0f32).to_bits()))
+        );
+        assert_eq!(
+            operand("op_sel_hi:[1,0]"),
+            Some(Operand::OpSelHi([true, false]))
+        );
+        assert_eq!(
+            operand("op_sel:[1,0,0]"),
+            Some(Operand::OpSel(vec![true, false, false]))
+        );
+        assert_eq!(
+            operand("op_sel_hi:[1,0,1]"),
+            Some(Operand::OpSelHiWide(vec![true, false, true]))
+        );
+        assert_eq!(
+            operand("neg_lo:[0,1]"),
+            Some(Operand::NegLo(vec![false, true]))
+        );
+        assert_eq!(
+            operand("neg_hi:[0,0,1]"),
+            Some(Operand::NegHi(vec![false, false, true]))
+        );
         for bad in [
+            "-vcc",
+            "-vmcnt(3)",
+            "|1|",
+            "|1.0|",
+            "|vcc|",
+            "|v7",
+            "v7|",
+            "||v7||",
+            "--v7",
+            "|-v7|",
+            "op_sel_hi:[1]",
+            "op_sel_hi:[1,0,1,0]",
+            "op_sel:[]",
+            "neg_lo:[1,]",
+            "neg_hi:[0,2]",
+            "op_sel_hi:[2,0]",
             "s[3:0]",
             "s[0]",
             "x0",
@@ -575,7 +673,6 @@ mod tests {
         for operand in [
             "--v1".to_owned(),
             format!("{}v1", "-".repeat(65536)),
-            "-v[1:2]".to_owned(),
             "op_sel_hi:[1,2]".to_owned(),
         ] {
             assert!(
@@ -586,6 +683,28 @@ mod tests {
                 .is_err()
             );
         }
+    }
+
+    #[test]
+    fn register_modifiers_are_bounded_and_f64_pairs_keep_valid_compositions() {
+        for source in ["-v[2:3]", "|v[2:3]|", "-|v[2:3]|"] {
+            let text = kernel_source(&format!("v_add_f64 v[0:1], {source}, v[4:5]"), "");
+            let parsed = parse_kernel(&text, "test").unwrap();
+            assert!(crate::lower::lower_kernel(&parsed).is_ok(), "{source}");
+        }
+        for malformed in [
+            format!("{}v7{}", "|".repeat(65536), "|".repeat(65536)),
+            format!("{}v7{}", "-|".repeat(32768), "|".repeat(32768)),
+            format!("{}v7{}", "|".repeat(65536), "|".repeat(65535)),
+            "-|-v7|".into(),
+        ] {
+            let text = kernel_source(&format!("v_mov_b32_e32 v0, {malformed}"), "");
+            assert!(parse_kernel(&text, "test").is_err());
+        }
+        // A modified pair can parse, but remains invalid where the instruction needs a word.
+        let text = kernel_source("v_mov_b32_e32 v0, -v[1:2]", "");
+        let parsed = parse_kernel(&text, "test").unwrap();
+        assert!(crate::lower::lower_kernel(&parsed).is_err());
     }
 
     #[test]
