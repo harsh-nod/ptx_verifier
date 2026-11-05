@@ -61,6 +61,7 @@ struct Transfer {
     mask: u64,
     mode: AccessMode,
     lanes: HashSet<ThreadIx>,
+    offset: Option<u64>,
 }
 
 fn scalar(r: &AmdRegister) -> bool {
@@ -231,6 +232,7 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                                 AccessMode::Write
                             },
                             lanes: HashSet::new(),
+                            offset: None,
                         },
                     )
                     .is_some()
@@ -257,6 +259,8 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                     continue;
                 };
                 let current = instructions.get(&record.wave).map(|r| r.event);
+                let uniform = t.offset.is_none_or(|first| first == *offset);
+                t.offset.get_or_insert(*offset);
                 if record.wave != t.wave
                     || current != Some(t.instruction)
                     || graph.event(*issue).pc != graph.event(record.event).pc
@@ -264,6 +268,7 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                     || thread.0 >= graph.threads()
                     || thread.0 / 64 != t.wave
                     || t.mask & (1u64 << (thread.0 % 64)) == 0
+                    || !uniform
                     || *width != 4
                     || *access_kind != t.mode
                     || !offset.is_multiple_of(4)

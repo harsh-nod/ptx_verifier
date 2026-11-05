@@ -2,7 +2,7 @@
 use volta_graph::*;
 use volta_graph_check::{Verdict, amdgpu};
 
-const KINDS: [&str; 9] = [
+const KINDS: [&str; 11] = [
     "scratch store",
     "scratch load",
     "wait",
@@ -12,6 +12,8 @@ const KINDS: [&str; 9] = [
     "writelane",
     "s_endpgm",
     "scalar ALU",
+    "vector memory",
+    "scalar memory",
 ];
 fn s(index: u16) -> AmdRegister {
     AmdRegister {
@@ -168,6 +170,7 @@ fn unknown(g: &EventGraph) {
     assert_eq!(r.trace.verdict(), Verdict::Unknown);
     assert_eq!(r.wait_readiness.verdict(), Verdict::Unknown);
     assert_eq!(r.memory_conflict.verdict(), Verdict::Unknown);
+    assert_eq!(r.barrier.verdict(), Verdict::Unknown);
 }
 fn pass(g: &EventGraph) {
     let r = amdgpu::check_amdgpu(g);
@@ -442,5 +445,318 @@ fn scratch_xnack_profile_is_explicit_and_not_contradicted_by_target() {
         t.wait(0, "wait");
         let graph = t.finish();
         if valid { pass(&graph) } else { unknown(&graph) }
+    }
+}
+
+fn private_premises() -> Vec<Assumption> {
+    vec![
+        Assumption::FixedPrivateAllocation(8),
+        Assumption::XnackReplayDisabled,
+    ]
+}
+struct LoadProfile {
+    wave: u32,
+    mask: u64,
+    source: &'static str,
+    class: AmdMemoryClass,
+    reads: Vec<AmdRegister>,
+    writes: Vec<AmdRegister>,
+    counters: Vec<(AmdCounter, u16)>,
+    destinations: Vec<AmdRegister>,
+    held: Vec<AmdRegister>,
+}
+impl LoadProfile {
+    fn new() -> Self {
+        Self {
+            wave: 0,
+            mask: 1,
+            source: "scratch load",
+            class: AmdMemoryClass::ScratchLoad32,
+            reads: vec![s(32)],
+            writes: vec![v(0, 1)],
+            counters: vec![(AmdCounter::Vm, 1)],
+            destinations: vec![v(0, 1)],
+            held: vec![],
+        }
+    }
+    fn issue(&self, t: &mut Trace) -> EventId {
+        t.ins(
+            self.wave,
+            self.source,
+            self.mask,
+            self.reads.clone(),
+            self.writes.clone(),
+        );
+        t.b.amd_event(
+            self.wave,
+            pc(self.source),
+            AmdEventKind::MemoryIssue {
+                class: self.class,
+                counters: self.counters.clone(),
+                destinations: self.destinations.clone(),
+                held_sources: self.held.clone(),
+            },
+        )
+    }
+    fn access(&self, t: &mut Trace, issue: EventId, access: AmdEventKind) {
+        assert!(matches!(access,AmdEventKind::PrivateMemoryAccess {issue:i,..} if i==issue));
+        t.b.amd_event(self.wave, pc(self.source), access);
+    }
+}
+fn access(issue: EventId, thread: u32, offset: u64) -> AmdEventKind {
+    AmdEventKind::PrivateMemoryAccess {
+        issue,
+        thread: ThreadIx(thread),
+        offset,
+        width: 4,
+        kind: AccessMode::Read,
+    }
+}
+#[test]
+fn forged_scratch_classes_roles_countercharges_and_holds_refuse() {
+    for fault in 0..10 {
+        let mut t = Trace::new(2, private_premises());
+        let mut p = LoadProfile::new();
+        match fault {
+            0 => p.source = "vector memory",
+            1 => p.class = AmdMemoryClass::VectorMemory,
+            2 => p.counters = vec![(AmdCounter::Vm, 2)],
+            3 => p.counters = vec![(AmdCounter::Lgkm, 1)],
+            4 => p.reads = vec![s(106)],
+            5 => p.reads.push(s(33)),
+            6 => p.writes = vec![v(0, 2)],
+            7 => p.destinations = vec![v(1, 1)],
+            8 => p.held = vec![s(32)],
+            9 => p.mask = 0,
+            _ => unreachable!(),
+        }
+        let issue = p.issue(&mut t);
+        p.access(&mut t, issue, access(issue, 0, 0));
+        t.wait(0, "wait");
+        unknown(&t.finish());
+    }
+}
+#[test]
+fn private_width_mode_uniform_offset_and_semantic_boundary_are_checked() {
+    for fault in 0..5 {
+        let mut t = Trace::new(if fault == 4 { 128 } else { 2 }, private_premises());
+        if fault == 4 {
+            t.ins(1, "scalar ALU", 0, vec![], vec![]);
+        }
+        let mut p = LoadProfile::new();
+        p.mask = 3;
+        p.writes = vec![v(0, 3)];
+        p.destinations = p.writes.clone();
+        let issue = p.issue(&mut t);
+        p.access(&mut t, issue, access(issue, 0, 0));
+        match fault {
+            0 => p.access(
+                &mut t,
+                issue,
+                AmdEventKind::PrivateMemoryAccess {
+                    issue,
+                    thread: ThreadIx(1),
+                    offset: 0,
+                    width: 8,
+                    kind: AccessMode::Read,
+                },
+            ),
+            1 => p.access(
+                &mut t,
+                issue,
+                AmdEventKind::PrivateMemoryAccess {
+                    issue,
+                    thread: ThreadIx(1),
+                    offset: 0,
+                    width: 4,
+                    kind: AccessMode::Write,
+                },
+            ),
+            2 => p.access(&mut t, issue, access(issue, 1, 4)),
+            3 => {
+                t.ins(0, "scalar ALU", 0, vec![], vec![]);
+                p.access(&mut t, issue, access(issue, 1, 0));
+            }
+            4 => {
+                t.b.amd_event(1, pc("scratch load"), access(issue, 1, 0));
+            }
+            _ => unreachable!(),
+        }
+        t.wait(0, "wait");
+        unknown(&t.finish());
+    }
+}
+#[test]
+fn empty_scratch_exec_has_no_register_observations_or_semantic_issue() {
+    let mut t = Trace::new(1, private_premises());
+    t.ins(0, "scratch load", 0, vec![], vec![]);
+    pass(&t.finish());
+    for fault in 0..2 {
+        let mut t = Trace::new(1, private_premises());
+        t.ins(
+            0,
+            "scratch load",
+            0,
+            if fault == 0 { vec![s(32)] } else { vec![] },
+            if fault == 1 { vec![v(0, 1)] } else { vec![] },
+        );
+        unknown(&t.finish());
+    }
+}
+#[test]
+fn inactive_exec_lane_read_and_write_still_enforce_pending_private_load_admission() {
+    for read in [true, false] {
+        let mut t = Trace::new(1, private_premises());
+        t.scratch(true, 1, &[(0, 0)]);
+        t.lane(read, 0, 0, true);
+        t.wait(0, "wait");
+        unknown(&t.finish());
+    }
+}
+#[test]
+fn private_load_overwrite_and_completed_or_synthetic_end_are_inconclusive() {
+    for fault in 0..3 {
+        let mut t = Trace::new(1, private_premises());
+        t.scratch(true, 1, &[(0, 0)]);
+        match fault {
+            0 => {
+                t.ins(0, "vector ALU", 1, vec![], vec![v(0, 1)]);
+            }
+            1 => t.wait(0, "s_endpgm"),
+            _ => {}
+        }
+        unknown(&t.finish());
+    }
+}
+fn ordinary_load(t: &mut Trace, class: AmdMemoryClass, destination: AmdRegister) -> EventId {
+    let kind = if class == AmdMemoryClass::ScalarMemory {
+        "scalar memory"
+    } else {
+        "vector memory"
+    };
+    t.ins(0, kind, 1, vec![], vec![destination]);
+    let counters = match class {
+        AmdMemoryClass::ScalarMemory => vec![(AmdCounter::Lgkm, 1)],
+        AmdMemoryClass::Flat => vec![(AmdCounter::Vm, 1), (AmdCounter::Lgkm, 1)],
+        _ => vec![(AmdCounter::Vm, 1)],
+    };
+    let issue = t.b.amd_event(
+        0,
+        pc(kind),
+        AmdEventKind::MemoryIssue {
+            class,
+            counters,
+            destinations: vec![destination],
+            held_sources: vec![],
+        },
+    );
+    let effect = t.b.thread_access(
+        ThreadIx(0),
+        pc(kind),
+        MemAccess {
+            space: Space::Global,
+            mode: AccessMode::Read,
+            ordering: OrderingKind::Ordinary,
+            proxy: Proxy::Generic,
+            footprint: Footprint::Bytes {
+                addr: 0x10000,
+                width: 4,
+            },
+            role: OperandRole::Plain,
+            attributed: ThreadIx(0),
+            value: None,
+        },
+    );
+    t.b.amd_memory_effect(issue, effect);
+    issue
+}
+#[test]
+fn private_and_ordinary_vm_partial_waits_in_either_order_do_not_guess_completion() {
+    for private_first in [true, false] {
+        let mut t = Trace::new(1, private_premises());
+        if private_first {
+            t.scratch(true, 1, &[(0, 0)]);
+        }
+        ordinary_load(&mut t, AmdMemoryClass::VectorMemory, v(20, 1));
+        if !private_first {
+            t.scratch(true, 1, &[(0, 0)]);
+        }
+        t.wait(1, "wait");
+        t.ins(0, "scalar ALU", 0, vec![v(0, 1)], vec![]);
+        t.wait(0, "wait");
+        unknown(&t.finish());
+    }
+}
+#[test]
+fn ordinary_and_flat_counters_keep_their_own_remaining_obligations() {
+    for class in [AmdMemoryClass::VectorMemory, AmdMemoryClass::Flat] {
+        for private_first in [true, false] {
+            let mut t = Trace::new(1, private_premises());
+            if private_first {
+                t.scratch(true, 1, &[(0, 0)]);
+            }
+            ordinary_load(&mut t, class, v(20, 1));
+            if !private_first {
+                t.scratch(true, 1, &[(0, 0)]);
+            }
+            // VM0 clears private admission, but cannot discharge FLAT's LGKM.
+            t.ins(0, "wait", 0, vec![], vec![]);
+            t.b.amd_event(
+                0,
+                pc("wait"),
+                AmdEventKind::Wait {
+                    vmcnt: Some(0),
+                    lgkmcnt: None,
+                    expcnt: None,
+                },
+            );
+            t.ins(0, "scalar ALU", 0, vec![v(0, 1), v(20, 1)], vec![]);
+            let r = amdgpu::check_amdgpu(&t.finish());
+            assert_eq!(r.trace.verdict(), Verdict::Pass);
+            assert_eq!(
+                r.wait_readiness.verdict(),
+                if class == AmdMemoryClass::Flat {
+                    Verdict::Fail
+                } else {
+                    Verdict::Pass
+                }
+            );
+        }
+    }
+}
+#[test]
+fn smem_address_readiness_remains_a_proven_hazard_not_private_policy() {
+    let mut t = Trace::new(1, private_premises());
+    let issue = ordinary_load(&mut t, AmdMemoryClass::ScalarMemory, s(32));
+    t.scratch(true, 1, &[(0, 0)]);
+    t.wait(0, "wait");
+    let r = amdgpu::check_amdgpu(&t.finish());
+    assert_eq!(r.trace.verdict(), Verdict::Pass);
+    assert_eq!(r.wait_readiness.verdict(), Verdict::Fail);
+    assert!(
+        r.wait_readiness
+            .violations()
+            .iter()
+            .any(|h| h.issue == issue
+                && h.register == s(32)
+                && h.kind == amdgpu::AmdRegisterHazardKind::ReadBeforeReady)
+    );
+}
+#[test]
+fn new_private_and_lane_records_cannot_change_other_target_contracts() {
+    for target in ["gfx942", "gfx1250"] {
+        for private in [true, false] {
+            let mut t = Trace::new(1, if private { private_premises() } else { vec![] });
+            let mut provenance = t.b.graph_so_far().provenance().clone();
+            provenance.targets = vec![target.into()];
+            t.b = GraphBuilder::new(provenance);
+            if private {
+                t.scratch(true, 1, &[(0, 0)]);
+                t.wait(0, "wait");
+            } else {
+                t.lane(true, 0, 0, true);
+            }
+            unknown(&t.finish());
+        }
     }
 }
