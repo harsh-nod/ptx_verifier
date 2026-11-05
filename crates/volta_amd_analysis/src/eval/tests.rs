@@ -162,6 +162,7 @@ fn symbolic_mask_halves_are_replaced_by_scalar_writes_and_loads() {
         bits[32]
     );
     registers.start_scalar_load([Sgpr(9)], [zero]).unwrap();
+    registers.start_scalar_load([Sgpr(10)], [zero]).unwrap();
     assert_eq!(
         registers.read_lane_condition(&mut arena, 0, LaneMask::Sgprs(pair)),
         Err(EvalError::PendingSgpr(Sgpr(9)))
@@ -171,8 +172,12 @@ fn symbolic_mask_halves_are_replaced_by_scalar_writes_and_loads() {
         Err(EvalError::PendingSgpr(Sgpr(9)))
     );
     assert_eq!(registers.read_sgpr_word(&arena, Sgpr(8)).unwrap(), 0);
-    registers.finish_scalar_loads();
+    registers.finish_scalar_load(&[Sgpr(9)]);
     assert_eq!(registers.read_sgpr_pair(&arena, pair).unwrap(), 0);
+    assert_eq!(
+        registers.read_sgpr(Sgpr(10)),
+        Err(EvalError::PendingSgpr(Sgpr(10)))
+    );
     registers.write_lane_mask(&mut arena, pair, bits).unwrap();
     registers.start_scalar_load([Sgpr(8)], [zero]).unwrap();
     assert_eq!(

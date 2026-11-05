@@ -295,6 +295,8 @@ fn reports_instruction_error_location() {
         name: "test".into(),
         target: "amdgcn-amd-amdhsa--gfx950".into(),
         instructions: vec![instr("s_endpgm", &[]), instr("unknown", &[])],
+        // Byte ranges for the synthetic body "s_endpgm\nunknown".
+        spans: vec![(0, 8), (9, 16)],
         labels: Default::default(),
         descriptor: Default::default(),
     };
