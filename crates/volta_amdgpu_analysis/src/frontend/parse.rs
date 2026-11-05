@@ -1257,6 +1257,10 @@ pub(super) fn merge_descriptor_fields(
     fields: BTreeMap<String, u64>,
     span: SourceSpan,
 ) -> Result<(), ParseError> {
+    let private_sources = kernel
+        .descriptor
+        .get("private_segment_fixed_size")
+        .zip(fields.get("private_segment_fixed_size").copied());
     for (name, value) in fields {
         if kernel.descriptor.get(&name).is_some_and(|old| old != value) {
             return Err(ParseError {
@@ -1269,5 +1273,6 @@ pub(super) fn merge_descriptor_fields(
         }
         kernel.descriptor.fields.entry(name).or_insert(value);
     }
+    kernel.descriptor.private_segment_fixed_size_sources = private_sources;
     Ok(())
 }

@@ -179,6 +179,16 @@ fn analyze_internal(
             .map(|instruction| InstructionInfo {
                 kind: if instruction.mnemonic() == "global_atomic_add_f32" {
                     "atomic f32 add no return"
+                } else if crate::target::Architecture::from_target(
+                    module.target.as_deref().unwrap_or("gfx950"),
+                ) == Some(crate::target::Architecture::Gfx950)
+                    && matches!(instruction.mnemonic().as_str(), "v_readlane_b32" | "v_writelane_b32")
+                {
+                    if instruction.mnemonic() == "v_readlane_b32" { "readlane" } else { "writelane" }
+                } else if matches!(instruction.operation(), crate::ir::Operation::Memory(memory)
+                    if matches!(memory.kind, crate::ir::MemoryKind::ScratchLoad | crate::ir::MemoryKind::ScratchStore))
+                {
+                    if instruction.mnemonic() == "scratch_load_dword" { "scratch load" } else { "scratch store" }
                 } else if module
                     .target
                     .as_deref()

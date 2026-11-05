@@ -14,7 +14,9 @@ llvm-mc -triple=amdgcn-amd-amdhsa -mcpu=gfx950 -filetype=obj nested.s -o nested.
 Both complete assembly modules are accepted by that compiler's assembler. The
 leaf body uses a native wait, vector addition and scalar return. Its kernel also
 moves runtime queue-pointer registers; unavailable runtime inputs must remain a
-refusal. The nested helper spills through scratch memory and remains unsupported.
+refusal. The original nested module also reads unavailable runtime ABI inputs
+before reaching its helper; adding a bounded scratch profile does not supply
+those inputs or make the whole original module supported.
 Neither fixture justifies stubbing a function or dropping a prologue. The
 handwritten controls in `device_calls.rs` separately exercise successful calls,
 nesting, exact return identity, shared state and independent wait checking.

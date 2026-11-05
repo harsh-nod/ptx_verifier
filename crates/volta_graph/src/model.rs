@@ -595,11 +595,18 @@ pub enum Assumption {
     /// Native AMD execution uses default scheduling; expert-mode transitions
     /// and its separate register dependency counters are outside this profile.
     AmdDefaultScheduling,
+    /// The caller/frontend establishes a valid dispatch with this fixed number
+    /// of backed private bytes per physical work item, consistent with the
+    /// selected descriptor and metadata. Not inferred from an access or a frame.
+    FixedPrivateAllocation(u32),
 }
 
 impl Assumption {
     pub fn describe(self) -> &'static str {
         match self {
+            Assumption::FixedPrivateAllocation(_) => {
+                "the dispatch supplies the declared fixed private allocation for each physical work item; descriptor and metadata agree"
+            }
             Assumption::AmdDefaultScheduling => {
                 "native AMD execution uses default scheduling; expert scheduling and mode transitions are outside this result"
             }

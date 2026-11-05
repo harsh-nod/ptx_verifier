@@ -339,3 +339,9 @@ Text dumps without native AMD events retain `volta-graph 1`; graphs with AMD eve
 `volta-graph 2` and include their sidecar associations. The text dump is a diagnostic
 format, not an executable replay input. AMD rendezvous deadlocks use
 `BlockedOn::AmdBarrier` without inventing a PTX synchronization object.
+
+The gfx950 fixed-private profile records DWORD scratch accesses separately from
+Global/Shared effects. `FixedPrivateAllocation` is a valid-dispatch premise for
+backed bytes per physical work item, checked against producer descriptor and
+metadata; it is not inferred from a descriptor alone. Literal-lane markers
+identify the selected physical lane even when EXEC is zero.

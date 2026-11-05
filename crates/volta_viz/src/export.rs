@@ -775,6 +775,25 @@ fn describe(graph: &EventGraph, arena: &ExprArena, id: EventId) -> (&'static str
             };
             info.push(("wave", record.wave.to_string()));
             match &record.kind {
+                volta_graph::AmdEventKind::PrivateMemoryAccess {
+                    issue,
+                    thread,
+                    offset,
+                    width,
+                    kind,
+                } => {
+                    info.push(("issue", format!("{issue:?}")));
+                    info.push(("thread", thread.0.to_string()));
+                    info.push(("private offset", offset.to_string()));
+                    info.push(("bytes", width.to_string()));
+                    ("access", format!("private {kind:?}"))
+                }
+                volta_graph::AmdEventKind::LaneRead { lane } => {
+                    ("instruction", format!("read physical lane {lane}"))
+                }
+                volta_graph::AmdEventKind::LaneWrite { lane } => {
+                    ("instruction", format!("write physical lane {lane}"))
+                }
                 volta_graph::AmdEventKind::TensorAccessFault {
                     load,
                     descriptor,

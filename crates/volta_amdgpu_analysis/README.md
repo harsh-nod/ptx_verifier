@@ -72,7 +72,7 @@ and caller-matching continuations are checked.
 This finite profile follows [CDNA4 ISA §12.3](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
 and the pinned [LLVM SOP1 definitions](https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/lib/Target/AMDGPU/SOPInstructions.td#L312).
 External/GOT/loaded targets, arbitrary PC arithmetic, tailcalls, recursion and
-calls on other targets remain unsupported. Stack/private-memory instructions,
+calls on other targets remain unsupported. Private FLAT addressing,
 unavailable ABI inputs and unsupported called code still stop analysis; helper
 names never substitute for executing their bodies. This does not provide general
 ROCm device-library or hostcall execution.
@@ -127,8 +127,9 @@ AMDHSA argument offsets and sizes determine explicit kernarg layout. By-value
 arguments require exact caller-supplied bytes. Partial native loads preserve
 undefined padding bits; only consumers that use defined portions may proceed.
 Descriptor/configuration mismatches, uninitialized reads and out-of-bounds
-accesses are errors. Scratch/private execution and kernarg preloading are
-outside the selected profile.
+accesses are errors. Private FLAT addressing, buffer scratch, subword scratch,
+dynamic private capacity beyond the selected fixed extent and kernarg preloading
+remain outside the selected profile.
 
 PTX structured fields and host tensor maps are rejected by this backend; see the
 [parameter guide](../../docs/launch-parameters.md) for the public argument forms.
@@ -138,6 +139,55 @@ their runtime values are not supplied by the launch configuration. Enabling
 unused inputs is allowed and reserves their ABI register slots. Workgroup zero
 does not imply dispatch ID zero, and the descriptor's fixed private size does
 not determine the dispatch's runtime allocation.
+
+The selected gfx950 scratch profile assumes a valid AMDHSA dispatch backing at
+least the selected kernel's declared fixed private bytes per work item. Both an
+explicit descriptor and matching metadata declaration are required and recorded
+as `FixedPrivateAllocation`; no runtime private base or extra dynamic capacity is
+invented. A dynamic-stack metadata flag alone does not reject an execution whose
+actual intervals all fit that fixed extent. Calls still execute their original
+stack-pointer adjustments without allocating or resetting a model frame.
+
+Only bare `scratch_load_dword Vdst, off, Saddr` and
+`scratch_store_dword off, Vdata, Saddr` are selected: plain numbered one-word
+registers, signed 13-bit optional byte offset, and either default cache policy or the
+compiler's exact `sc0 sc1` policy. Every active interval must be aligned,
+nonwrapping and inside the declared extent. Private DWORD cells are separate for
+each physical work item and have no Global/LDS effects. All active inputs and
+payloads are captured before an issue or mutation; empty EXEC observes no sources
+and emits no issue. Unwritten cells remain uninitialized.
+
+Private cells preserve exact word tags, including ordered return PCs, linked
+values and undefined bits. In programs using this scratch profile, pure numbered
+SGPR `s_mov_b32` and selected lane/spill transport can copy an unspecified word
+with no defined bits; this does not define its value. Any later numerical, address,
+control or output observation must still satisfy ordinary definedness rules.
+Global/LDS stores have no corresponding relaxation.
+
+The finite private-memory admission rule requires an explicit decoded VM0 before
+a private load following a store, overwrite of a stored data register, use or
+overwrite of a pending private-load destination, or END with private work pending.
+While any private load or store is pending, nonzero VM waits (including the
+maximum threshold) are outside the profile, even if only an ordinary load result
+is consumed. Ordinary-only partial waits retain their existing behavior. Calls
+and returns never clear private work, and an LGKM-only wait does not release it. A
+violation stops analysis as Unsupported with no outputs; the independent checker
+also refuses the graph. This conservative profile is not a new architectural
+bug claim or a theorem about unrestricted scratch forwarding. Loads use normal
+VM destination readiness. See public [CDNA4 ISA sections 4.4, 9.1.10.2, 10.5](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
+and the pinned [LLVM scratch definitions](https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/lib/Target/AMDGPU/FLATInstructions.td).
+
+Bare gfx950 `v_readlane_b32`/`v_writelane_b32` additionally select one literal
+launched lane in 0..63 and plain SGPR/VGPR words. They copy exactly one word even
+under empty EXEC, with dedicated provenance/semantic markers and independent
+Table 11 software-delay checks. Register lane selectors and legacy
+`v_readfirstlane_b32` remain unsupported for execution. The broader existing
+parser grammar remains recognized; whole-selected-program admission checks
+unreachable instructions and called helpers before any instruction or observer
+callback, leaving unselected entries and uncalled helpers unaffected.
+Existing gfx1250 lane profiles are
+unchanged. Complete compiler-source examples and all 64 output specifications are
+in the [private-call fixtures](tests/fixtures/device-private/README.md).
 
 Global allocations are byte-addressed, bounded and disjoint. Wide transfers
 retain each register-sized granule and its exact footprint. Optional
@@ -404,7 +454,7 @@ special destinations remain unsupported. This identity supplies no numeric
 aperture bits or additional pointer arithmetic. See the
 [scalar address controls](tests/scalar_address.rs).
 
-On gfx942/gfx950, bare `v_lshl_add_u64` also preserves that private aperture tag
+On gfx942/gfx950, bare `v_lshl_add_u64` also preserves that shared aperture tag
 for one exact identity: an unmodified plain SGPR base pair, integer immediate
 shift zero, and a fully defined plain VGPR addend pair whose high word is zero.
 The low-word sum must not carry. Both source halves are read before an aliased
