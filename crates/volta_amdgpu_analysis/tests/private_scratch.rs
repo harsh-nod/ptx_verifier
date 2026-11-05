@@ -254,6 +254,122 @@ fn partial_waits_never_certify_a_conservative_private_load_ordering() {
 }
 
 #[test]
+fn mixed_global_private_loads_refuse_partial_and_max_vm_waits_before_ordinary_use() {
+    let prologue = "s_mov_b32 s4,0\nv_mov_b32 v1,7\nscratch_store_dword off,v1,s4\ns_waitcnt vmcnt(0)\ns_mov_b32 s6,0x10000\ns_mov_b32 s7,0\ns_mov_b32 s8,0x20000\ns_mov_b32 s9,0\nv_lshlrev_b32 v3,2,v0\n";
+    let global = "global_load_dword v6,v3,s[6:7]\n";
+    let private = "scratch_load_dword v4,off,s4\n";
+    let consumer = "v_mov_b32 v2,v6\ns_waitcnt vmcnt(0)\nglobal_store_dword v3,v2,s[8:9]\ns_waitcnt vmcnt(0)\n";
+    for issues in [global.to_owned() + private, private.to_owned() + global] {
+        for threshold in [0, 1, 63] {
+            let text = source(&format!(
+                "{prologue}{issues}s_waitcnt vmcnt({threshold})\n{consumer}"
+            ));
+            let module = frontend::parse(&text).unwrap();
+            let mut cfg = config(64);
+            cfg.arrays.push(ArrayDef {
+                name: "x".into(),
+                base: 0x10000,
+                elem_width: 4,
+                len: 64,
+                kind: ArrayKind::Input,
+            });
+            let result = analyze(&module, Some("k"), cfg).unwrap();
+            assert_eq!(private_issues(&result, true), 1);
+            if threshold == 0 {
+                safe(&result);
+                assert_input_copy(&result);
+            } else {
+                assert_nonzero_vm_refused_before_record(&result);
+            }
+        }
+    }
+}
+
+fn assert_nonzero_vm_refused_before_record(result: &AnalysisResult) {
+    unsupported(result, "nonzero VM wait with private work pending");
+    let Terminal::Aborted { pc: Some(pc), .. } = result.graph().terminal() else {
+        panic!("typed wait refusal has a PC")
+    };
+    assert!(
+        !result
+            .graph()
+            .amd_events()
+            .iter()
+            .any(|record| result.graph().event(record.event).pc == Some(*pc))
+    );
+    assert!(
+        !result
+            .graph()
+            .amd_memory_effects()
+            .iter()
+            .any(|effect| result.graph().event(effect.effect).pc == Some(*pc))
+    );
+    assert!(matches!(
+        check_graph(result.graph()).conclusion(),
+        GraphConclusion::Unknown { .. }
+    ));
+}
+
+fn assert_input_copy(result: &AnalysisResult) {
+    let outputs = result.symbolic_outputs().unwrap();
+    assert_eq!(outputs.outputs[0].1.len(), 64);
+    for index in 0..64 {
+        let volta_expr::ExprNode::InputElement {
+            array,
+            index: actual,
+        } = outputs.arena.node(outputs.element("out", index).unwrap())
+        else {
+            panic!("ordinary load result preserves its complete input identity")
+        };
+        assert_eq!(outputs.arena.string(*array), "x");
+        assert_eq!(*actual, index);
+    }
+}
+
+#[test]
+fn private_store_alone_refuses_nonzero_vm_wait_even_without_a_dependent_use() {
+    for threshold in [1, 63] {
+        let result = run(
+            &format!(
+                "s_mov_b32 s4,0\nv_mov_b32 v1,7\nscratch_store_dword off,v1,s4\ns_waitcnt vmcnt({threshold})\ns_waitcnt vmcnt(0)\nv_mov_b32 v2,7\n{}",
+                output()
+            ),
+            64,
+        );
+        assert_eq!(private_issues(&result, false), 1);
+        assert_nonzero_vm_refused_before_record(&result);
+    }
+}
+
+#[test]
+fn ordinary_only_partial_and_max_vm_waits_keep_the_existing_fifo_profile() {
+    for waits in [
+        "s_waitcnt vmcnt(1)\nv_mov_b32 v2,v6\ns_waitcnt vmcnt(0)\n",
+        "s_waitcnt vmcnt(63)\ns_waitcnt vmcnt(0)\nv_mov_b32 v2,v6\n",
+    ] {
+        let text = source(&format!(
+            "s_mov_b32 s6,0x10000\ns_mov_b32 s7,0\ns_mov_b32 s8,0x20000\ns_mov_b32 s9,0\nv_lshlrev_b32 v3,2,v0\nglobal_load_dword v6,v3,s[6:7]\nglobal_load_dword v7,v3,s[6:7]\n{waits}global_store_dword v3,v2,s[8:9]\ns_waitcnt vmcnt(0)\n"
+        ));
+        let module = frontend::parse(&text).unwrap();
+        let mut cfg = config(64);
+        cfg.arrays.push(ArrayDef {
+            name: "x".into(),
+            base: 0x10000,
+            elem_width: 4,
+            len: 64,
+            kind: ArrayKind::Input,
+        });
+        let result = analyze(&module, Some("k"), cfg).unwrap();
+        safe(&result);
+        assert_input_copy(&result);
+        assert_eq!(
+            private_issues(&result, true) + private_issues(&result, false),
+            0
+        );
+    }
+}
+
+#[test]
 fn unspecified_word_spills_stay_undefined_and_do_not_change_nonprivate_mov() {
     let body = "s_mov_b32 s6,s33\nv_mov_b32 v1,s6\ns_mov_b32 s4,0\nscratch_store_dword off,v1,s4\ns_waitcnt vmcnt(0)\nscratch_load_dword v2,off,s4\ns_waitcnt vmcnt(0)\n";
     let transported = run(&format!("{body}v_mov_b32 v2,7\n{}", output()), 64);

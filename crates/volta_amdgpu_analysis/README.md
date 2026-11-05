@@ -166,8 +166,11 @@ Global/LDS stores have no corresponding relaxation.
 
 The finite private-memory admission rule requires an explicit decoded VM0 before
 a private load following a store, overwrite of a stored data register, use or
-overwrite of a pending private-load destination, or END with private work pending. Calls and returns
-never clear it, and neither an LGKM-only wait nor VM1 substitutes for VM0. A
+overwrite of a pending private-load destination, or END with private work pending.
+While any private load or store is pending, nonzero VM waits (including the
+maximum threshold) are outside the profile, even if only an ordinary load result
+is consumed. Ordinary-only partial waits retain their existing behavior. Calls
+and returns never clear private work, and an LGKM-only wait does not release it. A
 violation stops analysis as Unsupported with no outputs; the independent checker
 also refuses the graph. This conservative profile is not a new architectural
 bug claim or a theorem about unrestricted scratch forwarding. Loads use normal

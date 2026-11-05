@@ -119,8 +119,15 @@ impl State {
                 if memory.kind == MemoryKind::ScratchLoad);
         let end = matches!(instruction.operation(), Operation::Control(control)
             if control.operation == ControlOperation::EndProgram);
+        // Private classes use conservative independent completion slots. Even
+        // an ordinary destination can rely on mixed NoSampler FIFO ordering,
+        // so do not admit a partial/max VM wait while private work is pending.
+        let nonzero_vm_wait = matches!(instruction.operation(),
+            Operation::Wait(WaitInstruction::Cdna { vmcnt: Some(threshold), .. })
+                if *threshold != 0);
         if (!held.is_empty() && dependent_load)
             || (end && (!held.is_empty() || !pending.is_empty()))
+            || (nonzero_vm_wait && (!held.is_empty() || !pending.is_empty()))
             || writes
                 .iter()
                 .any(|write| held.iter().any(|source| write.overlaps(*source)))
@@ -132,7 +139,7 @@ impl State {
         {
             return Err(EvalError::Unsupported {
                 pc: wave.pc,
-                what: "selected private-memory profile requires explicit VM0 before a dependent private load, stored-source overwrite, loaded-destination use/overwrite or END".into(),
+                what: "selected private-memory profile requires explicit VM0 before a dependent private load, stored-source overwrite, loaded-destination use/overwrite, END or nonzero VM wait with private work pending".into(),
             });
         }
         Ok(())
