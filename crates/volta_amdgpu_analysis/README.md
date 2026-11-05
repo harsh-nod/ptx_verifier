@@ -159,8 +159,8 @@ and emits no issue. Unwritten cells remain uninitialized.
 
 Private cells preserve exact word tags, including ordered return PCs, linked
 values and undefined bits. In programs using this scratch profile, pure numbered
-SGPR `s_mov_b32` and selected lane/spill transport can copy an unspecified word as
-zero **known** bits; this does not define its value. Any later numerical, address,
+SGPR `s_mov_b32` and selected lane/spill transport can copy an unspecified word
+with no defined bits; this does not define its value. Any later numerical, address,
 control or output observation must still satisfy ordinary definedness rules.
 Global/LDS stores have no corresponding relaxation.
 

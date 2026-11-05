@@ -349,7 +349,7 @@ fn recursive_calls_and_unreachable_unresolved_calls_fail_closed() {
 fn unsupported_helpers_are_cataloged_but_never_executed_as_parsed_prefixes() {
     let helper = body(
         "leaf",
-        "v_mov_b32 v1,7\nscratch_load_dword v0,off,s32\ns_setpc_b64 s[30:31]",
+        "v_mov_b32 v1,7\nscratch_load_dwordx2 v[0:1],off,s32\ns_setpc_b64 s[30:31]",
     );
     let uncalled = frontend::parse(&module("s_endpgm", &helper)).unwrap();
     assert!(uncalled.functions[0].refusal.is_some());
@@ -404,6 +404,25 @@ fn uncalled_helpers_do_not_change_no_call_executable_pcs() {
 
 #[test]
 fn complete_compiler_modules_retain_unavailable_runtime_abi_refusal() {
+    let unavailable_dispatch_id = |result: &volta_amdgpu_analysis::AnalysisResult,
+                                   program: &ir::LoweredKernel| {
+        assert!(
+            result
+                .symbolic_outputs()
+                .unwrap_err()
+                .to_string()
+                .contains("uninitialized Scalar register 6")
+        );
+        let volta_graph::Terminal::Aborted { pc: Some(pc), .. } = result.graph().terminal() else {
+            panic!("runtime ABI failure has a source PC")
+        };
+        let instruction = &program.instructions[pc.0 as usize];
+        assert_eq!(instruction.mnemonic(), "s_mov_b64");
+        assert!(
+            matches!(instruction.operands()[1], ir::Operand::Register(register)
+            if register.class == ir::RegisterClass::Scalar && register.index == 6 && register.count == 2)
+        );
+    };
     const LEAF: &str = include_str!("fixtures/device-calls/leaf.s");
     const NESTED: &str = include_str!("fixtures/device-calls/nested.s");
     let leaf = frontend::parse(LEAF).unwrap();
@@ -421,13 +440,7 @@ fn complete_compiler_modules_retain_unavailable_runtime_abi_refusal() {
     let mut cfg = config(1);
     cfg.params = vec![volta_amdgpu_analysis::ParamValue::ArrayPtr("out".into())];
     let result = analyze(&leaf, Some("device_call_leaf"), cfg).unwrap();
-    assert!(
-        result
-            .symbolic_outputs()
-            .unwrap_err()
-            .to_string()
-            .contains("uninitialized")
-    );
+    unavailable_dispatch_id(&result, &lowered);
     let nested = frontend::parse(NESTED).unwrap();
     assert_eq!(nested.source, NESTED);
     let outer = nested
@@ -444,13 +457,7 @@ fn complete_compiler_modules_retain_unavailable_runtime_abi_refusal() {
     let mut cfg = config(1);
     cfg.params = vec![volta_amdgpu_analysis::ParamValue::ArrayPtr("out".into())];
     let stopped = analyze(&nested, Some("device_call_nested"), cfg).unwrap();
-    assert!(
-        stopped
-            .symbolic_outputs()
-            .unwrap_err()
-            .to_string()
-            .contains("uninitialized")
-    );
+    unavailable_dispatch_id(&stopped, &lowered);
 }
 
 #[test]
