@@ -258,7 +258,7 @@ fn private_visibility_and_payload_reuse_require_explicit_source_vm0() {
     }
 }
 #[test]
-fn real_load_destination_hazards_are_failures_after_admission() {
+fn private_load_destination_consumption_before_vm0_is_unknown() {
     let mut t = Trace::new(
         1,
         vec![
@@ -269,8 +269,8 @@ fn real_load_destination_hazards_are_failures_after_admission() {
     t.scratch(true, 1, &[(0, 0)]);
     t.ins(0, "scalar ALU", 1, vec![v(0, 1)], vec![]);
     let r = amdgpu::check_amdgpu(&t.finish());
-    assert_eq!(r.trace.verdict(), Verdict::Pass);
-    assert_eq!(r.wait_readiness.verdict(), Verdict::Fail);
+    assert_eq!(r.trace.verdict(), Verdict::Unknown);
+    assert_eq!(r.wait_readiness.verdict(), Verdict::Unknown);
 }
 #[test]
 fn lane_operations_ignore_exec_but_require_launched_lane_and_marker() {

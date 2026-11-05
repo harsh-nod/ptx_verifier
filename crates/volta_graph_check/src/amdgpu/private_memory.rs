@@ -107,6 +107,7 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
     let mut claimed = HashSet::new();
     let mut transfers = HashMap::<EventId, Transfer>::new();
     let mut held = HashMap::<u32, Vec<AmdRegister>>::new();
+    let mut loaded = HashMap::<u32, Vec<AmdRegister>>::new();
     let mut uses_scratch = false;
     for record in graph.amd_events() {
         match &record.kind {
@@ -127,6 +128,15 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                     errors.push(Unresolved::at(record.event,
                         "private VM0 profile does not admit store-data overwrite before an explicit VM0"));
                 }
+                if loaded.get(&record.wave).is_some_and(|destinations| {
+                    reads
+                        .iter()
+                        .chain(writes)
+                        .any(|r| destinations.iter().any(|d| r.overlaps(*d)))
+                }) {
+                    errors.push(Unresolved::at(record.event,
+                        "private VM0 profile does not admit load-destination read or overwrite before an explicit VM0"));
+                }
                 match kind(graph, record) {
                     Some("scratch load" | "scratch store") => {
                         uses_scratch = true;
@@ -141,9 +151,12 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                                 "private VM0 profile requires an explicit VM0 between a private store and a later private load"));
                         }
                     }
-                    Some("s_endpgm") if held.get(&record.wave).is_some_and(|s| !s.is_empty()) => {
+                    Some("s_endpgm")
+                        if held.get(&record.wave).is_some_and(|s| !s.is_empty())
+                            || loaded.get(&record.wave).is_some_and(|s| !s.is_empty()) =>
+                    {
                         errors.push(Unresolved::at(record.event,
-                            "private VM0 profile requires a source VM0 before ending with pending private stores"));
+                            "private VM0 profile requires a source VM0 before ending with pending private accesses"));
                     }
                     _ => {}
                 }
@@ -200,7 +213,9 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                 {
                     errors.push(Unresolved::at(record.event, "scratch DWORD issue does not match its exact gfx950 source/operand/counter profile"));
                 }
-                if !load {
+                if load {
+                    loaded.entry(record.wave).or_default().extend(destinations);
+                } else {
                     held.entry(record.wave).or_default().extend(held_sources);
                 }
                 if transfers
@@ -267,6 +282,7 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                     && graph.event(instruction.event).pc == graph.event(record.event).pc
                 {
                     held.remove(&record.wave);
+                    loaded.remove(&record.wave);
                 }
             }
             AmdEventKind::LaneRead { lane } | AmdEventKind::LaneWrite { lane } => {
@@ -314,10 +330,11 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
         require_semantic(graph, instruction, &claimed, &mut errors);
     }
     if matches!(graph.terminal(), volta_graph::Terminal::Completed)
-        && held.values().any(|sources| !sources.is_empty())
+        && (held.values().any(|sources| !sources.is_empty())
+            || loaded.values().any(|destinations| !destinations.is_empty()))
     {
         errors.push(Unresolved::global(
-            "completed private execution retains a store without an explicit source VM0",
+            "completed private execution retains an access without an explicit source VM0",
         ));
     }
     if uses_scratch
