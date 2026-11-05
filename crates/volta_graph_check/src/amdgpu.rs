@@ -907,6 +907,10 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
     // EXEC scheduling is a dependency on a prior VALU instruction, not on the
     // currently reaching scalar value. A later SALU EXEC restore does not erase it.
     let mut lane_exec_valu_writes = vec![[None::<(EventId, u64)>; 2]; waves];
+    // New lane/private consumers require scheduling history even when a SALU
+    // later changes the same scalar value. Keep old consumers' policy intact.
+    let mut private_lane_valu_writes = vec![HashMap::<u16, (EventId, u64)>::new(); waves];
+    let mut readlane_scalar_writes = vec![HashMap::<u16, (EventId, u64)>::new(); waves];
     let mut matrix_at = HashMap::new();
     let mut dma_at = HashSet::new();
     let mut m0_salu_writes = vec![None::<(EventId, u64)>; waves];
@@ -991,6 +995,10 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                 // EXEC126/127 has a separate four-state VALU→MFMA rule in
                 // CDNA4 §7.6 Table38, including writes that leave EXEC unchanged.
                 scalar_valu_writes[wave].retain(|_, (_, issued)| tick.saturating_sub(*issued) <= 5);
+                private_lane_valu_writes[wave]
+                    .retain(|_, (_, issued)| tick.saturating_sub(*issued) <= 5);
+                readlane_scalar_writes[wave]
+                    .retain(|_, (_, issued)| tick.saturating_sub(*issued) <= 5);
                 let scalar_wait = if matches!(
                     instruction_kind,
                     "vector memory" | "scratch load" | "scratch store"
@@ -1008,7 +1016,23 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                     r.file == AmdRegisterFile::Scalar
                         && !scalar_mask_reads.iter().any(|mask| mask.overlaps(**r))
                 }) {
-                    if let Some(&(issue, issued)) = scalar_valu_writes[wave].get(&register.index) {
+                    let mut definition = scalar_valu_writes[wave].get(&register.index).copied();
+                    if matches!(
+                        instruction_kind,
+                        "writelane" | "scratch load" | "scratch store"
+                    ) {
+                        definition = definition
+                            .into_iter()
+                            .chain(private_lane_valu_writes[wave].get(&register.index).copied())
+                            .max_by_key(|(_, tick)| *tick);
+                    }
+                    if scalar_wait != 0 {
+                        definition = definition
+                            .into_iter()
+                            .chain(readlane_scalar_writes[wave].get(&register.index).copied())
+                            .max_by_key(|(_, tick)| *tick);
+                    }
+                    if let Some((issue, issued)) = definition {
                         let required = if matrix_at.contains_key(&record.event)
                             && matches!(register.index, 126 | 127)
                         {
@@ -1260,6 +1284,11 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                     scalar_valu_writes[wave].remove(&register.index);
                     if private_memory::valu(instruction_kind) {
                         scalar_valu_writes[wave].insert(register.index, (record.event, tick));
+                        private_lane_valu_writes[wave].insert(register.index, (record.event, tick));
+                        if instruction_kind == "readlane" {
+                            readlane_scalar_writes[wave]
+                                .insert(register.index, (record.event, tick));
+                        }
                         if matches!(register.index, 126 | 127) {
                             lane_exec_valu_writes[wave][usize::from(register.index - 126)] =
                                 Some((record.event, tick));

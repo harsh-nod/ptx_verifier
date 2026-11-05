@@ -320,6 +320,16 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
             "completed private execution retains a store without an explicit source VM0",
         ));
     }
+    if uses_scratch
+        && (!graph.provenance().assumes(Assumption::XnackReplayDisabled)
+            || graph
+                .provenance()
+                .targets
+                .iter()
+                .any(|t| t.split(':').any(|feature| feature == "xnack+")))
+    {
+        errors.push(Unresolved::global("selected scratch profile requires XNACK replay disabled without a contradictory target feature"));
+    }
     if uses_scratch && limit.is_none() {
         errors.push(Unresolved::global("scratch execution requires exactly one fixed-private valid-dispatch allocation premise"));
     }

@@ -181,7 +181,13 @@ fn pass(g: &EventGraph) {
 }
 #[test]
 fn same_offset_is_private_to_each_physical_thread() {
-    let mut t = Trace::new(64, vec![Assumption::FixedPrivateAllocation(8)]);
+    let mut t = Trace::new(
+        64,
+        vec![
+            Assumption::FixedPrivateAllocation(8),
+            Assumption::XnackReplayDisabled,
+        ],
+    );
     let offsets: Vec<_> = (0..64).map(|i| (i, 4)).collect();
     t.scratch(false, u64::MAX, &offsets);
     t.wait(0, "wait");
@@ -212,7 +218,13 @@ fn membership_and_checked_complete_dword_bounds_are_required() {
         vec![(0, 8)],
         vec![(0, u64::MAX - 3)],
     ] {
-        let mut t = Trace::new(2, vec![Assumption::FixedPrivateAllocation(8)]);
+        let mut t = Trace::new(
+            2,
+            vec![
+                Assumption::FixedPrivateAllocation(8),
+                Assumption::XnackReplayDisabled,
+            ],
+        );
         t.scratch(true, 1, &offsets);
         t.wait(0, "wait");
         unknown(&t.finish());
@@ -221,7 +233,13 @@ fn membership_and_checked_complete_dword_bounds_are_required() {
 #[test]
 fn private_visibility_and_payload_reuse_require_explicit_source_vm0() {
     for mode in 0..4 {
-        let mut t = Trace::new(1, vec![Assumption::FixedPrivateAllocation(8)]);
+        let mut t = Trace::new(
+            1,
+            vec![
+                Assumption::FixedPrivateAllocation(8),
+                Assumption::XnackReplayDisabled,
+            ],
+        );
         t.scratch(false, 1, &[(0, 0)]);
         match mode {
             0 => {
@@ -241,7 +259,13 @@ fn private_visibility_and_payload_reuse_require_explicit_source_vm0() {
 }
 #[test]
 fn real_load_destination_hazards_are_failures_after_admission() {
-    let mut t = Trace::new(1, vec![Assumption::FixedPrivateAllocation(8)]);
+    let mut t = Trace::new(
+        1,
+        vec![
+            Assumption::FixedPrivateAllocation(8),
+            Assumption::XnackReplayDisabled,
+        ],
+    );
     t.scratch(true, 1, &[(0, 0)]);
     t.ins(0, "scalar ALU", 1, vec![v(0, 1)], vec![]);
     let r = amdgpu::check_amdgpu(&t.finish());
@@ -342,5 +366,81 @@ fn salu_exec_restore_does_not_cancel_the_prior_valu_lane_delay() {
                         && h.kind == amdgpu::AmdRegisterHazardKind::ValuLaneExecBeforeReady)
             );
         }
+    }
+}
+
+#[test]
+fn salu_data_restore_does_not_cancel_readlane_to_writelane_delay() {
+    for padding in [0, 1] {
+        let mut t = Trace::new(2, vec![]);
+        t.lane(true, 0, 0, true);
+        t.ins(0, "scalar ALU", 0, vec![], vec![s(8)]);
+        if padding > 0 {
+            t.nop(0, padding);
+        }
+        t.lane(false, 1, 0, true);
+        let r = amdgpu::check_amdgpu(&t.finish());
+        assert_eq!(r.trace.verdict(), Verdict::Pass);
+        assert_eq!(
+            r.wait_readiness.verdict(),
+            if padding == 1 {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            }
+        );
+    }
+}
+
+#[test]
+fn scratch_address_needs_five_states_after_lane_sgpr_even_after_salu_restore() {
+    for padding in [3, 4] {
+        let mut t = Trace::new(
+            1,
+            vec![
+                Assumption::FixedPrivateAllocation(8),
+                Assumption::XnackReplayDisabled,
+            ],
+        );
+        t.ins(0, "readlane", 0, vec![v(0, 1)], vec![s(32)]);
+        t.b.amd_event(0, pc("readlane"), AmdEventKind::LaneRead { lane: 0 });
+        t.ins(0, "scalar ALU", 0, vec![], vec![s(32)]);
+        t.nop(0, padding);
+        t.scratch(true, 1, &[(0, 0)]);
+        t.wait(0, "wait");
+        let r = amdgpu::check_amdgpu(&t.finish());
+        assert_eq!(r.trace.verdict(), Verdict::Pass);
+        assert_eq!(
+            r.wait_readiness.verdict(),
+            if padding == 4 {
+                Verdict::Pass
+            } else {
+                Verdict::Fail
+            }
+        );
+    }
+}
+
+#[test]
+fn scratch_xnack_profile_is_explicit_and_not_contradicted_by_target() {
+    for (target, premise, valid) in [
+        ("gfx950", true, true),
+        ("gfx950:xnack-", true, true),
+        ("gfx950", false, false),
+        ("gfx950:xnack+", true, false),
+    ] {
+        let mut assumptions = vec![Assumption::FixedPrivateAllocation(8)];
+        if premise {
+            assumptions.push(Assumption::XnackReplayDisabled);
+        }
+        let mut t = Trace::new(1, assumptions);
+        // Change only target through a fresh builder; all records stay identical.
+        let mut provenance = t.b.graph_so_far().provenance().clone();
+        provenance.targets = vec![target.into()];
+        t.b = GraphBuilder::new(provenance);
+        t.scratch(true, 1, &[(0, 0)]);
+        t.wait(0, "wait");
+        let graph = t.finish();
+        if valid { pass(&graph) } else { unknown(&graph) }
     }
 }
