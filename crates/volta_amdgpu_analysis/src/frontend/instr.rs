@@ -1945,22 +1945,6 @@ pub(super) fn validate_registers(
             }
         }
         Opcode::VectorAlu => {
-            if architecture == crate::target::Architecture::Gfx950
-                && matches!(stem, "v_readlane_b32" | "v_writelane_b32")
-            {
-                let read = stem == "v_readlane_b32";
-                if mnemonic != stem
-                    || !modifiers.is_empty()
-                    || !matches!(operands[0], Operand::Register(r)
-                        if r.count == 1 && r.class == if read { Scalar } else { Vector })
-                    || !matches!(operands[1], Operand::Register(r)
-                        if r.count == 1 && r.class == if read { Vector } else { Scalar })
-                    || !matches!(operands[2], Operand::Integer(0..=63))
-                {
-                    return Err("selected gfx950 lane transport requires bare plain SGPR/VGPR words and literal lane0..63".into());
-                }
-                return Ok(());
-            }
             if architecture == crate::target::Architecture::Gfx1250
                 && matches!(stem, "v_cvt_f32_ubyte0" | "v_cvt_f32_ubyte3")
                 && (!modifiers.is_empty()

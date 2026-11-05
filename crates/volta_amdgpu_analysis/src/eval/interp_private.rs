@@ -6,6 +6,43 @@
 //! explicit VM0. Violating that conservative profile is Unsupported, never a bug.
 use super::*;
 
+/// Recognizing an old assembly form does not admit it for execution. Scan the
+/// complete selected entry/called closure, including unreachable instructions,
+/// before the scheduler, any Instruction record or an observer callback. The
+/// immutable source identity retains suffix/encoding and modifiers; lane B32
+/// operands have no f64/implicit-operand source normalization.
+pub(super) fn admit_lane_program(
+    program: &LoweredKernel,
+    architecture: AmdArchitecture,
+) -> Result<(), EvalError> {
+    if architecture != AmdArchitecture::Gfx950 {
+        return Ok(());
+    }
+    for (pc, instruction) in program.instructions.iter().enumerate() {
+        let (read, name) = match instruction.alu_operation() {
+            Some(AluOperation::Opcode(AluOpcode::VReadlaneB32)) => (true, "v_readlane_b32"),
+            Some(AluOperation::Opcode(AluOpcode::VWritelaneB32)) => (false, "v_writelane_b32"),
+            _ => continue,
+        };
+        if instruction.mnemonic() != name
+            || instruction.source().encoding != Encoding::Default
+            || !instruction.modifiers().is_empty()
+            || !matches!(instruction.operands(),
+                [Operand::Register(destination), Operand::Register(source), Operand::Integer(0..=63)]
+                    if destination.count == 1 && source.count == 1
+                        && destination.special.is_none() && source.special.is_none()
+                        && destination.class == if read { RegisterClass::Scalar } else { RegisterClass::Vector }
+                        && source.class == if read { RegisterClass::Vector } else { RegisterClass::Scalar })
+        {
+            return Err(EvalError::Unsupported {
+                pc,
+                what: "selected gfx950 lane execution requires bare plain SGPR/VGPR words and a literal lane 0..63".into(),
+            });
+        }
+    }
+    Ok(())
+}
+
 pub(super) fn lane(wave: &Wave, instruction: &Instruction) -> Result<u8, EvalError> {
     let Some(Operand::Integer(lane @ 0..=63)) = instruction.operands().get(2) else {
         return Err(wave.fail(None, "selected lane transport requires a literal lane"));

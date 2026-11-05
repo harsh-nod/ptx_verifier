@@ -1406,6 +1406,7 @@ impl<'a> Interpreter<'a> {
         Ok(outputs)
     }
     fn run(&mut self, mut observer: Option<&mut InstructionObserver<'_>>) -> Result<(), EvalError> {
+        private::admit_lane_program(self.program, self.architecture)?;
         loop {
             if self.waves.iter().all(|wave| wave.exited) {
                 return Ok(());

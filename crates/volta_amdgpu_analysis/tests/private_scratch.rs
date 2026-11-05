@@ -320,6 +320,162 @@ fn lane_transport_is_exec_independent_but_cannot_reach_unlaunched_lanes() {
     unsupported(&outside, "outside the launch");
 }
 
+fn lane_profile_refuses_before_execution(module: &frontend::Module, kernel: &str) {
+    let program = lower::lower_module_kernel(module, kernel).unwrap();
+    // Recognition/lowering retains the original source identity. Admission is
+    // a whole-program runtime Unsupported result, not a parse/constructor error.
+    let expected_pc = program
+        .instructions
+        .iter()
+        .position(|instruction| {
+            instruction.mnemonic().starts_with("v_readlane_b32")
+                || instruction.mnemonic().starts_with("v_writelane_b32")
+        })
+        .unwrap();
+    let mut config = config(64);
+    config.early_memory_conflicts = true;
+    let mut callbacks = 0;
+    let result =
+        volta_amdgpu_analysis::analyze_with_observer(module, Some(kernel), config, &mut |_| {
+            callbacks += 1;
+            std::ops::ControlFlow::Continue(())
+        })
+        .expect("recognized selected program produces an aborted result");
+    unsupported(&result, "selected gfx950 lane execution");
+    assert!(
+        matches!(result.graph().terminal(), Terminal::Aborted { pc: Some(pc), .. } if pc.0 as usize == expected_pc)
+    );
+    assert_eq!(result.stats.instructions, 0);
+    assert_eq!(callbacks, 0);
+    assert!(result.graph().amd_events().is_empty());
+    assert!(result.graph().amd_memory_effects().is_empty());
+    assert!(matches!(
+        check_graph(result.graph()).conclusion(),
+        GraphConclusion::Unknown { .. }
+    ));
+}
+
+#[test]
+fn complete_portable_f16_module_keeps_its_sgpr_selector_parser_grammar() {
+    const COMPLETE: &str = include_str!("../src/frontend/fixtures/portable-f16.s");
+    let module = frontend::parse(COMPLETE).unwrap();
+    assert_eq!(module.source, COMPLETE);
+    assert_eq!(module.kernels.len(), 9);
+    let reduction = module
+        .kernels
+        .iter()
+        .find(|kernel| kernel.name == "reduction_f16")
+        .unwrap();
+    let lane = reduction
+        .instructions
+        .iter()
+        .find(|instruction| instruction.mnemonic == "v_readlane_b32")
+        .unwrap();
+    assert_eq!(lane.span.line, 737);
+    assert!(
+        matches!(lane.operands[2], frontend::Operand::Register(register)
+        if register.class == frontend::RegisterClass::Scalar && register.index == 2 && register.count == 1)
+    );
+}
+
+#[test]
+fn broader_recognized_lane_forms_never_reach_execution_or_observers() {
+    // Prior recognized grammar is preserved; these are not assertions that
+    // every spelling is an encodable hardware form or a supported operation.
+    for spelling in [
+        "v_readlane_b32 s4,v1,s2",
+        "v_writelane_b32 v1,s4,s2",
+        "v_writelane_b32 v1,0,0",
+        "v_readlane_b32 m0,v1,0",
+        "v_readlane_b32_e32 s4,v1,0",
+        "v_readlane_b32_e64 s4,v1,0",
+        "v_writelane_b32_e32 v1,s4,0",
+        "v_writelane_b32_e64 v1,s4,0",
+        "v_readlane_b32 s4,abs(v1),0",
+        "v_readlane_b32 s4,v1,abs(s2)",
+        "v_readlane_b32 s4,v1,0 clamp",
+    ] {
+        for prefix in [
+            "v_mov_b32 v2,7\n",
+            "s_mov_b64 exec,0\n",
+            "s_branch .Ldone\n",
+        ] {
+            let text = source(&format!("{prefix}{spelling}\n.Ldone:\n{}", output()));
+            let module = frontend::parse(&text).expect(spelling);
+            let program = lower::lower_module_kernel(&module, "k").unwrap();
+            let retained = program
+                .instructions
+                .iter()
+                .find(|instruction| {
+                    instruction.mnemonic().starts_with("v_readlane_b32")
+                        || instruction.mnemonic().starts_with("v_writelane_b32")
+                })
+                .unwrap();
+            assert_eq!(
+                retained.mnemonic(),
+                spelling.split_whitespace().next().unwrap()
+            );
+            lane_profile_refuses_before_execution(&module, "k");
+        }
+    }
+    let mut direct = frontend::parse(&source("v_readlane_b32 s4,v1,0")).unwrap();
+    direct.kernels[0].instructions[0].operands[2] =
+        frontend::Operand::Register(frontend::Register {
+            class: frontend::RegisterClass::Scalar,
+            index: 2,
+            count: 1,
+            special: None,
+        });
+    lane_profile_refuses_before_execution(&direct, "k");
+
+    // SDWA lane spellings were already outside the recognized grammar. Keep
+    // that earlier boundary; typed execution admission must not broaden it.
+    for spelling in [
+        "v_readlane_b32_sdwa s4,v1,0",
+        "v_writelane_b32_sdwa v1,s4,0",
+    ] {
+        assert!(frontend::parse(&source(spelling)).is_err());
+        let mut direct = frontend::parse(&source("v_readlane_b32 s4,v1,0")).unwrap();
+        direct.kernels[0].instructions[0].mnemonic =
+            spelling.split_whitespace().next().unwrap().into();
+        assert!(lower::lower_module_kernel(&direct, "k").is_err());
+    }
+}
+
+#[test]
+fn selected_closure_admission_does_not_reject_unselected_or_uncalled_bodies() {
+    let safe_entry = "v_mov_b32 v2,7\n".to_owned() + output();
+    let helper = ".type helper,@function\nhelper:\ns_branch .Lreturn\nv_readlane_b32 s4,v1,s2\n.Lreturn:\ns_setpc_b64 s[30:31]\n.size helper,.-helper\n";
+    let uncalled_text = source(&safe_entry) + helper;
+    let uncalled = frontend::parse(&uncalled_text).unwrap();
+    assert_eq!(uncalled.source, uncalled_text);
+    assert_eq!(uncalled.functions.len(), 1);
+    assert!(uncalled.functions[0].refusal.is_none());
+    let safe_result = analyze(&uncalled, Some("k"), config(64)).unwrap();
+    safe(&safe_result);
+    values(&safe_result, |_| 7., 64);
+    let called_text = source(&(call("helper", 0) + &safe_entry)) + helper;
+    let called = frontend::parse(&called_text).unwrap();
+    assert_eq!(
+        lower::lower_module_kernel(&called, "k")
+            .unwrap()
+            .functions
+            .len(),
+        2
+    );
+    lane_profile_refuses_before_execution(&called, "k");
+
+    let extra = ".type other,@function\nother:\nv_readlane_b32 s4,v1,s2\ns_endpgm\n.size other,.-other\n.amdhsa_kernel other\n.amdhsa_system_vgpr_workitem_id 0\n.end_amdhsa_kernel\n";
+    let whole_text = source(&safe_entry) + extra;
+    let whole = frontend::parse(&whole_text).unwrap();
+    assert_eq!(whole.source, whole_text);
+    assert_eq!(whole.kernels.len(), 2);
+    let selected = analyze(&whole, Some("k"), config(64)).unwrap();
+    safe(&selected);
+    values(&selected, |_| 7., 64);
+    lane_profile_refuses_before_execution(&whole, "other");
+}
+
 #[test]
 fn scratch_form_guards_run_under_empty_exec_and_on_unreachable_code() {
     for bad in [
