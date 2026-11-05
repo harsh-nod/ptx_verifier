@@ -167,6 +167,9 @@ fn vector_tuple(registers: &[AmdRegister], count: usize) -> bool {
 }
 
 fn contract(graph: &EventGraph, prefix: bool) -> AmdTraceResult {
+    if super::private_memory::present(graph) {
+        return unknown("fixed private DWORD and literal-lane contracts require gfx950");
+    }
     if let Err(defects) = graph.validate() {
         return PropertyResult::Unknown(
             defects

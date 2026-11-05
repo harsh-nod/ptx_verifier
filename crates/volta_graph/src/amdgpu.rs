@@ -1,7 +1,7 @@
 //! Additive native AMD trace metadata. Checks interpret these records without borrowing
 //! PTX synchronization certificates or treating trace order as memory completion.
 
-use crate::{EventId, ThreadIx};
+use crate::{AccessMode, EventId, ThreadIx};
 mod tensor;
 pub use tensor::{AmdTensorDescriptor, AmdTensorFootprint, TENSOR_BOUNDS_ABORT_REASON};
 
@@ -143,6 +143,10 @@ pub enum AmdMemoryClass {
     BufferLoadToLds32,
     /// Selected gfx950 MUBUF raw DWORDX4 -> LDS DMA, with no register destination.
     BufferLoadToLds128,
+    /// Selected gfx950 scalar-offset DWORD scratch load; private VM0 profile.
+    ScratchLoad32,
+    /// Selected gfx950 scalar-offset DWORD scratch store; private VM0 profile.
+    ScratchStore32,
 }
 
 /// Encoded S_DELAY_ALU dependency selectors. These refer to prior producer
@@ -427,6 +431,27 @@ pub enum AmdEventKind {
         descriptor: AmdTensorDescriptor,
         /// Starting scalar register of each D0/D1/D2/D3 tuple.
         sources: [u16; 4],
+    },
+    /// One successful DWORD access to this physical work item's private allocation.
+    /// This is not a cross-thread Global/Shared effect. Address decoding and exact
+    /// word transport remain producer premises; the checker validates membership,
+    /// bounds, operand roles and the conservative explicit-VM0 admission profile.
+    PrivateMemoryAccess {
+        issue: EventId,
+        thread: ThreadIx,
+        offset: u64,
+        width: u32,
+        kind: AccessMode,
+    },
+    /// A selected gfx950 literal-lane read, independent of EXEC. Paired with the
+    /// preceding same-wave instruction whose provenance kind is `readlane`.
+    LaneRead {
+        lane: u8,
+    },
+    /// A selected gfx950 literal-lane write, independent of EXEC. Paired with the
+    /// preceding same-wave instruction whose provenance kind is `writelane`.
+    LaneWrite {
+        lane: u8,
     },
 }
 

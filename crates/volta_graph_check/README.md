@@ -462,3 +462,12 @@ updates may commute. Equality with existing arrivals remains inconclusive.
 `_isfirst` and clustered objects are outside this profile. The native allocated
 controls and independent malformed graphs are separate tests; no GPU execution
 of a harmful mutation is required or claimed.
+
+The bounded gfx950 private profile requires exact scratch DWORD roles, VM charges,
+one access per active physical work item and the fixed-private allocation premise.
+Its conservative store visibility/data-reuse restriction requires an explicit
+source VM0. Missing that wait makes the trace UNKNOWN; it does not establish a
+hardware hazard. A synthesized END drain does not satisfy this restriction.
+Private accesses do not become Global/Shared conflict effects. Dedicated literal
+readlane/writelane records retain their EXEC-independent lane masks and the public
+CDNA4 scheduling delays; absent records, invalid lanes or mismatched roles refuse.

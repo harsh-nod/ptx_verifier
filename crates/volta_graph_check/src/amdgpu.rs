@@ -25,6 +25,7 @@ mod buffer_lds;
 pub mod early_memory_conflicts;
 pub mod early_readiness;
 mod gfx1250;
+mod private_memory;
 pub mod tensor_bounds;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -57,6 +58,10 @@ pub enum AmdRegisterHazardKind {
     AtomicReplayBeforeReady,
     /// A gfx950 LDS DMA reads M0 before one independent state after a SALU write.
     SaluM0ReadBeforeReady,
+    /// A selected gfx950 literal READLANE consumes a preceding VALU VGPR too soon.
+    ValuLaneReadBeforeReady,
+    /// A selected gfx950 lane move follows a VALU EXEC write too soon.
+    ValuLaneExecBeforeReady,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -95,7 +100,7 @@ pub struct AmdReport {
     pub memory_conflict: MemoryConflictResult,
 }
 
-const CLASSES: usize = 18;
+const CLASSES: usize = 20;
 fn class_index(class: AmdMemoryClass) -> usize {
     // CDNA4 §4.4 orders same-type LDS instructions. §12.12's DS_(B)PERMUTE
     // uses LDS hardware, with no LDS memory footprint. LLVM AMDGPUHWEvents.cpp
@@ -124,6 +129,10 @@ fn class_index(class: AmdMemoryClass) -> usize {
         // DMA shares VM accounting with ordinary VMEM, but has no proven FIFO
         // relation with it or with other DMA issues. It must not use slot0.
         AmdMemoryClass::BufferLoadToLds32 | AmdMemoryClass::BufferLoadToLds128 => 17,
+        // Distinct unordered domains deliberately admit private retirement only
+        // at VM0, without changing ordinary VM or DMA FIFO premises.
+        AmdMemoryClass::ScratchLoad32 => 18,
+        AmdMemoryClass::ScratchStore32 => 19,
     }
 }
 fn ordered(class: AmdMemoryClass) -> bool {
@@ -192,6 +201,7 @@ fn trace_contract(
         return PropertyResult::Unknown(unresolved);
     }
     let layout = graph.shared_allocation_layout();
+    unresolved.extend(private_memory::validate(graph, architecture));
     if graph
         .provenance()
         .assumes(volta_graph::Assumption::ConfiguredSharedAllocationLayout)
@@ -277,7 +287,12 @@ fn trace_contract(
                 }
                 let expected = match kind {
                     Some("scalar memory") => Some("memory"),
-                    Some("vector memory" | "LDS") if *exec_mask != 0 => Some("memory"),
+                    Some("vector memory" | "LDS" | "scratch load" | "scratch store")
+                        if *exec_mask != 0 =>
+                    {
+                        Some("memory")
+                    }
+                    Some("readlane" | "writelane") => Some("lane"),
                     Some("wait" | "s_endpgm") => Some("wait"),
                     Some("barrier") => Some("barrier"),
                     Some("MFMA") => Some("matrix"),
@@ -342,6 +357,10 @@ fn trace_contract(
                         counters == &[(AmdCounter::Vm, 1)]
                     }
                     AmdMemoryClass::BufferLoadToLds32 | AmdMemoryClass::BufferLoadToLds128 => {
+                        architecture == AmdArchitecture::Gfx950
+                            && counters == &[(AmdCounter::Vm, 1)]
+                    }
+                    AmdMemoryClass::ScratchLoad32 | AmdMemoryClass::ScratchStore32 => {
                         architecture == AmdArchitecture::Gfx950
                             && counters == &[(AmdCounter::Vm, 1)]
                     }
@@ -417,6 +436,15 @@ fn trace_contract(
                         "wait threshold exceeds the native AMD counter width",
                     ));
                 }
+            }
+            AmdEventKind::LaneRead { .. } | AmdEventKind::LaneWrite { .. } => {
+                claim_instruction(
+                    graph,
+                    record,
+                    &mut last_instruction,
+                    "lane",
+                    &mut unresolved,
+                );
             }
             AmdEventKind::BarrierArrive { exec_mask, .. } => {
                 if exec_mask & !mask != 0 {
@@ -673,8 +701,13 @@ fn trace_contract(
         }
     }
     for (&event, (_, class)) in &issue_events {
-        if !matches!(class, AmdMemoryClass::Message | AmdMemoryClass::CrossLane)
-            && !linked_issues.contains(&event)
+        if !matches!(
+            class,
+            AmdMemoryClass::Message
+                | AmdMemoryClass::CrossLane
+                | AmdMemoryClass::ScratchLoad32
+                | AmdMemoryClass::ScratchStore32
+        ) && !linked_issues.contains(&event)
         {
             unresolved.push(Unresolved::at(
                 event,
@@ -955,11 +988,14 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                 // EXEC126/127 has a separate four-state VALU→MFMA rule in
                 // CDNA4 §7.6 Table38, including writes that leave EXEC unchanged.
                 scalar_valu_writes[wave].retain(|_, (_, issued)| tick.saturating_sub(*issued) <= 5);
-                let scalar_wait = if instruction_kind == "vector memory" {
+                let scalar_wait = if matches!(
+                    instruction_kind,
+                    "vector memory" | "scratch load" | "scratch store"
+                ) {
                     5
                 } else if matches!(
                     instruction_kind,
-                    "vector ALU" | "trans ALU" | "shifted ALU" | "MFMA"
+                    "vector ALU" | "trans ALU" | "shifted ALU" | "readlane" | "writelane" | "MFMA"
                 ) {
                     2
                 } else {
@@ -988,9 +1024,50 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                         }
                     }
                 }
+                // CDNA4 Table11: literal lane moves ignore EXEC for their data
+                // operand, but do not waive the explicit EXEC scheduling rule.
+                if matches!(instruction_kind, "readlane" | "writelane") {
+                    for index in [126, 127] {
+                        if let Some(&(issue, issued)) = scalar_valu_writes[wave].get(&index)
+                            && tick.saturating_sub(issued).saturating_sub(1) < 4
+                        {
+                            hazards.push(AmdRegisterHazard {
+                                issue,
+                                use_event: record.event,
+                                wave: record.wave,
+                                register: AmdRegister {
+                                    file: AmdRegisterFile::Scalar,
+                                    index,
+                                    lanes: u64::MAX,
+                                },
+                                kind: AmdRegisterHazardKind::ValuLaneExecBeforeReady,
+                            });
+                        }
+                    }
+                    if instruction_kind == "readlane" {
+                        for &(issue, issued, written) in &valu_writes[wave] {
+                            if tick.saturating_sub(issued).saturating_sub(1) < 1 {
+                                for &register in reads.iter().filter(|r| {
+                                    r.file == AmdRegisterFile::Vector && r.overlaps(written)
+                                }) {
+                                    hazards.push(AmdRegisterHazard {
+                                        issue,
+                                        use_event: record.event,
+                                        wave: record.wave,
+                                        register,
+                                        kind: AmdRegisterHazardKind::ValuLaneReadBeforeReady,
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
                 trans_writes[wave].retain(|(_, written, _)| tick.saturating_sub(*written) < 2);
                 shifted_writes[wave].retain(|(_, written, _)| tick.saturating_sub(*written) < 2);
-                if matches!(instruction_kind, "vector ALU" | "shifted ALU") {
+                if matches!(
+                    instruction_kind,
+                    "vector ALU" | "shifted ALU" | "readlane" | "writelane"
+                ) {
                     for (issue, _, written) in &trans_writes[wave] {
                         for &register in reads.iter().filter(|r| r.overlaps(*written)) {
                             hazards.push(AmdRegisterHazard {
@@ -1005,7 +1082,7 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                 }
                 if matches!(
                     instruction_kind,
-                    "vector ALU" | "trans ALU" | "shifted ALU" | "MFMA"
+                    "vector ALU" | "trans ALU" | "shifted ALU" | "readlane" | "writelane" | "MFMA"
                 ) {
                     for (issue, _, written) in &shifted_writes[wave] {
                         for &register in reads.iter().filter(|r| r.overlaps(*written)) {
@@ -1118,7 +1195,7 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                     }
                 }
                 valu_writes[wave].retain(|(_, written, _)| tick.saturating_sub(*written) < 3);
-                if matches!(instruction_kind, "vector ALU" | "trans ALU" | "shifted ALU") {
+                if private_memory::valu(instruction_kind) {
                     valu_writes[wave]
                         .extend(writes.iter().copied().map(|r| (record.event, tick, r)));
                 }
@@ -1152,7 +1229,12 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                             // asynchronously and do not take this VALU issue-time rule.
                             let valu = matches!(
                                 instruction_kind,
-                                "vector ALU" | "trans ALU" | "shifted ALU" | "MFMA"
+                                "vector ALU"
+                                    | "trans ALU"
+                                    | "shifted ALU"
+                                    | "readlane"
+                                    | "writelane"
+                                    | "MFMA"
                             );
                             (!wide || (valu && tick.saturating_sub(op.issued_tick) < 3))
                                 .then_some(AmdRegisterHazardKind::SourceReuse)
@@ -1172,7 +1254,7 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                 }
                 for register in writes.iter().filter(|r| r.file == AmdRegisterFile::Scalar) {
                     scalar_valu_writes[wave].remove(&register.index);
-                    if matches!(instruction_kind, "vector ALU" | "trans ALU" | "shifted ALU") {
+                    if private_memory::valu(instruction_kind) {
                         scalar_valu_writes[wave].insert(register.index, (record.event, tick));
                     }
                 }
