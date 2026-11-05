@@ -55,13 +55,12 @@ hardware run artifacts outside tracked source.
 
 Explicit native AMD selection uses `volta_amdgpu_analysis` and its target-selected
 graph/certificate contracts. Extension-inferred `.s` solve/extract uses upstream
-`volta_amd_analysis`; that experimental gfx950 interpreter and Trainium NKI do
-not record a race graph. The experimental AMD interpreter tracks ordinary LDS
-completion and refuses barriers reached with pending LDS operations; this does
-not establish race freedom. Keep its output-only mathematical results separate
-from native graph verification. `extract lean` emits obligations that still
-require proofs; rejected or incomplete native executions cannot export them
-as a successful extraction.
+`volta_amd_analysis`; that experimental gfx950 interpreter records wave-level
+LDS accesses, waits and barriers for graph checking. Its `SharedMemoryOnly`
+assumption excludes global-memory race certification. Trainium NKI records no
+race graph. Keep these scopes distinct from native target-specific graph
+verification. `extract lean` emits obligations that still require proofs;
+rejected or incomplete checked executions cannot export them successfully.
 
 `volta_cli/src/cli.rs` defines command arguments, and `src/commands/` contains
 handlers. `volta_pipeline` composes frontend outputs, graph evidence and canonical
