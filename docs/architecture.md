@@ -120,6 +120,14 @@ different counters and barrier objects. See the
 [gfx1250 model](../tests/gfx1250/CONTRACT.md). Never infer support by changing a
 target string or accepting an opcode name without its operand profile.
 
+The bounded gfx950 [private-memory profile](../crates/volta_amdgpu_analysis/README.md)
+keeps exact DWORD cells per physical work item across device calls. It requires
+matching fixed-size descriptor/metadata declarations and a valid-dispatch backing
+premise. Private accesses have their own graph records and share VM accounting;
+literal lane moves retain physical lane identities even under empty EXEC.
+An unsupported private wait sequence aborts without mathematical outputs, so a
+conservative admission restriction cannot become an equivalence refutation.
+
 ## Extending an instruction
 
 Follow the existing modules for the relevant backend:

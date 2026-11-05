@@ -50,8 +50,12 @@ are checked before individual register-sized effects are recorded.
 
 M0 is a recognized SMEM offset encoding, but its initial runtime value is not
 supplied by the modeled ABI. CDNA M0 use remains unsupported; gfx1250 explicit
-M0 values have their existing narrow profiles. Signed SMEM immediate extensions,
-scratch and general buffer addressing are not introduced by these checks.
+M0 values have their existing narrow profiles. Signed SMEM immediate extensions
+and general buffer addressing are not introduced by these checks. Scratch has a
+separate bounded gfx950 [private-memory profile](../crates/volta_amdgpu_analysis/README.md),
+with explicit fixed backing and source VM0 requirements. Its pending private
+values require a source VM0 before END; a synthesized CDNA drain does not satisfy
+that admission rule.
 
 ## Scalar control, defined bits and synchronization matrix
 
