@@ -38,6 +38,9 @@ An arriving wave with pending LDS operations aborts at `s_barrier` with
 conservative profile requires completion even when the remaining accesses do
 not overlap. It follows the [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
 §4.4 and §12.5: `s_barrier` does not itself drain memory counters.
+Overlapping DWORD writes by distinct lanes of one DS instruction return
+`EvalError::LdsRace`, even when the stored values agree. This bounded check does
+not cover arbitrary instruction pairs or wave interleavings.
 Payloads are still evaluated at issue. This check does not add a race graph,
 cover cross-wave conflicts without a barrier, or change vector-memory/DMA semantics.
 Launch initialization supports full waves in 1D, 2D, and 3D workgroups, matching
@@ -54,7 +57,8 @@ sign-mask tricks for negation and absolute value; floating-point arithmetic and 
 including lane exchanges, remain supported. A select between two different constant words
 under a symbolic condition is rejected, since the words could encode floats or integers.
 
-`v_cmp_lt_f32_e64` can store symbolic comparison bits in an SGPR pair for
+The six ordered F32 e64 comparisons and their negated forms use the existing
+NaN-free real model. They can store symbolic comparison bits in an SGPR pair for
 `v_cndmask_b32_e64`. Each scalar word retains its own mask bits; a scalar write
 or load replaces them. Reading such a mask as an ordinary integer or address
 is rejected. The select's data sources are VGPRs or supported inline constants;
