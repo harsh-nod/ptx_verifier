@@ -1177,7 +1177,7 @@ fn object_name(graph: &EventGraph, object: SyncObjectId) -> String {
         SyncObjectKind::AsyncGroupWait { thread }
             if matches!(graph.provenance().unit, ThreadUnit::Wave { .. }) =>
         {
-            format!("LGKM waits {}", thread_name(graph, thread))
+            format!("LGKM waits {}", thread_name(graph, *thread))
         }
         SyncObjectKind::AsyncGroupWait { thread } => format!("cp.async groups t{}", thread.0),
         SyncObjectKind::BulkGroupWait { thread } => format!("bulk groups t{}", thread.0),
