@@ -59,7 +59,6 @@ struct Events {
 /// Two threads of kernel `k`, whose one instruction is `ret`.
 fn provenance() -> Provenance {
     Provenance {
-        unit: volta_graph::ThreadUnit::CtaThread,
         kernel: "k".to_string(),
         block_dim: (2, 1, 1),
         unit: ThreadUnit::CtaThread,
