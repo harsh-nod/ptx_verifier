@@ -77,6 +77,12 @@ fn native_operand(operand: &upstream::Operand) -> Operand {
             value: (*value).try_into().unwrap(),
         },
         upstream::Operand::NegatedReg { .. }
+        | upstream::Operand::Neg(_)
+        | upstream::Operand::Abs(_)
+        | upstream::Operand::OpSel(_)
+        | upstream::Operand::OpSelHiWide(_)
+        | upstream::Operand::NegLo(_)
+        | upstream::Operand::NegHi(_)
         | upstream::Operand::OpSelHi(_)
         | upstream::Operand::InlineFloat(_)
         | upstream::Operand::Vcc
@@ -123,7 +129,7 @@ fn unchanged_upstream_copy_verifies_all_outputs_across_wave64_boundaries() {
 }
 
 #[test]
-fn experimental_copy_outputs_and_empty_amd_graph_do_not_supply_a_safety_proof() {
+fn experimental_copy_graph_explicitly_excludes_global_memory_safety() {
     use volta_amd_analysis::{ArrayDef as UpstreamArray, ArrayKind as UpstreamKind};
 
     let kernel = parse_kernel(COPY, "copy").unwrap();
@@ -155,20 +161,29 @@ fn experimental_copy_outputs_and_empty_amd_graph_do_not_supply_a_safety_proof() 
         result.symbolic_outputs.as_ref().unwrap().outputs[0].1.len(),
         64
     );
-    assert!(result.graph.events().is_empty());
+    assert!(!result.graph.events().is_empty());
+    assert!(result.graph.accesses().is_empty());
+    assert_eq!(
+        result.graph.provenance().unit,
+        volta_graph::ThreadUnit::Wave { lanes: 64 }
+    );
+    assert!(
+        result
+            .graph
+            .provenance()
+            .assumptions
+            .contains(&volta_graph::Assumption::SharedMemoryOnly)
+    );
     assert_eq!(result.graph.provenance().workgroup_id, (0, 0, 0));
-    assert_eq!(result.graph.provenance().targets, ["gfx950:xnack-"]);
+    assert_eq!(
+        result.graph.provenance().targets,
+        ["amdgcn-amd-amdhsa--gfx950:xnack-"]
+    );
     let report = volta_graph_check::check_graph(&result.graph);
-    assert!(report.amd.is_some());
-    assert!(matches!(
-        report.conclusion(),
-        GraphConclusion::Unknown { .. }
-    ));
+    assert!(report.amd.is_none());
+    assert_eq!(report.conclusion(), GraphConclusion::Verified);
 
-    for target in [
-        "amdgcn-amd-amdhsa--gfx950:xnack-",
-        "amdgcn-amd-amdhsa--gfx1250",
-    ] {
+    for target in ["gfx950:xnack-", "amdgcn-amd-amdhsa--gfx1250"] {
         let mut provenance = result.graph.provenance().clone();
         provenance.targets = vec![target.into()];
         let graph =
