@@ -288,7 +288,7 @@ fn unspecified_word_spills_stay_undefined_and_do_not_change_nonprivate_mov() {
 #[test]
 fn lane_transport_is_exec_independent_but_cannot_reach_unlaunched_lanes() {
     let body = format!(
-        "s_mov_b32 s6,42\nv_mov_b32 v1,0\ns_mov_b64 exec,0\nv_writelane_b32 v1,s6,5\ns_nop 0\nv_readlane_b32 s7,v1,5\ns_mov_b64 exec,-1\nv_mov_b32 v2,s7\n{}",
+        "s_mov_b32 s6,42\nv_mov_b32 v1,0\ns_mov_b64 exec,0\nv_writelane_b32 v1,s6,5\ns_nop 0\nv_readlane_b32 s7,v1,5\ns_mov_b64 exec,-1\ns_nop 0\nv_mov_b32 v2,s7\n{}",
         output()
     );
     let result = run(&body, 64);
@@ -301,11 +301,21 @@ fn lane_transport_is_exec_independent_but_cannot_reach_unlaunched_lanes() {
             .iter()
             .any(|event| matches!(event.kind, AmdEventKind::LaneRead { lane: 5 }))
     );
-    let bad = run(&body.replace("s_nop 0\n", ""), 64);
-    assert!(!matches!(
-        check_graph(bad.graph()).conclusion(),
-        GraphConclusion::Verified
-    ));
+    let bad = run(
+        &body.replace(
+            "v_writelane_b32 v1,s6,5\ns_nop 0\n",
+            "v_writelane_b32 v1,s6,5\n",
+        ),
+        64,
+    );
+    let checked = volta_graph_check::amdgpu::check_amdgpu(bad.graph());
+    assert_eq!(checked.trace.verdict(), volta_graph_check::Verdict::Pass);
+    assert!(checked.wait_readiness.violations().iter().any(|hazard| {
+        hazard.kind == volta_graph_check::amdgpu::AmdRegisterHazardKind::ValuLaneReadBeforeReady
+            && hazard.register.file == volta_graph::AmdRegisterFile::Vector
+            && hazard.register.index == 1
+            && hazard.register.lanes == 1 << 5
+    }));
     let outside = run("v_readlane_b32 s7,v0,5", 1);
     unsupported(&outside, "outside the launch");
 }
