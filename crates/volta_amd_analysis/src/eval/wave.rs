@@ -707,6 +707,10 @@ impl WaveRegisters {
     /// issue order, so the most recent stay pending; counting no stores keeps more loads pending
     /// than the hardware does.
     pub(super) fn finish_vm_loads(&mut self, outstanding: usize) {
+        // The all-ones VM field is no-wait, regardless of logical queue length.
+        if outstanding == 63 {
+            return;
+        }
         for registers in &mut self.vector {
             let completed = registers.pending_loads.len().saturating_sub(outstanding);
             for load in registers

@@ -231,3 +231,82 @@ fn a_combined_wait_completes_vm_loads_while_maximal_lgkm_is_a_noop() {
     assert_copy(&result);
     assert_no_maximal_wait_generation(&result);
 }
+
+/// Distinct destinations keep every issue live without reusing a pending register.
+fn vm_loads(count: u8) -> String {
+    (16..16 + count)
+        .map(|reg| format!("global_load_dword v{reg}, v2, s[4:5]\n"))
+        .collect()
+}
+
+#[test]
+fn vm_wait_maximal_field_keeps_loads_pending_across_the_field_limit() {
+    for count in [1, 62, 63, 64, 65] {
+        let body = format!(
+            "{}s_waitcnt vmcnt(63)\nglobal_store_dword v2, v16, s[6:7]",
+            vm_loads(count)
+        );
+        assert_aborted(
+            &run(&body),
+            EvalError::PendingVgpr {
+                lane: 0,
+                reg: Vgpr(16),
+            },
+        );
+        assert_copy(&run(&body.replace("vmcnt(63)", "vmcnt(0)")));
+    }
+}
+
+#[test]
+fn vm_wait_maximal_field_does_not_allow_overwriting_a_pending_destination() {
+    let body = format!(
+        "{}s_waitcnt vmcnt(63)\nv_mov_b32_e32 v16, 0\nglobal_store_dword v2, v1, s[6:7]",
+        vm_loads(65)
+    );
+    assert_aborted(
+        &run(&body),
+        EvalError::PendingVgpr {
+            lane: 0,
+            reg: Vgpr(16),
+        },
+    );
+    assert_copy(&run(&body.replace("vmcnt(63)", "vmcnt(0)")));
+}
+
+#[test]
+fn vm_wait_actual_partial_fields_release_only_the_guaranteed_prefix() {
+    for (count, outstanding, ready, pending) in [(2, 1, 16, 17), (65, 62, 18, 19)] {
+        let prefix = format!("{}s_waitcnt vmcnt({outstanding})\n", vm_loads(count));
+        let completed = format!("{prefix}global_store_dword v2, v{ready}, s[6:7]");
+        assert_copy(&run(&completed));
+        let incomplete = format!("{prefix}global_store_dword v2, v{pending}, s[6:7]");
+        assert_aborted(
+            &run(&incomplete),
+            EvalError::PendingVgpr {
+                lane: 0,
+                reg: Vgpr(pending),
+            },
+        );
+        assert_copy(&run(
+            &incomplete.replace(&format!("vmcnt({outstanding})"), "vmcnt(0)")
+        ));
+    }
+}
+
+#[test]
+fn vm_wait_maximal_field_keeps_vm_pending_while_combined_lgkm_zero_completes_ds() {
+    let prefix = format!(
+        "ds_write_b32 v2, v1\ns_waitcnt lgkmcnt(0)\nds_read_b32 v4, v2\n{}s_waitcnt vmcnt(63) lgkmcnt(0)\n",
+        vm_loads(65)
+    );
+    assert_copy(&run(&format!("{prefix}global_store_dword v2, v4, s[6:7]")));
+    let incomplete = format!("{prefix}global_store_dword v2, v16, s[6:7]");
+    assert_aborted(
+        &run(&incomplete),
+        EvalError::PendingVgpr {
+            lane: 0,
+            reg: Vgpr(16),
+        },
+    );
+    assert_copy(&run(&incomplete.replace("vmcnt(63)", "vmcnt(0)")));
+}

@@ -189,7 +189,8 @@ The source supplies OCKL helpers as in `ck_gemm.hip`; `NDEBUG` matches CK's Rele
 Fast exp2 and the denormal flag follow CK's [forward-attention build](https://github.com/ROCm/composable_kernel/blob/fc2862d712/example/ck_tile/01_fmha/CMakeLists.txt);
 the division flag permits reciprocal-based normalization.
 
-`tests/lgkm_wait.rs` checks maximal LGKM fields below and above the field limit,
-scalar pending-register behavior, actual zero/partial waits, combined counters
-and END completion. `lgkmcnt(15)` completes no operation or graph generation;
-other fields of a combined wait retain their normal behavior.
+`tests/lgkm_wait.rs` checks maximal LGKM and VM fields below and above their
+field limits, pending-register reads and overwrites, actual zero/partial waits,
+combined counters and END completion. `lgkmcnt(15)` and `vmcnt(63)` complete no
+operation; maximal LGKM also creates no graph completion generation. Other
+fields of a combined wait retain their normal behavior.
