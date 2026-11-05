@@ -591,6 +591,15 @@ fn empty_scratch_exec_has_no_register_observations_or_semantic_issue() {
     let mut t = Trace::new(1, private_premises());
     t.ins(0, "scratch load", 0, vec![], vec![]);
     pass(&t.finish());
+    let mut zero = Trace::new(
+        1,
+        vec![
+            Assumption::FixedPrivateAllocation(0),
+            Assumption::XnackReplayDisabled,
+        ],
+    );
+    zero.ins(0, "scratch load", 0, vec![], vec![]);
+    unknown(&zero.finish());
     for fault in 0..2 {
         let mut t = Trace::new(1, private_premises());
         t.ins(

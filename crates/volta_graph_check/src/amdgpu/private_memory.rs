@@ -352,8 +352,8 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
     {
         errors.push(Unresolved::global("selected scratch profile requires XNACK replay disabled without a contradictory target feature"));
     }
-    if uses_scratch && limit.is_none() {
-        errors.push(Unresolved::global("scratch execution requires exactly one fixed-private valid-dispatch allocation premise"));
+    if uses_scratch && limit.is_none_or(|bytes| bytes == 0) {
+        errors.push(Unresolved::global("scratch execution requires exactly one positive fixed-private valid-dispatch allocation premise"));
     }
     for (issue, t) in transfers {
         let expected: HashSet<_> = (0..64)
