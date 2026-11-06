@@ -3,8 +3,9 @@
 //! Common semantics: AMD MI300/CDNA3 and MI350/CDNA4 ISA §4.3–4.4
 //! (workgroups and counters), §8.3 (SMEM),
 //! §10.2 (FLAT). Ordinary VM loads/stores and homogeneous LDS instructions complete in order;
-//! mixed LGKM classes, SMEM and FLAT do not. Nonzero waits only certify a FIFO
-//! prefix for a homogeneous ordered counter. FLAT requires both counters to retire.
+//! mixed LGKM classes, SMEM and FLAT do not. A nonzero LGKM wait can still certify
+//! a prefix of the ordered LDS stream from that stream's own outstanding count.
+//! Unordered SMEM and FLAT need zero; FLAT requires both counters to retire.
 //! S_BARRIER joins *completed* memory effects of participating waves; it does not
 //! manufacture a wait for outstanding instructions. EXEC masks are full 64-bit masks.
 
@@ -1390,6 +1391,28 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                         .copied()
                         .filter(|&o| operations[o].remaining.iter().any(|(c, _)| *c == counter))
                         .collect();
+                    // CDNA3/CDNA4 ISA §4.4 orders LDS instructions within their
+                    // own type, independently of unordered scalar/FLAT/message
+                    // completions on LGKM. If the total remaining count is <= n,
+                    // the LDS stream alone is also <= n. Its older FIFO prefix
+                    // is therefore complete even when other types are pending.
+                    // This never identifies an individual SMEM/FLAT result.
+                    // LLVM SIInsertWaitcnts.cpp at
+                    // 5fd50ec8e07abb94e203933017e8d6e40fb51824 documents this
+                    // per-event-type improvement in its opening TODO.
+                    let tracked = if counter == AmdCounter::Lgkm && threshold != 0 {
+                        tracked
+                            .into_iter()
+                            .filter(|&o| {
+                                matches!(
+                                    operations[o].class,
+                                    AmdMemoryClass::Lds | AmdMemoryClass::CrossLane
+                                )
+                            })
+                            .collect::<Vec<_>>()
+                    } else {
+                        tracked
+                    };
                     let homogeneous = tracked.first().is_some_and(|&first| {
                         ordered(operations[first].class)
                             && tracked.iter().all(|&o| {
@@ -1400,7 +1423,7 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                     if threshold != 0 && !homogeneous {
                         continue;
                     }
-                    let mut remaining: u32 = tracked
+                    let Some(mut remaining) = tracked
                         .iter()
                         .flat_map(|&o| {
                             operations[o]
@@ -1409,7 +1432,12 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                                 .filter(|(c, _)| *c == counter)
                                 .map(|(_, n)| u32::from(*n))
                         })
-                        .sum();
+                        .try_fold(0u32, u32::checked_add)
+                    else {
+                        // An unrepresentable logical history supplies no
+                        // completion proof; retain every pending obligation.
+                        continue;
+                    };
                     for o in tracked {
                         let charge: u32 = operations[o]
                             .remaining

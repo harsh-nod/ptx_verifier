@@ -10,6 +10,10 @@ features. Multiple architectures, unknown features and unrecognized targets
 remain inconclusive. Recognizing a target does not enable every ISA instruction.
 The interpreter separately rejects unsupported instructions and execution modes.
 
+Nonzero LGKM waits can complete an older ordered LDS/permutation prefix even
+with unordered scalar work pending; they do not identify scalar or FLAT results.
+See the [mixed-counter proof and controls](cdna-mixed-waits.md).
+
 Both contracts use wave64, VM/LGKM/EXP counter fields of 6/4/3 bits, native
 completed-memory frontiers, and wave-level `S_BARRIER` generations. A barrier does
 not complete outstanding memory. Scoped cross-wave GLOBAL publication still
