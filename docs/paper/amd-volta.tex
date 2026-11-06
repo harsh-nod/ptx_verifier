@@ -8,7 +8,7 @@
 \usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black]{hyperref}
 \hypersetup{pdftitle={Adapting Volta to AMD GPUs},pdfauthor={GPU Kernel Verifier contributors}}
 \newcommand{\code}[1]{\texttt{\detokenize{#1}}}
-\newcommand{\repo}[2]{\href{https://github.com/harsh-nod/ptx_verifier/blob/f0ee44285286aa1ea92f3e99aed6574ad89f3c82/#1}{#2}}
+\newcommand{\repo}[2]{\href{https://github.com/harsh-nod/ptx_verifier/blob/32bce31b15cd80ad64ccf92cfefb46d73a3815ab/#1}{#2}}
 \newcommand{\accept}{\textsc{Accept}}
 \newcommand{\reject}{\textsc{Reject}}
 \newcommand{\unknown}{\textsc{Unknown}}
@@ -19,7 +19,7 @@
 
 \title{Adapting Volta to AMD GPUs:\\Shared Symbolic Reasoning, Target-Specific Execution}
 \author{GPU Kernel Verifier contributors}
-\date{Technical report \textemdash{} October 2026}
+\date{Technical report \textemdash{} November 2026}
 
 \begin{document}
 \maketitle
@@ -212,9 +212,21 @@ graph remains incomplete and no output proof is produced.
 \paragraph{CDNA completion and publication.}
 gfx942/gfx950 waits discharge VM/LGKM obligations; FLAT can charge both.
 Nonzero thresholds certify an ordered prefix only where the modeled class
-permits it. A workgroup barrier publishes completed effects; it does not complete
+permits it. In mixed scalar/LDS traffic, the total LGKM bound also bounds the
+ordered LDS stream, allowing its older prefix to complete without assuming
+scalar response order. A workgroup barrier publishes completed effects; it does not complete
 pending memory. The selected cross-wave GLOBAL rule additionally requires
 workgroup scope at both endpoints and the explicit single-CU workgroup premise.
+
+\paragraph{Bounded device calls and private storage.}
+Selected gfx950 calls execute helper bodies with opaque code pointers and
+checked caller continuations. Calls add no wait or register reset. Scratch and
+private FLAT aliases share exact DWORD cells per physical work item, including
+selected contiguous 64-, 96- and 128-bit transfers. An opaque aperture tag
+preserves address provenance without inventing a runtime base. Fixed descriptor
+and metadata extents, complete interval checks and explicit completion waits
+bound this profile; FLAT retains both VM and LGKM obligations. Unavailable ABI
+inputs and general ROCm hostcall execution remain unsupported.
 
 \paragraph{gfx1250 counters, replay and barriers.}
 Data completion and X translation/source retention are tracked separately:
@@ -282,15 +294,18 @@ check missing waits, early reuse, malformed descriptors and barrier lifetimes.
 \item Full output contracts check dimensions, storage, projections and every
 required index; independent numerical drivers check finite device behavior.
 \end{itemize}
-At the stated snapshot, the release workspace passed 2,321 Rust tests and the
-rebuilt optimized extension passed 136 Python tests. These are regression results, not an
-ISA coverage percentage or a proof of all schedules. The original-workload
+Workspace Rust regressions and a freshly rebuilt Python extension are checked
+separately. Passing suites are not an ISA coverage percentage or a proof of all
+schedules. The original-workload
 registry contains 32 registrations; default CLI/Python interface tests select
 W01--W18. Static registry consistency is not evidence that every full-size
 workload was freshly executed. Earlier compiler-corpus validation verified
 18 target/kernel configurations and all 708 output elements. Earlier exact-assembly
 hardware probes passed 66 cases and 16,244 output words across the
-three targets; these bounded probes do not replace full-workload verification.
+three targets. The unified positive-only hardware catalog also covers the
+original gfx1250 workloads: 262 launches check all 2,803,092 native outputs,
+including 2,453,652 original-projection outputs. Numerical device agreement
+remains separate from symbolic safety and full-workload equivalence.
 
 A frozen comparison against the full-trace fork baseline \code{0e634bc} detects
 20/20 core seeded write-conflict configurations versus 13/20, retaining all

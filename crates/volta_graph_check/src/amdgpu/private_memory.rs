@@ -1,6 +1,7 @@
 //! Fixed gfx950 private word tuples and literal-lane operand contracts.
 //! Concrete scratch decoding, exact word transport and dispatch backing remain
-//! producer/caller premises. Conservative VM0 admission failures are Unknown,
+//! producer/caller premises. Scratch needs VM0; private FLAT needs VM0 and LGKM0.
+//! Conservative admission failures are Unknown,
 //! never evidence of a hardware register or memory hazard.
 
 use std::collections::{HashMap, HashSet};

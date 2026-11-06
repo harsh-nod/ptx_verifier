@@ -442,7 +442,7 @@ pub enum AmdEventKind {
     /// Selected widths are 4/8/12/16 bytes; a tuple emits one record per active lane.
     /// This is not a cross-thread Global/Shared effect. Address decoding and exact
     /// word transport remain producer premises; the checker validates membership,
-    /// bounds, operand roles and the conservative explicit-VM0 admission profile.
+    /// bounds, operand roles and the explicit private completion profile.
     PrivateMemoryAccess {
         issue: EventId,
         thread: ThreadIx,

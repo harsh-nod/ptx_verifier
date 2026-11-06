@@ -297,7 +297,8 @@ validation and limits. Its [LaTeX source](docs/paper/amd-volta.tex) builds with
 cargo test --release --workspace
 just test-python                 # rebuild the Python extension and run its tests
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy --workspace --all-targets
+cargo clippy --workspace --all-targets --exclude volta_ptx_analysis --no-deps -- -D warnings
 ```
 
 `just test` runs both Rust and Python tests. Focused examples and fixture-specific
@@ -306,6 +307,21 @@ separate capacity planning; see the [full workload runners](tests/gfx1250/full/c
 To extend an instruction, follow the [development guide](docs/architecture.md#extending-an-instruction).
 The [upstream sync workflow](docs/upstream-sync.md) runs on a six-hour schedule
 and prepares tested upstream merges as draft PRs for review.
+
+Physical GPU validation has a separate [hardware runner](tests/amdgpu/hardware/README.md).
+One configuration selects matching gfx942, gfx950 and gfx1250 hosts/devices:
+
+```sh
+python3 tests/amdgpu/hardware/suite.py --config /path/to/gpu-targets.json \
+  --work-dir /tmp/amd-hardware --volta target/release/volta
+```
+
+The runner executes every existing positive host driver against unchanged
+assembly, checks complete numerical outputs and retains source/device-bound
+receipts outside the repository. These device checks complement CPU graph and
+mathematical tests; they do not establish complete ISA coverage. The
+[instruction-stage audit](docs/amd-target-coverage-audit.md) distinguishes parsing,
+execution, independent semantic controls and complete-kernel proofs.
 
 Generate library documentation with:
 

@@ -286,7 +286,7 @@ impl Wave {
                         if reg.count != 2 {
                             return Err(self.fail(
                                 Some(lane),
-                                "private aperture source requires its approved64-bit profile",
+                                "private aperture source requires a 64-bit register pair",
                             ));
                         }
                         return Ok(if component == 0 {

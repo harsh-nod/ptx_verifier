@@ -3,7 +3,9 @@
 //! CDNA4 9.1.10.2/10.5 and pinned LLVM FLATInstructions.td. The backing
 //! extent is a declared valid-dispatch premise, not a discovered host address.
 //! Store visibility/source overwrite and load-result use/overwrite require
-//! explicit VM0. Violating that conservative profile is Unsupported, never a bug.
+//! explicit VM0; private FLAT additionally requires LGKM0. Both waits must
+//! follow the issued operation. Violations of this conservative admission
+//! profile are Unsupported, never evidence of a hardware bug.
 use super::*;
 
 /// Recognizing an old assembly form does not admit it for execution. Scan the
