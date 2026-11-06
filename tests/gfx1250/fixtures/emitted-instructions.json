@@ -4441,13 +4441,6 @@
     "sha256": "1464ae364787a1bc034e2b935cfc298f33cdcb0f1ddb3e681a85d5ae1c5c52be",
     "instructions": [
       {
-        "line": 8,
-        "text": "tensor_load_probe:",
-        "components": [
-          "tensor_load_probe:"
-        ]
-      },
-      {
         "line": 10,
         "text": "s_mov_b32 s2, exec_lo",
         "components": [
@@ -4522,13 +4515,6 @@
         "text": "s_endpgm",
         "components": [
           "s_endpgm"
-        ]
-      },
-      {
-        "line": 109,
-        "text": "tensor_store_probe:",
-        "components": [
-          "tensor_store_probe:"
         ]
       },
       {
@@ -4613,13 +4599,6 @@
   "native-tensor-roundtrip.s": {
     "sha256": "ec74d29235e8bcc2b84b7ce699f56d2e62cf842b9634c4bf6c1b19daab1a23af",
     "instructions": [
-      {
-        "line": 8,
-        "text": "tensor_roundtrip:",
-        "components": [
-          "tensor_roundtrip:"
-        ]
-      },
       {
         "line": 10,
         "text": "s_load_b128 s[0:3], s[0:1], 0x0",

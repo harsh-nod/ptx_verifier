@@ -282,6 +282,19 @@ impl Wave {
                             Value::SharedApertureHi
                         });
                     }
+                    Some(SpecialRegister::PrivateBase) => {
+                        if reg.count != 2 {
+                            return Err(self.fail(
+                                Some(lane),
+                                "private aperture source requires a 64-bit register pair",
+                            ));
+                        }
+                        return Ok(if component == 0 {
+                            Value::Bits(0)
+                        } else {
+                            Value::PrivateApertureHi
+                        });
+                    }
                     Some(SpecialRegister::Exec) => self.exec,
                     Some(SpecialRegister::ExecLo) => self.exec as u32 as u64,
                     Some(SpecialRegister::ExecHi) => self.exec >> 32,

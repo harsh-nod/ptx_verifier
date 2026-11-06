@@ -1,9 +1,11 @@
-//! Finite gfx950 DWORD scratch, separate from Global/LDS and private FLAT.
+//! Finite gfx950 scratch and opaque-private-aperture FLAT share per-item words.
 //!
 //! CDNA4 9.1.10.2/10.5 and pinned LLVM FLATInstructions.td. The backing
 //! extent is a declared valid-dispatch premise, not a discovered host address.
 //! Store visibility/source overwrite and load-result use/overwrite require
-//! explicit VM0. Violating that conservative profile is Unsupported, never a bug.
+//! explicit VM0; private FLAT additionally requires LGKM0. Both waits must
+//! follow the issued operation. Violations of this conservative admission
+//! profile are Unsupported, never evidence of a hardware bug.
 use super::*;
 
 /// Recognizing an old assembly form does not admit it for execution. Scan the
@@ -63,6 +65,7 @@ pub(super) struct State {
     cells: BTreeMap<(u32, u8, u32), Value>,
     pending_stores: BTreeMap<u32, Vec<AmdRegister>>,
     pending_loads: BTreeMap<u32, Vec<AmdRegister>>,
+    completion: BTreeMap<u32, u8>,
 }
 
 impl State {
@@ -73,6 +76,7 @@ impl State {
         if !program.instructions.iter().any(|instruction| {
             matches!(instruction.operation(), Operation::Memory(memory)
                 if matches!(memory.kind, MemoryKind::ScratchLoad | MemoryKind::ScratchStore))
+                || instruction.operands().iter().any(|operand| matches!(operand, Operand::Register(r) if r.special == Some(SpecialRegister::PrivateBase)))
         }) {
             return Ok(Self::default());
         }
@@ -116,7 +120,8 @@ impl State {
             .map_or(&[][..], Vec::as_slice);
         let dependent_load = wave.exec != 0
             && matches!(instruction.operation(), Operation::Memory(memory)
-                if memory.kind == MemoryKind::ScratchLoad);
+                if memory.kind == MemoryKind::ScratchLoad
+                    || memory.kind == MemoryKind::FlatLoad && private_address(wave, memory).is_some());
         let end = matches!(instruction.operation(), Operation::Control(control)
             if control.operation == ControlOperation::EndProgram);
         // Private classes use conservative independent completion slots. Even
@@ -145,10 +150,30 @@ impl State {
         Ok(())
     }
 
-    pub(super) fn complete(&mut self, wave: u32) {
-        self.pending_stores.remove(&wave);
-        self.pending_loads.remove(&wave);
+    pub(super) fn complete(&mut self, wave: u32, vm: bool, lgkm: bool) {
+        if let Some(remaining) = self.completion.get_mut(&wave) {
+            *remaining &= !((u8::from(vm)) | (u8::from(lgkm) << 1));
+            if *remaining != 0 {
+                return;
+            }
+            self.completion.remove(&wave);
+            self.pending_stores.remove(&wave);
+            self.pending_loads.remove(&wave);
+        }
     }
+}
+
+fn private_address(wave: &Wave, memory: &MemoryInstruction) -> Option<Register> {
+    let address = &memory.operands()[usize::from(memory.kind == MemoryKind::FlatLoad)];
+    let Operand::Register(register) = address else {
+        return None;
+    };
+    (register.class == RegisterClass::Vector
+        && register.count == 2
+        && wave
+            .active()
+            .any(|lane| wave.reg(*register, lane, 1).ok() == Some(Value::PrivateApertureHi)))
+    .then_some(*register)
 }
 
 impl Interpreter<'_> {
@@ -194,44 +219,131 @@ impl Interpreter<'_> {
         if wave.exec == 0 {
             return Ok(());
         }
-        let extent = self
-            .private
-            .extent
-            .ok_or_else(|| self.unsupported(wave, instruction))?;
         let MemoryAddress::Scratch { scalar } = memory.address() else {
             unreachable!("typed scratch address")
         };
         let scalar = u64::from(wave.bits(scalar, 0)?);
-        let immediate = instruction
-            .modifiers()
-            .iter()
-            .find(|modifier| modifier.name == "offset")
-            .map_or(Some(0), |modifier| {
-                modifier.value.as_deref().and_then(parse_i64)
-            })
-            .ok_or_else(|| self.unsupported(wave, instruction))?;
-        // The selected nonwrapping, aligned subset does not model wrapping or
-        // private hardware-OOB behavior. No address becomes a Global pointer.
-        let offset = i128::from(scalar) + i128::from(immediate);
-        let offset = u32::try_from(offset)
-            .ok()
-            .filter(|offset| {
-                offset.is_multiple_of(4) && offset.checked_add(4).is_some_and(|end| end <= extent)
-            })
-            .ok_or_else(|| EvalError::Unsupported {
-                pc: wave.pc,
-                what: "scratch DWORD interval is outside the aligned declared fixed private extent"
-                    .into(),
-            })?;
-        let store = memory.kind == MemoryKind::ScratchStore;
-        let data = wave.destination(&memory.operands()[usize::from(store)])?;
-        // Snapshot every active lane before any write/issue. An absent private
-        // cell is uninitialized; unlike a pure register spill it is never filled.
-        let transfers = wave
+        let immediate = self.private_offset(wave, instruction)?;
+        let address = i128::from(scalar) + i128::from(immediate);
+        let addresses = wave
+            .active()
+            .map(|lane| (lane, address))
+            .collect::<Vec<_>>();
+        self.private_transfer(wave, instruction, memory, &addresses, false)
+    }
+
+    /// Select only a proven private aperture. Numeric high words retain the
+    /// ordinary FLAT path; a mixed aperture issue is outside this finite model.
+    pub(super) fn flat_private(
+        &mut self,
+        wave: &mut Wave,
+        instruction: &Instruction,
+        memory: &MemoryInstruction,
+    ) -> Result<bool, EvalError> {
+        if wave.exec == 0 {
+            return Ok(false);
+        }
+        let Some(address) = private_address(wave, memory) else {
+            return Ok(false);
+        };
+        if self.architecture != AmdArchitecture::Gfx950
+            || self.xnack_replay_enabled
+            || memory.operands().len() != 2
+            || instruction
+                .modifiers()
+                .iter()
+                .any(|m| match m.name.as_str() {
+                    "offset" => m
+                        .value
+                        .as_deref()
+                        .and_then(parse_i64)
+                        .is_none_or(|n| !(0..=4095).contains(&n)),
+                    "sc0" | "sc1" => m.value.is_some(),
+                    _ => true,
+                })
+            || instruction.modifiers().iter().any(|m| m.name == "sc0")
+                != instruction.modifiers().iter().any(|m| m.name == "sc1")
+        {
+            return Err(self.unsupported(wave, instruction));
+        }
+        let immediate = self.private_offset(wave, instruction)?;
+        let addresses = wave
             .active()
             .map(|lane| {
+                if wave.reg(address, lane, 1)? != Value::PrivateApertureHi {
+                    return Err(EvalError::Unsupported {
+                        pc: wave.pc,
+                        what: "FLAT instruction mixes Private and another aperture".into(),
+                    });
+                }
+                let low = wave
+                    .reg(address, lane, 0)?
+                    .bits()
+                    .map_err(|e| wave.fail(Some(lane), e))?;
+                Ok((lane, i128::from(low) + i128::from(immediate)))
+            })
+            .collect::<Result<Vec<_>, EvalError>>()?;
+        self.private_transfer(wave, instruction, memory, &addresses, true)?;
+        Ok(true)
+    }
+
+    fn private_offset(&self, wave: &Wave, instruction: &Instruction) -> Result<i64, EvalError> {
+        instruction
+            .modifiers()
+            .iter()
+            .find(|m| m.name == "offset")
+            .map_or(Some(0), |m| m.value.as_deref().and_then(parse_i64))
+            .ok_or_else(|| self.unsupported(wave, instruction))
+    }
+
+    fn private_transfer(
+        &mut self,
+        wave: &mut Wave,
+        instruction: &Instruction,
+        memory: &MemoryInstruction,
+        addresses: &[(u8, i128)],
+        flat: bool,
+    ) -> Result<(), EvalError> {
+        let extent = self
+            .private
+            .extent
+            .ok_or_else(|| self.unsupported(wave, instruction))?;
+        let TransferShape::Registers {
+            bytes_per_register: 4,
+            registers_per_part: words @ 1..=4,
+            parts: 1,
+        } = memory.shape
+        else {
+            return Err(self.unsupported(wave, instruction));
+        };
+        let words = u16::from(words);
+        let width = u32::from(words) * 4;
+        let store = matches!(
+            memory.kind,
+            MemoryKind::ScratchStore | MemoryKind::FlatStore
+        );
+        let data = wave.destination(&memory.operands()[usize::from(store)])?;
+        if data.class != RegisterClass::Vector || data.count != words {
+            return Err(self.unsupported(wave, instruction));
+        }
+        // Capture the complete active transfer before issuing or modifying any
+        // destination, including when the destination aliases its address pair.
+        let mut transfers = Vec::new();
+        for &(lane, address) in addresses {
+            let offset = u32::try_from(address).ok().filter(|offset| offset.is_multiple_of(4)
+                && offset.checked_add(width).is_some_and(|end| end <= extent))
+                .ok_or_else(|| EvalError::Unsupported { pc: wave.pc,
+                    what: "scratch DWORD interval is outside the aligned declared fixed private extent".into() })?;
+            let mut values = Vec::new();
+            for component in 0..words {
+                let offset = offset + u32::from(component) * 4;
                 let value = if store {
-                    wave.spill_word(data, lane)?
+                    let source = Register {
+                        index: data.index + component,
+                        count: 1,
+                        ..data
+                    };
+                    wave.spill_word(source, lane)?
                 } else {
                     self.private
                         .cells
@@ -241,24 +353,33 @@ impl Interpreter<'_> {
                             wave.fail(Some(lane), "read of an uninitialized private DWORD")
                         })?
                 };
-                Ok((lane, value))
-            })
-            .collect::<Result<Vec<_>, EvalError>>()?;
+                values.push(value);
+            }
+            transfers.push((lane, offset, values));
+        }
         let (reads, writes) = self.instruction_registers(instruction, wave);
-        let held_sources: Vec<_> = reads
+        let held_sources = reads
             .into_iter()
-            .filter(|register| register.file == AmdRegisterFile::Vector)
-            .collect();
+            .filter(|r| r.file == AmdRegisterFile::Vector)
+            .collect::<Vec<_>>();
+        let class = match (flat, store, words == 1) {
+            (true, false, _) => AmdMemoryClass::FlatPrivateLoad,
+            (true, true, _) => AmdMemoryClass::FlatPrivateStore,
+            (false, false, true) => AmdMemoryClass::ScratchLoad32,
+            (false, true, true) => AmdMemoryClass::ScratchStore32,
+            (false, false, false) => AmdMemoryClass::ScratchLoadWide,
+            (false, true, false) => AmdMemoryClass::ScratchStoreWide,
+        };
+        let mut counters = vec![(AmdCounter::Vm, 1)];
+        if flat {
+            counters.push((AmdCounter::Lgkm, 1));
+        }
         let issue = self.builder.amd_event(
             wave.id,
             ProgramPoint(wave.pc as u32),
             AmdEventKind::MemoryIssue {
-                class: if store {
-                    AmdMemoryClass::ScratchStore32
-                } else {
-                    AmdMemoryClass::ScratchLoad32
-                },
-                counters: vec![(AmdCounter::Vm, 1)],
+                class,
+                counters,
                 destinations: writes.clone(),
                 held_sources: if store {
                     held_sources.clone()
@@ -267,11 +388,15 @@ impl Interpreter<'_> {
                 },
             },
         );
-        for (lane, value) in transfers {
-            if store {
-                self.private.cells.insert((wave.id, lane, offset), value);
-            } else {
-                wave.put(data, lane, 0, value)?;
+        for (lane, offset, values) in transfers {
+            for (component, value) in values.into_iter().enumerate() {
+                if store {
+                    self.private
+                        .cells
+                        .insert((wave.id, lane, offset + component as u32 * 4), value);
+                } else {
+                    wave.put(data, lane, component as u16, value)?;
+                }
             }
             self.builder.amd_event(
                 wave.id,
@@ -280,7 +405,7 @@ impl Interpreter<'_> {
                     issue,
                     thread: ThreadIx(wave.id * wave.width + u32::from(lane)),
                     offset: u64::from(offset),
-                    width: 4,
+                    width,
                     kind: if store {
                         AccessMode::Write
                     } else {
@@ -289,6 +414,7 @@ impl Interpreter<'_> {
                 },
             );
         }
+        *self.private.completion.entry(wave.id).or_default() |= if flat { 3 } else { 1 };
         if store {
             self.private
                 .pending_stores

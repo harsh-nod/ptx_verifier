@@ -52,12 +52,12 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "parse_instruction",
-          "line": 869
+          "line": 879
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1427
+          "line": 1437
         }
       ]
     },
@@ -68,7 +68,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_vop_literal_positions",
-          "line": 2237
+          "line": 2299
         }
       ]
     },
@@ -79,7 +79,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1427
+          "line": 1437
         }
       ]
     },
@@ -112,17 +112,17 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1853
+          "line": 1547
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/dependencies.rs",
           "function": "instruction_registers",
-          "line": 1500
+          "line": 5
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/dependencies.rs",
           "function": "scalar_mask_reads",
-          "line": 1785
+          "line": 373
         }
       ]
     },
@@ -131,14 +131,14 @@
       "meaning": "I plus MemoryIssue/effects with actual space, transfer bytes, held sources, counter and scope; permutation uses LGKM without fabricated LDS accesses.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "memory_instruction",
-          "line": 6862
+          "line": 260
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "permute",
-          "line": 7725
+          "line": 1178
         }
       ]
     },
@@ -147,9 +147,9 @@
       "meaning": "I plus MatrixIssue form/operand/accumulator/destination slices; full wave64, source snapshots.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/matrix_ops.rs",
           "function": "matrix",
-          "line": 4488
+          "line": 167
         }
       ]
     },
@@ -160,17 +160,17 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/ir/instruction.rs",
           "function": "lower_wait",
-          "line": 1025
+          "line": 1022
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/control.rs",
           "function": "wait",
-          "line": 6371
+          "line": 227
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1853
+          "line": 1547
         }
       ]
     },
@@ -181,7 +181,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1853
+          "line": 1547
         }
       ]
     },
@@ -192,7 +192,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1853
+          "line": 1547
         }
       ]
     },
@@ -203,17 +203,17 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 165
+          "line": 179
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 817
+          "line": 865
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_missing_semantic",
-          "line": 754
+          "line": 802
         }
       ]
     },
@@ -224,17 +224,17 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 817
+          "line": 865
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "memory_conflicts",
-          "line": 1501
+          "line": 1667
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "missing_global_publication",
-          "line": 1472
+          "line": 1638
         }
       ]
     },
@@ -245,7 +245,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 817
+          "line": 865
         }
       ]
     },
@@ -256,7 +256,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 817
+          "line": 865
         }
       ]
     }
@@ -268,9 +268,9 @@
       "meaning": "Concrete scalar 32/64 bit arithmetic/flags, masks and moves. Symbolic masks remain opaque; undefined SCC/VCC/control/address use aborts. Special shared-base source is an opaque aperture only.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/scalar_alu.rs",
           "function": "scalar",
-          "line": 1817
+          "line": 5
         }
       ],
       "positive_controls": [
@@ -315,9 +315,9 @@
       "meaning": "Opaque compiler rel32 object addresses; exact triad only, SCC becomes undefined after linker-dependent adds. Arbitrary PC values/GOT/externs are unsupported.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/control.rs",
           "function": "module_address_scalar",
-          "line": 4255
+          "line": 152
         }
       ],
       "positive_controls": [
@@ -342,19 +342,19 @@
       "meaning": "Fixed-width native integer/bit/address ALU, typed symbolic 32 bit ring operations, bit operations and shifts. Symbolic data never becomes concrete address/control bits; general symbolic 64 bit/division remain outside the profile.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs",
           "function": "vector",
-          "line": 4640
+          "line": 5
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "integer_expression",
-          "line": 2251
+          "line": 98
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "integer_result",
-          "line": 2325
+          "line": 176
         }
       ],
       "positive_controls": [
@@ -389,24 +389,24 @@
       "meaning": "Exact real-number f32 arithmetic/transcendentals with decoded finite native constants, disclosed exp/log base conversion, scoped VOP3 clamp. No IEEE rounding/NaN equivalence claim; undefined concrete domains and unsupported modifiers abort.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs",
           "function": "vector",
-          "line": 4640
+          "line": 5
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "real",
-          "line": 2168
+          "line": 5
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "exp2",
-          "line": 3184
+          "line": 876
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "factor_exp2_idiom",
-          "line": 3203
+          "line": 895
         }
       ],
       "positive_controls": [
@@ -436,19 +436,19 @@
       "meaning": "Ordered matching word-pair f64 tags and real arithmetic/conversions; actual inline/high-word literal encoding. Mixed words and reinterpretations fail; no floating rounding claim.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs",
           "function": "vector",
-          "line": 4640
+          "line": 5
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "real64",
-          "line": 2505
+          "line": 356
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "put_real64",
-          "line": 2577
+          "line": 433
         }
       ],
       "positive_controls": [
@@ -473,24 +473,24 @@
       "meaning": "Typed F16 low/high components, native selected SDWA source fields, signed-I8/I16 conversion and partial destination preservation. Unknown padding is not zero-filled; arbitrary symbolic bit reinterpretation fails.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs",
           "function": "vector",
-          "line": 4640
+          "line": 5
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "half",
-          "line": 3087
+          "line": 776
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "signed16_to_half",
-          "line": 2993
+          "line": 682
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "selected_bits",
-          "line": 2638
+          "line": 494
         }
       ],
       "positive_controls": [
@@ -520,19 +520,19 @@
       "meaning": "Packed/mixed f32/f16 operations snapshot both sources and honor scoped op_sel/op_sel_hi; mixed half writes preserve the untouched half. Unsupported selector/output-modifier envelopes abort.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs",
           "function": "vector",
-          "line": 4640
+          "line": 5
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "real_component",
-          "line": 2609
+          "line": 465
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "half",
-          "line": 3087
+          "line": 776
         }
       ],
       "positive_controls": [
@@ -557,19 +557,19 @@
       "meaning": "Finite OCP E4M3 byte decoding, explicit BYTE_0..3 selection; paired cvt default bytes0/1 only. Symbolic byte-format interpretation is claimed once per input and conflicts with signed-I8/other numeric meanings abort.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs",
           "function": "vector",
-          "line": 4640
+          "line": 5
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "fp8",
-          "line": 2903
+          "line": 592
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "claim_byte_format",
-          "line": 2970
+          "line": 659
         }
       ],
       "positive_controls": [
@@ -599,24 +599,24 @@
       "meaning": "Concrete native comparisons/carry plus symbolic signed/unsigned 32 bit and f32 comparison masks; cndmask selects mathematical values and canonical unsigned words. Symbolic EXEC/branch/carry/address/storage interpretations abort.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs",
           "function": "vector",
-          "line": 4640
+          "line": 5
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "write_predicates",
-          "line": 2332
+          "line": 183
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "predicate_condition",
-          "line": 2381
+          "line": 232
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/values.rs",
           "function": "select_word",
-          "line": 2418
+          "line": 269
         }
       ],
       "positive_controls": [
@@ -641,9 +641,9 @@
       "meaning": "Disjoint AGPR/VGPR allocation; native accumulator read/write/move preserves words. Unified physical aliases are rejected rather than represented as independent storage.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs",
           "function": "vector",
-          "line": 4640
+          "line": 5
         }
       ],
       "positive_controls": [
@@ -668,24 +668,24 @@
       "meaning": "Typed global/kernarg/LDS byte storage, per-component SMEM low-bit masking, encoded nonnegative scalar offsets, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. Selected gfx950 raw-buffer DWORD/DWORDX2 loads/stores require four-operand offen and word3 0x20000; direct-to-LDS DWORD/DWORDX4 loads require three-operand offen lds and word3 0x110000. Both retain separate resource/allocation bounds and VM completion; direct LDS also checks M0 readiness and LDS bounds. Other buffer modes, atomics, arbitrary apertures and equal-offset dual DS remain unsupported. Explicit xnack+ checks selected SMEM clause aliases; vector-memory replay remains unsupported.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "memory_instruction",
-          "line": 6862
+          "line": 260
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "flat_memory_address",
-          "line": 7598
+          "line": 1049
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "gfx950_raw_buffer_addresses",
-          "line": 6708
+          "line": 106
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "validate_address",
-          "line": 7774
+          "line": 1232
         }
       ],
       "positive_controls": [
@@ -765,9 +765,9 @@
       "meaning": "DS cross-lane snapshot permute/bpermute under EXEC; concrete lane indices and LGKM completion. Does not synthesize LDS memory reads/writes or cross-wave publication.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "permute",
-          "line": 7725
+          "line": 1178
         }
       ],
       "positive_controls": [
@@ -792,14 +792,14 @@
       "meaning": "Full wave64 dense MFMA; explicit CDNA4 lane/item coordinates and source snapshots. F16/F32/E4M3 symbolic values; finite concrete BF16/E5M2. Format cbsz/blgp 0/1 only; scaled forms require selected E8M0 bytes 127; other layouts/F6/F4/nonunit scales abort.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/matrix_ops.rs",
           "function": "matrix",
-          "line": 4488
+          "line": 167
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/matrix_ops.rs",
           "function": "matrix_input",
-          "line": 4330
+          "line": 5
         }
       ],
       "positive_controls": [
@@ -846,7 +846,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1853
+          "line": 1547
         }
       ],
       "positive_controls": [
@@ -868,12 +868,12 @@
     "W": {
       "stage": "value",
       "status": "implemented_with_explicit_limits",
-      "meaning": "Selected ordinary counter contributors retire in-order prefixes; maximal thresholds do not falsely mean full completion. Partial VM waits across mixed direct-to-LDS DMA and ordinary memory retain all pending obligations rather than inferring FIFO completion; vmcnt(0) drains the counter.",
+      "meaning": "Selected ordinary counter contributors retire in-order prefixes; maximal thresholds do not falsely mean full completion. Mixed LGKM waits can prove only an ordered LDS/permutation prefix from that stream alone; unordered SMEM and FLAT remain pending until LGKM0. Partial VM waits across mixed direct-to-LDS DMA and ordinary memory retain all pending obligations rather than inferring FIFO completion; vmcnt(0) drains the counter.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/control.rs",
           "function": "wait",
-          "line": 6371
+          "line": 227
         }
       ],
       "positive_controls": [
@@ -881,9 +881,19 @@
           "path": "crates/volta_pipeline/tests/gfx950_memory_control_tests.rs",
           "function": "partial_vmcnt_only_retires_the_completed_load_prefix",
           "line": 248
+        },
+        {
+          "path": "crates/volta_pipeline/tests/cdna_mixed_lgkm_tests.rs",
+          "function": "mixed_smem_and_lds_partial_wait_proves_every_copy_output",
+          "line": 68
         }
       ],
       "negative_controls": [
+        {
+          "path": "crates/volta_pipeline/tests/cdna_mixed_lgkm_tests.rs",
+          "function": "mixed_wait_does_not_identify_newest_lds_or_unordered_scalar_results",
+          "line": 101
+        },
         {
           "path": "crates/volta_pipeline/tests/gfx950_memory_control_tests.rs",
           "function": "a_wait_on_the_wrong_counter_does_not_make_a_register_ready",
@@ -900,7 +910,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1853
+          "line": 1547
         }
       ],
       "positive_controls": [
@@ -927,7 +937,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "step",
-          "line": 1853
+          "line": 1547
         }
       ],
       "positive_controls": [
@@ -957,21 +967,21 @@
       "meaning": "Selected gfx950 s_swappc_b64/s_setpc_b64 calls and matching returns use plain SGPR pairs, validated adjacent getpc/rel32-lo+4/hi+12 target construction and bounded complete helper bodies. Nested calls preserve return words explicitly. Flags, EXEC, registers and asynchronous counters remain shared. Arbitrary/loaded/external targets, recursion, scratch execution and unavailable ABI inputs remain unsupported.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/control.rs",
           "function": "call",
-          "line": 4114
+          "line": 7
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/control.rs",
           "function": "return_from_call",
-          "line": 4177
+          "line": 70
         }
       ],
       "positive_controls": [
         {
           "path": "crates/volta_amdgpu_analysis/tests/device_calls.rs",
           "function": "complete_qualified_compiler_leaf_matches_all_64_input_output_coordinates",
-          "line": 455
+          "line": 475
         },
         {
           "path": "crates/volta_amdgpu_analysis/tests/device_calls.rs",
@@ -999,19 +1009,19 @@
       "meaning": "Recognized syntax only: active execution deliberately returns Unsupported and preserves an incomplete graph. It is never counted as successful semantics.",
       "references": [
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs",
           "function": "vector",
-          "line": 4640
+          "line": 5
         },
         {
-          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "memory_instruction",
-          "line": 6862
+          "line": 260
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "unsupported",
-          "line": 2162
+          "line": 1873
         }
       ],
       "positive_controls": [],

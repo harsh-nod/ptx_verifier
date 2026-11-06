@@ -37,6 +37,17 @@ def reference(path, function):
     }
 
 
+def interpreter_reference(function):
+    """Locate the actual module after interpreter helpers are split by family."""
+    module_dir = ROOT / "crates/volta_amdgpu_analysis/src/eval/interp"
+    paths = [Path(INTERP), *(path.relative_to(ROOT) for path in sorted(module_dir.glob("*.rs")))]
+    pattern = r"(?m)^    (?:pub(?:\([^)]*\))?\s+)?fn\s+" + re.escape(function) + r"\s*\("
+    matches = [path for path in paths if re.search(pattern, (ROOT / path).read_text())]
+    if len(matches) != 1:
+        raise ValueError(f"interpreter function must have exactly one source: {function}: {matches}")
+    return reference(str(matches[0]), function)
+
+
 def test(path, function):
     return reference(path, function)
 
@@ -55,6 +66,8 @@ def main():
         "cargo",
         "run",
         "--quiet",
+        "--locked",
+        "--offline",
         "-p",
         "volta_amdgpu_analysis",
         "--example",
@@ -109,23 +122,23 @@ def main():
             "stage": "event",
             "meaning": "Instruction event includes EXEC lanes, register reads/writes and scalar selector roles; retained on partial abort graphs.",
             "references": [
-                reference(INTERP, "step"),
-                reference(INTERP, "instruction_registers"),
-                reference(INTERP, "scalar_mask_reads"),
+                interpreter_reference("step"),
+                interpreter_reference("instruction_registers"),
+                interpreter_reference("scalar_mask_reads"),
             ],
         },
         "IM": {
             "stage": "event",
             "meaning": "I plus MemoryIssue/effects with actual space, transfer bytes, held sources, counter and scope; permutation uses LGKM without fabricated LDS accesses.",
             "references": [
-                reference(INTERP, "memory_instruction"),
-                reference(INTERP, "permute"),
+                interpreter_reference("memory_instruction"),
+                interpreter_reference("permute"),
             ],
         },
         "IX": {
             "stage": "event",
             "meaning": "I plus MatrixIssue form/operand/accumulator/destination slices; full wave64, source snapshots.",
-            "references": [reference(INTERP, "matrix")],
+            "references": [interpreter_reference("matrix")],
         },
         "IW": {
             "stage": "event",
@@ -134,19 +147,19 @@ def main():
                 reference(
                     "crates/volta_amdgpu_analysis/src/ir/instruction.rs", "lower_wait"
                 ),
-                reference(INTERP, "wait"),
-                reference(INTERP, "step"),
+                interpreter_reference("wait"),
+                interpreter_reference("step"),
             ],
         },
         "IB": {
             "stage": "event",
             "meaning": "I plus barrier arrival/release generations and active masks; terminated waves leave later generations.",
-            "references": [reference(INTERP, "step")],
+            "references": [interpreter_reference("step")],
         },
         "ID": {
             "stage": "event",
             "meaning": "I plus native s_nop immediate + 1 independent instruction states.",
-            "references": [reference(INTERP, "step")],
+            "references": [interpreter_reference("step")],
         },
         "C": {
             "stage": "check",
@@ -184,7 +197,7 @@ def main():
             "stage": "value",
             "status": "implemented_with_explicit_limits",
             "meaning": meaning,
-            "references": [reference(INTERP, f) for f in functions],
+            "references": [interpreter_reference(f) for f in functions],
             "positive_controls": [test(*pair) for pair in positive],
             "negative_controls": [test(*pair) for pair in negative],
             "test_scope": "Named representative controls exercise this semantic profile; these are not assertions that every corpus PC/operand combination was executed.",
@@ -419,11 +432,24 @@ def main():
     )
     value(
         "W",
-        "Selected ordinary counter contributors retire in-order prefixes; maximal thresholds do not falsely mean full completion. Partial VM waits across mixed direct-to-LDS DMA and ordinary memory retain all pending obligations rather than inferring FIFO completion; vmcnt(0) drains the counter.",
+        "Selected ordinary counter contributors retire in-order prefixes; maximal thresholds do not falsely mean full completion. Mixed LGKM waits can prove only an ordered LDS/permutation prefix from that stream alone; unordered SMEM and FLAT remain pending until LGKM0. Partial VM waits across mixed direct-to-LDS DMA and ordinary memory retain all pending obligations rather than inferring FIFO completion; vmcnt(0) drains the counter.",
         ["wait"],
-        [(MEM, "partial_vmcnt_only_retires_the_completed_load_prefix")],
-        [(MEM, "a_wait_on_the_wrong_counter_does_not_make_a_register_ready")],
+        [
+            (MEM, "partial_vmcnt_only_retires_the_completed_load_prefix"),
+            (
+                PIPE + "cdna_mixed_lgkm_tests.rs",
+                "mixed_smem_and_lds_partial_wait_proves_every_copy_output",
+            ),
+        ],
+        [
+            (
+                PIPE + "cdna_mixed_lgkm_tests.rs",
+                "mixed_wait_does_not_identify_newest_lds_or_unordered_scalar_results",
+            ),
+            (MEM, "a_wait_on_the_wrong_counter_does_not_make_a_register_ready"),
+        ],
     )
+
     value(
         "G",
         "Scalar workgroup barrier arrival/release for surviving waves, including partial/empty EXEC. Does not replace data completion waits.",

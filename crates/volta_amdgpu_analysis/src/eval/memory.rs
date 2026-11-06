@@ -394,6 +394,7 @@ impl Memory {
             Value::PredicateWord { .. } => Err("symbolic predicate mask cannot be extracted as data bits".into()),
             Value::RelocationWord { .. } | Value::CodeWord { .. } => Err("opaque PC relocation cannot be extracted as data bits".into()),
             Value::SharedApertureHi => Err("opaque shared aperture cannot be extracted as data bits".into()),
+            Value::PrivateApertureHi => Err("opaque private aperture cannot be extracted as data bits".into()),
         }
     }
 }

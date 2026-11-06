@@ -2292,3 +2292,208 @@ fn cdna3_waits_and_wave_barriers_preserve_native_completion_requirements() {
         }
     }
 }
+
+#[test]
+fn mixed_lgkm_wait_retires_only_the_ordered_lds_prefix_for_both_cdna_targets() {
+    for target in ["gfx942", "gfx950"] {
+        for lds_count in [2u32, 3, 5] {
+            for scalar_position in 0..=lds_count {
+                for threshold in 0..=lds_count + 1 {
+                    let mut t = counter_target_trace(target);
+                    let mut pc = 0;
+                    for index in 0..=lds_count {
+                        if index == scalar_position {
+                            t.issue(
+                                0,
+                                pc,
+                                MemoryIssue {
+                                    class: AmdMemoryClass::ScalarMemory,
+                                    destinations: vec![s(4)],
+                                    held_sources: vec![],
+                                },
+                                1000,
+                                false,
+                            );
+                            pc += 1;
+                        }
+                        if index < lds_count {
+                            t.issue(
+                                0,
+                                pc,
+                                MemoryIssue {
+                                    class: AmdMemoryClass::Lds,
+                                    destinations: vec![v(10 + index as u16, u64::MAX)],
+                                    held_sources: vec![],
+                                },
+                                u64::from(index) * 4,
+                                false,
+                            );
+                            pc += 1;
+                        }
+                    }
+                    t.wait(0, pc, None, Some(threshold as u16));
+                    let reads = std::iter::once(s(4))
+                        .chain((0..lds_count).map(|index| v(10 + index as u16, u64::MAX)))
+                        .collect();
+                    let use_event = t.ins(0, pc + 1, reads, vec![]);
+                    let r = check_graph(&t.finish());
+                    assert_eq!(
+                        r.verdict(Property::AmdTrace),
+                        Verdict::Pass,
+                        "{target}, {r:?}"
+                    );
+                    let hazards = r.amd.as_ref().unwrap().wait_readiness.violations();
+                    let unresolved_lds = threshold.min(lds_count);
+                    assert_eq!(
+                        hazards.len(),
+                        unresolved_lds as usize + usize::from(threshold != 0),
+                        "{target}, DS={lds_count}, SMEM position={scalar_position}, threshold={threshold}: {r:#?}"
+                    );
+                    for hazard in hazards {
+                        assert_eq!(hazard.use_event, use_event);
+                        assert_eq!(hazard.kind, AmdRegisterHazardKind::ReadBeforeReady);
+                        if hazard.register.file == AmdRegisterFile::Vector {
+                            assert!(
+                                u32::from(hazard.register.index - 10)
+                                    >= lds_count.saturating_sub(threshold)
+                            );
+                        } else {
+                            assert_eq!(hazard.register, s(4));
+                            assert_ne!(threshold, 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn mixed_lgkm_wait_preserves_pending_store_sources_and_flat_vm_obligations() {
+    for target in ["gfx942", "gfx950"] {
+        let mut t = counter_target_trace(target);
+        t.issue(
+            0,
+            0,
+            MemoryIssue {
+                class: AmdMemoryClass::ScalarMemory,
+                destinations: vec![s(4)],
+                held_sources: vec![],
+            },
+            1000,
+            false,
+        );
+        t.issue(
+            0,
+            1,
+            MemoryIssue {
+                class: AmdMemoryClass::Lds,
+                destinations: vec![],
+                held_sources: vec![v(10, u64::MAX)],
+            },
+            0,
+            true,
+        );
+        let pending = t.issue(
+            0,
+            2,
+            MemoryIssue {
+                class: AmdMemoryClass::Lds,
+                destinations: vec![],
+                held_sources: vec![v(11, u64::MAX)],
+            },
+            4,
+            true,
+        );
+        t.wait(0, 3, None, Some(1));
+        let reuse = t.ins(0, 4, vec![], vec![v(10, u64::MAX), v(11, u64::MAX)]);
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass, "{r:?}");
+        let hazards = r.amd.as_ref().unwrap().wait_readiness.violations();
+        assert_eq!(hazards.len(), 1, "{target}, {r:?}");
+        assert_eq!(hazards[0].issue, pending);
+        assert_eq!(hazards[0].use_event, reuse);
+        assert_eq!(hazards[0].kind, AmdRegisterHazardKind::SourceReuse);
+        for (vm, lgkm, expected) in [
+            (false, false, Verdict::Fail),
+            (true, false, Verdict::Fail),
+            (false, true, Verdict::Fail),
+            (true, true, Verdict::Pass),
+        ] {
+            let mut t = counter_target_trace(target);
+            t.issue(
+                0,
+                0,
+                MemoryIssue {
+                    class: AmdMemoryClass::Flat,
+                    destinations: vec![v(12, u64::MAX)],
+                    held_sources: vec![],
+                },
+                1000,
+                false,
+            );
+            for index in 0..2 {
+                cross_lane_issue(&mut t, 1 + index, 20 + index as u16);
+            }
+            t.wait(0, 3, None, Some(1));
+            if vm {
+                t.wait(0, 4, Some(0), None);
+            }
+            if lgkm {
+                t.wait(0, 5, None, Some(0));
+            }
+            t.ins(0, 6, vec![v(12, u64::MAX)], vec![]);
+            let r = check_graph(&t.finish());
+            assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass, "{r:?}");
+            assert_eq!(
+                r.verdict(Property::AmdWaitReadiness),
+                expected,
+                "{target}, VM0={vm}, LGKM0={lgkm}: {r:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn maximal_mixed_lgkm_wait_is_a_noop_even_for_large_logical_histories() {
+    for target in ["gfx942", "gfx950"] {
+        let mut t = counter_target_trace(target);
+        t.issue(
+            0,
+            0,
+            MemoryIssue {
+                class: AmdMemoryClass::ScalarMemory,
+                destinations: vec![s(4)],
+                held_sources: vec![],
+            },
+            1000,
+            false,
+        );
+        for index in 0..20 {
+            cross_lane_issue(&mut t, index + 1, index as u16 + 10);
+        }
+        t.wait(0, 21, None, Some(15));
+        t.ins(
+            0,
+            22,
+            (10..30).map(|index| v(index, u64::MAX)).collect(),
+            vec![],
+        );
+        let r = check_graph(&t.finish());
+        assert_eq!(r.verdict(Property::AmdTrace), Verdict::Pass, "{r:?}");
+        assert_eq!(
+            r.amd.unwrap().wait_readiness.violations().len(),
+            20,
+            "{target}"
+        );
+    }
+}
+
+fn counter_target_trace(target: &str) -> Trace {
+    let mut provenance = Trace::new(64).b.graph_so_far().provenance().clone();
+    provenance.targets = vec![target.into()];
+    Trace {
+        b: GraphBuilder::new(provenance),
+        threads: 64,
+    }
+}

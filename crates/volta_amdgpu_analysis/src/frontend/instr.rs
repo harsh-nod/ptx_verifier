@@ -179,7 +179,8 @@ fn validate_register_shape(
             SpecialRegister::Exec
             | SpecialRegister::Vcc
             | SpecialRegister::FlatScratch
-            | SpecialRegister::SharedBase => 2,
+            | SpecialRegister::SharedBase
+            | SpecialRegister::PrivateBase => 2,
             _ => 1,
         };
         return if register.index == 0 && register.count == count {
@@ -245,6 +246,7 @@ fn register(
         "flat_scratch_lo" => Some((SpecialRegister::FlatScratchLo, 1)),
         "flat_scratch_hi" => Some((SpecialRegister::FlatScratchHi, 1)),
         "src_shared_base" => Some((SpecialRegister::SharedBase, 2)),
+        "src_private_base" => Some((SpecialRegister::PrivateBase, 2)),
         _ => None,
     };
     if let Some((special, count)) = special {
@@ -515,7 +517,14 @@ pub(super) fn signature(mnemonic: &str) -> Option<(Opcode, usize, usize)> {
         | "global_store_dwordx2"
         | "global_store_dwordx3"
         | "global_store_dwordx4" => (VectorMemory, 3, 3),
-        "scratch_load_dword" | "scratch_store_dword" => (VectorMemory, 3, 3),
+        "scratch_load_dword"
+        | "scratch_store_dword"
+        | "scratch_load_dwordx2"
+        | "scratch_store_dwordx2"
+        | "scratch_load_dwordx3"
+        | "scratch_store_dwordx3"
+        | "scratch_load_dwordx4"
+        | "scratch_store_dwordx4" => (VectorMemory, 3, 3),
         "flat_load_ubyte" | "flat_load_sbyte" | "flat_load_ushort" | "flat_load_sshort"
         | "flat_load_dword" | "flat_load_dwordx2" | "flat_load_dwordx3" | "flat_load_dwordx4"
         | "flat_store_byte" | "flat_store_short" | "flat_store_dword" | "flat_store_dwordx2"
@@ -1497,6 +1506,19 @@ pub(super) fn validate_registers(
             require(0, &[Scalar], 2)?;
         }
     }
+    if operands.iter().any(|operand| {
+        register(operand).is_some_and(|r| r.special == Some(SpecialRegister::PrivateBase))
+    }) {
+        if architecture != crate::target::Architecture::Gfx950
+            || mnemonic != "s_mov_b64"
+            || !matches!(operands.get(1), Some(Operand::Register(r)) if r.special == Some(SpecialRegister::PrivateBase))
+        {
+            return Err(
+                "SRC_PRIVATE_BASE is modeled only as the gfx950 source of s_mov_b64".into(),
+            );
+        }
+        require(0, &[Scalar], 2)?;
+    }
     if stem.starts_with("tensor_") {
         for (index, count) in [4, 8, 4, 4].into_iter().enumerate() {
             require(index, &[Scalar], count)?;
@@ -1642,14 +1664,25 @@ pub(super) fn validate_registers(
         }
         Opcode::VectorMemory => {
             if stem.starts_with("scratch_") {
-                let load = stem == "scratch_load_dword";
+                let load = stem.starts_with("scratch_load_");
+                let words = memory_width(stem);
                 let data = usize::from(!load);
                 let off = usize::from(load);
                 if architecture != crate::target::Architecture::Gfx950
                     || mnemonic != stem
-                    || !matches!(stem, "scratch_load_dword" | "scratch_store_dword")
+                    || !matches!(
+                        stem,
+                        "scratch_load_dword"
+                            | "scratch_store_dword"
+                            | "scratch_load_dwordx2"
+                            | "scratch_store_dwordx2"
+                            | "scratch_load_dwordx3"
+                            | "scratch_store_dwordx3"
+                            | "scratch_load_dwordx4"
+                            | "scratch_store_dwordx4"
+                    )
                     || !matches!(&operands[off], Operand::Symbol(value) if value == "off")
-                    || !matches!(operands[data], Operand::Register(r) if r.class == Vector && r.count == 1)
+                    || !matches!(operands[data], Operand::Register(r) if r.class == Vector && r.count == words)
                     || !matches!(operands[2], Operand::Register(r) if r.class == Scalar && r.count == 1)
                     || modifiers
                         .iter()

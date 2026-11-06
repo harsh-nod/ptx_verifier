@@ -147,6 +147,12 @@ pub enum AmdMemoryClass {
     ScratchLoad32,
     /// Selected gfx950 scalar-offset DWORD scratch store; private VM0 profile.
     ScratchStore32,
+    /// Selected gfx950 contiguous private DWORDX2/3/4 tuple.
+    ScratchLoadWide,
+    ScratchStoreWide,
+    /// Opaque-private-aperture FLAT; both VM and LGKM completion are required.
+    FlatPrivateLoad,
+    FlatPrivateStore,
 }
 
 /// Encoded S_DELAY_ALU dependency selectors. These refer to prior producer
@@ -432,10 +438,11 @@ pub enum AmdEventKind {
         /// Starting scalar register of each D0/D1/D2/D3 tuple.
         sources: [u16; 4],
     },
-    /// One successful DWORD access to this physical work item's private allocation.
+    /// One successful contiguous word-tuple access to this work item's private allocation.
+    /// Selected widths are 4/8/12/16 bytes; a tuple emits one record per active lane.
     /// This is not a cross-thread Global/Shared effect. Address decoding and exact
     /// word transport remain producer premises; the checker validates membership,
-    /// bounds, operand roles and the conservative explicit-VM0 admission profile.
+    /// bounds, operand roles and the explicit private completion profile.
     PrivateMemoryAccess {
         issue: EventId,
         thread: ThreadIx,

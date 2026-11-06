@@ -1,6 +1,7 @@
-//! Fixed gfx950 private DWORD records and literal-lane operand contracts.
+//! Fixed gfx950 private word tuples and literal-lane operand contracts.
 //! Concrete scratch decoding, exact word transport and dispatch backing remain
-//! producer/caller premises. Conservative VM0 admission failures are Unknown,
+//! producer/caller premises. Scratch needs VM0; private FLAT needs VM0 and LGKM0.
+//! Conservative admission failures are Unknown,
 //! never evidence of a hardware register or memory hazard.
 
 use std::collections::{HashMap, HashSet};
@@ -15,7 +16,12 @@ use crate::Unresolved;
 pub(super) fn scratch(class: AmdMemoryClass) -> bool {
     matches!(
         class,
-        AmdMemoryClass::ScratchLoad32 | AmdMemoryClass::ScratchStore32
+        AmdMemoryClass::ScratchLoad32
+            | AmdMemoryClass::ScratchStore32
+            | AmdMemoryClass::ScratchLoadWide
+            | AmdMemoryClass::ScratchStoreWide
+            | AmdMemoryClass::FlatPrivateLoad
+            | AmdMemoryClass::FlatPrivateStore
     )
 }
 
@@ -62,6 +68,8 @@ struct Transfer {
     mode: AccessMode,
     lanes: HashSet<ThreadIx>,
     offset: Option<u64>,
+    width: u32,
+    flat: bool,
 }
 
 fn scalar(r: &AmdRegister) -> bool {
@@ -70,6 +78,12 @@ fn scalar(r: &AmdRegister) -> bool {
 
 fn vector(r: &AmdRegister, mask: u64) -> bool {
     r.file == AmdRegisterFile::Vector && r.index < 256 && r.lanes == mask
+}
+
+fn contiguous(registers: &[AmdRegister]) -> bool {
+    registers
+        .windows(2)
+        .all(|pair| pair[0].index.checked_add(1) == Some(pair[1].index))
 }
 
 /// Called only after structural graph validation. This is separate from the
@@ -110,6 +124,7 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
     let mut held = HashMap::<u32, Vec<AmdRegister>>::new();
     let mut loaded = HashMap::<u32, Vec<AmdRegister>>::new();
     let mut uses_scratch = false;
+    let mut completion = HashMap::<u32, u8>::new();
     for record in graph.amd_events() {
         match &record.kind {
             AmdEventKind::Instruction {
@@ -182,31 +197,94 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                 else {
                     unreachable!()
                 };
-                let load = *class == AmdMemoryClass::ScratchLoad32;
-                let expected_kind = if load {
+                let flat = matches!(
+                    class,
+                    AmdMemoryClass::FlatPrivateLoad | AmdMemoryClass::FlatPrivateStore
+                );
+                let load = matches!(
+                    class,
+                    AmdMemoryClass::ScratchLoad32
+                        | AmdMemoryClass::ScratchLoadWide
+                        | AmdMemoryClass::FlatPrivateLoad
+                );
+                let expected_kind = if flat {
+                    "vector memory"
+                } else if load {
                     "scratch load"
                 } else {
                     "scratch store"
                 };
-                let address = reads.iter().filter(|r| scalar(r)).count() == 1;
-                let roles = if load {
-                    reads.len() == 1
-                        && address
-                        && writes.len() == 1
-                        && vector(&writes[0], *exec_mask)
-                        && held_sources.is_empty()
+                let vectors = reads.iter().filter(|r| vector(r, *exec_mask)).count();
+                let words = if load {
+                    writes.len()
+                } else if flat {
+                    vectors.saturating_sub(2)
                 } else {
-                    reads.len() == 2
-                        && address
-                        && writes.is_empty()
-                        && reads.iter().filter(|r| vector(r, *exec_mask)).count() == 1
-                        && held_sources.len() == 1
-                        && vector(&held_sources[0], *exec_mask)
-                        && reads.contains(&held_sources[0])
+                    vectors
                 };
+                let source_roles = if flat {
+                    reads.len() == if load { 2 } else { 2 + words }
+                        && reads.iter().all(|r| vector(r, *exec_mask))
+                        && reads.len() >= 2
+                        && reads[0].index.checked_add(1) == Some(reads[1].index)
+                } else {
+                    reads.iter().filter(|r| scalar(r)).count() == 1
+                        && reads.len() == if load { 1 } else { words + 1 }
+                };
+                let vector_reads = reads
+                    .iter()
+                    .filter(|r| vector(r, *exec_mask))
+                    .copied()
+                    .collect::<Vec<_>>();
+                let tuple = if load {
+                    writes.as_slice()
+                } else if flat {
+                    vector_reads.get(2..).unwrap_or(&[])
+                } else {
+                    vector_reads.as_slice()
+                };
+                let roles = source_roles
+                    && contiguous(tuple)
+                    && if load {
+                        writes.iter().all(|r| vector(r, *exec_mask)) && held_sources.is_empty()
+                    } else {
+                        writes.is_empty()
+                            && held_sources.len() == vectors
+                            && held_sources
+                                .iter()
+                                .all(|r| vector(r, *exec_mask) && reads.contains(r))
+                            && reads
+                                .iter()
+                                .filter(|r| vector(r, *exec_mask))
+                                .all(|r| held_sources.contains(r))
+                    };
+                let width_valid = match class {
+                    AmdMemoryClass::ScratchLoad32 | AmdMemoryClass::ScratchStore32 => words == 1,
+                    AmdMemoryClass::ScratchLoadWide | AmdMemoryClass::ScratchStoreWide => {
+                        (2..=4).contains(&words)
+                    }
+                    _ => (1..=4).contains(&words),
+                };
+                let counters_valid = if flat {
+                    counters.as_slice()
+                        == [
+                            (volta_graph::AmdCounter::Vm, 1),
+                            (volta_graph::AmdCounter::Lgkm, 1),
+                        ]
+                } else {
+                    counters.as_slice() == [(volta_graph::AmdCounter::Vm, 1)]
+                };
+                if load
+                    && held
+                        .get(&record.wave)
+                        .is_some_and(|sources| !sources.is_empty())
+                {
+                    errors.push(Unresolved::at(record.event, "private VM0 profile requires an explicit VM0 between a private store and a later private load"));
+                }
                 if kind(graph, instruction) != Some(expected_kind)
                     || *exec_mask == 0
-                    || counters.as_slice() != [(volta_graph::AmdCounter::Vm, 1)]
+                    || !counters_valid
+                    || !width_valid
                     || destinations != writes
                     || !scalar_mask_reads.is_empty()
                     || !roles
@@ -214,6 +292,7 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                 {
                     errors.push(Unresolved::at(record.event, "scratch DWORD issue does not match its exact gfx950 source/operand/counter profile"));
                 }
+                *completion.entry(record.wave).or_default() |= if flat { 3 } else { 1 };
                 if load {
                     loaded.entry(record.wave).or_default().extend(destinations);
                 } else {
@@ -233,6 +312,8 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                             },
                             lanes: HashSet::new(),
                             offset: None,
+                            width: (words * 4) as u32,
+                            flat,
                         },
                     )
                     .is_some()
@@ -259,7 +340,7 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                     continue;
                 };
                 let current = instructions.get(&record.wave).map(|r| r.event);
-                let uniform = t.offset.is_none_or(|first| first == *offset);
+                let uniform = t.flat || t.offset.is_none_or(|first| first == *offset);
                 t.offset.get_or_insert(*offset);
                 if record.wave != t.wave
                     || current != Some(t.instruction)
@@ -269,11 +350,11 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                     || thread.0 / 64 != t.wave
                     || t.mask & (1u64 << (thread.0 % 64)) == 0
                     || !uniform
-                    || *width != 4
+                    || *width != t.width
                     || *access_kind != t.mode
                     || !offset.is_multiple_of(4)
                     || !offset
-                        .checked_add(4)
+                        .checked_add(u64::from(t.width))
                         .zip(limit)
                         .is_some_and(|(end, bound)| end <= bound)
                     || !t.lanes.insert(*thread)
@@ -281,26 +362,29 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                     errors.push(Unresolved::at(record.event, "private DWORD access has invalid membership, width, extent or source association"));
                 }
             }
-            AmdEventKind::Wait {
-                vmcnt: Some(value), ..
-            } => {
+            AmdEventKind::Wait { vmcnt, lgkmcnt, .. } => {
                 // Private classes use a zero-only admission profile, not a
                 // separate architectural FIFO domain. A partial/no-op wait can
                 // otherwise make ordinary results appear spuriously pending.
-                if *value != 0
+                if vmcnt.is_some_and(|value| value != 0)
                     && (held.get(&record.wave).is_some_and(|s| !s.is_empty())
                         || loaded.get(&record.wave).is_some_and(|s| !s.is_empty()))
                 {
                     errors.push(Unresolved::at(record.event,
                         "private VM0 profile does not admit a nonzero VM wait while private accesses are pending"));
                 }
-                if *value == 0
-                    && let Some(instruction) = instructions.get(&record.wave)
+                if let Some(instruction) = instructions.get(&record.wave)
                     && kind(graph, instruction) == Some("wait")
                     && graph.event(instruction.event).pc == graph.event(record.event).pc
+                    && let Some(remaining) = completion.get_mut(&record.wave)
                 {
-                    held.remove(&record.wave);
-                    loaded.remove(&record.wave);
+                    *remaining &=
+                        !(u8::from(*vmcnt == Some(0)) | (u8::from(*lgkmcnt == Some(0)) << 1));
+                    if *remaining == 0 {
+                        completion.remove(&record.wave);
+                        held.remove(&record.wave);
+                        loaded.remove(&record.wave);
+                    }
                 }
             }
             AmdEventKind::LaneRead { lane } | AmdEventKind::LaneWrite { lane } => {

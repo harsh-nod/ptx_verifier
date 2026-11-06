@@ -299,6 +299,11 @@ impl Interpreter<'_> {
         if memory.kind == MemoryKind::Permute {
             return self.permute(wave, instruction);
         }
+        if matches!(memory.kind, MemoryKind::FlatLoad | MemoryKind::FlatStore)
+            && self.flat_private(wave, instruction, memory)?
+        {
+            return Ok(());
+        }
         let TransferShape::Registers {
             bytes_per_register,
             registers_per_part,
@@ -951,6 +956,7 @@ impl Interpreter<'_> {
                             | Value::RelocationWord { .. }
                             | Value::CodeWord { .. }
                             | Value::SharedApertureHi
+                            | Value::PrivateApertureHi
                             | Value::PartialBits { .. }
                             | Value::PartialBytePair(..)
                             | Value::Low16Integer(_) => StoredValue::Opaque,

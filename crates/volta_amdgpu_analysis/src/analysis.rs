@@ -189,7 +189,7 @@ fn analyze_internal(
                 } else if matches!(instruction.operation(), crate::ir::Operation::Memory(memory)
                     if matches!(memory.kind, crate::ir::MemoryKind::ScratchLoad | crate::ir::MemoryKind::ScratchStore))
                 {
-                    if instruction.mnemonic() == "scratch_load_dword" { "scratch load" } else { "scratch store" }
+                    if matches!(instruction.operation(), crate::ir::Operation::Memory(memory) if memory.kind == crate::ir::MemoryKind::ScratchLoad) { "scratch load" } else { "scratch store" }
                 } else if module
                     .target
                     .as_deref()
