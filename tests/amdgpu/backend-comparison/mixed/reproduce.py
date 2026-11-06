@@ -305,7 +305,10 @@ def main():
             check_frozen(args.output, binaries, freeze, record_hash)
             proof, pcode, perr, ptimeout = invoke(shared + ['verify', str(directory / 'kernel.s'), str(directory / 'identity.spec'), '--config', str(directory / 'launch.json'), '--no-profile', '--dim', f'N={case["block"]}', '--sample', '0'], out / 'proof')
             check_frozen(args.output, binaries, freeze, record_hash)
-            read = lambda name: (out / name).read_text() if (out / name).is_file() else ''
+            def read(name):
+                path = out / name
+                return path.read_text() if path.is_file() else ''
+
             # Failed/aborted runs still produce a row and remain in the denominator.
             arms[arm] = inspect(case, arm, analyzed, proof, read('actual.vexpr'), read('graph.txt'), acode, pcode, analysis_stderr=aerr, proof_stderr=perr, analysis_timed_out=atimeout, proof_timed_out=ptimeout)
         rows.append(public_case(case, arms, {p.name: file_hash(p) for p in sorted(directory.iterdir())}))

@@ -55,6 +55,11 @@ fields. An optional `original_build_receipt` must include its SHA-256 in
 supplied files and do not prove a reproducible build or independently attest a
 clock measurement.
 
+Also compare inherited `RUSTFLAGS`, Cargo profile/target overrides, compiler
+wrappers and user or ancestor Cargo configuration files before timing. The
+automatic declaration check covers compiler versions, profile and features;
+it cannot establish that unrecorded build settings match.
+
 Qualify each arm using its own binary, declaration, exact revision and role:
 
 ```sh
@@ -105,6 +110,24 @@ contracts, source and binary hashes, retained transcripts/resources/outputs,
 exact pair order and round counts. It recomputes eligibility, medians, p95 and
 ratios. Keep raw commands, machine identities and artifacts outside the
 repository; publish sanitized numerical results only after audit.
+
+Export the complete numerical data using the original frozen harness checkout:
+
+```sh
+python3 tests/amdgpu/backend-comparison/export.py \
+  --harness /path/to/frozen-checkout/tests/amdgpu/backend-comparison/compare.py \
+  --plan /tmp/amd-plan/plan.json --plan-sha256 PLAN_SHA256 \
+  --report /tmp/amd-timing/report.json --output /tmp/amd-publication
+```
+
+The exporter verifies the harness hash and audits the collection before writing
+all case outcomes, every numerical sample, deterministic compressed CSV/JSON
+and a hash manifest. Keep the original harness in place: its repository-relative
+imports are part of the frozen experiment.
+
+The [2026-11-06 results](results/2026-11-06/README.md) retain all 67 configurations
+and 4,288 observations. Separate [mixed-wait controls](mixed/README.md) include
+their own portable functional reproduction and complete outcomes.
 
 The CPU controls exercise refusal and tamper handling without running a GPU:
 
