@@ -170,6 +170,14 @@ def generate():
                 "removing_real_gfx942_load_waits_or_matrix_result_spacing_cannot_verify",
             )
         ],
+        "mixed_wait_controls": [
+            reference("crates/volta_pipeline/tests/cdna_mixed_lgkm_tests.rs", name)
+            for name in (
+                "mixed_smem_and_lds_partial_wait_proves_every_copy_output",
+                "draining_lgkm_is_an_independent_full_output_control",
+                "mixed_wait_does_not_identify_newest_lds_or_unordered_scalar_results",
+            )
+        ],
         "explicit_boundaries": [
             {
                 "profile": "gfx942 FP8/BF8 FNUZ decoding and CDNA4-only matrix forms",

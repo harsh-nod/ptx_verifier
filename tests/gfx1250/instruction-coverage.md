@@ -67,10 +67,12 @@ cargo test --release -p volta_pipeline --test gfx1250_packed_data_parity_tests -
 [`fixtures/emitted-instructions.json`](fixtures/emitted-instructions.json) records
 the assembly lines and VOPD components for its explicitly listed compiler
 fixtures. Its assembly hashes allow a source inventory to be reproduced without
-a GPU. It currently contains 10 files, 1,282 source instructions, 1,314 components
-and 112 mnemonic spellings. It is a subset: newer fixtures such as
+a GPU. It currently contains 10 files, 1,279 source instructions, 1,311 components
+and 109 mnemonic spellings. It is a subset: newer fixtures such as
 `native-fp8-packing.s` are not in that historical index. Those counts are source
 occurrences, with no implied parser, execution, semantic-test or proof coverage.
+Function labels are excluded; an earlier index incorrectly counted three tensor
+function labels as instructions. The correction changes no assembly or workload.
 
 For an up-to-date list of tracked fixture assembly, including full workloads:
 

@@ -24,6 +24,18 @@ def run(argv):
             "stdout": result.stdout, "stderr": result.stderr}
 
 
+def instruction_rows(source):
+    """Inventory native instruction lines and VOPD components, excluding labels."""
+    instructions = []
+    opcode = re.compile(r"^(?:s_|v_|global_|flat_|ds_|tensor_|buffer_|scratch_)[A-Za-z0-9_]+(?:\s|$)")
+    for line, raw in enumerate(source.splitlines(), 1):
+        text = raw.split(";", 1)[0].strip()
+        if not text.endswith(":") and opcode.match(text):
+            instructions.append({"line": line, "text": text,
+                                 "components": re.split(r"\s*::\s*", text)})
+    return instructions
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path)
@@ -66,12 +78,7 @@ def main():
     inventory = {}
     for fixture in fixtures:
         assembly = directory / fixture["assembly"]
-        instructions = []
-        for line, raw in enumerate(assembly.read_text().splitlines(), 1):
-            text = raw.split(";", 1)[0].strip()
-            if re.match(r"(?:s_|v_|global_|flat_|ds_|tensor_|buffer_|scratch_)", text):
-                instructions.append({"line": line, "text": text,
-                                     "components": text.split(" :: ")})
+        instructions = instruction_rows(assembly.read_text())
         inventory[assembly.name] = {"sha256": sha(assembly), "instructions": instructions}
     (directory / "emitted-instructions.json").write_text(json.dumps(inventory, indent=2) + "\n")
     print(json.dumps({"fixtures": len(fixtures), "output": str(output),
