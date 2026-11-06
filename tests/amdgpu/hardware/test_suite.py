@@ -132,6 +132,26 @@ class ReceiptControls(unittest.TestCase):
 
 
 class SourceControls(unittest.TestCase):
+    def test_supplied_verifier_binary_is_hash_bound_and_mutation_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            binary = root / "verifier"
+            binary.write_bytes(b"original binary")
+            snapshot = dict(revision="a"*40, tree="b"*40, files={})
+            first = root / "first"
+            first.mkdir()
+            with mock.patch.object(suite, "verify", return_value=[]):
+                result = suite.stage(root, first, snapshot, "gfx950", binary)
+            self.assertEqual(result["verifier_identity"]["binary_sha256"], suite.sha(binary))
+            self.assertEqual(result["verifier_identity"]["trust"], "caller_supplied_binary")
+            second = root / "second"
+            second.mkdir()
+            def change(*args):
+                binary.write_bytes(b"different binary")
+                return []
+            with mock.patch.object(suite, "verify", side_effect=change), self.assertRaisesRegex(ValueError, "binary changed"):
+                suite.stage(root, second, snapshot, "gfx950", binary)
+
     def test_changed_or_symlinked_payload_is_refused(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

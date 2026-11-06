@@ -29,7 +29,9 @@ python3 tests/amdgpu/hardware/suite.py --config /tmp/amd-hardware.json \
 
 `--volta` additionally compares the generated address/launch probes with that
 local verifier. Omit it to run the numerical hardware checks alone; the receipt
-then makes no verifier claim. A single target can use `--target gfx950 --host
+then makes no verifier claim. The supplied verifier's path and binary hash are
+recorded and checked before/after verification and between targets; this does
+not attest its build or source revision. A single target can use `--target gfx950 --host
 gfx950-host --device 0 --rocm /opt/rocm` instead of `--config`. Use `--local`
 instead of `--host` when running on the GPU host. Local execution also stages
 the sources outside the checkout.

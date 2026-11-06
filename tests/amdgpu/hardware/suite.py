@@ -316,14 +316,21 @@ def stage(root: Path, directory: Path, snapshot: dict, target: str, volta: Path 
         shutil.copyfile(root / name, destination)
     probes = directory / "generated-probes" / target
     rows = prepare(probes, target)
+    verifier_identity = None
+    if volta:
+        verifier_identity = dict(binary=str(volta.resolve(strict=True)), binary_sha256=sha(volta),
+                                 trust="caller_supplied_binary",
+                                 scope="Exact binary bytes only; no source/build attestation is inferred.")
     verifier = verify(probes, target, volta, rows) if volta else None
+    if volta and sha(volta) != verifier_identity["binary_sha256"]:
+        raise ValueError("supplied verifier binary changed during probe verification")
     for path in probes.iterdir():
         if path.suffix in (".s", ".hpp", ".json"):
             files[path.relative_to(directory).as_posix()] = sha(path)
     manifest = dict(snapshot, files=files)
     write_receipt(directory / "source-manifest.json", manifest)
     verify_payload(directory, manifest)
-    return dict(manifest=manifest, verifier=verifier)
+    return dict(manifest=manifest, verifier=verifier, verifier_identity=verifier_identity)
 
 
 def remote_run(request, stage_dir, out, expected):
@@ -422,6 +429,8 @@ def main(argv=None):
             raise ValueError("LD_PRELOAD interposition is forbidden")
         snapshot = committed_sources(ROOT, args.revision)
         summary.update(source_revision=snapshot["revision"], source_tree=snapshot["tree"])
+        verifier = args.volta.resolve(strict=True) if args.volta else None
+        summary["probe_verifier"] = dict(binary=str(verifier), binary_sha256=sha(verifier), trust="caller_supplied_binary") if verifier else None
         for request in requests:
             target = request["target"]
             out = directory / (target + "-" + str(uuid.uuid4()))
@@ -432,11 +441,14 @@ def main(argv=None):
             write_receipt(out / "result.json", row)
             try:
                 validate_inventory(ROOT, target)
+                if verifier and sha(verifier) != summary["probe_verifier"]["binary_sha256"]:
+                    raise ValueError("supplied verifier binary changed between targets")
                 staging = out / "source"
                 staging.mkdir()
-                preparation = stage(ROOT, staging, snapshot, target, args.volta.resolve() if args.volta else None)
+                preparation = stage(ROOT, staging, snapshot, target, verifier)
                 row["payload_sha256"] = sha(staging / "source-manifest.json")
                 row["probe_verifier_runs"] = preparation["verifier"]
+                row["probe_verifier"] = preparation.get("verifier_identity")
                 if request["host"]:
                     observed = remote_run(request, staging, out, row)
                 else:
