@@ -347,21 +347,32 @@ fn recursive_calls_and_unreachable_unresolved_calls_fail_closed() {
 
 #[test]
 fn unsupported_helpers_are_cataloged_but_never_executed_as_parsed_prefixes() {
-    let helper = body(
-        "leaf",
-        "v_mov_b32 v1,7\nscratch_load_dwordx2 v[0:1],off,s32\ns_setpc_b64 s[30:31]",
-    );
-    let uncalled = frontend::parse(&module("s_endpgm", &helper)).unwrap();
-    assert!(uncalled.functions[0].refusal.is_some());
-    assert!(uncalled.functions[0].instructions.is_empty());
-    lower::lower_module_kernel(&uncalled, "k").unwrap();
-    let called = frontend::parse(&module(&(call("leaf", 0, 30) + store()), &helper)).unwrap();
-    assert!(
-        lower::lower_module_kernel(&called, "k")
-            .unwrap_err()
-            .message
-            .contains("called function")
-    );
+    for (operation, supported) in [
+        ("scratch_load_dwordx2 v[0:1],off,s32", true),
+        ("scratch_load_ushort v0,off,s32", false),
+    ] {
+        let helper = body(
+            "leaf",
+            &format!("v_mov_b32 v1,7\n{operation}\ns_setpc_b64 s[30:31]"),
+        );
+        let uncalled = frontend::parse(&module("s_endpgm", &helper)).unwrap();
+        assert_eq!(uncalled.functions[0].refusal.is_some(), !supported);
+        assert_eq!(uncalled.functions[0].instructions.is_empty(), !supported);
+        lower::lower_module_kernel(&uncalled, "k").unwrap();
+        let called = frontend::parse(&module(&(call("leaf", 0, 30) + store()), &helper)).unwrap();
+        if supported {
+            // The original wide helper now lowers in full. Runtime backing and
+            // ABI inputs remain separate execution requirements, without stubs.
+            lower::lower_module_kernel(&called, "k").unwrap();
+        } else {
+            assert!(
+                lower::lower_module_kernel(&called, "k")
+                    .unwrap_err()
+                    .message
+                    .contains("called function")
+            );
+        }
+    }
 }
 
 #[test]

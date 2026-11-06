@@ -833,3 +833,90 @@ fn ordinary_partial_and_max_wait_behavior_survives_without_pending_private_acces
         }
     }
 }
+
+#[test]
+fn private_flat_wide_records_check_independent_width_lane_roles_and_two_counters() {
+    for fault in 0..12 {
+        let mut t = Trace::new(
+            2,
+            vec![
+                Assumption::FixedPrivateAllocation(16),
+                Assumption::XnackReplayDisabled,
+            ],
+        );
+        let mut profile = LoadProfile::new();
+        profile.mask = 3;
+        profile.source = "vector memory";
+        profile.class = AmdMemoryClass::FlatPrivateLoad;
+        profile.reads = vec![v(10, 3), v(11, 3)];
+        profile.writes = vec![v(0, 3), v(1, 3)];
+        profile.destinations = profile.writes.clone();
+        profile.counters = vec![(AmdCounter::Vm, 1), (AmdCounter::Lgkm, 1)];
+        match fault {
+            5 => profile.class = AmdMemoryClass::ScratchLoadWide,
+            6 => {
+                profile.counters.pop();
+            }
+            7 => {
+                profile.writes.pop();
+                profile.destinations = profile.writes.clone();
+            }
+            8 => profile.reads[1].index = 12,
+            10 => {
+                profile.class = AmdMemoryClass::FlatPrivateStore;
+                profile.reads.clear();
+                profile.writes.clear();
+                profile.destinations.clear();
+            }
+            11 => {
+                profile.writes[1].index = 2;
+                profile.destinations = profile.writes.clone();
+            }
+            _ => {}
+        }
+        let issue = profile.issue(&mut t);
+        for lane in 0..2 {
+            if fault == 4 && lane == 1 {
+                continue;
+            }
+            let offset = if fault == 2 {
+                12
+            } else if fault == 3 {
+                2
+            } else {
+                8 * u64::from(lane)
+            };
+            profile.access(
+                &mut t,
+                issue,
+                AmdEventKind::PrivateMemoryAccess {
+                    issue,
+                    thread: ThreadIx(lane),
+                    offset,
+                    width: if fault == 1 { 4 } else { 8 },
+                    kind: AccessMode::Read,
+                },
+            );
+        }
+        if fault == 9 {
+            t.ins(0, "wait", 3, vec![], vec![]);
+            t.b.amd_event(
+                0,
+                pc("wait"),
+                AmdEventKind::Wait {
+                    vmcnt: Some(0),
+                    lgkmcnt: None,
+                    expcnt: None,
+                },
+            );
+        } else {
+            t.wait(0, "wait");
+        }
+        let graph = t.finish();
+        if fault == 0 {
+            pass(&graph);
+        } else {
+            unknown(&graph);
+        }
+    }
+}

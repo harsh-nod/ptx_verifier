@@ -629,9 +629,9 @@ impl MemoryInstruction {
             MemoryKind::FlatLoad
         } else if name.starts_with("flat_store_") {
             MemoryKind::FlatStore
-        } else if name == "scratch_load_dword" {
+        } else if name.starts_with("scratch_load_") {
             MemoryKind::ScratchLoad
-        } else if name == "scratch_store_dword" {
+        } else if name.starts_with("scratch_store_") {
             MemoryKind::ScratchStore
         } else if name.starts_with("buffer_load_") && operands.len() == 3 {
             MemoryKind::BufferLoadToLds

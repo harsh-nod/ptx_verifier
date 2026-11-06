@@ -101,7 +101,7 @@ pub struct AmdReport {
     pub memory_conflict: MemoryConflictResult,
 }
 
-const CLASSES: usize = 20;
+const CLASSES: usize = 24;
 fn class_index(class: AmdMemoryClass) -> usize {
     // CDNA4 §4.4 orders same-type LDS instructions. §12.12's DS_(B)PERMUTE
     // uses LDS hardware, with no LDS memory footprint. LLVM AMDGPUHWEvents.cpp
@@ -134,6 +134,10 @@ fn class_index(class: AmdMemoryClass) -> usize {
         // at VM0, without changing ordinary VM or DMA FIFO premises.
         AmdMemoryClass::ScratchLoad32 => 18,
         AmdMemoryClass::ScratchStore32 => 19,
+        AmdMemoryClass::ScratchLoadWide => 20,
+        AmdMemoryClass::ScratchStoreWide => 21,
+        AmdMemoryClass::FlatPrivateLoad => 22,
+        AmdMemoryClass::FlatPrivateStore => 23,
     }
 }
 fn ordered(class: AmdMemoryClass) -> bool {
@@ -361,7 +365,10 @@ fn trace_contract(
                         architecture == AmdArchitecture::Gfx950
                             && counters == &[(AmdCounter::Vm, 1)]
                     }
-                    AmdMemoryClass::ScratchLoad32 | AmdMemoryClass::ScratchStore32 => {
+                    AmdMemoryClass::ScratchLoad32
+                    | AmdMemoryClass::ScratchStore32
+                    | AmdMemoryClass::ScratchLoadWide
+                    | AmdMemoryClass::ScratchStoreWide => {
                         architecture == AmdArchitecture::Gfx950
                             && counters == &[(AmdCounter::Vm, 1)]
                     }
@@ -371,7 +378,10 @@ fn trace_contract(
                     AmdMemoryClass::Lds | AmdMemoryClass::Message | AmdMemoryClass::CrossLane => {
                         counters == &[(AmdCounter::Lgkm, 1)]
                     }
-                    AmdMemoryClass::Flat | AmdMemoryClass::FlatStoreWide => {
+                    AmdMemoryClass::Flat
+                    | AmdMemoryClass::FlatStoreWide
+                    | AmdMemoryClass::FlatPrivateLoad
+                    | AmdMemoryClass::FlatPrivateStore => {
                         counters.len() == 2
                             && counters.contains(&(AmdCounter::Vm, 1))
                             && counters.contains(&(AmdCounter::Lgkm, 1))
@@ -708,6 +718,10 @@ fn trace_contract(
                 | AmdMemoryClass::CrossLane
                 | AmdMemoryClass::ScratchLoad32
                 | AmdMemoryClass::ScratchStore32
+                | AmdMemoryClass::ScratchLoadWide
+                | AmdMemoryClass::ScratchStoreWide
+                | AmdMemoryClass::FlatPrivateLoad
+                | AmdMemoryClass::FlatPrivateStore
         ) && !linked_issues.contains(&event)
         {
             unresolved.push(Unresolved::at(

@@ -37,6 +37,8 @@ pub enum SpecialRegister {
     FlatScratchHi,
     /// Opaque 64-bit LDS aperture base, only read by the pinned s_mov_b64 ABI.
     SharedBase,
+    /// Opaque 64-bit private aperture base; gfx950 s_mov_b64 source only.
+    PrivateBase,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

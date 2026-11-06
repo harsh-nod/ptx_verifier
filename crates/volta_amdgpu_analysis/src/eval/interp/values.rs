@@ -151,6 +151,10 @@ impl Interpreter<'_> {
                 Some(lane),
                 "opaque shared aperture cannot be used as integer data",
             )),
+            Value::PrivateApertureHi => Err(wave.fail(
+                Some(lane),
+                "opaque private aperture cannot be used as integer data",
+            )),
             Value::RelocationWord { .. } | Value::CodeWord { .. } => Err(wave.fail(
                 Some(lane),
                 "opaque PC relocation cannot be used as integer data",
@@ -854,6 +858,7 @@ impl Interpreter<'_> {
             | Value::RelocationWord { .. }
             | Value::CodeWord { .. }
             | Value::SharedApertureHi
+            | Value::PrivateApertureHi
             | Value::PartialBits { .. }
             | Value::NarrowInt { .. }
             | Value::Low16Integer(_)

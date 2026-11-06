@@ -45,6 +45,9 @@ pub(super) enum Value {
     /// Unknown high32 of the 2^32-aligned LDS aperture. Only FLAT addressing
     /// may consume it, paired with a concrete segment offset in the low word.
     SharedApertureHi,
+    /// Unknown high32 of the private aperture. Low32 is a per-work-item offset,
+    /// never a backing-store or Global address and never cross-lane storage.
+    PrivateApertureHi,
     NarrowInt {
         expr: ExprId,
         bits: u8,
@@ -186,6 +189,9 @@ impl Value {
             Self::SharedApertureHi => {
                 Err("opaque shared aperture cannot be used as ordinary bits".into())
             }
+            Self::PrivateApertureHi => {
+                Err("opaque private aperture cannot be used as ordinary bits".into())
+            }
             _ => Err("symbolic mathematical data used as integer/address bits".into()),
         }
     }
@@ -226,6 +232,7 @@ impl Value {
             | Self::RelocationWord { .. }
             | Self::CodeWord { .. }
             | Self::SharedApertureHi
+            | Self::PrivateApertureHi
             | Self::NarrowInt { .. }
             | Self::Low16Integer(_)
             | Self::WidePart { .. }

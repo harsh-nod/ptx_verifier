@@ -84,7 +84,7 @@ and caller-matching continuations are checked.
 This finite profile follows [CDNA4 ISA §12.3](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
 and the pinned [LLVM SOP1 definitions](https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/lib/Target/AMDGPU/SOPInstructions.td#L312).
 External/GOT/loaded targets, arbitrary PC arithmetic, tailcalls, recursion and
-calls on other targets remain unsupported. Private FLAT addressing,
+calls on other targets remain unsupported. Unsupported private address forms,
 unavailable ABI inputs and unsupported called code still stop analysis; helper
 names never substitute for executing their bodies. This does not provide general
 ROCm device-library or hostcall execution.
@@ -139,7 +139,7 @@ AMDHSA argument offsets and sizes determine explicit kernarg layout. By-value
 arguments require exact caller-supplied bytes. Partial native loads preserve
 undefined padding bits; only consumers that use defined portions may proceed.
 Descriptor/configuration mismatches, uninitialized reads and out-of-bounds
-accesses are errors. Private FLAT addressing, buffer scratch, subword scratch,
+accesses are errors. Numeric private-base reconstruction, buffer scratch, subword scratch,
 dynamic private capacity beyond the selected fixed extent and kernarg preloading
 remain outside the selected profile.
 
@@ -160,14 +160,35 @@ invented. A dynamic-stack metadata flag alone does not reject an execution whose
 actual intervals all fit that fixed extent. Calls still execute their original
 stack-pointer adjustments without allocating or resetting a model frame.
 
-Only bare `scratch_load_dword Vdst, off, Saddr` and
-`scratch_store_dword off, Vdata, Saddr` are selected: plain numbered one-word
-registers, signed 13-bit optional byte offset, and either default cache policy or the
-compiler's exact `sc0 sc1` policy. Every active interval must be aligned,
+Bare `scratch_load_dword[x2/x3/x4] Vdst, off, Saddr` and
+`scratch_store_dword[x2/x3/x4] off, Vdata, Saddr` select contiguous one-to-four-word
+VGPR tuples and one numbered SGPR offset, a signed 13-bit optional byte offset,
+and either default cache policy or the compiler's exact `sc0 sc1` policy. Every active interval must be aligned,
 nonwrapping and inside the declared extent. Private DWORD cells are separate for
 each physical work item and have no Global/LDS effects. All active inputs and
 payloads are captured before an issue or mutation; empty EXEC observes no sources
 and emits no issue. Unwritten cells remain uninitialized.
+
+On gfx950, `s_mov_b64` can read `src_private_base` as an opaque aperture
+identity with a zero low word. Plain word moves may transport its high-word tag;
+no numerical base or backing address is supplied. Selected DWORD/DWORDX2/3/4
+FLAT transfers through that tag access the same per-work-item cells as scratch,
+including lane-varying concrete offsets. Each whole transfer must fit the fixed
+extent; mixed private/other apertures, subword transfers, wrapping offsets and
+unsupported policies stop analysis before any issue or mutation. The address and
+all payload words are captured before any aliased destination is written.
+
+This follows the public [LLVM aperture and architected scratch ABI](https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/docs/AMDGPUUsage.rst#L808-L827)
+and [FLAT definitions](https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/lib/Target/AMDGPU/FLATInstructions.td#L74-L80).
+A valid dispatch initializes gfx950's architected scratch backing when private
+memory is enabled; its process-dependent base remains opaque to this model.
+Private FLAT issues charge both VM and LGKM and require explicit source zeros
+for both counters before the conservative private admission rule releases their
+operands. The zeros may occur in either order. Scratch remains VM-only, and
+calls and returns supply no completion evidence. Private accesses never become
+Global/LDS effects or cross-work-item aliases. These controls are exercised in
+[private_flat.rs](tests/private_flat.rs); they do not qualify the 16 preserved
+HipKittens modules or supply missing runtime ABI inputs.
 
 Private cells preserve exact word tags, including ordered return PCs, linked
 values and undefined bits. In programs using this scratch profile, pure numbered

@@ -262,8 +262,9 @@ impl Interpreter<'_> {
             }
             _ => return Err(self.unsupported(wave, instruction)),
         };
-        if matches!(&event, AmdEventKind::Wait { vmcnt: Some(0), .. }) {
-            self.private.complete(wave.id);
+        if let AmdEventKind::Wait { vmcnt, lgkmcnt, .. } = &event {
+            self.private
+                .complete(wave.id, *vmcnt == Some(0), *lgkmcnt == Some(0));
         }
         self.builder
             .amd_event(wave.id, ProgramPoint(wave.pc as u32), event);
