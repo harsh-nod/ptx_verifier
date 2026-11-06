@@ -1,5 +1,14 @@
 # Original32 hardware input coverage
 
+The [common hardware entry point](../../../amdgpu/hardware/README.md) runs these
+four original-workload runners together with every other existing positive
+hardware driver. It also includes `matrix_features.cpp` (120 launches and
+674,056 complete native/original outputs) and `mechanism_features.cpp` (24
+launches and 4,616 outputs), using their unchanged assembly and complete guards.
+Only the drivers' explicit safe kernel selections are launched. The common
+entry point records each group separately and binds receipts to the committed
+sources, actual device and exact binaries/code objects.
+
 These host drivers load the unchanged original-shape compiler assembly. Their
 ordinary CPU reference formulas, launch mappings, complete output projections,
 native supersets, NaN sentinels, full input checks, byte guards and untouched

@@ -13,10 +13,10 @@
 #include <utility>
 #include <vector>
 
-static void require(bool value, const std::string &message) {
+inline void require(bool value, const std::string &message) {
   if (!value) throw std::runtime_error(message);
 }
-static void hip_check(hipError_t error, const char *operation) {
+inline void hip_check(hipError_t error, const char *operation) {
   require(error == hipSuccess, std::string(operation) + ": " + hipGetErrorString(error));
 }
 
@@ -81,7 +81,7 @@ inline std::string selected_device_identity_json() {
 
 #ifndef VOLTA_HARDWARE_IDENTITY_ONLY
 
-static void check_preserved(const std::vector<uint8_t> &before, const std::vector<uint8_t> &after,
+inline void check_preserved(const std::vector<uint8_t> &before, const std::vector<uint8_t> &after,
                             bool output, size_t guard) {
   require(before.size() == after.size() && before.size() >= guard * 2, "invalid storage extent");
   for (size_t i = 0; i < before.size(); ++i) {
@@ -91,10 +91,10 @@ static void check_preserved(const std::vector<uint8_t> &before, const std::vecto
 }
 
 enum class Type { Half, Float, E4M3, I8, U32 };
-static size_t width(Type type) {
+inline size_t width(Type type) {
   return type == Type::E4M3 || type == Type::I8 ? 1 : type == Type::Half ? 2 : 4;
 }
-static double decode_e4m3(uint8_t byte) {
+inline double decode_e4m3(uint8_t byte) {
   const unsigned exponent = (byte >> 3) & 15, fraction = byte & 7;
   const double value = exponent == 15 && fraction == 7
       ? NAN : exponent ? std::ldexp(1. + fraction / 8., int(exponent) - 7)
@@ -102,7 +102,7 @@ static double decode_e4m3(uint8_t byte) {
   return byte & 128 ? -value : value;
 }
 
-static void validate_reference_controls() {
+inline void validate_reference_controls() {
   for (const auto &sample : std::vector<std::pair<uint8_t, double>>{
       {0x00, 0}, {0x01, 1. / 512}, {0x07, 7. / 512}, {0x08, 1. / 64},
       {0x30, .5}, {0x38, 1}, {0x40, 2}, {0x7e, 448}, {0x81, -1. / 512},
@@ -220,7 +220,7 @@ struct Row {
   size_t outputs{}, launches{}, unchanged_input_bytes{}, unchanged_guard_bytes{}, unchanged_gap_bytes{}, original_outputs{};
   double maximum{};
 };
-static void launch(hipModule_t module, const std::string &name, dim3 block,
+inline void launch(hipModule_t module, const std::string &name, dim3 block,
                    std::vector<void *> args, const std::vector<Buffer *> &buffers, Row &row,
                    dim3 grid = dim3(1)) {
   for (Buffer *buffer : buffers) buffer->upload();
@@ -238,7 +238,7 @@ static void launch(hipModule_t module, const std::string &name, dim3 block,
   ++row.launches;
 }
 
-static void compare(const std::string &name, Buffer &out,
+inline void compare(const std::string &name, Buffer &out,
                     const std::vector<double> &expected, Row &row,
                     double atol = .00003, double rtol = .002) {
   require(expected.size() == out.count, name + ": incomplete CPU reference");
@@ -263,7 +263,7 @@ static void compare(const std::string &name, Buffer &out,
   }
 }
 
-static void run(hipModule_t module, const std::string &name, dim3 block,
+inline void run(hipModule_t module, const std::string &name, dim3 block,
                 std::vector<void *> args, const std::vector<Buffer *> &buffers,
                 Buffer &out, const std::vector<double> &expected, Row &row,
                 double atol = .00003, double rtol = .002) {

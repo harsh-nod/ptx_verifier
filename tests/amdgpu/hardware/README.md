@@ -1,4 +1,71 @@
-# Integer address and launch probes
+# AMD hardware validation
+
+`suite.py` runs the complete existing positive host-driver catalog for gfx942,
+gfx950 and gfx1250. It assembles the exact committed `.s` files and compiles
+only the host drivers. It preserves their full launch shapes, input patterns,
+output checks and guards. No racy, deadlocking or out-of-bounds mutations are
+selected for GPU execution.
+
+Use a clean committed version of the AMD test sources. Set up an SSH alias for
+each reserved GPU and put the physical device ordinal and ROCm installation in
+an external JSON file:
+
+```json
+{
+  "targets": [
+    {"target": "gfx942", "host": "gfx942-host", "device": 0, "rocm": "/opt/rocm"},
+    {"target": "gfx950", "host": "gfx950-host", "device": 0, "rocm": "/opt/rocm"},
+    {"target": "gfx1250", "host": "gfx1250-host", "device": 0, "rocm": "/opt/rocm"}
+  ]
+}
+```
+
+Run from any checkout, using Python 3.12 or newer on the controlling host:
+
+```sh
+python3 tests/amdgpu/hardware/suite.py --config /tmp/amd-hardware.json \
+  --work-dir /tmp/amd-hardware-run --volta target/release/volta
+```
+
+`--volta` additionally compares the generated address/launch probes with that
+local verifier. Omit it to run the numerical hardware checks alone; the receipt
+then makes no verifier claim. A single target can use `--target gfx950 --host
+gfx950-host --device 0 --rocm /opt/rocm` instead of `--config`. Use `--local`
+instead of `--host` when running on the GPU host. Local execution also stages
+the sources outside the checkout.
+
+The catalog contains 2 gfx942 groups, 12 gfx950 groups and 17 gfx1250 groups.
+It includes all existing positive host drivers, the gfx1250 matrix and mechanism
+feature drivers, and the common address/launch probes below. Adding a host driver
+without registering it in `profiles.py` makes the gate fail. Existing gfx1250
+sub-runners retain their independent reference and output-accounting checks.
+The four original-workload runners retain all 262 launches and 2,803,092 native
+outputs; supplemental feature checks are separate groups.
+
+Targets run sequentially. A failure stops that target; the other requested
+targets still run and retain distinct outcomes. `result.json` is replaced with
+an incomplete record before source validation or transport, then becomes `PASS`
+only when every requested target completes every required group. Changed
+committed input, architecture overrides, inherited device selectors, mismatched
+HIP libraries, missing/stale receipts and incomplete suite inventories fail.
+Every subprocess has a bounded timeout; no device resets are attempted.
+
+Receipts bind the invocation to a source revision/tree, exact staged-file hashes,
+physical device identity, tool/runtime hashes, host binaries and assembled
+objects/code objects. Each remote staging directory is unique and retained.
+Small command logs and nested receipts are downloaded; built artifacts remain
+at the recorded remote location. Keep work directories and receipts outside
+the repository. Numerical hardware checks do not certify graph safety, arbitrary
+ISA coverage or exhaustive IEEE behavior.
+
+CPU-only controls for the catalog, source binding, receipt validation and failure
+handling require no ROCm installation or GPU:
+
+```sh
+python3 -m unittest discover -s tests/amdgpu/hardware -p 'test*.py' -v
+```
+
+## Integer address and launch probes
 
 These safe probes compare one exact assembly program with the verifier, an
 independent integer reference, and an actual matching GPU. They cover gfx942,

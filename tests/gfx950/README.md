@@ -1,5 +1,10 @@
 # gfx950 fixtures and workflows
 
+The [common hardware entry point](../amdgpu/hardware/README.md) runs all eleven
+existing gfx950 positive host drivers plus the address/launch probes. It accepts
+an SSH host, physical device ordinal and ROCm installation, and records exact
+committed-source, tool and binary/code-object hashes outside the repository.
+
 This directory contains source mappings, native assembly controls and workload
 replay tools for the CDNA4 backend. The target uses wave64. Its instruction,
 format and visibility contracts are separate from gfx1250's wave32 model.

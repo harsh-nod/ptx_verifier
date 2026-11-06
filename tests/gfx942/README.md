@@ -1,5 +1,10 @@
 # Native gfx942 compiler and hardware controls
 
+Use the [common hardware entry point](../amdgpu/hardware/README.md) to run the
+complete existing gfx942 compiler corpus and common address/launch probes. It
+accepts an SSH host, physical device ordinal and ROCm installation, and pins
+the exact committed sources and resulting binaries in an external receipt.
+
 These HIP translation units and unchanged compiler assembly exercise the CDNA3
 backend. CPU tests use the native analyzer, graph checker and equivalence
 engine; the device runner loads code objects through the HIP module API.

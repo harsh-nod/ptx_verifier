@@ -1,5 +1,11 @@
 # gfx1250 hardware replay
 
+For all gfx1250 positive hardware groups, including the original workloads,
+matrix/mechanism features and common address/launch probes, use the
+[common hardware entry point](../../amdgpu/hardware/README.md). It also supports
+gfx942 and gfx950 with one config file. The commands below remain available for
+individual core and portable groups.
+
 `run.py` compiles the host-only HIP module driver, assembles the **unchanged**
 checked-in native `.s` files, links code objects, and runs safe positive kernels.
 It does not compile the fixture HIP sources or run mutants. A real `gfx1250`
