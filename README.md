@@ -147,6 +147,32 @@ correctness.
 
 ## Measured time to a safety finding
 
+### Current full-trace AMD comparison
+
+The frozen 67-configuration development corpus compares fork baseline `d88be68`
+with the AMD changes in `2bdedfde`, using identical ordinary full-trace options.
+A separate prospective study tests 26 handwritten mixed-wait configurations.
+
+| Check | Baseline | Updated checker |
+| --- | ---: | ---: |
+| Existing seeded hazards detected | 24/24 | 24/24 |
+| Existing safe configurations with complete proofs | 43/43 | 43/43 |
+| Mixed-wait safe controls accepted | 2/10 | 10/10 |
+| Mixed-wait seeded hazards detected | 16/16 | 16/16 |
+
+The mixed-wait result removes eight false positives while retaining all 16
+seeded findings. Both versions produce identical complete graphs and all 1,792
+configured output expressions; every full mathematical specification is proved.
+These controls establish a bounded precision improvement. The existing corpus
+retains all 9,535 safe output elements and complete specification checks.
+
+The 4,288 timing observations show slower candidate medians in **58/67 cases**:
+the median per-case ratio is **1.017× for hazard diagnostics** and **1.031× for
+safe completion**. This shared-host study establishes preserved coverage and
+the separate precision gain; it does not establish faster bug finding.
+See [every result, p95, sample and measurement limitation](tests/amdgpu/backend-comparison/results/2026-11-06/README.md)
+and the [portable mixed-wait reproduction](tests/amdgpu/backend-comparison/mixed/README.md).
+
 ### Native AMD input materialization
 
 Native AMD now creates symbolic input elements when an executed memory access

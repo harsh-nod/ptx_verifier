@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "scope": "Descriptive full-trace CPU verifier timings on a shared host.",
+  "builds_and_tests_from_this_work": "Stopped before timed collection; portable helper tests deferred until collection ends.",
+  "other_host_work": "Continued; no CPU isolation or statistical significance is claimed.",
+  "disclosed_overlap": {
+    "activity": "Low-priority read-only Git history and stored-blob hash scan",
+    "blobs": 8629,
+    "uncompressed_bytes": 345123494,
+    "cpu_nice": 19,
+    "io_class": "idle",
+    "effect": "Not independently quantified; timing interference cannot be excluded.",
+    "reported_utc": "2026-11-06T03:29:37.814655+00:00"
+  },
+  "retention": "All first and repeated observations are retained. No timing observations are removed or retried in response to this overlap."
+}
