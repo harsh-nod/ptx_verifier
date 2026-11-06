@@ -1,6 +1,7 @@
 //! Target-validated executable instructions. Syntax is consumed during lowering;
 //! only source identity and modifier spelling remain alongside semantic operations.
-use super::ops::{AluOpcode, MatrixOpcode, MemoryOpcode, canonical_alu};
+use super::alu::AluOperation;
+use super::ops::{MatrixOpcode, MemoryOpcode};
 use crate::frontend::{self, Modifier, Opcode, Register, Relocation, SourceSpan};
 use crate::source_encoding::{
     EncodedImmediate, ResolvedScalarSources, ScalarLayout, ScalarSourceType,
@@ -164,7 +165,7 @@ pub struct Comparison {
     pub writes_exec: bool,
 }
 impl Comparison {
-    fn parse(name: &str) -> Option<Self> {
+    pub(super) fn parse(name: &str) -> Option<Self> {
         let writes_exec = name.starts_with("v_cmpx_");
         let comparison = name
             .strip_prefix("v_cmp_")
@@ -205,7 +206,7 @@ impl Comparison {
             writes_exec,
         })
     }
-    fn name(self) -> String {
+    pub(super) fn name(self) -> String {
         let relation = match self.relation {
             Relation::Eq => "eq",
             Relation::Lg => "lg",
@@ -241,25 +242,6 @@ impl Comparison {
             relation,
             ty
         )
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AluOperation {
-    Opcode(AluOpcode),
-    Compare(Comparison),
-}
-impl AluOperation {
-    pub(crate) fn parse(name: &str) -> Option<Self> {
-        let name = canonical_alu(name);
-        Comparison::parse(name)
-            .map(Self::Compare)
-            .or_else(|| AluOpcode::parse(name).map(Self::Opcode))
-    }
-    pub fn name(self) -> Cow<'static, str> {
-        match self {
-            Self::Opcode(op) => Cow::Borrowed(op.name()),
-            Self::Compare(op) => Cow::Owned(op.name()),
-        }
     }
 }
 #[derive(Debug, Clone, PartialEq)]
@@ -1112,13 +1094,13 @@ mod scalar_source_tests {
     fn raw_numeric_operands_cannot_enter_a_migrated_source_view() {
         for raw in [Operand::Integer(1), Operand::Float(1.0)] {
             let instruction = AluInstruction {
-                operation: AluOperation::Opcode(AluOpcode::SMovB64),
+                operation: AluOperation::SMovB64,
                 arguments: Arguments::Two([pair(), raw]),
             };
             assert!(instruction.scalar_sources().is_err());
         }
         let missing = AluInstruction {
-            operation: AluOperation::Opcode(AluOpcode::SLshlB64),
+            operation: AluOperation::SLshlB64,
             arguments: Arguments::None,
         };
         assert!(missing.scalar_sources().is_err());
@@ -1140,7 +1122,7 @@ mod scalar_source_tests {
                 .unwrap()
                 .unwrap();
         let instruction = AluInstruction {
-            operation: AluOperation::Opcode(AluOpcode::SMovB64),
+            operation: AluOperation::SMovB64,
             arguments: Arguments::Two([
                 pair(),
                 Operand::EncodedImmediate(checked.immediate_at(2).unwrap()),

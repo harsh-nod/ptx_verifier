@@ -65,6 +65,14 @@ constants, then checks target and descriptor constraints; it leaves the caller's
 AST unchanged. Executable instruction accessors are read-only. This IR is
 implemented in Rust; it does not depend on LLVM or MLIR.
 
+Native ALU lowering resolves instruction names into semantic families with explicit
+width, signedness, carry, source-order and packing fields. The evaluator consumes
+those fields rather than reconstructing opcode strings. Scalar, vector, matrix,
+memory, tensor and control execution live in separate modules beneath
+`volta_amdgpu_analysis/src/eval/interp/`; the parent owns scheduling and dispatch.
+The [native analyzer guide](../crates/volta_amdgpu_analysis/README.md) maps these
+modules and explains the target and memory contracts.
+
 ## Shared contracts
 
 | Crate | Data and responsibility |

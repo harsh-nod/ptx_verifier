@@ -252,7 +252,12 @@ fn selected_width_limit_and_impossible_or_unmodeled_operand_shapes_fail_closed()
         };
         assert_eq!(
             alu.operation,
-            ir::AluOperation::Opcode(ir::AluOpcode::SBfeI64)
+            ir::AluOperation::Bitfield {
+                domain: ir::AluDomain::Scalar,
+                kind: ir::BitfieldKind::Extract,
+                width: ir::BitWidth::B64,
+                signed: true,
+            }
         );
         let mut kernel = module.kernels[0].clone();
         let instruction = kernel

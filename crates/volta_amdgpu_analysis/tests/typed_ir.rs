@@ -44,7 +44,12 @@ fn copy_lowers_to_semantic_roles_without_losing_source_identity() {
     };
     assert_eq!(
         shift.operation,
-        ir::AluOperation::Opcode(ir::AluOpcode::VLshlrevB32)
+        ir::AluOperation::Shift {
+            domain: ir::AluDomain::Vector,
+            kind: ir::ShiftKind::Left,
+            width: ir::BitWidth::B32,
+            reverse: true,
+        }
     );
     assert_eq!(lowered.instructions[1].source().encoding, ir::Encoding::E32);
     assert_eq!(lowered.instructions[1].semantic_name(), "v_lshlrev_b32");
@@ -101,7 +106,16 @@ fn native_aliases_share_an_operation_but_preserve_the_encoding_and_spelling() {
         };
         assert_eq!(
             alu.operation,
-            ir::AluOperation::Opcode(ir::AluOpcode::SSubU32)
+            ir::AluOperation::Integer {
+                domain: ir::AluDomain::Scalar,
+                kind: ir::IntegerKind::Sub,
+                ty: ir::IntegerType {
+                    width: ir::BitWidth::B32,
+                    signed: false,
+                },
+                source_bits: 32,
+                form: ir::IntegerForm::Plain,
+            }
         );
         assert_eq!(lowered.instructions[0].mnemonic(), spelling);
     }
@@ -119,11 +133,18 @@ fn dual_issue_contains_two_lowered_operations_and_their_pre_issue_operand_roles(
     let ir::Operation::Dual { x, y } = instruction.operation() else {
         panic!("typed dual issue")
     };
-    for (operation, expected) in [(x, ir::AluOpcode::VAddF32), (y, ir::AluOpcode::VMulF32)] {
+    for (operation, kind) in [(x, ir::FloatKind::Add), (y, ir::FloatKind::Mul)] {
         let ir::Operation::VectorAlu(alu) = operation.operation() else {
             panic!("typed component")
         };
-        assert_eq!(alu.operation, ir::AluOperation::Opcode(expected));
+        assert_eq!(
+            alu.operation,
+            ir::AluOperation::Float {
+                domain: ir::AluDomain::Vector,
+                kind,
+                ty: ir::FloatType::F32,
+            }
+        );
         assert_eq!(operation.span(), instruction.span());
         assert_eq!(alu.operands().len(), 3);
     }

@@ -1,5 +1,6 @@
 //! Executable native AMD operations, value operands, source identity and module metadata.
 
+mod alu;
 mod instruction;
 mod ops;
 pub use crate::frontend::ast::{
@@ -9,8 +10,9 @@ pub use crate::frontend::ast::{
 pub use crate::source_encoding::{
     EncodedImmediate, ImmediateEncoding, InlineSelector, ScalarSourceType,
 };
+pub use alu::*;
 pub use instruction::*;
-pub use ops::{AluOpcode, MatrixOpcode, MemoryOpcode};
+pub use ops::{MatrixOpcode, MemoryOpcode};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

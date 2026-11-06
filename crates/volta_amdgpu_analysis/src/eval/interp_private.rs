@@ -20,8 +20,8 @@ pub(super) fn admit_lane_program(
     }
     for (pc, instruction) in program.instructions.iter().enumerate() {
         let (read, name) = match instruction.alu_operation() {
-            Some(AluOperation::Opcode(AluOpcode::VReadlaneB32)) => (true, "v_readlane_b32"),
-            Some(AluOperation::Opcode(AluOpcode::VWritelaneB32)) => (false, "v_writelane_b32"),
+            Some(AluOperation::VReadlaneB32) => (true, "v_readlane_b32"),
+            Some(AluOperation::VWritelaneB32) => (false, "v_writelane_b32"),
             _ => continue,
         };
         if instruction.mnemonic() != name
@@ -158,7 +158,7 @@ impl Interpreter<'_> {
         instruction: &Instruction,
     ) -> Result<(), EvalError> {
         let lane = lane(wave, instruction)?;
-        let read = instruction.mnemonic() == "v_readlane_b32";
+        let read = instruction.alu_operation() == Some(AluOperation::VReadlaneB32);
         let source = wave.destination(&instruction.operands()[1])?;
         let destination = wave.destination(&instruction.operands()[0])?;
         let source_lane = if read { lane } else { 0 };

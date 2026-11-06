@@ -6,6 +6,7 @@
 //! All arguments below are already decoded mathematical values. This module
 //! does not reinterpret arbitrary symbolic bits or apply floating-point rounding.
 
+use crate::ir::MatrixOpcode;
 use volta_expr::{ExprArena, ExprId};
 use volta_graph::AmdMatrixKind;
 
@@ -30,25 +31,35 @@ pub(crate) struct Form {
 }
 
 impl Form {
-    pub fn from_mnemonic(name: &str) -> Option<Self> {
+    pub fn from_operation(operation: MatrixOpcode) -> Option<Self> {
         use InputKind::*;
-        let (m, k, input, scaled, interleaved_fp8) = match name {
-            "v_mfma_f32_16x16x4_f32" | "v_mfma_f32_16x16x4f32" => (16, 4, F32, false, false),
-            "v_mfma_f32_32x32x2_f32" | "v_mfma_f32_32x32x2f32" => (32, 2, F32, false, false),
-            "v_mfma_f32_16x16x16_f16" | "v_mfma_f32_16x16x16f16" => (16, 16, F16, false, false),
-            "v_mfma_f32_32x32x8_f16" | "v_mfma_f32_32x32x8f16" => (32, 8, F16, false, false),
-            "v_mfma_f32_16x16x32_f16" => (16, 32, F16, false, false),
-            "v_mfma_f32_32x32x16_f16" => (32, 16, F16, false, false),
-            "v_mfma_f32_16x16x16_bf16" | "v_mfma_f32_16x16x16bf16_1k" => {
+        let (m, k, input, scaled, interleaved_fp8) = match operation {
+            MatrixOpcode::VMfmaF3216x16x4F32 | MatrixOpcode::VMfmaF3216x16x4f32 => {
+                (16, 4, F32, false, false)
+            }
+            MatrixOpcode::VMfmaF3232x32x2F32 | MatrixOpcode::VMfmaF3232x32x2f32 => {
+                (32, 2, F32, false, false)
+            }
+            MatrixOpcode::VMfmaF3216x16x16F16 | MatrixOpcode::VMfmaF3216x16x16f16 => {
+                (16, 16, F16, false, false)
+            }
+            MatrixOpcode::VMfmaF3232x32x8F16 | MatrixOpcode::VMfmaF3232x32x8f16 => {
+                (32, 8, F16, false, false)
+            }
+            MatrixOpcode::VMfmaF3216x16x32F16 => (16, 32, F16, false, false),
+            MatrixOpcode::VMfmaF3232x32x16F16 => (32, 16, F16, false, false),
+            MatrixOpcode::VMfmaF3216x16x16Bf16 | MatrixOpcode::VMfmaF3216x16x16bf161k => {
                 (16, 16, Bf16, false, false)
             }
-            "v_mfma_f32_32x32x8_bf16" | "v_mfma_f32_32x32x8bf16_1k" => (32, 8, Bf16, false, false),
-            "v_mfma_f32_16x16x32_bf16" => (16, 32, Bf16, false, false),
-            "v_mfma_f32_32x32x16_bf16" => (32, 16, Bf16, false, false),
-            "v_mfma_f32_16x16x128_f8f6f4" => (16, 128, Fp8E4m3, false, true),
-            "v_mfma_f32_32x32x64_f8f6f4" => (32, 64, Fp8E4m3, false, true),
-            "v_mfma_scale_f32_16x16x128_f8f6f4" => (16, 128, Fp8E4m3, true, true),
-            "v_mfma_scale_f32_32x32x64_f8f6f4" => (32, 64, Fp8E4m3, true, true),
+            MatrixOpcode::VMfmaF3232x32x8Bf16 | MatrixOpcode::VMfmaF3232x32x8bf161k => {
+                (32, 8, Bf16, false, false)
+            }
+            MatrixOpcode::VMfmaF3216x16x32Bf16 => (16, 32, Bf16, false, false),
+            MatrixOpcode::VMfmaF3232x32x16Bf16 => (32, 16, Bf16, false, false),
+            MatrixOpcode::VMfmaF3216x16x128F8f6f4 => (16, 128, Fp8E4m3, false, true),
+            MatrixOpcode::VMfmaF3232x32x64F8f6f4 => (32, 64, Fp8E4m3, false, true),
+            MatrixOpcode::VMfmaScaleF3216x16x128F8f6f4 => (16, 128, Fp8E4m3, true, true),
+            MatrixOpcode::VMfmaScaleF3232x32x64F8f6f4 => (32, 64, Fp8E4m3, true, true),
             _ => return None,
         };
         Some(Self {
@@ -60,6 +71,10 @@ impl Form {
             scaled,
             interleaved_fp8,
         })
+    }
+    #[cfg(test)]
+    fn from_mnemonic(name: &str) -> Option<Self> {
+        MatrixOpcode::parse(name).and_then(Self::from_operation)
     }
     pub fn is_scaled(self) -> bool {
         self.scaled
