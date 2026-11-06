@@ -2,11 +2,7 @@
 //!
 //! Width belongs to a source position, not the destination or numeric spelling.
 //! These five binary operations use Binary64 data and Bits32 shift counts.
-use crate::{
-    frontend::Operand,
-    ir::{AluOpcode, AluOperation},
-    target::Architecture,
-};
+use crate::{frontend::Operand, ir::AluOperation, target::Architecture};
 
 /// Interpretation of a selected scalar source, independent of literal size.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -190,9 +186,9 @@ pub(crate) enum ScalarLayout {
 impl ScalarLayout {
     pub(crate) fn for_operation(operation: AluOperation) -> Option<Self> {
         match operation {
-            AluOperation::Opcode(AluOpcode::SMovB64) => Some(Self::Move64),
-            AluOperation::Opcode(AluOpcode::SOrB64 | AluOpcode::SXorB64) => Some(Self::Binary64),
-            AluOperation::Opcode(AluOpcode::SLshlB64 | AluOpcode::SLshrB64) => Some(Self::Shift64),
+            AluOperation::SMovB64 => Some(Self::Move64),
+            AluOperation::SOrB64 | AluOperation::SXorB64 => Some(Self::Binary64),
+            AluOperation::SLshlB64 | AluOperation::SLshrB64 => Some(Self::Shift64),
             _ => None,
         }
     }

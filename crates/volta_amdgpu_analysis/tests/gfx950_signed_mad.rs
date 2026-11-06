@@ -182,7 +182,16 @@ fn typed_operation_and_graph_roles_retain_both_destinations_and_all_sources() {
     };
     assert_eq!(
         alu.operation,
-        ir::AluOperation::Opcode(ir::AluOpcode::VMadI64I32)
+        ir::AluOperation::Integer {
+            domain: ir::AluDomain::Vector,
+            kind: ir::IntegerKind::MultiplyAdd,
+            ty: ir::IntegerType {
+                width: ir::BitWidth::B64,
+                signed: true,
+            },
+            source_bits: 32,
+            form: ir::IntegerForm::Plain,
+        }
     );
     let result = run(
         &(constants(-2, 3, 5) + "v_mad_i64_i32 v[2:3],s[8:9],v6,v7,v[10:11]"),

@@ -226,7 +226,16 @@ fn typed_operation_and_graph_roles_retain_both_words_of_both_sources() {
     };
     assert_eq!(
         alu.operation,
-        ir::AluOperation::Opcode(ir::AluOpcode::VMulU64)
+        ir::AluOperation::Integer {
+            domain: ir::AluDomain::Vector,
+            kind: ir::IntegerKind::Mul,
+            ty: ir::IntegerType {
+                width: ir::BitWidth::B64,
+                signed: false,
+            },
+            source_bits: 64,
+            form: ir::IntegerForm::Plain,
+        }
     );
     let result = run(&body, 1);
     let record = result

@@ -43,11 +43,23 @@ without modifying the caller's syntax. The module-less `lower_kernel` uses gfx95
 for wave64
 and gfx1250 for wave32; explicit gfx942 and module globals require module context.
 
-Scalar/vector helpers use a canonical-name bridge from the closed ALU operation
-set. Comparisons consume typed relation, value type and EXEC-update fields.
-Encoding-specific dependencies and selected modifier modes retain their existing
-checks. A lowered operation can still stop as unsupported during execution;
-lowering alone makes no safety or value-semantics claim.
+ALU instructions lower into semantic families: integer and floating arithmetic,
+bitwise operations, shifts, comparisons, conversions, packed arithmetic and lane
+moves. The family carries width, signedness, source order, carry mode and packing;
+execution matches these fields directly. One table in [`ir/alu.rs`](src/ir/alu.rs)
+defines the accepted forms and their diagnostic names. Original assembly spelling
+and encoding remain separate so aliases share semantics without losing the
+checks specific to an instruction form. A lowered operation can still stop as
+unsupported during execution; lowering alone makes no safety or value-semantics
+claim.
+
+[`eval/interp.rs`](src/eval/interp.rs) owns wave scheduling and instruction dispatch.
+Its `interp/` modules implement scalar and vector ALU operations, matrix operations,
+memory, tensor transfers, control flow and value decoding. Stateless arithmetic
+helpers remain in `eval/scalar.rs`; matrix layouts remain in `eval/matrix.rs`.
+Execution records physical work-item dependencies and target-selected events for
+the independent graph checker. Moving arithmetic into a shared family does not
+merge target legality, counters, ABI rules or synchronization contracts.
 
 The frontend identifies compiler entry kernels through descriptors and AMDHSA
 metadata. It catalogs non-entry helpers only when `.type ...,@function` and
