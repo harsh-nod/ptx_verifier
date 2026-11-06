@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "baseline_revision": "d88be6827351de697d7f7ae0ded77ac57ef908e1",
+  "population": "Every AMD development configuration in the frozen design-study safety corpus: 67 configurations (43 safe, 24 seeded hazardous); gfx942 18, gfx950 9, gfx1250 40. These are configurations, not 67 distinct algorithms or new application bugs.",
+  "scope": "Identical ordinary full-trace CLI options in both arms; no early-readiness or memory-conflict option is enabled by this comparison. Complete historical source modules, selected-workgroup contracts, output coordinates and mathematical specifications are preserved. No heldouts are executed or used as prospective validation/tuning evidence.",
+  "qualification": "One full analysis per configuration per arm; every safe configuration also receives complete output export and verify --sample 0. Unsupported, UNKNOWN, timeout, crash and an aborted graph with a property FAIL do not count as intended detections. All functional outcomes remain in the denominator.",
+  "timing_eligibility": "Determined only by baseline qualification. A safe case needs complete graph/output/specification checks; a hazard needs a complete intended typed rejection. A candidate failure never filters a baseline-qualified case. New candidate-only support has absolute functional observations and no speedup ratio.",
+  "repeats": 31,
+  "seed": 20261106,
+  "timeout_seconds": 60,
+  "order": "One separate first-observation round, followed by 31 repeated fresh-process rounds. Seeded shuffled case order; each pair runs adjacent with seeded randomized arm order. Timing starts after unrelated builds/tests stop. Record machine load; no machine-cold cache or CPU-isolation claim.",
+  "endpoints": "Hazard: parent-observed first independently validated expected-property diagnostic. Safe: parent-observed process completion without optional expression export; full output/specification controls are untimed. Record process wall time, CPU time, peak RSS, return status and censored durations separately.",
+  "statistics": "Per-case repeated medians and nearest-rank p95, with first observations separate. A ratio requires all 31 successful repeats in each arm. Retain every miss, timeout and regression; no outlier removal, adaptive retry, selective kernel replacement or promised improvement.",
+  "publication": "Publish all per-case results and sanitized numerical samples after an independent audit. Keep raw machine identities, commands and logs outside the repository. Historical datasets remain unchanged. Synthetic mixed-wait/private controls are separate prospective coverage controls, never additional real application bugs."
+}
