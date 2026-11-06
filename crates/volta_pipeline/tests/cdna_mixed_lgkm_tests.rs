@@ -60,7 +60,7 @@ fn copy_outputs(checked: &gfx950_common::Checked, block: u32) {
         arena,
         outputs: vec![("out".into(), elements)],
     };
-    let result = check_output_equivalence(&actual, &expected, &["out".into()]).unwrap();
+    let result = check_output_equivalence(actual, &expected, &["out".into()]).unwrap();
     assert!(matches!(result, EquivOutcome::Equivalent), "{result:?}");
 }
 
