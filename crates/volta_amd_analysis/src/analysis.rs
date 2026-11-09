@@ -10,8 +10,8 @@ use volta_graph::{
 };
 
 use crate::eval::{
-    ArrayDef, EvalError, Interpreter, Terminal, WorkgroupLaunch, workgroup_coordinates,
-    workgroup_outputs,
+    ArrayDef, EvalError, Interpreter, Terminal, WorkgroupLaunch, grid_workgroups,
+    workgroup_coordinates, workgroup_outputs,
 };
 use crate::frontend::ast::Kernel;
 use crate::ir::LoweredKernel;
@@ -132,6 +132,7 @@ pub struct StoreConflict {
 /// Lower `kernel` and run every workgroup of `launch.grid_size` at once, with `kernarg` at
 /// `launch.kernarg_address` and `arrays` in global memory. `launch.workgroup_id` is ignored:
 /// workgroup (0, 0, 0) represents the grid in the launch registers and the graph.
+/// An unallocatable per-workgroup result table returns a launch error before execution.
 pub fn analyze_grid(
     kernel: &Kernel,
     launch: &WorkgroupLaunch,
@@ -144,12 +145,20 @@ pub fn analyze_grid(
     };
     let lowered = lower_kernel(kernel)?;
     let provenance = provenance(kernel, &lowered, launch, true);
+    // Reserve the final per-workgroup table before any workgroup enumeration. Its
+    // entries are larger than the evaluator's per-workgroup metadata, so an
+    // unaddressable grid fails here even when no workgroup-ID register is enabled.
+    let mut workgroups = Vec::new();
+    workgroups
+        .try_reserve_exact(grid_workgroups(launch.grid_size)?)
+        .map_err(|error| EvalError::Launch {
+            message: format!("cannot allocate workgroup output table: {error}"),
+        })?;
     let mut interp = Interpreter::new(&lowered, launch, kernarg, arrays, provenance, true)?;
     let terminal = interp.run(&lowered);
     let run = interp.finish_grid(graph_terminal(&terminal));
 
     // Give each workgroup an arena containing its output expressions after execution completes.
-    let mut workgroups = Vec::new();
     let mut conflicts = Vec::new();
     if terminal == Terminal::Completed {
         for (index, outputs) in run.outputs.iter().enumerate() {

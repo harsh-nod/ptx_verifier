@@ -197,6 +197,70 @@ fn invalid_workgroup_launches_are_rejected() {
     }
 }
 
+#[test]
+fn grid_results_that_cannot_fit_addressable_memory_are_rejected_before_enumeration() {
+    let mut kernel =
+        parse_kernel(include_str!("fixtures/workgroup_ids.s"), "workgroup_xyz").unwrap();
+    // The product fits usize on 64-bit hosts, but not a Vec of per-workgroup results.
+    let launch = WorkgroupLaunch {
+        kernarg_address: 0x1000,
+        workgroup_size: (64, 1, 1),
+        workgroup_id: (0, 0, 0),
+        grid_size: (u32::MAX, u32::MAX, 1),
+    };
+    for enabled in [1, 0] {
+        for axis in ["x", "y", "z"] {
+            kernel
+                .descriptor
+                .insert(format!("system_sgpr_workgroup_id_{axis}"), enabled);
+        }
+        assert!(matches!(
+            analyze_grid(&kernel, &launch, &[], &[]),
+            Err(AnalysisError::Eval(EvalError::Launch { .. }))
+        ));
+    }
+}
+
+#[test]
+fn small_grids_without_workgroup_id_inputs_keep_every_copy_output() {
+    let mut kernel = parse_kernel(include_str!("fixtures/copy.s"), "copy").unwrap();
+    for axis in ["x", "y", "z"] {
+        kernel
+            .descriptor
+            .insert(format!("system_sgpr_workgroup_id_{axis}"), 0);
+    }
+    let launch = WorkgroupLaunch {
+        kernarg_address: 0x1000,
+        workgroup_size: (64, 1, 1),
+        workgroup_id: (0, 0, 0),
+        grid_size: (2, 1, 1),
+    };
+    let arrays = [
+        array("in", 0x10000, ArrayKind::Input),
+        array("out", 0x20000, ArrayKind::Output(F32)),
+    ];
+    let kernarg: Vec<_> = arrays
+        .iter()
+        .flat_map(|array| array.base.to_le_bytes())
+        .collect();
+    let grid = analyze_grid(&kernel, &launch, &kernarg, &arrays).unwrap();
+    assert_eq!(grid.terminal, Terminal::Completed);
+    assert_eq!(grid.workgroups.len(), 2);
+    assert_eq!(grid.conflicts.len(), 64);
+    for (group, (id, outputs)) in grid.workgroups.iter().enumerate() {
+        assert_eq!(*id, (group as u32, 0, 0));
+        assert_eq!(outputs.outputs[0].0, "out");
+        assert_eq!(outputs.outputs[0].1.len(), 64);
+        for (index, value) in &outputs.outputs[0].1 {
+            assert!(matches!(
+                outputs.arena.node(*value),
+                volta_expr::ExprNode::InputElement { array, index: input_index }
+                    if outputs.arena.string(*array) == "in" && input_index == index
+            ));
+        }
+    }
+}
+
 // Test that equal LDS addresses can depend on workgroup IDs, while each workgroup's words
 // retain their bits through LDS, XOR and lane exchange, and convert numerically to floats.
 #[test]

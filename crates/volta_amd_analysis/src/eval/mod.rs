@@ -22,6 +22,6 @@ pub(crate) use grid::workgroup_outputs;
 pub(crate) use interp::Interpreter;
 pub use interp::Terminal;
 pub use launch::WorkgroupLaunch;
-pub(crate) use launch::workgroup_coordinates;
+pub(crate) use launch::{grid_workgroups, workgroup_coordinates};
 pub use lds::{LdsLaneAccess, LdsRace};
 pub use wave::WaveId;
