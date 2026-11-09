@@ -81,12 +81,20 @@ compare every rendered output against the adjacent `.out` file. Race and
 deadlock controls assert typed witnesses. NVIDIA/PTX suites follow upstream;
 AMD integration controls cover the shared configuration and backend boundaries.
 
-The experimental AMD suites also verify CK FlashAttention against all 4,096
-outputs of its attention formula and check missing-wait/barrier LDS mutations
-through the recorded graph. Native integration suites exercise the same public dispatch with genuine
-assembly, exact output footprints, mathematical references, and CPU-only
-missing-wait, publication, register-lifetime and barrier controls. The target
-corpora describe the supported forms and reproduction commands:
+The experimental AMD suites verify all 16,384 CK attention outputs across two
+batches and two heads, including a wrong-head-stride control. CK GEMM tests
+cover all 1,600 outputs at M=N=40, K=192, K tails and repeated LDS reuse.
+Separate graph tests check pending reads and missing waits/barriers. The explicit
+`analyze_grid` library API compares per-workgroup outputs with independent runs
+and reports overlapping output stores; matching branch outcomes and LDS addresses
+are required. Its common LDS graph does not certify arbitrary inter-workgroup
+global-memory interactions. These APIs are distinct from the adapter's one-group
+scope described above.
+
+Native integration suites exercise public dispatch with genuine assembly, exact
+output footprints, mathematical references and CPU-only missing-wait,
+publication, register-lifetime and barrier controls. The target corpora describe
+the supported forms and reproduction commands:
 
 - [gfx942](../../tests/gfx942/README.md)
 - [gfx950](../../tests/gfx950/README.md)

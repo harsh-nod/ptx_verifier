@@ -609,6 +609,11 @@ pub enum Assumption {
     FixedPrivateAllocation(u32),
     /// Only shared-memory (LDS) accesses are recorded: global memory is not checked.
     SharedMemoryOnly,
+    /// Only the workgroup at these coordinates is analyzed; no cross-workgroup checks.
+    SelectedWorkgroupAnalyzed { id: (u32, u32, u32) },
+    /// One workgroup-local graph represents every workgroup only while their control
+    /// flow, active lanes and LDS addresses agree. This is not a cross-workgroup graph.
+    UniformWorkgroupControlFlow,
 }
 
 impl Assumption {
@@ -667,6 +672,12 @@ impl Assumption {
             }
             Assumption::SingleCtaAnalyzed => {
                 "CTA (0, 0, 0) is analyzed and stands for every CTA of the grid"
+            }
+            Assumption::SelectedWorkgroupAnalyzed { .. } => {
+                "only the selected workgroup is analyzed; cross-workgroup interactions are not checked"
+            }
+            Assumption::UniformWorkgroupControlFlow => {
+                "workgroups share control flow, active lanes and LDS addresses; the representative graph checks workgroup-local events, not inter-workgroup memory safety"
             }
             Assumption::SingleCtaCluster => "every cluster holds exactly one CTA",
             Assumption::NeverStealClusterLaunchControl => {

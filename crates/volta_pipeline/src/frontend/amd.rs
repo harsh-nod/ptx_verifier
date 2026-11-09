@@ -1,5 +1,5 @@
-//! AMD gfx950 assembly: `volta_amd_analysis` runs workgroup 0 of the kernel, then the graph
-//! branch's checks run over the event graph it records (its LDS accesses, waits and barriers).
+//! Experimental gfx950 assembly frontend, restricted to workgroup zero of a one-group grid.
+//! Its graph checks LDS accesses, waits and barriers; global-memory races are outside its scope.
 
 use volta_amd_analysis::frontend::parse::parse_kernel;
 use volta_amd_analysis::{ArrayDef, ArrayKind, OutputType, Terminal, WorkgroupLaunch, analyze};
@@ -121,6 +121,8 @@ fn workgroup_launch(
     let workgroup = WorkgroupLaunch {
         kernarg_address: KERNARG_ADDRESS,
         workgroup_size: launch.block_dim,
+        workgroup_id: launch.workgroup_id,
+        grid_size: launch.grid_dim,
     };
     Ok((workgroup, kernarg, arrays))
 }
@@ -188,5 +190,34 @@ fn argument(launch: &AnalysisConfig, param: &ParamValue) -> Result<Vec<u8>, Fron
         ParamValue::Bytes(_) => Err(FrontendError::Launch(
             "exact by-value bytes require the native amdgpu backend".into(),
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn experimental_frontend_preserves_its_single_workgroup_scope() {
+        let launch = AnalysisConfig::new((64, 1, 1));
+        let (workgroup, _, _) = workgroup_launch(&launch).unwrap();
+        assert_eq!(workgroup.workgroup_id, launch.workgroup_id);
+        assert_eq!(workgroup.grid_size, launch.grid_dim);
+
+        for (grid, selected) in [
+            ((2, 1, 1), (0, 0, 0)),
+            ((2, 1, 1), (1, 0, 0)),
+            ((1, 2, 1), (0, 1, 0)),
+            ((1, 1, 2), (0, 0, 1)),
+        ] {
+            let mut launch = AnalysisConfig::new((64, 1, 1));
+            launch.grid_dim = grid;
+            launch.workgroup_id = selected;
+            assert!(matches!(
+                workgroup_launch(&launch),
+                Err(FrontendError::Launch(message))
+                    if message.contains("only workgroup zero in a one-group grid")
+            ));
+        }
     }
 }

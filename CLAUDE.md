@@ -57,8 +57,11 @@ Explicit native AMD selection uses `volta_amdgpu_analysis` and its target-select
 graph/certificate contracts. Extension-inferred `.s` solve/extract uses upstream
 `volta_amd_analysis`; that experimental gfx950 interpreter records wave-level
 LDS accesses, waits and barriers for graph checking. Its `SharedMemoryOnly`
-assumption excludes global-memory race certification. Trainium NKI records no
-race graph. Keep these scopes distinct from native target-specific graph
+assumption excludes global-memory race certification. Its explicit `analyze_grid`
+API requires common branch outcomes and LDS addresses and returns per-workgroup
+outputs; duplicate output stores are separate from its common LDS graph.
+The file-based adapter retains its one-group launch contract. Trainium NKI records
+no race graph. Keep these scopes distinct from native target-specific graph
 verification. `extract lean` emits obligations that still require proofs;
 rejected or incomplete checked executions cannot export them successfully.
 

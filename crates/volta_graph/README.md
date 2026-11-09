@@ -11,6 +11,14 @@ The graph is a record of what happened in the one schedule the interpreter
 ran: which thread did what, which barrier generation each arrival joined,
 which async operation each wait observed. It asserts no happens-before
 relation. Each check decides for itself which edges order which events.
+Native AMD uses `SingleWorkgroupAnalyzed`, with the selected ID in
+`Provenance::workgroup_id`. The experimental AMD selected-workgroup API uses
+`SelectedWorkgroupAnalyzed { id }`. Neither result covers interactions with other
+workgroups, even when the launch grid contains more than one. The experimental
+grid API instead records `UniformWorkgroupControlFlow` and `SharedMemoryOnly`:
+it checks a common LDS graph under matching branch decisions and LDS addresses,
+while keeping each workgroup's registers, LDS values and symbolic outputs separate.
+It does not prove general inter-workgroup global-memory safety.
 
 ```
 src/
