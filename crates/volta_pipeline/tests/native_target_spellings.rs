@@ -13,7 +13,7 @@ fn source(directive: &str, metadata: &str) -> String {
 .type k,@function
 k:
 v_mov_b32 v1,0
-v_mov_b32 v2,7
+v_add_u32 v2,7,0
 s_mov_b64 s[4:5],0x10000
 global_store_b32 v1,v2,s[4:5]
 s_wait_storecnt 0
@@ -170,8 +170,10 @@ fn alias_is_limited_to_the_legacy_gfx1250_target_spelling() {
     }
     // Canonical legacy-target syntax and its supported feature suffixes stay valid.
     for target in ["gfx942:sramecc+:xnack-", "gfx950:xnack-"] {
-        let module =
-            frontend::parse(&format!(".amdgcn_target \"amdgcn-amd-amdhsa--{target}\"\n")).unwrap();
+        let module = frontend::parse(&format!(
+            ".amdgcn_target \"amdgcn-amd-amdhsa--{target}\"\n.text\n.type k,@function\nk:\ns_endpgm\n.size k,.-k\n"
+        ))
+        .unwrap();
         assert_eq!(module.target.as_deref(), Some(target));
     }
 }
