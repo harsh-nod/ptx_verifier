@@ -1010,7 +1010,14 @@ pub(super) fn set_target(
     target: &str,
     span: SourceSpan,
 ) -> Result<(), ParseError> {
-    let base = target.strip_prefix("amdgcn-amd-amdhsa--").unwrap_or(target);
+    let base = target
+        .strip_prefix("amdgcn-amd-amdhsa--")
+        .or_else(|| {
+            target
+                .strip_prefix("amdgcn-amd-amdhsa-unknown-")
+                .filter(|rest| rest.split(':').next() == Some("gfx1250"))
+        })
+        .unwrap_or(target);
     let gpu = base.split(':').next().unwrap_or(base);
     if !["gfx942", "gfx950", "gfx1250"].contains(&gpu) {
         return Err(ParseError {

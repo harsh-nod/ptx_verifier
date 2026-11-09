@@ -94,6 +94,10 @@ Omitting the AMD API target selects gfx950. Direct Rust analysis uses the
 module's declared architecture. Code-object versions 4–6 and metadata versions
 1.0–1.2 are recognized; individual compiler fixtures determine which
 combinations have executable coverage.
+The parser also accepts LLVM's legacy
+`amdgcn-amd-amdhsa-unknown-gfx1250` target spelling as gfx1250, subject to the
+same feature validation and explicit target-selection checks as the canonical
+`amdgcn-amd-amdhsa--gfx1250` spelling.
 
 The pipeline can supply a checker-backed complete-instruction observer when
 `early_readiness` or `early_memory_conflicts` is enabled. Direct `analyze`
