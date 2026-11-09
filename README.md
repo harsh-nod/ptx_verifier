@@ -1,7 +1,7 @@
 <h1 align="center">GPU Kernel Verifier</h1>
 
 <p align="center">
-  <img src="gpu-kernel-verifier.png" alt="GPU Kernel Verifier: NVIDIA PTX and AMD assembly" width="560">
+  <img src="volta-logo-amd.png" alt="Volta: NVIDIA PTX, AMD assembly for gfx942, gfx950 and gfx1250, and AWS Trainium NKI feed shared analysis and canonical or Lean solvers" width="760">
 </p>
 
 GPU Kernel Verifier analyzes GPU assembly for data races and deadlocks, and

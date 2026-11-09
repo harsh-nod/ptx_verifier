@@ -38,10 +38,13 @@ pub(crate) fn print_graph_report(
     source: &str,
 ) {
     println!("{}: graph verification", label);
-    if graph
-        .provenance()
-        .assumes(volta_graph::Assumption::SingleWorkgroupAnalyzed)
-    {
+    if graph.provenance().assumptions.iter().any(|assumption| {
+        matches!(
+            assumption,
+            volta_graph::Assumption::SingleWorkgroupAnalyzed
+                | volta_graph::Assumption::SelectedWorkgroupAnalyzed { .. }
+        )
+    }) {
         let (x, y, z) = graph.provenance().workgroup_id;
         println!(
             "  selected workgroup: ({x}, {y}, {z}); other workgroups and inter-workgroup conflicts are outside this result"

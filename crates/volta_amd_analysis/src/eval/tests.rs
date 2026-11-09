@@ -307,3 +307,66 @@ fn f64_pair_moves_preserve_symbolic_values_and_reject_broken_halves() {
         input
     );
 }
+
+#[test]
+fn grid_mask_reads_require_both_halves_ready_in_each_workgroup() {
+    let mut arena = ExprArena::new();
+    let mut registers = WaveRegisters::default();
+    let zero = arena.int(0);
+    let one = arena.int(1);
+    let pair = [Sgpr(8), Sgpr(9)];
+    registers.set_varying_sgpr(pair[0], &[zero, one]);
+    registers.start_scalar_load([pair[1]], [zero]).unwrap();
+    for workgroup in 0..2 {
+        registers.set_view(Some(workgroup));
+        assert_eq!(
+            registers.read_lane_condition(&mut arena, 0, LaneMask::Sgprs(pair)),
+            Err(EvalError::PendingSgpr(pair[1]))
+        );
+    }
+    registers.finish_scalar_load(&[pair[1]]);
+    for workgroup in 0..2 {
+        registers.set_view(Some(workgroup));
+        let condition = registers
+            .read_lane_condition(&mut arena, 0, LaneMask::Sgprs(pair))
+            .unwrap();
+        assert_eq!(arena.as_bool(condition), Some(workgroup == 1));
+    }
+    registers.set_view(None);
+    assert_eq!(
+        registers.read_lane_condition(&mut arena, 0, LaneMask::Sgprs(pair)),
+        Err(EvalError::DependsOnWorkgroup)
+    );
+}
+
+#[test]
+fn grid_vm_waits_complete_every_workgroups_value_and_keep_maximal_wait_inactive() {
+    let mut arena = ExprArena::new();
+    let mut registers = WaveRegisters::default();
+    let words = [arena.int(7), arena.int(11)];
+    let mut writes = Vec::new();
+    for (workgroup, &word) in words.iter().enumerate() {
+        registers.begin_workgroup(workgroup);
+        registers
+            .start_vector_load(0, &[Vgpr(4)], &[word], LoadCounter::Vm)
+            .unwrap();
+        writes.push(registers.end_workgroup());
+    }
+    registers.combine(&arena, writes);
+    registers.finish_vm_loads(63);
+    for workgroup in 0..2 {
+        registers.set_view(Some(workgroup));
+        assert_eq!(
+            registers.read_vgpr(0, Vgpr(4)),
+            Err(EvalError::PendingVgpr {
+                lane: 0,
+                reg: Vgpr(4)
+            })
+        );
+    }
+    registers.finish_vm_loads(0);
+    for (workgroup, &word) in words.iter().enumerate() {
+        registers.set_view(Some(workgroup));
+        assert_eq!(registers.read_vgpr(0, Vgpr(4)), Ok(word));
+    }
+}

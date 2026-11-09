@@ -87,10 +87,18 @@ modules and explains the target and memory contracts.
 The `volta_amd_analysis` crate contains an experimental typed gfx950 interpreter
 with compiled arithmetic, GEMM and attention fixtures. Its graph records one
 thread per wave and checks LDS accesses, waits and barriers under an explicit
-`SharedMemoryOnly` assumption; global access safety is outside that graph. The native `amdgpu` CLI backend uses
-`volta_amdgpu_analysis`; these crate names do not select interchangeable
-implementations. `volta_trainium_analysis` supplies the file-based NKI interpreter; its runs
-provide mathematical outputs without event-graph safety evidence.
+`SharedMemoryOnly` assumption; global access safety is outside that graph.
+Its `analyze` library API selects one workgroup. `analyze_grid` retains separate
+register/LDS values and output expressions for every workgroup while requiring
+matching branch outcomes and LDS addresses. It reports overlapping output stores
+separately; its common LDS graph does not certify general inter-workgroup global
+memory interactions. The file-based CLI/Python adapter retains its one-group
+launch contract.
+
+The native `amdgpu` CLI backend uses `volta_amdgpu_analysis`; these crate names
+do not select interchangeable implementations. `volta_trainium_analysis`
+supplies the file-based NKI interpreter; its runs provide mathematical outputs
+without event-graph safety evidence.
 
 The optional gfx1250 [early readiness observer](early-readiness.md) consumes
 complete instruction batches using checker-owned scalar readiness transitions.

@@ -56,6 +56,8 @@ s_endpgm
         &WorkgroupLaunch {
             kernarg_address: 0x1000,
             workgroup_size: (64, 1, 1),
+            workgroup_id: (0, 0, 0),
+            grid_size: (1, 1, 1),
         },
         &kernarg,
         &arrays,
