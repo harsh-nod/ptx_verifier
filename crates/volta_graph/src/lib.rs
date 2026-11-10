@@ -42,7 +42,7 @@ mod model;
 mod validate;
 
 pub use amdgpu::*;
-pub use builder::GraphBuilder;
+pub use builder::{BarrierWait, Effect, GraphBuilder, GroupWait, OrdinaryAccess};
 pub use graph::EventGraph;
 pub use ids::{
     AccessId, AsyncOpId, EventId, GenerationId, ProgramPoint, SyncObjectId, ThreadIx, ValueId,

@@ -32,24 +32,41 @@ C[i, j] = alpha * sum(k in 0..K, A[i, k] * B[k, j]);
   - `dim NAME;`: an integer size, given a value at instantiation;
   - `param NAME;`: a symbolic scalar, matched to the kernel's symbolic float
     parameter of the same name;
-  - `array NAME[d0, d1, ...] [padded];`: an array's shape. With `padded`, an
-    out-of-shape read is 0 (convolution borders) instead of an error;
+  - `array NAME[d0, d1, ...] [padded | index];`: an array's shape. With `padded`, an
+    out-of-shape read is 0 (convolution borders) instead of an error. With `index`,
+    its elements are integers the caller gives at instantiation, read in concrete
+    index expressions: subscripts, reduction bounds and bit positions.
+    `out[p, i] = data[p, index[0, i]];` is a gather. Reading an index array as a
+    symbolic value, using a symbolic array in an index expression, or defining an
+    index array by an output equation is an error;
   - `NAME[i, j, ...] = expr;`: an output equation. Bodies use `+ - * /`,
     unary `-`, builtins (`exp`, `log`, `sqrt`, `abs`, `sign`, `min`, `max`)
-    and `bit_sign(word, bit_index)`, plus reductions `sum(k in 0..K, e)` / `max(k in 0..K, e)`. Bodies parse
-    directly into `SpecExpr` (`spec.rs`).
+    and `bit_sign(word, bit_index)`, plus reductions `sum(k in 0..K, e)` /
+    `max(k in 0..K, e)`. A range's ends
+    are index expressions over dims and enclosing variables, so a scan's causal
+    sums read `sum(s in 0..t + 1, ...)` and `sum(r in s + 1..t + 1, ...)`; an
+    empty range is the identity (0, or -infinity for `max`), and a non-empty
+    one starting below 0 is an `unfold` error. Bodies parse directly into
+    `SpecExpr` (`spec.rs`).
 - **`instantiate.rs`**: `instantiate(parsed, dims)` resolves every dim to a
-  concrete value, producing the `SpecEnv` and `OutputSpec`s `unfold` takes.
+  concrete value, producing the `SpecEnv` and `OutputSpec`s `unfold` takes;
+  `instantiate_with_indices(parsed, dims, indices)` also takes each index array's
+  integers, row-major, one per element of its shape.
   Parsing and instantiation are separate, so one parsed spec serves many sizes.
 - **`spec.rs`**: the mathematical form of a spec: `OutputSpec` (an output
   array as a formula `SpecExpr` over other arrays, with `sum`/`max`
-  reductions), `Shape` and `SpecEnv`. `unfold` expands every output element
+  reductions over `start..end` `IndexExpr`s, which may read index arrays),
+  `Shape` and `SpecEnv`. `unfold`
+  memoizes each reduction on its site and the values of the variables its body
+  and range read, then expands every output element
   into a `volta_expr::SymbolicOutputs`, using the same arena constructors the
   interpreter uses. The root re-exports these types and `unfold`
   (`volta_spec::unfold`).
 
 `extract_expressions_from_spec(source, dims)` runs the whole pipeline: spec text
-and dim values in, `SymbolicOutputs` out (every element, no sampling). Its
+and dim values in, `SymbolicOutputs` out (every element, no sampling);
+`extract_expressions_from_spec_with_indices(source, dims, indices)` takes the index
+arrays' integers too. Its
 `ExtractError` says which stage failed (`Parse`, `Instantiate`, `Unfold`).
 
 Each spec output must be declared `out` or `inout` in the kernel's launch
@@ -58,6 +75,8 @@ equivalence check.
 
 An output array has exactly one equation. Array shape products must fit the
 64-bit flat index domain; overflow is an error before any output is unfolded.
+Direct `unfold` calls also validate index-array names and complete contents
+before sampling or empty-output shortcuts. Index arrays cannot be outputs.
 `output_index_mismatch` checks complete written indices against the dense spec
 shape before either interface samples expressions. Sampling preserves the full
 required element count.

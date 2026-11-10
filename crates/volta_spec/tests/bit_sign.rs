@@ -3,7 +3,9 @@ use std::collections::HashMap;
 
 use volta_equivalence::{EquivCheckOptions, EquivOutcome, check_output_equivalence_with};
 use volta_expr::{ExprArena, ExprNode, SymbolicOutputs};
-use volta_spec::{SpecError, instantiate, parse_spec, unfold};
+use volta_spec::{
+    SpecError, extract_expressions_from_spec_with_indices, instantiate, parse_spec, unfold,
+};
 
 fn expand(source: &str, n: u64) -> Result<SymbolicOutputs, SpecError> {
     let parsed = parse_spec(source).unwrap();
@@ -113,7 +115,14 @@ fn invalid_positions_and_integer_index_arithmetic_fail_without_shifts() {
 
 #[test]
 fn bit_position_is_concrete_index_syntax_not_a_symbolic_value() {
-    for position in ["words[i]", "0.5", "exp(i)"] {
+    assert!(matches!(
+        expand(
+            "dim N; array words[N]; array out[N]; out[i] = bit_sign(words[i], words[i]);",
+            1
+        ),
+        Err(SpecError::NotAnIndexArray(name)) if name == "words"
+    ));
+    for position in ["0.5", "exp(i)"] {
         let source = format!(
             "dim N; array words[N]; array out[N]; out[i] = bit_sign(words[i], {position});"
         );
@@ -121,5 +130,36 @@ fn bit_position_is_concrete_index_syntax_not_a_symbolic_value() {
     }
     for body in ["bit_sign(1)", "bit_sign(1, 0, 1)", "bit_sign()"] {
         assert!(parse_spec(&format!("dim N; array out[N]; out[i] = {body};")).is_err());
+    }
+}
+
+#[test]
+fn concrete_index_arrays_can_select_bits_and_reduction_ranges() {
+    let dims = HashMap::from([("N".into(), 3)]);
+    for (body, positions, expected) in [
+        (
+            "bit_sign(2147483649, bits[i])",
+            vec![0, 1, 31],
+            vec![1, -1, 1],
+        ),
+        (
+            "sum(k in i..bits[i], bit_sign(3, k))",
+            vec![1, 3, 4],
+            vec![1, 0, -2],
+        ),
+    ] {
+        let source = format!("dim N; array bits[N] index; array out[N]; out[i] = {body};");
+        let output = extract_expressions_from_spec_with_indices(
+            &source,
+            &dims,
+            &HashMap::from([("bits".into(), positions)]),
+        )
+        .unwrap();
+        let actual: Vec<_> = output.outputs[0]
+            .1
+            .iter()
+            .map(|&(_, value)| output.arena.as_i64(value).unwrap())
+            .collect();
+        assert_eq!(actual, expected, "{body}");
     }
 }

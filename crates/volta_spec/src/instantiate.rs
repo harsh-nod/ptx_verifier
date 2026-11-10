@@ -7,7 +7,7 @@ use std::fmt;
 
 use crate::spec::{OutputSpec, Shape, SpecEnv};
 
-use crate::ast::{Padding, ParsedSpec};
+use crate::ast::{Elements, Padding, ParsedSpec};
 
 #[derive(Debug)]
 pub enum InstantiateErrorKind {
@@ -22,6 +22,18 @@ pub enum InstantiateErrorKind {
     ShapeOverflow(String),
     /// An output equation's LHS array was never declared via `array`.
     UnknownArray(String),
+    /// An index array with no caller-supplied integers.
+    MissingIndices(String),
+    /// Integers supplied for an array that is not declared `index`.
+    NotAnIndexArray(String),
+    /// An index array's integers, not one per element of its shape.
+    IndicesLength {
+        array: String,
+        expected: u64,
+        found: usize,
+    },
+    /// An output equation defining an index array, whose integers the caller gives.
+    IndexArrayOutput(String),
 }
 
 impl fmt::Display for InstantiateErrorKind {
@@ -53,6 +65,26 @@ impl fmt::Display for InstantiateErrorKind {
                 "output equation for '{}', which was never declared as an array",
                 name
             ),
+            Self::MissingIndices(name) => {
+                write!(f, "no integers given for index array '{name}'")
+            }
+            Self::NotAnIndexArray(name) => {
+                write!(
+                    f,
+                    "integers given for '{name}', which is not an index array"
+                )
+            }
+            Self::IndicesLength {
+                array,
+                expected,
+                found,
+            } => write!(
+                f,
+                "{found} integers given for index array '{array}' of {expected} elements"
+            ),
+            Self::IndexArrayOutput(name) => {
+                write!(f, "output equation for index array '{name}'")
+            }
         }
     }
 }
@@ -60,10 +92,19 @@ impl fmt::Display for InstantiateErrorKind {
 impl std::error::Error for InstantiateErrorKind {}
 
 /// Resolve `spec` under `dim_values` (dim name -> concrete value) into the
-/// `(SpecEnv, Vec<OutputSpec>)` pair ready for `spec::unfold`.
+/// `(SpecEnv, Vec<OutputSpec>)` pair ready for `spec::unfold`; `spec` has no index arrays.
 pub fn instantiate(
     spec: &ParsedSpec,
     dim_values: &HashMap<String, u64>,
+) -> Result<(SpecEnv, Vec<OutputSpec>), InstantiateErrorKind> {
+    instantiate_with_indices(spec, dim_values, &HashMap::new())
+}
+
+/// `instantiate`, with each index array's integers, row-major, from `indices`.
+pub fn instantiate_with_indices(
+    spec: &ParsedSpec,
+    dim_values: &HashMap<String, u64>,
+    indices: &HashMap<String, Vec<i64>>,
 ) -> Result<(SpecEnv, Vec<OutputSpec>), InstantiateErrorKind> {
     let mut dims = HashMap::with_capacity(spec.dims.len());
     for d in &spec.dims {
@@ -105,6 +146,28 @@ pub fn instantiate(
         arrays.insert(a.name.clone(), shape);
     }
 
+    let mut given = HashMap::new();
+    for a in &spec.arrays {
+        if a.elements != Elements::Indices {
+            continue;
+        }
+        let values = indices
+            .get(&a.name)
+            .ok_or_else(|| InstantiateErrorKind::MissingIndices(a.name.clone()))?;
+        let expected = arrays[&a.name].size();
+        if values.len() as u64 != expected {
+            return Err(InstantiateErrorKind::IndicesLength {
+                array: a.name.clone(),
+                expected,
+                found: values.len(),
+            });
+        }
+        given.insert(a.name.clone(), values.clone());
+    }
+    if let Some(name) = indices.keys().find(|name| !given.contains_key(*name)) {
+        return Err(InstantiateErrorKind::NotAnIndexArray(name.clone()));
+    }
+
     let mut output_names = HashSet::new();
     let outputs = spec
         .outputs
@@ -112,6 +175,9 @@ pub fn instantiate(
         .map(|o| {
             if !output_names.insert(&o.array) {
                 return Err(InstantiateErrorKind::DuplicateOutput(o.array.clone()));
+            }
+            if given.contains_key(&o.array) {
+                return Err(InstantiateErrorKind::IndexArrayOutput(o.array.clone()));
             }
             let shape = arrays
                 .get(&o.array)
@@ -138,6 +204,7 @@ pub fn instantiate(
             arrays,
             params,
             zero_padded,
+            indices: given,
         },
         outputs,
     ))
