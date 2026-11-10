@@ -147,6 +147,20 @@ correctness.
 
 ## Measured time to a safety finding
 
+### Kernel qualification replay
+
+A [26-case development replay](tests/amdgpu/kernel-qualification-study/results/README.md)
+compares `8a4b2bc2` with `e2d10d6a`. Complete safe proofs increase from 12/13 to
+13/13, and intended seeded readiness detections from 12/13 to 13/13. The new
+cases are the unchanged gfx950 reduction workgroup and its missing-wait variant;
+the original geometry, allocations and selected-tile specification are retained.
+All 1,600 observations retain the expected results, and the predefined
+coverage/resource gates pass. Common
+hazard medians are slightly slower in 10 of 12 cases; the median per-case ratio
+is 1.0094. This demonstrates broader qualification, with no broad speedup or new
+application-bug discovery claim. Full samples, limits and independently checked
+numbers are linked in the study.
+
 ### Register-storage experiment
 
 A separate [26-configuration study](tests/amdgpu/trace-cost-study/results/README.md)
