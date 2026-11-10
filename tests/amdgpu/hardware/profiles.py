@@ -38,6 +38,9 @@ CDNA_DRIVERS = (
 )
 
 FEATURE_DRIVERS = (
+    Driver("original_qualification", "tests/gfx1250/hardware/original_qualification.cpp",
+           ("tests/gfx1250/full/fixtures/original-sinkhorn.s",),
+           expected_counts=(10, 320, 1434880, 491520)),
     Driver("matrix_features", "tests/gfx1250/full/hardware/matrix_features.cpp",
            tuple("tests/gfx1250/fixtures/native-matrix-" + name + ".s"
                  for name in ("layout", "numeric", "publication")),
@@ -58,7 +61,10 @@ GFX1250_RUNNERS = (
 def drivers(target: str) -> tuple[Driver, ...]:
     if target == "gfx942":
         return (Driver("compiler-corpus", "tests/gfx942/hardware/native.cpp",
-                       assembly_directory="tests/gfx942/fixtures"),)
+                       assembly_directory="tests/gfx942/fixtures"),
+                Driver("original_qualification", "tests/gfx942/hardware/original_qualification.cpp",
+                       ("tests/amdgpu/original-kernel-qualification/fixtures/gfx942-original-f16.s",),
+                       expected_counts=(30, 16640, 38400, 655360)))
     if target == "gfx950":
         return CDNA_DRIVERS
     if target == "gfx1250":

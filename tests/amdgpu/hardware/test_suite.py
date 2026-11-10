@@ -32,7 +32,7 @@ def valid_receipt():
 
 class CatalogControls(unittest.TestCase):
     def test_all_existing_positive_host_drivers_are_registered(self):
-        for target, count in (("gfx942", 2), ("gfx950", 12), ("gfx1250", 17)):
+        for target, count in (("gfx942", 3), ("gfx950", 12), ("gfx1250", 18)):
             validate_inventory(suite.ROOT, target)
             self.assertEqual(len(suite_names(target)), count)
         self.assertIn("matrix_features", suite_names("gfx1250"))

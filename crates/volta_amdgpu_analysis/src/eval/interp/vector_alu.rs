@@ -686,10 +686,33 @@ impl Interpreter<'_> {
             use super::super::scalar::{CmpOp, FloatType, IntType, ScalarType};
             let cmpx = comparison.writes_exec;
             let kind = comparison.ty;
+            // The unchanged CDNA3 F16 ReLU emission uses VOPC to compare
+            // inline zero with the low half of one VGPR. Keep this contract
+            // separate from gfx1250 true16 encodings and from general CDNA
+            // floating-point comparisons.
+            let cdna3_half_zero_lt = self.architecture == AmdArchitecture::Gfx942
+                && kind == CompareType::F16
+                && comparison.relation == Relation::Lt
+                && !cmpx
+                && matches!(
+                    instruction.source().encoding,
+                    Encoding::Default | Encoding::E32
+                )
+                && instruction.modifiers().is_empty()
+                && matches!(o, [Operand::Register(mask), Operand::Integer(0), Operand::Register(value)]
+                    if mask.class == RegisterClass::Special
+                        && mask.index == 0
+                        && mask.special == Some(SpecialRegister::Vcc)
+                        && mask.count == 2
+                        && value.class == RegisterClass::Vector
+                        && value.index < 256
+                        && value.count == 1
+                        && value.special.is_none());
             if !matches!(
                 kind,
                 CompareType::F32 | CompareType::I32 | CompareType::U32 | CompareType::U16
             ) && !(kind == CompareType::F16 && self.architecture == AmdArchitecture::Gfx1250)
+                && !cdna3_half_zero_lt
             {
                 return Err(self.unsupported(wave, instruction));
             }

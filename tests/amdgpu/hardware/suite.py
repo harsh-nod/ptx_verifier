@@ -28,6 +28,7 @@ sys.path.insert(0, str(ROOT / "tests/gfx1250/hardware"))
 from portable_run import device_environment, write_receipt
 
 INPUT_ROOTS = ("tests/amdgpu/hardware", "tests/gfx942", "tests/gfx950", "tests/gfx1250",
+               "tests/amdgpu/original-kernel-qualification",
                "crates/volta_amdgpu_analysis/src/frontend/fixtures")
 SCOPE = ("Complete existing positive host-driver catalog and bounded address/launch probes, "
          "using exact assembly and full driver output obligations. Numerical execution is "

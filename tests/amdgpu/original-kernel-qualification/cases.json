@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "scope": "Unchanged original-shape/dtype source computations with complete selected-workgroup outputs. CDNA3 whole-module re-emission is a new target qualification; gfx1250 Sinkhorn is a new high-address allocation configuration of an existing algorithm, not a new algorithm or application bug.",
+  "reference_registry": "tests/gfx1250/full/cases.json",
+  "reference_registry_sha256": "92d820459b5424ab460e729b6f12bea35c8e2ab12c19b154fb3840dd7153ad3f",
+  "arithmetic": "Existing mathematical-real abstraction on decoded finite F16/F32 inputs, not bit-exact IEEE arithmetic or inter-workgroup safety.",
+  "compiler": {
+    "public_revision": "7b800a19466229b8479a78de19143dc33c3ab9b5",
+    "public_source": "https://github.com/ROCm/llvm-project/commit/7b800a19466229b8479a78de19143dc33c3ab9b5",
+    "clang_sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+    "flags": [
+      "-x",
+      "hip",
+      "--offload-device-only",
+      "--offload-arch=gfx942",
+      "--rocm-path={rocm}",
+      "-cuid=amd_full_gfx942_a95232488643982c",
+      "-O2",
+      "-std=c++17",
+      "-S",
+      "{source}",
+      "-o",
+      "{assembly}"
+    ],
+    "llvm_mc_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+    "object_sha256": "ab74a29ca25f4acadb11b891113d3726bd23d6b83d080824330a3e96661518d5"
+  },
+  "cases": [
+    {
+      "id": "gfx942-relu_f16",
+      "target": "gfx942",
+      "reference_kernel": "relu_f16",
+      "assembly": "tests/amdgpu/original-kernel-qualification/fixtures/gfx942-original-f16.s",
+      "assembly_sha256": "44e8a65afd276f8bee98d3d87b269d8923e886d19105269ae22905fe5dbc2d15",
+      "launch_config": "tests/gfx1250/full/launch/relu_f16.json",
+      "launch_config_sha256": "c7d392fba49a2794897511cefa1450e118853f8ec311af1cf8ce5862812c6828",
+      "expected_outputs": 1024,
+      "allocation_relocation": false
+    },
+    {
+      "id": "gfx942-silu_f16",
+      "target": "gfx942",
+      "reference_kernel": "silu_f16",
+      "assembly": "tests/amdgpu/original-kernel-qualification/fixtures/gfx942-original-f16.s",
+      "assembly_sha256": "44e8a65afd276f8bee98d3d87b269d8923e886d19105269ae22905fe5dbc2d15",
+      "launch_config": "tests/gfx1250/full/launch/silu_f16.json",
+      "launch_config_sha256": "687c6c5b54caf49a9a5c6f25ec5a72b2505ad9bc5f8019ad34ff1e1a4f0f5dc7",
+      "expected_outputs": 512,
+      "allocation_relocation": false
+    },
+    {
+      "id": "gfx942-rope_f16",
+      "target": "gfx942",
+      "reference_kernel": "rope_f16",
+      "assembly": "tests/amdgpu/original-kernel-qualification/fixtures/gfx942-original-f16.s",
+      "assembly_sha256": "44e8a65afd276f8bee98d3d87b269d8923e886d19105269ae22905fe5dbc2d15",
+      "launch_config": "tests/gfx1250/full/launch/rope_f16.json",
+      "launch_config_sha256": "dcbd0ebfb6738fe95d9a717d4a824ca9ed034ef3a1161359255165b13d63e28a",
+      "expected_outputs": 128,
+      "allocation_relocation": false
+    },
+    {
+      "id": "gfx1250-sinkhorn_original",
+      "target": "gfx1250",
+      "reference_kernel": "sinkhorn_original",
+      "assembly": "tests/gfx1250/full/fixtures/original-sinkhorn.s",
+      "assembly_sha256": "ebb24ab3d1b6afe29c4d85f1528da6fca005d250d0abb2242c68fa9f295e1761",
+      "launch_config": "tests/amdgpu/original-kernel-qualification/launch/gfx1250-sinkhorn-high.json",
+      "launch_config_sha256": "87486d101a7076065a2e803f52be27fac90946009aa257cf9858f4e9e98f2053",
+      "expected_outputs": 32,
+      "allocation_relocation": true
+    }
+  ]
+}
