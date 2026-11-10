@@ -435,6 +435,12 @@ EXEC, separate LGKM/VM producer readiness, every stored data word, the two-state
 boundary and complete resource/allocation preflight. These instruction-control
 kernels do not establish a new unchanged complete application proof.
 
+When a store's VADDR aliases any data word, both operand roles remain recorded
+reads, while the retained data tuple contains each physical word exactly once.
+The [alias controls](../volta_pipeline/tests/cdna_raw_buffer_alias_tests.rs)
+check all four aliases, every stored word, sparse/full EXEC and every data-word
+overwrite at the zero/one/two-state boundary.
+
 Already-supported 64-bit scalar consumers decode exact floating inline constants
 as FP64 words, including the ISA's inverse-two-pi constant. Other floating
 spellings remain unsupported in those positions. Shift counts retain their

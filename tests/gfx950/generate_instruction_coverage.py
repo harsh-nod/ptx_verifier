@@ -361,6 +361,10 @@ def main():
                 "all_words_and_wave_boundaries_retain_independent_absolute_input_coordinates",
             ),
             (
+                PIPE + "cdna_raw_buffer_alias_tests.rs",
+                "every_x4_data_word_can_also_address_the_complete_store",
+            ),
+            (
                 "crates/volta_amdgpu_analysis/tests/gfx950_scratch_off.rs",
                 "disabled_scalar_and_zero_sgpr_preserve_every_word_at_the_private_extent_end",
             ),
@@ -384,6 +388,10 @@ def main():
             (
                 PIPE + "cdna_raw_buffer_wide_tests.rs",
                 "complete_resource_allocation_and_store_data_preflight_precedes_every_effect",
+            ),
+            (
+                PIPE + "cdna_raw_buffer_alias_tests.rs",
+                "aliasing_an_address_does_not_remove_any_data_words_two_state_lifetime",
             ),
             (
                 "crates/volta_graph_check/tests/gfx950_scratch_off.rs",

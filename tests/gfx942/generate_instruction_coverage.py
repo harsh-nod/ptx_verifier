@@ -188,6 +188,13 @@ def generate():
                 "complete_resource_allocation_and_store_data_preflight_precedes_every_effect",
             )
         ],
+        "raw_buffer_alias_controls": [
+            reference("crates/volta_pipeline/tests/cdna_raw_buffer_alias_tests.rs", name)
+            for name in (
+                "every_x4_data_word_can_also_address_the_complete_store",
+                "aliasing_an_address_does_not_remove_any_data_words_two_state_lifetime",
+            )
+        ],
         "explicit_boundaries": [
             {
                 "profile": "gfx942 FP8/BF8 FNUZ decoding and CDNA4-only matrix forms",

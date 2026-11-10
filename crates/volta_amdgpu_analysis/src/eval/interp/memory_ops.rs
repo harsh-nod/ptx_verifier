@@ -603,18 +603,20 @@ impl Interpreter<'_> {
         let held_sources = if self.architecture == AmdArchitecture::Gfx1250 && !lds {
             reads.clone()
         } else if store && !lds && registers >= 3 {
-            let data_register = wave.destination(&o[usize::from(!buffer)])?;
-            reads
-                .iter()
-                .copied()
-                .filter(|register| {
-                    register.index >= data_register.index
-                        && register.index < data_register.index + data_register.count
-                        && matches!(
-                            (register.file, data_register.class),
-                            (AmdRegisterFile::Vector, RegisterClass::Vector)
-                                | (AmdRegisterFile::Accumulator, RegisterClass::Accumulator)
-                        )
+            let data_operand_index = if buffer { 0 } else { 1 };
+            let data_register = wave.destination(&o[data_operand_index])?;
+            let file = match data_register.class {
+                RegisterClass::Vector => AmdRegisterFile::Vector,
+                RegisterClass::Accumulator => AmdRegisterFile::Accumulator,
+                _ => return Err(self.unsupported(wave, instruction)),
+            };
+            // Address and data roles can alias. Retain the actual data tuple
+            // once, rather than filtering duplicate roles from combined reads.
+            (0..data_register.count)
+                .map(|word| AmdRegister {
+                    file,
+                    index: data_register.index + word,
+                    lanes: wave.exec,
                 })
                 .collect()
         } else {
