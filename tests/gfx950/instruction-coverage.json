@@ -68,7 +68,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_vop_literal_positions",
-          "line": 2299
+          "line": 2302
         }
       ]
     },
@@ -133,12 +133,12 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "memory_instruction",
-          "line": 260
+          "line": 259
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "permute",
-          "line": 1178
+          "line": 1181
         }
       ]
     },
@@ -665,30 +665,35 @@
     "M": {
       "stage": "value",
       "status": "implemented_with_explicit_limits",
-      "meaning": "Typed global/kernarg/LDS byte storage, per-component SMEM low-bit masking, encoded nonnegative scalar offsets, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. Selected gfx950 raw-buffer DWORD/DWORDX2 loads/stores require four-operand offen and word3 0x20000; direct-to-LDS DWORD/DWORDX4 loads require three-operand offen lds and word3 0x110000. Both retain separate resource/allocation bounds and VM completion; direct LDS also checks M0 readiness and LDS bounds. Other buffer modes, atomics, arbitrary apertures and equal-offset dual DS remain unsupported. Explicit xnack+ checks selected SMEM clause aliases; vector-memory replay remains unsupported.",
+      "meaning": "Typed global/kernarg/LDS byte storage, per-component SMEM low-bit masking, encoded nonnegative scalar offsets, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. Selected gfx950 raw-buffer DWORD/DWORDX2/DWORDX4 loads/stores require four-operand offen and word3 0x20000; direct-to-LDS DWORD/DWORDX4 loads require three-operand offen lds and word3 0x110000. Both retain separate resource/allocation bounds and VM completion; direct LDS also checks M0 readiness and LDS bounds. Raw DWORDX4 store data retains the two-state software timing requirement. Other buffer modes, atomics, arbitrary apertures and equal-offset dual DS remain unsupported. Explicit xnack+ checks selected SMEM clause aliases; vector-memory replay remains unsupported.",
       "references": [
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "memory_instruction",
-          "line": 260
+          "line": 259
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "flat_memory_address",
-          "line": 1049
+          "line": 1052
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
-          "function": "gfx950_raw_buffer_addresses",
-          "line": 106
+          "function": "cdna_raw_buffer_addresses",
+          "line": 107
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "validate_address",
-          "line": 1232
+          "line": 1235
         }
       ],
       "positive_controls": [
+        {
+          "path": "crates/volta_pipeline/tests/cdna_raw_buffer_wide_tests.rs",
+          "function": "all_words_and_wave_boundaries_retain_independent_absolute_input_coordinates",
+          "line": 174
+        },
         {
           "path": "crates/volta_pipeline/tests/gfx950_memory_control_tests.rs",
           "function": "compiler_static_and_dynamic_lds_share_bytes_through_flat_and_ds",
@@ -721,6 +726,11 @@
         }
       ],
       "negative_controls": [
+        {
+          "path": "crates/volta_pipeline/tests/cdna_raw_buffer_wide_tests.rs",
+          "function": "complete_resource_allocation_and_store_data_preflight_precedes_every_effect",
+          "line": 390
+        },
         {
           "path": "crates/volta_pipeline/tests/gfx950_memory_control_tests.rs",
           "function": "vector_transfers_check_every_component_at_the_region_end",
@@ -767,7 +777,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "permute",
-          "line": 1178
+          "line": 1181
         }
       ],
       "positive_controls": [
@@ -1016,7 +1026,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "memory_instruction",
-          "line": 260
+          "line": 259
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",

@@ -47,6 +47,9 @@ The implementation stage boundaries are
 [`lower`](../../../crates/volta_amdgpu_analysis/src/lower),
 [`eval`](../../../crates/volta_amdgpu_analysis/src/eval) and
 [`amdgpu` graph checks](../../../crates/volta_graph_check/src/amdgpu.rs).
+Additional mixed LOAD/ASYNC prefix and store-source reuse controls live in
+`gfx1250_buffer_async_interaction.rs`; their complete 512-coordinate control
+kernels leave the unchanged application workload counts above unchanged.
 The reference mappings identify exact NVIDIA-only grammar, descriptor
 encodings, TMEM resources and cluster scheduler differences. Those differences
 do not exclude portable arithmetic, byte layout, memory lifetime or publication.

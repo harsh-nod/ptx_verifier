@@ -378,13 +378,28 @@ independent of a wider resource bound. See LLVM's pinned
 [value/profile controls](tests/gfx1250_raw_buffer.rs) and
 [readiness/lease controls](../volta_pipeline/tests/gfx1250_raw_buffer_tests.rs).
 
-The selected gfx950 raw-buffer profile supports four-operand
+The [mixed raw-buffer/async-LDS controls](../volta_pipeline/tests/gfx1250_buffer_async_interaction.rs)
+issue two operations in each stream, in both class orders, on a full wave32.
+LOADcnt1 and ASYNCcnt1 independently complete their first operation; draining
+one stream or X does not complete the other's data. All 512 output coordinates
+are checked against independent input indices, even in the negative traces.
+Reusing an earlier store's data tuple still needs STORE or X completion after
+both load streams have drained. This tests the existing CDNA5 §5.7/§10.8
+contract; it adds no instruction form or unchanged application proof.
+
+The selected gfx942/gfx950 raw-buffer profile supports four-operand
 `buffer_load_dword` / `buffer_store_dword` and their `dwordx2` forms with plain
-VGPR data (one word or an aligned pair), an SGPR-quad resource, scalar offset
-`0`, `offen`, and an optional unsigned 12-bit byte offset. CDNA4 resources retain their 48-bit base and 32-bit byte bound;
+VGPR data (one word or an aligned pair), and `dwordx4` with four plain VGPRs
+starting at an even register. They use an aligned SGPR-quad resource, scalar
+offset `0`, `offen`, and an optional unsigned 12-bit byte offset.
+The selected CDNA3/CDNA4 resources retain their 48-bit base and 32-bit byte bound;
 stride is ignored without indexing. The finite profile requires linear
 resources with word3 `0x20000`, nonzero DWORD-aligned bounds and aligned
-addresses. Resource suppression, other policies and wider DWORDX3/X4 forms
+final addresses. The base, VGPR offset and instruction offset are added at full
+width before this alignment check; no SMEM per-component low-bit masks apply.
+Individually unaligned components whose sum is aligned are accepted. Final
+unaligned addresses remain unsupported, rather than silently rounded down.
+Resource suppression, other policies and DWORDX3 forms
 remain unsupported. Resource checks and configured allocation checks are separate.
 All active addresses are captured before issuing VM memory effects.
 Descriptor/address sources have ordinary readiness obligations, with no
@@ -396,15 +411,26 @@ and the [original N32 source/ABI identity](tests/fixtures/gfx950-raw-buffer-n32.
 The source identity describes the complete emitted module and its original
 launch contract; it does not establish verification of other specializations.
 
-The two-word form transfers the low register at the byte address and the high
-register at address + 4, following CDNA4 §12.13 opcodes 21/29. Final DWORD
-alignment is sufficient; no extra 8-byte alignment is assumed. The complete
-4/8-byte transfer, every active lane and every store-data word pass preflight
+The two/four-word forms transfer ascending registers at byte addresses
+`address + 4 * word`, following CDNA3/CDNA4 §12.13 opcodes 21/23/29/31. Final
+DWORD alignment is sufficient; no extra 8/16-byte alignment is assumed. The complete
+4/8/16-byte transfer, every active lane and every store-data word pass preflight
 before any issue/effect is recorded. DWORDX2 still charges one VM operation,
 with readiness for both destination words and no EXP or X source lease.
 See [pair value/endianness controls](tests/gfx950_raw_buffer_x2.rs),
 [pair readiness and full-output math controls](../volta_pipeline/tests/gfx950_raw_buffer_x2_tests.rs),
 and the [unchanged original N96 source/ABI identities](tests/fixtures/gfx950-raw-buffer-x2.json).
+
+DWORDX4 likewise charges one VM operation and records all four loaded words.
+Its stores retain the actual four-word data tuple for the existing two-state
+VALU overwrite check from CDNA3/CDNA4 Table11; descriptor and address operands
+are not turned into completion-held sources. The
+[common raw-buffer controls](../volta_pipeline/tests/cdna_raw_buffer_wide_tests.rs)
+independently check all words through a second wave, mixed component low bits,
+carry across bit32, ignored stride, destination/address aliases, sparse/empty
+EXEC, separate LGKM/VM producer readiness, every stored data word, the two-state
+boundary and complete resource/allocation preflight. These instruction-control
+kernels do not establish a new unchanged complete application proof.
 
 Already-supported 64-bit scalar consumers decode exact floating inline constants
 as FP64 words, including the ISA's inverse-two-pi constant. Other floating
@@ -569,8 +595,8 @@ encoded BF16 operands; arbitrary symbolic BF16 reinterpretation is unsupported.
 
 Selected ALU, conversion, GLOBAL/scalar/LDS/FLAT memory, cross-lane DS and
 workgroup-barrier forms support the compiler corpora. The selected gfx950 raw
-DWORD buffer profile is described above; gfx942 buffer addressing and buffer
-forms outside that profile remain unsupported. Direct-to-LDS, atomics and
+DWORD buffer profile is described above; buffer
+forms outside that profile remain unsupported. Direct-to-LDS on gfx942, atomics and
 general DPP/special-register hazard profiles are not implemented for these
 targets. The legacy cross-wave GLOBAL publication
 certificate additionally requires completed effects, workgroup scope at both

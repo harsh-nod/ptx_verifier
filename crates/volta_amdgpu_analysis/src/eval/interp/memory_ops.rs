@@ -101,9 +101,10 @@ impl Interpreter<'_> {
         }
         Ok(())
     }
-    /// Selected CDNA4 raw DWORD/DWORDX2 profile (ISA 9.1.5, 9.1.7, Table48).
+    /// Selected CDNA3/4 raw DWORD/DWORDX2/DWORDX4 profile (ISA 9.1.5,
+    /// 9.1.7, CDNA3 Table47/CDNA4 Table48).
     /// This descriptor is not the CDNA5 base57/records45 layout.
-    pub(super) fn gfx950_raw_buffer_addresses(
+    pub(super) fn cdna_raw_buffer_addresses(
         &self,
         wave: &Wave,
         instruction: &Instruction,
@@ -127,7 +128,7 @@ impl Interpreter<'_> {
         if words[1] >> 30 != 0 || words[3] != 0x20000 {
             return Err(EvalError::Unsupported {
                 pc: wave.pc,
-                what: "selected gfx950 raw buffer requires linear/cache-swizzle0 and descriptor word3=0x20000".into(),
+                what: "selected CDNA raw buffer requires linear/cache-swizzle0 and descriptor word3=0x20000".into(),
             });
         }
         let base = u64::from(words[0]) | (u64::from(words[1] & 0xffff) << 32);
@@ -135,8 +136,7 @@ impl Interpreter<'_> {
         if records == 0 || !records.is_multiple_of(4) {
             return Err(EvalError::Unsupported {
                 pc: wave.pc,
-                what: "selected gfx950 raw buffer requires a nonzero DWORD-aligned byte bound"
-                    .into(),
+                what: "selected CDNA raw buffer requires a nonzero DWORD-aligned byte bound".into(),
             });
         }
         let mut addresses = [0u64; 64];
@@ -147,7 +147,7 @@ impl Interpreter<'_> {
             if offset + bytes > records {
                 return Err(EvalError::Unsupported {
                     pc: wave.pc,
-                    what: "resource-OOB buffer DWORD/DWORDX2 needs explicit suppression/zero-fill graph evidence".into(),
+                    what: "resource-OOB buffer DWORD/DWORDX2/DWORDX4 needs explicit suppression/zero-fill graph evidence".into(),
                 });
             }
             let address = base
@@ -159,16 +159,15 @@ impl Interpreter<'_> {
                 })
                 .ok_or_else(|| EvalError::Unsupported {
                     pc: wave.pc,
-                    what:
-                        "selected gfx950 buffer footprint escapes the bounded48-bit address domain"
-                            .into(),
+                    what: "selected CDNA buffer footprint escapes the bounded48-bit address domain"
+                        .into(),
                 })?;
             // Hardware ignores the final address low2 bits; this finite profile
             // accepts already-aligned addresses, without importing SMEM masks.
             if !address.is_multiple_of(4) {
                 return Err(EvalError::Unsupported {
                     pc: wave.pc,
-                    what: "selected gfx950 raw buffer requires an aligned DWORD address".into(),
+                    what: "selected CDNA raw buffer requires an aligned final DWORD address".into(),
                 });
             }
             self.validate_memory_range(wave, lane, false, address, bytes, store)?;
@@ -187,7 +186,7 @@ impl Interpreter<'_> {
                     ) {
                         return Err(wave.fail(
                             Some(lane),
-                            "buffer DWORD/DWORDX2 store observes undefined data bits",
+                            "buffer DWORD/DWORDX2/DWORDX4 store observes undefined data bits",
                         ));
                     }
                 }
@@ -331,15 +330,19 @@ impl Interpreter<'_> {
             return Err(EvalError::Unsupported {pc:wave.pc,what:"XNACK-enabled vector memory replay clauses and source retention are not modeled".into()});
         }
         let flat = matches!(memory.kind, MemoryKind::FlatLoad | MemoryKind::FlatStore);
-        let gfx950_buffer = self.architecture == AmdArchitecture::Gfx950
-            && matches!(
-                memory.operation,
-                MemoryOpcode::BufferLoadDword
-                    | MemoryOpcode::BufferStoreDword
-                    | MemoryOpcode::BufferLoadDwordx2
-                    | MemoryOpcode::BufferStoreDwordx2
-            );
-        let buffer = gfx950_buffer
+        let cdna_buffer = matches!(
+            self.architecture,
+            AmdArchitecture::Gfx942 | AmdArchitecture::Gfx950
+        ) && matches!(
+            memory.operation,
+            MemoryOpcode::BufferLoadDword
+                | MemoryOpcode::BufferStoreDword
+                | MemoryOpcode::BufferLoadDwordx2
+                | MemoryOpcode::BufferStoreDwordx2
+                | MemoryOpcode::BufferLoadDwordx4
+                | MemoryOpcode::BufferStoreDwordx4
+        );
+        let buffer = cdna_buffer
             || self.architecture == AmdArchitecture::Gfx1250
                 && matches!(
                     memory.operation,
@@ -392,7 +395,7 @@ impl Interpreter<'_> {
                 }
                 _ => Err(self.unsupported(wave, instruction)),
             })?;
-        let offset_valid = if gfx950_buffer {
+        let offset_valid = if cdna_buffer {
             (0..=4095).contains(&offset)
         } else if buffer {
             (0..=0x7f_ffff).contains(&offset)
@@ -433,8 +436,8 @@ impl Interpreter<'_> {
         // Capture descriptor and every active lane's offset before any aliased
         // VGPR load result is written. Resource-OOB modes cannot fabricate
         // memory effects in the ordinary VectorLoad/Store graph contract.
-        let buffer_addresses = if gfx950_buffer {
-            Some(self.gfx950_raw_buffer_addresses(
+        let buffer_addresses = if cdna_buffer {
+            Some(self.cdna_raw_buffer_addresses(
                 wave,
                 instruction,
                 offset as u64,
@@ -600,7 +603,7 @@ impl Interpreter<'_> {
         let held_sources = if self.architecture == AmdArchitecture::Gfx1250 && !lds {
             reads.clone()
         } else if store && !lds && registers >= 3 {
-            let data_register = wave.destination(&o[1])?;
+            let data_register = wave.destination(&o[usize::from(!buffer)])?;
             reads
                 .iter()
                 .copied()

@@ -64,6 +64,17 @@ cargo test --release -p volta_pipeline --test gfx1250_packed_data_parity_tests -
 
 ## Corpus inventory and remaining work
 
+The [mixed raw-buffer/async-LDS tests](../../crates/volta_pipeline/tests/gfx1250_buffer_async_interaction.rs)
+exercise two already-supported LOAD operations and two ASYNC operations in
+both class orders, with every word of all 512 output coordinates checked.
+Threshold1 completes each stream's first operation independently. Threshold2
+or63 leaves its data pending despite draining the other stream and X.
+Draining both load streams also leaves an earlier store-data replay lease
+pending until STORE or X completion. These are public
+[CDNA5 §5.7/§10.8](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna5-instruction-set-architecture.pdf)
+instruction-interaction controls; no new form or unchanged application proof
+is claimed, and the source denominator below is unchanged.
+
 [`fixtures/emitted-instructions.json`](fixtures/emitted-instructions.json) records
 the assembly lines and VOPD components for its explicitly listed compiler
 fixtures. Its assembly hashes allow a source inventory to be reproduced without
