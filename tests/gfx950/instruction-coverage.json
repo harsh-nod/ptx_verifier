@@ -68,7 +68,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_vop_literal_positions",
-          "line": 2302
+          "line": 2303
         }
       ]
     },
@@ -160,7 +160,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/ir/instruction.rs",
           "function": "lower_wait",
-          "line": 1022
+          "line": 1023
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/control.rs",
@@ -208,12 +208,12 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 865
+          "line": 868
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_missing_semantic",
-          "line": 802
+          "line": 805
         }
       ]
     },
@@ -224,17 +224,17 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 865
+          "line": 868
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "memory_conflicts",
-          "line": 1667
+          "line": 1670
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "missing_global_publication",
-          "line": 1638
+          "line": 1641
         }
       ]
     },
@@ -245,7 +245,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 865
+          "line": 868
         }
       ]
     },
@@ -256,7 +256,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 865
+          "line": 868
         }
       ]
     }
@@ -695,6 +695,11 @@
           "line": 174
         },
         {
+          "path": "crates/volta_amdgpu_analysis/tests/gfx950_scratch_off.rs",
+          "function": "disabled_scalar_and_zero_sgpr_preserve_every_word_at_the_private_extent_end",
+          "line": 101
+        },
+        {
           "path": "crates/volta_pipeline/tests/gfx950_memory_control_tests.rs",
           "function": "compiler_static_and_dynamic_lds_share_bytes_through_flat_and_ds",
           "line": 412
@@ -730,6 +735,11 @@
           "path": "crates/volta_pipeline/tests/cdna_raw_buffer_wide_tests.rs",
           "function": "complete_resource_allocation_and_store_data_preflight_precedes_every_effect",
           "line": 390
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx950_scratch_off.rs",
+          "function": "only_the_matching_scratch_source_kind_can_have_zero_scalar_reads",
+          "line": 109
         },
         {
           "path": "crates/volta_pipeline/tests/gfx950_memory_control_tests.rs",

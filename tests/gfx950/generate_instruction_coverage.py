@@ -360,6 +360,10 @@ def main():
                 PIPE + "cdna_raw_buffer_wide_tests.rs",
                 "all_words_and_wave_boundaries_retain_independent_absolute_input_coordinates",
             ),
+            (
+                "crates/volta_amdgpu_analysis/tests/gfx950_scratch_off.rs",
+                "disabled_scalar_and_zero_sgpr_preserve_every_word_at_the_private_extent_end",
+            ),
             (MEM, "compiler_static_and_dynamic_lds_share_bytes_through_flat_and_ds"),
             (MEM, "an_lds_128_bit_read_preserves_four_independently_stored_words"),
             (MEM, "smem_discards_each_component_low_bits_before_addition"),
@@ -380,6 +384,10 @@ def main():
             (
                 PIPE + "cdna_raw_buffer_wide_tests.rs",
                 "complete_resource_allocation_and_store_data_preflight_precedes_every_effect",
+            ),
+            (
+                "crates/volta_graph_check/tests/gfx950_scratch_off.rs",
+                "only_the_matching_scratch_source_kind_can_have_zero_scalar_reads",
             ),
             (MEM, "vector_transfers_check_every_component_at_the_region_end"),
             (MEM, "initialized_bytes_and_halves_do_not_define_the_rest_of_a_word"),

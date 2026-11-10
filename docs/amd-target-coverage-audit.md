@@ -32,6 +32,18 @@ DWORDX4 store events name the four data registers for the existing two-state
 overwrite check. These controls are outside the historical source inventories;
 their complete outputs do not establish a new unchanged application proof.
 
+The exact gfx950 scratch disabled-SADDR `off` spelling now enters the existing
+fixed-private model with a zero scalar address component. Its distinct trace
+kind preserves the ordinary SGPR-read requirement for register-addressed
+scratch. This removes one whole-module parser blocker seen in fresh upstream
+tile-copy extraction; a complete unchanged tile-kernel proof is not established.
+
+The unchanged gfx950 `reduction_f16` compiler entry remains outside the selected
+lane-transport execution profile: its register-selected lane at PC77 is refused
+by the existing bare literal-lane0–63 admission rule. Parser inventory coverage
+does not qualify that entry or its mutation for an execution benchmark. No
+lane-selector semantics or frozen workload/benchmark input changed here.
+
 ## Reproduce the audit
 
 The first two commands repeat native parsing/lowering and detect stale inventory

@@ -1683,7 +1683,8 @@ pub(super) fn validate_registers(
                     )
                     || !matches!(&operands[off], Operand::Symbol(value) if value == "off")
                     || !matches!(operands[data], Operand::Register(r) if r.class == Vector && r.count == words)
-                    || !matches!(operands[2], Operand::Register(r) if r.class == Scalar && r.count == 1)
+                    || !(matches!(operands[2], Operand::Register(r) if r.class == Scalar && r.count == 1)
+                        || matches!(&operands[2], Operand::Symbol(value) if value == "off"))
                     || modifiers
                         .iter()
                         .any(|modifier| match modifier.name.as_str() {
@@ -1698,7 +1699,7 @@ pub(super) fn validate_registers(
                     || modifiers.iter().any(|m| m.name == "sc0")
                         != modifiers.iter().any(|m| m.name == "sc1")
                 {
-                    return Err("selected gfx950 scratch DWORD requires bare scalar-offset addressing, one VGPR, `off`, one numbered SGPR, signed13 offset and default or `sc0 sc1` cache policy".into());
+                    return Err("selected gfx950 scratch DWORD requires bare scalar-offset addressing, VGPR data, `off`, one numbered SGPR or disabled scalar `off`, signed13 offset and default or `sc0 sc1` cache policy".into());
                 }
                 return Ok(());
             }

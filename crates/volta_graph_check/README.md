@@ -229,6 +229,15 @@ it does not upgrade the ordinary graph conclusion or establish complete outputs.
 
 ### gfx942 and gfx950
 
+Gfx950's fixed-private trace contract distinguishes scratch instructions with
+a numbered SGPR address from the exact disabled-SADDR form. The former requires
+one ordinary SGPR read; `scratch load immediate` / `scratch store immediate`
+requires zero. Both retain VM0 admission, per-item extent, contiguous data tuples
+and complete private-access records. A missing SGPR source in an ordinary
+scratch record remains inconclusive. The
+[direct role controls](tests/gfx950_scratch_off.rs) check both directions without
+using the native decoder.
+
 AMD ordering is independent of PTX certificates. The following VM/LGKM/MFMA
 profile applies to gfx942/gfx950; see the separate gfx1250 section for its
 wave32 counters, replay and WMMA rules. Ordinary VM and LDS FIFO pipelines, waits

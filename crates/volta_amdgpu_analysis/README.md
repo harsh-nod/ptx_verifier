@@ -174,12 +174,23 @@ stack-pointer adjustments without allocating or resetting a model frame.
 
 Bare `scratch_load_dword[x2/x3/x4] Vdst, off, Saddr` and
 `scratch_store_dword[x2/x3/x4] off, Vdata, Saddr` select contiguous one-to-four-word
-VGPR tuples and one numbered SGPR offset, a signed 13-bit optional byte offset,
+VGPR tuples and one numbered SGPR offset or the exact disabled-SADDR `off`
+spelling, a signed 13-bit optional byte offset,
 and either default cache policy or the compiler's exact `sc0 sc1` policy. Every active interval must be aligned,
 nonwrapping and inside the declared extent. Private DWORD cells are separate for
 each physical work item and have no Global/LDS effects. All active inputs and
 payloads are captured before an issue or mutation; empty EXEC observes no sources
 and emits no issue. Unwritten cells remain uninitialized.
+
+The disabled scalar address is the public CDNA4 §10.1 Table54 selector `0x7f`.
+Together with the required disabled VGPR address it contributes zero before
+adding the signed instruction displacement. Negative, unaligned or partially
+out-of-extent intervals remain refused; the zero base never wraps them into the
+allocation. Distinct `scratch load immediate` / `scratch store immediate`
+provenance kinds require zero SGPR address reads; the numbered-SGPR kinds still
+require their actual source read. The [disabled-source tests](tests/gfx950_scratch_off.rs)
+compare both forms at the fixed allocation's last word/tuple on one and two
+waves, preserve undefined spill bits, and retain explicit VM0 requirements.
 
 On gfx950, `s_mov_b64` can read `src_private_base` as an opaque aperture
 identity with a zero low word. Plain word moves may transport its high-word tag;
@@ -594,7 +605,7 @@ source/result delays are checked downstream. BF16 MFMA requires concrete
 encoded BF16 operands; arbitrary symbolic BF16 reinterpretation is unsupported.
 
 Selected ALU, conversion, GLOBAL/scalar/LDS/FLAT memory, cross-lane DS and
-workgroup-barrier forms support the compiler corpora. The selected gfx950 raw
+workgroup-barrier forms support the compiler corpora. The selected gfx942/gfx950 raw
 DWORD buffer profile is described above; buffer
 forms outside that profile remain unsupported. Direct-to-LDS on gfx942, atomics and
 general DPP/special-register hazard profiles are not implemented for these

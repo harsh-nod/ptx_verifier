@@ -292,11 +292,14 @@ fn trace_contract(
                 }
                 let expected = match kind {
                     Some("scalar memory") => Some("memory"),
-                    Some("vector memory" | "LDS" | "scratch load" | "scratch store")
-                        if *exec_mask != 0 =>
-                    {
-                        Some("memory")
-                    }
+                    Some(
+                        "vector memory"
+                        | "LDS"
+                        | "scratch load"
+                        | "scratch store"
+                        | "scratch load immediate"
+                        | "scratch store immediate",
+                    ) if *exec_mask != 0 => Some("memory"),
                     Some("readlane" | "writelane") => Some("lane"),
                     Some("wait" | "s_endpgm") => Some("wait"),
                     Some("barrier") => Some("barrier"),
