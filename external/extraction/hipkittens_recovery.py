@@ -284,6 +284,14 @@ def scan(catalog, roots, max_member_bytes=256 * 1024 * 1024):
                         with zipfile.ZipFile(stream) as archive:
                             for ordinal, member in enumerate(archive.infolist()):
                                 stats["archive_members"] += 1
+                                # DOS/Windows entries may omit Unix type bits.
+                                # An explicit Unix symlink/device/FIFO is never
+                                # a regular assembly member, even if its stored
+                                # link-target bytes match an expected digest.
+                                member_kind = stat.S_IFMT(member.external_attr >> 16)
+                                if member_kind not in (0, stat.S_IFREG):
+                                    stats["archive_nonregular_members"] += 1
+                                    continue
                                 if not member.is_dir() and candidate(member.filename):
                                     expanded += member.file_size
                                     inventory.require(expanded <= max_member_bytes, "archive expanded candidates exceed byte limit")

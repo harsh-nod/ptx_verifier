@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import os
+import stat
 from pathlib import Path
 import struct
 import subprocess
@@ -29,6 +30,18 @@ def search_catalog(assembly=b"whole original assembly\n", obj=b"whole original o
 
 
 class RecoveryTests(unittest.TestCase):
+    def test_zip_symlink_member_bytes_do_not_count_as_regular_assembly(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "links.zip"
+            with zipfile.ZipFile(path, "w") as archive:
+                member = zipfile.ZipInfo("kernel.s")
+                member.create_system = 3
+                member.external_attr = (stat.S_IFLNK | 0o777) << 16
+                archive.writestr(member, b"whole original assembly\n")
+            result = recovery.scan(search_catalog(), [path])
+            self.assertFalse(result["matches"])
+            self.assertEqual(result["statistics"]["archive_nonregular_members"], 1)
+
     def test_fifo_and_file_symlinks_are_refused_without_opening_or_blocking(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
