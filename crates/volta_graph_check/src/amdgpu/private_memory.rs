@@ -1,4 +1,4 @@
-//! Fixed gfx950 private word tuples and literal-lane operand contracts.
+//! Fixed gfx950 private word tuples and exact lane operand contracts.
 //! Concrete scratch decoding, exact word transport and dispatch backing remain
 //! producer/caller premises. Scratch needs VM0; private FLAT needs VM0 and LGKM0.
 //! Conservative admission failures are Unknown,
@@ -28,7 +28,13 @@ pub(super) fn scratch(class: AmdMemoryClass) -> bool {
 pub(super) fn valu(kind: &str) -> bool {
     matches!(
         kind,
-        "vector ALU" | "trans ALU" | "shifted ALU" | "readlane" | "writelane"
+        "vector ALU"
+            | "trans ALU"
+            | "shifted ALU"
+            | "readlane"
+            | "writelane"
+            | "readlane scalar"
+            | "writelane scalar"
     )
 }
 
@@ -63,6 +69,8 @@ pub(super) fn present(graph: &EventGraph) -> bool {
                             | "scratch store immediate"
                             | "readlane"
                             | "writelane"
+                            | "readlane scalar"
+                            | "writelane scalar"
                     )
                 )
         })
@@ -437,8 +445,14 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                         .and_then(|n| n.checked_add(u32::from(*lane)))
                         .is_some_and(|n| n < graph.threads());
                 let mask = 1u64.checked_shl(u32::from(*lane)).unwrap_or(0);
-                let roles = reads.len() == 1
+                let scalar_selector = matches!(
+                    kind(graph, instruction),
+                    Some("readlane scalar" | "writelane scalar")
+                );
+                let roles = reads.len() == 1 + usize::from(scalar_selector)
                     && writes.len() == 1
+                    && (!scalar_selector || scalar(&reads[1]))
+                    && (!scalar_selector || read || reads[0] == reads[1])
                     && if read {
                         vector(&reads[0], mask) && scalar(&writes[0])
                     } else {
@@ -447,10 +461,19 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                 if !valid_lane
                     || !roles
                     || !scalar_mask_reads.is_empty()
-                    || kind(graph, instruction) != Some(if read { "readlane" } else { "writelane" })
+                    || kind(graph, instruction)
+                        != Some(match (read, scalar_selector) {
+                            (true, false) => "readlane",
+                            (false, false) => "writelane",
+                            (true, true) => "readlane scalar",
+                            (false, true) => "writelane scalar",
+                        })
                     || !claimed.insert(instruction.event)
                 {
-                    errors.push(Unresolved::at(record.event, "literal-lane marker does not match its exact launched-lane operand contract"));
+                    errors.push(Unresolved::at(
+                        record.event,
+                        "lane marker does not match its exact launched-lane operand contract",
+                    ));
                 }
             }
             _ => {}
@@ -521,7 +544,7 @@ fn require_semantic(
         return;
     };
     let required = match kind(graph, instruction) {
-        Some("readlane" | "writelane") => true,
+        Some("readlane" | "writelane" | "readlane scalar" | "writelane scalar") => true,
         Some(
             "scratch load" | "scratch store" | "scratch load immediate" | "scratch store immediate",
         ) => exec_mask != 0,

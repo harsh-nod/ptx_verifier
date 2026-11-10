@@ -499,7 +499,6 @@ fn broader_recognized_lane_forms_never_reach_execution_or_observers() {
     // Prior recognized grammar is preserved; these are not assertions that
     // every spelling is an encodable hardware form or a supported operation.
     for spelling in [
-        "v_readlane_b32 s4,v1,s2",
         "v_writelane_b32 v1,s4,s2",
         "v_writelane_b32 v1,0,0",
         "v_readlane_b32 m0,v1,0",
@@ -537,10 +536,10 @@ fn broader_recognized_lane_forms_never_reach_execution_or_observers() {
     let mut direct = frontend::parse(&source("v_readlane_b32 s4,v1,0")).unwrap();
     direct.kernels[0].instructions[0].operands[2] =
         frontend::Operand::Register(frontend::Register {
-            class: frontend::RegisterClass::Scalar,
-            index: 2,
+            class: frontend::RegisterClass::Special,
+            index: 0,
             count: 1,
-            special: None,
+            special: Some(frontend::SpecialRegister::M0),
         });
     lane_profile_refuses_before_execution(&direct, "k");
 
@@ -561,7 +560,7 @@ fn broader_recognized_lane_forms_never_reach_execution_or_observers() {
 #[test]
 fn selected_closure_admission_does_not_reject_unselected_or_uncalled_bodies() {
     let safe_entry = "v_mov_b32 v2,7\n".to_owned() + output();
-    let helper = ".type helper,@function\nhelper:\ns_branch .Lreturn\nv_readlane_b32 s4,v1,s2\n.Lreturn:\ns_setpc_b64 s[30:31]\n.size helper,.-helper\n";
+    let helper = ".type helper,@function\nhelper:\ns_branch .Lreturn\nv_readlane_b32 s4,v1,m0\n.Lreturn:\ns_setpc_b64 s[30:31]\n.size helper,.-helper\n";
     let uncalled_text = source(&safe_entry) + helper;
     let uncalled = frontend::parse(&uncalled_text).unwrap();
     assert_eq!(uncalled.source, uncalled_text);
@@ -581,7 +580,7 @@ fn selected_closure_admission_does_not_reject_unselected_or_uncalled_bodies() {
     );
     lane_profile_refuses_before_execution(&called, "k");
 
-    let extra = ".type other,@function\nother:\nv_readlane_b32 s4,v1,s2\ns_endpgm\n.size other,.-other\n.amdhsa_kernel other\n.amdhsa_system_vgpr_workitem_id 0\n.end_amdhsa_kernel\n";
+    let extra = ".type other,@function\nother:\nv_readlane_b32 s4,v1,m0\ns_endpgm\n.size other,.-other\n.amdhsa_kernel other\n.amdhsa_system_vgpr_workitem_id 0\n.end_amdhsa_kernel\n";
     let whole_text = source(&safe_entry) + extra;
     let whole = frontend::parse(&whole_text).unwrap();
     assert_eq!(whole.source, whole_text);

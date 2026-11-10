@@ -8,7 +8,28 @@ impl Interpreter<'_> {
         instruction: &Instruction,
     ) -> Result<(), EvalError> {
         let operands = instruction.operands();
-        if self.architecture != AmdArchitecture::Gfx1250
+        let cdna = self.architecture == AmdArchitecture::Gfx950;
+        // CDNA4 GLOBAL_ATOMIC_ADD_F32 with SC0=0 has no result register.
+        // Admit only the original bare scalar-base + DWORD VGPR-offset form;
+        // return-data, cache policies, immediates and vector-pair addresses
+        // need separate checked profiles. XNACK replay remains unmodeled.
+        if cdna {
+            if self.xnack_replay_enabled
+                || instruction.mnemonic() != "global_atomic_add_f32"
+                || instruction.source().encoding != Encoding::Default
+                || !instruction.modifiers().is_empty()
+                || !matches!(operands,
+                    [Operand::Register(address), Operand::Register(data), Operand::Register(base)]
+                    if address.class == RegisterClass::Vector && address.count == 1
+                        && address.special.is_none() && address.index < 256
+                        && data.class == RegisterClass::Vector && data.count == 1
+                        && data.special.is_none() && data.index < 256
+                        && base.class == RegisterClass::Scalar && base.count == 2
+                        && base.special.is_none() && base.index < 101 && base.index % 2 == 0)
+            {
+                return Err(self.unsupported(wave, instruction));
+            }
+        } else if self.architecture != AmdArchitecture::Gfx1250
             || operands.len() != 3
             || instruction
                 .modifiers()
@@ -66,7 +87,13 @@ impl Interpreter<'_> {
             ProgramPoint(wave.pc as u32),
             AmdEventKind::MemoryIssue {
                 class: AmdMemoryClass::GlobalAtomicAddF32NoReturn,
-                counters: vec![(AmdCounter::Store, 1), (AmdCounter::X, 1)],
+                // GLOBAL is VM-only on CDNA4, unlike generic FLAT's
+                // VM+LGKM or gfx1250's independent Store+X counters.
+                counters: if cdna {
+                    vec![(AmdCounter::Vm, 1)]
+                } else {
+                    vec![(AmdCounter::Store, 1), (AmdCounter::X, 1)]
+                },
                 destinations: Vec::new(),
                 held_sources: reads,
             },

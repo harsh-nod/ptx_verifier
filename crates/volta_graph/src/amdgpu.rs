@@ -131,7 +131,8 @@ pub enum AmdMemoryClass {
     AsyncStoreFromLds,
     TensorLoadToLds,
     TensorStoreFromLds,
-    /// Selected gfx1250 F32 add RMW: device scope, one active lane, no return.
+    /// Selected F32 add RMW, one active lane and no return: bare gfx950
+    /// GLOBAL (VM), or gfx1250 device scope (Store+X).
     GlobalAtomicAddF32NoReturn,
     /// Genuine gfx1250 FLAT accesses with a resolved segment. Separate domains
     /// prevent completion/order frontiers from promoting an unrelated aperture.

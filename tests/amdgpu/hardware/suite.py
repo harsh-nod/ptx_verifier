@@ -28,6 +28,7 @@ sys.path.insert(0, str(ROOT / "tests/gfx1250/hardware"))
 from portable_run import device_environment, write_receipt
 
 INPUT_ROOTS = ("tests/amdgpu/hardware", "tests/gfx942", "tests/gfx950", "tests/gfx1250",
+               "tests/amdgpu/original-kernel-qualification",
                "crates/volta_amdgpu_analysis/src/frontend/fixtures")
 SCOPE = ("Complete existing positive host-driver catalog and bounded address/launch probes, "
          "using exact assembly and full driver output obligations. Numerical execution is "
@@ -36,6 +37,14 @@ SCOPE = ("Complete existing positive host-driver catalog and bounded address/lau
 
 def sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def validate_output_accounting(output: str, expected: tuple[int, int, int, int]) -> None:
+    summaries = re.findall(
+        r"^PASS: (\d+) launches, (\d+) complete (?:original/native )?outputs, "
+        r"(\d+) input bytes, (\d+) guard bytes$", output, re.M)
+    if len(summaries) != 1 or tuple(map(int, summaries[0])) != expected:
+        raise ValueError("driver output accounting is incomplete")
 
 
 def timestamp() -> str:
@@ -281,10 +290,7 @@ class Execution:
             if not any(re.fullmatch(r"(?:PASS\b.*|SUMMARY\b.*\bPASS(?:\b.*)?)", line) for line in output.splitlines()):
                 raise ValueError("driver exited without a complete positive summary")
             if profile.expected_counts:
-                expected = profile.expected_counts
-                match = re.search(r"^PASS: (\d+) launches, (\d+) complete (?:original/native )?outputs, (\d+) input bytes, (\d+) guard bytes$", output, re.M)
-                if not match or tuple(map(int, match.groups())) != expected:
-                    raise ValueError("feature driver output accounting is incomplete")
+                validate_output_accounting(output, profile.expected_counts)
             self.passed(profile.name, summary=output.splitlines()[-1])
         probes = self.root / "generated-probes" / self.request["target"]
         cases = json.loads((probes / "cases.json").read_text())["cases"]

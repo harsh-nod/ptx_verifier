@@ -120,10 +120,9 @@ impl Interpreter<'_> {
                 Some(AluOperation::VReadlaneB32 | AluOperation::VWritelaneB32)
             )
         {
-            let lane = match operands[2] {
-                Operand::Integer(lane) => lane as u32,
-                _ => unreachable!("validated literal lane"),
-            };
+            // step preflights selector definedness and the launched-lane bound
+            // before collecting roles; the same low six bits select the data.
+            let lane = wave.bits(&operands[2], 0).unwrap_or(0) & 63;
             let read = exact_alu == Some(AluOperation::VReadlaneB32);
             add(
                 &operands[0],
@@ -135,6 +134,7 @@ impl Interpreter<'_> {
                 if read { 1u64 << lane } else { u64::MAX },
                 &mut reads,
             );
+            add(&operands[2], u64::MAX, &mut reads);
             return (reads, writes);
         }
         if exact_alu == Some(AluOperation::VReadlaneB32)

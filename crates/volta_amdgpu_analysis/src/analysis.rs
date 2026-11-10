@@ -185,7 +185,13 @@ fn analyze_internal(
                 ) == Some(crate::target::Architecture::Gfx950)
                     && matches!(instruction.mnemonic().as_str(), "v_readlane_b32" | "v_writelane_b32")
                 {
-                    if instruction.mnemonic() == "v_readlane_b32" { "readlane" } else { "writelane" }
+                    match (instruction.mnemonic() == "v_readlane_b32",
+                        matches!(instruction.operands().get(2), Some(crate::ir::Operand::Register(_)))) {
+                        (true, false) => "readlane",
+                        (false, false) => "writelane",
+                        (true, true) => "readlane scalar",
+                        (false, true) => "writelane scalar",
+                    }
                 } else if matches!(instruction.operation(), crate::ir::Operation::Memory(memory)
                     if matches!(memory.kind, crate::ir::MemoryKind::ScratchLoad | crate::ir::MemoryKind::ScratchStore))
                 {

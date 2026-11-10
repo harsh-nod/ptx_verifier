@@ -36,7 +36,7 @@ gfx950-host --device 0 --rocm /opt/rocm` instead of `--config`. Use `--local`
 instead of `--host` when running on the GPU host. Local execution also stages
 the sources outside the checkout.
 
-The catalog contains 2 gfx942 groups, 12 gfx950 groups and 17 gfx1250 groups.
+The catalog contains 3 gfx942 groups, 12 gfx950 groups and 18 gfx1250 groups.
 It includes all existing positive host drivers, the gfx1250 matrix and mechanism
 feature drivers, and the common address/launch probes below. Adding a host driver
 without registering it in `profiles.py` makes the gate fail. Existing gfx1250

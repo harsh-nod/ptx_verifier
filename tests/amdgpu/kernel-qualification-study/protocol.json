@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "baseline_revision": "8a4b2bc21a8a7790d526520dd9f491aa11e8bbb6",
+  "population": "26 fixed configurations:13 safe and13 seeded scalar-readiness hazards across gfx942,gfx950,gfx1250. Existing algorithm/source replay; four copy/add parents use new full 259-thread launches at disjoint >8GiB bases. Other original sizes, source bytes, and all output obligations stay fixed. No unseen-algorithm or new application-bug claim.",
+  "repeats": 31,
+  "seed": 202611101,
+  "timeout_seconds": 60,
+  "order": "Separate first observation, then31 randomized adjacent baseline/candidate pairs on baseline-qualified cases. Newly candidate-qualified cases get a separate first observation plus31 candidate-only samples, without a baseline latency ratio. No concurrent builds, tests, agent work or GPU-suite control work during timing; retain host-load observations and disclose unowned background work.",
+  "qualification": "Safe cases require complete accepted graph, every original output coordinate and sample0 proof; common safe cases retain exact output expressions. Hazards require complete trace and the intended typed ReadBeforeReady witness. Unsupported, UNKNOWN, timeout and crashes are not detections. All26 stay in denominators.",
+  "acceptance": "No lost baseline qualification, candidate miss or new false positive. Require all26 candidate cases qualified. Every first and repeated observation must satisfy its semantic result. Common safe median <=baseline*1.05+1ms, p95<=baseline*1.10+1ms; peakRSS increase<=max(5%,8MiB). Report all regressions. A semantic coverage gain is distinct from a speedup. Broad speedup is claimed only if every timed hazard median improves and every pointwise paired-bootstrap95% upper ratio is<1; no multiple-comparison correction, no retries or outlier removal.",
+  "publication": "Only machine-neutral samples and independently recomputed results enter Git. Raw process/tool/host details stay external. Frozen historical studies remain byte-identical."
+}

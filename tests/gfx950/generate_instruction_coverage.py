@@ -521,6 +521,33 @@ def main():
         ],
     )
     value(
+        "LANE",
+        "Bare gfx950 lane transport with plain SGPR/VGPR data and literal0..63 or plain SGPR selector. Scalar-selected writes require the same SGPR for data and selector (one distinct SGPR source). Low6 selector bits choose a launched lane independently of EXEC; undefined words abort. Explicit selector SGPR roles require four independent states after a VALU producer; ordinary scalar data and lane-read VGPR data retain their distinct delays. Matching MBCNT EXEC-word inputs preserve scalar-data dependencies.",
+        ["vector", "step"],
+        [
+            ("crates/volta_amdgpu_analysis/tests/gfx950_lane_selectors.rs", "register_selectors_use_exactly_the_low_six_bits_and_allow_destination_aliases"),
+            ("crates/volta_amdgpu_analysis/tests/gfx950_lane_selectors.rs", "exec_word_mask_count_preserves_every_active_rank_and_inactive_output"),
+        ],
+        [
+            ("crates/volta_amdgpu_analysis/tests/gfx950_lane_selectors.rs", "valu_produced_selectors_need_four_states_for_reads_and_writes_even_under_empty_exec"),
+            ("crates/volta_graph_check/tests/gfx950_lane_atomic_contracts.rs", "selected_lane_markers_require_the_selector_role_even_under_empty_exec"),
+        ],
+    )
+    values["LANE"]["references"].append(reference("crates/volta_amdgpu_analysis/src/eval/interp_private.rs", "private_lane"))
+    value(
+        "ATOMIC",
+        "Bare three-operand gfx950 GLOBAL F32 atomic add, no return/policies/XNACK replay, one issuing lane per wave. Unsigned32-bit VGPR offset plus full64-bit scalar base, aligned in-bounds DWORD, VM-only completion and complete address/data source lifetime. Independent exact read-then-write effect pair. Mathematical-real addition, not IEEE/denormal equivalence; concurrent atomic serialization remains inconclusive.",
+        ["atomic_add_f32_no_return"],
+        [
+            (PIPE + "gfx950_reduction_qualification_tests.rs", "unchanged_reduction_f16_proves_its_complete_registered_workgroup_output"),
+            ("crates/volta_amdgpu_analysis/tests/gfx950_atomic_add_f32.rs", "address_data_aliases_preserve_both_roles_and_unsigned_vgpr_offsets"),
+        ],
+        [
+            ("crates/volta_amdgpu_analysis/tests/gfx950_atomic_add_f32.rs", "vm_zero_is_required_before_any_address_data_or_scalar_source_overwrite"),
+            ("crates/volta_graph_check/tests/gfx950_lane_atomic_contracts.rs", "atomic_contract_rejects_malformed_roles_counters_and_rmw_pairs"),
+        ],
+    )
+    value(
         "U",
         "Recognized syntax only: active execution deliberately returns Unsupported and preserves an incomplete graph. It is never counted as successful semantics.",
         ["vector", "memory_instruction", "unsupported"],
@@ -528,7 +555,7 @@ def main():
         [
             (
                 PIPE + "gfx950_parser_parity_tests.rs",
-                "recognized_unmodeled_lane_and_atomic_forms_withhold_native_certificates",
+                "recognized_unmodeled_atomic_form_withholds_native_certificates",
             )
         ],
     )
@@ -538,6 +565,10 @@ def main():
         plain = re.sub(r"_(e32|e64|sdwa)$", "", name)
         if plain in {"s_swappc_b64", "s_setpc_b64"}:
             return "CALL"
+        if plain in {"v_readlane_b32", "v_writelane_b32", "v_mbcnt_lo_u32_b32", "v_mbcnt_hi_u32_b32"}:
+            return "LANE"
+        if plain == "global_atomic_add_f32":
+            return "ATOMIC"
         if (
             plain in {"v_readlane_b32", "v_readfirstlane_b32", "v_writelane_b32"}
             or "atomic" in plain

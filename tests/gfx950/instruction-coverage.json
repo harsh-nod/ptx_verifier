@@ -90,7 +90,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/lower/mod.rs",
           "function": "lower_with_globals",
-          "line": 215
+          "line": 217
         }
       ]
     },
@@ -101,7 +101,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/lower/mod.rs",
           "function": "lower_with_globals",
-          "line": 215
+          "line": 217
         }
       ]
     },
@@ -133,12 +133,12 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "memory_instruction",
-          "line": 259
+          "line": 286
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "permute",
-          "line": 1203
+          "line": 1230
         }
       ]
     },
@@ -203,17 +203,17 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "trace_contract",
-          "line": 179
+          "line": 180
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 868
+          "line": 887
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_missing_semantic",
-          "line": 805
+          "line": 824
         }
       ]
     },
@@ -224,17 +224,17 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 868
+          "line": 887
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "memory_conflicts",
-          "line": 1670
+          "line": 1708
         },
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "missing_global_publication",
-          "line": 1641
+          "line": 1679
         }
       ]
     },
@@ -245,7 +245,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 868
+          "line": 887
         }
       ]
     },
@@ -256,7 +256,7 @@
         {
           "path": "crates/volta_graph_check/src/amdgpu.rs",
           "function": "check_amdgpu",
-          "line": 868
+          "line": 887
         }
       ]
     }
@@ -670,22 +670,22 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "memory_instruction",
-          "line": 259
+          "line": 286
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "flat_memory_address",
-          "line": 1074
+          "line": 1101
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "cdna_raw_buffer_addresses",
-          "line": 107
+          "line": 134
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "validate_address",
-          "line": 1257
+          "line": 1284
         }
       ],
       "positive_controls": [
@@ -797,7 +797,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "permute",
-          "line": 1203
+          "line": 1230
         }
       ],
       "positive_controls": [
@@ -1033,6 +1033,90 @@
       ],
       "test_scope": "Named representative controls exercise this semantic profile; these are not assertions that every corpus PC/operand combination was executed."
     },
+    "LANE": {
+      "stage": "value",
+      "status": "implemented_with_explicit_limits",
+      "meaning": "Bare gfx950 lane transport with plain SGPR/VGPR data and literal0..63 or plain SGPR selector. Scalar-selected writes require the same SGPR for data and selector (one distinct SGPR source). Low6 selector bits choose a launched lane independently of EXEC; undefined words abort. Explicit selector SGPR roles require four independent states after a VALU producer; ordinary scalar data and lane-read VGPR data retain their distinct delays. Matching MBCNT EXEC-word inputs preserve scalar-data dependencies.",
+      "references": [
+        {
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs",
+          "function": "vector",
+          "line": 5
+        },
+        {
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
+          "function": "step",
+          "line": 1547
+        },
+        {
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp_private.rs",
+          "function": "private_lane",
+          "line": 190
+        }
+      ],
+      "positive_controls": [
+        {
+          "path": "crates/volta_amdgpu_analysis/tests/gfx950_lane_selectors.rs",
+          "function": "register_selectors_use_exactly_the_low_six_bits_and_allow_destination_aliases",
+          "line": 51
+        },
+        {
+          "path": "crates/volta_amdgpu_analysis/tests/gfx950_lane_selectors.rs",
+          "function": "exec_word_mask_count_preserves_every_active_rank_and_inactive_output",
+          "line": 200
+        }
+      ],
+      "negative_controls": [
+        {
+          "path": "crates/volta_amdgpu_analysis/tests/gfx950_lane_selectors.rs",
+          "function": "valu_produced_selectors_need_four_states_for_reads_and_writes_even_under_empty_exec",
+          "line": 144
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx950_lane_atomic_contracts.rs",
+          "function": "selected_lane_markers_require_the_selector_role_even_under_empty_exec",
+          "line": 63
+        }
+      ],
+      "test_scope": "Named representative controls exercise this semantic profile; these are not assertions that every corpus PC/operand combination was executed."
+    },
+    "ATOMIC": {
+      "stage": "value",
+      "status": "implemented_with_explicit_limits",
+      "meaning": "Bare three-operand gfx950 GLOBAL F32 atomic add, no return/policies/XNACK replay, one issuing lane per wave. Unsigned32-bit VGPR offset plus full64-bit scalar base, aligned in-bounds DWORD, VM-only completion and complete address/data source lifetime. Independent exact read-then-write effect pair. Mathematical-real addition, not IEEE/denormal equivalence; concurrent atomic serialization remains inconclusive.",
+      "references": [
+        {
+          "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
+          "function": "atomic_add_f32_no_return",
+          "line": 5
+        }
+      ],
+      "positive_controls": [
+        {
+          "path": "crates/volta_pipeline/tests/gfx950_reduction_qualification_tests.rs",
+          "function": "unchanged_reduction_f16_proves_its_complete_registered_workgroup_output",
+          "line": 15
+        },
+        {
+          "path": "crates/volta_amdgpu_analysis/tests/gfx950_atomic_add_f32.rs",
+          "function": "address_data_aliases_preserve_both_roles_and_unsigned_vgpr_offsets",
+          "line": 121
+        }
+      ],
+      "negative_controls": [
+        {
+          "path": "crates/volta_amdgpu_analysis/tests/gfx950_atomic_add_f32.rs",
+          "function": "vm_zero_is_required_before_any_address_data_or_scalar_source_overwrite",
+          "line": 84
+        },
+        {
+          "path": "crates/volta_graph_check/tests/gfx950_lane_atomic_contracts.rs",
+          "function": "atomic_contract_rejects_malformed_roles_counters_and_rmw_pairs",
+          "line": 236
+        }
+      ],
+      "test_scope": "Named representative controls exercise this semantic profile; these are not assertions that every corpus PC/operand combination was executed."
+    },
     "U": {
       "stage": "value",
       "status": "recognized_but_execution_unsupported",
@@ -1046,19 +1130,19 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "memory_instruction",
-          "line": 259
+          "line": 286
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp.rs",
           "function": "unsupported",
-          "line": 1873
+          "line": 1890
         }
       ],
       "positive_controls": [],
       "negative_controls": [
         {
           "path": "crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs",
-          "function": "recognized_unmodeled_lane_and_atomic_forms_withhold_native_certificates",
+          "function": "recognized_unmodeled_atomic_form_withholds_native_certificates",
           "line": 142
         }
       ],
@@ -12146,13 +12230,11 @@
       "occurrences": 1,
       "frontend": "F",
       "lower": "L",
-      "value": "U",
-      "event": "I",
-      "check": "C",
+      "value": "ATOMIC",
+      "event": "IM",
+      "check": "CM",
       "primary_source": "amd-cdna4",
-      "limits": [
-        "No positive execution test is claimed for this form; it exists in the fail-closed corpus."
-      ],
+      "limits": [],
       "profiles": [
         {
           "operands": [
@@ -38833,7 +38915,7 @@
       "occurrences": 14,
       "frontend": "F",
       "lower": "L",
-      "value": "K",
+      "value": "LANE",
       "event": "I",
       "check": "C",
       "primary_source": "amd-cdna4",
@@ -38966,7 +39048,7 @@
       "occurrences": 14,
       "frontend": "F",
       "lower": "L",
-      "value": "K",
+      "value": "LANE",
       "event": "I",
       "check": "C",
       "primary_source": "amd-cdna4",
@@ -44582,13 +44664,11 @@
       "occurrences": 1,
       "frontend": "F",
       "lower": "L",
-      "value": "U",
+      "value": "LANE",
       "event": "I",
       "check": "C",
       "primary_source": "amd-cdna4",
-      "limits": [
-        "No positive execution test is claimed for this form; it exists in the fail-closed corpus."
-      ],
+      "limits": [],
       "profiles": [
         {
           "operands": [

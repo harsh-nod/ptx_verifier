@@ -8,6 +8,8 @@ use crate::ir::{
     LoweredKernel, Module, Opcode, Register, RegisterClass, RelocationKind, SourceSpan,
 };
 
+mod call_targets;
+
 #[cfg(test)]
 mod tests;
 
@@ -437,55 +439,7 @@ fn lower_with_globals(
             },
         );
     }
-    let mut call_targets = BTreeMap::new();
-    for (pc, instruction) in instructions.iter().enumerate() {
-        let function = functions
-            .iter()
-            .find(|f| f.start <= pc && pc < f.end)
-            .unwrap();
-        if instruction.mnemonic == "s_endpgm" && function.start != 0 {
-            return Err(LowerError {
-                message: "device function cannot terminate its caller with s_endpgm".into(),
-                span: instruction.span,
-            });
-        }
-        if instruction.mnemonic == "s_setpc_b64" && function.start == 0 {
-            return Err(LowerError {
-                message: "entry kernel has no caller return address".into(),
-                span: instruction.span,
-            });
-        }
-        if instruction.mnemonic != "s_swappc_b64" {
-            continue;
-        }
-        let [Operand::Register(_), Operand::Register(target)] = instruction.operands.as_slice()
-        else {
-            return Err(LowerError {
-                message: "invalid call operands".into(),
-                span: instruction.span,
-            });
-        };
-        let sequence = code_address_sequences.values().rev().find(|sequence| {
-            let finish = sequence.anchor_pc + 2;
-            if sequence.register_pair != *target || sequence.anchor_pc < function.start || finish >= pc { return false; }
-            // A conservative straight-line reaching-definition certificate.
-            // Direct register mentions of either word, control instructions,
-            // branches and alternate entries refuse this selected form.
-            !instructions[finish + 1..pc].iter().any(|item| {
-                matches!(item.opcode, Opcode::Branch | Opcode::Control)
-                    || item.operands.iter().any(|operand| matches!(operand, Operand::Register(r)
-                        if r.class == RegisterClass::Scalar && r.index < target.index + 2 && target.index < r.index + r.count))
-            }) && !instructions.iter().any(|item| item.operands.iter().any(|operand|
-                matches!(operand, Operand::BranchTarget(destination) if (sequence.anchor_pc + 1..=pc).contains(destination))))
-        }).ok_or_else(|| LowerError { message: "call target has no supported straight-line rel32 reaching definition".into(), span: instruction.span })?;
-        if pc + 1 >= function.end {
-            return Err(LowerError {
-                message: "call has no continuation in its source function".into(),
-                span: instruction.span,
-            });
-        }
-        call_targets.insert(pc, sequence.target_pc);
-    }
+    let call_targets = call_targets::resolve(&instructions, &functions, &code_address_sequences)?;
     // Reject recursive call graphs; bounded explicit frames then need at most
     // one frame per helper, independent of the instruction budget.
     let mut edges: BTreeMap<usize, std::collections::BTreeSet<usize>> = functions

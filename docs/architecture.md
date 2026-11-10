@@ -144,9 +144,19 @@ matching fixed-size descriptor/metadata declarations and a valid-dispatch backin
 premise. An opaque private-aperture tag resolves to the same per-item cells;
 it supplies no numeric runtime base. Scratch requires VM completion, while
 private FLAT retains both VM and LGKM obligations. Private accesses have their own graph records;
-literal lane moves retain physical lane identities even under empty EXEC.
+lane moves retain physical lane identities even under empty EXEC. The bounded
+[scalar-selector profile](cdna-lane-atomics.md) also records the selector SGPR
+and its separate software-delay requirement.
 An unsupported private wait sequence aborts without mathematical outputs, so a
 conservative admission restriction cannot become an equivalence refutation.
+
+The gfx950 call profile keeps code addresses opaque. Exact adjacent rel32
+construction supplies ordered word identities; plain scalar copies and literal
+lane spills can preserve those identities for a later call. Branch entries
+discard reaching definitions. Calls discard every tracked register mentioned
+by the selected helper closure, so a saved lane cell survives only when helpers
+leave its entire VGPR untouched. Execution checks the actual word origin and
+target again; code words cannot be extracted as ordinary data or address bits.
 
 ## Extending an instruction
 

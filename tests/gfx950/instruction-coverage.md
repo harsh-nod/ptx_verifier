@@ -15,18 +15,18 @@ The mixed by-value compiler source is included: `s_sext_i32_i16` and `v_cvt_f32_
 - **F (frontend)**: Typed family, arity, register/tuple roles and recognized modifier syntax; not an exhaustive assembler. [`parse_instruction`](../../crates/volta_amdgpu_analysis/src/frontend/instr.rs#L922), [`validate_registers`](../../crates/volta_amdgpu_analysis/src/frontend/instr.rs#L1480)
 - **FV (frontend)**: F plus the explicitly enumerated binary/FMA source/literal profiles, including type-specific F16/F64 constants; e32/e64 choice is validated only for that pinned set. [`validate_vop_literal_positions`](../../crates/volta_amdgpu_analysis/src/frontend/instr.rs#L2351)
 - **FM (frontend)**: F plus MFMA A/B register classes, tuple widths, C/D file agreement and encoded format widths. [`validate_registers`](../../crates/volta_amdgpu_analysis/src/frontend/instr.rs#L1480)
-- **L (lower)**: Construct executable typed operations while retaining native instruction/PC; resolve local branch labels, reject malformed caller-built syntax, unresolved symbols and malformed relocation sequences even in unreachable code. [`lower_with_globals`](../../crates/volta_amdgpu_analysis/src/lower/mod.rs#L215)
-- **LR (lower)**: Only contiguous compiler-proven getpc/rel32lo+4/rel32hi+12 for bounded defined objects; preserve 3 PCs and reject middle-entry branches. [`lower_with_globals`](../../crates/volta_amdgpu_analysis/src/lower/mod.rs#L215)
+- **L (lower)**: Construct executable typed operations while retaining native instruction/PC; resolve local branch labels, reject malformed caller-built syntax, unresolved symbols and malformed relocation sequences even in unreachable code. [`lower_with_globals`](../../crates/volta_amdgpu_analysis/src/lower/mod.rs#L217)
+- **LR (lower)**: Only contiguous compiler-proven getpc/rel32lo+4/rel32hi+12 for bounded defined objects; preserve 3 PCs and reject middle-entry branches. [`lower_with_globals`](../../crates/volta_amdgpu_analysis/src/lower/mod.rs#L217)
 - **I (event)**: Instruction event includes EXEC lanes, register reads/writes and scalar selector roles; retained on partial abort graphs. [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1547), [`instruction_registers`](../../crates/volta_amdgpu_analysis/src/eval/interp/dependencies.rs#L5), [`scalar_mask_reads`](../../crates/volta_amdgpu_analysis/src/eval/interp/dependencies.rs#L373)
-- **IM (event)**: I plus MemoryIssue/effects with actual space, transfer bytes, held sources, counter and scope; permutation uses LGKM without fabricated LDS accesses. [`memory_instruction`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L259), [`permute`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L1203)
+- **IM (event)**: I plus MemoryIssue/effects with actual space, transfer bytes, held sources, counter and scope; permutation uses LGKM without fabricated LDS accesses. [`memory_instruction`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L286), [`permute`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L1230)
 - **IX (event)**: I plus MatrixIssue form/operand/accumulator/destination slices; full wave64, source snapshots. [`matrix`](../../crates/volta_amdgpu_analysis/src/eval/interp/matrix_ops.rs#L167)
 - **IW (event)**: I plus Wait thresholds (endpgm drains all 3 counters). [`lower_wait`](../../crates/volta_amdgpu_analysis/src/ir/instruction.rs#L1023), [`wait`](../../crates/volta_amdgpu_analysis/src/eval/interp/control.rs#L227), [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1547)
 - **IB (event)**: I plus barrier arrival/release generations and active masks; terminated waves leave later generations. [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1547)
 - **ID (event)**: I plus native s_nop immediate + 1 independent instruction states. [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1547)
-- **C (check)**: Independent native trace completeness and register readiness/software hazards. Abort withholds positive verification and outputs. [`trace_contract`](../../crates/volta_graph_check/src/amdgpu.rs#L179), [`check_amdgpu`](../../crates/volta_graph_check/src/amdgpu.rs#L868), [`check_missing_semantic`](../../crates/volta_graph_check/src/amdgpu.rs#L805)
-- **CM (check)**: C plus counter prefixes, whole-transfer bounds, object identity, source lifetime, memory conflicts and required workgroup scope/publication. [`check_amdgpu`](../../crates/volta_graph_check/src/amdgpu.rs#L868), [`memory_conflicts`](../../crates/volta_graph_check/src/amdgpu.rs#L1670), [`missing_global_publication`](../../crates/volta_graph_check/src/amdgpu.rs#L1641)
-- **CB (check)**: C plus matching live-wave barrier generations/completion; barrier alone does not publish pending LDS work. [`check_amdgpu`](../../crates/volta_graph_check/src/amdgpu.rs#L868)
-- **CX (check)**: C plus form-specific MFMA result/source/accumulator timing; exact SrcC forwarding only for supported same-form relationships. [`check_amdgpu`](../../crates/volta_graph_check/src/amdgpu.rs#L868)
+- **C (check)**: Independent native trace completeness and register readiness/software hazards. Abort withholds positive verification and outputs. [`trace_contract`](../../crates/volta_graph_check/src/amdgpu.rs#L180), [`check_amdgpu`](../../crates/volta_graph_check/src/amdgpu.rs#L887), [`check_missing_semantic`](../../crates/volta_graph_check/src/amdgpu.rs#L824)
+- **CM (check)**: C plus counter prefixes, whole-transfer bounds, object identity, source lifetime, memory conflicts and required workgroup scope/publication. [`check_amdgpu`](../../crates/volta_graph_check/src/amdgpu.rs#L887), [`memory_conflicts`](../../crates/volta_graph_check/src/amdgpu.rs#L1708), [`missing_global_publication`](../../crates/volta_graph_check/src/amdgpu.rs#L1679)
+- **CB (check)**: C plus matching live-wave barrier generations/completion; barrier alone does not publish pending LDS work. [`check_amdgpu`](../../crates/volta_graph_check/src/amdgpu.rs#L887)
+- **CX (check)**: C plus form-specific MFMA result/source/accumulator timing; exact SrcC forwarding only for supported same-form relationships. [`check_amdgpu`](../../crates/volta_graph_check/src/amdgpu.rs#L887)
 
 ## Value profiles and actual controls
 
@@ -134,7 +134,7 @@ Negative controls: [`rejects_registers_outside_declared_allocations_and_unified_
 
 Typed global/kernarg/LDS byte storage, per-component SMEM low-bit masking, encoded nonnegative scalar offsets, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. Selected gfx950 raw-buffer DWORD/DWORDX2/DWORDX4 loads/stores require four-operand offen and word3 0x20000; direct-to-LDS DWORD/DWORDX4 loads require three-operand offen lds and word3 0x110000. Both retain separate resource/allocation bounds and VM completion; direct LDS also checks M0 readiness and LDS bounds. Raw DWORDX4 store data retains the two-state software timing requirement. Other buffer modes, atomics, arbitrary apertures and equal-offset dual DS remain unsupported. Explicit xnack+ checks selected SMEM clause aliases; vector-memory replay remains unsupported.
 
-Value implementation: [`memory_instruction`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L259), [`flat_memory_address`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L1074), [`cdna_raw_buffer_addresses`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L107), [`validate_address`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L1257)
+Value implementation: [`memory_instruction`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L286), [`flat_memory_address`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L1101), [`cdna_raw_buffer_addresses`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L134), [`validate_address`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L1284)
 
 Positive controls: [`all_words_and_wave_boundaries_retain_independent_absolute_input_coordinates`](../../crates/volta_pipeline/tests/cdna_raw_buffer_wide_tests.rs#L174), [`every_x4_data_word_can_also_address_the_complete_store`](../../crates/volta_pipeline/tests/cdna_raw_buffer_alias_tests.rs#L129), [`disabled_scalar_and_zero_sgpr_preserve_every_word_at_the_private_extent_end`](../../crates/volta_amdgpu_analysis/tests/gfx950_scratch_off.rs#L101), [`compiler_static_and_dynamic_lds_share_bytes_through_flat_and_ds`](../../crates/volta_pipeline/tests/gfx950_memory_control_tests.rs#L412), [`an_lds_128_bit_read_preserves_four_independently_stored_words`](../../crates/volta_pipeline/tests/gfx950_memory_control_tests.rs#L1392), [`smem_discards_each_component_low_bits_before_addition`](../../crates/volta_pipeline/tests/gfx950_memory_control_tests.rs#L1111), [`full_output_copy_and_add_one_survive_descriptor_reuse_before_vm_completion`](../../crates/volta_pipeline/tests/gfx950_raw_buffer_tests.rs#L144), [`complete_two_word_copy_and_packed_add_match_full_output_specs_and_refute_swaps`](../../crates/volta_pipeline/tests/gfx950_raw_buffer_x2_tests.rs#L144), [`completed_dma_preserves_all_outputs_and_refutes_a_different_equation`](../../crates/volta_pipeline/tests/gfx950_buffer_lds_tests.rs#L65)
 
@@ -144,7 +144,7 @@ Negative controls: [`complete_resource_allocation_and_store_data_preflight_prece
 
 DS cross-lane snapshot permute/bpermute under EXEC; concrete lane indices and LGKM completion. Does not synthesize LDS memory reads/writes or cross-wave publication.
 
-Value implementation: [`permute`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L1203)
+Value implementation: [`permute`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L1230)
 
 Positive controls: [`wave_local_lds_exchange_requires_completion_without_a_workgroup_barrier`](../../crates/volta_pipeline/tests/gfx950_memory_control_tests.rs#L1567)
 
@@ -210,15 +210,35 @@ Positive controls: [`complete_qualified_compiler_leaf_matches_all_64_input_outpu
 
 Negative controls: [`calls_require_actual_reaching_definitions_and_local_function_bounds`](../../crates/volta_amdgpu_analysis/tests/device_calls.rs#L270), [`scalar_load_readiness_is_shared_across_call_and_return_without_implicit_wait`](../../crates/volta_amdgpu_analysis/tests/device_calls.rs#L203)
 
+### LANE
+
+Bare gfx950 lane transport with plain SGPR/VGPR data and literal0..63 or plain SGPR selector. Scalar-selected writes require the same SGPR for data and selector (one distinct SGPR source). Low6 selector bits choose a launched lane independently of EXEC; undefined words abort. Explicit selector SGPR roles require four independent states after a VALU producer; ordinary scalar data and lane-read VGPR data retain their distinct delays. Matching MBCNT EXEC-word inputs preserve scalar-data dependencies.
+
+Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs#L5), [`step`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1547), [`private_lane`](../../crates/volta_amdgpu_analysis/src/eval/interp_private.rs#L190)
+
+Positive controls: [`register_selectors_use_exactly_the_low_six_bits_and_allow_destination_aliases`](../../crates/volta_amdgpu_analysis/tests/gfx950_lane_selectors.rs#L51), [`exec_word_mask_count_preserves_every_active_rank_and_inactive_output`](../../crates/volta_amdgpu_analysis/tests/gfx950_lane_selectors.rs#L200)
+
+Negative controls: [`valu_produced_selectors_need_four_states_for_reads_and_writes_even_under_empty_exec`](../../crates/volta_amdgpu_analysis/tests/gfx950_lane_selectors.rs#L144), [`selected_lane_markers_require_the_selector_role_even_under_empty_exec`](../../crates/volta_graph_check/tests/gfx950_lane_atomic_contracts.rs#L63)
+
+### ATOMIC
+
+Bare three-operand gfx950 GLOBAL F32 atomic add, no return/policies/XNACK replay, one issuing lane per wave. Unsigned32-bit VGPR offset plus full64-bit scalar base, aligned in-bounds DWORD, VM-only completion and complete address/data source lifetime. Independent exact read-then-write effect pair. Mathematical-real addition, not IEEE/denormal equivalence; concurrent atomic serialization remains inconclusive.
+
+Value implementation: [`atomic_add_f32_no_return`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L5)
+
+Positive controls: [`unchanged_reduction_f16_proves_its_complete_registered_workgroup_output`](../../crates/volta_pipeline/tests/gfx950_reduction_qualification_tests.rs#L15), [`address_data_aliases_preserve_both_roles_and_unsigned_vgpr_offsets`](../../crates/volta_amdgpu_analysis/tests/gfx950_atomic_add_f32.rs#L121)
+
+Negative controls: [`vm_zero_is_required_before_any_address_data_or_scalar_source_overwrite`](../../crates/volta_amdgpu_analysis/tests/gfx950_atomic_add_f32.rs#L84), [`atomic_contract_rejects_malformed_roles_counters_and_rmw_pairs`](../../crates/volta_graph_check/tests/gfx950_lane_atomic_contracts.rs#L236)
+
 ### U
 
 Recognized syntax only: active execution deliberately returns Unsupported and preserves an incomplete graph. It is never counted as successful semantics.
 
-Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs#L5), [`memory_instruction`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L259), [`unsupported`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1873)
+Value implementation: [`vector`](../../crates/volta_amdgpu_analysis/src/eval/interp/vector_alu.rs#L5), [`memory_instruction`](../../crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs#L286), [`unsupported`](../../crates/volta_amdgpu_analysis/src/eval/interp.rs#L1890)
 
 Positive controls: none; execution is deliberately unsupported
 
-Negative controls: [`recognized_unmodeled_lane_and_atomic_forms_withhold_native_certificates`](../../crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs#L142)
+Negative controls: [`recognized_unmodeled_atomic_form_withholds_native_certificates`](../../crates/volta_pipeline/tests/gfx950_parser_parity_tests.rs#L142)
 
 ## Exact observed forms
 
@@ -246,7 +266,7 @@ All source/profile and primary-source details are in the JSON. `F/FV/FM`, `L/LR`
 | `flat_load_dword` | F | L | M | IM | CM | M | M | [1 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.s#L28); CDNA4 |
 | `flat_store_dword` | F | L | M | IM | CM | M | M | [1 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.s#L20); CDNA4 |
 | `flat_store_short` | F | L | M | IM | CM | M | M | [1 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/native-full-convolution.s#L345); CDNA4 |
-| `global_atomic_add_f32` | F | L | U | I | C | none | U | [1 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s#L756); CDNA4 |
+| `global_atomic_add_f32` | F | L | ATOMIC | IM | CM | ATOMIC | ATOMIC | [1 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s#L756); CDNA4 |
 | `global_load_dword` | F | L | M | IM | CM | M | M | [25 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-dynamic-lds.s#L16); CDNA4 |
 | `global_load_dwordx2` | F | L | M | IM | CM | M | M | [7 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f16.s#L23); CDNA4 |
 | `global_load_dwordx4` | F | L | M | IM | CM | M | M | [3 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s#L115); CDNA4 |
@@ -407,8 +427,8 @@ All source/profile and primary-source details are in the JSON. `F/FV/FM`, `L/LR`
 | `v_max_f16_sdwa` | F | L | H | I | C | H | H | [1 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s#L909); CDNA4 |
 | `v_max_f32` | FV | L | F32 | I | C | F32 | F32 | [4 profiles](../../tests/gfx950/portable-negative/max_vs_min_ref.s#L16); CDNA4 |
 | `v_max_f32_e32` | FV | L | F32 | I | C | F32 | F32 | [2 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-exchange-reduce-relu.s#L261); CDNA4 |
-| `v_mbcnt_hi_u32_b32` | F | L | K | I | C | K | K | [2 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s#L745); CDNA4 |
-| `v_mbcnt_lo_u32_b32` | F | L | K | I | C | K | K | [2 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s#L744); CDNA4 |
+| `v_mbcnt_hi_u32_b32` | F | L | LANE | I | C | LANE | LANE | [2 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s#L745); CDNA4 |
+| `v_mbcnt_lo_u32_b32` | F | L | LANE | I | C | LANE | LANE | [2 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s#L744); CDNA4 |
 | `v_mfma_f32_16x16x16_f16` | FM | L | X | IX | CX | X | X | [3 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-pipelined-mfma-f16.s#L75); CDNA4 |
 | `v_mfma_f32_16x16x16f16` | FM | L | X | IX | CX | X | X | [3 profiles](../../tests/gfx950/portable-matrix/mma_raw_accumulator_identity.s#L21); CDNA4 |
 | `v_mfma_f32_16x16x32_bf16` | FM | L | X | IX | CX | X | X | [1 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-cdna4-mfma-types.s#L118); CDNA4 |
@@ -449,7 +469,7 @@ All source/profile and primary-source details are in the JSON. `F/FV/FM`, `L/LR`
 | `v_rcp_f32_e32` | F | L | F32 | I | C | F32 | F32 | [1 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/native-flash-attention.s#L1245); CDNA4 |
 | `v_rcp_f64` | F | L | F64 | I | C | F64 | F64 | [1 profiles](../../tests/gfx950/portable-data/nonzero_reciprocals.s#L19); CDNA4 |
 | `v_rcp_f64_e32` | F | L | F64 | I | C | F64 | F64 | [1 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/clang22-scalar-types.s#L227); CDNA4 |
-| `v_readlane_b32` | F | L | U | I | C | none | U | [1 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s#L737); CDNA4 |
+| `v_readlane_b32` | F | L | LANE | I | C | LANE | LANE | [1 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s#L737); CDNA4 |
 | `v_rsq_f32` | F | L | F32 | I | C | F32 | F32 | [1 profiles](../../tests/gfx950/portable-data/negative_rsqrt_f32.s#L14); CDNA4 |
 | `v_rsq_f32_e32` | F | L | F32 | I | C | F32 | F32 | [1 profiles](../../crates/volta_amdgpu_analysis/src/frontend/fixtures/portable-f16.s#L1213); CDNA4 |
 | `v_sqrt_f32` | F | L | F32 | I | C | F32 | F32 | [1 profiles](../../tests/gfx950/portable-data/negative_sqrt_f32.s#L14); CDNA4 |

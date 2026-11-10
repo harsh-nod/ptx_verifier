@@ -23,6 +23,7 @@ use crate::memory_conflict::{
 };
 use crate::{PropertyResult, Unresolved, Verdict};
 mod buffer_lds;
+mod cdna_atomic;
 pub mod early_memory_conflicts;
 pub mod early_readiness;
 mod gfx1250;
@@ -207,6 +208,7 @@ fn trace_contract(
     }
     let layout = graph.shared_allocation_layout();
     unresolved.extend(private_memory::validate(graph, architecture));
+    unresolved.extend(cdna_atomic::validate(graph, architecture));
     if graph
         .provenance()
         .assumes(volta_graph::Assumption::ConfiguredSharedAllocationLayout)
@@ -298,9 +300,12 @@ fn trace_contract(
                         | "scratch load"
                         | "scratch store"
                         | "scratch load immediate"
-                        | "scratch store immediate",
+                        | "scratch store immediate"
+                        | "atomic f32 add no return",
                     ) if *exec_mask != 0 => Some("memory"),
-                    Some("readlane" | "writelane") => Some("lane"),
+                    Some("readlane" | "writelane" | "readlane scalar" | "writelane scalar") => {
+                        Some("lane")
+                    }
                     Some("wait" | "s_endpgm") => Some("wait"),
                     Some("barrier") => Some("barrier"),
                     Some("MFMA") => Some("matrix"),
@@ -365,6 +370,10 @@ fn trace_contract(
                         counters == &[(AmdCounter::Vm, 1)]
                     }
                     AmdMemoryClass::BufferLoadToLds32 | AmdMemoryClass::BufferLoadToLds128 => {
+                        architecture == AmdArchitecture::Gfx950
+                            && counters == &[(AmdCounter::Vm, 1)]
+                    }
+                    AmdMemoryClass::GlobalAtomicAddF32NoReturn => {
                         architecture == AmdArchitecture::Gfx950
                             && counters == &[(AmdCounter::Vm, 1)]
                     }
@@ -670,6 +679,7 @@ fn trace_contract(
                 AmdMemoryClass::VectorMemory
                 | AmdMemoryClass::VectorStoreWide
                 | AmdMemoryClass::ScalarMemory => access.space == Space::Global,
+                AmdMemoryClass::GlobalAtomicAddF32NoReturn => access.space == Space::Global,
                 AmdMemoryClass::Flat | AmdMemoryClass::FlatStoreWide => {
                     matches!(access.space, Space::Global | Space::Shared)
                 }
@@ -756,14 +766,23 @@ fn trace_contract(
                         "AMD memory effect is recorded after the wave progressed beyond its issue",
                     ));
                 }
-                if a.ordering != OrderingKind::Ordinary
+                let atomic = effect_issues
+                    .get(&id)
+                    .and_then(|issue| issue_events.get(issue))
+                    .is_some_and(|(_, class)| *class == AmdMemoryClass::GlobalAtomicAddF32NoReturn);
+                if a.ordering
+                    != if atomic {
+                        OrderingKind::Atomic
+                    } else {
+                        OrderingKind::Ordinary
+                    }
                     || a.proxy != Proxy::Generic
                     || a.space == Space::Tensor
                     || !matches!(a.footprint, Footprint::Bytes { .. })
                 {
                     unresolved.push(Unresolved::at(
                         id,
-                        "memory effect is outside the AMD ordinary byte-memory contract",
+                        "memory effect is outside its AMD byte-memory ordering contract",
                     ));
                 }
                 if matches!(a.footprint,Footprint::Bytes{addr,width} if addr.checked_add(u64::from(width)).is_none())
@@ -980,6 +999,19 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                     .pc
                     .map(|pc| graph.provenance().instructions[pc.0 as usize].kind)
                     .unwrap_or("");
+                let lane_selector =
+                    matches!(instruction_kind, "readlane scalar" | "writelane scalar")
+                        .then(|| reads.last())
+                        .flatten();
+                // Operand-shape validation distinguishes literal and scalar
+                // lane selectors. Both forms obey the same CDNA4 Table11
+                // producer/consumer delays; selector SGPRs remain data reads.
+                let instruction_kind = match instruction_kind {
+                    "readlane scalar" => "readlane",
+                    "writelane scalar" => "writelane",
+                    "atomic f32 add no return" => "vector memory",
+                    kind => kind,
+                };
                 // LLVM GCNHazardRecognizer::checkReadM0Hazards requires one
                 // independent state from the latest SALU definition to LDS DMA.
                 if dma_at.contains(&record.event)
@@ -1038,7 +1070,8 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                     if matches!(
                         instruction_kind,
                         "writelane" | "scratch load" | "scratch store"
-                    ) {
+                    ) || lane_selector.is_some_and(|selector| selector == &register)
+                    {
                         definition = definition
                             .into_iter()
                             .chain(private_lane_valu_writes[wave].get(&register.index).copied())
@@ -1051,13 +1084,18 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                             .max_by_key(|(_, tick)| *tick);
                     }
                     if let Some((issue, issued)) = definition {
-                        let required = if matrix_at.contains_key(&record.event)
-                            && matches!(register.index, 126 | 127)
-                        {
-                            4
-                        } else {
-                            scalar_wait
-                        };
+                        let required =
+                            if lane_selector.is_some_and(|selector| selector == &register) {
+                                // CDNA4 Table11 distinguishes the selector from
+                                // ordinary scalar data: four independent states.
+                                4
+                            } else if matrix_at.contains_key(&record.event)
+                                && matches!(register.index, 126 | 127)
+                            {
+                                4
+                            } else {
+                                scalar_wait
+                            };
                         if tick.saturating_sub(issued).saturating_sub(1) < required {
                             hazards.push(AmdRegisterHazard {
                                 issue,
@@ -1069,7 +1107,7 @@ fn check_with_scope(graph: &EventGraph, prefix: bool) -> AmdReport {
                         }
                     }
                 }
-                // CDNA4 Table11: literal lane moves ignore EXEC for their data
+                // CDNA4 Table11: lane moves ignore EXEC for their data
                 // operand, but do not waive the explicit EXEC scheduling rule.
                 if matches!(instruction_kind, "readlane" | "writelane") {
                     for index in [126, 127] {
