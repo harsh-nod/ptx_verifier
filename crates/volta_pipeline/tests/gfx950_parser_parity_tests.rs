@@ -139,13 +139,8 @@ fn native_wait_requires_its_own_counter_operand_grammar() {
 }
 
 #[test]
-fn recognized_unmodeled_lane_and_atomic_forms_withhold_native_certificates() {
-    // Both forms are emitted by unchanged portable-f16.s and accepted by the
-    // pinned assembler. Recognizing their syntax cannot certify their effects.
-    for instruction in [
-        "v_readlane_b32 s4, v1, s2",
-        "global_atomic_add_f32 v1, v0, s[0:1]",
-    ] {
-        assert_aborted_unsupported(&format!("{instruction}\ns_endpgm"));
-    }
+fn recognized_unmodeled_atomic_form_withholds_native_certificates() {
+    // Emitted by unchanged portable-f16.s and accepted by the pinned assembler.
+    // Recognizing its syntax cannot certify its effects.
+    assert_aborted_unsupported("global_atomic_add_f32 v1, v0, s[0:1] sc0\ns_endpgm");
 }

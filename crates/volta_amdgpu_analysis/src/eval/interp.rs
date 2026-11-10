@@ -1645,6 +1645,23 @@ impl<'a> Interpreter<'a> {
                     // mask; the default gfx1250 ALU pipeline is interlocked.
                     continue;
                 }
+                if self.architecture == AmdArchitecture::Gfx950
+                    && index == 1
+                    && matches!(
+                        (alu, register),
+                        (Some(AluOperation::VMbcntLoU32B32), SpecialRegister::ExecLo)
+                            | (Some(AluOperation::VMbcntHiU32B32), SpecialRegister::ExecHi)
+                    )
+                    && instruction.modifiers().is_empty()
+                    && matches!(operand, Operand::Register(r)
+                        if r.class == RegisterClass::Special && r.count == 1)
+                {
+                    // CDNA4 lane-rank consumes the concrete EXEC word as
+                    // ordinary scalar data. dependencies records its physical
+                    // SGPR alias; Table11's two-state VALU→scalar-data rule
+                    // applies, independently of the active destination mask.
+                    continue;
+                }
                 let selector = alu == Some(AluOperation::VCndmaskB32) && index == 3;
                 let carry = matches!(
                     alu,

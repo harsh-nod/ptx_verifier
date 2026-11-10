@@ -30,15 +30,25 @@ pub(super) fn admit_lane_program(
             || instruction.source().encoding != Encoding::Default
             || !instruction.modifiers().is_empty()
             || !matches!(instruction.operands(),
-                [Operand::Register(destination), Operand::Register(source), Operand::Integer(0..=63)]
+                [Operand::Register(destination), Operand::Register(source), selector]
                     if destination.count == 1 && source.count == 1
                         && destination.special.is_none() && source.special.is_none()
                         && destination.class == if read { RegisterClass::Scalar } else { RegisterClass::Vector }
-                        && source.class == if read { RegisterClass::Vector } else { RegisterClass::Scalar })
+                        && source.class == if read { RegisterClass::Vector } else { RegisterClass::Scalar }
+                        && destination.index < if read { 102 } else { 256 }
+                        && source.index < if read { 256 } else { 102 }
+                        && (matches!(selector, Operand::Integer(0..=63))
+                            || matches!(selector, Operand::Register(register)
+                                if register.class == RegisterClass::Scalar
+                                    && register.special.is_none()
+                                    && register.count == 1 && register.index < 102
+                                    // CDNA4 permits only one distinct SGPR
+                                    // source, reused for multiple operands.
+                                    && (read || register.index == source.index))))
         {
             return Err(EvalError::Unsupported {
                 pc,
-                what: "selected gfx950 lane execution requires bare plain SGPR/VGPR words and a literal lane 0..63".into(),
+                what: "selected gfx950 lane execution requires bare plain SGPR/VGPR words and a literal lane 0..63 or plain SGPR selector".into(),
             });
         }
     }
@@ -46,10 +56,10 @@ pub(super) fn admit_lane_program(
 }
 
 pub(super) fn lane(wave: &Wave, instruction: &Instruction) -> Result<u8, EvalError> {
-    let Some(Operand::Integer(lane @ 0..=63)) = instruction.operands().get(2) else {
-        return Err(wave.fail(None, "selected lane transport requires a literal lane"));
-    };
-    let lane = *lane as u8;
+    // CDNA4 V_{READ,WRITE}LANE_B32 uses S1.u32[5:0], independently
+    // of EXEC. Reading the selector here also refuses unknown/opaque bits
+    // before any instruction event or destination update.
+    let lane = (wave.bits(&instruction.operands()[2], 0)? & 63) as u8;
     if wave.valid & (1u64 << lane) == 0 {
         return Err(EvalError::Unsupported {
             pc: wave.pc,
@@ -192,7 +202,7 @@ impl Interpreter<'_> {
         } else {
             wave.reg(source, source_lane, 0)?
         };
-        // Literal lane moves ignore EXEC, including when it is empty. They
+        // Lane moves ignore EXEC, including when it is empty. They
         // copy one exact word and never turn opaque or unknown bits into data.
         wave.put(destination, if read { 0 } else { lane }, 0, value)?;
         self.builder.amd_event(
