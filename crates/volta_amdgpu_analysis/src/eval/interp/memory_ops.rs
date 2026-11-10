@@ -318,6 +318,26 @@ impl Interpreter<'_> {
         );
         let lds = instruction.opcode() == Opcode::Lds;
         let dual = parts == 2;
+        if matches!(
+            self.architecture,
+            AmdArchitecture::Gfx942 | AmdArchitecture::Gfx950
+        ) && matches!(
+            memory.kind,
+            MemoryKind::BufferLoad | MemoryKind::BufferStore
+        ) && !crate::frontend::selected_cdna_raw_buffer(
+            instruction.mnemonic(),
+            std::array::from_fn(|index| match o.get(index) {
+                Some(Operand::Register(register)) => Some(*register),
+                _ => None,
+            }),
+            matches!(o.get(3), Some(Operand::Integer(0))),
+            instruction.modifiers(),
+        ) {
+            return Err(EvalError::Unsupported {
+                pc: wave.pc,
+                what: "recognized CDNA buffer form is outside the selected plain VGPR/zero-SOFFSET/OFFEN execution profile".into(),
+            });
+        }
         if operation == MemoryOpcode::FlatStoreD16HiB16
             && self.architecture != AmdArchitecture::Gfx1250
         {

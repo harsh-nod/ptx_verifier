@@ -435,11 +435,8 @@ fn malformed_or_wider_profiles_cannot_bypass_text_or_typed_lowering() {
             "buffer_load_dwordx4_e64 v[4:7],v16,s[8:11],0 offen",
             "buffer_load_dwordx4 v[5:8],v16,s[8:11],0 offen",
             "buffer_load_dwordx4 v[4:7],v16,s[9:12],0 offen",
-            "buffer_load_dwordx4 v[4:7],v16,s[8:11],1 offen",
             "buffer_load_dwordx4 v[4:7],v16,s[8:11],0 offen offset:4096",
             "buffer_load_dwordx4 v[4:7],v16,s[8:11],0 offen offset:-1",
-            "buffer_load_dwordx4 v[4:7],v16,s[8:11],0 offen glc",
-            "buffer_store_dwordx4 a[4:7],v16,s[8:11],0 offen",
         ] {
             assert!(
                 frontend::parse(&source(target, bad)).is_err(),
@@ -447,8 +444,22 @@ fn malformed_or_wider_profiles_cannot_bypass_text_or_typed_lowering() {
             );
         }
         let mut module = frontend::parse(&source(target, &operation(4, false, 16, 8, 0))).unwrap();
-        module.kernels[0].instructions[0].operands[3] = frontend::Operand::Integer(1);
+        // Encoding legality also survives a mutable-AST bypass of text parsing.
+        module.kernels[0].instructions[0].mnemonic = "buffer_load_dwordx4_e64".into();
         assert!(lower::lower_module_kernel(&module, "k").is_err());
+        if target == "gfx950" {
+            for outside in [
+                "buffer_load_dwordx4 v[4:7],v16,s[8:11],1 offen",
+                "buffer_load_dwordx4 v[4:7],v16,s[8:11],0 offen glc",
+                "buffer_store_dwordx4 a[4:7],v16,s[8:11],0 offen",
+            ] {
+                assert!(frontend::parse(&source(target, outside)).is_err());
+            }
+            let mut module =
+                frontend::parse(&source(target, &operation(4, false, 16, 8, 0))).unwrap();
+            module.kernels[0].instructions[0].operands[3] = frontend::Operand::Integer(1);
+            assert!(lower::lower_module_kernel(&module, "k").is_err());
+        }
         // DWORDX3 is still recognized but outside this execution increment.
         let body = quad(8, 0x10000, 16, 0)
             + "v_mov_b32 v16,0\nbuffer_load_dwordx3 v[4:6],v16,s[8:11],0 offen";

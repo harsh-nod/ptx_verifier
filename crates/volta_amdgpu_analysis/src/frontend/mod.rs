@@ -19,6 +19,7 @@ mod metadata;
 mod parse;
 
 pub use ast::*;
+pub(crate) use instr::selected_cdna_raw_buffer;
 pub use parse::{ParseError, parse, parse_module};
 
 #[cfg(test)]

@@ -31,6 +31,49 @@ pub(super) fn integer(text: &str) -> Option<i64> {
     }
 }
 
+/// The selected executable CDNA raw profile, shared by strict gfx950 syntax
+/// admission and runtime admission of the broader recognized gfx942 syntax.
+/// Callers expose only exact plain register / integer-zero operand variants.
+pub(crate) fn selected_cdna_raw_buffer(
+    mnemonic: &str,
+    registers: [Option<Register>; 3],
+    scalar_zero: bool,
+    modifiers: &[Modifier],
+) -> bool {
+    let words = match mnemonic {
+        "buffer_load_dword" | "buffer_store_dword" => 1,
+        "buffer_load_dwordx2" | "buffer_store_dwordx2" => 2,
+        "buffer_load_dwordx4" | "buffer_store_dwordx4" => 4,
+        _ => return false,
+    };
+    scalar_zero
+        && registers
+            .into_iter()
+            .zip([
+                (RegisterClass::Vector, words),
+                (RegisterClass::Vector, 1),
+                (RegisterClass::Scalar, 4),
+            ])
+            .all(|(register, (class, count))| {
+                register.is_some_and(|register| {
+                    register.class == class && register.count == count && register.special.is_none()
+                })
+            })
+        && modifiers.iter().filter(|m| m.name == "offen").count() == 1
+        && modifiers.iter().filter(|m| m.name == "offset").count() <= 1
+        && modifiers
+            .iter()
+            .all(|modifier| match modifier.name.as_str() {
+                "offen" => modifier.value.is_none(),
+                "offset" => modifier
+                    .value
+                    .as_deref()
+                    .and_then(integer)
+                    .is_some_and(|offset| (0..=4095).contains(&offset)),
+                _ => false,
+            })
+}
+
 /// Small assembly-constant expression grammar. It deliberately excludes
 /// relocations and arbitrary assembler functions rather than guessing a value.
 pub(super) fn constant_expression(text: &str, constants: &BTreeMap<String, i64>) -> Option<i64> {
@@ -1816,31 +1859,36 @@ pub(super) fn validate_registers(
                 if matches!(
                     architecture,
                     crate::target::Architecture::Gfx942 | crate::target::Architecture::Gfx950
-                ) && matches!(
-                    stem,
-                    "buffer_load_dword"
-                        | "buffer_store_dword"
-                        | "buffer_load_dwordx2"
-                        | "buffer_store_dwordx2"
-                        | "buffer_load_dwordx4"
-                        | "buffer_store_dwordx4"
                 ) && (mnemonic != stem
-                    || !matches!(operands[0], Operand::Register(r) if r.class == Vector && r.count == memory_width(stem))
-                    || !matches!(operands[1], Operand::Register(r) if r.class == Vector && r.count == 1)
-                    || !matches!(operands[2], Operand::Register(r) if r.class == Scalar && r.count == 4)
-                    || !matches!(operands[3], Operand::Integer(0))
-                    || !modifiers
-                        .iter()
-                        .any(|m| m.name == "offen" && m.value.is_none())
-                    || modifiers.iter().any(|m| match m.name.as_str() {
-                        "offen" => m.value.is_some(),
-                        "offset" => m
-                            .value
-                            .as_deref()
-                            .and_then(integer)
-                            .is_none_or(|offset| !(0..=4095).contains(&offset)),
-                        _ => true,
+                    || modifiers.iter().any(|m| {
+                        m.name == "offset"
+                            && m.value
+                                .as_deref()
+                                .and_then(integer)
+                                .is_none_or(|offset| !(0..=4095).contains(&offset))
                     }))
+                {
+                    return Err("CDNA buffer encoding requires a bare mnemonic and an unsigned12-bit instruction offset".into());
+                }
+                if architecture == crate::target::Architecture::Gfx950
+                    && matches!(
+                        stem,
+                        "buffer_load_dword"
+                            | "buffer_store_dword"
+                            | "buffer_load_dwordx2"
+                            | "buffer_store_dwordx2"
+                            | "buffer_load_dwordx4"
+                            | "buffer_store_dwordx4"
+                    )
+                    && !selected_cdna_raw_buffer(
+                        mnemonic,
+                        std::array::from_fn(|index| match operands.get(index) {
+                            Some(Operand::Register(register)) => Some(*register),
+                            _ => None,
+                        }),
+                        matches!(operands.get(3), Some(Operand::Integer(0))),
+                        modifiers,
+                    )
                 {
                     return Err("selected CDNA buffer DWORD/DWORDX2/DWORDX4 requires plain four-operand VGPR-data/SGPR-quad/zero OFFEN, default policy and unsigned12-bit offset".into());
                 }

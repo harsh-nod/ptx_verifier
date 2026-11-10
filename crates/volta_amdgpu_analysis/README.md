@@ -395,6 +395,14 @@ The selected gfx942/gfx950 raw-buffer profile supports four-operand
 VGPR data (one word or an aligned pair), and `dwordx4` with four plain VGPRs
 starting at an even register. They use an aligned SGPR-quad resource, scalar
 offset `0`, `offen`, and an optional unsigned 12-bit byte offset.
+The gfx942 frontend also preserves general recognized buffer address, scalar
+offset and data roles for typed analysis. A shared profile guard refuses those
+forms outside this execution subset before checking EXEC or issuing memory
+effects; a concrete zero in an SGPR does not qualify as the literal offset `0`.
+Gfx950 retains strict frontend admission of this selected raw profile. The
+[recognition and admission controls](tests/gfx942_buffer_admission.rs) retain
+the original general gfx942 fixture and check scalar offsets, missing OFFEN,
+indexing, policies, accumulator data and mutable-AST boundaries.
 The selected CDNA3/CDNA4 resources retain their 48-bit base and 32-bit byte bound;
 stride is ignored without indexing. The finite profile requires linear
 resources with word3 `0x20000`, nonzero DWORD-aligned bounds and aligned
