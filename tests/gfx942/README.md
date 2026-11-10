@@ -19,6 +19,13 @@ four complete modules with the native parser and typed lowerer. Execution,
 independent semantics and full selected-workgroup proofs have separate named
 test references; the inventory does not measure execution of every static PC.
 
+The separate [common raw-buffer controls](../../crates/volta_pipeline/tests/cdna_raw_buffer_wide_tests.rs)
+cover the selected CDNA3/CDNA4 linear DWORD/DWORDX2/DWORDX4 profile, including
+all transferred words, final-address alignment order, aliases, wave boundaries,
+readiness and complete bounds preflight. They add execution evidence outside
+the four-module source denominator; no new unchanged compiler-kernel proof is
+implied by these instruction controls.
+
 ```sh
 python3 tests/gfx942/generate_instruction_coverage.py --check
 cargo test --release -p volta_amdgpu_analysis --test gfx942_scalar_memory

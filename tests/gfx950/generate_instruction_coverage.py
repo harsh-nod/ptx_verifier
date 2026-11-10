@@ -65,6 +65,7 @@ def main():
     command = [
         "cargo",
         "run",
+        "--release",
         "--quiet",
         "--locked",
         "--offline",
@@ -347,14 +348,26 @@ def main():
     )
     value(
         "M",
-        "Typed global/kernarg/LDS byte storage, per-component SMEM low-bit masking, encoded nonnegative scalar offsets, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. Selected gfx950 raw-buffer DWORD/DWORDX2 loads/stores require four-operand offen and word3 0x20000; direct-to-LDS DWORD/DWORDX4 loads require three-operand offen lds and word3 0x110000. Both retain separate resource/allocation bounds and VM completion; direct LDS also checks M0 readiness and LDS bounds. Other buffer modes, atomics, arbitrary apertures and equal-offset dual DS remain unsupported. Explicit xnack+ checks selected SMEM clause aliases; vector-memory replay remains unsupported.",
+        "Typed global/kernarg/LDS byte storage, per-component SMEM low-bit masking, encoded nonnegative scalar offsets, exact wide/dual components, signed narrow loads, low-bit narrow stores, finite object bounds/alignment; static+dynamic LDS and opaque shared aperture. Selected gfx950 raw-buffer DWORD/DWORDX2/DWORDX4 loads/stores require four-operand offen and word3 0x20000; direct-to-LDS DWORD/DWORDX4 loads require three-operand offen lds and word3 0x110000. Both retain separate resource/allocation bounds and VM completion; direct LDS also checks M0 readiness and LDS bounds. Raw DWORDX4 store data retains the two-state software timing requirement. Other buffer modes, atomics, arbitrary apertures and equal-offset dual DS remain unsupported. Explicit xnack+ checks selected SMEM clause aliases; vector-memory replay remains unsupported.",
         [
             "memory_instruction",
             "flat_memory_address",
-            "gfx950_raw_buffer_addresses",
+            "cdna_raw_buffer_addresses",
             "validate_address",
         ],
         [
+            (
+                PIPE + "cdna_raw_buffer_wide_tests.rs",
+                "all_words_and_wave_boundaries_retain_independent_absolute_input_coordinates",
+            ),
+            (
+                PIPE + "cdna_raw_buffer_alias_tests.rs",
+                "every_x4_data_word_can_also_address_the_complete_store",
+            ),
+            (
+                "crates/volta_amdgpu_analysis/tests/gfx950_scratch_off.rs",
+                "disabled_scalar_and_zero_sgpr_preserve_every_word_at_the_private_extent_end",
+            ),
             (MEM, "compiler_static_and_dynamic_lds_share_bytes_through_flat_and_ds"),
             (MEM, "an_lds_128_bit_read_preserves_four_independently_stored_words"),
             (MEM, "smem_discards_each_component_low_bits_before_addition"),
@@ -372,6 +385,18 @@ def main():
             ),
         ],
         [
+            (
+                PIPE + "cdna_raw_buffer_wide_tests.rs",
+                "complete_resource_allocation_and_store_data_preflight_precedes_every_effect",
+            ),
+            (
+                PIPE + "cdna_raw_buffer_alias_tests.rs",
+                "aliasing_an_address_does_not_remove_any_data_words_two_state_lifetime",
+            ),
+            (
+                "crates/volta_graph_check/tests/gfx950_scratch_off.rs",
+                "only_the_matching_scratch_source_kind_can_have_zero_scalar_reads",
+            ),
             (MEM, "vector_transfers_check_every_component_at_the_region_end"),
             (MEM, "initialized_bytes_and_halves_do_not_define_the_rest_of_a_word"),
             (MEM, "smem_masking_preserves_readiness_bounds_and_exec_independence"),

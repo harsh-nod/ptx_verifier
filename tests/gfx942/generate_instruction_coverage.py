@@ -178,6 +178,23 @@ def generate():
                 "mixed_wait_does_not_identify_newest_lds_or_unordered_scalar_results",
             )
         ],
+        "raw_buffer_controls": [
+            reference("crates/volta_pipeline/tests/cdna_raw_buffer_wide_tests.rs", name)
+            for name in (
+                "all_words_and_wave_boundaries_retain_independent_absolute_input_coordinates",
+                "final_alignment_does_not_apply_scalar_memory_masks_to_individual_components",
+                "every_descriptor_word_loaded_result_and_store_word_keeps_its_readiness_obligation",
+                "x4_stores_retain_the_data_tuple_for_two_states_and_not_the_address_register",
+                "complete_resource_allocation_and_store_data_preflight_precedes_every_effect",
+            )
+        ],
+        "raw_buffer_alias_controls": [
+            reference("crates/volta_pipeline/tests/cdna_raw_buffer_alias_tests.rs", name)
+            for name in (
+                "every_x4_data_word_can_also_address_the_complete_store",
+                "aliasing_an_address_does_not_remove_any_data_words_two_state_lifetime",
+            )
+        ],
         "explicit_boundaries": [
             {
                 "profile": "gfx942 FP8/BF8 FNUZ decoding and CDNA4-only matrix forms",
@@ -188,7 +205,7 @@ def generate():
                 ),
             },
             {
-                "profile": "gfx942 raw buffers, direct-to-LDS, atomics, scratch/private and general device calls",
+                "profile": "gfx942 buffers outside the selected raw DWORD/DWORDX2/DWORDX4 OFFEN profile, direct-to-LDS, atomics, scratch/private and general device calls",
                 "status": "unsupported",
                 "contract": "crates/volta_amdgpu_analysis/README.md",
             },

@@ -335,3 +335,78 @@ python3 external/extraction/publish_vector_comparison.py \
 The earlier buffer receipt and frontier ledger retain their original measured
 revisions and outcomes. This newer comparison does not rewrite either record
 or extend support to other HipKittens families.
+
+## Original device-call module recovery
+
+[device-call-recovery.json](device-call-recovery.json) identifies the 16 original
+gfx950 modules and 18 entry occurrences tracked by
+[issue 102](https://github.com/harsh-nod/ptx_verifier/issues/102). It joins the
+unchanged frontier and baseline hashes, selected compiler attempts, assembly and
+object hashes, per-entry metadata hashes and public source evidence. It preserves
+the original compiler/assembler identities and recipe-stage hashes. The original
+complete command lines, dependency identities and launch receipts still require
+the retained raw campaign; their hashes do not reconstruct them.
+
+The catalog records 14 entries with source-fixed geometry and four attention
+entries with unresolved original preprocessor values. All 18 retain absent
+original launch snapshots, checked argument layouts, allocation bases and complete
+specifications. Clock-seeded layernorm dropout, producer-specific attention
+shuffle layouts and uninitialized LDS read premises remain explicit. No original
+module has been replayed or qualified by this catalog.
+
+```sh
+python3 external/extraction/hipkittens_recovery.py \
+  --source-root /path/to/pinned/HipKittens catalog --check
+python3 -m unittest discover -s external/tests -p test_hipkittens_recovery.py -v
+
+python3 external/extraction/hipkittens_recovery.py \
+  --source-root /path/to/pinned/HipKittens scan \
+  --root /path/to/retained-artifacts --root /path/to/archive.tar.gz \
+  --output /tmp/hipkittens-recovery-search.json
+```
+
+Search hashes regular `.s`, `.asm` and `.o` files and regular members of tar/zip
+archives, without extraction or execution. Filesystem symlinks, FIFOs and devices
+are refused. Directory descriptors anchor opens; file identity and archive hashes
+are checked before and after scanning. Actual reads, compressed archive files and
+expanded archive data have explicit byte bounds. Matching members include their
+ordinal, header offset and byte size, so duplicate names remain unambiguous.
+Directory exclusions, candidate suffixes, limits and search errors are recorded.
+Missing roots, damaged archives, unsupported zstd archives and oversized candidates
+make the search incomplete. Matching objects do not count as recovered assembly;
+matching assembly never counts as an execution or proof. Exit status 1 retains
+missing modules or search errors, 2 reports a contract error. Raw receipts require
+a fresh output outside source repositories because they contain machine paths.
+
+The [2026-11-10 search and separate attempt receipt](device-call-recovery-audit-20261110.json)
+found no exact original assembly among 37,825 distinct local
+assembly files or 4,054 assembly members in 46 relevant retained archives. These are
+search results within their recorded scopes, not proof that every possible copy
+is absent. The private raw receipts and diagnostic records remain outside Git.
+
+The `rotary-inputs` command prepares a **new source-derived attempt**, separately
+from recovery, for any of the five source-fixed rotary modules:
+
+```sh
+python3 external/extraction/hipkittens_recovery.py \
+  --source-root /path/to/pinned/HipKittens rotary-inputs \
+  --module-id gfx950-38dfc931051a1a74 --output /tmp/rotary1024-attempt
+```
+
+It retains the original full input allocations, grid and descriptor dimensions,
+emits syntax-only ABI assertions, and specifies all 4,096 workgroup-zero output
+coordinates with sampling disabled when running the verifier. Disjoint half-row
+output views preserve absolute physical addresses; the full output allocation is
+recorded separately, as in the GEMM contracts. The specification uses mathematical
+reals and requires the dimension bindings in `contract.json`; it does not claim
+hardware BF16 rounding equivalence. No runtime SGPRs, private pointers, implicit
+waits or random inputs are supplied.
+
+A separate rotary-1024 regeneration with the original compiler/assembler hashes
+passed MC, complete-module parsing and the generated ABI assertions (48-byte GL,
+200-byte globals and all field offsets). Its metadata hash matched the original,
+but its complete assembly and object hashes differed. The full-input, full-output
+verification attempt stopped at a call-target reaching-definition refusal when
+the compiler spills the rel32 target through lane writes before the call. It
+established no graph or mathematical result. Neither regeneration nor equal
+metadata recovers or qualifies an original module; issue 102 remains open.

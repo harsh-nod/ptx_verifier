@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "baseline_revision": "b2f9aff43c1fd5b4b549000eb7df1956603c22fe",
+  "population": "26 predeclared prospective configurations:13 safe and13 seeded scalar-readiness hazards across gfx942,gfx950,gfx1250. Six workload families (elementwise activation, copy/add, rotary embedding, matvec, reduction and matrix pipeline). Existing compiler programs are reused with new configurations or previously untimed complete registered launches; this is not unseen-algorithm or new application-bug evidence.",
+  "repeats": 31,
+  "seed": 20261110,
+  "timeout_seconds": 60,
+  "order": "Separate first-observation round, then31 randomized adjacent A/B pairs per baseline-qualified case; no builds/tests/other agents during timing. Retain every qualification outcome.",
+  "qualification": "Every safe case requires completed graph checks, exact full output coordinates, all sample0 specification elements, and baseline/candidate expression equivalence. Every hazard requires complete trace, intended typed readiness rejection and parent-observed finding time. Unsupported/UNKNOWN/timeout/crash are not detections.",
+  "acceptance": "No lost qualified detections, new false positives, numerical/diagnostic/output differences, candidate misses or timeouts. Require at least one predeclared hazard latency paired-bootstrap95% ratio interval wholly below1; safe median <=baseline*1.05+1ms, p95<=baseline*1.10+1ms; peakRSS growth<=max(5%,8MiB). Report every case and regression.",
+  "publication": "Raw commands, machine details and logs outside repo. Sanitized full samples/results only after independent recomputation. Historical frozen studies and consumed heldouts unchanged."
+}

@@ -1,0 +1,3096 @@
+{
+  "schema_version": 1,
+  "scope": "Recovery identities and partial public source contracts only; no original replay or qualification.",
+  "upstream": {
+    "repository": "https://github.com/HazyResearch/HipKittens",
+    "revision": "8cde3dd146bd1c4be78023b582c1f4375c48489f",
+    "tree": "091ef2266e93f05996272313652e557724ac2204"
+  },
+  "frontier_sha256": "3259fc82a1d7f48308da5b7103daa0ed486166b47343996a3e544f01f3e79464",
+  "baseline_sha256": "df3852b7a1db0a782be4d804fc343bd623faa862188c502b21f7abfc247cf907",
+  "compiler_reports": {
+    "baseline-all": {
+      "sha256": "3f657d104de8144e5a58a4b5edec889bcbf4a72e1e0ef63b41f4c4a223f90ab4",
+      "schema_version": 1,
+      "inventory_sha256": "a7ffc8b354a73287ec3454f1c5c69e6391577bfefe39e205b34dc091111229e0",
+      "driver_sha256": "209f79d83ad6db8bee47f92de33a37dfced9d7c920075df26c9ac65930b59484",
+      "compiler_sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "attempts": 173
+    },
+    "recipe-followup": {
+      "sha256": "fa67309015f36a7e26cffae67f2dc3220b70a6cc9f1a2560ff110d1df72d4ca9",
+      "schema_version": 2,
+      "inventory_sha256": "de7924dffa94767892feaf11fa078bad00cecf743a7fe76f84a12610fae41172",
+      "driver_sha256": "a0a497348718e1b197d29edbb81622e046192965e2881180a838128236c44d5a",
+      "compiler_sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+      "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771",
+      "attempts": 32
+    }
+  },
+  "original_toolchain": {
+    "compiler": "AMD clang version 22.0.0git (https://github.com/RadeonOpenCompute/llvm-project roc-7.2.0 26014 7b800a19466229b8479a78de19143dc33c3ab9b5)",
+    "compiler_sha256": "5c1d565a505c004aedf425b6c3b7c5199e09fd5207ef3f7d31d0ba00774a8f28",
+    "assembler": "AMD LLVM version 22.0.0git",
+    "assembler_sha256": "6cdaebe34b2baa811ec098dfd566c39c088d1492ce162e68ecf76f23d8ca4771"
+  },
+  "common_abi": {
+    "known": "one by-value globals aggregate; runtime GL dimensions are size_t, not int32",
+    "checked_original_layout": null,
+    "evidence": [
+      {
+        "path": "include/cdna4/types/global/gl.cuh",
+        "line": 41,
+        "anchor": "T* raw_ptr"
+      },
+      {
+        "path": "include/cdna4/types/global/gl.cuh",
+        "line": 45,
+        "anchor": "batch_internal"
+      },
+      {
+        "path": "include/cdna4/types/global/gl.cuh",
+        "line": 59,
+        "anchor": "tma_descs"
+      },
+      {
+        "path": "include/cdna4/types/global/util.cuh",
+        "line": 18,
+        "anchor": "struct runtime_dim"
+      },
+      {
+        "path": "include/cdna4/types/global/util.cuh",
+        "line": 19,
+        "anchor": "size_t v;"
+      },
+      {
+        "path": "include/pyutils/pyutils.cuh",
+        "line": 22,
+        "anchor": "Tensor must be contiguous"
+      },
+      {
+        "path": "include/pyutils/pyutils.cuh",
+        "line": 36,
+        "anchor": "shape[4 - dims + i]"
+      }
+    ]
+  },
+  "summary": {
+    "modules": 16,
+    "entry_occurrences": 18,
+    "source_fixed_geometry_entries": 14,
+    "macro_dependent_geometry_entries": 4,
+    "original_replays": 0,
+    "qualified_originals": 0,
+    "families": {
+      "attention_dq_shuffle": 2,
+      "attention_prep": 2,
+      "layernorm_dropout": 5,
+      "lds_microbenchmark": 4,
+      "rotary": 5
+    }
+  },
+  "source_file_sha256": {
+    "analysis/attn/bkwd/benchmark/Makefile": "756b1f2f2e03bdf00347861ad744496286d8e1407e19ef43859fac2a931a15d6",
+    "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp": "8c2de81e1f97c24463135196b77fbfe72e5fab634f7b9357e363c6cfa9284158",
+    "analysis/attn/bkwd/benchmark/test_python.py": "dc3fdd8a2276b705954e4dff7fc7f2b7784819b2121d0b79257cce3eba233afd",
+    "analysis/layernorm/mi350x/kernel_1024.cpp": "0a4a8ed6a010800979dd035692437826cb32eba85c2bfc08305c9367a0d4bdf9",
+    "analysis/layernorm/mi350x/kernel_16384.cpp": "494705591c43b8ee90e8d3969ec124dbf9f6672ec215d1c0425037d2953e47a9",
+    "analysis/layernorm/mi350x/kernel_2048.cpp": "7cba2094d18e30fe8bb822fd8b6a77ae1956d13157acf2cfaa2b998f943f5cc3",
+    "analysis/layernorm/mi350x/kernel_4096.cpp": "723a1f2b7c68e14f99e6b929f22da86379550a2e804766cc0802d6bdd75475fc",
+    "analysis/layernorm/mi350x/kernel_8192.cpp": "9fa1c252fa23876e11e5313061ad1b53e85eb59494bfc350d426697fec2a5d4d",
+    "analysis/paper_experiments/phases/ds_read_b128/kernel.cpp": "3615c0051e34703a5c510908a64d60311842ad99bf6d3dca3317ab93bf36a8a0",
+    "analysis/paper_experiments/phases/ds_read_b128/test_single.py": "5a8c7ff389e3aa777fee214216ff9587488104a6f89aa212291d0d01ea1b0f43",
+    "analysis/paper_experiments/phases/ds_read_b64/kernel.cpp": "ef1821338b87b1a83cc8abf3f63e6858ccde1104b0f1d9ece83298acedc34353",
+    "analysis/paper_experiments/phases/ds_read_b64/test_single.py": "5a8c7ff389e3aa777fee214216ff9587488104a6f89aa212291d0d01ea1b0f43",
+    "analysis/paper_experiments/phases/ds_read_b96/kernel.cpp": "987d83f882e58ca7eaa04afa1016cbdc5adb81e4bfd35b4bdf8dfe5123071d0c",
+    "analysis/paper_experiments/phases/ds_read_b96/test_single.py": "ee0d40197b4d063f32ebe18a91ebda2528bdcec3c9ceec62d3324d54eeb916af",
+    "analysis/paper_experiments/phases/ds_write_b64/kernel.cpp": "9ee57071f7d36e66e4d9c0f37daa976c3b15705722e51e0b06d4324a63d8cf60",
+    "analysis/paper_experiments/phases/ds_write_b64/test_single.py": "ee0d40197b4d063f32ebe18a91ebda2528bdcec3c9ceec62d3324d54eeb916af",
+    "analysis/rotary/mi350x/kernel_1024.cpp": "658f8845d9c533c71df339dc02a5881c3f5206abff78934d3ad428263af3b674",
+    "analysis/rotary/mi350x/kernel_16384.cpp": "173a73679018d7f6aa08c7703b0656c15b013956d63a797c284fd7fa0bb55435",
+    "analysis/rotary/mi350x/kernel_2048.cpp": "cf6de0246d4bb63c12a7d97700552a4812ec2af14a4c90897b08925c0e7c73be",
+    "analysis/rotary/mi350x/kernel_4096.cpp": "e1ded31a2775626f9ed97a637991350d91734fb199a5efe591df1dafc10d76f4",
+    "analysis/rotary/mi350x/kernel_8192.cpp": "2354f752976237e894f30383c22036c6e259cbb8ebd15cab7f5360d8b263ae25",
+    "include/cdna4/types/global/gl.cuh": "e1e8484f5bc444c2c4f3254f5d76a89f32fae6e8fb0364572d70dbe87bd6940d",
+    "include/cdna4/types/global/util.cuh": "735cda03066360ce5e827940ae01f60e427e65f9570cc82a11f1f850eddf3b33",
+    "include/pyutils/pyutils.cuh": "1d2283584772cdc3087a97d4a2220e31a1c596e0f7e4ecbb119ba95fc726ec7e",
+    "training/llama/csrc/Makefile": "8e9d3cbab27bd0fcaea4887931f697083e90309d988b04087c18fd5aac6adaab",
+    "training/llama/csrc/attn_bkwd_prep.cpp": "8c2de81e1f97c24463135196b77fbfe72e5fab634f7b9357e363c6cfa9284158",
+    "training/llama/csrc/test.py": "17f6378b079e4b0843f61ca668871eca4ecf85af62ab885887a3309032c90634"
+  },
+  "modules": [
+    {
+      "id": "gfx950-0fba459fd33e2559",
+      "target": "gfx950",
+      "source": "analysis/layernorm/mi350x/kernel_4096.cpp",
+      "source_sha256": "723a1f2b7c68e14f99e6b929f22da86379550a2e804766cc0802d6bdd75475fc",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "7721b462279360c5c480e9d1fef47f61b29674d24fa34743021d311db7a3882f",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "f558f82f1d4136f1b9cbc8ffc2665d01b78a13db63046a86293ca8a36af75932",
+        "object_sha256": "dbc7a8563fb1d670e1bbb237f3a9186ced49500801f9678d5e175a721158891f",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "f1309d2bb6ff287c6060718232b5f582dbc30de5283232bb72101451acfa7fac",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "51ab9508819b1dd5da0ba331a362011a3d7b3a5b8b2737550bb4cf03dce3ba03",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "59e343064ca5de4e66fa9f44a549b8cc29706d8835aa2a8f3fe9c4fab0b3fa3a",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "3b84ec19a046609aa91c0d6fd40298990d0e31a3b66e0f6c4068147a60068c0d",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "a6b93895ab5d6f489b822c7c7f3a47cc506ffad23c13f0a74e55d932e613831d",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "99bc6166d5c9eb02202ede4c2db0d025c54749b667b037729890fd52ecac999d"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z12layernorm_tkILi2048EEv12norm_globalsIXT_EE",
+          "metadata_sha256": "57f74745cccd3ba2153dd986ef71e4a6157ed3422b5df5b06972fe6e8e9ae54c",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "layernorm_dropout",
+            "geometry": {
+              "grid": [
+                1024,
+                16,
+                1
+              ],
+              "block": [
+                256,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 0
+            },
+            "arrays": {
+              "x_residual_o_o_resid": {
+                "dtype": "bf16",
+                "host_shape": [
+                  16,
+                  4096,
+                  2048
+                ],
+                "descriptor_shape": [
+                  1,
+                  16,
+                  4096,
+                  2048
+                ]
+              },
+              "norm_weight_norm_bias": {
+                "dtype": "bf16",
+                "shape": [
+                  2048
+                ]
+              }
+            },
+            "full_grid_outputs": {
+              "o": 134217728,
+              "o_resid": 134217728
+            },
+            "per_workgroup_outputs": {
+              "o": 8192,
+              "o_resid": 8192
+            },
+            "blockers": [
+              "clock64-seeded Philox dropout requires its actual clock/RNG contract"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/layernorm/mi350x/kernel_4096.cpp",
+                "line": 79,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_4096.cpp",
+                "line": 80,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_4096.cpp",
+                "line": 81,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_4096.cpp",
+                "line": 9,
+                "anchor": "constexpr int N ="
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_4096.cpp",
+                "line": 25,
+                "anchor": "rocrand_init(clock64()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_4096.cpp",
+                "line": 31,
+                "anchor": "float rand = rocrand_uniform"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_4096.cpp",
+                "line": 32,
+                "anchor": "if (rand < keep_prob)"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_4096.cpp",
+                "line": 109,
+                "anchor": "store(g.o_resid"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_4096.cpp",
+                "line": 126,
+                "anchor": "store(g.o,"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-2c0bd58234bb25b3",
+      "target": "gfx950",
+      "source": "analysis/paper_experiments/phases/ds_read_b128/kernel.cpp",
+      "source_sha256": "3615c0051e34703a5c510908a64d60311842ad99bf6d3dca3317ab93bf36a8a0",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "657662266046480dc9ef8afa5087e05f41b482e9c6d9fd3dd5f8b382e32a19ed",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "35bfb0a7292d8da175808ac2085411c0eca4d4ae0405bf3ad915d376c82a5990",
+        "object_sha256": "418cc86eebba29bb303344998b8f655b2d10ea1f6729438a2a8ee3be1e84190b",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "bb62ba2213061cb0db1f96df01e88f4eb760db3805283429345c8c00c1248fb3",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "f6e814a7c6ca04effe4066fb20bba579fc56aefb6c3509056fc0a7caa95d8e3e",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "89b83db1b80d57687887d0f57858cebe5423f333614206f6f096a4b4dbf1c52c",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "98d3989189a14448a355ee217476042ecec04cac625ccfb05318b1dab7de2088",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "c76086bbd052df1b41db368a463b54c89ca13ae49d4deb510cc64e52e297d4a5",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "7114564114ba66a582c99e6be3e317f3b49f74487b2b9756faf0823c754b8c2f"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z8micro_tk13micro_globals",
+          "metadata_sha256": "3a916c08222bde24f56950454563d1e0d7e259444bacdbbbea9680b4524d11fe",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "lds_microbenchmark",
+            "geometry": {
+              "grid": [
+                1,
+                1,
+                1
+              ],
+              "block": [
+                64,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 160000
+            },
+            "arrays": {
+              "should_I_write_offset": {
+                "host_dtype": "uint32",
+                "host_shape": [
+                  64
+                ],
+                "descriptor_shape": [
+                  1,
+                  1,
+                  1,
+                  64
+                ],
+                "declared_GL_dtype": "float",
+                "device_interpretation": "raw uint32 words"
+              }
+            },
+            "full_grid_outputs": {},
+            "per_workgroup_outputs": {},
+            "lds_access": {
+              "mode": "read",
+              "bytes_per_enabled_lane": 16,
+              "initial_contents": "not initialized by kernel"
+            },
+            "blockers": [
+              "source profiles LDS accesses, supplies no numerical Global outputs",
+              "read cases require justified LDS initialization premises"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b128/kernel.cpp",
+                "line": 13,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b128/kernel.cpp",
+                "line": 14,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b128/kernel.cpp",
+                "line": 15,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b128/kernel.cpp",
+                "line": 24,
+                "anchor": "reinterpret_cast<uint32_t*>"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b128/kernel.cpp",
+                "line": 20,
+                "anchor": "extern __shared__"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b128/kernel.cpp",
+                "line": 35,
+                "anchor": "if (should_I_write)"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b128/kernel.cpp",
+                "line": 39,
+                "anchor": "ds_read_b128"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b128/test_single.py",
+                "line": 13,
+                "anchor": "should_I_write[0]"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b128/test_single.py",
+                "line": 14,
+                "anchor": "should_I_write[1]"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b128/test_single.py",
+                "line": 19,
+                "anchor": "offset[tid] ="
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b128/test_single.py",
+                "line": 24,
+                "anchor": "dispatch_micro"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-38dfc931051a1a74",
+      "target": "gfx950",
+      "source": "analysis/rotary/mi350x/kernel_1024.cpp",
+      "source_sha256": "658f8845d9c533c71df339dc02a5881c3f5206abff78934d3ad428263af3b674",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "ae738984502be084396662eb6574ca7ebf48187ff7c1561cf45a26c04bc89e08",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "09717c91b428a4fba6dbd3abed45ece63a76f814ed6fdcf52d5ae0232fad8480",
+        "object_sha256": "9c3ec0ed1a788fe9284f4b413dba2ea1634cac37bc952b59e367e836f0c9e90f",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "e0a6aed739ae8bd30d9126f03df2825ca89c6eb3181485ee726451e76944c32c",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "419a0817caebb08146c13a41ff888628cd7bd3eb0357e7836d1ca6ad40f8ca21",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "e7b35b29b3e13f032a5df3cb7aa6d02630dfeef8afd3abee27490bd3676f2587",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "0e575cdb54b32da782fee3d6da8247dde25a899d1dfc7e8cdae271d008a89277",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "b967b611d354a54262cede8c16c51414106e73434e5dc136b2d75e5798b935a7",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "6e583ace9a57006ca7d0dbb80f407022631cc3620b852b1f951ff73ea58b8ecf"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z15tk_fused_rotaryILi128EEv14rotary_globalsIXT_EE",
+          "metadata_sha256": "65720d6303f5ad33d8eeb45b44322f67348ff71d495e2618eaa4e2e739665600",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "rotary",
+            "geometry": {
+              "grid": [
+                16,
+                16,
+                32
+              ],
+              "block": [
+                64,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 0
+            },
+            "arrays": {
+              "x_o": {
+                "dtype": "bf16",
+                "shape": [
+                  16,
+                  16,
+                  1024,
+                  128
+                ]
+              },
+              "sin_cos": {
+                "dtype": "bf16",
+                "host_shape": [
+                  1024,
+                  64
+                ],
+                "descriptor_shape": [
+                  1,
+                  1,
+                  1024,
+                  64
+                ]
+              }
+            },
+            "full_grid_outputs": {
+              "o": 33554432
+            },
+            "per_workgroup_outputs": {
+              "o": 4096
+            },
+            "blockers": [
+              "BF16 packed operations and complete ABI/runtime contract remain required"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/rotary/mi350x/kernel_1024.cpp",
+                "line": 39,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_1024.cpp",
+                "line": 40,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_1024.cpp",
+                "line": 41,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_1024.cpp",
+                "line": 9,
+                "anchor": "constexpr int ATTN_N"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_1024.cpp",
+                "line": 69,
+                "anchor": "__hsub2("
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_1024.cpp",
+                "line": 70,
+                "anchor": "__hadd2("
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_1024.cpp",
+                "line": 73,
+                "anchor": "store(g.o,"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-517ee2d35b791bd4",
+      "target": "gfx950",
+      "source": "analysis/rotary/mi350x/kernel_4096.cpp",
+      "source_sha256": "e1ded31a2775626f9ed97a637991350d91734fb199a5efe591df1dafc10d76f4",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "1ae5a1d2edabe9a180e2cae72465ddf3484c96a028f8e306eafcdb435ef8eb57",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "346fe5721b194aab2ea34d43cbbac787f115436a7869dcf4fdd653717d34f780",
+        "object_sha256": "5a9eff1919cf6aa0e2d03afee20a39e3dbfa86212c29d9ee2f0f996440708dd3",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "a5aec3c9f1af80b6b4f97af63ee5b577a26f8e3d54aac272e6bc38735da351b5",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "a3ee8663159dc5b323a52fe4012b186658b1b2b476c799e2df0a0f98a83b2338",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "9329448aff68aa83498c6fa5b9ab1d8a1f34908bc0d6d17bb224448ec87d281c",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "aaf0ebe42ff494391fa496582d980c87d0226b6dd3fa552411aa4f8ef7e53f74",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "ee047ef125f8a40cfec8cd4bd461a48a1ef928d136ee3266bf4f52a846853083",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "c63a0a57934be4be26a74d75c61c85236bf5a6f6fbfe3a6f1409b52c56d9a6fc"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z15tk_fused_rotaryILi128EEv14rotary_globalsIXT_EE",
+          "metadata_sha256": "65720d6303f5ad33d8eeb45b44322f67348ff71d495e2618eaa4e2e739665600",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "rotary",
+            "geometry": {
+              "grid": [
+                16,
+                16,
+                128
+              ],
+              "block": [
+                64,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 0
+            },
+            "arrays": {
+              "x_o": {
+                "dtype": "bf16",
+                "shape": [
+                  16,
+                  16,
+                  4096,
+                  128
+                ]
+              },
+              "sin_cos": {
+                "dtype": "bf16",
+                "host_shape": [
+                  4096,
+                  64
+                ],
+                "descriptor_shape": [
+                  1,
+                  1,
+                  4096,
+                  64
+                ]
+              }
+            },
+            "full_grid_outputs": {
+              "o": 134217728
+            },
+            "per_workgroup_outputs": {
+              "o": 4096
+            },
+            "blockers": [
+              "BF16 packed operations and complete ABI/runtime contract remain required"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/rotary/mi350x/kernel_4096.cpp",
+                "line": 39,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_4096.cpp",
+                "line": 40,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_4096.cpp",
+                "line": 41,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_4096.cpp",
+                "line": 9,
+                "anchor": "constexpr int ATTN_N"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_4096.cpp",
+                "line": 69,
+                "anchor": "__hsub2("
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_4096.cpp",
+                "line": 70,
+                "anchor": "__hadd2("
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_4096.cpp",
+                "line": 73,
+                "anchor": "store(g.o,"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-55e3958c6d271410",
+      "target": "gfx950",
+      "source": "analysis/layernorm/mi350x/kernel_16384.cpp",
+      "source_sha256": "494705591c43b8ee90e8d3969ec124dbf9f6672ec215d1c0425037d2953e47a9",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "447e7e76b3c0f41a91a98b59f3ca4c85ec8a638dad91e818d2245c9105dccc98",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "18f48faa4ef385677f6b463d7522c7e4fbeec6d107db455dc76b3b2f8097c461",
+        "object_sha256": "dce6c15e1038c4f0a5df02646681c110ab58e99cffcbdea4ca3b8ab5de11ad52",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "f21c666bcd81c924f1991fd6d06a20116f01751bfbc65662344908e8d95964b9",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "66661b182cf5e776f07200d1543caebf2c3e20d96f978d07eae85bfe3b1d3546",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "6e4b077add532e0c9e0920914cac0d0816dc586c530fd7e546a65df9aae337de",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "3f69bf87549dc3dc77dd565a7c00d44791c6e47be79cd0660821fb9cc082379c",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "db47b9daa41d998a46e75f1e9bd5dda88ac1fa8888094957541b83bc1e727d70",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "c6801cda7db0d66e6d3d2f4a26a584b4770f91a3e6392e85fde2d98aec160e96"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z12layernorm_tkILi2048EEv12norm_globalsIXT_EE",
+          "metadata_sha256": "57f74745cccd3ba2153dd986ef71e4a6157ed3422b5df5b06972fe6e8e9ae54c",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "layernorm_dropout",
+            "geometry": {
+              "grid": [
+                4096,
+                16,
+                1
+              ],
+              "block": [
+                256,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 0
+            },
+            "arrays": {
+              "x_residual_o_o_resid": {
+                "dtype": "bf16",
+                "host_shape": [
+                  16,
+                  16384,
+                  2048
+                ],
+                "descriptor_shape": [
+                  1,
+                  16,
+                  16384,
+                  2048
+                ]
+              },
+              "norm_weight_norm_bias": {
+                "dtype": "bf16",
+                "shape": [
+                  2048
+                ]
+              }
+            },
+            "full_grid_outputs": {
+              "o": 536870912,
+              "o_resid": 536870912
+            },
+            "per_workgroup_outputs": {
+              "o": 8192,
+              "o_resid": 8192
+            },
+            "blockers": [
+              "clock64-seeded Philox dropout requires its actual clock/RNG contract"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/layernorm/mi350x/kernel_16384.cpp",
+                "line": 79,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_16384.cpp",
+                "line": 80,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_16384.cpp",
+                "line": 81,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_16384.cpp",
+                "line": 9,
+                "anchor": "constexpr int N ="
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_16384.cpp",
+                "line": 25,
+                "anchor": "rocrand_init(clock64()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_16384.cpp",
+                "line": 31,
+                "anchor": "float rand = rocrand_uniform"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_16384.cpp",
+                "line": 32,
+                "anchor": "if (rand < keep_prob)"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_16384.cpp",
+                "line": 109,
+                "anchor": "store(g.o_resid"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_16384.cpp",
+                "line": 126,
+                "anchor": "store(g.o,"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-5fff0014163b750f",
+      "target": "gfx950",
+      "source": "analysis/paper_experiments/phases/ds_write_b64/kernel.cpp",
+      "source_sha256": "9ee57071f7d36e66e4d9c0f37daa976c3b15705722e51e0b06d4324a63d8cf60",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "4faf3cc50cb6b381f642ac37cec05611ae3ace8374de64385ba0cbd7280055f5",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "16a73da03a811561158ba47bc285f42279870d60116c9d00b31735a2054f0928",
+        "object_sha256": "dce299924965a8028f24679f7869863d4d49bcbeb776cbba65760223aad08604",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "b9776b43d798eeda6deac57cb477deac0b4d66b1704c4528ed77dd995a8406c5",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "ce83a68099887b6f95f7d3956b1f5c9819fcbcf87721781cf08e7902a27ac691",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "dd351dec9843678cd9e42b8f6991bd9cb29802ff7cea9412c6b37c2763625522",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "4570b57a9de39daf587272c2d93e02a6e6a36b7b1b1392759fdcadb44dd92df3",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "0fde4e3ad5a1772a018816ec6fce5f46767136226d03d2abfa9d0ca700ef1c62",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "4ac44b427ed667c198254461c0829f0888042a7becad3c73f0e33b14048191ab"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z8micro_tk13micro_globals",
+          "metadata_sha256": "7349bb9b9fa6870aab3340296e619ade2857bbdc40cab0022ba20bf8303e87a9",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "lds_microbenchmark",
+            "geometry": {
+              "grid": [
+                1,
+                1,
+                1
+              ],
+              "block": [
+                64,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 160000
+            },
+            "arrays": {
+              "should_I_write_offset": {
+                "host_dtype": "uint32",
+                "host_shape": [
+                  64
+                ],
+                "descriptor_shape": [
+                  1,
+                  1,
+                  1,
+                  64
+                ],
+                "declared_GL_dtype": "float",
+                "device_interpretation": "raw uint32 words"
+              }
+            },
+            "full_grid_outputs": {},
+            "per_workgroup_outputs": {},
+            "lds_access": {
+              "mode": "write",
+              "bytes_per_enabled_lane": 8,
+              "initial_contents": "not initialized by kernel"
+            },
+            "blockers": [
+              "source profiles LDS accesses, supplies no numerical Global outputs",
+              "read cases require justified LDS initialization premises"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/paper_experiments/phases/ds_write_b64/kernel.cpp",
+                "line": 13,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_write_b64/kernel.cpp",
+                "line": 14,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_write_b64/kernel.cpp",
+                "line": 15,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_write_b64/kernel.cpp",
+                "line": 24,
+                "anchor": "reinterpret_cast<uint32_t*>"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_write_b64/kernel.cpp",
+                "line": 20,
+                "anchor": "extern __shared__"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_write_b64/kernel.cpp",
+                "line": 36,
+                "anchor": "if (should_I_write)"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_write_b64/kernel.cpp",
+                "line": 40,
+                "anchor": "ds_write_b64"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_write_b64/test_single.py",
+                "line": 13,
+                "anchor": "should_I_write[0]"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_write_b64/test_single.py",
+                "line": 14,
+                "anchor": "should_I_write[1]"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_write_b64/test_single.py",
+                "line": 19,
+                "anchor": "offset[tid] ="
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_write_b64/test_single.py",
+                "line": 24,
+                "anchor": "dispatch_micro"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-6f89c165b6fe1f19",
+      "target": "gfx950",
+      "source": "analysis/rotary/mi350x/kernel_8192.cpp",
+      "source_sha256": "2354f752976237e894f30383c22036c6e259cbb8ebd15cab7f5360d8b263ae25",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "7147bd58578c822418b7d4f76d7d8feffa0d5199b9f61241625eca98779b67a6",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "6c9a3c72e08ad4c5a6cdd0edb658fab58d5257346d72c2f3a1371fc65a6ad300",
+        "object_sha256": "79c5fd4c6820fd95f116e7cd14ef8da1808586ebef14ce68d57630d8d9903a0c",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "474539f64132e492749136f33ad0faa438d50498058cc3518141aee7f07848e6",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "de1d02d67618c360a350002520c60ce97fce399024bbb2c409fbed4b03940d1c",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "47efcf208cedb504c639f33b8da7140d9a61d86ddd8f2248c4a0e78ff6f3e49b",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "87b8641dd7b399fa7abfd9053e2ec77e008eda3d90ef9571e609c24a5c5ff722",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "ec0a7fc31a0b83852e83b07a7f71b75ff676440f079ffdfee86775d06fe6f434",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "9a8ec2dc904032b8f8b26c1782e6947ee258dabbbf97b0d2e73c4ef37090f046"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z15tk_fused_rotaryILi128EEv14rotary_globalsIXT_EE",
+          "metadata_sha256": "65720d6303f5ad33d8eeb45b44322f67348ff71d495e2618eaa4e2e739665600",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "rotary",
+            "geometry": {
+              "grid": [
+                16,
+                16,
+                256
+              ],
+              "block": [
+                64,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 0
+            },
+            "arrays": {
+              "x_o": {
+                "dtype": "bf16",
+                "shape": [
+                  16,
+                  16,
+                  8192,
+                  128
+                ]
+              },
+              "sin_cos": {
+                "dtype": "bf16",
+                "host_shape": [
+                  8192,
+                  64
+                ],
+                "descriptor_shape": [
+                  1,
+                  1,
+                  8192,
+                  64
+                ]
+              }
+            },
+            "full_grid_outputs": {
+              "o": 268435456
+            },
+            "per_workgroup_outputs": {
+              "o": 4096
+            },
+            "blockers": [
+              "BF16 packed operations and complete ABI/runtime contract remain required"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/rotary/mi350x/kernel_8192.cpp",
+                "line": 39,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_8192.cpp",
+                "line": 40,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_8192.cpp",
+                "line": 41,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_8192.cpp",
+                "line": 9,
+                "anchor": "constexpr int ATTN_N"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_8192.cpp",
+                "line": 69,
+                "anchor": "__hsub2("
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_8192.cpp",
+                "line": 70,
+                "anchor": "__hadd2("
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_8192.cpp",
+                "line": 73,
+                "anchor": "store(g.o,"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-7ca9f80ceb2d92b9",
+      "target": "gfx950",
+      "source": "analysis/layernorm/mi350x/kernel_2048.cpp",
+      "source_sha256": "7cba2094d18e30fe8bb822fd8b6a77ae1956d13157acf2cfaa2b998f943f5cc3",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "707bb6d9969cb6e048347e1f34209722d2753a8e1a5e17c606d44696604a944e",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "6e58543d51adf6fb63b69d0e061be205a21e9ff05013e9b0dcf11206b07359f2",
+        "object_sha256": "ba8a7f9214c4b1ba77024fddb2a51df68763fff8e685afa63368076efe456a0b",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "0b4bddf6096cb80687e4a65813ca9b0674275269d31d3b09c0f63b8937df55d7",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "ae6d84cb36b2ef4d5bf029941850141d8d1b32142ba4aa59c39d453a07cbf625",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "b35b4b50847f4cc0471b5ce79041ddd8412cec22fc83bf4ed74d00b14456fbc1",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "ed646a6323bc9f348e9c9a5e4b6bf59b636de212b23e0937d433d70bdc278ca1",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "0ea85bf5fb732a5581471704d97a6e1416ea1921459f646f1356c9820a23f512",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "1bb7eeff0226576b486d0ac55be8452db942da69685466d2a2bb6240adc71abf"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z12layernorm_tkILi2048EEv12norm_globalsIXT_EE",
+          "metadata_sha256": "57f74745cccd3ba2153dd986ef71e4a6157ed3422b5df5b06972fe6e8e9ae54c",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "layernorm_dropout",
+            "geometry": {
+              "grid": [
+                512,
+                16,
+                1
+              ],
+              "block": [
+                256,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 0
+            },
+            "arrays": {
+              "x_residual_o_o_resid": {
+                "dtype": "bf16",
+                "host_shape": [
+                  16,
+                  2048,
+                  2048
+                ],
+                "descriptor_shape": [
+                  1,
+                  16,
+                  2048,
+                  2048
+                ]
+              },
+              "norm_weight_norm_bias": {
+                "dtype": "bf16",
+                "shape": [
+                  2048
+                ]
+              }
+            },
+            "full_grid_outputs": {
+              "o": 67108864,
+              "o_resid": 67108864
+            },
+            "per_workgroup_outputs": {
+              "o": 8192,
+              "o_resid": 8192
+            },
+            "blockers": [
+              "clock64-seeded Philox dropout requires its actual clock/RNG contract"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/layernorm/mi350x/kernel_2048.cpp",
+                "line": 79,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_2048.cpp",
+                "line": 80,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_2048.cpp",
+                "line": 81,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_2048.cpp",
+                "line": 9,
+                "anchor": "constexpr int N ="
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_2048.cpp",
+                "line": 25,
+                "anchor": "rocrand_init(clock64()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_2048.cpp",
+                "line": 31,
+                "anchor": "float rand = rocrand_uniform"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_2048.cpp",
+                "line": 32,
+                "anchor": "if (rand < keep_prob)"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_2048.cpp",
+                "line": 109,
+                "anchor": "store(g.o_resid"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_2048.cpp",
+                "line": 126,
+                "anchor": "store(g.o,"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-81169514fd5cdf8a",
+      "target": "gfx950",
+      "source": "analysis/rotary/mi350x/kernel_16384.cpp",
+      "source_sha256": "173a73679018d7f6aa08c7703b0656c15b013956d63a797c284fd7fa0bb55435",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "06a7b53712f4f8a55215f2ed709200a9db5297f93fc7cb6822ec8caf9d3d1f65",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "b658d558c85378df1776a0c480e45c84f59a441f08141a21b190c2c049468e29",
+        "object_sha256": "f24fed276da68867689f3f39fddbe097a9ef5617bb30e0198c608269ac49ebf3",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "1941cf7a870931c59e22235845f73b40052851e510bac00efe7a26b6eb7c44d8",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "5eddff688904d5f866006b87affa564130a79554b95ec2309a07e305906e9fd0",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "74ab355a5ccb27d4d55943f648b0e08b3bb406358ee7bfdb30c0668e12f963fb",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "995d477e9c37485855ae26567e198352e5ccf8c26f4fa8bbecfbd3c23b51f597",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "698b43a867ffff2b10fdbedfb98dd68a01c8b909da6d7ecdd25147413d70c4f7",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "8edab76958538fb59aca37e400a38eef40816c4bd56374f50c1c07be6636e1e1"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z15tk_fused_rotaryILi128EEv14rotary_globalsIXT_EE",
+          "metadata_sha256": "65720d6303f5ad33d8eeb45b44322f67348ff71d495e2618eaa4e2e739665600",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "rotary",
+            "geometry": {
+              "grid": [
+                16,
+                16,
+                512
+              ],
+              "block": [
+                64,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 0
+            },
+            "arrays": {
+              "x_o": {
+                "dtype": "bf16",
+                "shape": [
+                  16,
+                  16,
+                  16384,
+                  128
+                ]
+              },
+              "sin_cos": {
+                "dtype": "bf16",
+                "host_shape": [
+                  16384,
+                  64
+                ],
+                "descriptor_shape": [
+                  1,
+                  1,
+                  16384,
+                  64
+                ]
+              }
+            },
+            "full_grid_outputs": {
+              "o": 536870912
+            },
+            "per_workgroup_outputs": {
+              "o": 4096
+            },
+            "blockers": [
+              "BF16 packed operations and complete ABI/runtime contract remain required"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/rotary/mi350x/kernel_16384.cpp",
+                "line": 39,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_16384.cpp",
+                "line": 40,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_16384.cpp",
+                "line": 41,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_16384.cpp",
+                "line": 9,
+                "anchor": "constexpr int ATTN_N"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_16384.cpp",
+                "line": 69,
+                "anchor": "__hsub2("
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_16384.cpp",
+                "line": 70,
+                "anchor": "__hadd2("
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_16384.cpp",
+                "line": 73,
+                "anchor": "store(g.o,"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-910dd473af8a920f",
+      "target": "gfx950",
+      "source": "analysis/paper_experiments/phases/ds_read_b96/kernel.cpp",
+      "source_sha256": "987d83f882e58ca7eaa04afa1016cbdc5adb81e4bfd35b4bdf8dfe5123071d0c",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "cf59fcadf46139b4b27251ed937c595d66a38a65b143477a0fae4e993c5bd0d4",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "914211329e02d3973218a4de65a97bcc7e9043f2a256e14e20257c4840c873d2",
+        "object_sha256": "7f0d723825d9bca47b00463d4d79b93afb083b97efc22b740b75788156171b51",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "4a480599c64d0fa789e9b9ecf0932a53ef35e6267722dd28b4bc23acf058c127",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "6dbb55459caeb35782c8a9a47fae6d33ed2e719e1b66a22cae3b87a5c1669924",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "4245ce0fef97845e76ab1eefa42c6aea6da18a0b4e1e1e5b6ee35d48680b21c5",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "0176485147a75a7a274fff670838043d54b514ef9ec29f417e6a09cdccefb7a0",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "c123de0923cbec925d4ee07a84d3a328d9461acb7cc4a7f9076619b81be59219",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "891fdf0afc6463679d3a51ffd1ca1eb5c2af66f55c6b759a544c343dfce8c439"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z8micro_tk13micro_globals",
+          "metadata_sha256": "3a916c08222bde24f56950454563d1e0d7e259444bacdbbbea9680b4524d11fe",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "lds_microbenchmark",
+            "geometry": {
+              "grid": [
+                1,
+                1,
+                1
+              ],
+              "block": [
+                64,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 160000
+            },
+            "arrays": {
+              "should_I_write_offset": {
+                "host_dtype": "uint32",
+                "host_shape": [
+                  64
+                ],
+                "descriptor_shape": [
+                  1,
+                  1,
+                  1,
+                  64
+                ],
+                "declared_GL_dtype": "float",
+                "device_interpretation": "raw uint32 words"
+              }
+            },
+            "full_grid_outputs": {},
+            "per_workgroup_outputs": {},
+            "lds_access": {
+              "mode": "read",
+              "bytes_per_enabled_lane": 12,
+              "initial_contents": "not initialized by kernel"
+            },
+            "blockers": [
+              "source profiles LDS accesses, supplies no numerical Global outputs",
+              "read cases require justified LDS initialization premises"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b96/kernel.cpp",
+                "line": 13,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b96/kernel.cpp",
+                "line": 14,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b96/kernel.cpp",
+                "line": 15,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b96/kernel.cpp",
+                "line": 24,
+                "anchor": "reinterpret_cast<uint32_t*>"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b96/kernel.cpp",
+                "line": 20,
+                "anchor": "extern __shared__"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b96/kernel.cpp",
+                "line": 35,
+                "anchor": "if (should_I_write)"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b96/kernel.cpp",
+                "line": 39,
+                "anchor": "ds_read_b96"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b96/test_single.py",
+                "line": 13,
+                "anchor": "should_I_write[0]"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b96/test_single.py",
+                "line": 14,
+                "anchor": "should_I_write[1]"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b96/test_single.py",
+                "line": 19,
+                "anchor": "offset[tid] ="
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b96/test_single.py",
+                "line": 24,
+                "anchor": "dispatch_micro"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-925c00a86315b0f9",
+      "target": "gfx950",
+      "source": "analysis/layernorm/mi350x/kernel_8192.cpp",
+      "source_sha256": "9fa1c252fa23876e11e5313061ad1b53e85eb59494bfc350d426697fec2a5d4d",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "6211bcf74c9ed23ca0e1256a5ae0480971895e61b53eda06df5a4226088e3d48",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "3154b4e959180919afd5808ee0204cb738432a3e46a25986c3b170def9f6265d",
+        "object_sha256": "a13c2c722b2a241454caf392361bff9a325f51f010a9646250790790b1297634",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "b8f33db64bee8798814747071b348713b3042658a7ad18925babda9b92123c32",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "1a9baf682941eb32ab9b08d8273e3e0a70abf765a42ef489f22bb72d536712d1",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "6762690552ce0c4e3bdc8adc0553760dba69664b16a8eb686b4adf40ca7e965a",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "77166651fbf7f63a931365a68ed6d9859f669c78a8d2f5fdbfb6d048adbd476a",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "9c9e64937e43f267edd827aaa2877e16685a2def8f977892bfc2a79461cc22bd",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "2edcd97a050b9de936d20118b70aa76e1281c025ce1e436c17fcf26267864115"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z12layernorm_tkILi2048EEv12norm_globalsIXT_EE",
+          "metadata_sha256": "57f74745cccd3ba2153dd986ef71e4a6157ed3422b5df5b06972fe6e8e9ae54c",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "layernorm_dropout",
+            "geometry": {
+              "grid": [
+                2048,
+                16,
+                1
+              ],
+              "block": [
+                256,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 0
+            },
+            "arrays": {
+              "x_residual_o_o_resid": {
+                "dtype": "bf16",
+                "host_shape": [
+                  16,
+                  8192,
+                  2048
+                ],
+                "descriptor_shape": [
+                  1,
+                  16,
+                  8192,
+                  2048
+                ]
+              },
+              "norm_weight_norm_bias": {
+                "dtype": "bf16",
+                "shape": [
+                  2048
+                ]
+              }
+            },
+            "full_grid_outputs": {
+              "o": 268435456,
+              "o_resid": 268435456
+            },
+            "per_workgroup_outputs": {
+              "o": 8192,
+              "o_resid": 8192
+            },
+            "blockers": [
+              "clock64-seeded Philox dropout requires its actual clock/RNG contract"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/layernorm/mi350x/kernel_8192.cpp",
+                "line": 79,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_8192.cpp",
+                "line": 80,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_8192.cpp",
+                "line": 81,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_8192.cpp",
+                "line": 9,
+                "anchor": "constexpr int N ="
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_8192.cpp",
+                "line": 25,
+                "anchor": "rocrand_init(clock64()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_8192.cpp",
+                "line": 31,
+                "anchor": "float rand = rocrand_uniform"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_8192.cpp",
+                "line": 32,
+                "anchor": "if (rand < keep_prob)"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_8192.cpp",
+                "line": 109,
+                "anchor": "store(g.o_resid"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_8192.cpp",
+                "line": 126,
+                "anchor": "store(g.o,"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-999e70a3336af51b",
+      "target": "gfx950",
+      "source": "analysis/layernorm/mi350x/kernel_1024.cpp",
+      "source_sha256": "0a4a8ed6a010800979dd035692437826cb32eba85c2bfc08305c9367a0d4bdf9",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "d20e30d786aa9c777ecf61aa490a4d069b5a83d70d1f0c1f0b049a9f41cf3ba5",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "4ec81cc3da8eb7944e686d6bb87cc0c69673c8536ff377076bc41cd890228231",
+        "object_sha256": "b12c83c555ea80eabaeccc32f4e627572468b85d0144f1861584a35d8fadc128",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "f27c0fd27e45002e23ec149c299f726e6a06665a16eb7f6b9ff0cdb5b650c4a3",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "2b34cb491774061616c125f2d78b09e63a93807b714ff53997bf9e3ee09e0cb5",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "960b452cee36849f4e017393f49638a1f36d7540cb7b942e3469bd29bea11333",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "945300423e9b59d5dab59276426adc473578754889c026f7e5429e1bd262b934",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "628fe7be8ac7cd4baf6142f07e3e543df3108537044bd8f499508329cccf1a3e",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "d6d0fc7db2f51c24798e7268ddcd400e4c6cfdd13816ab2eed536d9fd324d218"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z12layernorm_tkILi2048EEv12norm_globalsIXT_EE",
+          "metadata_sha256": "57f74745cccd3ba2153dd986ef71e4a6157ed3422b5df5b06972fe6e8e9ae54c",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "layernorm_dropout",
+            "geometry": {
+              "grid": [
+                256,
+                16,
+                1
+              ],
+              "block": [
+                256,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 0
+            },
+            "arrays": {
+              "x_residual_o_o_resid": {
+                "dtype": "bf16",
+                "host_shape": [
+                  16,
+                  1024,
+                  2048
+                ],
+                "descriptor_shape": [
+                  1,
+                  16,
+                  1024,
+                  2048
+                ]
+              },
+              "norm_weight_norm_bias": {
+                "dtype": "bf16",
+                "shape": [
+                  2048
+                ]
+              }
+            },
+            "full_grid_outputs": {
+              "o": 33554432,
+              "o_resid": 33554432
+            },
+            "per_workgroup_outputs": {
+              "o": 8192,
+              "o_resid": 8192
+            },
+            "blockers": [
+              "clock64-seeded Philox dropout requires its actual clock/RNG contract"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/layernorm/mi350x/kernel_1024.cpp",
+                "line": 80,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_1024.cpp",
+                "line": 81,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_1024.cpp",
+                "line": 82,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_1024.cpp",
+                "line": 9,
+                "anchor": "constexpr int N ="
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_1024.cpp",
+                "line": 25,
+                "anchor": "rocrand_init(clock64()"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_1024.cpp",
+                "line": 31,
+                "anchor": "float rand = rocrand_uniform"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_1024.cpp",
+                "line": 32,
+                "anchor": "if (rand < keep_prob)"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_1024.cpp",
+                "line": 110,
+                "anchor": "store(g.o_resid"
+              },
+              {
+                "path": "analysis/layernorm/mi350x/kernel_1024.cpp",
+                "line": 127,
+                "anchor": "store(g.o,"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-a49c9680fcc79de2",
+      "target": "gfx950",
+      "source": "analysis/paper_experiments/phases/ds_read_b64/kernel.cpp",
+      "source_sha256": "ef1821338b87b1a83cc8abf3f63e6858ccde1104b0f1d9ece83298acedc34353",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "92a7368efed33f1e9ebb9d7e8921f4dfc6e4acb165ffb932cb7c95d51757ca17",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "a5553d06edc9bf02628138689ef47f189b3eeff567d90a14f653b5120ca4ca0e",
+        "object_sha256": "23f5aad10e5005a220a7fa70610da67730b6265528a08fad3089ed96a317398e",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "4166ab46d32be73cf458cb3b44dd6c92b519e93cbd029f1d381afa8f6ae60f29",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e19cb982a2f12d06bf93fb0949344d8a5afe96a31574d8af6b2c20bb70039738",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "f4c6ae6d376151e55e1cfb57b2e8fc1aec0b396b3659bc4fc2a9bc219b7abb58",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "eee6f4befe3ad519322b2d41e002175e2a8beacc40bf8e594972d08279a884fe",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "5612d7d873bdce923c0f2d9332a173c37f8d01ecb476f2efb8fdda5e0b71482f",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "fdc0fa0d5837fbbc234c5f8f618b14b2e3215f968aa3e1c91193b7e4ee08329b"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z8micro_tk13micro_globals",
+          "metadata_sha256": "6ed214a17a51908c3907185d6b43eb8cd452756137dfdab3b9f0feafb442ba83",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "lds_microbenchmark",
+            "geometry": {
+              "grid": [
+                1,
+                1,
+                1
+              ],
+              "block": [
+                64,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 160000
+            },
+            "arrays": {
+              "should_I_write_offset": {
+                "host_dtype": "uint32",
+                "host_shape": [
+                  64
+                ],
+                "descriptor_shape": [
+                  1,
+                  1,
+                  1,
+                  64
+                ],
+                "declared_GL_dtype": "float",
+                "device_interpretation": "raw uint32 words"
+              }
+            },
+            "full_grid_outputs": {},
+            "per_workgroup_outputs": {},
+            "lds_access": {
+              "mode": "read",
+              "bytes_per_enabled_lane": 8,
+              "initial_contents": "not initialized by kernel"
+            },
+            "blockers": [
+              "source profiles LDS accesses, supplies no numerical Global outputs",
+              "read cases require justified LDS initialization premises"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b64/kernel.cpp",
+                "line": 13,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b64/kernel.cpp",
+                "line": 14,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b64/kernel.cpp",
+                "line": 15,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b64/kernel.cpp",
+                "line": 24,
+                "anchor": "reinterpret_cast<uint32_t*>"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b64/kernel.cpp",
+                "line": 20,
+                "anchor": "extern __shared__"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b64/kernel.cpp",
+                "line": 35,
+                "anchor": "if (should_I_write)"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b64/kernel.cpp",
+                "line": 39,
+                "anchor": "ds_read_b64"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b64/test_single.py",
+                "line": 13,
+                "anchor": "should_I_write[0]"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b64/test_single.py",
+                "line": 14,
+                "anchor": "should_I_write[1]"
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b64/test_single.py",
+                "line": 19,
+                "anchor": "offset[tid] ="
+              },
+              {
+                "path": "analysis/paper_experiments/phases/ds_read_b64/test_single.py",
+                "line": 24,
+                "anchor": "dispatch_micro"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-b66fc7febcf2f093",
+      "target": "gfx950",
+      "source": "training/llama/csrc/attn_bkwd_prep.cpp",
+      "source_sha256": "8c2de81e1f97c24463135196b77fbfe72e5fab634f7b9357e363c6cfa9284158",
+      "selected_attempt": "recipe-followup",
+      "compiler_attempt": {
+        "origin": "recipe-followup",
+        "result_sha256": "ced054c2db9e28ce76272a7d2471347ee847aea3378da0958c90089a3ff6af51",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 2,
+        "assembly_sha256": "cb31dbfe136c936a7a56e4a5fdb6337e9e2c0ba3156c385bc5c89f0b036b09ac",
+        "object_sha256": "f599c1ef0b7055449cb2468eb824378a750cd9cd2dbe4acf70f3a72880939454",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "3042b12b876a742e2dae5a5f1b995cbd472b1d87987cc6461db45335f1a0e4f7",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "458b0c3b6f7ba4e150dcc7e757c6ae80251f02e701e31da6c4709acd94334018",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "97363450910b01026726b8abcc4038bf9eaa8c14ca50ac16cb1e1b748e6cca86",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "2c04e7e3dcaacac63dc8b73086d48c6a58ebebbacee8242e354c0444faa9fce3",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "1c89afe3a7df186f2a18a650b2b2d1ed477d54000b9f7a6179c18ba7e10d786a",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "f3de1dc2630f36d271b066ed242c079c18a8f112607c1075ad2215d60401718b"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z15attend_prep_kerILi128EEv17attn_prep_globalsIXT_EE",
+          "metadata_sha256": "3769eed89728e9ff360b751a153eb2935c735488b85f9efe8e3e09a934f81e59",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "attention_prep",
+            "geometry": {
+              "grid_formula": [
+                "ATTN_B",
+                "ATTN_H",
+                "ATTN_N/64"
+              ],
+              "block": [
+                256,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 160000,
+              "source_defaults": {
+                "B": 16,
+                "H": 64,
+                "N": 1024
+              },
+              "makefile_defaults": {
+                "B": 8,
+                "H": 64,
+                "N": 2048
+              },
+              "original_compiler_defines": null
+            },
+            "full_grid_outputs": {
+              "delta": "B*H*N"
+            },
+            "per_workgroup_outputs": {
+              "delta": 64
+            },
+            "blockers": [
+              "source defaults differ from original Makefile defaults; recover exact compiler defines"
+            ],
+            "evidence": [
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 159,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 160,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 161,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 4,
+                "anchor": "#ifndef ATTN_B"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 8,
+                "anchor": "#ifndef ATTN_H"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 18,
+                "anchor": "#ifndef ATTN_N"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 184,
+                "anchor": "row_sum(delta_vec"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 185,
+                "anchor": "store(g.delta"
+              },
+              {
+                "path": "training/llama/csrc/Makefile",
+                "line": 11,
+                "anchor": "ATTN_B ?="
+              },
+              {
+                "path": "training/llama/csrc/Makefile",
+                "line": 12,
+                "anchor": "ATTN_H ?="
+              },
+              {
+                "path": "training/llama/csrc/Makefile",
+                "line": 14,
+                "anchor": "ATTN_N ?="
+              },
+              {
+                "path": "training/llama/csrc/Makefile",
+                "line": 19,
+                "anchor": "CPPFLAGS += -DATTN_N"
+              },
+              {
+                "path": "training/llama/csrc/test.py",
+                "line": 123,
+                "anchor": "Delta = (dO * O).sum"
+              },
+              {
+                "path": "training/llama/csrc/test.py",
+                "line": 242,
+                "anchor": "dispatch_prep("
+              }
+            ]
+          }
+        },
+        {
+          "ordinal": 1,
+          "symbol": "_Z21attend_dq_shuffle_kerILi128EEv23attn_dq_shuffle_globalsIXT_EE",
+          "metadata_sha256": "beb92a46c1ed0cf85db79449f58e46b894ce8947407b20c0b1f7cc7cfaa1139a",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "attention_dq_shuffle",
+            "geometry": {
+              "grid_formula": [
+                "ATTN_B",
+                "ATTN_H",
+                "ATTN_N/64"
+              ],
+              "block": [
+                256,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 160000,
+              "source_defaults": {
+                "B": 16,
+                "H": 64,
+                "N": 1024
+              },
+              "makefile_defaults": {
+                "B": 8,
+                "H": 64,
+                "N": 2048
+              },
+              "original_compiler_defines": null
+            },
+            "full_grid_outputs": {
+              "dQg_out": "B*H*N*128"
+            },
+            "per_workgroup_outputs": {
+              "dQg_out": 8192
+            },
+            "blockers": [
+              "source defaults differ from original Makefile defaults; recover exact compiler defines",
+              "producer-specific load_shuffled/store_shuffled layout needs an independent oracle"
+            ],
+            "evidence": [
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 159,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 160,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 161,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 4,
+                "anchor": "#ifndef ATTN_B"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 8,
+                "anchor": "#ifndef ATTN_H"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 18,
+                "anchor": "#ifndef ATTN_N"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 215,
+                "anchor": "load_shuffled<2>"
+              },
+              {
+                "path": "training/llama/csrc/attn_bkwd_prep.cpp",
+                "line": 216,
+                "anchor": "store_shuffled<1>"
+              },
+              {
+                "path": "training/llama/csrc/Makefile",
+                "line": 11,
+                "anchor": "ATTN_B ?="
+              },
+              {
+                "path": "training/llama/csrc/Makefile",
+                "line": 12,
+                "anchor": "ATTN_H ?="
+              },
+              {
+                "path": "training/llama/csrc/Makefile",
+                "line": 14,
+                "anchor": "ATTN_N ?="
+              },
+              {
+                "path": "training/llama/csrc/Makefile",
+                "line": 19,
+                "anchor": "CPPFLAGS += -DATTN_N"
+              },
+              {
+                "path": "training/llama/csrc/test.py",
+                "line": 123,
+                "anchor": "Delta = (dO * O).sum"
+              },
+              {
+                "path": "training/llama/csrc/test.py",
+                "line": 260,
+                "anchor": "dispatch_dq_shuffle("
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-cb935195276a4dc7",
+      "target": "gfx950",
+      "source": "analysis/rotary/mi350x/kernel_2048.cpp",
+      "source_sha256": "cf6de0246d4bb63c12a7d97700552a4812ec2af14a4c90897b08925c0e7c73be",
+      "selected_attempt": "baseline-all",
+      "compiler_attempt": {
+        "origin": "baseline-all",
+        "result_sha256": "b54fe80d822f83d44ac10dc2eb3e517ffc5d0046db76e9867eae42fe291eed36",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 1,
+        "assembly_sha256": "06d03555c6644d1e7306c114f8282a66d296cb434f858cc8b7bf7c410f6ee206",
+        "object_sha256": "29e69f3024aa93f34a9b7dd8bb492da1022c0ff98abddce2e43260c8283189e2",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "90e19ed5f4555e70abf37f1d84fe96ae7124c48d4c551d432a76c70af5affc81",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "1f21638cc36732c55dfe2a4ab6e70cb2d7753ba74a61502ce400d5ac66fb0bf8",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "065c6cd1a9d0269e3cb10857c4903218c3950b8c2a5ac08cf8d91a51953db7ca",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "e12585f7d8f0a466df7a403a1f96be76d51886000e432096322f974a914fb770",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "263f1c2deb143e5378692b66a17e24f647fdb07c0ecd26c3db92ed32e6af640f",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "d2375765f2ece5dc8e7ec717d4c746e169682279ebc7b5be8b27838340d69971"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z15tk_fused_rotaryILi128EEv14rotary_globalsIXT_EE",
+          "metadata_sha256": "65720d6303f5ad33d8eeb45b44322f67348ff71d495e2618eaa4e2e739665600",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "rotary",
+            "geometry": {
+              "grid": [
+                16,
+                16,
+                64
+              ],
+              "block": [
+                64,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 0
+            },
+            "arrays": {
+              "x_o": {
+                "dtype": "bf16",
+                "shape": [
+                  16,
+                  16,
+                  2048,
+                  128
+                ]
+              },
+              "sin_cos": {
+                "dtype": "bf16",
+                "host_shape": [
+                  2048,
+                  64
+                ],
+                "descriptor_shape": [
+                  1,
+                  1,
+                  2048,
+                  64
+                ]
+              }
+            },
+            "full_grid_outputs": {
+              "o": 67108864
+            },
+            "per_workgroup_outputs": {
+              "o": 4096
+            },
+            "blockers": [
+              "BF16 packed operations and complete ABI/runtime contract remain required"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/rotary/mi350x/kernel_2048.cpp",
+                "line": 39,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_2048.cpp",
+                "line": 40,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_2048.cpp",
+                "line": 41,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_2048.cpp",
+                "line": 9,
+                "anchor": "constexpr int ATTN_N"
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_2048.cpp",
+                "line": 69,
+                "anchor": "__hsub2("
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_2048.cpp",
+                "line": 70,
+                "anchor": "__hadd2("
+              },
+              {
+                "path": "analysis/rotary/mi350x/kernel_2048.cpp",
+                "line": 73,
+                "anchor": "store(g.o,"
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    },
+    {
+      "id": "gfx950-ff00456202583fb7",
+      "target": "gfx950",
+      "source": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+      "source_sha256": "8c2de81e1f97c24463135196b77fbfe72e5fab634f7b9357e363c6cfa9284158",
+      "selected_attempt": "recipe-followup",
+      "compiler_attempt": {
+        "origin": "recipe-followup",
+        "result_sha256": "fa88c62c106350abb30c52b280ae5785986573451c831623c3a34fe86055ae70",
+        "status": "parse_rejected",
+        "analysis_status": "blocked_by_parse",
+        "emitted_entries": 2,
+        "assembly_sha256": "05fb77041e56eccef9dbeb39b024f0bd00c336e2cdad27b07ecd21cdf3a75769",
+        "object_sha256": "7241591a76787db9a66e53af175ab3662cfb9e54cee56b8de9bcfe215d4c36cb",
+        "process_stages": {
+          "recipe": {
+            "record_sha256": "1ff8d2d09db82a6bb6e66004e261d74fa169b74be8e15f71e06a04f36ac5165a",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "98e516c0d3ea5da5021ae0220eab0450b46e165baa931262bd1b44661ce9ce1d",
+            "stderr_sha256": "9085cc04d50f1775e79b036cc8bd57ec56b0628ab16142d5ca0ea8b151ebe142"
+          },
+          "compile": {
+            "record_sha256": "b87776fc7b27ffa9f4766fe16d1aac35897f2766cbce1dda5c9dac5e36d3d9f9",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "assemble": {
+            "record_sha256": "d6a40d28670c2bdfde3587f8df5ea86604064b1ea0788243cd071689c41ea22d",
+            "status": "succeeded",
+            "returncode": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "parse": {
+            "record_sha256": "ac97fe3dcab9c1bb6fbafdcddda3081a681ca5e63d8483d608040ea079429291",
+            "status": "rejected",
+            "returncode": 1,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "b2eafab4244896a08700a677eb91b345ce9af5058c8f50d3509ae2615f6fca3a"
+          }
+        }
+      },
+      "historical_first_blocker": {
+        "category": "noninteger_assembly_constant",
+        "line": 1555,
+        "column": 2,
+        "opcode_or_directive": ".set",
+        "assembly_line_sha256": "b454c0f039381a815439c8ff326ffaf79b42ee6b315594d5c20d0c2a307273ee",
+        "preceding_function": "__ockl_hostcall_internal"
+      },
+      "entries": [
+        {
+          "ordinal": 0,
+          "symbol": "_Z15attend_prep_kerILi128EEv17attn_prep_globalsIXT_EE",
+          "metadata_sha256": "3769eed89728e9ff360b751a153eb2935c735488b85f9efe8e3e09a934f81e59",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "attention_prep",
+            "geometry": {
+              "grid_formula": [
+                "ATTN_B",
+                "ATTN_H",
+                "ATTN_N/64"
+              ],
+              "block": [
+                256,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 160000,
+              "source_defaults": {
+                "B": 16,
+                "H": 64,
+                "N": 1024
+              },
+              "makefile_defaults": {
+                "B": 16,
+                "H": 64,
+                "N": 8192
+              },
+              "original_compiler_defines": null
+            },
+            "full_grid_outputs": {
+              "delta": "B*H*N"
+            },
+            "per_workgroup_outputs": {
+              "delta": 64
+            },
+            "blockers": [
+              "source defaults differ from original Makefile defaults; recover exact compiler defines"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 159,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 160,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 161,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 4,
+                "anchor": "#ifndef ATTN_B"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 8,
+                "anchor": "#ifndef ATTN_H"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 18,
+                "anchor": "#ifndef ATTN_N"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 184,
+                "anchor": "row_sum(delta_vec"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 185,
+                "anchor": "store(g.delta"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/Makefile",
+                "line": 11,
+                "anchor": "ATTN_B ?="
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/Makefile",
+                "line": 12,
+                "anchor": "ATTN_H ?="
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/Makefile",
+                "line": 14,
+                "anchor": "ATTN_N ?="
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/Makefile",
+                "line": 19,
+                "anchor": "CPPFLAGS += -DATTN_N"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/test_python.py",
+                "line": 124,
+                "anchor": "Delta = (dO * O).sum"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/test_python.py",
+                "line": 243,
+                "anchor": "dispatch_prep("
+              }
+            ]
+          }
+        },
+        {
+          "ordinal": 1,
+          "symbol": "_Z21attend_dq_shuffle_kerILi128EEv23attn_dq_shuffle_globalsIXT_EE",
+          "metadata_sha256": "beb92a46c1ed0cf85db79449f58e46b894ce8947407b20c0b1f7cc7cfaa1139a",
+          "source_contract": {
+            "original_launch_snapshot": null,
+            "original_argument_layout": null,
+            "original_allocation_bases": null,
+            "complete_specification": null,
+            "replayed": false,
+            "qualified": false,
+            "family": "attention_dq_shuffle",
+            "geometry": {
+              "grid_formula": [
+                "ATTN_B",
+                "ATTN_H",
+                "ATTN_N/64"
+              ],
+              "block": [
+                256,
+                1,
+                1
+              ],
+              "dynamic_shared_bytes": 160000,
+              "source_defaults": {
+                "B": 16,
+                "H": 64,
+                "N": 1024
+              },
+              "makefile_defaults": {
+                "B": 16,
+                "H": 64,
+                "N": 8192
+              },
+              "original_compiler_defines": null
+            },
+            "full_grid_outputs": {
+              "dQg_out": "B*H*N*128"
+            },
+            "per_workgroup_outputs": {
+              "dQg_out": 8192
+            },
+            "blockers": [
+              "source defaults differ from original Makefile defaults; recover exact compiler defines",
+              "producer-specific load_shuffled/store_shuffled layout needs an independent oracle"
+            ],
+            "evidence": [
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 159,
+                "anchor": "dim3 grid()"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 160,
+                "anchor": "dim3 block()"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 161,
+                "anchor": "dynamic_shared_memory()"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 4,
+                "anchor": "#ifndef ATTN_B"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 8,
+                "anchor": "#ifndef ATTN_H"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 18,
+                "anchor": "#ifndef ATTN_N"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 215,
+                "anchor": "load_shuffled<2>"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/attn_bkwd_prep.cpp",
+                "line": 216,
+                "anchor": "store_shuffled<1>"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/Makefile",
+                "line": 11,
+                "anchor": "ATTN_B ?="
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/Makefile",
+                "line": 12,
+                "anchor": "ATTN_H ?="
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/Makefile",
+                "line": 14,
+                "anchor": "ATTN_N ?="
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/Makefile",
+                "line": 19,
+                "anchor": "CPPFLAGS += -DATTN_N"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/test_python.py",
+                "line": 124,
+                "anchor": "Delta = (dO * O).sum"
+              },
+              {
+                "path": "analysis/attn/bkwd/benchmark/test_python.py",
+                "line": 261,
+                "anchor": "dispatch_dq_shuffle("
+              }
+            ]
+          }
+        }
+      ],
+      "missing_qualification_premises": [
+        "complete original assembly bytes",
+        "exact original compiler recipe/defines and runtime dependency identities",
+        "checked by-value ABI offsets, padding and all argument bytes",
+        "full allocation extents/bases and selected workgroup output coordinates",
+        "complete independent specification and acceptance criteria",
+        "reachable runtime/helper closure, private backing, completion and boundary controls"
+      ]
+    }
+  ],
+  "limits": [
+    "A source formula is not an original launch receipt or executable ABI proof.",
+    "A linked helper's presence does not establish reachable calls or justified runtime inputs.",
+    "Regeneration, metadata equality and normalized assembly equality do not recover original bytes.",
+    "Exact artifact recovery alone never establishes execution, graph safety or numerical equivalence."
+  ]
+}

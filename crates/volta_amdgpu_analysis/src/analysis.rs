@@ -189,7 +189,14 @@ fn analyze_internal(
                 } else if matches!(instruction.operation(), crate::ir::Operation::Memory(memory)
                     if matches!(memory.kind, crate::ir::MemoryKind::ScratchLoad | crate::ir::MemoryKind::ScratchStore))
                 {
-                    if matches!(instruction.operation(), crate::ir::Operation::Memory(memory) if memory.kind == crate::ir::MemoryKind::ScratchLoad) { "scratch load" } else { "scratch store" }
+                    let load = matches!(instruction.operation(), crate::ir::Operation::Memory(memory) if memory.kind == crate::ir::MemoryKind::ScratchLoad);
+                    let immediate = matches!(instruction.operands().get(2), Some(crate::ir::Operand::Off));
+                    match (load, immediate) {
+                        (true, true) => "scratch load immediate",
+                        (false, true) => "scratch store immediate",
+                        (true, false) => "scratch load",
+                        (false, false) => "scratch store",
+                    }
                 } else if module
                     .target
                     .as_deref()

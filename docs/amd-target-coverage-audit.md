@@ -23,10 +23,31 @@ completion and source lifetimes remain independent. The new full-output controls
 use handwritten kernels; unchanged compiler kernels supply separate regression
 evidence. Gfx1250 counter semantics are unchanged.
 
+The [common raw-buffer controls](../crates/volta_pipeline/tests/cdna_raw_buffer_wide_tests.rs)
+add selected gfx942 linear DWORD/DWORDX2/DWORDX4 execution and gfx950 register
+DWORDX4 execution. They retain CDNA3/CDNA4 descriptor fields, full-transfer
+preflight and independent VM readiness. The final address is checked after
+adding every component, including mixed low bits and carry across bit32.
+DWORDX4 store events name the four data registers for the existing two-state
+overwrite check. These controls are outside the historical source inventories;
+their complete outputs do not establish a new unchanged application proof.
+
+The exact gfx950 scratch disabled-SADDR `off` spelling now enters the existing
+fixed-private model with a zero scalar address component. Its distinct trace
+kind preserves the ordinary SGPR-read requirement for register-addressed
+scratch. This removes one whole-module parser blocker seen in fresh upstream
+tile-copy extraction; a complete unchanged tile-kernel proof is not established.
+
+The unchanged gfx950 `reduction_f16` compiler entry remains outside the selected
+lane-transport execution profile: its register-selected lane at PC77 is refused
+by the existing bare literal-lane0–63 admission rule. Parser inventory coverage
+does not qualify that entry or its mutation for an execution benchmark. No
+lane-selector semantics or frozen workload/benchmark input changed here.
+
 ## Reproduce the audit
 
 The first two commands repeat native parsing/lowering and detect stale inventory
-content. The last command checks all three inventories' source hashes, actual
+content. The stage audit checks all three inventories' source hashes, actual
 code/test references, original gfx1250 instruction lines and stage-table tests.
 It does not execute kernels or imply per-PC execution coverage.
 

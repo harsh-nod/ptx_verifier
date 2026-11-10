@@ -147,7 +147,20 @@ correctness.
 
 ## Measured time to a safety finding
 
-### Current full-trace AMD comparison
+### Register-storage experiment
+
+A separate [26-configuration study](tests/amdgpu/trace-cost-study/results/README.md)
+measured a lane-row storage candidate in 1,536 observations. Both builds qualified
+12 safe launches and 12 seeded hazards; two gfx950 reduction configurations
+remained unsupported. Three hazard latencies improved, but six hazard medians
+slowed and one safe p95 rose from 28.55 to 44.78 ms, exceeding the 32.41 ms gate.
+The candidate remains on its
+[experimental branch](https://github.com/harsh-nod/ptx_verifier/tree/experiments/amdgpu-lane-rows-20261110);
+main retains its existing register storage. The shared-host results establish
+neither a broad speedup nor new application bugs. All outcomes and samples are
+published, including the failed adoption checks.
+
+### Frozen full-trace AMD comparison
 
 The frozen 67-configuration development corpus compares fork baseline `d88be68`
 with the AMD changes in `2bdedfde`, using identical ordinary full-trace options.

@@ -487,6 +487,7 @@ pub enum MemoryAddress<'a> {
         index: &'a Operand,
     },
     Scratch {
+        /// One SGPR offset, or the exact disabled-address spelling `off`.
         scalar: &'a Operand,
     },
     Descriptor {

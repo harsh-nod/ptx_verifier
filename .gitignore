@@ -20,6 +20,8 @@
 !/external/hipkittens/corpus/vec-add1-baseline.json
 !/external/hipkittens/corpus/buffer-comparison.json
 !/external/hipkittens/corpus/frontier.json
+!/external/hipkittens/corpus/device-call-recovery.json
+!/external/hipkittens/corpus/device-call-recovery-audit-20261110.json
 !/external/hipkittens/corpus/frontier-audit-20261031.json
 !/external/hipkittens/corpus/vector-comparison-20261031.json
 !/external/hipkittens/corpus/vector-independent-audit-20261031.json

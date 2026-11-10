@@ -56,7 +56,14 @@ pub(super) fn present(graph: &EventGraph) -> bool {
             ) || matches!(r.kind, AmdEventKind::MemoryIssue { class, .. } if scratch(class))
                 || matches!(
                     kind(graph, r),
-                    Some("scratch load" | "scratch store" | "readlane" | "writelane")
+                    Some(
+                        "scratch load"
+                            | "scratch store"
+                            | "scratch load immediate"
+                            | "scratch store immediate"
+                            | "readlane"
+                            | "writelane"
+                    )
                 )
         })
 }
@@ -154,13 +161,20 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                         "private VM0 profile does not admit load-destination read or overwrite before an explicit VM0"));
                 }
                 match kind(graph, record) {
-                    Some("scratch load" | "scratch store") => {
+                    Some(
+                        "scratch load"
+                        | "scratch store"
+                        | "scratch load immediate"
+                        | "scratch store immediate",
+                    ) => {
                         uses_scratch = true;
                         if *exec_mask == 0 && (!reads.is_empty() || !writes.is_empty()) {
                             errors.push(Unresolved::at(record.event, "inactive scratch instruction must not observe address/data registers or write destinations"));
                         }
-                        if kind(graph, record) == Some("scratch load")
-                            && held.get(&record.wave).is_some_and(|s| !s.is_empty())
+                        if matches!(
+                            kind(graph, record),
+                            Some("scratch load" | "scratch load immediate")
+                        ) && held.get(&record.wave).is_some_and(|s| !s.is_empty())
                             && *exec_mask != 0
                         {
                             errors.push(Unresolved::at(record.event,
@@ -207,8 +221,16 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                         | AmdMemoryClass::ScratchLoadWide
                         | AmdMemoryClass::FlatPrivateLoad
                 );
+                let immediate = matches!(
+                    kind(graph, instruction),
+                    Some("scratch load immediate" | "scratch store immediate")
+                );
                 let expected_kind = if flat {
                     "vector memory"
+                } else if immediate && load {
+                    "scratch load immediate"
+                } else if immediate {
+                    "scratch store immediate"
                 } else if load {
                     "scratch load"
                 } else {
@@ -228,8 +250,14 @@ pub(super) fn validate(graph: &EventGraph, architecture: AmdArchitecture) -> Vec
                         && reads.len() >= 2
                         && reads[0].index.checked_add(1) == Some(reads[1].index)
                 } else {
-                    reads.iter().filter(|r| scalar(r)).count() == 1
-                        && reads.len() == if load { 1 } else { words + 1 }
+                    let scalar_count = usize::from(!immediate);
+                    reads.iter().filter(|r| scalar(r)).count() == scalar_count
+                        && reads.len()
+                            == if load {
+                                scalar_count
+                            } else {
+                                words + scalar_count
+                            }
                 };
                 let vector_reads = reads
                     .iter()
@@ -494,7 +522,9 @@ fn require_semantic(
     };
     let required = match kind(graph, instruction) {
         Some("readlane" | "writelane") => true,
-        Some("scratch load" | "scratch store") => exec_mask != 0,
+        Some(
+            "scratch load" | "scratch store" | "scratch load immediate" | "scratch store immediate",
+        ) => exec_mask != 0,
         _ => false,
     };
     if required && !claimed.contains(&instruction.event) {
