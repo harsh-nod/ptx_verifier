@@ -132,6 +132,14 @@ EXEC changes must be concrete. Symbolic comparisons may select data through
 supported masks, but cannot control addresses, branches or carry inputs.
 Observing undefined flags or unavailable ABI fields stops execution.
 
+VGPR and AGPR values use separate lane-indexed banks. Each bank allocates a row
+only when a register is first written, with 32 or 64 explicit optional lane values
+for the target wave width. Sparse high register numbers allocate no intervening
+value rows. Unwritten and inactive lanes stay undefined, and VOPD components
+retain independent copies of the same pre-instruction register state. This storage
+choice changes neither recorded dependencies nor the graph-checking contract;
+performance and memory effects still require matched end-to-end measurement.
+
 Exact halfword masks and complementary OR operations transport encoded F16/BF16
 data without decoding it as an integer or choosing a floating format. A separate
 high-half value tag records an exactly zero low half; mathematical zero is not
