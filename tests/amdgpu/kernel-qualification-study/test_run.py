@@ -12,7 +12,8 @@ spec.loader.exec_module(run)
 def observation(**changes):
     return {"seconds": 0.02, "time_to_detection_seconds": 0.01,
             "measurement_errors": [], "timed_out": False,
-            "graph_accepted": True, "detected_expected_hazard": True, **changes}
+            "graph_accepted": True, "detected_expected_hazard": True,
+            "intended_readiness_witness": True, **changes}
 
 
 def summary():
@@ -26,6 +27,16 @@ def summary():
 
 
 class ReplayTests(unittest.TestCase):
+    def witness(self, case):
+        anchors = case["readiness_ground_truth"]
+        producer, use = anchors["producer"], anchors["unsafe_use"]
+        destination = run.re.match(r"s_load_\w+\s+(s\[\d+:\d+\]|s\d+)", producer["instruction"])[1]
+        register = min(run.scalar_words(destination) & run.scalar_words(use["instruction"]))
+        return ("AmdRegisterHazard { issue: EventId(1), use_event: EventId(2), wave: 0, "
+                f"register: AmdRegister {{ file: Scalar, index: {register}, lanes: 18446744073709551615 }}, kind: ReadBeforeReady }}\n"
+                f"        e1 t0           line {producer['source_line']}: {producer['instruction']}\n"
+                f"        e2 t0           line {use['source_line']}: {use['instruction']}\n")
+
     def test_selection_preserves_full_outputs_and_ground_truth(self):
         document, _ = run.engine.contracts()
         self.assertEqual(len(document["cases"]), 26)
@@ -82,6 +93,36 @@ class ReplayTests(unittest.TestCase):
         bad_first = [observation(id="new", round=0, detected_expected_hazard=False), *samples[1:]]
         for rows in (samples[1:], [samples[1], *samples[1:]], bad_first):
             self.assertFalse(run.added_summaries(plan, rows)[0]["all_valid"])
+
+    def test_typed_witness_requires_both_anchors_and_their_exact_scalar_word(self):
+        document, _ = run.engine.contracts()
+        for case in document["cases"]:
+            if case["expectation"] != "hazard":
+                continue
+            witness = self.witness(case)
+            self.assertTrue(run.intended_witness(case, witness), case["id"])
+            analysis = {"measurement_errors": [], "graph_completed": True,
+                        "detected_expected_hazard": True, "witnesses": witness}
+            self.assertTrue(run.qualifies(case, analysis), case["id"])
+            producer, use = case["readiness_ground_truth"]["producer"], case["readiness_ground_truth"]["unsafe_use"]
+            bad = [witness.replace(f"line {producer['source_line']}:", "line 999999:"),
+                   witness.replace(f"line {use['source_line']}:", "line 999998:"),
+                   witness.replace(producer["instruction"], "s_load_dword s101,s[0:1],0"),
+                   witness.replace(use["instruction"], "s_mov_b32 s101,0"),
+                   run.re.sub(r"index: \d+", "index: 101", witness),
+                   witness.replace("e1 t0", "e3 t0"), witness.replace("e2 t0", "e3 t0"),
+                   witness.replace("ReadBeforeReady", "DestinationReuse"),
+                   witness.replace("wave: 0", "wave: 1")]
+            for wrong in bad:
+                self.assertFalse(run.intended_witness(case, wrong), case["id"])
+                self.assertFalse(run.qualifies(case, {**analysis, "witnesses": wrong}), case["id"])
+
+    def test_unbound_first_readiness_witness_is_not_a_detection(self):
+        first = observation(intended_readiness_witness=False)
+        self.assertFalse(run.valid_observation(first, "hazard"))
+        report = {"adoption": {"accepted": True, "failures": []},
+                  "added_summaries": [{"id": "new", "all_valid": False}]}
+        self.assertFalse(run.final_gate(report)["accepted"])
 
 
 if __name__ == "__main__":

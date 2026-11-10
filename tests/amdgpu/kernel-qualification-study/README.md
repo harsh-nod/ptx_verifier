@@ -16,7 +16,9 @@ replay, with no unseen-algorithm or newly discovered application-bug claim.
 
 Safe qualification requires complete graph checks, every configured output
 coordinate and a `--sample 0` specification proof. A seeded hazard counts only
-with a completed trace and its intended typed `ReadBeforeReady` witness.
+with a completed trace and its intended typed `ReadBeforeReady` witness. The
+witness must bind the exact producer/use lines, instructions, event IDs and
+shared scalar register word; unrelated readiness findings do not count.
 Unsupported, incomplete and failed executions stay in the denominator.
 
 The [protocol](protocol.json) specifies a separate first observation and 31
@@ -24,7 +26,9 @@ randomized adjacent pairs for baseline-qualified cases. Newly qualified cases
 receive a separate first observation and 31 candidate-only observations; they
 have no baseline latency ratio. Safe timing measures full analysis, while
 qualification separately runs the full specification proof. Hazard timing uses
-the parent observer's first finding time. All first/repeated failures are kept.
+the parent observer's first readiness-failure banner time, conditional on the
+subsequent intended witness. It does not time the rendering of that witness.
+All first/repeated failures are kept.
 
 The diagnostic comparison removes only execution/solver clock values and
 artifact destinations. Instruction counts, output counts, checks, witnesses

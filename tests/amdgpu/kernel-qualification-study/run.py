@@ -20,6 +20,7 @@ engine = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(engine)
 engine.MANIFEST, engine.PROTOCOL = HERE / "cases.json", HERE / "protocol.json"
 original_pins, original_derive = engine.input_pins, engine.derive
+original_qualifies = engine.qualifies
 
 
 def input_pins(document):
@@ -41,17 +42,70 @@ def semantic_text(text):
     return "\n".join(lines)
 
 
+def scalar_words(text):
+    words = set()
+    for start, end, single in re.findall(r"\bs(?:\[(\d+):(\d+)\]|(\d+))(?!\w)", text):
+        words.update(range(int(start), int(end) + 1) if start else [int(single)])
+    return words
+
+
+def intended_witness(case, text):
+    """Bind a typed RAW witness to both frozen source anchors and its SGPR."""
+    anchors = case["readiness_ground_truth"]
+    producer, use = anchors["producer"], anchors["unsafe_use"]
+    destination = re.match(r"s_load_\w+\s+(s\[\d+:\d+\]|s\d+)", producer["instruction"])
+    engine.require(destination is not None, "ground truth lacks a scalar-load destination")
+    registers = scalar_words(destination[1]) & scalar_words(use["instruction"])
+    header = re.compile(
+        r"\s*AmdRegisterHazard \{ issue: EventId\((\d+)\), use_event: EventId\((\d+)\), "
+        r"wave: (\d+), register: AmdRegister \{ file: Scalar, index: (\d+), lanes: "
+        r"18446744073709551615 \}, kind: ReadBeforeReady \}"
+    )
+    context = re.compile(r"\s+e(\d+) t(\d+)\s+line (\d+): (.*)")
+    wave_size = 32 if case["target"] == "gfx1250" else 64
+    threads = case["block"][0] * case["block"][1] * case["block"][2]
+    lines = text.splitlines()
+    for position, line in enumerate(lines[:-2]):
+        match = header.fullmatch(line)
+        if match is None:
+            continue
+        issue, consumer, wave, register = map(int, match.groups())
+        if register not in registers or wave * wave_size >= threads or consumer <= issue:
+            continue
+        before, after = context.fullmatch(lines[position + 1]), context.fullmatch(lines[position + 2])
+        if before is None or after is None:
+            continue
+        expected = [(issue, producer), (consumer, use)]
+        if all(int(actual[1]) == event and int(actual[2]) == wave * wave_size
+               and int(actual[3]) == anchor["source_line"] and actual[4].strip() == anchor["instruction"]
+               for actual, (event, anchor) in zip((before, after), expected)):
+            return True
+    return False
+
+
 def derive(row, item, directory, **options):
     result = original_derive(row, item, directory, **options)
     diagnostic = semantic_text((directory / "stdout").read_text()) + "\nstderr:\n" + semantic_text((directory / "stderr").read_text())
     result["diagnostics_sha256"] = hashlib.sha256(diagnostic.encode()).hexdigest()
+    if item["case"]["expectation"] == "hazard":
+        result["intended_readiness_witness"] = intended_witness(item["case"], (directory / "stdout").read_text())
+        result["detected_expected_hazard"] = bool(result["detected_expected_hazard"] and result["intended_readiness_witness"])
+        if not result["detected_expected_hazard"]:
+            result["time_to_detection_seconds"] = None
     return result
+
+
+def qualifies(case, analysis, proof=None):
+    return original_qualifies(case, analysis, proof) and (
+        case["expectation"] != "hazard" or intended_witness(case, analysis["witnesses"])
+    )
 
 
 def valid_observation(row, expectation):
     metric = "seconds" if expectation == "safe" else "time_to_detection_seconds"
     verdict = "graph_accepted" if expectation == "safe" else "detected_expected_hazard"
-    return row is not None and engine.legacy.valid_metric(row, metric) and bool(row.get(verdict))
+    return (row is not None and engine.legacy.valid_metric(row, metric) and bool(row.get(verdict))
+            and (expectation != "hazard" or row.get("intended_readiness_witness") is True))
 
 
 def coverage_gate(rows):
@@ -83,7 +137,7 @@ def coverage_gate(rows):
     return {"accepted": not failures, "failures": failures}
 
 
-engine.input_pins, engine.derive, engine.adoption = input_pins, derive, coverage_gate
+engine.input_pins, engine.derive, engine.adoption, engine.qualifies = input_pins, derive, coverage_gate, qualifies
 
 
 def added_schedule(plan, baseline, candidate):
@@ -173,7 +227,8 @@ def audit(args):
 
 SAMPLE_FIELDS = ("id", "arm", "round", "classification", "seconds", "time_to_detection_seconds", "returncode",
                  "timed_out", "detected_expected_hazard", "false_positive", "false_acceptance", "graph_accepted",
-                 "peak_rss_kib", "user_seconds", "system_seconds", "executed_instructions", "diagnostics_sha256")
+                 "peak_rss_kib", "user_seconds", "system_seconds", "executed_instructions", "diagnostics_sha256",
+                 "intended_readiness_witness")
 
 
 def publish(args):
