@@ -102,6 +102,9 @@ barrier generations and wave exits. Each graph thread represents one 64-lane wav
 `SharedMemoryOnly` assumption limits any graph proof to LDS; global-memory accesses and
 vector-memory completion are not recorded. The CLI/Python native backend uses
 `volta_amdgpu_analysis` and its separate event model.
+The shared `GraphBuilder` records ordinary DS effects, completed LGKM groups
+and named barrier generations. The interpreter still decides which operations
+complete and when waves leave a barrier; maximal wait fields remain no-ops.
 
 Supported operand forms follow the [CDNA4 ISA](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf)
 (§6.2, §6.7, §12.6, §12.7, §12.10–12.12); scalar addressing and completion follow §8.2–8.3. Operand checks

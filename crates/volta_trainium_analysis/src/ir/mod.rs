@@ -5,10 +5,14 @@ mod activation;
 mod arith;
 mod instr;
 mod kernel;
+mod scalar;
 mod tensor;
 
 pub use activation::ActivationFunc;
 pub use arith::ArithOp;
-pub use instr::{InstrId, LoweredInstr};
+pub use instr::{Accumulation, InstrId, LoweredInstr, Order, Reduction, Sign};
 pub use kernel::LoweredKernel;
-pub use tensor::{Index, Memory, Shape, Tensor, TensorId};
+pub use scalar::{ScalarOperand, ScalarStep};
+pub use tensor::{
+    Address, Index, Initial, Layout, Memory, Selection, Shape, Tensor, TensorId, TensorRegion,
+};

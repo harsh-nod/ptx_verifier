@@ -90,7 +90,7 @@ pub(crate) enum Commands {
     Verify(VerifyArgs),
 
     /// Run a kernel and optionally check its outputs against a spec. Without --backend,
-    /// infer PTX, experimental gfx950 (outputs only), or NKI from the extension.
+    /// infer PTX, experimental gfx950 (LDS graph), or NKI from the extension.
     /// Use --backend amdgpu --target gfx* for native AMD graph checks.
     Solve(SolveArgs),
 

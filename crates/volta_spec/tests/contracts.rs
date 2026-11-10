@@ -119,3 +119,66 @@ fn full_output_footprints_identify_missing_extra_and_shifted_indices() {
     let full = unfold(std::slice::from_ref(&spec), &SpecEnv::default(), 0).unwrap();
     assert_eq!(output_index_mismatch(&full, &[spec]).unwrap(), None);
 }
+
+#[test]
+fn direct_unfold_validates_all_index_contents_before_sampling() {
+    for values in [vec![], vec![0, 1]] {
+        let env = SpecEnv {
+            arrays: HashMap::from([("index".into(), Shape::new(vec![1]))]),
+            indices: HashMap::from([("index".into(), values.clone())]),
+            ..SpecEnv::default()
+        };
+        for shape in [vec![0], vec![2]] {
+            for sample in [0, 1] {
+                assert!(matches!(
+                    unfold(&[zero_output(shape.clone())], &env, sample),
+                    Err(SpecError::IndicesLength {
+                        array,
+                        expected: 1,
+                        found,
+                    }) if array == "index" && found == values.len()
+                ));
+            }
+        }
+    }
+    let env = SpecEnv {
+        indices: HashMap::from([("undeclared".into(), vec![])]),
+        ..SpecEnv::default()
+    };
+    assert!(matches!(
+        unfold(&[], &env, 0),
+        Err(SpecError::UnknownArray(name)) if name == "undeclared"
+    ));
+}
+
+#[test]
+fn direct_unfold_cannot_define_an_index_array_as_an_output() {
+    let env = SpecEnv {
+        arrays: HashMap::from([("out".into(), Shape::new(vec![0]))]),
+        indices: HashMap::from([("out".into(), vec![])]),
+        ..SpecEnv::default()
+    };
+    assert!(matches!(
+        unfold(&[zero_output(vec![0])], &env, 1),
+        Err(SpecError::IndexArrayOutput(name)) if name == "out"
+    ));
+}
+
+#[test]
+fn concrete_index_array_values_retain_checked_arithmetic_in_ranges() {
+    let parsed = parse_spec(
+        "dim N; array ends[N] index; array out[N];
+         out[i] = sum(k in 0..ends[i] + 1, 1);",
+    )
+    .unwrap();
+    let (env, specs) = volta_spec::instantiate_with_indices(
+        &parsed,
+        &HashMap::from([("N".into(), 1)]),
+        &HashMap::from([("ends".into(), vec![i64::MAX])]),
+    )
+    .unwrap();
+    assert!(matches!(
+        unfold(&specs, &env, 0),
+        Err(SpecError::IndexArithmetic)
+    ));
+}

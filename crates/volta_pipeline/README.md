@@ -67,6 +67,9 @@ The experimental AMD interpreter returns checked wave-level LDS access, wait
 and barrier graphs. Its `SharedMemoryOnly` assumption makes the limit explicit:
 global accesses are not recorded or certified by this graph. The NKI interpreter
 returns `GraphEvidence::NotRecorded` and supplies no race-freedom evidence.
+Its library API accepts call shapes, dtypes and concrete index contents; the
+file adapter instead derives shapes from literal assertions and accepts no
+launch configuration.
 The experimental AMD adapter models only
 workgroup zero of a one-group gfx950 grid, 32-bit input/output words and its
 default budget. Native-only launch options are refused. Use explicit native
@@ -99,6 +102,14 @@ the supported forms and reproduction commands:
 - [gfx942](../../tests/gfx942/README.md)
 - [gfx950](../../tests/gfx950/README.md)
 - [gfx1250](../../tests/gfx1250/README.md)
+
+`trainium_equivalence_tests.rs` checks the NKI fixtures and vendored tutorials
+against independent specs, including negative controls. Default tests cover
+complete outputs at bounded sizes and selected rows of larger attention
+kernels. Full-size attention checks are explicitly ignored tests; see the
+[Trainium crate README](../volta_trainium_analysis/README.md) for their scope,
+resource costs and real-arithmetic assumptions. `just trainium` runs the default
+Trainium tests and equivalence suite in release mode.
 
 ```sh
 cargo test -p volta_pipeline

@@ -176,15 +176,16 @@ trace, so **every edge automatically points forward** (from a smaller
 `AsyncOp::effects/completion/tracking`, `SyncObject::init/inval`) but decides
 nothing about the execution. The interpreter decides; the builder writes down.
 
-The producer is `volta_ptx_analysis/src/eval/record.rs`: the interpreter calls
-`record_*` hooks at each effect and sync point, and those translate to builder
-calls:
+The PTX and experimental AMD producers call `record_*` hooks at each effect
+and synchronization point. The builder stores ordinary write values and owns
+the object and generation bookkeeping for named barriers and group waits.
+The producer selects the completed operations and decides when a barrier fires.
 
 | Kernel behavior                    | Builder calls                                                    |
 |------------------------------------|------------------------------------------------------------------|
-| `ld`/`st` to global or shared      | `thread_access(t, pc, MemAccess)`                                |
-| `bar.sync` / `bar.arrive`          | first arrival: `sync_object(NamedBarrier)` + `open_generation(Barrier)`; each arrival: `contribute(Blocking \| Arrival)` |
-| the barrier fires                  | `contribute_exited` for exited threads (full-CTA only), `complete_generation`, then `resume` for each waiter |
+| ordinary `ld`/`st` to global or shared | `ordinary_thread_access(t, pc, OrdinaryAccess)`; the builder stores the write's `Effect::Write` value |
+| named barrier arrival (`bar.sync`, `bar.arrive`, experimental `s_barrier`) | `barrier_arrive(t, pc, id, arrivals, BarrierWait)` joins the forming generation, opening it on its first arrival |
+| the named barrier fires            | `barrier_fire(id)` adds exited threads for full-CTA generations, completes the generation, then resumes blocking arrivals in thread order at their arrival PCs |
 | warp op (`shfl.sync`, `ldmatrix`, `mma.sync`, ...) | per lane `contribute(Blocking)` into the `Entry` generation; at fire: `complete_generation(Entry)`, `resume` each lane, `open_generation(Exit)`; the op's effects; then each lane `contribute` + `complete_generation(Exit)` + `resume` |
 | `mbarrier.init`                    | `sync_object(Mbarrier)` + `object_init`, the `MbarrierPreInit` generation opened and completed at once, phase 0 opened |
 | `mbarrier.arrive{.expect_tx}`      | `contribute(Arrival)` into the forming phase; if the phase completed, `complete_generation` and open the next phase |
@@ -192,7 +193,7 @@ calls:
 | TMA / `cp.async.bulk`              | `async_issue`, `async_effect` per read/write (data lands eagerly), `track(op, phase, bytes)` on the forming mbarrier phase |
 | `tcgen05.mma` + `tcgen05.commit`   | `async_issue` + `async_effect`s on Tensor Memory; at commit, `track` each unobserved MMA of the thread into the forming phase |
 | `tcgen05.ld/st` + `tcgen05.wait`   | `async_issue` + effects; the wait (a warp collective) `track`s the warp's pending ops into its `Exit` generation |
-| `cp.async` + `cp.async.wait_group` | `async_issue` + effects; the wait opens an `AsyncGroupWait` generation, `track`s the completed ops, completes it, resumes the thread |
+| `cp.async` or experimental AMD DS + group wait | `async_issue` + effects; `group_wait(t, pc, GroupWait, completed_ops)` tracks exactly the supplied operations, completes the generation and resumes the thread; an empty list records nothing |
 | fences                             | `fence(t, pc, FenceKind)`                                        |
 | `tcgen05.alloc/dealloc/relinquish` | `tmem_alloc` / `tmem_dealloc` / `tmem_relinquish`                |
 | thread exits                       | `exit`                                                           |
@@ -201,6 +202,10 @@ calls:
 `track(op, generation, bytes)` completes `op` now if it has not completed yet
 (`async_complete`), adds `generation` to `op.tracking`, and adds an
 `AsyncCompletion` contribution to the generation.
+
+`forming_barrier(id)` exposes an unfinished generation for deadlock reporting.
+The native AMD producer retains its target-specific sideband events and
+barrier lifecycle; these helpers do not replace native wait-counter semantics.
 
 ### Worked example
 

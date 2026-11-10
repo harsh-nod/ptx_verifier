@@ -6,22 +6,27 @@
 use std::fmt::Write;
 use std::path::{Path, PathBuf};
 
-use volta_trainium_analysis::frontend::parse::parse_kernel;
+use volta_trainium_analysis::LoweredKernel;
+use volta_trainium_analysis::frontend::ast::Kernel;
+use volta_trainium_analysis::frontend::parse::{KernelCall, parse_kernel_for_call};
 use volta_trainium_analysis::{evaluate, lower_kernel};
 
-/// Parse, lower and run kernel `kernel` of `tests/fixtures/<name>.py`, comparing each stage's
-/// result with its file; `.out` holds one `array[index] = expr` line per written element.
-pub fn check(name: &str, kernel: &str) {
-    let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures")
-        .join(name);
-    let source = std::fs::read_to_string(fixture.with_extension("py")).unwrap();
+/// Parse, lower and run kernel `kernel` of `tests/fixtures/<name>.py` for a call with
+/// parameter `shapes`, comparing each stage's result with its file; `.out` holds one
+/// `array[index] = expr` line per written element.
+pub fn check(name: &str, kernel: &str, shapes: &[(&str, &[u64])]) {
+    check_importing(name, kernel, &[], shapes);
+}
 
-    let parsed = parse_kernel(&source, kernel).unwrap_or_else(|e| panic!("{name}: {e}"));
-    compare(fixture.with_extension("ast"), parsed.to_string());
+/// `check` for a fixture that imports from `modules`, each `tests/fixtures/<module>.py`.
+pub fn check_importing(name: &str, kernel: &str, modules: &[&str], shapes: &[(&str, &[u64])]) {
+    check_call(name, kernel, modules, &KernelCall::new(shapes));
+}
 
-    let lowered = lower_kernel(&parsed).unwrap_or_else(|e| panic!("{name}: {e}"));
-    compare(fixture.with_extension("ir"), lowered.to_string());
+/// `check_importing` for `call`, which may give dtypes and tile sizes too.
+pub fn check_call(name: &str, kernel: &str, modules: &[&str], call: &KernelCall) {
+    let fixture = fixtures().join(name);
+    let (_, lowered) = lower_call(name, kernel, modules, call);
 
     let outputs = evaluate(&lowered).unwrap_or_else(|e| panic!("{name}: {e}"));
     let mut rendered = String::new();
@@ -33,6 +38,62 @@ pub fn check(name: &str, kernel: &str) {
     }
     compare(fixture.with_extension("out"), rendered.clone());
     compare_with_expected(fixture.with_extension("expected"), &rendered);
+}
+
+/// Parse and lower kernel `kernel` of `tests/fixtures/<name>.py`, which imports from
+/// `modules`, comparing the two stages' results with `<name>.ast` and `<name>.ir`.
+pub fn check_lowering(
+    name: &str,
+    kernel: &str,
+    modules: &[&str],
+    shapes: &[(&str, &[u64])],
+) -> (Kernel, LoweredKernel) {
+    lower_call(name, kernel, modules, &KernelCall::new(shapes))
+}
+
+fn lower_call(
+    name: &str,
+    kernel: &str,
+    modules: &[&str],
+    call: &KernelCall,
+) -> (Kernel, LoweredKernel) {
+    let fixture = fixtures().join(name);
+    let source = std::fs::read_to_string(fixture.with_extension("py")).unwrap();
+    let sources: Vec<(String, String)> = modules
+        .iter()
+        .map(|module| {
+            let path = fixture.with_file_name(format!("{module}.py"));
+            let source = std::fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+            let name = path.file_stem().unwrap().to_str().unwrap().to_string();
+            (name, source)
+        })
+        .collect();
+    let sources: Vec<(&str, &str)> = sources
+        .iter()
+        .map(|(name, source)| (name.as_str(), source.as_str()))
+        .collect();
+
+    let parsed = parse_kernel_for_call(&source, &sources, kernel, call)
+        .unwrap_or_else(|e| panic!("{name}: {e}"));
+    let lowered = lower_kernel(&parsed).unwrap_or_else(|e| panic!("{name}: {e}"));
+    let base = fixture.with_file_name(match kernel {
+        "kernel" => name.rsplit('/').next().unwrap().to_string(),
+        kernel => kernel.to_string(),
+    });
+    compare(base.with_extension("ast"), parsed.to_string());
+    compare(base.with_extension("ir"), lowered.to_string());
+    (parsed, lowered)
+}
+
+/// The source of `tests/fixtures/<name>.py`.
+pub fn source(name: &str) -> String {
+    let path = fixtures().join(name).with_extension("py");
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+}
+
+fn fixtures() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures")
 }
 
 fn compare_with_expected(expected_path: PathBuf, actual: &str) {
