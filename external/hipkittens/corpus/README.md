@@ -380,8 +380,7 @@ a fresh output outside source repositories because they contain machine paths.
 
 The [2026-11-10 search and separate attempt receipt](device-call-recovery-audit-20261110.json)
 found no exact original assembly among 37,825 distinct local
-assembly files or 4,054 assembly members in 46 relevant retained archives. Bounded
-searches on two authorized GPU hosts also found no original campaign. These are
+assembly files or 4,054 assembly members in 46 relevant retained archives. These are
 search results within their recorded scopes, not proof that every possible copy
 is absent. The private raw receipts and diagnostic records remain outside Git.
 
