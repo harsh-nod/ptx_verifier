@@ -4,7 +4,6 @@ mod inputs;
 mod interp;
 mod matrix;
 mod memory;
-mod registers;
 mod scalar;
 mod value;
 pub use interp::{

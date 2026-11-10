@@ -1,7 +1,6 @@
 use super::{
     inputs::InputBacking,
     memory::Memory,
-    registers::LaneRegisters,
     value::{Value, WideKind},
 };
 use crate::{
@@ -165,8 +164,8 @@ struct Wave {
     named_wait: Option<named_barrier::Joined>,
     scalar: Vec<Option<Value>>,
     temporary: [Option<Value>; 16],
-    vector: LaneRegisters,
-    accumulator: LaneRegisters,
+    vector: BTreeMap<(u16, u8), Value>,
+    accumulator: BTreeMap<(u16, u8), Value>,
     at_barrier: Option<u32>,
     generation: u32,
     signal_generation: Option<u32>,
@@ -198,8 +197,8 @@ impl Wave {
             named_wait: None,
             scalar: vec![None; 128],
             temporary: [None; 16],
-            vector: LaneRegisters::new(width),
-            accumulator: LaneRegisters::new(width),
+            vector: BTreeMap::new(),
+            accumulator: BTreeMap::new(),
             at_barrier: None,
             generation: 0,
             signal_generation: None,

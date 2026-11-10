@@ -47,7 +47,7 @@ lane-selector semantics or frozen workload/benchmark input changed here.
 ## Reproduce the audit
 
 The first two commands repeat native parsing/lowering and detect stale inventory
-content. The last command checks all three inventories' source hashes, actual
+content. The stage audit checks all three inventories' source hashes, actual
 code/test references, original gfx1250 instruction lines and stage-table tests.
 It does not execute kernels or imply per-PC execution coverage.
 
