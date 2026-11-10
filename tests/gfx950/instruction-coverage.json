@@ -52,12 +52,12 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "parse_instruction",
-          "line": 879
+          "line": 922
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1437
+          "line": 1480
         }
       ]
     },
@@ -68,7 +68,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_vop_literal_positions",
-          "line": 2303
+          "line": 2351
         }
       ]
     },
@@ -79,7 +79,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/frontend/instr.rs",
           "function": "validate_registers",
-          "line": 1437
+          "line": 1480
         }
       ]
     },
@@ -138,7 +138,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "permute",
-          "line": 1183
+          "line": 1203
         }
       ]
     },
@@ -675,7 +675,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "flat_memory_address",
-          "line": 1054
+          "line": 1074
         },
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
@@ -685,7 +685,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "validate_address",
-          "line": 1237
+          "line": 1257
         }
       ],
       "positive_controls": [
@@ -797,7 +797,7 @@
         {
           "path": "crates/volta_amdgpu_analysis/src/eval/interp/memory_ops.rs",
           "function": "permute",
-          "line": 1183
+          "line": 1203
         }
       ],
       "positive_controls": [

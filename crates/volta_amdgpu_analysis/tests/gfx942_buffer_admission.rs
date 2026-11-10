@@ -121,13 +121,15 @@ fn recognized_scalar_offsets_address_modes_policies_and_acc_data_never_execute()
                     // Valid mapped resources/data make ignored options observable
                     // as accidental execution, rather than an unrelated bounds error.
                     let body = format!(
-                        "s_mov_b32 s0,0\ns_mov_b32 s1,4\ns_mov_b32 m0,0\ns_mov_b32 s8,{}\ns_mov_b32 s9,0\ns_mov_b32 s10,16\ns_mov_b32 s11,0x20000\nv_mov_b32 v16,0\nv_add_u32 v4,10,v0\nv_add_u32 v5,20,v0\nv_add_u32 v6,30,v0\nv_add_u32 v7,40,v0\n{}{}",
+                        "s_mov_b32 s0,0\ns_mov_b32 s1,4\ns_mov_b32 s8,{}\ns_mov_b32 s9,0\ns_mov_b32 s10,16\ns_mov_b32 s11,0x20000\nv_mov_b32 v16,0\nv_add_u32 v4,10,v0\nv_add_u32 v5,20,v0\nv_add_u32 v6,30,v0\nv_add_u32 v7,40,v0\n{}{}",
                         if store { 0x20000 } else { 0x10000 },
                         if empty { "s_mov_b64 exec,0\n" } else { "" },
                         operation(words, store, data, scalar, modifiers),
                     );
                     let module = frontend::parse(&source(&body)).unwrap();
-                    refuse(&module, 12 + usize::from(empty));
+                    // M0 writes have their own unsupported timing boundary;
+                    // this fixture must reach the buffer instruction instead.
+                    refuse(&module, module.kernels[0].instructions.len() - 2);
                 }
             }
         }
