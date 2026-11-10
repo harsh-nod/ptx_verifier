@@ -38,11 +38,22 @@ kind preserves the ordinary SGPR-read requirement for register-addressed
 scratch. This removes one whole-module parser blocker seen in fresh upstream
 tile-copy extraction; a complete unchanged tile-kernel proof is not established.
 
-The unchanged gfx950 `reduction_f16` compiler entry remains outside the selected
-lane-transport execution profile: its register-selected lane at PC77 is refused
-by the existing bare literal-lane0–63 admission rule. Parser inventory coverage
-does not qualify that entry or its mutation for an execution benchmark. No
-lane-selector semantics or frozen workload/benchmark input changed here.
+The unchanged gfx950 `reduction_f16` entry now proves its complete registered
+selected-workgroup specification after adding bounded scalar lane selectors,
+EXEC-word lane counts and no-return F32 atomic addition. The original launch
+retains 128 threads, all 4,096 declared half inputs and its initial/output float;
+the selected tile adds the first 256 inputs. This does not establish a whole-grid
+4,096-element reduction. See the [exact contract and controls](cdna-lane-atomics.md).
+Historical source manifests and benchmark outcomes remain unchanged.
+
+The [additional original-kernel configurations](../tests/amdgpu/original-kernel-qualification/README.md)
+prove all 1,024 ReLU, 512 SiLU and 128 RoPE outputs from a whole-module gfx942
+re-emission of unchanged original F16 source. The bounded low-half zero comparison
+needed by ReLU has independent value, mask and malformed-operand controls.
+An unchanged gfx1250 Sinkhorn configuration retains all 32 outputs and its full
+32-row, 1,024-key, 64-feature problem with six allocations above 4 GiB. This
+adds address-configuration evidence for an existing algorithm. These records
+remain separate from the historical source inventories above.
 
 ## Reproduce the audit
 

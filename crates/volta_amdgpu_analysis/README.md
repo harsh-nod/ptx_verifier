@@ -226,16 +226,22 @@ VM destination readiness. See public [CDNA4 ISA sections 4.4, 9.1.10.2, 10.5](ht
 and the pinned [LLVM scratch definitions](https://github.com/ROCm/llvm-project/blob/7b800a19466229b8479a78de19143dc33c3ab9b5/llvm/lib/Target/AMDGPU/FLATInstructions.td).
 
 Bare gfx950 `v_readlane_b32`/`v_writelane_b32` additionally select one literal
-launched lane in 0..63 and plain SGPR/VGPR words. They copy exactly one word even
-under empty EXEC, with dedicated provenance/semantic markers and independent
-Table 11 software-delay checks. Register lane selectors and legacy
-`v_readfirstlane_b32` remain unsupported for execution. The broader existing
+launched lane in 0..63 or use the low six bits of a plain SGPR selector. A
+register-selected write must use the same SGPR for its data and selector,
+respecting the single distinct SGPR source restriction. They copy exactly one
+word even under empty EXEC, with dedicated provenance/semantic markers and
+independent Table 11 software-delay checks, including four states from a VALU
+write to a selector read. Legacy `v_readfirstlane_b32` remains unsupported for
+execution. The broader existing
 parser grammar remains recognized; whole-selected-program admission checks
 unreachable instructions and called helpers before any instruction or observer
 callback, leaving unselected entries and uncalled helpers unaffected.
 Existing gfx1250 lane profiles are
 unchanged. Complete compiler-source examples and all 64 output specifications are
 in the [private-call fixtures](tests/fixtures/device-private/README.md).
+The [lane and atomic profile](../../docs/cdna-lane-atomics.md) specifies the
+bounded gfx950 no-return atomic, EXEC-word lane counts and complete registered
+reduction-workgroup proof.
 
 Global allocations are byte-addressed, bounded and disjoint. Wide transfers
 retain each register-sized granule and its exact footprint. Optional

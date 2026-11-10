@@ -10,6 +10,8 @@ readiness hazards across gfx942, gfx950 and gfx1250. Existing algorithms and
 previously examined sources are reused. Four runtime-parameterized copy/add
 parents use complete 259-thread launches at disjoint addresses above 8 GiB;
 fixed original programs retain their full registered dimensions and outputs.
+The gfx950 reduction's registered workgroup adds the first 256 of its 4,096
+declared inputs to its initial output; it does not cover a whole-grid reduction.
 The [manifest](cases.json) binds source, assembly, specifications, launch
 contracts and each mutation's producer/wait/use anchors. This is a development
 replay, with no unseen-algorithm or newly discovered application-bug claim.

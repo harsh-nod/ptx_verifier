@@ -144,7 +144,9 @@ matching fixed-size descriptor/metadata declarations and a valid-dispatch backin
 premise. An opaque private-aperture tag resolves to the same per-item cells;
 it supplies no numeric runtime base. Scratch requires VM completion, while
 private FLAT retains both VM and LGKM obligations. Private accesses have their own graph records;
-literal lane moves retain physical lane identities even under empty EXEC.
+lane moves retain physical lane identities even under empty EXEC. The bounded
+[scalar-selector profile](cdna-lane-atomics.md) also records the selector SGPR
+and its separate software-delay requirement.
 An unsupported private wait sequence aborts without mathematical outputs, so a
 conservative admission restriction cannot become an equivalence refutation.
 
