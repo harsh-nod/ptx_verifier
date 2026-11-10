@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-10",
+  "scope": "Hash recovery search and one separately regenerated source-bound rotary attempt; no original qualification.",
+  "catalog_sha256": "80404d82560068a62e0e6d25d888b0041d27229c84aa9a977613e2bb96971e24",
+  "local_search": {
+    "assembly_files_hashed": 37825,
+    "exact_original_matches": 0,
+    "raw_receipt_sha256": "0fd758c22e836a5390c7f4a4950fdc7a9e86671de95aec31c7692df20af7dc5d",
+    "scope": "Historical verifier worktrees and temporary artifact directories; build/cache directory exclusions recorded in raw receipt."
+  },
+  "archive_search": {
+    "archives": 46,
+    "members": 16190,
+    "assembly_members_hashed": 4054,
+    "exact_original_matches": 0,
+    "errors": 0,
+    "raw_receipt_sha256": "2bcc2b6d9665a57872a6102bdb9dc36329de989604d185469116bc27ebd0f013"
+  },
+  "regenerated_rotary_attempt": {
+    "module_id": "gfx950-38dfc931051a1a74",
+    "source": "analysis/rotary/mi350x/kernel_1024.cpp",
+    "source_sha256": "658f8845d9c533c71df339dc02a5881c3f5206abff78934d3ad428263af3b674",
+    "original_assembly_sha256": "09717c91b428a4fba6dbd3abed45ece63a76f814ed6fdcf52d5ae0232fad8480",
+    "regenerated_assembly_sha256": "df651d898900a48c2886a76570c8c82975010c370e2ae78dad1fbb4772fad656",
+    "original_object_sha256": "9c3ec0ed1a788fe9284f4b413dba2ea1634cac37bc952b59e367e836f0c9e90f",
+    "regenerated_object_sha256": "ca0846e95e3fe87b616d40e846affe77bd045212ebd93299f6f35a72a953a3b8",
+    "original_metadata_sha256": "65720d6303f5ad33d8eeb45b44322f67348ff71d495e2618eaa4e2e739665600",
+    "regenerated_metadata_sha256": "65720d6303f5ad33d8eeb45b44322f67348ff71d495e2618eaa4e2e739665600",
+    "original_compiler_assembler_hashes_matched": true,
+    "MC_status": "succeeded",
+    "parse_status": "parsed",
+    "ABI_static_assert_status": "succeeded",
+    "GL_bytes": 48,
+    "globals_bytes": 200,
+    "input_x_elements": 33554432,
+    "input_sin_elements": 65536,
+    "input_cos_elements": 65536,
+    "required_output_coordinates": 4096,
+    "launch_sha256": "6e36c7216ce000fb5d84c2a4c0608849ebb5bc71c769f7ef0de7ab2325f88955",
+    "specification_sha256": "51148c4158faa5d46821e9541f96243eb826ba94457b85068eeaaa1cd099e1ca",
+    "spec_dimensions": {
+      "B": 16,
+      "H": 16,
+      "N": 1024,
+      "D": 128,
+      "C": 64
+    },
+    "specification_sampling": 0,
+    "verification_status": "lowering_unsupported",
+    "first_blocker": "call target has no supported straight-line rel32 reaching definition",
+    "blocker_line": 13375,
+    "blocker_context": "Compiler saves rel32 code-pointer words through v_writelane before s_swappc; current certificate refuses intervening target-SGPR mentions.",
+    "graph_result": null,
+    "mathematical_result": null,
+    "original_replayed": false,
+    "qualified": false,
+    "binary_revision_caller_attested": "b2f9aff43c1fd5b4b549000eb7df1956603c22fe",
+    "binary_sha256": "7060a6c1a6741e9f6e613c999d1119754a9151d51de73fce997d9ceebd64d102",
+    "raw_campaign_report_sha256": "d57ec950daf75a2e4ea2790686dc05b26dc2d2383398864bd08a7fa09449117b",
+    "raw_ABI_record_sha256": "8fe19f2803a49a5aaa086946933be330e67e5a45a8c731f301f05ceccc4decb8",
+    "raw_verification_record_sha256": "0fd957036501ce71252cf44aea3d52c12834ea3315d4fe2da1f9664353e451df"
+  },
+  "summary": {
+    "original_modules": 16,
+    "original_entry_occurrences": 18,
+    "exact_original_assemblies_recovered": 0,
+    "original_replays": 0,
+    "qualified_originals": 0
+  },
+  "limits": [
+    "Search scopes are finite; absence of a match is not proof that no copy exists elsewhere.",
+    "Original complete assembly is absent, so no original-versus-regenerated instruction comparison is available.",
+    "Metadata equality does not establish equality of instructions, data objects, runtime dependencies or behavior.",
+    "Raw host identities, compiler paths, logs and failed preliminary attempts remain outside Git."
+  ]
+}
