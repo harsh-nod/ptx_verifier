@@ -365,9 +365,13 @@ python3 external/extraction/hipkittens_recovery.py \
   --output /tmp/hipkittens-recovery-search.json
 ```
 
-Search hashes `.s`, `.asm` and `.o` files and regular members of tar/zip archives,
-without extraction or execution. Directory exclusions, candidate suffixes, byte
-limits, archive hashes, exact matching members and search errors are recorded.
+Search hashes regular `.s`, `.asm` and `.o` files and regular members of tar/zip
+archives, without extraction or execution. Filesystem symlinks, FIFOs and devices
+are refused. Directory descriptors anchor opens; file identity and archive hashes
+are checked before and after scanning. Actual reads, compressed archive files and
+expanded archive data have explicit byte bounds. Matching members include their
+ordinal, header offset and byte size, so duplicate names remain unambiguous.
+Directory exclusions, candidate suffixes, limits and search errors are recorded.
 Missing roots, damaged archives, unsupported zstd archives and oversized candidates
 make the search incomplete. Matching objects do not count as recovered assembly;
 matching assembly never counts as an execution or proof. Exit status 1 retains

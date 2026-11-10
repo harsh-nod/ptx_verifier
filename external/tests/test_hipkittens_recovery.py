@@ -3,14 +3,17 @@ import copy
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import struct
+import subprocess
 import sys
 import tarfile
 import tempfile
 import unittest
 from unittest import mock
 import zipfile
+import warnings
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "extraction"))
 import hipkittens_recovery as recovery
@@ -26,6 +29,90 @@ def search_catalog(assembly=b"whole original assembly\n", obj=b"whole original o
 
 
 class RecoveryTests(unittest.TestCase):
+    def test_fifo_and_file_symlinks_are_refused_without_opening_or_blocking(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            os.mkfifo(root / "blocked.s")
+            (root / "device.s").symlink_to("/dev/zero")
+            outside = root / "outside"
+            outside.mkdir()
+            (outside / "original.s").write_bytes(b"whole original assembly\n")
+            selected = root / "selected"
+            selected.mkdir()
+            (selected / "escape.s").symlink_to(outside / "original.s")
+            code = ("import sys,json;sys.path.insert(0,sys.argv[1]);import hipkittens_recovery as r;"
+                    "catalog=json.loads(sys.argv[2]);print(json.dumps(r.scan(catalog,sys.argv[3:])))")
+            process = subprocess.run([sys.executable, "-c", code, str(Path(recovery.__file__).parent),
+                                      json.dumps(search_catalog()), str(root / "blocked.s"), str(root / "device.s"),
+                                      str(selected)], capture_output=True, text=True, timeout=3)
+            self.assertEqual(process.returncode, 0, process.stderr)
+            result = json.loads(process.stdout)
+            self.assertEqual(len(result["errors"]), 3)
+            self.assertFalse(result["matches"])
+            self.assertFalse(result["summary"]["search_complete_within_declared_scope"])
+
+    def test_actual_reads_and_total_tar_decompression_have_byte_limits(self):
+        with self.assertRaisesRegex(ValueError, "actual consumed bytes"):
+            recovery.bounded_digest(io.BytesIO(b"more than four bytes"), 4)
+        with tempfile.TemporaryDirectory() as directory:
+            archive = Path(directory) / "expanded.tar.gz"
+            with tarfile.open(archive, "w:gz") as tar:
+                member = tarfile.TarInfo("ignored.txt")
+                member.size = 100000
+                tar.addfile(member, io.BytesIO(bytes(member.size)))
+            self.assertLess(archive.stat().st_size, 1000)
+            result = recovery.scan(search_catalog(), [archive], max_member_bytes=1000)
+            self.assertEqual(len(result["errors"]), 1)
+            self.assertIn("actual consumed bytes", result["errors"][0]["reason"])
+            self.assertFalse(result["summary"]["search_complete_within_declared_scope"])
+
+    def test_corrupt_deflate_member_becomes_an_incomplete_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "broken.zip"
+            with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+                archive.writestr("kernel.s", b"whole original assembly\n")
+            data = bytearray(path.read_bytes())
+            name_length, extra_length = struct.unpack_from("<HH", data, 26)
+            data[30 + name_length + extra_length] = 7  # reserved DEFLATE block type
+            path.write_bytes(data)
+            result = recovery.scan(search_catalog(), [path])
+            self.assertEqual(len(result["errors"]), 1)
+            self.assertFalse(result["matches"])
+            self.assertFalse(result["summary"]["search_complete_within_declared_scope"])
+
+    def test_archive_changes_invalidate_matches_and_duplicate_names_have_offsets(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.zip"
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", UserWarning)
+                with zipfile.ZipFile(path, "w") as archive:
+                    archive.writestr("kernel.s", b"whole original assembly\n")
+                    archive.writestr("kernel.s", b"changed same-name member")
+            result = recovery.scan(search_catalog(), [path])
+            self.assertEqual(len(result["matches"]), 1)
+            matched = result["matches"][0]
+            self.assertEqual(matched["member_ordinal"], 0)
+            self.assertEqual(matched["member_header_offset"], 0)
+            self.assertEqual(matched["bytes"], len(b"whole original assembly\n"))
+            original_digest = recovery.bounded_digest
+            calls = 0
+
+            def changed_after_hash(stream, limit):
+                nonlocal calls
+                answer = original_digest(stream, limit)
+                calls += 1
+                if calls == 1:
+                    with zipfile.ZipFile(path, "w") as archive:
+                        archive.writestr("kernel.s", b"whole original assembly\n")
+                return answer
+
+            with mock.patch.object(recovery, "bounded_digest", side_effect=changed_after_hash):
+                result = recovery.scan(search_catalog(), [path])
+            self.assertFalse(result["matches"])
+            self.assertFalse(result["archives"])
+            self.assertTrue(result["errors"])
+            self.assertFalse(result["summary"]["search_complete_within_declared_scope"])
+
     def test_published_attempt_binds_generated_inputs_without_qualifying_originals(self):
         catalog = recovery.read(recovery.DEFAULT_CATALOG)
         audit = recovery.read(recovery.DEFAULT_CATALOG.with_name("device-call-recovery-audit-20261110.json"))

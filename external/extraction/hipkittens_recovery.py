@@ -8,16 +8,21 @@ are absent. Raw search receipts contain machine paths and must stay outside Git.
 from __future__ import annotations
 
 import argparse
+import bz2
 from collections import Counter
+import gzip
 import hashlib
 import json
+import lzma
 import math
 import os
 from pathlib import Path
 import re
 import struct
+import stat
 import tarfile
 import zipfile
+import zlib
 
 import hipkittens_inventory as inventory
 
@@ -190,6 +195,30 @@ def build_catalog(source_root, frontier_path=DEFAULT_FRONTIER, baseline_path=DEF
                        "Exact artifact recovery alone never establishes execution, graph safety or numerical equivalence."]}
 
 
+class LimitedReader:
+    """Bound actual bytes returned by a regular file or decompressor."""
+
+    def __init__(self, stream, limit):
+        self.stream, self.limit, self.consumed = stream, limit, 0
+
+    def read(self, size=-1):
+        remaining = self.limit - self.consumed
+        request = remaining + 1 if size < 0 else min(size, remaining + 1)
+        data = self.stream.read(request)
+        self.consumed += len(data)
+        if self.consumed > self.limit:
+            raise ValueError("actual consumed bytes exceed byte limit")
+        return data
+
+
+def bounded_digest(stream, limit):
+    reader = LimitedReader(stream, limit)
+    digest = hashlib.sha256()
+    while data := reader.read(1024 * 1024):
+        digest.update(data)
+    return digest.hexdigest(), reader.consumed
+
+
 def scan(catalog, roots, max_member_bytes=256 * 1024 * 1024):
     """Hash candidate assembly/object files and regular tar/zip members, without extraction.
 
@@ -208,70 +237,122 @@ def scan(catalog, roots, max_member_bytes=256 * 1024 * 1024):
         if size > max_member_bytes:
             errors.append({"location": location, "reason": "candidate exceeds byte limit", "bytes": size})
             return
-        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+        digest, actual_size = bounded_digest(stream, max_member_bytes)
+        inventory.require(actual_size == size, "candidate size changed while reading")
         stats["hashed_candidates"] += 1
         for identity, role in expected.get(digest, []):
-            matches.append({"module_id": identity, "role": role, "sha256": digest, **location})
+            matches.append({"module_id": identity, "role": role, "sha256": digest,
+                            "bytes": actual_size, **location})
 
     def candidate(name):
         return name.endswith((".s", ".asm", ".o"))
 
-    def inspect(path):
+    def stamp(info):
+        return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
+    def inspect(path, directory_fd=None):
         if not candidate(path.name) and not path.name.endswith((
                 ".tar", ".tar.gz", ".tgz", ".tar.xz", ".tar.bz2", ".zip", ".tar.zst", ".tar.zstd")):
             return
+        location = {"path": str(path)}
+        first_match, first_archive = len(matches), len(files)
         try:
-            stat = path.stat()
-            identity = (stat.st_dev, stat.st_ino)
+            name = path.name if directory_fd is not None else str(path)
+            before = os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
+            inventory.require(stat.S_ISREG(before.st_mode), "candidate is not a regular file; symlinks/devices/FIFOs are refused")
+            identity = (before.st_dev, before.st_ino)
             if identity in seen:
                 return
             seen.add(identity)
-            location = {"path": str(path.resolve())}
-            if candidate(path.name):
-                with path.open("rb") as stream:
-                    consume(stream, stat.st_size, location)
-            elif path.name.endswith((".tar", ".tar.gz", ".tgz", ".tar.xz", ".tar.bz2")):
-                stats["archives"] += 1
-                files.append({**location, "sha256": sha(path)})
-                with tarfile.open(path, "r|*") as archive:
-                    for member in archive:
-                        stats["archive_members"] += 1
-                        if member.isfile() and candidate(member.name):
-                            with archive.extractfile(member) as stream:
-                                consume(stream, member.size, {**location, "member": member.name})
-            elif path.suffix == ".zip":
-                stats["archives"] += 1
-                files.append({**location, "sha256": sha(path)})
-                with zipfile.ZipFile(path) as archive:
-                    for member in archive.infolist():
-                        stats["archive_members"] += 1
-                        if not member.is_dir() and candidate(member.filename):
-                            with archive.open(member) as stream:
-                                consume(stream, member.file_size, {**location, "member": member.filename})
-            elif path.name.endswith((".tar.zst", ".tar.zstd")):
-                errors.append({"location": location, "reason": "zstd archive requires a separate supported decoder"})
-        except (OSError, tarfile.TarError, zipfile.BadZipFile, RuntimeError, EOFError) as error:
-            errors.append({"location": {"path": str(path)}, "reason": str(error)})
+            # NOFOLLOW rejects a raced leaf symlink; NONBLOCK prevents a raced
+            # FIFO/device from blocking before fstat can reject its file kind.
+            descriptor = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory_fd)
+            with os.fdopen(descriptor, "rb") as stream:
+                opened = os.fstat(stream.fileno())
+                inventory.require(stat.S_ISREG(opened.st_mode) and stamp(opened) == stamp(before),
+                                  "candidate identity changed before opening")
+                inventory.require(opened.st_size <= max_member_bytes, "candidate exceeds byte limit")
+                if candidate(path.name):
+                    consume(stream, opened.st_size, location)
+                else:
+                    digest, size = bounded_digest(stream, max_member_bytes)
+                    inventory.require(size == opened.st_size, "archive size changed while hashing")
+                    stream.seek(0)
+                    stats["archives"] += 1
+                    if path.suffix == ".zip":
+                        expanded = 0
+                        with zipfile.ZipFile(stream) as archive:
+                            for ordinal, member in enumerate(archive.infolist()):
+                                stats["archive_members"] += 1
+                                if not member.is_dir() and candidate(member.filename):
+                                    expanded += member.file_size
+                                    inventory.require(expanded <= max_member_bytes, "archive expanded candidates exceed byte limit")
+                                    with archive.open(member) as member_stream:
+                                        consume(member_stream, member.file_size, {**location, "member": member.filename,
+                                                "member_ordinal": ordinal, "member_header_offset": member.header_offset})
+                    elif path.name.endswith((".tar.zst", ".tar.zstd")):
+                        raise ValueError("zstd archive requires a separate supported decoder")
+                    else:
+                        if path.name.endswith((".tar.gz", ".tgz")):
+                            decoded = gzip.GzipFile(fileobj=stream)
+                        elif path.name.endswith(".tar.xz"):
+                            decoded = lzma.LZMAFile(stream)
+                        elif path.name.endswith(".tar.bz2"):
+                            decoded = bz2.BZ2File(stream)
+                        else:
+                            decoded = stream
+                        try:
+                            with tarfile.open(fileobj=LimitedReader(decoded, max_member_bytes), mode="r|") as archive:
+                                for ordinal, member in enumerate(archive):
+                                    stats["archive_members"] += 1
+                                    if member.isfile() and candidate(member.name):
+                                        with archive.extractfile(member) as member_stream:
+                                            consume(member_stream, member.size, {**location, "member": member.name,
+                                                    "member_ordinal": ordinal, "member_header_offset": member.offset})
+                        finally:
+                            if decoded is not stream:
+                                decoded.close()
+                    stream.seek(0)
+                    checked_digest, _ = bounded_digest(stream, max_member_bytes)
+                    inventory.require(digest == checked_digest, "archive changed between hashing and member scan")
+                    files.append({**location, "sha256": digest, "bytes": size})
+                inventory.require(stamp(os.fstat(stream.fileno())) == stamp(opened)
+                                  and stamp(os.stat(name, dir_fd=directory_fd, follow_symlinks=False)) == stamp(opened),
+                                  "candidate changed during scan")
+        except (OSError, ValueError, tarfile.TarError, zipfile.BadZipFile, RuntimeError, EOFError,
+                zlib.error, lzma.LZMAError) as error:
+            del matches[first_match:]
+            del files[first_archive:]
+            errors.append({"location": location, "reason": str(error)})
 
-    for root in sorted({Path(root).resolve() for root in roots}):
-        if root.is_file():
-            inspect(root)
-        elif root.is_dir():
-            def walk_error(error):
-                errors.append({"location": {"path": error.filename}, "reason": str(error)})
-            for current, directories, names in os.walk(root, onerror=walk_error, followlinks=False):
-                directories[:] = sorted(d for d in directories if d not in PRUNED and not d.endswith("-target"))
-                for name in sorted(names):
-                    inspect(Path(current) / name)
-        else:
-            errors.append({"location": {"path": str(root)}, "reason": "search root does not exist"})
+    absolute_roots = sorted({Path(os.path.abspath(root)) for root in roots})
+    for root in absolute_roots:
+        try:
+            info = root.lstat()
+            if stat.S_ISREG(info.st_mode):
+                inspect(root)
+            elif stat.S_ISDIR(info.st_mode):
+                def walk_error(error):
+                    errors.append({"location": {"path": error.filename}, "reason": str(error)})
+                # Directory descriptors keep candidate opens anchored to the
+                # traversed directory even if its path is renamed concurrently.
+                for current, directories, names, directory_fd in os.fwalk(root, onerror=walk_error, follow_symlinks=False):
+                    directories[:] = sorted(d for d in directories if d not in PRUNED and not d.endswith("-target"))
+                    for name in sorted(names):
+                        inspect(Path(current) / name, directory_fd)
+            else:
+                raise ValueError("search root is not a regular file or directory; symlinks are refused")
+        except (OSError, ValueError) as error:
+            errors.append({"location": {"path": str(root)}, "reason": str(error)})
     assembly_ids = {m["module_id"] for m in matches if m["role"] == "assembly"}
     return {"schema_version": 1, "scope": "Read-only hash search; archive members are never extracted or executed.",
-            "roots": sorted(str(Path(root).resolve()) for root in roots), "pruned_directory_names": sorted(PRUNED),
+            "roots": [str(root) for root in absolute_roots], "pruned_directory_names": sorted(PRUNED),
             "pruned_directory_suffix": "-target", "follow_directory_symlinks": False,
+            "follow_file_symlinks": False, "regular_files_only": True,
             "candidate_suffixes": [".s", ".asm", ".o"],
             "archive_suffixes": [".tar", ".tar.gz", ".tgz", ".tar.xz", ".tar.bz2", ".zip"],
-            "max_candidate_bytes": max_member_bytes, "statistics": dict(stats), "archives": files,
+            "max_candidate_bytes": max_member_bytes, "max_archive_uncompressed_bytes": max_member_bytes,
+            "statistics": dict(stats), "archives": files,
             "matches": matches, "errors": errors,
             "summary": {"expected_modules": len(catalog["modules"]), "assembly_recovered_modules": len(assembly_ids),
                         "assembly_missing_module_ids": sorted(m["id"] for m in catalog["modules"] if m["id"] not in assembly_ids),
