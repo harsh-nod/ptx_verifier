@@ -148,6 +148,14 @@ literal lane moves retain physical lane identities even under empty EXEC.
 An unsupported private wait sequence aborts without mathematical outputs, so a
 conservative admission restriction cannot become an equivalence refutation.
 
+The gfx950 call profile keeps code addresses opaque. Exact adjacent rel32
+construction supplies ordered word identities; plain scalar copies and literal
+lane spills can preserve those identities for a later call. Branch entries
+discard reaching definitions. Calls discard every tracked register mentioned
+by the selected helper closure, so a saved lane cell survives only when helpers
+leave its entire VGPR untouched. Execution checks the actual word origin and
+target again; code words cannot be extracted as ordinary data or address bits.
+
 ## Extending an instruction
 
 Follow the existing modules for the relevant backend:
