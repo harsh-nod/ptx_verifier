@@ -31,6 +31,29 @@ def valid_receipt():
 
 
 class CatalogControls(unittest.TestCase):
+    def test_canonical_output_labels_keep_exact_accounting(self):
+        expected = (30, 16640, 38400, 655360)
+        for qualifier in ("", "original/native "):
+            summary = (f"PASS: 30 launches, 16640 complete {qualifier}outputs, "
+                       "38400 input bytes, 655360 guard bytes\n")
+            with self.subTest(qualifier=qualifier):
+                suite.validate_output_accounting(summary, expected)
+
+    def test_output_summary_cannot_hide_changed_counts_omission_or_duplicate(self):
+        expected = (30, 16640, 38400, 655360)
+        summary = ("PASS: 30 launches, 16640 complete outputs, "
+                   "38400 input bytes, 655360 guard bytes\n")
+        for token in ("30 launches", "16640 complete", "38400 input", "655360 guard"):
+            changed = summary.replace(token, token.replace(token.split()[0], "0"))
+            with self.subTest(token=token), self.assertRaisesRegex(ValueError, "accounting"):
+                suite.validate_output_accounting(changed, expected)
+        for changed in ("PASS\n", summary + summary, summary.replace("complete outputs", "complete sampled outputs"),
+                        summary.replace("complete outputs", "complete original outputs"),
+                        summary.replace("complete outputs", "complete native outputs"),
+                        summary.replace(", 655360 guard bytes", "")):
+            with self.subTest(summary=changed), self.assertRaisesRegex(ValueError, "accounting"):
+                suite.validate_output_accounting(changed, expected)
+
     def test_all_existing_positive_host_drivers_are_registered(self):
         for target, count in (("gfx942", 3), ("gfx950", 12), ("gfx1250", 18)):
             validate_inventory(suite.ROOT, target)

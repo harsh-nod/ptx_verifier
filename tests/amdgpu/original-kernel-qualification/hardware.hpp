@@ -117,7 +117,7 @@ inline int execute(int argc, char **argv, const std::string &target) {
       inputs += row.unchanged_input_bytes;
       guards += row.unchanged_guard_bytes;
     }
-    std::printf("PASS: %zu launches, %zu complete original outputs, %zu input bytes, %zu guard bytes\n",
+    std::printf("PASS: %zu launches, %zu complete outputs, %zu input bytes, %zu guard bytes\n",
                 launches, outputs, inputs, guards);
     return 0;
   } catch (const std::exception &error) {
