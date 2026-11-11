@@ -13,7 +13,18 @@ fn crates_dir() -> PathBuf {
 
 /// The `[dependencies]` of a crate's manifest (dev-dependencies excluded).
 fn dependencies(krate: &str) -> Vec<String> {
-    let manifest = std::fs::read_to_string(crates_dir().join(krate).join("Cargo.toml")).unwrap();
+    let manifest = std::fs::read_to_string(
+        crates_dir()
+            .join(match krate {
+                "volta_ptx_analysis" => "frontend/volta_ptx_analysis",
+                "volta_amd_analysis" => "frontend/volta_amd_analysis",
+                "volta_trainium_analysis" => "frontend/volta_trainium_analysis",
+                "volta_equivalence" => "backend/volta_equivalence",
+                _ => krate,
+            })
+            .join("Cargo.toml"),
+    )
+    .unwrap();
     let mut in_deps = false;
     let mut deps = Vec::new();
     for line in manifest.lines() {
@@ -41,7 +52,10 @@ fn rust_sources(dir: &Path, out: &mut Vec<PathBuf>) {
 #[test]
 fn the_analysis_runs_no_checker_and_no_equivalence() {
     let mut files = Vec::new();
-    rust_sources(&crates_dir().join("volta_ptx_analysis/src"), &mut files);
+    rust_sources(
+        &crates_dir().join("frontend/volta_ptx_analysis/src"),
+        &mut files,
+    );
     for file in &files {
         let text = std::fs::read_to_string(file).unwrap();
         let code: Vec<&str> = text
@@ -69,7 +83,7 @@ fn the_analysis_runs_no_checker_and_no_equivalence() {
 fn the_frontend_imports_nothing_of_the_analysis_after_it() {
     let mut files = Vec::new();
     rust_sources(
-        &crates_dir().join("volta_ptx_analysis/src/frontend"),
+        &crates_dir().join("frontend/volta_ptx_analysis/src/frontend"),
         &mut files,
     );
     for file in &files {

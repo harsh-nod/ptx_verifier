@@ -398,8 +398,9 @@ fn native_ubyte_zero_extension_defines_high_byte_without_fabricating_ptx_storage
         outputs.arena.as_int_const(outputs.outputs[0].1[1].1),
         Some(0)
     );
-    let source =
-        include_str!("ptx/failing/e4m3x2_scalar_source_high_lane_is_undefined_not_fabricated.ptx");
+    let source = include_str!(
+        "ptx/execution_error/e4m3x2_scalar_source_high_lane_is_undefined_not_fabricated.ptx"
+    );
     let module = Parser::new(source.as_bytes().as_ascii_slice().unwrap())
         .parse_module()
         .unwrap();

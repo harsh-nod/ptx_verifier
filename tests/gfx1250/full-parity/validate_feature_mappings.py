@@ -87,6 +87,20 @@ def test_references(row, document):
     return result
 
 
+def current_test_source(root, path):
+    """Locate the two shared test files moved by the upstream crate layout."""
+    source = root / path
+    if source.is_file():
+        return source
+    moved = {
+        "crates/volta_equivalence/tests/spec_identity_tests.rs":
+            "crates/backend/volta_equivalence/tests/spec_identity_tests.rs",
+        "crates/volta_equivalence/tests/spec_equivalence_tests.rs":
+            "crates/backend/volta_equivalence/tests/spec_equivalence_tests.rs",
+    }
+    return root / moved.get(path, path)
+
+
 def validate(ledger, manifests, *, root=ROOT):
     references = {row["path"]: row for row in ledger["rows"]}
     require(
@@ -146,7 +160,7 @@ def validate(ledger, manifests, *, root=ROOT):
             require(tests, f"missing actual native/shared test: {path}")
             test_names = []
             for test in tests:
-                source = root / test["path"]
+                source = current_test_source(root, test["path"])
                 identity = source_identity(source, root)
                 if test.get("source_sha256"):
                     require(

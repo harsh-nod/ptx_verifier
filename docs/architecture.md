@@ -227,3 +227,9 @@ Update the owning crate README when its behavior or public interface changes.
 Document lasting contracts, assumptions and failure modes rather than completed
 tasks or transient run summaries. Keep detailed function/type documentation in
 Rustdoc and link to it or the source instead of maintaining duplicate listings.
+
+Upstream accelerator analyzers live in `crates/frontend/`; canonical and Lean
+solvers live in `crates/backend/`. The target-selected native AMD analyzer stays
+in `crates/volta_amdgpu_analysis`, with its public fixture and study paths stable.
+`volta_py` forwards shared Rust logs to Python and exposes the optional Lean proof
+runner; native graph gates and provenance apply before a challenge can be proved.

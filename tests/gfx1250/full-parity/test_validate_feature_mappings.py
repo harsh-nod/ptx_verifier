@@ -1,6 +1,7 @@
 """Refusal controls for complete native regression mappings."""
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -49,6 +50,30 @@ class FeatureMappingsTests(unittest.TestCase):
             [("native.json", {"rows": self.rows if rows is None else rows})],
             root=self.root,
         )
+
+    def test_moved_shared_tests_keep_function_and_source_pin_checks(self):
+        old = "crates/volta_equivalence/tests/spec_equivalence_tests.rs"
+        moved = self.root / "crates/backend/volta_equivalence/tests/spec_equivalence_tests.rs"
+        moved.parent.mkdir(parents=True)
+        moved.write_text("fn original_shared_test() {}\n")
+        candidate = {
+            "path": old, "function": "original_shared_test",
+            "source_sha256": hashlib.sha256(moved.read_bytes()).hexdigest(),
+        }
+        for row in self.rows:
+            row["native_candidates"] = [candidate.copy()]
+        result = self.check()
+        self.assertIn(str(moved.relative_to(self.root)),
+                      {row["path"] for row in result["source_inventory"]})
+        candidate["source_sha256"] = "0" * 64
+        self.rows[0]["native_candidates"] = [candidate.copy()]
+        with self.assertRaisesRegex(ValueError, "test source pin changed"):
+            self.check()
+        candidate.pop("source_sha256")
+        candidate["function"] = "missing_original_test"
+        self.rows[0]["native_candidates"] = [candidate]
+        with self.assertRaisesRegex(ValueError, "missing actual test"):
+            self.check()
 
     def test_exact_mapping_retains_source_dependencies(self):
         result = self.check()

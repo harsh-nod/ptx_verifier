@@ -1,0 +1,859 @@
+//! Parse Clang AMD kernels into opcodes, typed operands, and launch settings.
+//! Lowering validates opcodes and instruction-specific operand constraints.
+
+use std::collections::BTreeMap;
+
+use super::ast::{Counter, Instruction, Kernel, Operand, RegFile};
+
+/// A statement's first word and the rest.
+fn word(line: &str) -> (&str, &str) {
+    line.split_once(char::is_whitespace)
+        .map_or((line, ""), |(head, tail)| (head, tail.trim()))
+}
+
+/// A leading bare or quoted label, and the statement following its colon.
+fn label_definition(line: &str) -> Option<(&str, &str)> {
+    let (name, rest) = if let Some(quoted) = line.strip_prefix('"') {
+        quoted.split_once('"')?
+    } else {
+        let end = line.find(|c: char| c == ':' || c.is_whitespace())?;
+        line.split_at(end)
+    };
+    let rest = rest.trim_start().strip_prefix(':')?.trim_start();
+    (!name.is_empty()).then_some((name, rest))
+}
+
+/// Parse an unsigned decimal or hexadecimal integer.
+fn integer(text: &str) -> Option<u64> {
+    match text.strip_prefix("0x") {
+        Some(hex) => u64::from_str_radix(hex, 16).ok(),
+        None => text.parse().ok(),
+    }
+}
+
+/// The inline float constants CDNA4 encodes without a literal (§6.2), as Clang prints them.
+const INLINE_FLOATS: [f32; 8] = [0.5, -0.5, 1.0, -1.0, 2.0, -2.0, 4.0, -4.0];
+
+/// Parse a signed decimal or hexadecimal integer.
+fn signed_integer(text: &str) -> Option<i64> {
+    match text.strip_prefix('-') {
+        Some(magnitude) => i64::try_from(integer(magnitude)?).ok()?.checked_neg(),
+        None => i64::try_from(integer(text)?).ok(),
+    }
+}
+
+/// Parse a register, register range, integer, inline float, wait counter, memory offset,
+/// modifier, or branch target.
+fn operand(text: &str) -> Option<Operand> {
+    // Reject malformed repeated negation before parsing nested source modifiers.
+    if text.starts_with("--") {
+        return None;
+    }
+    if let Some(value) = signed_integer(text) {
+        return Some(Operand::Imm(value));
+    }
+    match text {
+        "vcc" => return Some(Operand::Vcc),
+        "exec" => return Some(Operand::Exec),
+        "offen" => return Some(Operand::Offen),
+        _ => {}
+    }
+    if text.starts_with(".L") {
+        if text.contains(['[', ']']) || text.chars().any(char::is_whitespace) {
+            return None;
+        }
+        return Some(Operand::Label(text.into()));
+    }
+    if let Some(offset) = text.strip_prefix("offset0:") {
+        return integer(offset).map(Operand::Offset0);
+    }
+    if let Some(offset) = text.strip_prefix("offset1:") {
+        return integer(offset).map(Operand::Offset1);
+    }
+    if let Some(table) = text.strip_prefix("bitop3:") {
+        return integer(table)
+            .and_then(|table| u8::try_from(table).ok())
+            .map(Operand::BitOp3);
+    }
+    for (prefix, make_operand) in [
+        ("op_sel:[", Operand::OpSel as fn(Vec<bool>) -> Operand),
+        ("op_sel_hi:[", Operand::OpSelHiWide),
+        ("neg_lo:[", Operand::NegLo),
+        ("neg_hi:[", Operand::NegHi),
+    ] {
+        if let Some(bits) = text.strip_prefix(prefix).and_then(|s| s.strip_suffix(']')) {
+            let bits = bits
+                .split(',')
+                .map(|s| match s.trim() {
+                    "0" => Some(false),
+                    "1" => Some(true),
+                    _ => None,
+                })
+                .collect::<Option<Vec<_>>>()?;
+            return match bits.len() {
+                2 if prefix == "op_sel_hi:[" => Some(Operand::OpSelHi([bits[0], bits[1]])),
+                2..=3 => Some(make_operand(bits)),
+                _ => None,
+            };
+        }
+    }
+    // A source has at most one NEG and one ABS modifier. Decode its bare register
+    // directly so malformed nested modifiers cannot recurse with input depth.
+    if let Some(source) = text.strip_prefix('-') {
+        if let Some(register) = source.strip_prefix('|').and_then(|s| s.strip_suffix('|')) {
+            return register_operand(register)
+                .map(|reg| Operand::Neg(Box::new(Operand::Abs(Box::new(reg)))));
+        }
+        if let Some(Operand::Reg { file, first, last }) = register_operand(source) {
+            return Some(if first == last {
+                Operand::NegatedReg { file, index: first }
+            } else {
+                Operand::Neg(Box::new(Operand::Reg { file, first, last }))
+            });
+        }
+    }
+    if let Some(register) = text.strip_prefix('|').and_then(|s| s.strip_suffix('|')) {
+        return register_operand(register).map(|reg| Operand::Abs(Box::new(reg)));
+    }
+    if text.contains('.') {
+        let value = text.parse::<f32>().ok()?;
+        return INLINE_FLOATS
+            .contains(&value)
+            .then_some(Operand::InlineFloat(value.to_bits()));
+    }
+    if let Some(offset) = text.strip_prefix("offset:") {
+        return signed_integer(offset).map(Operand::Offset);
+    }
+    if let Some((name, rest)) = text.split_once('(') {
+        let counter = match name {
+            "vmcnt" => Counter::Vm,
+            "lgkmcnt" => Counter::Lgkm,
+            _ => return None,
+        };
+        let value = integer(rest.strip_suffix(')')?)?;
+        return Some(Operand::Wait { counter, value });
+    }
+    register_operand(text)
+}
+
+/// A bare physical register or register range, without source modifiers.
+fn register_operand(text: &str) -> Option<Operand> {
+    let file = match text.chars().next()? {
+        's' => RegFile::Scalar,
+        'v' => RegFile::Vector,
+        'a' => RegFile::Accumulator,
+        _ => return None,
+    };
+    let rest = &text[1..];
+    let (first, last): (u32, u32) = match rest.strip_prefix('[').and_then(|r| r.strip_suffix(']')) {
+        Some(range) => {
+            let (first, last) = range.split_once(':')?;
+            (first.parse().ok()?, last.parse().ok()?)
+        }
+        None => {
+            let index = rest.parse().ok()?;
+            (index, index)
+        }
+    };
+    (first <= last).then_some(Operand::Reg { file, first, last })
+}
+
+fn unsupported_operand(piece: &str, line: &str) -> String {
+    if piece.contains('.') && piece.parse::<f32>().is_ok() {
+        format!(
+            "float operand {piece:?} in {line:?} is not one of the inline constants {INLINE_FLOATS:?}"
+        )
+    } else {
+        format!("unsupported operand {piece:?} in {line:?}")
+    }
+}
+
+pub fn parse_kernel(source: &str, name: &str) -> Result<Kernel, String> {
+    // Clang uses `;` for assembly comments.
+    let lines: Vec<&str> = source
+        .lines()
+        .map(|line| line.split_once(';').map_or(line, |(code, _)| code).trim())
+        .filter(|line| !line.is_empty())
+        .collect();
+
+    // Read the GPU target declared for this assembly file.
+    let target = lines
+        .iter()
+        .find_map(|line| match word(line) {
+            (".amdgcn_target", rest) => Some(rest),
+            _ => None,
+        })
+        .ok_or("missing .amdgcn_target")?;
+    let target = target
+        .strip_prefix('"')
+        .and_then(|value| value.strip_suffix('"'))
+        .filter(|value| !value.contains('"'))
+        .ok_or("expected one quoted string after .amdgcn_target")?
+        .to_string();
+
+    // Count definitions even in forms the selected-body parser cannot consume, so an
+    // inline or differently spaced duplicate cannot hide behind a canonical entry.
+    let mut entry = None;
+    for (index, line) in lines.iter().enumerate() {
+        let mut statement = *line;
+        let mut standalone = true;
+        while let Some((label, rest)) = label_definition(statement) {
+            if label == name {
+                if entry.is_some() {
+                    return Err(format!("multiple entry labels for kernel {name:?}"));
+                }
+                entry = Some((index, standalone && rest.is_empty()));
+            }
+            standalone = false;
+            statement = rest;
+        }
+    }
+    let (entry, standalone) = entry.ok_or_else(|| format!("kernel {name:?} not found"))?;
+    if !standalone {
+        return Err(format!(
+            "unsupported inline entry label for kernel {name:?}"
+        ));
+    }
+
+    // The instruction body ends at a section switch or function-end label.
+    let mut instructions = Vec::new();
+    let mut spans = Vec::new();
+    let mut labels = BTreeMap::new();
+    for line in &lines[entry + 1..] {
+        let (opcode, rest) = word(line);
+        if opcode == ".section" || opcode.starts_with(".Lfunc_end") {
+            break;
+        }
+        if let Some(label) = line
+            .strip_suffix(':')
+            .filter(|label| label.starts_with(".L"))
+        {
+            if labels
+                .insert(label.to_owned(), instructions.len())
+                .is_some()
+            {
+                return Err(format!("duplicate label {label:?}"));
+            }
+            continue;
+        }
+        if opcode.starts_with('.') || line.ends_with(':') {
+            return Err(format!("unsupported statement {line:?}"));
+        }
+        let brackets = rest.bytes().try_fold(0usize, |depth, byte| match byte {
+            b'[' => Some(depth + 1),
+            b']' => depth.checked_sub(1),
+            _ => Some(depth),
+        });
+        if brackets != Some(0) {
+            return Err(format!("unbalanced operand brackets in {line:?}"));
+        }
+        let without_trailing_comma = rest.strip_suffix(',').unwrap_or(rest);
+        if !rest.is_empty()
+            && without_trailing_comma
+                .split(',')
+                .any(|part| part.trim().is_empty())
+        {
+            return Err(format!("empty operand in {line:?}"));
+        }
+        // Accept comma-separated operands and space-separated wait counters.
+        // Commas and spaces inside a bracketed selector belong to that operand.
+        let mut depth = 0usize;
+        let operands = rest
+            .split(|c: char| {
+                match c {
+                    '[' => depth += 1,
+                    ']' => depth -= 1,
+                    _ => {}
+                }
+                depth == 0 && (c == ',' || c.is_whitespace())
+            })
+            .filter(|piece| !piece.is_empty())
+            .map(|piece| operand(piece).ok_or_else(|| unsupported_operand(piece, line)))
+            .collect::<Result<_, _>>()?;
+        instructions.push(Instruction {
+            opcode: opcode.into(),
+            operands,
+        });
+        // Each line is a subslice of `source`, so its address gives its offset.
+        let start = line.as_ptr() as usize - source.as_ptr() as usize;
+        spans.push((start, start + line.len()));
+    }
+
+    // Read launch settings from the kernel's separate descriptor block.
+    let mut descriptors = lines
+        .iter()
+        .enumerate()
+        .filter(|(_, line)| word(line) == (".amdhsa_kernel", name));
+    let (start, _) = descriptors
+        .next()
+        .ok_or_else(|| format!("missing .amdhsa_kernel {name}"))?;
+    if descriptors.next().is_some() {
+        return Err(format!(
+            "multiple .amdhsa_kernel blocks for kernel {name:?}"
+        ));
+    }
+    let mut descriptor = BTreeMap::new();
+    for line in &lines[start + 1..] {
+        if *line == ".end_amdhsa_kernel" {
+            return Ok(Kernel {
+                name: name.into(),
+                target,
+                instructions,
+                spans,
+                labels,
+                descriptor,
+            });
+        }
+        let (head, value) = word(line);
+        match (head.strip_prefix(".amdhsa_"), value.parse::<u64>()) {
+            (Some(setting), Ok(value)) => {
+                if descriptor.insert(setting.into(), value).is_some() {
+                    return Err(format!("duplicate descriptor setting {head:?}"));
+                }
+            }
+            _ => {
+                return Err(format!(
+                    "expected a numeric .amdhsa_ setting, found {line:?}"
+                ));
+            }
+        }
+    }
+    Err("missing .end_amdhsa_kernel".into())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use Operand::{Imm, Reg, Wait};
+
+    const COPY: &str = include_str!("../../../../volta_pipeline/tests/amd/success/copy.s");
+
+    fn sgpr(first: u32, last: u32) -> Operand {
+        Reg {
+            file: RegFile::Scalar,
+            first,
+            last,
+        }
+    }
+
+    fn vgpr(first: u32, last: u32) -> Operand {
+        Reg {
+            file: RegFile::Vector,
+            first,
+            last,
+        }
+    }
+
+    fn instr(opcode: &str, operands: &[Operand]) -> Instruction {
+        Instruction {
+            opcode: opcode.into(),
+            operands: operands.to_vec(),
+        }
+    }
+
+    #[test]
+    fn parses_the_compiled_copy_kernel() {
+        let kernel = parse_kernel(COPY, "copy").unwrap();
+        assert!(kernel.target.starts_with("amdgcn-amd-amdhsa--gfx950"));
+        let lgkm = Wait {
+            counter: Counter::Lgkm,
+            value: 0,
+        };
+        let vm = Wait {
+            counter: Counter::Vm,
+            value: 0,
+        };
+        assert_eq!(
+            kernel.instructions,
+            [
+                instr("s_load_dwordx4", &[sgpr(0, 3), sgpr(0, 1), Imm(0)]),
+                instr("v_lshlrev_b32_e32", &[vgpr(0, 0), Imm(2), vgpr(0, 0)]),
+                instr("s_waitcnt", &[lgkm]),
+                instr("global_load_dword", &[vgpr(1, 1), vgpr(0, 0), sgpr(0, 1)]),
+                instr("s_waitcnt", &[vm]),
+                instr("global_store_dword", &[vgpr(0, 0), vgpr(1, 1), sgpr(2, 3)]),
+                instr("s_endpgm", &[]),
+            ]
+        );
+        assert_eq!(kernel.descriptor["kernarg_size"], 16);
+        assert_eq!(kernel.descriptor["user_sgpr_kernarg_segment_ptr"], 1);
+        assert_eq!(kernel.descriptor["system_vgpr_workitem_id"], 0);
+    }
+
+    // Test supported operand forms and reject malformed or unsupported modifiers.
+    #[test]
+    fn parses_operand_forms_and_rejects_others() {
+        assert_eq!(operand("0x10"), Some(Imm(16)));
+        assert_eq!(operand("s[4:5]"), Some(sgpr(4, 5)));
+        assert_eq!(operand("v7"), Some(vgpr(7, 7)));
+        let vm3 = Wait {
+            counter: Counter::Vm,
+            value: 3,
+        };
+        assert_eq!(operand("vmcnt(3)"), Some(vm3));
+        assert_eq!(operand("-1"), Some(Imm(-1)));
+        // Float modifiers wrap registers; negative float constants keep their encoded bits.
+        assert_eq!(
+            operand("-v7"),
+            Some(Operand::NegatedReg {
+                file: RegFile::Vector,
+                index: 7
+            })
+        );
+        assert_eq!(
+            operand("-s9"),
+            Some(Operand::NegatedReg {
+                file: RegFile::Scalar,
+                index: 9
+            })
+        );
+        assert_eq!(operand("|v7|"), Some(Operand::Abs(Box::new(vgpr(7, 7)))));
+        assert_eq!(operand("|s9|"), Some(Operand::Abs(Box::new(sgpr(9, 9)))));
+        assert_eq!(
+            operand("-|v7|"),
+            Some(Operand::Neg(Box::new(Operand::Abs(Box::new(vgpr(7, 7))))))
+        );
+        assert_eq!(
+            operand("-1.0"),
+            Some(Operand::InlineFloat((-1.0f32).to_bits()))
+        );
+        assert_eq!(
+            operand("op_sel_hi:[1,0]"),
+            Some(Operand::OpSelHi([true, false]))
+        );
+        assert_eq!(
+            operand("op_sel:[1,0,0]"),
+            Some(Operand::OpSel(vec![true, false, false]))
+        );
+        assert_eq!(
+            operand("op_sel_hi:[1,0,1]"),
+            Some(Operand::OpSelHiWide(vec![true, false, true]))
+        );
+        assert_eq!(
+            operand("neg_lo:[0,1]"),
+            Some(Operand::NegLo(vec![false, true]))
+        );
+        assert_eq!(
+            operand("neg_hi:[0,0,1]"),
+            Some(Operand::NegHi(vec![false, false, true]))
+        );
+        for bad in [
+            "-vcc",
+            "-vmcnt(3)",
+            "|1|",
+            "|1.0|",
+            "|vcc|",
+            "|v7",
+            "v7|",
+            "||v7||",
+            "--v7",
+            "|-v7|",
+            "op_sel_hi:[1]",
+            "op_sel_hi:[1,0,1,0]",
+            "op_sel:[]",
+            "neg_lo:[1,]",
+            "neg_hi:[0,2]",
+            "op_sel_hi:[2,0]",
+            "s[3:0]",
+            "s[0]",
+            "x0",
+            "glc",
+            "expcnt(0)",
+            "vmcnt(x)",
+            "--1",
+        ] {
+            assert_eq!(operand(bad), None, "{bad}");
+        }
+
+        // An unsupported modifier must not be dropped from an otherwise supported load.
+        let line = "global_load_dword v1, v0, s[0:1]";
+        let source = COPY.replacen(line, &format!("{line} glc"), 1);
+        assert_ne!(source, COPY, "the load instruction was not found");
+        assert_eq!(
+            parse_kernel(&source, "copy").unwrap_err(),
+            format!("unsupported operand \"glc\" in \"{line} glc\"")
+        );
+
+        let line = "v_add_f32_e32 v1, 1.5, v1";
+        assert_eq!(
+            parse_kernel(&kernel_source(line, ""), "test").unwrap_err(),
+            format!(
+                "float operand \"1.5\" in {line:?} is not one of the inline constants \
+                 [0.5, -0.5, 1.0, -1.0, 2.0, -2.0, 4.0, -4.0]"
+            )
+        );
+    }
+
+    #[test]
+    fn ignores_comments() {
+        let verbose = COPY.replacen("\ncopy:\n", "\ncopy: ; @copy\n; %bb.0:\n", 1);
+        assert_ne!(verbose, COPY, "the copy: label was not found");
+        let plain = parse_kernel(COPY, "copy").unwrap();
+        let kernel = parse_kernel(&verbose, "copy").unwrap();
+        assert_eq!(kernel.instructions, plain.instructions);
+    }
+
+    #[test]
+    fn rejects_repeated_descriptor_settings_instead_of_overwriting_them() {
+        for (setting, value) in [("kernarg_size", 16), ("next_free_vgpr", 2)] {
+            let directive = format!(".amdhsa_{setting} {value}");
+            for repeated in [value, value + 1] {
+                let source = COPY.replacen(
+                    &directive,
+                    &format!("{directive}\n.amdhsa_{setting} {repeated}"),
+                    1,
+                );
+                assert_ne!(source, COPY);
+                assert_eq!(
+                    parse_kernel(&source, "copy").unwrap_err(),
+                    format!("duplicate descriptor setting \".amdhsa_{setting}\"")
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn rejects_multiple_selected_kernel_entry_labels() {
+        let duplicate_entry = format!("{COPY}\n.text\ncopy:\ns_endpgm\n.section .rodata\n");
+        assert_eq!(
+            parse_kernel(&duplicate_entry, "copy").unwrap_err(),
+            "multiple entry labels for kernel \"copy\""
+        );
+    }
+
+    #[test]
+    fn rejects_multiple_selected_kernel_descriptors() {
+        let start = COPY.find(".amdhsa_kernel copy\n").unwrap();
+        let end =
+            COPY[start..].find(".end_amdhsa_kernel").unwrap() + start + ".end_amdhsa_kernel".len();
+        let duplicate_descriptor = format!("{COPY}\n{}\n", &COPY[start..end]);
+        assert_eq!(
+            parse_kernel(&duplicate_descriptor, "copy").unwrap_err(),
+            "multiple .amdhsa_kernel blocks for kernel \"copy\""
+        );
+    }
+
+    #[test]
+    fn unrelated_function_and_descriptor_names_do_not_make_selection_ambiguous() {
+        let source = format!(
+            "{COPY}\n.text\ncopy_extra:\ns_endpgm\n.section .rodata\n.amdhsa_kernel copy_extra\n.amdhsa_kernarg_size 0\n.end_amdhsa_kernel\n"
+        );
+        assert_eq!(parse_kernel(&source, "copy").unwrap().instructions.len(), 7);
+        assert_eq!(
+            parse_kernel(&source, "copy_extra")
+                .unwrap()
+                .instructions
+                .len(),
+            1
+        );
+    }
+
+    #[test]
+    fn rejects_empty_operands_instead_of_dropping_them() {
+        let instruction = "v_lshlrev_b32_e32 v0, 2, v0";
+        for malformed in [
+            "v_lshlrev_b32_e32 , v0, 2, v0",
+            "v_lshlrev_b32_e32 v0,, 2, v0",
+            "v_lshlrev_b32_e32 v0,  , 2, v0",
+            "v_lshlrev_b32_e32 v0, 2, v0,,",
+            "s_endpgm ,",
+        ] {
+            let original = if malformed.starts_with("s_endpgm") {
+                "s_endpgm"
+            } else {
+                instruction
+            };
+            let source = COPY.replacen(original, malformed, 1);
+            assert_ne!(source, COPY);
+            assert_eq!(
+                parse_kernel(&source, "copy").unwrap_err(),
+                format!("empty operand in {malformed:?}")
+            );
+        }
+    }
+
+    #[test]
+    fn preserves_the_native_optional_trailing_comma() {
+        let source = COPY.replacen(
+            "v_lshlrev_b32_e32 v0, 2, v0",
+            "v_lshlrev_b32_e32 v0, 2, v0,",
+            1,
+        );
+        assert_ne!(source, COPY);
+        assert_eq!(
+            parse_kernel(&source, "copy").unwrap().instructions,
+            parse_kernel(COPY, "copy").unwrap().instructions
+        );
+    }
+
+    #[test]
+    fn preserves_both_native_wait_counter_separators() {
+        let expected = vec![
+            Wait {
+                counter: Counter::Vm,
+                value: 0,
+            },
+            Wait {
+                counter: Counter::Lgkm,
+                value: 0,
+            },
+        ];
+        for counters in ["vmcnt(0) lgkmcnt(0)", "vmcnt(0), lgkmcnt(0)"] {
+            let source = COPY.replacen("lgkmcnt(0)", counters, 1);
+            assert_ne!(source, COPY);
+            assert_eq!(
+                parse_kernel(&source, "copy").unwrap().instructions[2].operands,
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn requires_one_quoted_target_string() {
+        let target = "amdgcn-amd-amdhsa--gfx950:xnack-";
+        let quoted = format!("\"{target}\"");
+        for malformed in [
+            target.to_owned(),
+            format!("\"{target}"),
+            format!("{target}\""),
+            format!("\"\"{target}\"\""),
+            format!("{quoted} \"extra\""),
+        ] {
+            let source = COPY.replacen(&quoted, &malformed, 1);
+            assert_ne!(source, COPY);
+            assert_eq!(
+                parse_kernel(&source, "copy").unwrap_err(),
+                "expected one quoted string after .amdgcn_target"
+            );
+        }
+        let source = COPY.replacen(&quoted, &format!("{quoted} ; target comment"), 1);
+        assert_eq!(parse_kernel(&source, "copy").unwrap().target, target);
+    }
+
+    #[test]
+    fn rejects_what_it_cannot_represent() {
+        assert!(parse_kernel(COPY, "other").is_err());
+        // Only Clang's local `.L` labels can mark a branch target.
+        let with_label = COPY.replacen("\ncopy:\n", "\ncopy:\nloop:\n", 1);
+        assert_ne!(with_label, COPY, "the copy: label was not found");
+        assert_eq!(
+            parse_kernel(&with_label, "copy").unwrap_err(),
+            "unsupported statement \"loop:\""
+        );
+
+        // A descriptor cut off before its end marker.
+        let unterminated = &COPY[..COPY.find(".end_amdhsa_kernel").unwrap()];
+        assert_eq!(
+            parse_kernel(unterminated, "copy").unwrap_err(),
+            "missing .end_amdhsa_kernel"
+        );
+    }
+
+    fn kernel_source(body: &str, descriptor: &str) -> String {
+        format!(
+            ".amdgcn_target \"amdgcn-amd-amdhsa--gfx950\"\n\
+             test:\n{body}\n.Lfunc_end0:\n\
+             .amdhsa_kernel test\n{descriptor}\n.end_amdhsa_kernel\n"
+        )
+    }
+
+    #[test]
+    fn retains_packed_selectors_and_rejects_malformed_negation() {
+        for selectors in ["[1,0]", "[1, 0]"] {
+            let source = kernel_source(
+                &format!("v_pk_add_f32 v[2:3], v[4:5], 1.0 op_sel_hi:{selectors}"),
+                "",
+            );
+            let parsed = parse_kernel(&source, "test").unwrap();
+            assert_eq!(
+                parsed.instructions[0].operands.last(),
+                Some(&Operand::OpSelHi([true, false]))
+            );
+        }
+        for operand in [
+            "--v1".to_owned(),
+            format!("{}v1", "-".repeat(65536)),
+            "op_sel_hi:[1,2]".to_owned(),
+        ] {
+            assert!(
+                parse_kernel(
+                    &kernel_source(&format!("v_mov_b32_e32 v0, {operand}"), ""),
+                    "test"
+                )
+                .is_err()
+            );
+        }
+    }
+
+    #[test]
+    fn register_modifiers_are_bounded_and_f64_pairs_keep_valid_compositions() {
+        for source in ["-v[2:3]", "|v[2:3]|", "-|v[2:3]|"] {
+            let text = kernel_source(&format!("v_add_f64 v[0:1], {source}, v[4:5]"), "");
+            let parsed = parse_kernel(&text, "test").unwrap();
+            assert!(crate::lower::lower_kernel(&parsed).is_ok(), "{source}");
+        }
+        for malformed in [
+            format!("{}v7{}", "|".repeat(65536), "|".repeat(65536)),
+            format!("{}v7{}", "-|".repeat(32768), "|".repeat(32768)),
+            format!("{}v7{}", "|".repeat(65536), "|".repeat(65535)),
+            "-|-v7|".into(),
+        ] {
+            let text = kernel_source(&format!("v_mov_b32_e32 v0, {malformed}"), "");
+            assert!(parse_kernel(&text, "test").is_err());
+        }
+        // A modified pair can parse, but remains invalid where the instruction needs a word.
+        let text = kernel_source("v_mov_b32_e32 v0, -v[1:2]", "");
+        let parsed = parse_kernel(&text, "test").unwrap();
+        assert!(crate::lower::lower_kernel(&parsed).is_err());
+    }
+
+    #[test]
+    fn rejects_empty_operands() {
+        for line in [
+            "global_load_dword ,v1, v0, s[0:1]",
+            "global_load_dword v1,, v0, s[0:1]",
+            "global_load_dword v1, , v0, s[0:1]",
+            "global_load_dword v1, v0, s[0:1],,",
+            "s_waitcnt vmcnt(0),, lgkmcnt(0)",
+            "s_endpgm ,",
+        ] {
+            assert_eq!(
+                parse_kernel(&kernel_source(line, ""), "test").unwrap_err(),
+                format!("empty operand in {line:?}")
+            );
+        }
+        let body = "global_load_dword v1,  v0, s[0:1]\n\
+                    s_waitcnt vmcnt(0)  lgkmcnt(0)\n\
+                    s_endpgm";
+        let kernel = parse_kernel(&kernel_source(body, ""), "test").unwrap();
+        assert_eq!(
+            kernel.instructions,
+            [
+                instr("global_load_dword", &[vgpr(1, 1), vgpr(0, 0), sgpr(0, 1)]),
+                instr(
+                    "s_waitcnt",
+                    &[
+                        Wait {
+                            counter: Counter::Vm,
+                            value: 0,
+                        },
+                        Wait {
+                            counter: Counter::Lgkm,
+                            value: 0,
+                        },
+                    ],
+                ),
+                instr("s_endpgm", &[]),
+            ]
+        );
+    }
+
+    #[test]
+    fn rejects_duplicate_descriptor_settings() {
+        for value in [16, 32] {
+            let descriptor = format!(".amdhsa_kernarg_size 16\n.amdhsa_kernarg_size {value}");
+            assert_eq!(
+                parse_kernel(&kernel_source("s_endpgm", &descriptor), "test").unwrap_err(),
+                "duplicate descriptor setting \".amdhsa_kernarg_size\""
+            );
+        }
+    }
+    #[test]
+    fn rejects_spaced_quoted_and_inline_duplicate_entry_labels() {
+        for definition in [
+            "copy :",
+            "\"copy\":",
+            "\"copy\" :",
+            "copy: s_endpgm",
+            "copy : s_endpgm",
+            "\"copy\": s_endpgm",
+            "\"copy\" : s_endpgm",
+            "copy_extra: copy:",
+            "copy_extra: \"copy\": s_endpgm",
+        ] {
+            let source = format!("{COPY}\n.text\n{definition}\n.section .rodata\n");
+            assert_eq!(
+                parse_kernel(&source, "copy").unwrap_err(),
+                "multiple entry labels for kernel \"copy\"",
+                "{definition}"
+            );
+        }
+    }
+
+    #[test]
+    fn parses_standalone_spaced_and_quoted_selected_entries_without_changing_the_body() {
+        let original = parse_kernel(COPY, "copy").unwrap();
+        for definition in [
+            "copy :",
+            "copy\t:",
+            "\"copy\":",
+            "\"copy\" \t: ; selected entry",
+        ] {
+            let source = COPY.replacen("\ncopy:\n", &format!("\n{definition}\n"), 1);
+            assert_ne!(source, COPY);
+            let parsed = parse_kernel(&source, "copy").unwrap();
+            assert_eq!(parsed.instructions, original.instructions, "{definition}");
+            assert_eq!(parsed.labels, original.labels, "{definition}");
+            assert_eq!(parsed.descriptor, original.descriptor, "{definition}");
+            assert_eq!(parsed.target, original.target, "{definition}");
+        }
+    }
+
+    #[test]
+    fn rejects_lone_selected_entries_that_would_drop_inline_statements() {
+        for definition in [
+            "copy: s_endpgm",
+            "copy : s_endpgm",
+            "\"copy\": s_endpgm",
+            "\"copy\" : s_endpgm",
+            "copy: .Lbody:",
+            "other_label: copy:",
+        ] {
+            let source = COPY.replacen("\ncopy:\n", &format!("\n{definition}\n"), 1);
+            assert_ne!(source, COPY);
+            assert_eq!(
+                parse_kernel(&source, "copy").unwrap_err(),
+                "unsupported inline entry label for kernel \"copy\"",
+                "{definition}"
+            );
+        }
+    }
+
+    #[test]
+    fn unrelated_spaced_quoted_and_inline_labels_do_not_match_a_name_prefix() {
+        for definition in [
+            "copy_extra :",
+            "\"copy_extra\":",
+            "\"copy_extra\" : s_endpgm",
+            "copy2: s_endpgm",
+            "copy_extra: copy2: s_endpgm",
+        ] {
+            let source = format!("{COPY}\n.text\n{definition}\n.section .rodata\n");
+            assert_eq!(
+                parse_kernel(&source, "copy").unwrap().instructions,
+                parse_kernel(COPY, "copy").unwrap().instructions,
+                "{definition}"
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_unbalanced_operand_groups_before_resolving_labels() {
+        for body in [
+            "s_branch .Lbad[ name\n.Lbad[ name:\ns_endpgm",
+            "s_branch .Lbad] name\n.Lbad] name:\ns_endpgm",
+            "v_pk_add_f32 v[2:3], v[4:5], 1.0 op_sel_hi:[1,0",
+            "v_pk_add_f32 v[2:3], v[4:5], 1.0 op_sel_hi:[1,0]]",
+            "s_branch .Lbad[ name]\n.Lbad[ name]:\ns_endpgm",
+        ] {
+            assert!(
+                parse_kernel(&kernel_source(body, ""), "test").is_err(),
+                "{body}"
+            );
+        }
+        let source = kernel_source("s_branch .Lgood\n.Lgood:\ns_endpgm", "");
+        let kernel = parse_kernel(&source, "test").unwrap();
+        assert_eq!(kernel.labels[".Lgood"], 1);
+        assert_eq!(kernel.instructions.len(), 2);
+    }
+}

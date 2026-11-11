@@ -7,7 +7,8 @@ from test_early_memory_conflicts import collision, config, source, SPEC
 
 
 @pytest.mark.parametrize("target", ["gfx942", "gfx950", "gfx1250"])
-def test_explicit_native_file_solve_and_extract(target, tmp_path):
+@pytest.mark.parametrize("equivalence", [False, True])
+def test_explicit_native_file_solve_and_extract(target, equivalence, tmp_path):
     text = (
         source("gfx950").replace("--gfx950", "--gfx942")
         if target == "gfx942"
@@ -21,7 +22,8 @@ def test_explicit_native_file_solve_and_extract(target, tmp_path):
     assert solved.verdict == "ACCEPT" and solved.race_verified is True
     assert solved.workgroup_id == (0, 0, 0)
     assert len(dict(solved.outputs)["out"]) == 32
-    extracted = volta.extract_lean(path, cfg, kernel="copy", spec=SPEC, dims={"N": 32})
+    extracted = volta.extract_lean(path, cfg, kernel="copy", spec=SPEC, dims={"N": 32}, equivalence=equivalence)
+    assert extracted.verdict == ("ACCEPT" if equivalence else None)
     assert extracted.statements == 32 and extracted.race_verified is True
     assert extracted.workgroup_id == (0, 0, 0)
     assert extracted.assumptions == solved.assumptions
@@ -100,3 +102,34 @@ def test_tensor_prefix_retains_typed_extraction_error(tmp_path):
         caught.value.bytes,
         caught.value.configured_lds_bytes,
     ) == (256, 256, 256)
+
+
+@pytest.mark.parametrize("target", ["gfx950", "gfx1250"])
+@pytest.mark.parametrize("equivalence", [False, True])
+def test_prover_rejects_certified_native_prefix_before_tool_discovery(
+    target, equivalence, tmp_path
+):
+    path = tmp_path / "collision.s"
+    path.write_text(collision(target))
+    output = tmp_path / "proof"
+    with pytest.raises(volta.EarlyMemoryConflictError) as caught:
+        volta.prove_lean(
+            path, config(target, early=True), kernel="copy", spec=SPEC,
+            dims={"N": 32}, output_dir=output, equivalence=equivalence,
+            claude=tmp_path / "missing-prover", lean_project=tmp_path / "missing-project",
+        )
+    assert caught.value.address == 131072
+    assert caught.value.earlier_thread != caught.value.later_thread
+    assert not output.exists()
+
+
+def test_prover_preserves_native_target_validation_before_external_tools(tmp_path):
+    path = tmp_path / "copy.s"
+    path.write_text(source("gfx950"))
+    with pytest.raises(volta.VoltaError, match="conflicts with source target"):
+        volta.prove_lean(
+            path, config("gfx1250"), kernel="copy", spec=SPEC, dims={"N": 32},
+            output_dir=tmp_path / "proof", claude=tmp_path / "missing-prover",
+            lean_project=tmp_path / "missing-project",
+        )
+    assert not (tmp_path / "proof").exists()

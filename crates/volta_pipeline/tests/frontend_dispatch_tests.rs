@@ -158,7 +158,7 @@ fn explicit_target_and_incomplete_trace_cannot_be_lost_in_generic_frontend() {
 
 #[test]
 fn extension_adapters_refuse_native_only_launch_fields_instead_of_ignoring_them() {
-    let experimental = include_str!("../../volta_amd_analysis/tests/fixtures/add.s");
+    let experimental = include_str!("amd/success/add.s");
     let mut changes: Vec<AnalysisConfig> = Vec::new();
     let mut c = AnalysisConfig::new((1, 1, 1));
     c.grid_dim = (2, 1, 1);

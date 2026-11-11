@@ -68,7 +68,7 @@ for every dimension except the innermost. Rank is 1–5. Supply exactly one of
 `box` for a tiled map or `im2col` for its bounding-box fields. `element_strides`
 defaults to one for each dimension; `swizzle`, `swizzle_atomicity`, `interleave`
 and `fill` have explicit named modes. See
-[the JSON schema](../crates/volta_ptx_analysis/src/launch_file.rs) for the current
+[the JSON schema](../crates/frontend/volta_ptx_analysis/src/launch_file.rs) for the current
 mode spellings and im2col fields.
 
 The interpreter keeps descriptor fields in a separate tensor-map table; it does
