@@ -160,7 +160,7 @@ fn equal_shared_values_still_conflict_and_preserve_the_original_twice_input_payl
     conflict(&result, ConflictKind::WriteWrite, Space::Shared, 0, 1);
     same_outputs(
         result.analysis.symbolic_outputs().unwrap(),
-        &original("execution_error/same_value_store_to_one_address_races", cfg),
+        &original("check_failure/same_value_store_to_one_address_races", cfg),
     );
 }
 
@@ -172,7 +172,7 @@ fn differing_shared_values_preserve_original_lane_zero_one_conflict_and_payload(
     same_outputs(
         result.analysis.symbolic_outputs().unwrap(),
         &original(
-            "execution_error/same_value_warp_uniform_store_is_not_a_race_differ",
+            "check_failure/same_value_warp_uniform_store_is_not_a_race_differ",
             cfg,
         ),
     );
@@ -380,7 +380,7 @@ fn execution_only_collective_does_not_replace_publication_of_original_lane_one_p
     same_outputs(
         unsafe_run.analysis.symbolic_outputs().unwrap(),
         &original(
-            "execution_error/tcgen05_alloc_orders_lanes_plain_accesses",
+            "check_failure/tcgen05_alloc_orders_lanes_plain_accesses",
             config(32, 0, 4, 1),
         ),
     );

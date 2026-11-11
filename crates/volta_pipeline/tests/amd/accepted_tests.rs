@@ -855,7 +855,7 @@ fn symbolic_integer_outputs_are_rejected() {
         array("in", 0x10000, ArrayKind::Input),
         array("out", 0x20000, ArrayKind::Output(U32)),
     ];
-    common::amd::check_rejected_kernel("copy", "copy", &arrays, |result| {
+    common::amd::check_rejected_kernel("success/copy", "copy", &arrays, |result| {
         matches!(
             result,
             Ok(AnalysisResult {
@@ -874,19 +874,24 @@ fn symbolic_integer_outputs_are_rejected() {
 #[test]
 fn nan_float_outputs_are_rejected() {
     let arrays = [array("out", 0x10000, ArrayKind::Output(F32))];
-    common::amd::check_rejected_kernel("output_constants", "nan_output", &arrays, |result| {
-        matches!(
-            result,
-            Ok(AnalysisResult {
-                terminal: Terminal::Aborted {
-                    error: EvalError::InvalidFloatOutput { address: 0x10000 },
+    common::amd::check_rejected_kernel(
+        "success/output_constants",
+        "nan_output",
+        &arrays,
+        |result| {
+            matches!(
+                result,
+                Ok(AnalysisResult {
+                    terminal: Terminal::Aborted {
+                        error: EvalError::InvalidFloatOutput { address: 0x10000 },
+                        ..
+                    },
+                    symbolic_outputs: None,
                     ..
-                },
-                symbolic_outputs: None,
-                ..
-            })
-        )
-    });
+                })
+            )
+        },
+    );
 }
 
 // Test that integer arithmetic and bitwise operations reject symbolic inputs,
@@ -903,19 +908,24 @@ fn integer_operations_on_symbolic_values_are_rejected() {
         "symbolic_add",
         "symbolic_not",
     ] {
-        common::amd::check_rejected_kernel("unsupported", kernel, &arrays, |result| {
-            matches!(
-                result,
-                Ok(AnalysisResult {
-                    terminal: Terminal::Aborted {
-                        error: EvalError::SymbolicWord { lane: 0 },
+        common::amd::check_rejected_kernel(
+            "execution_error/unsupported",
+            kernel,
+            &arrays,
+            |result| {
+                matches!(
+                    result,
+                    Ok(AnalysisResult {
+                        terminal: Terminal::Aborted {
+                            error: EvalError::SymbolicWord { lane: 0 },
+                            ..
+                        },
+                        symbolic_outputs: None,
                         ..
-                    },
-                    symbolic_outputs: None,
-                    ..
-                })
-            )
-        });
+                    })
+                )
+            },
+        );
     }
 }
 
@@ -926,19 +936,24 @@ fn scalar_operations_on_symbolic_masks_are_rejected() {
         array("input", 0x10000, ArrayKind::Input),
         array("output", 0x20000, ArrayKind::Output(U32)),
     ];
-    common::amd::check_rejected_kernel("unsupported", "symbolic_mask", &arrays, |result| {
-        matches!(
-            result,
-            Ok(AnalysisResult {
-                terminal: Terminal::Aborted {
-                    error: EvalError::SymbolicSgpr(_),
+    common::amd::check_rejected_kernel(
+        "execution_error/unsupported",
+        "symbolic_mask",
+        &arrays,
+        |result| {
+            matches!(
+                result,
+                Ok(AnalysisResult {
+                    terminal: Terminal::Aborted {
+                        error: EvalError::SymbolicSgpr(_),
+                        ..
+                    },
+                    symbolic_outputs: None,
                     ..
-                },
-                symbolic_outputs: None,
-                ..
-            })
-        )
-    });
+                })
+            )
+        },
+    );
 }
 
 // Test that a float comparison choosing between two constants is rejected, because the
@@ -949,36 +964,52 @@ fn selecting_between_constants_under_a_symbolic_condition_is_rejected() {
         array("input", 0x10000, ArrayKind::Input),
         array("output", 0x20000, ArrayKind::Output(F32)),
     ];
-    common::amd::check_rejected_kernel("unsupported", "symbolic_select", &arrays, |result| {
-        matches!(
-            result,
-            Ok(AnalysisResult {
-                terminal: Terminal::Aborted {
-                    error: EvalError::AmbiguousSelect { lane: 0 },
+    common::amd::check_rejected_kernel(
+        "execution_error/unsupported",
+        "symbolic_select",
+        &arrays,
+        |result| {
+            matches!(
+                result,
+                Ok(AnalysisResult {
+                    terminal: Terminal::Aborted {
+                        error: EvalError::AmbiguousSelect { lane: 0 },
+                        ..
+                    },
+                    symbolic_outputs: None,
                     ..
-                },
-                symbolic_outputs: None,
-                ..
-            })
-        )
-    });
+                })
+            )
+        },
+    );
 }
 
-// Test that a store executed by only the odd lanes is rejected for changing EXEC.
+// Symbolic input comparisons cannot select a concrete EXEC mask, even when saveexec is modeled.
 #[test]
 fn intra_wave_divergence_is_rejected() {
     let arrays = [
         array("input", 0x10000, ArrayKind::Input),
         array("output", 0x20000, ArrayKind::Output(F32)),
     ];
-    common::amd::check_rejected_kernel("unsupported", "divergent_store", &arrays, |result| {
-        matches!(
-            result,
-            Err(AnalysisError::Lower(LowerError::Instruction { opcode, reason, .. }))
-                if opcode == "s_and_saveexec_b64"
-                    && *reason == "EXEC changes are unsupported: intra-wave divergence is not modeled"
-        )
-    });
+    common::amd::check_rejected_kernel(
+        "execution_error/unsupported",
+        "divergent_store",
+        &arrays,
+        |result| {
+            matches!(
+                result,
+                Ok(AnalysisResult {
+                    terminal: Terminal::Aborted {
+                        wave: WaveId(0),
+                        pc: InstrId(6),
+                        error: EvalError::SymbolicVcc { lane: 0 },
+                    },
+                    symbolic_outputs: None,
+                    ..
+                })
+            )
+        },
+    );
 }
 
 mod lds_completion {
@@ -1269,9 +1300,12 @@ fn two_lds_writes_in_the_same_wave_are_rejected() {
             later: ds_write_lane(32),
         }),
     };
-    common::amd::check_rejected_kernel("lds_race", "write_write_race", &arrays, |result| {
-        result.as_ref().is_ok_and(|run| run.terminal == expected)
-    });
+    common::amd::check_rejected_kernel(
+        "execution_error/lds_race",
+        "write_write_race",
+        &arrays,
+        |result| result.as_ref().is_ok_and(|run| run.terminal == expected),
+    );
 }
 
 // Test that lgkmcnt(1) completes every DS instruction in flight but the last, writes included,
