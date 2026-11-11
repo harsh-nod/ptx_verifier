@@ -13,7 +13,7 @@ use volta_amd_analysis::frontend::ast::Operand;
 use volta_amd_analysis::frontend::parse::parse_kernel;
 use volta_amd_analysis::{
     AnalysisError, AnalysisResult, ArrayKind, EvalError, InstrId, LdsLaneAccess, LdsRace,
-    LowerError, StoreConflict, Terminal, WaveId, WorkgroupLaunch, analyze, analyze_grid,
+    StoreConflict, Terminal, WaveId, WorkgroupLaunch, analyze, analyze_grid,
 };
 use volta_expr::SymbolicOutputs;
 use volta_graph_check::{GraphConclusion, check_graph};
