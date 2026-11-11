@@ -1,0 +1,17 @@
+[package]
+name = "volta_ptx_analysis"
+version.workspace = true
+edition.workspace = true
+
+[features]
+default = []
+logging = ["volta_common/logging"]  # Full logging when enabled
+
+[dependencies]
+volta_common.workspace = true
+volta_expr.workspace = true
+volta_graph.workspace = true
+
+id_collections.workspace = true
+serde.workspace = true
+serde_json.workspace = true

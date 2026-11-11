@@ -6,7 +6,7 @@ use volta_graph_check::GraphConclusion;
 use volta_pipeline::{GraphEvidence, Isa, LeanExtractionError, Spec};
 use volta_ptx_analysis::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue};
 
-const SOURCE: &str = include_str!("../../volta_amd_analysis/tests/fixtures/lds_sync.s");
+const SOURCE: &str = include_str!("amd/success/lds_sync.s");
 
 fn run(kernel: &str) -> volta_pipeline::KernelRun {
     let mut config = AnalysisConfig::new((128, 1, 1));

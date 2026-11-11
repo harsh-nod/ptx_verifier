@@ -11,6 +11,7 @@ use std::time::Instant;
 
 use std::fmt;
 
+use volta_common::logging::info;
 use volta_graph::{
     AmdArchitecture, Assumption, BlockedThread, EventGraph, EventId, Terminal, ThreadUnit,
 };
@@ -24,7 +25,6 @@ use crate::allocation_permit::{
 use crate::barrier_epoch::{
     EpochResult, EpochViolation, check_mbarrier_epochs, check_named_barrier_epochs,
 };
-use crate::logging::info;
 use crate::mbarrier_ordering::{
     MbarrierOrderingResult, PhaseBalanceViolation, check_mbarrier_ordering,
 };

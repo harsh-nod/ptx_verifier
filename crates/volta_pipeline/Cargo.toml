@@ -2,14 +2,14 @@
 name = "volta_pipeline"
 version.workspace = true
 edition.workspace = true
+autotests = false
 
 [features]
 default = []
-logging = ["dep:log"]  # Full logging when enabled
+logging = ["volta_common/logging"]  # Full logging when enabled
 
 [dependencies]
 volta_amdgpu_analysis.workspace = true
-log = { workspace = true, optional = true }
 rug.workspace = true
 volta_amd_analysis.workspace = true
 volta_common.workspace = true
@@ -24,3 +24,343 @@ volta_trainium_analysis.workspace = true
 [dev-dependencies]
 volta_trainium_analysis.workspace = true
 volta_viz.workspace = true
+
+[[test]]
+name = "ptx_tests"
+path = "tests/ptx/main.rs"
+
+[[test]]
+name = "amd_tests"
+path = "tests/amd/main.rs"
+
+[[test]]
+name = "trainium_tests"
+path = "tests/trainium/main.rs"
+
+[[test]]
+name = "amd_frontend_compatibility_tests"
+path = "tests/amd_frontend_compatibility_tests.rs"
+
+[[test]]
+name = "amd_wave_frontend_tests"
+path = "tests/amd_wave_frontend_tests.rs"
+
+[[test]]
+name = "architecture_tests"
+path = "tests/architecture_tests.rs"
+
+[[test]]
+name = "cdna_bfe64_tests"
+path = "tests/cdna_bfe64_tests.rs"
+
+[[test]]
+name = "cdna_mixed_lgkm_tests"
+path = "tests/cdna_mixed_lgkm_tests.rs"
+
+[[test]]
+name = "cdna_raw_buffer_alias_tests"
+path = "tests/cdna_raw_buffer_alias_tests.rs"
+
+[[test]]
+name = "cdna_raw_buffer_wide_tests"
+path = "tests/cdna_raw_buffer_wide_tests.rs"
+
+[[test]]
+name = "early_memory_conflicts_tests"
+path = "tests/early_memory_conflicts_tests.rs"
+
+[[test]]
+name = "early_readiness_tests"
+path = "tests/early_readiness_tests.rs"
+
+[[test]]
+name = "frontend_dispatch_tests"
+path = "tests/frontend_dispatch_tests.rs"
+
+[[test]]
+name = "gfx1250_async_memory_tests"
+path = "tests/gfx1250_async_memory_tests.rs"
+
+[[test]]
+name = "gfx1250_boundary_parity_tests"
+path = "tests/gfx1250_boundary_parity_tests.rs"
+
+[[test]]
+name = "gfx1250_buffer_async_interaction"
+path = "tests/gfx1250_buffer_async_interaction.rs"
+
+[[test]]
+name = "gfx1250_byte_definedness_tests"
+path = "tests/gfx1250_byte_definedness_tests.rs"
+
+[[test]]
+name = "gfx1250_compiler_tests"
+path = "tests/gfx1250_compiler_tests.rs"
+
+[[test]]
+name = "gfx1250_convolution_numeric_tests"
+path = "tests/gfx1250_convolution_numeric_tests.rs"
+
+[[test]]
+name = "gfx1250_ds_two_address_tests"
+path = "tests/gfx1250_ds_two_address_tests.rs"
+
+[[test]]
+name = "gfx1250_e5m2_tests"
+path = "tests/gfx1250_e5m2_tests.rs"
+
+[[test]]
+name = "gfx1250_exact_f32_parity"
+path = "tests/gfx1250_exact_f32_parity.rs"
+
+[[test]]
+name = "gfx1250_exact_integer_parity"
+path = "tests/gfx1250_exact_integer_parity.rs"
+
+[[test]]
+name = "gfx1250_exact_scalar_parity"
+path = "tests/gfx1250_exact_scalar_parity.rs"
+
+[[test]]
+name = "gfx1250_exact_wave_parity"
+path = "tests/gfx1250_exact_wave_parity.rs"
+
+[[test]]
+name = "gfx1250_flat_scaled_index_tests"
+path = "tests/gfx1250_flat_scaled_index_tests.rs"
+
+[[test]]
+name = "gfx1250_float_bit_transport_tests"
+path = "tests/gfx1250_float_bit_transport_tests.rs"
+
+[[test]]
+name = "gfx1250_fp8_byte_selection"
+path = "tests/gfx1250_fp8_byte_selection.rs"
+
+[[test]]
+name = "gfx1250_global_byte_alignment_tests"
+path = "tests/gfx1250_global_byte_alignment_tests.rs"
+
+[[test]]
+name = "gfx1250_matrix_layout_parity"
+path = "tests/gfx1250_matrix_layout_parity.rs"
+
+[[test]]
+name = "gfx1250_matrix_numeric_parity"
+path = "tests/gfx1250_matrix_numeric_parity.rs"
+
+[[test]]
+name = "gfx1250_matrix_publication"
+path = "tests/gfx1250_matrix_publication.rs"
+
+[[test]]
+name = "gfx1250_mechanism_boundary_tests"
+path = "tests/gfx1250_mechanism_boundary_tests.rs"
+
+[[test]]
+name = "gfx1250_mechanism_lifetime"
+path = "tests/gfx1250_mechanism_lifetime.rs"
+
+[[test]]
+name = "gfx1250_memory_payload_parity_tests"
+path = "tests/gfx1250_memory_payload_parity_tests.rs"
+
+[[test]]
+name = "gfx1250_mul_u64_tests"
+path = "tests/gfx1250_mul_u64_tests.rs"
+
+[[test]]
+name = "gfx1250_named_barrier_tests"
+path = "tests/gfx1250_named_barrier_tests.rs"
+
+[[test]]
+name = "gfx1250_named_consumer_tests"
+path = "tests/gfx1250_named_consumer_tests.rs"
+
+[[test]]
+name = "gfx1250_named_lifecycle_tests"
+path = "tests/gfx1250_named_lifecycle_tests.rs"
+
+[[test]]
+name = "gfx1250_native_async_lds"
+path = "tests/gfx1250_native_async_lds.rs"
+
+[[test]]
+name = "gfx1250_native_flat_tests"
+path = "tests/gfx1250_native_flat_tests.rs"
+
+[[test]]
+name = "gfx1250_original_matrix_tests"
+path = "tests/gfx1250_original_matrix_tests.rs"
+
+[[test]]
+name = "gfx1250_packed_data_parity_tests"
+path = "tests/gfx1250_packed_data_parity_tests.rs"
+
+[[test]]
+name = "gfx1250_packed_subword_tests"
+path = "tests/gfx1250_packed_subword_tests.rs"
+
+[[test]]
+name = "gfx1250_portable_abi_tests"
+path = "tests/gfx1250_portable_abi_tests.rs"
+
+[[test]]
+name = "gfx1250_portable_copy_tests"
+path = "tests/gfx1250_portable_copy_tests.rs"
+
+[[test]]
+name = "gfx1250_portable_graph_tests"
+path = "tests/gfx1250_portable_graph_tests.rs"
+
+[[test]]
+name = "gfx1250_protocol_lifetime_tests"
+path = "tests/gfx1250_protocol_lifetime_tests.rs"
+
+[[test]]
+name = "gfx1250_raw_buffer_tests"
+path = "tests/gfx1250_raw_buffer_tests.rs"
+
+[[test]]
+name = "gfx1250_saveexec_tests"
+path = "tests/gfx1250_saveexec_tests.rs"
+
+[[test]]
+name = "gfx1250_scalar_and64"
+path = "tests/gfx1250_scalar_and64.rs"
+
+[[test]]
+name = "gfx1250_scalar_compare64"
+path = "tests/gfx1250_scalar_compare64.rs"
+
+[[test]]
+name = "gfx1250_signal_count_tests"
+path = "tests/gfx1250_signal_count_tests.rs"
+
+[[test]]
+name = "gfx1250_tensor_bounds_tests"
+path = "tests/gfx1250_tensor_bounds_tests.rs"
+
+[[test]]
+name = "gfx1250_tensor_capture_tests"
+path = "tests/gfx1250_tensor_capture_tests.rs"
+
+[[test]]
+name = "gfx1250_tensor_parity_tests"
+path = "tests/gfx1250_tensor_parity_tests.rs"
+
+[[test]]
+name = "gfx1250_true16_graph_tests"
+path = "tests/gfx1250_true16_graph_tests.rs"
+
+[[test]]
+name = "gfx1250_unnamed_end_tests"
+path = "tests/gfx1250_unnamed_end_tests.rs"
+
+[[test]]
+name = "gfx1250_upstream_adapters"
+path = "tests/gfx1250_upstream_adapters.rs"
+
+[[test]]
+name = "gfx942_compiler_tests"
+path = "tests/gfx942_compiler_tests.rs"
+
+[[test]]
+name = "gfx942_original_f16_tests"
+path = "tests/gfx942_original_f16_tests.rs"
+
+[[test]]
+name = "gfx950_buffer_lds_tests"
+path = "tests/gfx950_buffer_lds_tests.rs"
+
+[[test]]
+name = "gfx950_byvalue_tests"
+path = "tests/gfx950_byvalue_tests.rs"
+
+[[test]]
+name = "gfx950_data_parity_tests"
+path = "tests/gfx950_data_parity_tests.rs"
+
+[[test]]
+name = "gfx950_descriptor_parity_tests"
+path = "tests/gfx950_descriptor_parity_tests.rs"
+
+[[test]]
+name = "gfx950_float_sign_transport_tests"
+path = "tests/gfx950_float_sign_transport_tests.rs"
+
+[[test]]
+name = "gfx950_integer64_tests"
+path = "tests/gfx950_integer64_tests.rs"
+
+[[test]]
+name = "gfx950_matrix_parity_tests"
+path = "tests/gfx950_matrix_parity_tests.rs"
+
+[[test]]
+name = "gfx950_memory_control_tests"
+path = "tests/gfx950_memory_control_tests.rs"
+
+[[test]]
+name = "gfx950_memory_payload_tests"
+path = "tests/gfx950_memory_payload_tests.rs"
+
+[[test]]
+name = "gfx950_negative_equivalence_tests"
+path = "tests/gfx950_negative_equivalence_tests.rs"
+
+[[test]]
+name = "gfx950_parser_parity_tests"
+path = "tests/gfx950_parser_parity_tests.rs"
+
+[[test]]
+name = "gfx950_payload_parity_tests"
+path = "tests/gfx950_payload_parity_tests.rs"
+
+[[test]]
+name = "gfx950_portable_scalar_tests"
+path = "tests/gfx950_portable_scalar_tests.rs"
+
+[[test]]
+name = "gfx950_private_profile_tests"
+path = "tests/gfx950_private_profile_tests.rs"
+
+[[test]]
+name = "gfx950_raw_buffer_tests"
+path = "tests/gfx950_raw_buffer_tests.rs"
+
+[[test]]
+name = "gfx950_raw_buffer_x2_tests"
+path = "tests/gfx950_raw_buffer_x2_tests.rs"
+
+[[test]]
+name = "gfx950_real_domain_tests"
+path = "tests/gfx950_real_domain_tests.rs"
+
+[[test]]
+name = "gfx950_reduction_qualification_tests"
+path = "tests/gfx950_reduction_qualification_tests.rs"
+
+[[test]]
+name = "gfx950_scalar_parity_tests"
+path = "tests/gfx950_scalar_parity_tests.rs"
+
+[[test]]
+name = "gfx950_signed_mad_tests"
+path = "tests/gfx950_signed_mad_tests.rs"
+
+[[test]]
+name = "gfx950_software_hazard_tests"
+path = "tests/gfx950_software_hazard_tests.rs"
+
+[[test]]
+name = "gfx950_workload_safety_tests"
+path = "tests/gfx950_workload_safety_tests.rs"
+
+[[test]]
+name = "legacy_flat_aperture_tests"
+path = "tests/legacy_flat_aperture_tests.rs"
+
+[[test]]
+name = "native_target_spellings"
+path = "tests/native_target_spellings.rs"

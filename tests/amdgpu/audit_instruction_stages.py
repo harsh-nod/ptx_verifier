@@ -73,7 +73,11 @@ def gfx1250():
     stage_table = (ROOT / "tests/gfx1250/full-parity/stage-support.md").read_text()
     tests = sorted(set(re.findall(r"`([a-z0-9_]+\.rs)`", stage_table)))
     for name in tests:
-        if not (ROOT / "crates/volta_pipeline/tests" / name).is_file():
+        path = ROOT / "crates/volta_pipeline/tests" / name
+        # The historical stage table predates upstream's per-ISA test layout.
+        if not path.is_file() and name == "rejected_tests.rs":
+            path = path.parent / "ptx" / name
+        if not path.is_file():
             raise ValueError(f"missing gfx1250 stage-table test: {name}")
     return {"source_inventory": {"modules": len(inventory), "instructions": instructions,
                                  "components": components, "mnemonic_spellings": len(mnemonics)},

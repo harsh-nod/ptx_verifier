@@ -1,7 +1,6 @@
 # volta_common
 
-Base utilities shared by the frontend, the analysis and the CLI. It depends on
-no other Volta crate.
+Base utilities shared by Volta's crates. It depends on no other Volta crate.
 
 - **Shared configuration** (`config.rs`): `AnalysisConfig`, `ArrayDef`,
   `ArrayKind`, `ParamValue` and `SharedAllocation` describe launch dimensions,
@@ -18,7 +17,7 @@ no other Volta crate.
   their original meaning.
 - **Tensor-map fields** (`tensor_map.rs`): host descriptor values used by launch
   configuration and PTX lowering, independent of interpreter operands.
-- **`Span`** (`lib.rs`): a source location as a `(low, high)` byte-offset pair.
+- **`span::Span`** (`span.rs`): a source location with named `start` and `end` byte offsets, built with `Span::new`.
 - **`report::Locate<E>`** (`report.rs`): an error wrapper that adds an optional span and
   file path to an error kind `E`. Each crate defines an error kind enum and
   aliases `Locate<Kind>` as its error type. As an error travels up,
@@ -30,6 +29,14 @@ no other Volta crate.
 - **`report_error`** (`report.rs`): renders an error as a titled message with
   the source snippet at its span, colored with ANSI escapes and wrapped to the
   terminal.
+- **`position`** (`report.rs`): where a byte offset falls, as a 1-based line
+  and column (in characters) and that line's text. `report_error`'s
+  `path:line:column` header and `volta_py`'s error messages both use it.
+- **`logging`** (`logging.rs`): the `debug`, `info`, `trace` and `warn` macros
+  the other crates log through. With the `logging` feature they are `log`'s
+  own; without it, a stand-in compiles its arguments in a branch that never
+  runs, so a value computed only for a log still counts as used. Each crate's
+  own `logging` feature turns on this one.
 - **`run_log::RunLog`** (`run_log.rs`): the per-invocation log file the
   `volta` binary writes (`<unix-seconds>-<pid>-<command>.log` under
   `--log-dir`, default `volta-logs/`). With the `logging` feature, `tee`

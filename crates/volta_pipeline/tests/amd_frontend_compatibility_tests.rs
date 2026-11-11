@@ -10,7 +10,7 @@ use volta_expr::{ExprArena, SymbolicOutputs};
 use volta_graph_check::{GraphConclusion, PropertyResult};
 use volta_ptx_analysis::{AnalysisConfig, ArrayDef, ArrayKind, ParamValue};
 
-const COPY: &str = include_str!("../../volta_amd_analysis/tests/fixtures/copy.s");
+const COPY: &str = include_str!("amd/success/copy.s");
 
 #[test]
 fn frontends_agree_on_the_upstream_compiler_kernel() {

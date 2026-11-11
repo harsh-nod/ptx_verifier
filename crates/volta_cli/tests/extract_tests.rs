@@ -76,8 +76,8 @@ fn extracts_all_three_isas_and_exits_successfully() {
     let dir = TestDir::new();
     for (kernel, size) in [
         ("examples/quickstart/add.ptx", 128),
-        ("crates/volta_amd_analysis/tests/fixtures/add.s", 64),
-        ("crates/volta_trainium_analysis/tests/fixtures/add.py", 256),
+        ("crates/volta_pipeline/tests/amd/success/add.s", 64),
+        ("crates/volta_pipeline/tests/trainium/success/add.py", 256),
     ] {
         let out = dir.0.join(format!("add_{size}.lean"));
         let mut command = extract(&root().join(kernel), &out);
@@ -100,7 +100,7 @@ fn extracts_with_a_launch_file_and_tolerance() {
     let dir = TestDir::new();
     let out = dir.0.join("sigmoid.lean");
     let output = extract(
-        &root().join("crates/volta_amd_analysis/tests/fixtures/sigmoid.s"),
+        &root().join("crates/volta_pipeline/tests/amd/success/sigmoid.s"),
         &out,
     )
     .arg("--config")
@@ -112,6 +112,26 @@ fn extracts_with_a_launch_file_and_tolerance() {
     let lean = std::fs::read_to_string(out).unwrap();
     assert_eq!(lean.matches(" : Prop :=").count(), 64);
     assert!(lean.contains("≤ (0.001 : ℝ)"));
+}
+
+// Test that the fused GEMM-sigmoid launch states all 64 outputs within 1/1000 of sigmoid(A B).
+#[test]
+fn extracts_ck_gemm_sigmoid_with_a_tolerance() {
+    let dir = TestDir::new();
+    let out = dir.0.join("gemm_sigmoid.lean");
+    let output = extract(
+        &root().join("crates/volta_pipeline/tests/amd/success/ck_gemm_sigmoid.s"),
+        &out,
+    )
+    .arg("--config")
+    .arg(root().join("examples/lean/gemm_sigmoid_amd.json"))
+    .args(["--tolerance", "1/1000"])
+    .output()
+    .unwrap();
+    assert_status(&output, 0);
+    let lean = std::fs::read_to_string(out).unwrap();
+    assert_eq!(lean.matches(" : Prop :=").count(), 64);
+    assert_eq!(lean.matches("≤ (0.001 : ℝ)").count(), 64);
 }
 
 #[test]
@@ -151,7 +171,9 @@ fn a_deadlock_does_not_write_lean_output() {
     let dir = TestDir::new();
     let out = dir.0.join("deadlock.lean");
     let output = extract(
-        &root().join("crates/volta_pipeline/tests/ptx/failing/mismatched_barriers_deadlock.ptx"),
+        &root().join(
+            "crates/volta_pipeline/tests/ptx/execution_error/mismatched_barriers_deadlock.ptx",
+        ),
         &out,
     )
     .args(["--block", "2", "--spec", ADD_SPEC, "--dim", "N=1"])
@@ -167,7 +189,7 @@ fn extraction_needs_a_spec() {
     let dir = TestDir::new();
     let out = dir.0.join("missing.lean");
     let output = extract(
-        &root().join("crates/volta_trainium_analysis/tests/fixtures/add.py"),
+        &root().join("crates/volta_pipeline/tests/trainium/success/add.py"),
         &out,
     )
     .output()

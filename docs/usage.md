@@ -66,7 +66,7 @@ with sampling. Selection never rebases outputs or fills missing ones.
 `--shared-allocation`, `--workgroup-id`, `--early-readiness` or
 `--early-memory-conflicts`.
 Backend and target selection remain separate options.
-See [launch_file.rs](../crates/volta_ptx_analysis/src/launch_file.rs) for the
+See [launch_file.rs](../crates/frontend/volta_ptx_analysis/src/launch_file.rs) for the
 shared JSON schema and validation rules.
 
 ## Parse and analyze

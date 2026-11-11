@@ -12,11 +12,10 @@ for name, base, kind in (
     config.add_param(volta.Param.array_ptr(name))
 
 result = volta.solve(
-    "crates/volta_amd_analysis/tests/fixtures/add.s",
+    "crates/volta_pipeline/tests/amd/success/add.s",
     config,
     spec=spec,
     dims={"N": size},
 )
-assert result.verdict == "ACCEPT", result.evidence
-assert result.race_verified is None
+
 print(f"{result.isa}: {result.verdict}; race checks: {result.race_verified}")

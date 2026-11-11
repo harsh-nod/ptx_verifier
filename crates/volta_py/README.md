@@ -138,3 +138,27 @@ typed failures and the workload harness. Original-shape workload checks are in
 `tests/test_gfx1250_original_workloads.py`; set
 `VOLTA_GFX1250_ORIGINAL_FULL=1` for the heavy full-workload path described in
 the [workload guide](../../tests/gfx1250/full-parity/README.md).
+
+## Lean proof checking
+
+`extract_lean(..., equivalence=True)` additionally runs the canonical solver on
+the same execution and returns its verdict and evidence with the generated
+propositions. The default exports obligations without that extra comparison.
+
+`prove_lean(path, config, spec=..., output_dir=..., lean_project=...)` extracts
+obligations through the same graph and native-prefix gates, then invokes the
+installed Claude Code prover in a Mathlib project. It requires those optional
+tools; ordinary analysis and extraction do not. `check_lean_proof(directory,
+lean_project=...)` checks an existing proof without invoking the prover.
+`LeanProof.proved` comes from the final acceptance check, independently of the
+prover's own claim. See the [Lean backend](../backend/volta_lean/README.md) for
+setup, options and the proof checker contract.
+
+Native results retain `workgroup_id` and `assumptions` in `LeanProof`, just as
+`SolveResult` and `LeanExtraction` do. A proof concerns the extracted mathematical
+outputs under those assumptions; it does not expand the selected execution or
+establish physical floating-point or whole-grid correctness.
+
+Rust logs are forwarded to Python's `logging`; `verbose=True` on `prove_lean`
+also echoes progress to stderr. Invalid, rejected or incomplete native executions
+fail extraction before external prover or Lean-project discovery.

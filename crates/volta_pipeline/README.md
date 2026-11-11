@@ -103,11 +103,11 @@ the supported forms and reproduction commands:
 - [gfx950](../../tests/gfx950/README.md)
 - [gfx1250](../../tests/gfx1250/README.md)
 
-`trainium_equivalence_tests.rs` checks the NKI fixtures and vendored tutorials
+`trainium/equivalence_tests.rs` checks the NKI fixtures and vendored tutorials
 against independent specs, including negative controls. Default tests cover
 complete outputs at bounded sizes and selected rows of larger attention
 kernels. Full-size attention checks are explicitly ignored tests; see the
-[Trainium crate README](../volta_trainium_analysis/README.md) for their scope,
+[Trainium crate README](../frontend/volta_trainium_analysis/README.md) for their scope,
 resource costs and real-arithmetic assumptions. `just trainium` runs the default
 Trainium tests and equivalence suite in release mode.
 
@@ -123,3 +123,13 @@ The `record_viewer_runs` example records source/launch pairs. The
 `measure_native_export` example analyzes a native source/launch pair, requires
 a completed graph-verified run, and measures viewer export sizes. These
 examples do not run code on a GPU or compare a mathematical specification.
+
+The upstream ISA suites use three explicit targets: `ptx_tests`, `amd_tests` and
+`trainium_tests`, with modules in `tests/<isa>/` and fixtures filed by outcome
+(`success`, `execution_error`, and the applicable rejection folders). Each
+standalone native AMD regression remains an explicit target in `Cargo.toml`,
+so `autotests = false` does not omit the fork's target and pipeline controls.
+
+The experimental AMD suite also proves CK RMSNorm and average-pooling outputs
+and checks graph ordering before reading successful symbolic outputs. Its
+new fixtures and launch examples retain the experimental LDS-only safety scope.

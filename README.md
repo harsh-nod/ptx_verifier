@@ -105,11 +105,18 @@ Python APIs; [Lean examples](examples/lean) demonstrate extraction. A Python
 configuration with an explicit backend selects that backend rather than
 inferring it from the filename.
 
+The optional [Lean backend](crates/backend/volta_lean/README.md) can check an
+existing proof or invoke an installed Claude Code prover through Python's
+`check_lean_proof` and `prove_lean`. Proving requires a configured Mathlib project;
+ordinary analysis and obligation extraction remain CPU-only. Native proof results
+retain the selected workgroup and modeling assumptions. See the
+[Python API](crates/volta_py/README.md#lean-proof-checking) for usage.
+
 ## Supported targets and scope
 
 | Backend / target | Execution model | Reference |
 | --- | --- | --- |
-| `ptx` | NVIDIA warp32; selected PTX instructions and synchronization objects | [PTX analyzer](crates/volta_ptx_analysis/README.md) |
+| `ptx` | NVIDIA warp32; selected PTX instructions and synchronization objects | [PTX analyzer](crates/frontend/volta_ptx_analysis/README.md) |
 | `amdgpu` / `gfx942` | Wave64; selected CDNA3 scalar/vector, memory and MFMA forms | [gfx942 fixtures and scope](tests/gfx942/README.md) |
 | `amdgpu` / `gfx950` | Wave64; selected CDNA4 instructions and MFMA forms | [gfx950 fixtures and scope](tests/gfx950/README.md) |
 | `amdgpu` / `gfx1250` | Wave32; selected WMMA, waits, named/split barriers and tensor transfers | [gfx1250 model](tests/gfx1250/CONTRACT.md) |
@@ -317,10 +324,10 @@ are:
 
 | Location | Responsibility |
 | --- | --- |
-| `crates/volta_ptx_analysis`, `crates/volta_amdgpu_analysis` | Parse and execute the selected backend; produce expressions, events and provenance |
+| `crates/frontend/volta_ptx_analysis`, `crates/volta_amdgpu_analysis` | Parse and execute the selected backend; produce expressions, events and provenance |
 | `crates/volta_expr`, `crates/volta_spec` | Shared symbolic expressions and the mathematical specification language |
 | `crates/volta_graph`, `crates/volta_graph_check` | Typed event graph and target-selected safety checks |
-| `crates/volta_equivalence` | Compare complete output index sets and their expressions |
+| `crates/backend/volta_equivalence` | Compare complete output index sets and their expressions |
 | `crates/volta_pipeline` | Combine the independent safety and equivalence results |
 | `crates/volta_cli`, `crates/volta_py`, `crates/volta_viz` | Command-line, Python and browser interfaces |
 | `tests/`, `ai_compiler_kernels/`, `external/` | Compiler fixtures, workload configurations, independent oracles and extraction tools |

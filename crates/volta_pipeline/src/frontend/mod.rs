@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::path::Path;
 
-use volta_common::Span;
+use volta_common::span::Span;
 use volta_expr::SymbolicOutputs;
 use volta_graph::EventGraph;
 use volta_graph_check::GraphReport;
