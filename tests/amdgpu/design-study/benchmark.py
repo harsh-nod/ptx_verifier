@@ -98,6 +98,20 @@ def expectation_text(document, case, root):
     return historical.decode("utf-8")
 
 
+def study_input(relative, root=ROOT):
+    """Locate the two byte-pinned controls moved by upstream's outcome folders."""
+    path = root / relative
+    if path.is_file():
+        return path
+    moved = {
+        "crates/volta_pipeline/tests/ptx/execution_error/shared_write_write_race.ptx":
+            "crates/volta_pipeline/tests/ptx/check_failure/shared_write_write_race.ptx",
+        "crates/volta_pipeline/tests/ptx/execution_error/cp_async_same_thread_store_before_wait_is_hazard.ptx":
+            "crates/volta_pipeline/tests/ptx/check_failure/cp_async_same_thread_store_before_wait_is_hazard.ptx",
+    }
+    return root / moved.get(str(relative), relative)
+
+
 def validate_cases(document, root=ROOT):
     corpus.require(document["schema_version"] == 1, "unsupported measurement schema")
     cases = document["cases"]
@@ -116,13 +130,13 @@ def validate_cases(document, root=ROOT):
             if case.get(field):
                 path = Path(case[field])
                 corpus.require(not path.is_absolute() and ".." not in path.parts, "unsafe case input")
-                corpus.require(corpus.sha(root / path) == case[field + "_sha256"], "stale case input: " + case["id"])
+                corpus.require(corpus.sha(study_input(path, root)) == case[field + "_sha256"], "stale case input: " + case["id"])
         if case.get("backend", "amdgpu") == "amdgpu":
-            corpus.require(corpus.harness.native_target_of((root / case["assembly"]).read_text()) == case["target"],
+            corpus.require(corpus.harness.native_target_of(study_input(case["assembly"], root).read_text()) == case["target"],
                            "native target relabelled")
         else:
             corpus.require(re.search(r"(?m)^\s*\.target\s+" + re.escape(case["target"]) + r"(?:\s|,|$)",
-                                     (root / case["assembly"]).read_text()), "PTX source target differs")
+                                     study_input(case["assembly"], root).read_text()), "PTX source target differs")
         if case.get("baseline_id"):
             original = originals[case["baseline_id"]]
             for field in ("source", "assembly", "spec", "source_sha256", "assembly_sha256", "spec_sha256",
@@ -182,7 +196,7 @@ def validate_cases(document, root=ROOT):
         for field in ("kernel", "target", "source", "assembly", "spec", "source_sha256", "assembly_sha256", "spec_sha256",
                       "block", "grid", "workgroup", "dimensions", "arrays", "params", "expected_outputs", "output_indices"):
             corpus.require(case[field] == counterpart[field], "family mutation changed original contract: " + field)
-        lines = (root / case["assembly"]).read_text().splitlines()
+        lines = study_input(case["assembly"], root).read_text().splitlines()
         anchors = case["readiness_ground_truth"]
         positions = [anchors[key]["source_line"] for key in ("producer", "removed_completion", "unsafe_use")]
         corpus.require(positions == sorted(set(positions)), "invalid producer/wait/use order")
@@ -204,7 +218,7 @@ def load_cases(path=MANIFEST, root=ROOT):
 
 
 def materialize(case, directory):
-    source = (ROOT / case["assembly"]).read_text()
+    source = study_input(case["assembly"]).read_text()
     lines = source.splitlines(keepends=True)
     for edit in case.get("edits", []):
         index = edit["source_line"] - 1
